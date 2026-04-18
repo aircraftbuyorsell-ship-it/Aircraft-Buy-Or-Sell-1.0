@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Facebook } from "lucide-react";
+import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
@@ -134,10 +134,10 @@ export default function Listings() {
           </div>
           <button
             onClick={() => setShowFBImport(true)}
-            className="flex items-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+            className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
           >
-            <Facebook className="w-4 h-4" />
-            Import z FB Marketplace
+            <Sparkles className="w-4 h-4" />
+            Import inzerátu
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Facebook, Link2, Sparkles, AlertTriangle, CheckCircle, Globe } from "lucide-react";
+import { X, Facebook, Link2, Sparkles, AlertTriangle, CheckCircle, Globe, MoreHorizontal } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const SUPPORTED_SOURCES = [
@@ -7,6 +7,7 @@ const SUPPORTED_SOURCES = [
   { id: "controller", label: "Controller.com", icon: Globe, color: "#1F4E8C" },
   { id: "trade", label: "Trade-A-Plane", icon: Globe, color: "#C0392B" },
   { id: "planecheck", label: "Planecheck.com", icon: Globe, color: "#0F7A56" },
+  { id: "other", label: "Other", icon: MoreHorizontal, color: "#D4A017" },
 ];
 
 const EMPTY_FORM = {
@@ -148,7 +149,7 @@ Vrať POUZE raw JSON bez markdown.`,
                 <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
                   Zdroj inzerátu
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {SUPPORTED_SOURCES.map((s) => {
                     const active = source === s.id;
                     return (

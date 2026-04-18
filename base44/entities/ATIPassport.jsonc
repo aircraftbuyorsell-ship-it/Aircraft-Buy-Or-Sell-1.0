@@ -1,0 +1,84 @@
+{
+  "name": "ATIPassport",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "triggered_by": {
+      "type": "string",
+      "relationType": "User",
+      "description": "User who triggered the ATI analysis"
+    },
+    "ati_total": {
+      "type": "number",
+      "description": "Total ATI score"
+    },
+    "technical": {
+      "type": "number",
+      "description": "Technical sub-score"
+    },
+    "documentation": {
+      "type": "number",
+      "description": "Documentation sub-score"
+    },
+    "transparency": {
+      "type": "number",
+      "description": "Transparency sub-score"
+    },
+    "transaction_ready": {
+      "type": "number",
+      "description": "Transaction readiness sub-score"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated summary of ATI analysis"
+    },
+    "strengths": {
+      "type": "string",
+      "description": "Identified strengths"
+    },
+    "risks": {
+      "type": "string",
+      "description": "Identified risks"
+    },
+    "recommendations": {
+      "type": "string",
+      "description": "Recommendations"
+    },
+    "omvm_value": {
+      "type": "number",
+      "description": "OMVM estimated value"
+    },
+    "deal_score": {
+      "type": "number",
+      "description": "Deal score"
+    },
+    "deal_label": {
+      "type": "string",
+      "description": "Deal label"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "Discount percentage"
+    },
+    "ati_version": {
+      "type": "string",
+      "default": "v2",
+      "description": "ATI algorithm version"
+    },
+    "stripe_payment_id": {
+      "type": "string",
+      "description": "Stripe payment identifier"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL to generated PDF report"
+    }
+  },
+  "required": [
+    "listing"
+  ]
+}

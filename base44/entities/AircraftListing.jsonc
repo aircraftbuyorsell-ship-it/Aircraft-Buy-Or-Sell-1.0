@@ -1,0 +1,127 @@
+{
+  "name": "AircraftListing",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration number"
+    },
+    "make": {
+      "type": "string",
+      "description": "Aircraft manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year of manufacture"
+    },
+    "total_time": {
+      "type": "number",
+      "description": "Airframe total hours"
+    },
+    "engine_hours": {
+      "type": "number",
+      "description": "Primary engine hours"
+    },
+    "engine_count": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of engines"
+    },
+    "tbo": {
+      "type": "number",
+      "description": "Time between overhauls"
+    },
+    "last_annual": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last annual inspection"
+    },
+    "fresh_annual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the aircraft has a fresh annual"
+    },
+    "avionics": {
+      "type": "string",
+      "description": "Comma separated list of avionics"
+    },
+    "asking_price": {
+      "type": "number",
+      "description": "Asking price"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Price currency"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "sold",
+        "expired",
+        "draft"
+      ],
+      "default": "active",
+      "description": "Listing status"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public",
+      "description": "Listing visibility"
+    },
+    "ati_score": {
+      "type": "number",
+      "description": "ATI score"
+    },
+    "omvm_value": {
+      "type": "number",
+      "description": "OMVM estimated value"
+    },
+    "deal_score": {
+      "type": "number",
+      "description": "Deal score"
+    },
+    "deal_label": {
+      "type": "string",
+      "description": "Deal label (e.g. Great Deal, Fair Price)"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "Discount percentage vs OMVM"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Original listing URL"
+    },
+    "source_platform": {
+      "type": "string",
+      "description": "Source platform name"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated listing summary"
+    },
+    "raw_text": {
+      "type": "string",
+      "description": "Raw scraped text"
+    },
+    "owner": {
+      "type": "string",
+      "relationType": "User",
+      "description": "Listing owner"
+    }
+  },
+  "required": [
+    "make",
+    "model"
+  ]
+}

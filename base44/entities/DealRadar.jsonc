@@ -1,0 +1,50 @@
+{
+  "name": "DealRadar",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "omvm_value": {
+      "type": "number",
+      "description": "OMVM estimated market value"
+    },
+    "asking_price": {
+      "type": "number",
+      "description": "Current asking price"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "Discount percentage vs OMVM"
+    },
+    "deal_score": {
+      "type": "number",
+      "description": "Deal score"
+    },
+    "deal_label": {
+      "type": "string",
+      "description": "Deal label (e.g. Great Deal, Overpriced)"
+    },
+    "base_value": {
+      "type": "number",
+      "description": "Base value before adjustments"
+    },
+    "engine_adj": {
+      "type": "number",
+      "description": "Engine condition adjustment"
+    },
+    "avionics_adj": {
+      "type": "number",
+      "description": "Avionics upgrade adjustment"
+    },
+    "maintenance_adj": {
+      "type": "number",
+      "description": "Maintenance status adjustment"
+    }
+  },
+  "required": [
+    "listing"
+  ]
+}

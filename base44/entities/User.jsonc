@@ -1,0 +1,32 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "dealer",
+        "admin"
+      ],
+      "default": "user",
+      "description": "User role in the platform"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "pro",
+        "enterprise"
+      ],
+      "default": "free",
+      "description": "Subscription plan"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer identifier"
+    }
+  },
+  "required": []
+}

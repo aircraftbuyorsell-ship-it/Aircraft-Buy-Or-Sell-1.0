@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Plane, Search, SlidersHorizontal, X, ArrowUpRight } from "lucide-react";
+import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
+import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -98,11 +99,13 @@ function ListingRow({ listing, onClick }) {
 }
 
 export default function Listings() {
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
+  const [showFBImport, setShowFBImport] = useState(false);
 
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["listings-public"],
@@ -129,6 +132,13 @@ export default function Listings() {
             <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Aircraft Listings</h1>
             <p className="text-[#6B6560] text-sm mt-0.5">{filtered.length} aircraft available</p>
           </div>
+          <button
+            onClick={() => setShowFBImport(true)}
+            className="flex items-center gap-2 bg-[#1877F2] hover:bg-[#166FE5] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
+          >
+            <Facebook className="w-4 h-4" />
+            Import z FB Marketplace
+          </button>
         </div>
       </div>
 
@@ -212,6 +222,16 @@ export default function Listings() {
       </div>
 
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
+
+      {showFBImport && (
+        <ImportFromFBModal
+          onClose={() => setShowFBImport(false)}
+          onImported={(listing) => {
+            queryClient.invalidateQueries({ queryKey: ["listings-public"] });
+            setShowFBImport(false);
+          }}
+        />
+      )}
     </div>
   );
 }

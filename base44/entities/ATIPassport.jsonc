@@ -48,6 +48,10 @@
       "type": "number",
       "description": "Market readiness (0-15)"
     },
+    "score_label": {
+      "type": "string",
+      "description": "ATI score label (EXCEPTIONAL, STRONG BUY, FAIR, CAUTION, RED FLAGS, AVOID)"
+    },
     "ai_summary": {
       "type": "string",
       "description": "AI-generated summary of ATI analysis"
@@ -63,6 +67,18 @@
     "recommendations": {
       "type": "string",
       "description": "Recommendations (newline-separated)"
+    },
+    "missing_data": {
+      "type": "string",
+      "description": "Missing critical data fields (newline-separated)"
+    },
+    "deal_radar_eligible": {
+      "type": "boolean",
+      "description": "Eligible for Deal Radar (ATI >= 93 and price >= 8% below market)"
+    },
+    "co_ownership_viable": {
+      "type": "boolean",
+      "description": "Co-ownership viable (asking price >= $150k)"
     },
     "omvm_value": {
       "type": "number",

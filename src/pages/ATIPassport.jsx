@@ -14,8 +14,8 @@ function ScoreRing({ score, maxScore = 120, label: scoreLabel }) {
   const r = 56;
   const circ = 2 * Math.PI * r;
   const dash = pct * circ;
-  const color = score >= 96 ? "#0F7A56" : score >= 76 ? "#185FA5" : score >= 56 ? "#D4A017" : score >= 36 ? "#A67C00" : "#C0392B";
-  const label = scoreLabel || (score >= 96 ? "Excellent" : score >= 76 ? "Good" : score >= 56 ? "Fair" : score >= 36 ? "Below Avg" : "Poor");
+  const color = score >= 108 ? "#0F7A56" : score >= 90 ? "#185FA5" : score >= 72 ? "#D4A017" : score >= 54 ? "#A67C00" : score >= 36 ? "#CD7F32" : "#C0392B";
+  const label = scoreLabel || (score >= 108 ? "Exceptional" : score >= 90 ? "Strong Buy" : score >= 72 ? "Fair" : score >= 54 ? "Caution" : score >= 36 ? "Red Flags" : "Avoid");
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-36 h-36">
@@ -36,7 +36,7 @@ function ScoreRing({ score, maxScore = 120, label: scoreLabel }) {
 
 function DimBar({ label, value, max = 15, desc }) {
   const pct = ((value ?? 0) / max) * 100;
-  const color = pct >= 80 ? "#0F7A56" : pct >= 55 ? "#D4A017" : "#C0392B";
+  const color = pct >= 80 ? "#0F7A56" : pct >= 60 ? "#185FA5" : pct >= 40 ? "#D4A017" : "#C0392B";
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -99,25 +99,45 @@ export default function ATIPassport() {
     setError(null);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are the ATI (Aircraft Transparency Index) scoring engine for the ABOS platform.
-Score this aircraft listing across 8 dimensions, each scored 0–15 points (integer), for a maximum total of 120 points.
+        prompt: `You are the ATI (Aircraft Transparency Index) scoring engine for ABOS — the world's largest aviation buy/sell community.
 
-Scoring rubric (each out of 15):
-1. documentation: Logbook completeness, airframe/engine records availability
-2. technical: AD compliance, maintenance traceability, known squawks
-3. transparency: Engine SMOH vs TBO, compression data, oil consumption info
-4. transaction_ready: Avionics quality — GPS/WAAS, ADS-B, autopilot capability
-5. usage_mission: Usage risk — private use scores higher than flight school or charter
-6. storage_exposure: Hangared & dry climate vs outdoor or coastal exposure
-7. config_clarity: Spec consistency, STC documentation, no ambiguous mods
-8. market_readiness: Annual inspection freshness, quality of photos, listing completeness
+Score this aircraft listing across 8 dimensions, each scored 0–15 points (integer), for a maximum TOTAL of 120 points.
 
-Be conservative and realistic. Missing data should lower the score for that dimension.
+═══ SCORING RUBRIC (each out of 15) ═══
+
+1. documentation (0–15): Logbook completeness, airframe/engine records, damage history disclosure.
+   AUTO PENALTY: –5 if damage history absent on aircraft >15 years old. Cap at 8 if logbooks missing.
+
+2. technical (0–15): AD compliance, maintenance traceability, known squawks, Form 337 STCs documented.
+
+3. transparency (0–15): Engine SMOH vs TBO, compression data, oil consumption info.
+   NEVER fabricate SMOH — if absent flag as DATA_MISSING and score ≤ 8.
+
+4. transaction_ready (0–15): Avionics quality — ADS-B Out compliant (+3), WAAS GPS (+3), autopilot (+3), glass panel (+3), WX/terrain (+3).
+   ALWAYS flag non-ADS-B as regulatory risk.
+
+5. usage_mission (0–15): Usage risk — private use scores higher than flight school or charter training.
+
+6. storage_exposure (0–15): Hangared & dry climate scores higher than outdoor or coastal exposure.
+
+7. config_clarity (0–15): Spec consistency, STC documentation, no ambiguous mods, clear configuration.
+
+8. market_readiness (0–15): Annual freshness (recent = higher), photo quality, listing completeness, pre-buy inspection offered.
+   Seller refusing pre-buy inspection → cap at 5.
+
+═══ HARD RULES ═══
+- NEVER score total 110+ without documented annual, SMOH, and clean damage history
+- Be conservative — missing data must lower that dimension's score
+- deal_radar_eligible = true ONLY if ati_total >= 93 AND asking price is ≥ 8% below market
+- co_ownership_viable = true if asking_price >= 150000
+
+═══ SCORE LABELS (total/120) ═══
+108–120 → EXCEPTIONAL | 90–107 → STRONG BUY | 72–89 → FAIR | 54–71 → CAUTION | 36–53 → RED FLAGS | 0–35 → AVOID
 
 Aircraft data:
 ${JSON.stringify(listing, null, 2)}
 
-Return JSON with integer scores (0-15 each) plus narrative fields:
+Return ONLY raw JSON — no markdown, no explanation:
 {
   "documentation": 0-15,
   "technical": 0-15,
@@ -127,10 +147,14 @@ Return JSON with integer scores (0-15 each) plus narrative fields:
   "storage_exposure": 0-15,
   "config_clarity": 0-15,
   "market_readiness": 0-15,
+  "score_label": "EXCEPTIONAL|STRONG BUY|FAIR|CAUTION|RED FLAGS|AVOID",
   "ai_summary": "2-3 sentence executive summary",
   "strengths": ["string", "string", "string"],
   "risks": ["string", "string", "string"],
-  "recommendations": ["string", "string", "string"]
+  "recommendations": ["string", "string", "string"],
+  "missing_data": ["any critical missing fields"],
+  "deal_radar_eligible": true|false,
+  "co_ownership_viable": true|false
 }`,
         response_json_schema: {
           type: "object",
@@ -182,10 +206,14 @@ Return JSON with integer scores (0-15 each) plus narrative fields:
         storage_exposure: result.storage_exposure,
         config_clarity: result.config_clarity,
         market_readiness: result.market_readiness,
+        score_label: result.score_label || null,
         ai_summary: result.ai_summary,
-        strengths: result.strengths.join("\n"),
-        risks: result.risks.join("\n"),
-        recommendations: result.recommendations.join("\n"),
+        strengths: (result.strengths || []).join("\n"),
+        risks: (result.risks || []).join("\n"),
+        recommendations: (result.recommendations || []).join("\n"),
+        missing_data: (result.missing_data || []).join("\n"),
+        deal_radar_eligible: result.deal_radar_eligible || false,
+        co_ownership_viable: result.co_ownership_viable || false,
         omvm_value,
         deal_score,
         deal_label,
@@ -265,10 +293,23 @@ Return JSON with integer scores (0-15 each) plus narrative fields:
             {/* Score + Dimensions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">
-                <ScoreRing score={passport.ati_total} maxScore={120} />
+                <ScoreRing score={passport.ati_total} maxScore={120} label={passport.score_label} />
                 <div className="mt-4 text-center">
                   <p className="text-[11px] text-[#AAA49C]">{listing?.make} {listing?.model}</p>
                   {listing?.registration && <p className="text-xs text-[#AAA49C] font-mono">{listing.registration}</p>}
+                </div>
+                {/* Deal Radar & Co-ownership badges */}
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                  {passport.deal_radar_eligible && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-full border bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]">
+                      ⚡ Deal Radar Eligible
+                    </span>
+                  )}
+                  {passport.co_ownership_viable && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-full border bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]">
+                      🤝 Co-Ownership Viable
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-3">
@@ -305,6 +346,23 @@ Return JSON with integer scores (0-15 each) plus narrative fields:
               <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
                 <GoldLabel>AI Analysis</GoldLabel>
                 <p className="text-sm text-[#6B6560] leading-relaxed mt-3">{passport.ai_summary}</p>
+              </div>
+            )}
+
+            {/* Missing Data Warning */}
+            {parseList(passport.missing_data).length > 0 && (
+              <div className="bg-[rgba(192,57,43,0.05)] border border-[rgba(192,57,43,0.18)] rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-[#C0392B]" />
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-[#C0392B]">Missing / Unverified Data</p>
+                </div>
+                <ul className="space-y-1">
+                  {parseList(passport.missing_data).map((item, i) => (
+                    <li key={i} className="flex gap-2 text-[12px] text-[#C0392B]">
+                      <span className="shrink-0">—</span>{item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

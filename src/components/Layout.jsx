@@ -2,13 +2,14 @@ import { Link, useLocation, Outlet } from "react-router-dom";
 import { useState } from "react";
 import {
   LayoutDashboard, Plane, Radar, User,
-  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator
+  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/listings", label: "Listings", icon: Plane },
   { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+  { path: "/leads", label: "Leads", icon: Users },
   { path: "/my-account", label: "My Account", icon: User },
 ];
 

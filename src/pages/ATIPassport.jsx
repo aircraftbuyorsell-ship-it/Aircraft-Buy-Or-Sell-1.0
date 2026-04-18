@@ -8,14 +8,14 @@ function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
 }
 
-function ScoreRing({ score, maxScore = 120 }) {
+function ScoreRing({ score, maxScore = 120, label: scoreLabel }) {
   if (score == null) return null;
   const pct = score / maxScore;
   const r = 56;
   const circ = 2 * Math.PI * r;
   const dash = pct * circ;
-  const color = score >= 90 ? "#0F7A56" : score >= 65 ? "#D4A017" : "#C0392B";
-  const label = score >= 90 ? "Excellent" : score >= 65 ? "Good" : "Poor";
+  const color = score >= 96 ? "#0F7A56" : score >= 76 ? "#185FA5" : score >= 56 ? "#D4A017" : score >= 36 ? "#A67C00" : "#C0392B";
+  const label = scoreLabel || (score >= 96 ? "Excellent" : score >= 76 ? "Good" : score >= 56 ? "Fair" : score >= 36 ? "Below Avg" : "Poor");
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-36 h-36">
@@ -34,27 +34,35 @@ function ScoreRing({ score, maxScore = 120 }) {
   );
 }
 
-function DimBar({ label, value, weight }) {
-  const color = value >= 80 ? "#0F7A56" : value >= 55 ? "#D4A017" : "#C0392B";
+function DimBar({ label, value, max = 15, desc }) {
+  const pct = ((value ?? 0) / max) * 100;
+  const color = pct >= 80 ? "#0F7A56" : pct >= 55 ? "#D4A017" : "#C0392B";
   return (
     <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] font-semibold text-[#6B6560]">{label}</span>
-        <span className="text-[11px] font-bold text-[#1A1814]">{value ?? "—"}<span className="text-[#AAA49C] font-normal">/100</span></span>
+      <div className="flex items-center justify-between mb-1">
+        <div>
+          <span className="text-[12px] font-semibold text-[#1A1814]">{label}</span>
+          <span className="text-[10px] text-[#AAA49C] ml-1.5">{desc}</span>
+        </div>
+        <span className="text-[12px] font-black text-[#1A1814] shrink-0 ml-2">{value ?? "—"}<span className="text-[#AAA49C] font-normal text-[10px]">/{max}</span></span>
       </div>
       <div className="h-1.5 bg-black/5 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${value ?? 0}%`, backgroundColor: color }} />
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
-      <p className="text-[9px] text-[#AAA49C] mt-0.5">{weight}% weight</p>
     </div>
   );
 }
 
+// 120pt scale: 8 modules × 15 pts each
 const DIMS = [
-  { key: "technical", label: "Technical Condition", weight: 30 },
-  { key: "documentation", label: "Documentation", weight: 25 },
-  { key: "transparency", label: "Transparency", weight: 25 },
-  { key: "transaction_ready", label: "Transaction Ready", weight: 20 },
+  { key: "documentation", label: "Documentation Completeness", max: 15, desc: "Logbooks, records" },
+  { key: "technical", label: "Maintenance Traceability", max: 15, desc: "AD compliance, trail" },
+  { key: "transparency", label: "Engine Health", max: 15, desc: "SMOH vs TBO, compressions" },
+  { key: "transaction_ready", label: "Avionics Quality", max: 15, desc: "GPS/WAAS, ADS-B, autopilot" },
+  { key: "usage_mission", label: "Usage / Mission Risk", max: 15, desc: "Private vs training vs charter" },
+  { key: "storage_exposure", label: "Storage & Exposure", max: 15, desc: "Hangared dry vs outdoor" },
+  { key: "config_clarity", label: "Configuration Clarity", max: 15, desc: "Specs consistency, STCs" },
+  { key: "market_readiness", label: "Market Readiness", max: 15, desc: "Annual freshness, photos" },
 ];
 
 function parseList(str) {
@@ -197,16 +205,19 @@ Return ONLY JSON:
             {/* Score + Dimensions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">
-                <ScoreRing score={passport.ati_total} />
+                <ScoreRing score={passport.ati_total} maxScore={120} />
                 <div className="mt-4 text-center">
                   <p className="text-[11px] text-[#AAA49C]">{listing?.make} {listing?.model}</p>
                   {listing?.registration && <p className="text-xs text-[#AAA49C] font-mono">{listing.registration}</p>}
                 </div>
               </div>
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-4">
-                <GoldLabel>Score Dimensions</GoldLabel>
+              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <GoldLabel>ATI Score Dimensions</GoldLabel>
+                  <span className="text-[9px] text-[#AAA49C] font-semibold uppercase tracking-wider">8 modules × 15 pts</span>
+                </div>
                 {DIMS.map(d => (
-                  <DimBar key={d.key} label={d.label} value={passport[d.key]} weight={d.weight} />
+                  <DimBar key={d.key} label={d.label} value={passport[d.key]} max={d.max} desc={d.desc} />
                 ))}
               </div>
             </div>

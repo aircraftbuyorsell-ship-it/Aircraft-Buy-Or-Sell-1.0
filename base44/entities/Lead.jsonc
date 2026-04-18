@@ -1,0 +1,52 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "aircraft_preference": {
+      "type": "string",
+      "description": "Aircraft type preference"
+    },
+    "budget": {
+      "type": "string",
+      "description": "Preferred budget range"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "negotiating",
+        "closed",
+        "lost"
+      ],
+      "default": "new",
+      "description": "Lead status"
+    },
+    "source": {
+      "type": "string",
+      "description": "Lead source"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes"
+    },
+    "rules_agreed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Agreed to rules"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}

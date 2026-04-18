@@ -1,31 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
-import { User, ShieldCheck, CreditCard, Package } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
+import { User, ShieldCheck, CreditCard, Package, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+
+function GoldLabel({ children }) {
+  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
+}
 
 function getInitials(name) {
   if (!name) return "?";
-  return name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2);
+  return name.split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2);
 }
 
-function roleBadge(role) {
-  if (role === "admin") return "bg-violet-500/20 text-violet-400 border-violet-500/30";
-  return "bg-slate-700 text-slate-400 border-slate-600";
-}
-
-function planBadge(plan) {
-  if (plan === "pro") return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-  return "bg-slate-700 text-slate-400 border-slate-600";
-}
-
-function orderStatusStyle(status) {
-  if (status === "paid") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-  if (status === "pending") return "bg-amber-500/15 text-amber-400 border-amber-500/30";
-  if (status === "failed") return "bg-red-500/15 text-red-400 border-red-500/30";
-  return "bg-slate-700 text-slate-400 border-slate-600";
+function StatusBadge({ status }) {
+  const styles = {
+    paid: "bg-[rgba(15,122,86,0.1)] text-[#0F7A56] border-[rgba(15,122,86,0.2)]",
+    pending: "bg-[rgba(166,124,0,0.1)] text-[#A67C00] border-[rgba(166,124,0,0.2)]",
+    failed: "bg-[rgba(192,57,43,0.1)] text-[#C0392B] border-[rgba(192,57,43,0.2)]",
+  };
+  return (
+    <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full border ${styles[status] || "bg-black/5 text-[#AAA49C] border-black/10"}`}>
+      {status || "—"}
+    </span>
+  );
 }
 
 export default function MyAccount() {
@@ -43,13 +41,7 @@ export default function MyAccount() {
     enabled: !!authUser?.email,
     queryFn: async () => {
       const users = await base44.entities.User.filter({ email: authUser.email }, "-created_date", 1);
-      if (users[0]) return users[0];
-      return base44.entities.User.create({
-        email: authUser.email,
-        full_name: authUser.full_name || authUser.email,
-        role: "user",
-        plan: "free",
-      });
+      return users[0] || null;
     },
   });
 
@@ -64,9 +56,9 @@ export default function MyAccount() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => base44.entities.User.update(currentUser.id, { full_name: nameInput }),
+    mutationFn: () => base44.auth.updateMe({ full_name: nameInput }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["account-user"] });
+      queryClient.invalidateQueries({ queryKey: ["auth-me"] });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
@@ -75,137 +67,131 @@ export default function MyAccount() {
   const isLoading = loadingUser || !authUser;
 
   return (
-    <div className="min-h-screen bg-[#0a0f1a] text-slate-100">
+    <div className="min-h-screen bg-[#F7F4EF]">
       {/* Header */}
-      <div className="border-b border-slate-800 px-6 py-5">
-        <div className="flex items-center gap-3">
-          <User className="w-5 h-5 text-sky-400" />
-          <h1 className="text-xl font-bold tracking-tight text-white">My Account</h1>
-        </div>
+      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
+        <GoldLabel>Account · Settings</GoldLabel>
+        <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight mt-1">My Account</h1>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-        {/* Profile card */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Profile</p>
-          {isLoading ? (
-            <div className="flex gap-4 items-center">
-              <Skeleton className="w-16 h-16 rounded-full bg-slate-700" />
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-40 bg-slate-700" />
-                <Skeleton className="h-4 w-56 bg-slate-700" />
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-              {/* Avatar */}
-              <div className="w-16 h-16 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center shrink-0">
-                <span className="text-sky-400 font-black text-xl">{getInitials(currentUser?.full_name)}</span>
-              </div>
-              {/* Info */}
-              <div className="flex-1">
-                <p className="text-white font-bold text-lg">{currentUser?.full_name || "—"}</p>
-                <p className="text-slate-400 text-sm">{currentUser?.email}</p>
-                <div className="flex gap-2 mt-2">
-                  <span className={`text-xs px-2 py-0.5 rounded-full border font-medium capitalize ${roleBadge(currentUser?.role)}`}>
-                    {currentUser?.role || "user"}
-                  </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full border font-medium capitalize ${planBadge(currentUser?.plan)}`}>
-                    {currentUser?.plan || "free"}
-                  </span>
+      <div className="px-4 md:px-8 pb-8 space-y-4 max-w-2xl">
+        {/* Profile */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-black/[0.06]">
+            <GoldLabel>Profile</GoldLabel>
+          </div>
+          <div className="px-5 py-5">
+            {isLoading ? (
+              <div className="flex gap-4 items-center">
+                <div className="w-14 h-14 rounded-full bg-black/5 animate-pulse shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 bg-black/5 rounded animate-pulse w-1/2" />
+                  <div className="h-3 bg-black/5 rounded animate-pulse w-2/3" />
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Edit name */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Edit Profile</p>
-          <div className="flex gap-3">
-            <Input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder="Full name"
-              className="bg-slate-800 border-slate-700 text-slate-100 placeholder:text-slate-600"
-            />
-            <button
-              onClick={() => saveMutation.mutate()}
-              disabled={saveMutation.isPending || !nameInput.trim()}
-              className="px-5 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white font-semibold text-sm transition-colors shrink-0"
-            >
-              {saved ? "Saved ✓" : saveMutation.isPending ? "Saving…" : "Save"}
-            </button>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                <div className="w-14 h-14 rounded-full bg-[#D4A017]/10 border-2 border-[#D4A017]/20 flex items-center justify-center shrink-0">
+                  <span className="text-[#D4A017] font-black text-lg">{getInitials(authUser?.full_name)}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-base font-bold text-[#1A1814]">{authUser?.full_name || "—"}</p>
+                  <p className="text-sm text-[#6B6560]">{authUser?.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full border bg-[rgba(212,160,23,0.1)] text-[#A67C00] border-[rgba(212,160,23,0.2)] capitalize">
+                      {currentUser?.role || "user"}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full border bg-black/5 text-[#AAA49C] border-black/10 capitalize">
+                      {currentUser?.plan || "free"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Plan section */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Plan</p>
-          {isLoading ? (
-            <Skeleton className="h-10 w-48 bg-slate-700 rounded-lg" />
-          ) : currentUser?.plan === "pro" ? (
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400 font-bold text-base">Pro Active</span>
-              <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">PRO</span>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div>
-                <p className="text-white font-semibold">Free Plan</p>
-                <p className="text-slate-400 text-sm mt-0.5">Upgrade to Pro for unlimited ATI reports and priority access.</p>
-              </div>
-              <button className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2.5 rounded-lg text-sm transition-colors shrink-0">
-                <CreditCard className="w-4 h-4" />
-                Upgrade to Pro
+        {/* Edit name */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-black/[0.06]">
+            <GoldLabel>Edit Profile</GoldLabel>
+          </div>
+          <div className="px-5 py-5">
+            <div className="flex gap-3">
+              <input
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                placeholder="Full name"
+                className="flex-1 px-4 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors"
+              />
+              <button
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending || !nameInput.trim()}
+                className="px-5 py-2.5 rounded-xl bg-[#1A1814] hover:bg-[#D4A017] disabled:opacity-40 text-white text-sm font-bold transition-colors shrink-0"
+              >
+                {saved ? "Saved ✓" : saveMutation.isPending ? "Saving…" : "Save"}
               </button>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Plan */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-black/[0.06]">
+            <GoldLabel>Subscription Plan</GoldLabel>
+          </div>
+          <div className="px-5 py-5">
+            {isLoading ? (
+              <div className="h-10 bg-black/5 rounded animate-pulse" />
+            ) : currentUser?.plan === "pro" ? (
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-[#D4A017]" />
+                <div>
+                  <p className="text-sm font-bold text-[#D4A017]">Pro Active</p>
+                  <p className="text-[11px] text-[#6B6560]">Full access to all ABOS features</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-[#1A1814]">Free Plan</p>
+                  <p className="text-[12px] text-[#6B6560] mt-0.5">Upgrade for unlimited ATI reports and priority access</p>
+                </div>
+                <button className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shrink-0">
+                  <CreditCard className="w-4 h-4" />
+                  Upgrade to Pro
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Orders */}
-        <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Order History</p>
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-black/[0.06]">
+            <GoldLabel>Order History</GoldLabel>
+          </div>
           {loadingOrders ? (
-            <div className="space-y-2">
-              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full bg-slate-700 rounded" />)}
+            <div className="px-5 py-4 space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-black/5 rounded animate-pulse" />)}
             </div>
           ) : orders.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-slate-600">
-              <Package className="w-8 h-8 mb-2 opacity-40" />
-              <p className="text-sm">No orders yet.</p>
+            <div className="flex flex-col items-center py-10 text-[#AAA49C]">
+              <Package className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm">No orders yet</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-slate-500 text-xs uppercase tracking-wider border-b border-slate-700/60">
-                    <th className="text-left py-2 pr-4">Product</th>
-                    <th className="text-right py-2 pr-4">Amount</th>
-                    <th className="text-left py-2 pr-4">Status</th>
-                    <th className="text-left py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {orders.map((o) => (
-                    <tr key={o.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 pr-4 text-slate-200 capitalize">{o.product_type?.replace("_", " ") || "—"}</td>
-                      <td className="py-3 pr-4 text-right text-white font-medium">
-                        {o.amount != null ? `$${o.amount.toLocaleString()}` : "—"}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border font-medium ${orderStatusStyle(o.status)}`}>
-                          {o.status || "—"}
-                        </span>
-                      </td>
-                      <td className="py-3 text-slate-500 text-xs">
-                        {o.created_date ? format(new Date(o.created_date), "MMM d, yyyy") : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="divide-y divide-black/[0.05]">
+              {orders.map(o => (
+                <div key={o.id} className="flex items-center gap-4 px-5 py-3.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#1A1814] capitalize">{o.product_type?.replace("_", " ") || "—"}</p>
+                    <p className="text-[11px] text-[#AAA49C]">{o.created_date ? format(new Date(o.created_date), "MMM d, yyyy") : "—"}</p>
+                  </div>
+                  <p className="text-sm font-bold text-[#1A1814] shrink-0">{o.amount != null ? `$${o.amount.toLocaleString()}` : "—"}</p>
+                  <StatusBadge status={o.status} />
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
+import DealRadar from "./pages/DealRadar";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Dashboard />} />
       <Route path="/listings" element={<Listings />} />
       <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
+      <Route path="/deal-radar" element={<DealRadar />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

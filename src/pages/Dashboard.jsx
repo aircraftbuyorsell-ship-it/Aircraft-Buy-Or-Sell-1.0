@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Plane, BarChart2, Zap, DollarSign, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
 
 function GoldLabel({ children }) {
   return (

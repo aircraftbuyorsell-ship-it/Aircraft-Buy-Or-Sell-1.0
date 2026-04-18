@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
 import DealRadar from "./pages/DealRadar";
+import MyAccount from "./pages/MyAccount";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
       <Route path="/listings" element={<Listings />} />
       <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
       <Route path="/deal-radar" element={<DealRadar />} />
+      <Route path="/my-account" element={<MyAccount />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

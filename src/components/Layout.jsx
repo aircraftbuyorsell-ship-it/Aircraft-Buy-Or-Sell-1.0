@@ -1,8 +1,10 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User,
-  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users
+  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users, Palette
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -10,6 +12,8 @@ const NAV_ITEMS = [
   { path: "/listings", label: "Listings", icon: Plane },
   { path: "/deal-radar", label: "Deal Radar", icon: Radar },
   { path: "/leads", label: "Leads", icon: Users },
+  { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
+  { path: "/my-branding", label: "My Branding", icon: Palette },
   { path: "/my-account", label: "My Account", icon: User },
 ];
 
@@ -23,6 +27,13 @@ const TOOL_ITEMS = [
 export default function Layout() {
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: currentUser } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
+  const isAdmin = currentUser?.role === "admin";
+  const visibleNav = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin);
 
   return (
     <div className="flex min-h-screen bg-[#F7F4EF]">
@@ -47,11 +58,17 @@ export default function Layout() {
         {/* Logo */}
         <div className="px-5 pt-6 pb-5 border-b border-white/5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded bg-[#D4A017]/20 border border-[#D4A017]/30 flex items-center justify-center">
-                <Plane className="w-4 h-4 text-[#D4A017]" />
-              </div>
-              <span className="text-[#F0EDE6] font-black text-base tracking-tight">ABOS</span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              {currentUser?.personalization_enabled && currentUser?.brand_logo_url ? (
+                <img src={currentUser.brand_logo_url} alt="Logo" className="w-7 h-7 rounded object-contain bg-white/5" />
+              ) : (
+                <div className="w-7 h-7 rounded bg-[#D4A017]/20 border border-[#D4A017]/30 flex items-center justify-center shrink-0">
+                  <Plane className="w-4 h-4 text-[#D4A017]" />
+                </div>
+              )}
+              <span className="text-[#F0EDE6] font-black text-base tracking-tight truncate">
+                {currentUser?.personalization_enabled && currentUser?.company_name ? currentUser.company_name : "ABOS"}
+              </span>
             </div>
             <button
               onClick={() => setMobileOpen(false)}
@@ -60,13 +77,15 @@ export default function Layout() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-[#4A4845] text-[10px] mt-1 ml-9 uppercase tracking-widest font-medium">IntraZone</p>
+          <p className="text-[#4A4845] text-[10px] mt-1 ml-9 uppercase tracking-widest font-medium">
+            {currentUser?.personalization_enabled ? "Powered by ABOS" : "IntraZone"}
+          </p>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           <p className="text-[#4A4845] text-[9px] uppercase tracking-[0.15em] font-semibold px-3 pb-2 pt-1">Navigation</p>
-          {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
+          {visibleNav.map(({ path, label, icon: Icon }) => {
             const active = pathname === path;
             return (
               <Link

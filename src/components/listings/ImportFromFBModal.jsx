@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { X, Facebook, Clipboard, Sparkles, AlertTriangle, CheckCircle } from "lucide-react";
+import { X, Facebook, Link2, Sparkles, AlertTriangle, CheckCircle, Globe } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+
+const SUPPORTED_SOURCES = [
+  { id: "fb", label: "Facebook Marketplace", icon: Facebook, color: "#1877F2" },
+  { id: "controller", label: "Controller.com", icon: Globe, color: "#1F4E8C" },
+  { id: "trade", label: "Trade-A-Plane", icon: Globe, color: "#C0392B" },
+  { id: "planecheck", label: "Planecheck.com", icon: Globe, color: "#0F7A56" },
+];
 
 const EMPTY_FORM = {
   make: "", model: "", year: "", registration: "",
@@ -8,30 +15,40 @@ const EMPTY_FORM = {
   asking_price: "", avionics: "", ai_summary: "",
   last_annual: "", fresh_annual: false,
   engine_count: 1, status: "active", visibility: "public",
+  source_url: "", source_platform: "",
 };
 
 export default function ImportFromFBModal({ onClose, onImported }) {
+  const [source, setSource] = useState("fb");
+  const [mode, setMode] = useState("text"); // text | url
   const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
   const [step, setStep] = useState("input"); // input | extracting | review | saving
   const [extracted, setExtracted] = useState(null);
   const [error, setError] = useState(null);
   const [missingFields, setMissingFields] = useState([]);
 
+  const sourceMeta = SUPPORTED_SOURCES.find(s => s.id === source) || SUPPORTED_SOURCES[0];
+
   const handleExtract = async () => {
-    if (!text.trim()) return;
+    const input = mode === "url" ? url.trim() : text.trim();
+    if (!input) return;
     setStep("extracting");
     setError(null);
 
+    const sourceContext = mode === "url"
+      ? `Stáhni a analyzuj inzerát z této URL adresy (${sourceMeta.label}): ${input}`
+      : `Text inzerátu z ${sourceMeta.label}:\n"""\n${input}\n"""`;
+
     const result = await base44.integrations.Core.InvokeLLM({
+      add_context_from_internet: mode === "url",
+      model: mode === "url" ? "gemini_3_flash" : undefined,
       prompt: `Jsi expert na analýzu inzerátů letadel. Extrahuj strukturovaná data z tohoto inzerátu.
       
-KRITICKÉ PRAVIDLO: Vrať POUZE informace, které jsou EXPLICITNĚ uvedeny v textu inzerátu.
-Pokud informace NENÍ v textu, vrať null nebo prázdný string - NIKDY si nic nevymýšlej.
+KRITICKÉ PRAVIDLO: Vrať POUZE informace, které jsou EXPLICITNĚ uvedeny v inzerátu.
+Pokud informace NENÍ v textu/stránce, vrať null nebo prázdný string - NIKDY si nic nevymýšlej.
 
-Text inzerátu:
-"""
-${text}
-"""
+${sourceContext}
 
 Extrahuj tato data (vše co nenajdeš v textu nastav na null):
 - make: výrobce (Cessna, Piper, Beechcraft, Cirrus, Diamond, atd.)
@@ -80,6 +97,12 @@ Vrať POUZE raw JSON bez markdown.`,
       }
     });
 
+    // attach source metadata
+    if (mode === "url") {
+      formData.source_url = url.trim();
+    }
+    formData.source_platform = sourceMeta.label;
+
     setExtracted(formData);
     setMissingFields(missing);
     setStep("review");
@@ -103,12 +126,12 @@ Vrať POUZE raw JSON bez markdown.`,
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.07]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#1877F2]/10 flex items-center justify-center">
-              <Facebook className="w-4 h-4 text-[#1877F2]" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${sourceMeta.color}1A` }}>
+              <sourceMeta.icon className="w-4 h-4" style={{ color: sourceMeta.color }} />
             </div>
             <div>
-              <h2 className="text-base font-black text-[#1A1814]">Import z FB Marketplace</h2>
-              <p className="text-[11px] text-[#AAA49C]">Vložte text inzerátu → AI extrahuje data → potvrďte</p>
+              <h2 className="text-base font-black text-[#1A1814]">Import inzerátu letadla</h2>
+              <p className="text-[11px] text-[#AAA49C]">Vyberte zdroj → vložte text nebo URL → AI extrahuje data</p>
             </div>
           </div>
           <button onClick={onClose} className="text-[#AAA49C] hover:text-[#1A1814] transition-colors">
@@ -120,21 +143,77 @@ Vrať POUZE raw JSON bez markdown.`,
           {/* Step 1: Input */}
           {(step === "input" || step === "extracting") && (
             <>
+              {/* Source selector */}
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
-                  Text inzerátu z Facebook Marketplace
+                  Zdroj inzerátu
                 </label>
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Vložte celý text inzerátu z FB Marketplace nebo jiné platformy..."
-                  rows={10}
-                  className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#1877F2] transition-colors resize-none"
-                />
-                <p className="text-[11px] text-[#AAA49C] mt-1.5">
-                  Čím více informací inzerát obsahuje, tím přesnější bude extrakce.
-                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {SUPPORTED_SOURCES.map((s) => {
+                    const active = source === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => { setSource(s.id); if (s.id !== "fb") setMode("url"); }}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all ${active ? "border-[#D4A017] bg-[rgba(212,160,23,0.08)] text-[#1A1814]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}
+                      >
+                        <s.icon className="w-3.5 h-3.5 shrink-0" style={{ color: active ? s.color : "#AAA49C" }} />
+                        <span className="truncate">{s.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Mode tabs */}
+              <div className="flex gap-1 bg-[#F7F4EF] rounded-lg p-1 w-fit">
+                <button
+                  onClick={() => setMode("url")}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${mode === "url" ? "bg-white text-[#1A1814] shadow-sm" : "text-[#AAA49C] hover:text-[#6B6560]"}`}
+                >
+                  <Link2 className="w-3 h-3 inline mr-1" /> URL odkaz
+                </button>
+                <button
+                  onClick={() => setMode("text")}
+                  className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${mode === "text" ? "bg-white text-[#1A1814] shadow-sm" : "text-[#AAA49C] hover:text-[#6B6560]"}`}
+                >
+                  Text
+                </button>
+              </div>
+
+              {mode === "url" ? (
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
+                    URL inzerátu z {sourceMeta.label}
+                  </label>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://www.controller.com/listing/..."
+                    className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors"
+                  />
+                  <p className="text-[11px] text-[#AAA49C] mt-1.5">
+                    AI stáhne a analyzuje obsah stránky přímo z internetu.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
+                    Text inzerátu z {sourceMeta.label}
+                  </label>
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Vložte celý text inzerátu..."
+                    rows={8}
+                    className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors resize-none"
+                  />
+                  <p className="text-[11px] text-[#AAA49C] mt-1.5">
+                    Čím více informací inzerát obsahuje, tím přesnější bude extrakce.
+                  </p>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 bg-[rgba(192,57,43,0.08)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-xl px-4 py-2.5">
@@ -237,11 +316,11 @@ Vrať POUZE raw JSON bez markdown.`,
             {(step === "input" || step === "extracting") && (
               <button
                 onClick={handleExtract}
-                disabled={!text.trim() || step === "extracting"}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1877F2] hover:bg-[#166FE5] disabled:opacity-40 text-white text-sm font-bold transition-colors"
+                disabled={(mode === "url" ? !url.trim() : !text.trim()) || step === "extracting"}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-40 text-white text-sm font-bold transition-colors"
               >
                 <Sparkles className={`w-4 h-4 ${step === "extracting" ? "animate-pulse" : ""}`} />
-                {step === "extracting" ? "Extrahuji data…" : "Extrahovat pomocí AI"}
+                {step === "extracting" ? (mode === "url" ? "Stahuji a analyzuji…" : "Extrahuji data…") : "Extrahovat pomocí AI"}
               </button>
             )}
 

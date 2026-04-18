@@ -13,9 +13,13 @@ import ATIPassport from "./pages/ATIPassport";
 import DealRadar from "./pages/DealRadar";
 import MyAccount from "./pages/MyAccount";
 import Leads from "./pages/Leads";
+import MyBranding from "./pages/MyBranding";
+import VerifiedUsers from "./pages/VerifiedUsers";
+import { useBranding } from "@/lib/useBranding";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  useBranding(); // Apply premium personalization if enabled
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -48,6 +52,8 @@ const AuthenticatedApp = () => {
         <Route path="/deal-radar" element={<DealRadar />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />
+        <Route path="/my-branding" element={<MyBranding />} />
+        <Route path="/verified-users" element={<VerifiedUsers />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Cpu, ArrowLeft, ShieldCheck, TrendingDown, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { Cpu, ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -99,21 +99,50 @@ export default function ATIPassport() {
     setError(null);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are the ATI scoring engine for ABOS platform. Score this aircraft on 4 dimensions (0-100):
-- technical: airframe condition, engine hours vs TBO, maintenance
-- documentation: logbook completeness, annual currency
-- transparency: completeness of listing information
-- transaction_ready: readiness to transact
+        prompt: `You are the ATI (Aircraft Transparency Index) scoring engine for the ABOS platform.
+Score this aircraft listing across 8 dimensions, each scored 0–15 points (integer), for a maximum total of 120 points.
 
-Aircraft data: ${JSON.stringify(listing)}
+Scoring rubric (each out of 15):
+1. documentation: Logbook completeness, airframe/engine records availability
+2. technical: AD compliance, maintenance traceability, known squawks
+3. transparency: Engine SMOH vs TBO, compression data, oil consumption info
+4. transaction_ready: Avionics quality — GPS/WAAS, ADS-B, autopilot capability
+5. usage_mission: Usage risk — private use scores higher than flight school or charter
+6. storage_exposure: Hangared & dry climate vs outdoor or coastal exposure
+7. config_clarity: Spec consistency, STC documentation, no ambiguous mods
+8. market_readiness: Annual inspection freshness, quality of photos, listing completeness
 
-Return ONLY JSON:
-{"technical": number, "documentation": number, "transparency": number, "transaction_ready": number, "ai_summary": "string", "strengths": ["string","string"], "risks": ["string","string"], "recommendations": ["string","string"]}`,
+Be conservative and realistic. Missing data should lower the score for that dimension.
+
+Aircraft data:
+${JSON.stringify(listing, null, 2)}
+
+Return JSON with integer scores (0-15 each) plus narrative fields:
+{
+  "documentation": 0-15,
+  "technical": 0-15,
+  "transparency": 0-15,
+  "transaction_ready": 0-15,
+  "usage_mission": 0-15,
+  "storage_exposure": 0-15,
+  "config_clarity": 0-15,
+  "market_readiness": 0-15,
+  "ai_summary": "2-3 sentence executive summary",
+  "strengths": ["string", "string", "string"],
+  "risks": ["string", "string", "string"],
+  "recommendations": ["string", "string", "string"]
+}`,
         response_json_schema: {
           type: "object",
           properties: {
-            technical: { type: "number" }, documentation: { type: "number" },
-            transparency: { type: "number" }, transaction_ready: { type: "number" },
+            documentation: { type: "number" },
+            technical: { type: "number" },
+            transparency: { type: "number" },
+            transaction_ready: { type: "number" },
+            usage_mission: { type: "number" },
+            storage_exposure: { type: "number" },
+            config_clarity: { type: "number" },
+            market_readiness: { type: "number" },
             ai_summary: { type: "string" },
             strengths: { type: "array", items: { type: "string" } },
             risks: { type: "array", items: { type: "string" } },
@@ -122,23 +151,54 @@ Return ONLY JSON:
         },
       });
 
-      const ati_total = Math.round((result.technical * 0.3 + result.documentation * 0.25 + result.transparency * 0.25 + result.transaction_ready * 0.2) * 10) / 10;
+      const ati_total = result.documentation + result.technical + result.transparency +
+        result.transaction_ready + result.usage_mission + result.storage_exposure +
+        result.config_clarity + result.market_readiness;
+
+      // OMVM valuation
       const tbo = listing.tbo || 2000;
       const engineAdj = (tbo - (listing.engine_hours || 0)) * 12;
       const avionicsAdj = (listing.avionics?.split(",").length || 0) * 4500;
       const maintAdj = listing.fresh_annual ? 6000 : 0;
       const omvm_value = Math.round(200000 + engineAdj + avionicsAdj + maintAdj);
-      const discountPct = ((omvm_value - (listing.asking_price || 0)) / omvm_value) * 100;
-      const deal_score = discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5 : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
-      const deal_label = deal_score >= 8.5 ? "hot deal" : deal_score >= 6.5 ? "good deal" : deal_score >= 5 ? "fair" : "overpriced";
+      const discountPct = listing.asking_price
+        ? Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10
+        : null;
+      const deal_score = discountPct == null ? null
+        : discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5
+        : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
+      const deal_label = deal_score == null ? null
+        : deal_score >= 8.5 ? "hot deal" : deal_score >= 6.5 ? "good deal"
+        : deal_score >= 5 ? "fair" : "overpriced";
 
       await base44.entities.ATIPassport.create({
-        listing: listingId, ati_total, ...result,
-        strengths: result.strengths.join("\n"), risks: result.risks.join("\n"),
+        listing: listingId,
+        ati_total,
+        documentation: result.documentation,
+        technical: result.technical,
+        transparency: result.transparency,
+        transaction_ready: result.transaction_ready,
+        usage_mission: result.usage_mission,
+        storage_exposure: result.storage_exposure,
+        config_clarity: result.config_clarity,
+        market_readiness: result.market_readiness,
+        ai_summary: result.ai_summary,
+        strengths: result.strengths.join("\n"),
+        risks: result.risks.join("\n"),
         recommendations: result.recommendations.join("\n"),
-        omvm_value, deal_score, deal_label, discount_pct: Math.round(discountPct * 10) / 10, ati_version: "v2",
+        omvm_value,
+        deal_score,
+        deal_label,
+        discount_pct: discountPct,
+        ati_version: "v2",
       });
-      await base44.entities.AircraftListing.update(listingId, { ati_score: ati_total, omvm_value, deal_score, deal_label, discount_pct: Math.round(discountPct * 10) / 10 });
+      await base44.entities.AircraftListing.update(listingId, {
+        ati_score: ati_total,
+        omvm_value,
+        deal_score,
+        deal_label,
+        discount_pct: discountPct,
+      });
 
       queryClient.invalidateQueries({ queryKey: ["passport", listingId] });
       queryClient.invalidateQueries({ queryKey: ["listing", listingId] });
@@ -247,6 +307,18 @@ Return ONLY JSON:
                 <p className="text-sm text-[#6B6560] leading-relaxed mt-3">{passport.ai_summary}</p>
               </div>
             )}
+
+            {/* Regenerate button */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="flex items-center gap-2 text-[11px] text-[#AAA49C] hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
+                {generating ? "Regenerating…" : "Regenerate ATI Score"}
+              </button>
+            </div>
 
             {/* Strengths / Risks / Recommendations */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

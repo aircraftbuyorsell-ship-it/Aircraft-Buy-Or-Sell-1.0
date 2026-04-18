@@ -14,23 +14,39 @@
     },
     "ati_total": {
       "type": "number",
-      "description": "Total ATI score"
-    },
-    "technical": {
-      "type": "number",
-      "description": "Technical sub-score"
+      "description": "Total ATI score (0-120)"
     },
     "documentation": {
       "type": "number",
-      "description": "Documentation sub-score"
+      "description": "Documentation completeness (0-15)"
+    },
+    "technical": {
+      "type": "number",
+      "description": "Maintenance traceability (0-15)"
     },
     "transparency": {
       "type": "number",
-      "description": "Transparency sub-score"
+      "description": "Engine health transparency (0-15)"
     },
     "transaction_ready": {
       "type": "number",
-      "description": "Transaction readiness sub-score"
+      "description": "Avionics quality (0-15)"
+    },
+    "usage_mission": {
+      "type": "number",
+      "description": "Usage / mission risk (0-15)"
+    },
+    "storage_exposure": {
+      "type": "number",
+      "description": "Storage & exposure (0-15)"
+    },
+    "config_clarity": {
+      "type": "number",
+      "description": "Configuration clarity (0-15)"
+    },
+    "market_readiness": {
+      "type": "number",
+      "description": "Market readiness (0-15)"
     },
     "ai_summary": {
       "type": "string",
@@ -38,15 +54,15 @@
     },
     "strengths": {
       "type": "string",
-      "description": "Identified strengths"
+      "description": "Identified strengths (newline-separated)"
     },
     "risks": {
       "type": "string",
-      "description": "Identified risks"
+      "description": "Identified risks (newline-separated)"
     },
     "recommendations": {
       "type": "string",
-      "description": "Recommendations"
+      "description": "Recommendations (newline-separated)"
     },
     "omvm_value": {
       "type": "number",

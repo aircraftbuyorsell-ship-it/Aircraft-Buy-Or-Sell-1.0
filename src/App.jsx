@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
+import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
@@ -38,12 +39,13 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/listings" element={<Listings />} />
-      <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
-      <Route path="/deal-radar" element={<DealRadar />} />
-      <Route path="/my-account" element={<MyAccount />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/listings" element={<Listings />} />
+        <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
+        <Route path="/deal-radar" element={<DealRadar />} />
+        <Route path="/my-account" element={<MyAccount />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -14,7 +14,7 @@ const NAV_ITEMS = [
 ];
 
 const TOOL_ITEMS = [
-  { path: "/ati-passport", label: "ATI Passport", icon: ShieldCheck, sub: "Score any aircraft" },
+  { path: "/listings", label: "ATI Passport", icon: ShieldCheck, sub: "Score any aircraft" },
   { path: "/deal-radar", label: "FAA Intelligence", icon: BarChart2, sub: "Fleet analytics" },
   { path: "/listings", label: "Live Traffic", icon: Wifi, sub: "ADS-B vectors" },
   { path: "/listings", label: "OPEX Calculator", icon: Calculator, sub: "Ownership costs" },

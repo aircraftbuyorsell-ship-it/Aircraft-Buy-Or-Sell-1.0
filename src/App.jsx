@@ -24,6 +24,7 @@ import LiveTraffic from "./pages/LiveTraffic";
 import Rewards from "./pages/Rewards";
 import Alerts from "./pages/Alerts";
 import Radio from "./pages/Radio";
+import Analytics from "./pages/Analytics";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/radio" element={<Radio />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

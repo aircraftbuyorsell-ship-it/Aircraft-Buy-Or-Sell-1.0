@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { MediaPlayerProvider } from '@/lib/MediaPlayerContext';
 import GlobalMediaPlayer from '@/components/media/GlobalMediaPlayer';
+import MusicWelcomePrompt from '@/components/media/MusicWelcomePrompt';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
@@ -96,6 +97,7 @@ function App() {
             <ReferralCapture />
             <CountdownOffer />
             <GlobalMediaPlayer />
+            <MusicWelcomePrompt />
           </Router>
           <Toaster />
         </MediaPlayerProvider>

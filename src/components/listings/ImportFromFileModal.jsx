@@ -265,17 +265,10 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
   const handleSaveAll = async () => {
     setStep("saving");
     setProgress({ current: 0, total: aircraftList.length });
-    const created = [];
-    for (let i = 0; i < aircraftList.length; i++) {
-      const payload = { ...aircraftList[i] };
-      Object.keys(payload).forEach(k => {
-        if (payload[k] === "" || payload[k] == null) delete payload[k];
-      });
-      if (!payload.make || !payload.model) continue;
-      const listing = await base44.entities.AircraftListing.create(payload);
-      created.push(listing);
-      setProgress({ current: i + 1, total: aircraftList.length });
-    }
+    // Bulk create via backend (bypasses RLS, enforces role check server-side)
+    const res = await base44.functions.invoke("createListingsBulk", { listings: aircraftList });
+    const created = res?.data?.created || [];
+    setProgress({ current: aircraftList.length, total: aircraftList.length });
     onImported?.(created);
     onClose();
   };

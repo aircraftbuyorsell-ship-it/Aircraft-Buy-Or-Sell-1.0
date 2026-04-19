@@ -63,6 +63,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['admin', 'dealer'].includes(user.role)) {
+      return Response.json({ error: 'Forbidden: admin or dealer role required' }, { status: 403 });
+    }
 
     const { file_url, dryRun = false } = await req.json().catch(() => ({}));
     if (!file_url) return Response.json({ error: 'Missing file_url' }, { status: 400 });
@@ -108,7 +111,7 @@ ${text.slice(0, 15000)}
     for (const listing of parsed) {
       const { _source_file, ...payload } = listing;
       if (payload.make === "Unknown" && payload.model === "Unknown") continue;
-      const record = await base44.entities.AircraftListing.create(payload);
+      const record = await base44.asServiceRole.entities.AircraftListing.create({ ...payload, owner: user.id });
       created.push(record.id);
     }
 

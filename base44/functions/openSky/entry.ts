@@ -1,16 +1,17 @@
-// OpenSky Network API proxy — anonymous access.
+// OpenSky Network API proxy — anonymous or OAuth2 client-credentials.
 // Actions:
 //   action="state"   params: { icao24 }           → live position/altitude/velocity
 //   action="flights" params: { icao24, days=7 }   → recent flights (history)
 //   action="track"   params: { icao24 }           → trajectory waypoints
 //
-// If OPENSKY_CLIENT_ID / OPENSKY_CLIENT_SECRET are set, authenticated OAuth2
-// client-credentials flow is used automatically (higher rate limits).
+// icao24 MUST be a 6-char hex Mode-S code (lowercase). Registrations (N123AB, OK-LAD)
+// must be resolved to hex on the client via FAAAircraft.mode_s_hex before calling.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
+const FETCH_TIMEOUT_MS = 8000;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
@@ -42,13 +43,28 @@ async function getAccessToken() {
 async function openSkyFetch(path) {
   const token = await getAccessToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const res = await fetch(`${OPENSKY_BASE}${path}`, { headers });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`OpenSky ${res.status}: ${await res.text()}`);
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${OPENSKY_BASE}${path}`, { headers, signal: controller.signal });
+    if (res.status === 404) return null;
+    if (res.status === 429) throw new Error("OpenSky rate limit — try again in a minute");
+    if (!res.ok) throw new Error(`OpenSky ${res.status}`);
+    const text = await res.text();
+    if (!text) return null;
+    try { return JSON.parse(text); } catch { return null; }
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("OpenSky request timed out — try again shortly");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-// Convert raw state array → named object (per OpenSky StateVector spec)
+function isValidHex(s) {
+  return typeof s === "string" && /^[0-9a-f]{6}$/.test(s);
+}
+
 function parseState(arr) {
   if (!Array.isArray(arr)) return null;
   return {
@@ -66,6 +82,7 @@ function parseState(arr) {
     vertical_rate: arr[11],
     geo_altitude: arr[13],
     squawk: arr[14],
+    position_source: arr[16],
     category: arr[17],
   };
 }
@@ -80,16 +97,19 @@ Deno.serve(async (req) => {
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
 
     const hex = icao24 ? String(icao24).toLowerCase().trim() : null;
+    if (!isValidHex(hex)) {
+      return Response.json({
+        error: "Invalid Mode-S hex code. Expected 6 hex chars (e.g. 3c675a). For N-numbers or tail registrations, the client must resolve to hex first.",
+      }, { status: 400 });
+    }
 
     if (action === "state") {
-      if (!hex) return Response.json({ error: "icao24 required" }, { status: 400 });
       const data = await openSkyFetch(`/states/all?icao24=${hex}`);
       const state = data?.states?.[0] ? parseState(data.states[0]) : null;
       return Response.json({ time: data?.time || null, state });
     }
 
     if (action === "flights") {
-      if (!hex) return Response.json({ error: "icao24 required" }, { status: 400 });
       const end = Math.floor(Date.now() / 1000);
       const span = Math.min(Math.max(Number(days) || 7, 1), 30);
       const begin = end - span * 86400;
@@ -98,14 +118,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === "track") {
-      if (!hex) return Response.json({ error: "icao24 required" }, { status: 400 });
       const data = await openSkyFetch(`/tracks/all?icao24=${hex}&time=0`);
       return Response.json({ track: data });
     }
 
     return Response.json({ error: "unknown action" }, { status: 400 });
   } catch (error) {
-    console.error("openSky error:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("openSky error:", error.message);
+    return Response.json({ error: error.message }, { status: 502 });
   }
 });

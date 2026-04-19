@@ -27,31 +27,65 @@ function formatTime(unix) {
   });
 }
 
+const HEX_RE = /^[0-9a-f]{6}$/i;
+
+// Resolve query → hex. Accepts direct hex, N-numbers (N123AB), or tail regs (OK-LAD, D-EABC).
+async function resolveToHex(query) {
+  const q = query.trim();
+  if (!q) throw new Error("Enter a registration or Mode-S hex");
+
+  // Direct hex?
+  if (HEX_RE.test(q)) return { hex: q.toLowerCase(), source: "hex", reg: null };
+
+  // FAA N-number lookup (strip leading N, normalize)
+  const normalized = q.toUpperCase().replace(/[-\s]/g, "");
+  const isNreg = /^N[0-9A-Z]{1,5}$/.test(normalized);
+
+  if (isNreg) {
+    const nNum = normalized.substring(1); // drop the 'N'
+    const matches = await base44.entities.FAAAircraft.filter({ n_number: nNum }, "-last_action_date", 1);
+    if (matches.length && matches[0].mode_s_hex) {
+      return { hex: matches[0].mode_s_hex.toLowerCase(), source: "faa", reg: `N${nNum}` };
+    }
+    throw new Error(`N${nNum} not found in FAA registry or missing Mode-S hex. Try the 6-char hex directly.`);
+  }
+
+  // Non-N registration (e.g. OK-LAD, D-EABC) — we don't have a lookup table
+  throw new Error(`"${q}" is a non-US registration. Enter the 6-char Mode-S hex instead (e.g. 49d2a4).`);
+}
+
 export default function LiveTraffic() {
-  const [hex, setHex] = useState("");
+  const [query, setQuery] = useState("");
+  const [resolved, setResolved] = useState(null); // { hex, source, reg }
   const [state, setState] = useState(null);
   const [flights, setFlights] = useState(null);
   const [error, setError] = useState(null);
 
   const lookupMutation = useMutation({
     mutationFn: async () => {
-      const h = hex.trim().toLowerCase();
-      if (!h) throw new Error("Enter a Mode-S hex code (e.g. 3c675a)");
       setError(null);
       setState(null);
       setFlights(null);
-      const [stateRes, flightsRes] = await Promise.all([
-        base44.functions.invoke("openSky", { action: "state", icao24: h }),
-        base44.functions.invoke("openSky", { action: "flights", icao24: h, days: 7 }),
+      setResolved(null);
+      const info = await resolveToHex(query);
+      setResolved(info);
+      const [stateRes, flightsRes] = await Promise.allSettled([
+        base44.functions.invoke("openSky", { action: "state", icao24: info.hex }),
+        base44.functions.invoke("openSky", { action: "flights", icao24: info.hex, days: 7 }),
       ]);
       return {
-        state: stateRes.data?.state || null,
-        flights: flightsRes.data?.flights || [],
+        state: stateRes.status === "fulfilled" ? (stateRes.value.data?.state || null) : null,
+        stateError: stateRes.status === "rejected" ? stateRes.reason?.response?.data?.error || stateRes.reason?.message : null,
+        flights: flightsRes.status === "fulfilled" ? (flightsRes.value.data?.flights || []) : [],
+        flightsError: flightsRes.status === "rejected" ? flightsRes.reason?.response?.data?.error || flightsRes.reason?.message : null,
       };
     },
     onSuccess: (data) => {
       setState(data.state);
       setFlights(data.flights);
+      if (data.stateError && data.flightsError) {
+        setError(`OpenSky unavailable: ${data.stateError}`);
+      }
     },
     onError: (e) => setError(e.message),
   });
@@ -67,7 +101,7 @@ export default function LiveTraffic() {
           Live Traffic
         </h1>
         <p className="text-[#6B6560] text-sm mt-1">
-          Real-time aircraft position, altitude & velocity via ADS-B. Search by Mode-S hex code.
+          Track any aircraft by <b>N-number</b> (US) or <b>Mode-S hex code</b>. Real-time ADS-B position, altitude, velocity & 7-day flight history.
         </p>
 
         {/* Search */}
@@ -75,16 +109,16 @@ export default function LiveTraffic() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input
-              value={hex}
-              onChange={(e) => setHex(e.target.value)}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && lookupMutation.mutate()}
-              placeholder="Mode-S hex (e.g. 3c675a, a12b3c)"
+              placeholder="N123AB, N67890, or 6-char hex (3c675a)"
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-md text-sm font-mono focus:outline-none focus:border-[#0B2D5B]"
             />
           </div>
           <button
             onClick={() => lookupMutation.mutate()}
-            disabled={lookupMutation.isPending || !hex.trim()}
+            disabled={lookupMutation.isPending || !query.trim()}
             className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black uppercase tracking-wider text-sm px-5 rounded-md transition-colors"
           >
             <Radio className={`w-4 h-4 ${lookupMutation.isPending ? "animate-pulse" : ""}`} />
@@ -92,9 +126,22 @@ export default function LiveTraffic() {
           </button>
         </div>
 
+        {/* Resolution badge */}
+        {resolved && (
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-[#6B6560]">
+            <span className="uppercase tracking-wider font-bold text-[#E8A83A]">
+              {resolved.source === "faa" ? "FAA match" : "Direct hex"}
+            </span>
+            {resolved.reg && <span className="font-mono font-bold text-[#1A1814]">{resolved.reg}</span>}
+            <span>→</span>
+            <span className="font-mono font-bold text-[#0B2D5B]">{resolved.hex}</span>
+          </div>
+        )}
+
         {error && (
-          <div className="mt-4 flex items-center gap-2 bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-md px-4 py-2.5">
-            <AlertCircle className="w-4 h-4" /> {error}
+          <div className="mt-4 flex items-start gap-2 bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-md px-4 py-2.5">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -181,13 +228,13 @@ export default function LiveTraffic() {
         )}
 
         {/* Empty state */}
-        {state === null && flights === null && !lookupMutation.isPending && (
+        {state === null && flights === null && !lookupMutation.isPending && !error && (
           <div className="mt-8 bg-white border border-black/[0.07] rounded-md p-8 text-center">
             <Radio className="w-12 h-12 text-[#E8A83A] mx-auto mb-3 opacity-60" />
             <h3 className="text-lg font-black text-[#1A1814] uppercase tracking-tight">Track any aircraft live</h3>
-            <p className="text-sm text-[#6B6560] mt-2 max-w-md mx-auto">
-              Enter the aircraft's Mode-S hex transponder code (ICAO24) to see its current position, altitude,
-              velocity and recent flight history. Hex codes are available on FAA listings as <span className="font-mono">mode_s_hex</span>.
+            <p className="text-sm text-[#6B6560] mt-2 max-w-md mx-auto leading-relaxed">
+              Enter an <b>N-number</b> (e.g. <span className="font-mono">N123AB</span>) — we'll look up the Mode-S hex from our FAA registry.
+              Or enter the <b>6-char hex</b> directly (e.g. <span className="font-mono">3c675a</span>).
             </p>
           </div>
         )}

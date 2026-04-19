@@ -8,25 +8,49 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
-// Primary top-bar items — always visible
+// Primary top-bar items — always visible (highest-intent, daily workflows)
 const TOP_ITEMS = [
   { path: "/live-traffic", label: "Live Traffic", icon: Radio, accent: true },
   { path: "/escrow", label: "Escrow", icon: Handshake },
   { path: "/my-account", label: "Account", icon: User },
 ];
 
-// Secondary items — in self-hiding left sidebar
-const SIDEBAR_ITEMS = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/listings", label: "Listings", icon: Plane },
-  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-  { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
-  { path: "/service-finder", label: "Service Finder", icon: MapPin },
-  { path: "/leads", label: "Leads", icon: Users },
-  { path: "/verification-center", label: "Verification", icon: BadgeCheck },
-  { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
-  { path: "/my-branding", label: "My Branding", icon: Palette },
-  { path: "/pricing", label: "Credits & Plans", icon: Zap },
+// Sidebar — numbered sections showing the user workflow order
+const SIDEBAR_SECTIONS = [
+  {
+    n: "1",
+    label: "Market & Intelligence",
+    items: [
+      { path: "/", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/listings", label: "Listings", icon: Plane },
+      { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+    ],
+  },
+  {
+    n: "2",
+    label: "Analyze & Plan",
+    items: [
+      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+      { path: "/service-finder", label: "Service Finder", icon: MapPin },
+    ],
+  },
+  {
+    n: "3",
+    label: "Engage & Convert",
+    items: [
+      { path: "/leads", label: "Leads", icon: Users },
+      { path: "/verification-center", label: "Verification", icon: BadgeCheck },
+      { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
+    ],
+  },
+  {
+    n: "4",
+    label: "Account & Settings",
+    items: [
+      { path: "/my-branding", label: "My Branding", icon: Palette },
+      { path: "/pricing", label: "Credits & Plans", icon: Zap },
+    ],
+  },
 ];
 
 const IDLE_MS = 7000;
@@ -34,7 +58,6 @@ const IDLE_MS = 7000;
 export default function Layout() {
   const { pathname } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const idleTimer = useRef(null);
 
   const { data: currentUser } = useQuery({
@@ -43,9 +66,12 @@ export default function Layout() {
     retry: false,
   });
   const isAdmin = currentUser?.role === "admin";
-  const sidebarItems = SIDEBAR_ITEMS.filter(it => !it.adminOnly || isAdmin);
 
-  // Auto-hide sidebar after 7s of inactivity over the sidebar
+  const visibleSections = SIDEBAR_SECTIONS
+    .map(s => ({ ...s, items: s.items.filter(it => !it.adminOnly || isAdmin) }))
+    .filter(s => s.items.length > 0);
+
+  // Auto-hide sidebar after 7s of inactivity
   const resetIdle = () => {
     if (idleTimer.current) clearTimeout(idleTimer.current);
     idleTimer.current = setTimeout(() => setSidebarOpen(false), IDLE_MS);
@@ -61,7 +87,6 @@ export default function Layout() {
   // Close sidebar on route change
   useEffect(() => {
     setSidebarOpen(false);
-    setMobileOpen(false);
   }, [pathname]);
 
   return (
@@ -69,7 +94,6 @@ export default function Layout() {
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-[#111113] border-b border-white/5">
         <div className="flex items-center gap-3 px-4 h-12">
-          {/* Sidebar trigger */}
           <button
             onClick={() => setSidebarOpen(v => !v)}
             className="text-[#8A8780] hover:text-[#F0EDE6] p-1 shrink-0"
@@ -78,7 +102,6 @@ export default function Layout() {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
             {currentUser?.personalization_enabled && currentUser?.brand_logo_url ? (
               <img src={currentUser.brand_logo_url} alt="Logo" className="w-6 h-6 rounded object-contain bg-white/5" />
@@ -94,7 +117,6 @@ export default function Layout() {
 
           <div className="flex-1" />
 
-          {/* Primary top nav */}
           <nav className="flex items-center gap-1">
             {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
               const active = pathname === path;
@@ -120,19 +142,18 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Self-hiding left sidebar */}
+      {/* Backdrop */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSidebarOpen(false)} />
       )}
+
+      {/* Self-hiding left sidebar with numbered sections */}
       <aside
         onMouseMove={handleSidebarActivity}
         onClick={handleSidebarActivity}
         className={`
           fixed left-0 top-12 bottom-0 z-50
-          w-[220px] bg-[#111113] border-r border-white/5
+          w-[248px] bg-[#111113] border-r border-white/5
           flex flex-col transform transition-transform duration-300
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
@@ -144,25 +165,39 @@ export default function Layout() {
           </button>
         </div>
 
-        <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-          {sidebarItems.map(({ path, label, icon: Icon }) => {
-            const active = pathname === path;
-            return (
-              <Link
-                key={path}
-                to={path}
-                className={`
-                  flex items-center gap-2.5 px-3 py-2 rounded-md text-[12px] font-bold uppercase tracking-tight transition-all
-                  ${active
-                    ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40"
-                    : "text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent"}
-                `}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+          {visibleSections.map((section, idx) => (
+            <div key={section.n} className={idx > 0 ? "mt-5" : ""}>
+              <div className="flex items-center gap-2 px-3 pb-1.5">
+                <div className="w-4 h-4 rounded-sm bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center">
+                  <span className="text-[9px] font-black text-[#E8A83A] leading-none">{section.n}</span>
+                </div>
+                <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">
+                  {section.label}
+                </p>
+              </div>
+              <div className="space-y-0.5">
+                {section.items.map(({ path, label, icon: Icon }) => {
+                  const active = pathname === path;
+                  return (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`
+                        flex items-center gap-2.5 pl-7 pr-3 py-2 rounded-md text-[12px] font-bold uppercase tracking-tight transition-all
+                        ${active
+                          ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40"
+                          : "text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent"}
+                      `}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="px-4 py-3 border-t border-white/5">

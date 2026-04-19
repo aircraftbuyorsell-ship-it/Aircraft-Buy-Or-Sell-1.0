@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Users, Search, Mail, ChevronDown, X, Filter } from "lucide-react";
+import { Users, Search, Mail, ChevronDown, X, Filter, Lock, Zap } from "lucide-react";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -125,11 +125,27 @@ export default function Leads() {
     <div className="min-h-screen bg-[#F7F4EF]">
       {/* Header */}
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
-        <GoldLabel>CRM · Qualified Leads</GoldLabel>
+        <GoldLabel>IntraZone · Private Marketplace</GoldLabel>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">AeroTrust Leads</h1>
-            <p className="text-[#6B6560] text-sm mt-0.5">{filtered.length} of {stats.total} leads</p>
+            <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Qualified Leads Marketplace</h1>
+            <p className="text-[#6B6560] text-sm mt-0.5">{filtered.length} of {stats.total} leads · verified & paid access only</p>
+          </div>
+        </div>
+
+        {/* Private / paid access notice */}
+        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#0B2D5B] text-white rounded-xl px-4 py-3">
+          <div className="w-8 h-8 rounded-full bg-[#E8A83A] flex items-center justify-center shrink-0">
+            <Lock className="w-4 h-4 text-[#0B2D5B]" strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-black uppercase tracking-tight">Not a public listing · Credits required</p>
+            <p className="text-[12px] text-white/75 mt-0.5 leading-relaxed">
+              Each qualified lead unlock costs credits. Leads are verified buyers — not free tire-kickers. Only active IntraZone members can reveal, contact, or claim.
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 bg-[#E8A83A] text-[#0B2D5B] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full shrink-0">
+            <Zap className="w-3.5 h-3.5" /> 10 cr / lead
           </div>
         </div>
       </div>

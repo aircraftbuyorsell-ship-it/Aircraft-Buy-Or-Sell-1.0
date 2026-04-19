@@ -128,6 +128,7 @@ export default function ImportFromFileModal({ onClose, onImported }) {
   const [aircraftList, setAircraftList] = useState([]); // parsed items
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [useRegex, setUseRegex] = useState(false); // ZIP chunks → regex parser (fast, no AI)
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
@@ -147,6 +148,33 @@ export default function ImportFromFileModal({ onClose, onImported }) {
     try {
       // Upload the file to get it parsed by the AI (works for zip, json, pdf, txt, csv, etc.)
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Fast path: regex-based chunk parser (ZIP of .txt files)
+      if (useRegex && isZip) {
+        const res = await base44.functions.invoke("parseChunksZip", { file_url, dryRun: true });
+        const parsed = res.data?.parsed || [];
+        if (!parsed.length) {
+          setError("V ZIP archivu nebyly nalezeny žádné .txt chunky.");
+          setStep("input");
+          return;
+        }
+        const mapped = parsed.map(p => ({
+          make: p.manufacturer || "",
+          model: p.model || "",
+          year: p.year || undefined,
+          registration: p.registration || "",
+          asking_price: p.price_amount || undefined,
+          currency: "USD",
+          ai_summary: p.title || "",
+          raw_text: p.description || "",
+          source_platform: p.source_file || "Chunk Import",
+          status: "active",
+          visibility: "public",
+        }));
+        setAircraftList(mapped);
+        setStep("review");
+        return;
+      }
 
       // Use ExtractDataFromUploadedFile for structured extraction on the uploaded file
       // (supports csv, xlsx, json, html, pdf, images — but NOT zip)
@@ -273,6 +301,21 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
                   <input type="file" accept=".zip,.json,.csv,.pdf,.txt,.xlsx,.png,.jpg,.jpeg,.webp" onChange={handleFile} className="hidden" />
                 </div>
               </label>
+
+              {/* Regex parser toggle — for ZIP archives of .txt chunks */}
+              <div className="flex items-center gap-3 bg-[rgba(212,160,23,0.05)] border border-[rgba(212,160,23,0.2)] rounded-xl px-4 py-3">
+                <input
+                  type="checkbox"
+                  id="useRegex"
+                  checked={useRegex}
+                  onChange={(e) => setUseRegex(e.target.checked)}
+                  className="accent-[#D4A017]"
+                />
+                <label htmlFor="useRegex" className="flex-1 cursor-pointer">
+                  <p className="text-[12px] font-bold text-[#1A1814]">Regex parser (rychlý, bez AI)</p>
+                  <p className="text-[10px] text-[#6B6560]">Pro ZIP archivy s <code className="text-[#A67C00]">.txt</code> chunky — parsuje manufacturer, model, year, registration, price přímo regexem.</p>
+                </label>
+              </div>
 
               {file && (
                 <div className="bg-[#F7F4EF] border border-black/[0.07] rounded-xl px-4 py-2.5 flex items-center justify-between">

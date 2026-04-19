@@ -5,9 +5,10 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
   Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift, Bell,
-  ChevronLeft, ArrowLeft,
+  ChevronLeft, ArrowLeft, Music,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import MiniPlayer from "@/components/radio/MiniPlayer";
 
 // Routes considered "child" screens that show a back button.
 // Any route deeper than these (with a param) also qualifies.
@@ -60,6 +61,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/my-branding", label: "My Branding", icon: Palette },
       { path: "/pricing", label: "Credits & Plans", icon: Zap },
+      { path: "/radio", label: "Radio", icon: Music },
     ],
   },
 ];
@@ -243,6 +245,9 @@ export default function Layout() {
 
       {/* Mobile bottom nav (hidden on md+) */}
       <MobileBottomNav />
+
+      {/* Global persistent mini player */}
+      <MiniPlayer />
     </div>
   );
 }

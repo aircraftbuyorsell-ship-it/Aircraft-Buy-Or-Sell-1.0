@@ -23,6 +23,7 @@ import Escrow from "./pages/Escrow";
 import LiveTraffic from "./pages/LiveTraffic";
 import Rewards from "./pages/Rewards";
 import Alerts from "./pages/Alerts";
+import Radio from "./pages/Radio";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/live-traffic" element={<LiveTraffic />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route path="/radio" element={<Radio />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

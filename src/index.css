@@ -57,8 +57,8 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 46%;
     --destructive-foreground: 0 0% 98%;
-    --border: 36 15% 88%;
-    --input: 36 15% 88%;
+    --border: 210 40% 96%;
+    --input: 210 40% 96%;
     --ring: 42 87% 46%;
     --radius: 0.75rem;
     --sidebar-background: 240 3% 7%;
@@ -66,7 +66,7 @@
     --sidebar-primary: 42 87% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 215 28% 17%;
-    --sidebar-accent-foreground: 36 20% 92%;
+    --sidebar-accent-foreground: 210 20% 98%;
     --sidebar-border: 240 3% 14%;
     --sidebar-ring: 42 87% 46%;
   }

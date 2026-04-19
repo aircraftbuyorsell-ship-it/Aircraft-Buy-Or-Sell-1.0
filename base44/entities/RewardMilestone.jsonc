@@ -1,0 +1,76 @@
+{
+  "name": "RewardMilestone",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who earned the reward"
+    },
+    "milestone_type": {
+      "type": "string",
+      "enum": [
+        "referral_verified",
+        "ati_score_90",
+        "ati_score_95",
+        "first_ati_passport",
+        "first_escrow",
+        "manual_admin"
+      ],
+      "description": "Type of milestone achieved"
+    },
+    "tokens_awarded": {
+      "type": "number",
+      "description": "Raw tokens credited (1 token = 5 displayed credits)"
+    },
+    "credits_awarded": {
+      "type": "number",
+      "description": "Credits granted (display units)"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "Entity id related to the milestone (listing id, invitee email, escrow id) \u2014 used for dedupe"
+    },
+    "reference_type": {
+      "type": "string",
+      "description": "Kind of reference: listing, user, escrow"
+    },
+    "note": {
+      "type": "string",
+      "description": "Human-readable description of the achievement"
+    }
+  },
+  "required": [
+    "user_email",
+    "milestone_type",
+    "tokens_awarded"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

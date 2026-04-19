@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Radio as RadioIcon, Search, X, Play, Pause, Loader2, Globe } from "lucide-react";
 import { useRadioPlayer } from "@/lib/useRadioPlayer";
+import CountryPicker from "@/components/radio/CountryPicker";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -50,16 +51,23 @@ function StationCard({ station }) {
 export default function Radio() {
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
+  const [country, setCountry] = useState("");
+
+  const { data: countries = [], isLoading: loadingCountries } = useQuery({
+    queryKey: ["radio-countries"],
+    queryFn: () => callRadio("countries"),
+    staleTime: 60 * 60 * 1000,
+  });
 
   const { data: popular = [], isLoading: loadingPop } = useQuery({
-    queryKey: ["radio-popular"],
-    queryFn: () => callRadio("popular", { limit: 24 }),
+    queryKey: ["radio-popular", country],
+    queryFn: () => callRadio("popular", { limit: 24, ...(country ? { country } : {}) }),
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: results = [], isLoading: loadingSearch } = useQuery({
-    queryKey: ["radio-search", submitted],
-    queryFn: () => callRadio("search", { q: submitted, limit: 30 }),
+    queryKey: ["radio-search", submitted, country],
+    queryFn: () => callRadio("search", { q: submitted, limit: 30, ...(country ? { country } : {}) }),
     enabled: !!submitted,
     staleTime: 5 * 60 * 1000,
   });
@@ -78,8 +86,8 @@ export default function Radio() {
       </div>
 
       <div className="px-4 md:px-8 pb-4">
-        <form onSubmit={onSubmit} className="flex gap-2">
-          <div className="relative flex-1">
+        <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input
               value={query}
@@ -94,6 +102,12 @@ export default function Radio() {
               </button>
             )}
           </div>
+          <CountryPicker
+            countries={countries}
+            value={country}
+            onChange={setCountry}
+            loading={loadingCountries}
+          />
           <button type="submit"
             className="px-5 py-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white text-sm font-black uppercase tracking-wider rounded-xl">
             Search
@@ -105,7 +119,12 @@ export default function Radio() {
         <div className="flex items-center gap-2 mb-3">
           <Globe className="w-3.5 h-3.5 text-[#E8A83A]" />
           <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B]">
-            {submitted ? `Results for "${submitted}"` : "Popular worldwide"}
+            {submitted ? `Results for "${submitted}"` : `Popular ${country || "worldwide"}`}
+            {country && !submitted && (
+              <button onClick={() => setCountry("")} className="ml-2 text-[#C0392B] normal-case tracking-normal font-semibold">
+                clear
+              </button>
+            )}
           </p>
         </div>
 

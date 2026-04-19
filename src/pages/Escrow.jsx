@@ -5,6 +5,7 @@ import { Handshake, Search, Plus, Shield, TrendingUp, CircleDollarSign } from "l
 import NewEscrowModal from "@/components/escrow/NewEscrowModal";
 import EscrowDrawer from "@/components/escrow/EscrowDrawer";
 import EscrowStatusBadge from "@/components/escrow/EscrowStatusBadge";
+import EscrowPartnerBadge, { EscrowPartnerBadgeInline } from "@/components/escrow/EscrowPartnerBadge";
 import { formatMoney, ESCROW_STATUS } from "@/lib/escrow";
 
 function GoldLabel({ children }) {
@@ -88,7 +89,10 @@ export default function Escrow() {
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
-        <GoldLabel>IntraZone · Transparent Hustle</GoldLabel>
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          <GoldLabel>IntraZone · Transparent Hustle</GoldLabel>
+          <EscrowPartnerBadgeInline />
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight uppercase">
@@ -109,6 +113,9 @@ export default function Escrow() {
       </div>
 
       <div className="px-4 md:px-8 pb-8 space-y-5">
+        {/* Partnership trust strip */}
+        <EscrowPartnerBadge />
+
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatBox icon={Handshake} label="Active Deals" value={stats.active} color="#0B2D5B" />

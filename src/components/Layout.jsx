@@ -70,8 +70,8 @@ export default function Layout() {
               {currentUser?.personalization_enabled && currentUser?.brand_logo_url ? (
                 <img src={currentUser.brand_logo_url} alt="Logo" className="w-7 h-7 rounded object-contain bg-white/5" />
               ) : (
-                <div className="w-7 h-7 rounded bg-[#D4A017]/20 border border-[#D4A017]/30 flex items-center justify-center shrink-0">
-                  <Plane className="w-4 h-4 text-[#D4A017]" />
+                <div className="w-7 h-7 rounded bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center shrink-0">
+                  <Plane className="w-4 h-4 text-[#E8A83A]" />
                 </div>
               )}
               <span className="text-[#F0EDE6] font-black text-base tracking-tight truncate">
@@ -94,7 +94,7 @@ export default function Layout() {
             if (!items.length) return null;
             return (
               <div key={group.label}>
-                <p className="text-[#4A4845] text-[9px] uppercase tracking-[0.15em] font-semibold px-3 pb-2">
+                <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold px-3 pb-2">
                   {group.label}
                 </p>
                 <div className="space-y-0.5">
@@ -106,10 +106,10 @@ export default function Layout() {
                         to={path}
                         onClick={() => setMobileOpen(false)}
                         className={`
-                          flex items-start gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all
+                          flex items-start gap-3 px-3 py-2 rounded-md text-[13px] font-bold uppercase tracking-tight transition-all
                           ${active
-                            ? "bg-[rgba(212,160,23,0.12)] text-[#D4A017] border border-[rgba(212,160,23,0.2)]"
-                            : "text-[#8A8780] hover:text-[#C8C4BC] hover:bg-white/5 border border-transparent"}
+                            ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40 shadow-sm"
+                            : "text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent"}
                         `}
                       >
                         <Icon className="w-4 h-4 shrink-0 mt-0.5" />
@@ -130,10 +130,10 @@ export default function Layout() {
 
         <div className="px-5 py-4 border-t border-white/5">
           <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#D4A017] animate-pulse" />
-            <p className="text-[#4A4845] text-[10px] uppercase tracking-widest font-medium">Live · Global Network</p>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#E8A83A] animate-pulse" />
+            <p className="text-[#E8A83A] text-[10px] uppercase tracking-[0.2em] font-bold">Live · Global Network</p>
           </div>
-          <p className="text-[#2A2825] text-[10px]">ABOS Platform v1.0</p>
+          <p className="text-[#4A4845] text-[10px] uppercase tracking-wider">ABOS Platform v1.0</p>
         </div>
       </aside>
 
@@ -143,8 +143,8 @@ export default function Layout() {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Plane className="w-4 h-4 text-[#D4A017]" />
-            <span className="text-[#F0EDE6] font-black text-sm tracking-tight">ABOS</span>
+            <Plane className="w-4 h-4 text-[#E8A83A]" />
+            <span className="text-[#F0EDE6] font-black text-sm tracking-tight uppercase">ABOS</span>
           </div>
           <div className="w-7" />
         </header>

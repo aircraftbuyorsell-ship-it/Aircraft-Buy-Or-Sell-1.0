@@ -6,6 +6,8 @@ import { Cpu, ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle, RefreshCw } fr
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
+import OwnershipTrace from "@/components/ownership/OwnershipTrace";
+import VerifiedTitleStamp from "@/components/ownership/VerifiedTitleStamp";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -97,6 +99,13 @@ export default function ATIPassport() {
     },
     enabled: !!listingId,
   });
+
+  const { data: ownershipEvents = [] } = useQuery({
+    queryKey: ["ownership-trace", listingId],
+    queryFn: () => base44.entities.OwnershipTrace.filter({ listing: listingId }, "-event_date", 50),
+    enabled: !!listingId,
+  });
+  const verifiedOwnershipCount = ownershipEvents.filter(e => e.verification_status === "verified").length;
 
   const isLoading = loadingListing || loadingPassport;
 
@@ -339,6 +348,18 @@ Return ONLY raw JSON — no markdown, no explanation:
                     </span>
                   )}
                 </div>
+
+                {/* Verified Title Stamp */}
+                <div className="mt-5 pt-5 border-t border-black/[0.06] w-full flex flex-col items-center">
+                  <VerifiedTitleStamp
+                    verifiedCount={verifiedOwnershipCount}
+                    totalCount={ownershipEvents.length}
+                    size="md"
+                  />
+                  <p className="text-[10px] text-[#AAA49C] mt-2 text-center max-w-[180px] leading-tight">
+                    Digital title backed by {verifiedOwnershipCount} verified document{verifiedOwnershipCount === 1 ? "" : "s"}
+                  </p>
+                </div>
               </div>
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-3">
                 <div className="flex items-center justify-between">
@@ -405,6 +426,9 @@ Return ONLY raw JSON — no markdown, no explanation:
                 {generating ? "Regenerating…" : "Regenerate ATI Score"}
               </button>
             </div>
+
+            {/* Ownership Trace — digital title / provenance */}
+            <OwnershipTrace listingId={listingId} />
 
             {/* Strengths / Risks / Recommendations */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

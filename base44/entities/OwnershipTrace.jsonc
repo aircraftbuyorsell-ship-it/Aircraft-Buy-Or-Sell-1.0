@@ -1,0 +1,92 @@
+{
+  "name": "OwnershipTrace",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "manufacture",
+        "first_registration",
+        "ownership_transfer",
+        "title_deed",
+        "logbook_entry",
+        "lien_release",
+        "export_import",
+        "damage_repair",
+        "other"
+      ],
+      "description": "Type of provenance event"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the event occurred"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Owner name (individual or entity) at this point in the chain"
+    },
+    "owner_country": {
+      "type": "string",
+      "description": "Country of the owner at this point"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Event details or notes"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "URL of the verified supporting document"
+    },
+    "document_name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "logbook",
+        "title_deed",
+        "bill_of_sale",
+        "registration_certificate",
+        "ad_compliance",
+        "form_337",
+        "other"
+      ],
+      "description": "Type of document"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Verification status"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Email of the admin/dealer who verified the document"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the document was verified"
+    },
+    "uploader": {
+      "type": "string",
+      "relationType": "User",
+      "description": "Dealer who uploaded the event"
+    }
+  },
+  "required": [
+    "listing",
+    "event_type"
+  ]
+}

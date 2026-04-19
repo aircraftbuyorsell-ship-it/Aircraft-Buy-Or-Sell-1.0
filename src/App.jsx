@@ -20,6 +20,7 @@ import VerificationCenter from "./pages/VerificationCenter";
 import OpexCalculator from "./pages/OpexCalculator";
 import ServiceFinder from "./pages/ServiceFinder";
 import Escrow from "./pages/Escrow";
+import LiveTraffic from "./pages/LiveTraffic";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
 
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/service-finder" element={<ServiceFinder />} />
         <Route path="/escrow" element={<Escrow />} />
+        <Route path="/live-traffic" element={<LiveTraffic />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

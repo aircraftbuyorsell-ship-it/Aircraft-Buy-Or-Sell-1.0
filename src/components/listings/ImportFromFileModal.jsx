@@ -154,7 +154,7 @@ export default function ImportFromFileModal({ onClose, onImported }) {
         const res = await base44.functions.invoke("parseChunksZip", { file_url, dryRun: true });
         const parsed = res.data?.parsed || [];
         if (!parsed.length) {
-          setError("V ZIP archivu nebyly nalezeny žádné .txt chunky.");
+          setError("No .txt chunks were found in the ZIP archive.");
           setStep("input");
           return;
         }
@@ -181,7 +181,7 @@ export default function ImportFromFileModal({ onClose, onImported }) {
         const res = await base44.functions.invoke("aiParseChunksZip", { file_url, dryRun: true });
         const parsed = res.data?.parsed || [];
         if (!parsed.length) {
-          setError("V ZIP archivu nebyly nalezeny žádné .txt chunky.");
+          setError("No .txt chunks were found in the ZIP archive.");
           setStep("input");
           return;
         }
@@ -248,7 +248,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
       }
 
       if (!aircrafts.length) {
-        setError("V souboru nebyly nalezeny žádné inzeráty letadel.");
+        setError("No aircraft listings were found in the file.");
         setStep("input");
         return;
       }
@@ -257,7 +257,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
       setAircraftList(mapped);
       setStep("review");
     } catch (e) {
-      setError(e?.message || "Nepodařilo se zpracovat soubor.");
+      setError(e?.message || "Failed to process the file.");
       setStep("input");
     }
   };
@@ -283,8 +283,8 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
               <FileArchive className="w-4 h-4 text-[#D4A017]" />
             </div>
             <div>
-              <h2 className="text-base font-black text-[#1A1814]">Import ze souboru (ZIP / JSON)</h2>
-              <p className="text-[11px] text-[#AAA49C]">Nahraj ZIP, JSON, CSV, PDF nebo text — AI rozpozná jeden či více inzerátů</p>
+              <h2 className="text-base font-black text-[#1A1814]">Import from file (ZIP / JSON)</h2>
+              <p className="text-[11px] text-[#AAA49C]">Upload ZIP, JSON, CSV, PDF or text — AI will detect one or more listings</p>
             </div>
           </div>
           <button onClick={onClose} className="text-[#AAA49C] hover:text-[#1A1814] transition-colors">
@@ -300,10 +300,10 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
                 <div className="border-2 border-dashed border-black/10 hover:border-[#D4A017] rounded-2xl p-8 text-center cursor-pointer transition-colors">
                   <Upload className="w-8 h-8 text-[#AAA49C] mx-auto mb-3" />
                   <p className="text-sm font-bold text-[#1A1814]">
-                    {file ? file.name : "Klikni pro výběr souboru"}
+                    {file ? file.name : "Click to select a file"}
                   </p>
                   <p className="text-[11px] text-[#AAA49C] mt-1">
-                    Podporováno: .zip, .json, .csv, .pdf, .txt, .xlsx, obrázky
+                    Supported: .zip, .json, .csv, .pdf, .txt, .xlsx, images
                   </p>
                   <input type="file" accept=".zip,.json,.csv,.pdf,.txt,.xlsx,.png,.jpg,.jpeg,.webp" onChange={handleFile} className="hidden" />
                 </div>
@@ -311,12 +311,12 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
 
               {/* Parse mode selector */}
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">Režim parsování</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">Parsing mode</label>
                 <div className="space-y-2">
                   {[
-                    { id: "ai-file", title: "AI na celý soubor", desc: "Standardně — pro JSON, CSV, PDF, obrázky i malé ZIPy" },
-                    { id: "regex-chunks", title: "Regex parser (rychlý, bez AI)", desc: "ZIP s .txt chunky — přímá extrakce bez LLM" },
-                    { id: "ai-chunks", title: "AI per chunk (n8n workflow)", desc: "ZIP s .txt chunky — AI analyzuje každý chunk zvlášť" },
+                    { id: "ai-file", title: "AI on the whole file", desc: "Default — for JSON, CSV, PDF, images and small ZIPs" },
+                    { id: "regex-chunks", title: "Regex parser (fast, no AI)", desc: "ZIP with .txt chunks — direct extraction without LLM" },
+                    { id: "ai-chunks", title: "AI per chunk (n8n workflow)", desc: "ZIP with .txt chunks — AI analyzes each chunk separately" },
                   ].map(m => (
                     <label key={m.id} className={`flex items-start gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${parseMode === m.id ? "border-[#D4A017] bg-[rgba(212,160,23,0.06)]" : "border-black/10 bg-white hover:border-black/20"}`}>
                       <input
@@ -346,7 +346,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
                     </div>
                   </div>
                   <button onClick={() => setFile(null)} className="text-[11px] text-[#C0392B] hover:underline shrink-0">
-                    Odstranit
+                    Remove
                   </button>
                 </div>
               )}
@@ -366,7 +366,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
               <div className="bg-[rgba(15,122,86,0.06)] border border-[rgba(15,122,86,0.18)] rounded-xl px-4 py-2.5 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-[#0F7A56]" />
                 <p className="text-[12px] text-[#0F7A56] font-bold">
-                  Nalezeno {aircraftList.length} {aircraftList.length === 1 ? "letadlo" : "letadel"} — zkontroluj a ulož
+                  Found {aircraftList.length} {aircraftList.length === 1 ? "aircraft" : "aircraft"} — review and save
                 </p>
               </div>
 
@@ -383,11 +383,11 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
                       <div><span className="text-[#AAA49C]">TT:</span> <span className="text-[#1A1814] font-semibold">{ac.total_time?.toLocaleString() || "—"}</span></div>
                       <div><span className="text-[#AAA49C]">ENG hrs:</span> <span className="text-[#1A1814] font-semibold">{ac.engine_hours?.toLocaleString() || "—"}</span></div>
-                      <div><span className="text-[#AAA49C]">Motorů:</span> <span className="text-[#1A1814] font-semibold">{ac.engine_count}</span></div>
-                      <div><span className="text-[#AAA49C]">Cena:</span> <span className="text-[#1A1814] font-semibold">{ac.asking_price ? `$${ac.asking_price.toLocaleString()}` : "—"}</span></div>
+                      <div><span className="text-[#AAA49C]">Engines:</span> <span className="text-[#1A1814] font-semibold">{ac.engine_count}</span></div>
+                      <div><span className="text-[#AAA49C]">Price:</span> <span className="text-[#1A1814] font-semibold">{ac.asking_price ? `$${ac.asking_price.toLocaleString()}` : "—"}</span></div>
                     </div>
                     {ac.avionics && (
-                      <p className="text-[11px] text-[#6B6560] mt-2 truncate"><span className="text-[#AAA49C]">Avionika:</span> {ac.avionics}</p>
+                      <p className="text-[11px] text-[#6B6560] mt-2 truncate"><span className="text-[#AAA49C]">Avionics:</span> {ac.avionics}</p>
                     )}
                   </div>
                 ))}
@@ -398,7 +398,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
           {step === "saving" && (
             <div className="flex flex-col items-center py-10 gap-3">
               <Sparkles className="w-8 h-8 text-[#D4A017] animate-pulse" />
-              <p className="text-sm font-bold text-[#1A1814]">Ukládám inzeráty…</p>
+              <p className="text-sm font-bold text-[#1A1814]">Saving listings…</p>
               <p className="text-[11px] text-[#AAA49C]">{progress.current} / {progress.total}</p>
               <div className="w-48 h-1.5 bg-black/5 rounded-full overflow-hidden">
                 <div className="h-full bg-[#D4A017] transition-all" style={{ width: `${progress.total ? (progress.current / progress.total) * 100 : 0}%` }} />
@@ -411,11 +411,11 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
         <div className="px-6 py-4 border-t border-black/[0.07] flex items-center justify-end gap-3">
           {step === "review" && (
             <button onClick={() => { setStep("input"); setAircraftList([]); }} className="text-sm text-[#AAA49C] hover:text-[#1A1814] transition-colors mr-auto">
-              ← Zpět
+              ← Back
             </button>
           )}
           <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-black/10 text-sm font-medium text-[#6B6560] hover:border-[#D4A017] transition-colors">
-            Zrušit
+            Cancel
           </button>
 
           {(step === "input" || step === "processing") && (
@@ -425,7 +425,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-40 text-white text-sm font-bold transition-colors"
             >
               <Sparkles className={`w-4 h-4 ${step === "processing" ? "animate-pulse" : ""}`} />
-              {step === "processing" ? "Analyzuji…" : "Analyzovat soubor"}
+              {step === "processing" ? "Analyzing…" : "Analyze file"}
             </button>
           )}
 
@@ -435,7 +435,7 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold transition-colors"
             >
               <CheckCircle className="w-4 h-4" />
-              Uložit vše ({aircraftList.length})
+              Save all ({aircraftList.length})
             </button>
           )}
         </div>

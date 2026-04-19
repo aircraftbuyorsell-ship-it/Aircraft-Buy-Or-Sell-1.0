@@ -147,7 +147,7 @@ export default function Listings() {
               className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
             >
               <Sparkles className="w-4 h-4" />
-              Import inzerátu
+              Import listing
             </button>
           </div>
         </div>

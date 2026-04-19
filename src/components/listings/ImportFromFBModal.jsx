@@ -38,36 +38,36 @@ export default function ImportFromFBModal({ onClose, onImported }) {
     setError(null);
 
     const sourceContext = mode === "url"
-      ? `Stáhni a analyzuj inzerát z této URL adresy (${sourceMeta.label}): ${input}`
-      : `Text inzerátu z ${sourceMeta.label}:\n"""\n${input}\n"""`;
+      ? `Fetch and analyze the listing at this URL (${sourceMeta.label}): ${input}`
+      : `Listing text from ${sourceMeta.label}:\n"""\n${input}\n"""`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       add_context_from_internet: mode === "url",
       model: mode === "url" ? "gemini_3_flash" : undefined,
-      prompt: `Jsi expert na analýzu inzerátů letadel. Extrahuj strukturovaná data z tohoto inzerátu.
+      prompt: `You are an expert at analyzing aircraft listings. Extract structured data from this listing.
       
-KRITICKÉ PRAVIDLO: Vrať POUZE informace, které jsou EXPLICITNĚ uvedeny v inzerátu.
-Pokud informace NENÍ v textu/stránce, vrať null nebo prázdný string - NIKDY si nic nevymýšlej.
+CRITICAL RULE: Return ONLY information that is EXPLICITLY stated in the listing.
+If information is NOT in the text/page, return null or an empty string — NEVER fabricate anything.
 
 ${sourceContext}
 
-Extrahuj tato data (vše co nenajdeš v textu nastav na null):
-- make: výrobce (Cessna, Piper, Beechcraft, Cirrus, Diamond, atd.)
-- model: model letadla (172, PA-28, Baron, SR22, atd.)
-- year: rok výroby (číslo)
-- registration: registrační značka (např. OK-ABC, N12345)
-- total_time: celkové hodiny draku (číslo)
-- engine_hours: hodiny motoru (číslo)
-- tbo: TBO motoru v hodinách (číslo)
-- asking_price: požadovaná cena v USD (číslo bez symbolů)
-- avionics: seznam avioniky oddělený čárkami
-- last_annual: datum posledního ročního přezkoušení (YYYY-MM-DD formát)
-- fresh_annual: má čerstvý annual? (true/false)
-- engine_count: počet motorů (číslo, default 1)
-- ai_summary: krátké shrnutí inzerátu (2-3 věty v češtině)
-- missing_fields: seznam polí která CHYBÍ nebo NELZE ověřit z textu
+Extract the following (set anything not found to null):
+- make: manufacturer (Cessna, Piper, Beechcraft, Cirrus, Diamond, etc.)
+- model: aircraft model (172, PA-28, Baron, SR22, etc.)
+- year: year of manufacture (number)
+- registration: registration (e.g. N12345, OK-ABC)
+- total_time: airframe total time in hours (number)
+- engine_hours: engine hours (number)
+- tbo: engine TBO in hours (number)
+- asking_price: asking price in USD (number without symbols)
+- avionics: comma-separated list of avionics
+- last_annual: date of last annual inspection (YYYY-MM-DD)
+- fresh_annual: has a fresh annual? (true/false)
+- engine_count: number of engines (number, default 1)
+- ai_summary: short summary of the listing (2-3 sentences in English)
+- missing_fields: list of fields that are MISSING or CANNOT be verified from the text
 
-Vrať POUZE raw JSON bez markdown.`,
+Return ONLY raw JSON without markdown.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -133,8 +133,8 @@ Vrať POUZE raw JSON bez markdown.`,
               <sourceMeta.icon className="w-4 h-4" style={{ color: sourceMeta.color }} />
             </div>
             <div>
-              <h2 className="text-base font-black text-[#1A1814]">Import inzerátu letadla</h2>
-              <p className="text-[11px] text-[#AAA49C]">Vyberte zdroj → vložte text nebo URL → AI extrahuje data</p>
+              <h2 className="text-base font-black text-[#1A1814]">Import aircraft listing</h2>
+              <p className="text-[11px] text-[#AAA49C]">Select source → paste text or URL → AI extracts the data</p>
             </div>
           </div>
           <button onClick={onClose} className="text-[#AAA49C] hover:text-[#1A1814] transition-colors">
@@ -149,7 +149,7 @@ Vrať POUZE raw JSON bez markdown.`,
               {/* Source selector */}
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
-                  Zdroj inzerátu
+                  Listing source
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {SUPPORTED_SOURCES.map((s) => {
@@ -174,7 +174,7 @@ Vrať POUZE raw JSON bez markdown.`,
                   onClick={() => setMode("url")}
                   className={`px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${mode === "url" ? "bg-white text-[#1A1814] shadow-sm" : "text-[#AAA49C] hover:text-[#6B6560]"}`}
                 >
-                  <Link2 className="w-3 h-3 inline mr-1" /> URL odkaz
+                  <Link2 className="w-3 h-3 inline mr-1" /> URL link
                 </button>
                 <button
                   onClick={() => setMode("text")}
@@ -187,7 +187,7 @@ Vrať POUZE raw JSON bez markdown.`,
               {mode === "url" ? (
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
-                    URL inzerátu z {sourceMeta.label}
+                    Listing URL from {sourceMeta.label}
                   </label>
                   <input
                     type="url"
@@ -197,23 +197,23 @@ Vrať POUZE raw JSON bez markdown.`,
                     className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors"
                   />
                   <p className="text-[11px] text-[#AAA49C] mt-1.5">
-                    AI stáhne a analyzuje obsah stránky přímo z internetu.
+                    AI will fetch and analyze the page content directly from the web.
                   </p>
                 </div>
               ) : (
                 <div>
                   <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">
-                    Text inzerátu z {sourceMeta.label}
+                    Listing text from {sourceMeta.label}
                   </label>
                   <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="Vložte celý text inzerátu..."
+                    placeholder="Paste the full listing text..."
                     rows={8}
                     className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors resize-none"
                   />
                   <p className="text-[11px] text-[#AAA49C] mt-1.5">
-                    Čím více informací inzerát obsahuje, tím přesnější bude extrakce.
+                    The more information the listing contains, the more accurate the extraction.
                   </p>
                 </div>
               )}
@@ -236,10 +236,10 @@ Vrať POUZE raw JSON bez markdown.`,
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle className="w-4 h-4 text-[#C0392B]" />
                     <p className="text-[10px] uppercase tracking-wider font-bold text-[#C0392B]">
-                      Chybějící / neověřitelná data
+                      Missing / unverifiable data
                     </p>
                   </div>
-                  <p className="text-[11px] text-[#C0392B] mb-1">Tato pole nebyla v inzerátu nalezena — doplňte je ručně:</p>
+                  <p className="text-[11px] text-[#C0392B] mb-1">These fields were not found in the listing — please fill them in manually:</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {missingFields.map((f, i) => (
                       <span key={i} className="text-[10px] bg-[rgba(192,57,43,0.1)] text-[#C0392B] px-2 py-0.5 rounded-full font-medium">{f}</span>
@@ -250,14 +250,14 @@ Vrať POUZE raw JSON bez markdown.`,
 
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { key: "make", label: "Výrobce" },
+                  { key: "make", label: "Make" },
                   { key: "model", label: "Model" },
-                  { key: "year", label: "Rok výroby" },
-                  { key: "registration", label: "Registrace" },
-                  { key: "total_time", label: "Celkové hodiny (TT)" },
-                  { key: "engine_hours", label: "Hodiny motoru" },
+                  { key: "year", label: "Year" },
+                  { key: "registration", label: "Registration" },
+                  { key: "total_time", label: "Total time (TT)" },
+                  { key: "engine_hours", label: "Engine hours" },
                   { key: "tbo", label: "TBO" },
-                  { key: "asking_price", label: "Cena (USD)" },
+                  { key: "asking_price", label: "Price (USD)" },
                 ].map(({ key, label }) => (
                   <div key={key}>
                     <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">{label}</label>
@@ -272,7 +272,7 @@ Vrať POUZE raw JSON bez markdown.`,
                 ))}
 
                 <div className="col-span-2">
-                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Avionika</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Avionics</label>
                   <input
                     type="text"
                     value={extracted.avionics || ""}
@@ -284,7 +284,7 @@ Vrať POUZE raw JSON bez markdown.`,
 
                 {extracted.ai_summary && (
                   <div className="col-span-2 bg-[rgba(212,160,23,0.06)] border border-[rgba(212,160,23,0.2)] rounded-xl p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-[#A67C00] font-semibold mb-1">AI Shrnutí</p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#A67C00] font-semibold mb-1">AI Summary</p>
                     <p className="text-[12px] text-[#6B6560]">{extracted.ai_summary}</p>
                   </div>
                 )}
@@ -297,7 +297,7 @@ Vrať POUZE raw JSON bez markdown.`,
                     onChange={(e) => setExtracted(prev => ({ ...prev, fresh_annual: e.target.checked }))}
                     className="accent-[#D4A017]"
                   />
-                  <label htmlFor="fresh_annual" className="text-sm text-[#1A1814] font-medium">Čerstvý annual</label>
+                  <label htmlFor="fresh_annual" className="text-sm text-[#1A1814] font-medium">Fresh annual</label>
                 </div>
               </div>
             </>
@@ -308,12 +308,12 @@ Vrať POUZE raw JSON bez markdown.`,
         <div className="px-6 py-4 border-t border-black/[0.07] flex items-center justify-between gap-3">
           {step === "review" && (
             <button onClick={() => setStep("input")} className="text-sm text-[#AAA49C] hover:text-[#1A1814] transition-colors">
-              ← Zpět
+              ← Back
             </button>
           )}
           <div className="flex gap-3 ml-auto">
             <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-black/10 text-sm font-medium text-[#6B6560] hover:border-[#D4A017] transition-colors">
-              Zrušit
+              Cancel
             </button>
 
             {(step === "input" || step === "extracting") && (
@@ -323,7 +323,7 @@ Vrať POUZE raw JSON bez markdown.`,
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-40 text-white text-sm font-bold transition-colors"
               >
                 <Sparkles className={`w-4 h-4 ${step === "extracting" ? "animate-pulse" : ""}`} />
-                {step === "extracting" ? (mode === "url" ? "Stahuji a analyzuji…" : "Extrahuji data…") : "Extrahovat pomocí AI"}
+                {step === "extracting" ? (mode === "url" ? "Fetching and analyzing…" : "Extracting data…") : "Extract with AI"}
               </button>
             )}
 
@@ -334,14 +334,14 @@ Vrať POUZE raw JSON bez markdown.`,
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-40 text-white text-sm font-bold transition-colors"
               >
                 <CheckCircle className="w-4 h-4" />
-                Vytvořit Aircraft Listing
+                Create Aircraft Listing
               </button>
             )}
 
             {step === "saving" && (
               <button disabled className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] opacity-60 text-white text-sm font-bold">
                 <Sparkles className="w-4 h-4 animate-pulse" />
-                Ukládám…
+                Saving…
               </button>
             )}
           </div>

@@ -1,0 +1,108 @@
+{
+  "name": "AffiliateLink",
+  "type": "object",
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "Short unique slug used in URL (e.g. MKP001, BRK022)"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the party that owns this link"
+    },
+    "owner_role": {
+      "type": "string",
+      "enum": [
+        "issuer",
+        "master_distributor",
+        "marketplace",
+        "broker",
+        "sub_broker",
+        "introducer",
+        "closing_agent"
+      ],
+      "default": "marketplace",
+      "description": "Role this owner plays in the chain"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "ati_card",
+        "listing",
+        "bundle",
+        "checkout"
+      ],
+      "default": "ati_card"
+    },
+    "target_card": {
+      "type": "string",
+      "relationType": "ATICard",
+      "description": "ATI card this link points to (if target_type=ati_card)"
+    },
+    "target_listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Listing this link points to (if target_type=listing)"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Marketing campaign tag"
+    },
+    "commission_scheme_id": {
+      "type": "string",
+      "description": "Reference to commission scheme (resolved at conversion)"
+    },
+    "parent_link_slug": {
+      "type": "string",
+      "description": "Upstream link slug \u2014 for building multi-level chains"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0
+    },
+    "lead_count": {
+      "type": "number",
+      "default": 0
+    },
+    "conversion_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_click_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "slug",
+    "owner_email"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

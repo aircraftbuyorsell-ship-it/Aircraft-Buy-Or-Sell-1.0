@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Fingerprint, Plane, Shield, QrCode, ExternalLink, Lock } from "lucide-react";
 import { STATUS_META, CARD_TYPE_META } from "@/lib/atiCard";
+import { parseChainFromUrl, resolveLinkBySlug, logEvent, bumpLinkCounter } from "@/lib/affiliate";
 
 /**
  * Public ATI Card view — shareable URL /c/:code.
@@ -28,11 +29,30 @@ export default function PublicCard() {
     enabled: !!card?.listing,
   });
 
-  // Increment view count once per page load
+  // Increment view count + log click/view events with affiliate chain attribution
   useEffect(() => {
     if (!card?.id) return;
-    base44.entities.ATICard.update(card.id, { view_count: (card.view_count || 0) + 1 })
-      .catch(() => {});
+    (async () => {
+      try {
+        await base44.entities.ATICard.update(card.id, { view_count: (card.view_count || 0) + 1 });
+        const chain = parseChainFromUrl();
+        // Resolve the most upstream (level 1) link — that's who gets first-verified credit
+        const firstSlug = chain[0];
+        const link = firstSlug ? await resolveLinkBySlug(firstSlug) : null;
+
+        // link_clicked (if arrived via chain) or card_viewed (direct)
+        await logEvent({
+          event_type: chain.length ? "link_clicked" : "card_viewed",
+          card,
+          affiliate_link: link,
+          chain_slugs: chain,
+          is_verified: !!link,     // visit via a registered link = verified source candidate
+        });
+        if (link) await bumpLinkCounter(link, "click_count");
+      } catch (err) {
+        console.warn("PublicCard tracking failed:", err);
+      }
+    })();
   }, [card?.id]); // eslint-disable-line
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/c/${code}` : "";

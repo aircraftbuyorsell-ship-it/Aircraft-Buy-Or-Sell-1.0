@@ -1,0 +1,92 @@
+{
+  "name": "LeadEvent",
+  "type": "object",
+  "properties": {
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "card_created",
+        "card_updated",
+        "card_viewed",
+        "card_shared",
+        "link_clicked",
+        "lead_created",
+        "lead_qualified",
+        "buyer_unlocked",
+        "seller_contacted",
+        "offer_submitted",
+        "deal_closed",
+        "card_transferred",
+        "commission_calculated",
+        "commission_settled"
+      ],
+      "description": "Event type \u2014 drives attribution + payout logic"
+    },
+    "ati_card": {
+      "type": "string",
+      "relationType": "ATICard",
+      "description": "Card the event relates to"
+    },
+    "public_card_code": {
+      "type": "string",
+      "description": "Denormalized card code for easy filtering/display"
+    },
+    "affiliate_link": {
+      "type": "string",
+      "relationType": "AffiliateLink",
+      "description": "Link that drove this event (if any)"
+    },
+    "affiliate_link_slug": {
+      "type": "string",
+      "description": "Denormalized affiliate link slug"
+    },
+    "chain_slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Full ordered chain of referral slugs parsed from URL (level 1 = most upstream)"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Email of the actor (if identifiable)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Client-side session ID (anti-fraud dedup)"
+    },
+    "ip_hash": {
+      "type": "string",
+      "description": "Hashed IP (set server-side eventually)"
+    },
+    "user_agent_hash": {
+      "type": "string"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this event counts as a 'verified' lead (locks first_verified_source)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form event metadata"
+    }
+  },
+  "required": [
+    "event_type"
+  ],
+  "rls": {
+    "read": {},
+    "create": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

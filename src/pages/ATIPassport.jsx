@@ -9,6 +9,8 @@ import { TOKEN_COSTS } from "@/lib/pricing";
 import OwnershipTrace from "@/components/ownership/OwnershipTrace";
 import VerifiedTitleStamp from "@/components/ownership/VerifiedTitleStamp";
 import CardIdentityBlock from "@/components/cards/CardIdentityBlock";
+import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
+import EventTimeline from "@/components/cards/EventTimeline";
 import { ensureCardForListing } from "@/lib/atiCard";
 
 function GoldLabel({ children }) {
@@ -450,6 +452,14 @@ Return ONLY raw JSON — no markdown, no explanation:
                 {generating ? "Regenerating…" : "Regenerate ATI Score"}
               </button>
             </div>
+
+            {/* Affiliate Links + Event timeline (MVP Phase 2) */}
+            {card && (
+              <>
+                <AffiliateLinksPanel card={card} />
+                <EventTimeline card={card} />
+              </>
+            )}
 
             {/* Ownership Trace — digital title / provenance */}
             <OwnershipTrace listingId={listingId} />

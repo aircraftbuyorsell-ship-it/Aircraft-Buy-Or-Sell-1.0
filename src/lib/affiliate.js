@@ -1,0 +1,162 @@
+import { base44 } from "@/api/base44Client";
+
+/**
+ * Affiliate chain + lead event engine.
+ * MVP attribution: first_verified_source wins (per section 11 of the spec).
+ * Max 3 referral levels honored.
+ */
+
+export const MAX_CHAIN_DEPTH = 3;
+
+// ─── Session / dedup ──────────────────────────────────────────────────────
+const SESSION_KEY = "abos_aff_session";
+export function getSessionId() {
+  if (typeof window === "undefined") return "";
+  let s = localStorage.getItem(SESSION_KEY);
+  if (!s) {
+    s = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem(SESSION_KEY, s);
+  }
+  return s;
+}
+
+// ─── URL parsing ──────────────────────────────────────────────────────────
+/**
+ * Parse chain slugs from URL — supports both:
+ *   ?ref=MKP001&sub1=BRK022&sub2=INT007
+ *   path /r/MKP001-BRK022-INT007
+ * Returns ordered array, level 1 = most upstream.
+ */
+export function parseChainFromUrl(url = typeof window !== "undefined" ? window.location.href : "") {
+  if (!url) return [];
+  try {
+    const u = new URL(url, "http://x.invalid");
+    const params = u.searchParams;
+    const chain = [];
+    const ref = params.get("ref");
+    if (ref) chain.push(ref);
+    for (let i = 1; i <= MAX_CHAIN_DEPTH - 1; i++) {
+      const s = params.get(`sub${i}`);
+      if (s) chain.push(s);
+    }
+    // Path-style: /r/A-B-C
+    const m = u.pathname.match(/\/r\/([^/?#]+)/);
+    if (chain.length === 0 && m) {
+      return m[1].split("-").filter(Boolean).slice(0, MAX_CHAIN_DEPTH);
+    }
+    return chain.slice(0, MAX_CHAIN_DEPTH);
+  } catch {
+    return [];
+  }
+}
+
+// ─── Slug generation ──────────────────────────────────────────────────────
+const ROLE_PREFIX = {
+  issuer: "ISS",
+  master_distributor: "MST",
+  marketplace: "MKP",
+  broker: "BRK",
+  sub_broker: "SBR",
+  introducer: "INT",
+  closing_agent: "CLS",
+};
+
+export async function generateUniqueSlug(role = "marketplace") {
+  const prefix = ROLE_PREFIX[role] || "REF";
+  // Find next number for this prefix
+  const existing = await base44.entities.AffiliateLink.filter({}, "-created_date", 500);
+  const used = existing
+    .map(l => l.slug)
+    .filter(s => s?.startsWith(prefix))
+    .map(s => parseInt(s.slice(prefix.length), 10))
+    .filter(n => !isNaN(n));
+  const next = used.length ? Math.max(...used) + 1 : 1;
+  return `${prefix}${String(next).padStart(3, "0")}`;
+}
+
+// ─── Event logging ────────────────────────────────────────────────────────
+/**
+ * Log any lead event. If this event is `verified`, also locks the
+ * first_verified_source on the card (idempotent — never overwrites).
+ */
+export async function logEvent({
+  event_type,
+  card,
+  affiliate_link = null,
+  chain_slugs = null,
+  actor_email = "",
+  metadata = {},
+  is_verified = false,
+}) {
+  if (!event_type) return null;
+
+  const evt = await base44.entities.LeadEvent.create({
+    event_type,
+    ati_card: card?.id || undefined,
+    public_card_code: card?.public_card_code || undefined,
+    affiliate_link: affiliate_link?.id || undefined,
+    affiliate_link_slug: affiliate_link?.slug || undefined,
+    chain_slugs: chain_slugs || parseChainFromUrl(),
+    actor_email,
+    session_id: getSessionId(),
+    is_verified,
+    metadata,
+  });
+
+  // First-verified-source lock on the card
+  if (is_verified && card?.id && !card.first_verified_source_id) {
+    await base44.entities.ATICard.update(card.id, {
+      first_verified_source_id: affiliate_link?.slug || "direct",
+      first_verified_locked_at: new Date().toISOString(),
+      status: card.status === "issued" || card.status === "draft" ? "engaged" : card.status,
+    });
+  }
+
+  return evt;
+}
+
+/**
+ * Increment cheap counters on the link (best-effort).
+ */
+export async function bumpLinkCounter(link, field) {
+  if (!link?.id) return;
+  const patch = { [field]: (link[field] || 0) + 1 };
+  if (field === "click_count") patch.last_click_at = new Date().toISOString();
+  try { await base44.entities.AffiliateLink.update(link.id, patch); } catch {}
+}
+
+/**
+ * Resolve a link by slug (used on landing).
+ */
+export async function resolveLinkBySlug(slug) {
+  if (!slug) return null;
+  const results = await base44.entities.AffiliateLink.filter({ slug }, "-created_date", 1);
+  return results[0] || null;
+}
+
+// ─── Attribution resolution (MVP: first verified source wins) ─────────────
+/**
+ * Decide who gets credit for a card conversion.
+ * Returns { winner_slug, reason, chain } or null.
+ */
+export function resolveAttribution(card, recentEvents = []) {
+  if (card?.first_verified_source_id) {
+    return {
+      winner_slug: card.first_verified_source_id,
+      reason: "first_verified_source_locked",
+      locked_at: card.first_verified_locked_at,
+    };
+  }
+  // Fallback: first verified event in log order
+  const firstVerified = [...recentEvents]
+    .filter(e => e.is_verified && e.affiliate_link_slug)
+    .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))[0];
+  if (firstVerified) {
+    return {
+      winner_slug: firstVerified.affiliate_link_slug,
+      reason: "first_verified_event",
+      locked_at: firstVerified.created_date,
+    };
+  }
+  return { winner_slug: "direct", reason: "no_verified_source" };
+}

@@ -2,94 +2,34 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "role": {
+    "referred_by_email": {
       "type": "string",
-      "enum": [
-        "user",
-        "dealer",
-        "admin"
-      ],
-      "default": "user",
-      "description": "User role in the platform"
-    },
-    "plan": {
-      "type": "string",
-      "enum": [
-        "free",
-        "basic",
-        "pro",
-        "enterprise"
-      ],
-      "default": "free",
-      "description": "Subscription plan"
-    },
-    "stripe_customer_id": {
-      "type": "string",
-      "description": "Stripe customer identifier"
-    },
-    "verified": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether user identity has been verified"
-    },
-    "verified_at": {
-      "type": "string",
-      "format": "date",
-      "description": "Date of verification"
-    },
-    "verification_method": {
-      "type": "string",
-      "enum": [
-        "email",
-        "kyc",
-        "manual",
-        "document"
-      ],
-      "description": "How the user was verified"
-    },
-    "company_name": {
-      "type": "string",
-      "description": "Company name for branding"
-    },
-    "brand_logo_url": {
-      "type": "string",
-      "description": "URL of user's brand logo"
-    },
-    "brand_primary_color": {
-      "type": "string",
-      "description": "Primary brand color (hex, e.g. #D4A017)"
-    },
-    "brand_accent_color": {
-      "type": "string",
-      "description": "Accent/secondary brand color (hex)"
-    },
-    "brand_background_color": {
-      "type": "string",
-      "description": "Background color (hex)"
-    },
-    "brand_font": {
-      "type": "string",
-      "enum": [
-        "Inter",
-        "Playfair Display",
-        "Poppins",
-        "Roboto",
-        "Montserrat",
-        "Lora",
-        "Space Grotesk"
-      ],
-      "default": "Inter",
-      "description": "Preferred UI font"
-    },
-    "brand_website": {
-      "type": "string",
-      "description": "User's company website URL"
+      "description": "Email of the user who referred this account (captured at first login if ?ref=... is in the URL)"
     },
     "personalization_enabled": {
       "type": "boolean",
       "default": false,
-      "description": "Premium: personalized dashboard is active"
+      "description": "Whether premium branding personalization is active"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name for premium branding"
+    },
+    "brand_logo_url": {
+      "type": "string",
+      "description": "Uploaded brand logo URL"
+    },
+    "brand_primary_color": {
+      "type": "string",
+      "description": "Primary brand color"
+    },
+    "brand_accent_color": {
+      "type": "string",
+      "description": "Accent brand color"
+    },
+    "brand_font": {
+      "type": "string",
+      "description": "Selected brand font family"
     }
-  },
-  "required": []
+  }
 }

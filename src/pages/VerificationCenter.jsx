@@ -70,6 +70,8 @@ export default function VerificationCenter() {
       balance_after: newBalance,
     });
     queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
+    // Fire referral claim (server validates paid status + dedupes)
+    base44.functions.invoke("claimReferral", {}).catch(() => {});
     setCurrent(4);
     setProcessing(false);
   };

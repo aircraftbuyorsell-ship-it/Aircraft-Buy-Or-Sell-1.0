@@ -73,31 +73,38 @@ export default function Dashboard() {
           </div>
 
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-[#1A1814] leading-[1.15] uppercase tracking-tight max-w-5xl mx-auto">
-            The Aviation <span className="text-[#0B2D5B]">IntraZone</span> — Where Professional Dealers Hustle Off-Market With <span className="text-[#E8A83A]">Transparency</span>
+            <span className="text-[#0B2D5B]">ATI Score Cards</span>, <span className="text-[#E8A83A]">Escrow</span> & <span className="text-[#0B2D5B]">Live Traffic</span> — The Three Pillars Of Transparent Aviation Deal-Making
           </h1>
           <p className="text-sm md:text-base text-[#4A4845] mt-5 max-w-3xl mx-auto leading-relaxed">
-            Every aircraft gets an <b className="text-[#0B2D5B]">ATI Score Card</b> — a verifiable ID with transparent ownership history and finder's-fee claim rights. <b>No price tags. Just percentages.</b> Everyone hustles. Everyone wins.
+            Generate verifiable <b className="text-[#0B2D5B]">ATI Score Cards</b> live, close deals in protected <b className="text-[#E8A83A]">Escrow</b>, and track any aircraft in real-time with <b className="text-[#0B2D5B]">Live Traffic</b>. Built for professional dealers & brokers.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
               to="/listings"
-              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-8 py-4 rounded-md tracking-wider transition-colors"
+              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors"
             >
               <Fingerprint className="w-5 h-5" />
-              Enter The IntraZone
+              Generate ATI Score Card
             </Link>
             <Link
-              to="/deal-radar"
-              className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-8 py-[14px] rounded-md tracking-wider transition-colors"
+              to="/escrow"
+              className="inline-flex items-center gap-2.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors"
+            >
+              <Handshake className="w-5 h-5" />
+              Open Escrow Deal
+            </Link>
+            <Link
+              to="/live-traffic"
+              className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors"
             >
               <Radar className="w-5 h-5" />
-              Off-Market Deal Radar
+              Track Aircraft Live
             </Link>
           </div>
 
           <p className="text-[11px] text-[#6B6560] uppercase tracking-wider mt-6 font-semibold">
-            Not a valuation tool. Not a calculator. An <span className="text-[#E8A83A]">all-in-one intelligence zone</span>.
+            <Link to="/rewards" className="text-[#E8A83A] hover:underline">🎁 Earn free credits</Link> — invite dealers, hit ATI 90+ milestones, unlock more.
           </p>
         </div>
       </section>

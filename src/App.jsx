@@ -21,6 +21,8 @@ import OpexCalculator from "./pages/OpexCalculator";
 import ServiceFinder from "./pages/ServiceFinder";
 import Escrow from "./pages/Escrow";
 import LiveTraffic from "./pages/LiveTraffic";
+import Rewards from "./pages/Rewards";
+import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
 
@@ -67,6 +69,7 @@ const AuthenticatedApp = () => {
         <Route path="/service-finder" element={<ServiceFinder />} />
         <Route path="/escrow" element={<Escrow />} />
         <Route path="/live-traffic" element={<LiveTraffic />} />
+        <Route path="/rewards" element={<Rewards />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
@@ -81,6 +84,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
+          <ReferralCapture />
           <CountdownOffer />
         </Router>
         <Toaster />

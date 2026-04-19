@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
-  Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio,
+  Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift,
   ChevronLeft,
 } from "lucide-react";
 
@@ -39,6 +39,7 @@ const SIDEBAR_SECTIONS = [
     label: "Engage & Convert",
     items: [
       { path: "/leads", label: "Leads", icon: Users },
+      { path: "/rewards", label: "Rewards", icon: Gift },
       { path: "/verification-center", label: "Verification", icon: BadgeCheck },
       { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
     ],

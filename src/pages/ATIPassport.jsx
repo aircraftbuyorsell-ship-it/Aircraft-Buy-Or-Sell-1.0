@@ -135,6 +135,7 @@ export default function ATIPassport() {
     setGenerating(true);
     setError(null);
     try {
+      const me = await base44.auth.me();
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `You are the ATI (Aircraft Transparency Index) scoring engine for ABOS — the world's largest aviation buy/sell community.
 
@@ -234,6 +235,7 @@ Return ONLY raw JSON — no markdown, no explanation:
 
       await base44.entities.ATIPassport.create({
         listing: listingId,
+        triggered_by: me?.id,
         ati_total,
         documentation: result.documentation,
         technical: result.technical,
@@ -267,7 +269,6 @@ Return ONLY raw JSON — no markdown, no explanation:
 
       // Issue/refresh ATI card in the registry (Identity layer — MVP)
       try {
-        const me = await base44.auth.me();
         await ensureCardForListing({ ...listing, id: listingId }, { issuerEmail: me?.email });
         queryClient.invalidateQueries({ queryKey: ["ati-card", listingId] });
         queryClient.invalidateQueries({ queryKey: ["ati-cards"] });

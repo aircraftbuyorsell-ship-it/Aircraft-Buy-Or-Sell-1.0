@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { ShieldCheck, Fingerprint, Percent, Users, Lock, TrendingUp, ArrowRight, CheckCircle2, Plane, Radar, Handshake } from "lucide-react";
 import { Link } from "react-router-dom";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
+import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 
 // ———————————————————————————————————————————————
 // Palette: Navy #0B2D5B · Amber #E8A83A · Deep #1A1814
@@ -225,7 +226,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* ———————— RECENT CARDS ———————— */}
+      {/* ———————— RECENT CARDS + AI INSIGHTS ———————— */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
         <div className="flex items-end justify-between mb-8 flex-wrap gap-3">
           <div>
@@ -237,7 +238,8 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid lg:grid-cols-[1fr_340px] gap-6">
+          <div className="grid sm:grid-cols-2 gap-4">
           {listings.slice(0, 6).map(l => {
             const score = l.ati_score || 0;
             const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#E8A83A" : score > 0 ? "#C0392B" : "#AAA49C";
@@ -263,11 +265,17 @@ export default function Dashboard() {
             );
           })}
           {listings.length === 0 && (
-            <div className="md:col-span-2 lg:col-span-3 text-center py-16 text-[#AAA49C]">
+            <div className="sm:col-span-2 text-center py-16 text-[#AAA49C]">
               <Plane className="w-10 h-10 mx-auto opacity-30 mb-3" />
               <p className="text-sm">No ATI score cards in your zone yet.</p>
             </div>
           )}
+          </div>
+
+          {/* AI Insights side panel */}
+          <div className="lg:sticky lg:top-16 lg:self-start">
+            <AIInsightsPanel />
+          </div>
         </div>
       </section>
 

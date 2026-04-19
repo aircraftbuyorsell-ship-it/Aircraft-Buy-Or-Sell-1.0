@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Radio as RadioIcon, Search, X, Play, Pause, Loader2, Globe } from "lucide-react";
+import { Radio as RadioIcon, Search, X, Play, Pause, Loader2, Globe, Shuffle } from "lucide-react";
 import { useRadioPlayer } from "@/lib/useRadioPlayer";
 import CountryPicker from "@/components/radio/CountryPicker";
 import GenrePicker from "@/components/radio/GenrePicker";
@@ -54,6 +54,7 @@ export default function Radio() {
   const [submitted, setSubmitted] = useState("");
   const [country, setCountry] = useState("");
   const [genreId, setGenreId] = useState("");
+  const [randomMode, setRandomMode] = useState(false);
 
   const { data: countries = [], isLoading: loadingCountries } = useQuery({
     queryKey: ["radio-countries"],
@@ -78,7 +79,14 @@ export default function Radio() {
     queryKey: ["radio-popular", country],
     queryFn: () => callRadio("popular", { limit: 24, ...(country ? { country } : {}) }),
     staleTime: 10 * 60 * 1000,
-    enabled: !genreId,
+    enabled: !genreId && !randomMode,
+  });
+
+  const { data: randomStations = [], isLoading: loadingRandom, refetch: refetchRandom } = useQuery({
+    queryKey: ["radio-random"],
+    queryFn: () => callRadio("random", { limit: 12 }),
+    enabled: randomMode,
+    staleTime: 0,
   });
 
   const { data: results = [], isLoading: loadingSearch } = useQuery({
@@ -90,9 +98,14 @@ export default function Radio() {
 
   const onSubmit = (e) => { e.preventDefault(); setSubmitted(query.trim()); };
 
-  const list = submitted ? results : genreId ? genreStations : popular;
-  const isLoading = submitted ? loadingSearch : genreId ? loadingGenre : loadingPop;
+  const list = submitted ? results : randomMode ? randomStations : genreId ? genreStations : popular;
+  const isLoading = submitted ? loadingSearch : randomMode ? loadingRandom : genreId ? loadingGenre : loadingPop;
   const selectedGenre = genres.find((g) => String(g.id) === String(genreId));
+
+  const handleSurprise = () => {
+    setSubmitted(""); setQuery(""); setGenreId(""); setCountry("");
+    if (randomMode) refetchRandom(); else setRandomMode(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
@@ -128,9 +141,22 @@ export default function Radio() {
           <GenrePicker
             genres={genres}
             value={genreId}
-            onChange={setGenreId}
+            onChange={(id) => { setGenreId(id); setRandomMode(false); }}
             loading={loadingGenres}
           />
+          <button
+            type="button"
+            onClick={handleSurprise}
+            className={`flex items-center gap-1.5 px-4 py-2.5 border rounded-xl text-sm font-black uppercase tracking-wider transition-colors ${
+              randomMode
+                ? "bg-[#E8A83A] border-[#E8A83A] text-[#0B2D5B]"
+                : "bg-white border-[#E8A83A]/40 text-[#A67C00] hover:bg-[#E8A83A] hover:text-[#0B2D5B]"
+            }`}
+            title="Random stations"
+          >
+            <Shuffle className="w-4 h-4" />
+            Surprise
+          </button>
           <button type="submit"
             className="px-5 py-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white text-sm font-black uppercase tracking-wider rounded-xl">
             Search
@@ -140,19 +166,29 @@ export default function Radio() {
 
       <div className="px-4 md:px-8 pb-24">
         <div className="flex items-center gap-2 mb-3">
-          <Globe className="w-3.5 h-3.5 text-[#E8A83A]" />
+          {randomMode ? <Shuffle className="w-3.5 h-3.5 text-[#E8A83A]" /> : <Globe className="w-3.5 h-3.5 text-[#E8A83A]" />}
           <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B]">
             {submitted
               ? `Results for "${submitted}"`
-              : selectedGenre
-                ? `Genre · ${selectedGenre.name || selectedGenre.text}`
-                : `Popular ${country || "worldwide"}`}
-            {(country || genreId) && !submitted && (
+              : randomMode
+                ? "Random picks · discover new stations"
+                : selectedGenre
+                  ? `Genre · ${selectedGenre.name || selectedGenre.text}`
+                  : `Popular ${country || "worldwide"}`}
+            {(country || genreId || randomMode) && !submitted && (
               <button
-                onClick={() => { setCountry(""); setGenreId(""); }}
+                onClick={() => { setCountry(""); setGenreId(""); setRandomMode(false); }}
                 className="ml-2 text-[#C0392B] normal-case tracking-normal font-semibold"
               >
                 clear
+              </button>
+            )}
+            {randomMode && !submitted && (
+              <button
+                onClick={() => refetchRandom()}
+                className="ml-2 text-[#A67C00] normal-case tracking-normal font-semibold"
+              >
+                shuffle again
               </button>
             )}
           </p>

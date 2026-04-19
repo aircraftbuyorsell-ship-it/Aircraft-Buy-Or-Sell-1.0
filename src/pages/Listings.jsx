@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles } from "lucide-react";
+import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles, FileArchive } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
+import ImportFromFileModal from "@/components/listings/ImportFromFileModal";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -106,6 +107,7 @@ export default function Listings() {
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
   const [showFBImport, setShowFBImport] = useState(false);
+  const [showFileImport, setShowFileImport] = useState(false);
 
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["listings-public"],
@@ -132,13 +134,22 @@ export default function Listings() {
             <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Aircraft Listings</h1>
             <p className="text-[#6B6560] text-sm mt-0.5">{filtered.length} aircraft available</p>
           </div>
-          <button
-            onClick={() => setShowFBImport(true)}
-            className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
-          >
-            <Sparkles className="w-4 h-4" />
-            Import inzerátu
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setShowFileImport(true)}
+              className="flex items-center gap-2 bg-white border border-[#D4A017] text-[#A67C00] hover:bg-[#D4A017] hover:text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <FileArchive className="w-4 h-4" />
+              Import ZIP / JSON
+            </button>
+            <button
+              onClick={() => setShowFBImport(true)}
+              className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              Import inzerátu
+            </button>
+          </div>
         </div>
       </div>
 
@@ -229,6 +240,16 @@ export default function Listings() {
           onImported={(listing) => {
             queryClient.invalidateQueries({ queryKey: ["listings-public"] });
             setShowFBImport(false);
+          }}
+        />
+      )}
+
+      {showFileImport && (
+        <ImportFromFileModal
+          onClose={() => setShowFileImport(false)}
+          onImported={() => {
+            queryClient.invalidateQueries({ queryKey: ["listings-public"] });
+            setShowFileImport(false);
           }}
         />
       )}

@@ -144,7 +144,20 @@ export default function Layout() {
             </span>
           </Link>
 
-          <div className="flex-1" />
+          <div className="flex-1 flex justify-center">
+            <Link
+              to="/radio"
+              className={`
+                flex items-center gap-1.5 px-3 h-8 rounded-md text-[11px] font-black uppercase tracking-tight whitespace-nowrap transition-all
+                ${pathname === "/radio"
+                  ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40"
+                  : "text-[#E8A83A] hover:text-white hover:bg-[#E8A83A]/10 border border-[#E8A83A]/30"}
+              `}
+            >
+              <Music className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Radio</span>
+            </Link>
+          </div>
 
           <nav className="flex items-center gap-1">
             {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {

@@ -16,6 +16,9 @@ import Leads from "./pages/Leads";
 import MyBranding from "./pages/MyBranding";
 import VerifiedUsers from "./pages/VerifiedUsers";
 import Pricing from "./pages/Pricing";
+import VerificationCenter from "./pages/VerificationCenter";
+import OpexCalculator from "./pages/OpexCalculator";
+import ServiceFinder from "./pages/ServiceFinder";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
 
@@ -57,6 +60,9 @@ const AuthenticatedApp = () => {
         <Route path="/my-branding" element={<MyBranding />} />
         <Route path="/verified-users" element={<VerifiedUsers />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/verification-center" element={<VerificationCenter />} />
+        <Route path="/opex-calculator" element={<OpexCalculator />} />
+        <Route path="/service-finder" element={<ServiceFinder />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -3,27 +3,39 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  LayoutDashboard, Plane, Radar, User,
-  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users, Palette, Zap
+  LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
+  Palette, Zap, Calculator, MapPin, BadgeCheck,
 } from "lucide-react";
 import TokenBalance from "./marketing/TokenBalance";
 
-const NAV_ITEMS = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/listings", label: "Listings", icon: Plane },
-  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-  { path: "/leads", label: "Leads", icon: Users },
-  { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
-  { path: "/my-branding", label: "My Branding", icon: Palette },
-  { path: "/pricing", label: "Credits & Plans", icon: Zap },
-  { path: "/my-account", label: "My Account", icon: User },
-];
-
-const TOOL_ITEMS = [
-  { path: "/listings", label: "ATI Passport", icon: ShieldCheck, sub: "Score any aircraft" },
-  { path: "/deal-radar", label: "FAA Intelligence", icon: BarChart2, sub: "Fleet analytics" },
-  { path: "/listings", label: "Live Traffic", icon: Wifi, sub: "ADS-B vectors" },
-  { path: "/listings", label: "OPEX Calculator", icon: Calculator, sub: "Ownership costs" },
+// Grouped navigation — logical flow: analyze → engage → manage
+const NAV_GROUPS = [
+  {
+    label: "Market & Intelligence",
+    items: [
+      { path: "/", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/listings", label: "Listings", icon: Plane, hint: "ATI · FAA · Valuation" },
+      { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, hint: "50–1500 hr/yr" },
+      { path: "/service-finder", label: "Service Finder", icon: MapPin, hint: "MRO · FBO · Dealers" },
+    ],
+  },
+  {
+    label: "CRM & Engagement",
+    items: [
+      { path: "/leads", label: "Leads", icon: Users },
+      { path: "/verification-center", label: "Verification", icon: BadgeCheck, hint: "3-step · $8 → 20 credits" },
+      { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { path: "/my-account", label: "My Account", icon: User },
+      { path: "/my-branding", label: "My Branding", icon: Palette },
+      { path: "/pricing", label: "Credits & Plans", icon: Zap },
+    ],
+  },
 ];
 
 export default function Layout() {
@@ -35,24 +47,17 @@ export default function Layout() {
     retry: false,
   });
   const isAdmin = currentUser?.role === "admin";
-  const visibleNav = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin);
 
   return (
     <div className="flex min-h-screen bg-[#F7F4EF]">
-      {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-[220px] bg-[#111113] flex flex-col
-          border-r border-white/5
+          w-[232px] bg-[#111113] flex flex-col border-r border-white/5
           transform transition-transform duration-300
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -72,10 +77,7 @@ export default function Layout() {
                 {currentUser?.personalization_enabled && currentUser?.company_name ? currentUser.company_name : "ABOS"}
               </span>
             </div>
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden text-[#8A8780] hover:text-[#F0EDE6]"
-            >
+            <button onClick={() => setMobileOpen(false)} className="lg:hidden text-[#8A8780] hover:text-[#F0EDE6]">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -84,52 +86,47 @@ export default function Layout() {
           </p>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          <p className="text-[#4A4845] text-[9px] uppercase tracking-[0.15em] font-semibold px-3 pb-2 pt-1">Navigation</p>
-          {visibleNav.map(({ path, label, icon: Icon }) => {
-            const active = pathname === path;
+        {/* Grouped nav */}
+        <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+          {NAV_GROUPS.map(group => {
+            const items = group.items.filter(it => !it.adminOnly || isAdmin);
+            if (!items.length) return null;
             return (
-              <Link
-                key={path}
-                to={path}
-                onClick={() => setMobileOpen(false)}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all
-                  ${active
-                    ? "bg-[rgba(212,160,23,0.12)] text-[#D4A017] border border-[rgba(212,160,23,0.2)]"
-                    : "text-[#8A8780] hover:text-[#C8C4BC] hover:bg-white/5"}
-                `}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                {label}
-              </Link>
+              <div key={group.label}>
+                <p className="text-[#4A4845] text-[9px] uppercase tracking-[0.15em] font-semibold px-3 pb-2">
+                  {group.label}
+                </p>
+                <div className="space-y-0.5">
+                  {items.map(({ path, label, icon: Icon, hint }) => {
+                    const active = pathname === path;
+                    return (
+                      <Link
+                        key={path}
+                        to={path}
+                        onClick={() => setMobileOpen(false)}
+                        className={`
+                          flex items-start gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all
+                          ${active
+                            ? "bg-[rgba(212,160,23,0.12)] text-[#D4A017] border border-[rgba(212,160,23,0.2)]"
+                            : "text-[#8A8780] hover:text-[#C8C4BC] hover:bg-white/5 border border-transparent"}
+                        `}
+                      >
+                        <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <p className="leading-tight">{label}</p>
+                          {hint && <p className="text-[9.5px] text-[#4A4845] leading-tight mt-0.5">{hint}</p>}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
-
-          <div className="pt-4">
-            <p className="text-[#4A4845] text-[9px] uppercase tracking-[0.15em] font-semibold px-3 pb-2">Tools</p>
-            {TOOL_ITEMS.map(({ path, label, icon: Icon, sub }) => (
-              <Link
-                key={label}
-                to={path}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-[#8A8780] hover:text-[#C8C4BC] hover:bg-white/5"
-              >
-                <Icon className="w-4 h-4 shrink-0 text-[#D4A017]/60" />
-                <div>
-                  <p className="text-[12px] font-medium leading-tight">{label}</p>
-                  <p className="text-[10px] text-[#4A4845] leading-tight">{sub}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
         </nav>
 
-        {/* Token balance widget */}
         <TokenBalance />
 
-        {/* Footer */}
         <div className="px-5 py-4 border-t border-white/5">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-1.5 h-1.5 rounded-full bg-[#D4A017] animate-pulse" />
@@ -139,14 +136,9 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
         <header className="lg:hidden sticky top-0 z-30 bg-[#111113] border-b border-white/5 px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="text-[#8A8780] hover:text-[#F0EDE6] p-1"
-          >
+          <button onClick={() => setMobileOpen(true)} className="text-[#8A8780] hover:text-[#F0EDE6] p-1">
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">

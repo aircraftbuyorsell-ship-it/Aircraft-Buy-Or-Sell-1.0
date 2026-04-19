@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Play, Newspaper, Music, Mic, ExternalLink } from "lucide-react";
+import { Play, Newspaper, Music, Mic } from "lucide-react";
+import { useMediaPlayer } from "@/lib/MediaPlayerContext";
 
 // Curated YouTube content — free, no login, embeddable.
-// IDs are YouTube video or playlist IDs. Mix of live channels, playlists, and popular videos.
 const TABS = [
   {
     id: "news",
@@ -48,33 +48,21 @@ const TABS = [
   },
 ];
 
-function embedUrl(item) {
-  if (item.type === "playlist") {
-    return `https://www.youtube.com/embed/videoseries?list=${item.id}&rel=0`;
-  }
-  return `https://www.youtube.com/embed/${item.id}?rel=0`;
-}
-function watchUrl(item) {
-  if (item.type === "playlist") return `https://www.youtube.com/playlist?list=${item.id}`;
-  return `https://www.youtube.com/watch?v=${item.id}`;
-}
 function thumbUrl(item) {
-  // For playlists we still get a thumbnail from the first video by using the item id for videos;
-  // for playlists, YouTube provides one via the videoseries endpoint — fall back gracefully.
   if (item.type === "video") return `https://img.youtube.com/vi/${item.id}/mqdefault.jpg`;
   return null;
 }
 
 export default function RockRadio() {
   const [tab, setTab] = useState(TABS[0]);
-  const [active, setActive] = useState(null);
+  const { item: activeItem, play } = useMediaPlayer();
 
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-4">
         <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">Media Hub · Free · No Login</p>
         <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight uppercase mt-1">Aviation News, Music & Podcasts</h1>
-        <p className="text-[#6B6560] text-sm mt-0.5">Curated YouTube channels and playlists. Play anything instantly.</p>
+        <p className="text-[#6B6560] text-sm mt-0.5">Plays in background — keeps going wherever you navigate in ABOS.</p>
       </div>
 
       {/* Tabs */}
@@ -85,9 +73,9 @@ export default function RockRadio() {
           return (
             <button
               key={t.id}
-              onClick={() => { setTab(t); setActive(null); }}
+              onClick={() => setTab(t)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-colors whitespace-nowrap ${
-                isActive ? "bg-[#0B2D5B] text-white" : "bg-white border border-black/10 text-[#6B6560] hover:border-[#0B2D5B]/30"
+                isActive ? "text-white" : "bg-white border border-black/10 text-[#6B6560] hover:border-[#0B2D5B]/30"
               }`}
               style={isActive ? { backgroundColor: t.accent, color: t.accent === "#E8A83A" ? "#0B2D5B" : "#fff" } : {}}
             >
@@ -97,52 +85,24 @@ export default function RockRadio() {
         })}
       </div>
 
-      {/* Active player */}
-      {active && (
-        <div className="px-4 md:px-8 pb-4">
-          <div className="bg-black rounded-2xl overflow-hidden shadow-xl">
-            <div className="relative" style={{ paddingBottom: "56.25%" }}>
-              <iframe
-                key={active.id}
-                src={embedUrl(active) + "&autoplay=1"}
-                title={active.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="absolute inset-0 w-full h-full"
-              />
-            </div>
-            <div className="bg-[#111113] text-white px-4 py-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-black truncate">{active.title}</p>
-                <p className="text-[11px] text-white/60 truncate">{active.channel}</p>
-              </div>
-              <a href={watchUrl(active)} target="_blank" rel="noreferrer"
-                className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#E8A83A] hover:text-white shrink-0">
-                YouTube <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Grid */}
       <div className="px-4 md:px-8 pb-28">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {tab.items.map(item => {
+          {tab.items.map(it => {
             const Icon = tab.icon;
-            const isActive = active?.id === item.id;
-            const thumb = thumbUrl(item);
+            const isActive = activeItem?.id === it.id;
+            const thumb = thumbUrl(it);
             return (
               <button
-                key={item.id}
-                onClick={() => setActive(item)}
+                key={it.id}
+                onClick={() => play(it)}
                 className={`group text-left bg-white border rounded-xl overflow-hidden transition-all ${
                   isActive ? "border-[#E8A83A] shadow-md" : "border-black/[0.07] hover:border-[#0B2D5B]/30 hover:shadow-sm"
                 }`}
               >
                 <div className="relative aspect-video bg-[#111113] overflow-hidden">
                   {thumb ? (
-                    <img src={thumb} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={thumb} alt={it.title} className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: tab.accent + "20" }}>
                       <Icon className="w-10 h-10" style={{ color: tab.accent }} />
@@ -153,16 +113,21 @@ export default function RockRadio() {
                       <Play className="w-5 h-5 text-[#0B2D5B] ml-0.5" />
                     </div>
                   </div>
-                  {item.type === "playlist" && (
+                  {it.type === "playlist" && (
                     <span className="absolute top-2 right-2 bg-black/80 text-white text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded">
                       Playlist
                     </span>
                   )}
+                  {isActive && (
+                    <span className="absolute top-2 left-2 bg-[#E8A83A] text-[#0B2D5B] text-[9px] uppercase tracking-wider font-black px-2 py-0.5 rounded">
+                      Playing
+                    </span>
+                  )}
                 </div>
                 <div className="px-3 py-2.5">
-                  <p className="text-sm font-black text-[#1A1814] line-clamp-1">{item.title}</p>
-                  <p className="text-[11px] text-[#6B6560] mt-0.5">{item.channel}</p>
-                  <p className="text-[11px] text-[#AAA49C] mt-1 line-clamp-1">{item.desc}</p>
+                  <p className="text-sm font-black text-[#1A1814] line-clamp-1">{it.title}</p>
+                  <p className="text-[11px] text-[#6B6560] mt-0.5">{it.channel}</p>
+                  <p className="text-[11px] text-[#AAA49C] mt-1 line-clamp-1">{it.desc}</p>
                 </div>
               </button>
             );

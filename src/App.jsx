@@ -4,6 +4,8 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { MediaPlayerProvider } from '@/lib/MediaPlayerContext';
+import GlobalMediaPlayer from '@/components/media/GlobalMediaPlayer';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
@@ -88,12 +90,15 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-          <ReferralCapture />
-          <CountdownOffer />
-        </Router>
-        <Toaster />
+        <MediaPlayerProvider>
+          <Router>
+            <AuthenticatedApp />
+            <ReferralCapture />
+            <CountdownOffer />
+            <GlobalMediaPlayer />
+          </Router>
+          <Toaster />
+        </MediaPlayerProvider>
       </QueryClientProvider>
     </AuthProvider>
   )

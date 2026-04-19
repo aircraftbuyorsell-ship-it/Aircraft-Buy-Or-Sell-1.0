@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Radio as RadioIcon, Search, X, Play, Pause, Loader2, Globe } from "lucide-react";
 import { useRadioPlayer } from "@/lib/useRadioPlayer";
 import CountryPicker from "@/components/radio/CountryPicker";
+import GenrePicker from "@/components/radio/GenrePicker";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -52,6 +53,7 @@ export default function Radio() {
   const [query, setQuery] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [country, setCountry] = useState("");
+  const [genreId, setGenreId] = useState("");
 
   const { data: countries = [], isLoading: loadingCountries } = useQuery({
     queryKey: ["radio-countries"],
@@ -59,10 +61,24 @@ export default function Radio() {
     staleTime: 60 * 60 * 1000,
   });
 
+  const { data: genres = [], isLoading: loadingGenres } = useQuery({
+    queryKey: ["radio-genres"],
+    queryFn: () => callRadio("genres"),
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const { data: genreStations = [], isLoading: loadingGenre } = useQuery({
+    queryKey: ["radio-genre-stations", genreId],
+    queryFn: () => callRadio("genreRadios", { genreId, page: 1, limit: 30 }),
+    enabled: !!genreId,
+    staleTime: 10 * 60 * 1000,
+  });
+
   const { data: popular = [], isLoading: loadingPop } = useQuery({
     queryKey: ["radio-popular", country],
     queryFn: () => callRadio("popular", { limit: 24, ...(country ? { country } : {}) }),
     staleTime: 10 * 60 * 1000,
+    enabled: !genreId,
   });
 
   const { data: results = [], isLoading: loadingSearch } = useQuery({
@@ -74,8 +90,9 @@ export default function Radio() {
 
   const onSubmit = (e) => { e.preventDefault(); setSubmitted(query.trim()); };
 
-  const list = submitted ? results : popular;
-  const isLoading = submitted ? loadingSearch : loadingPop;
+  const list = submitted ? results : genreId ? genreStations : popular;
+  const isLoading = submitted ? loadingSearch : genreId ? loadingGenre : loadingPop;
+  const selectedGenre = genres.find((g) => String(g.id) === String(genreId));
 
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
@@ -108,6 +125,12 @@ export default function Radio() {
             onChange={setCountry}
             loading={loadingCountries}
           />
+          <GenrePicker
+            genres={genres}
+            value={genreId}
+            onChange={setGenreId}
+            loading={loadingGenres}
+          />
           <button type="submit"
             className="px-5 py-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white text-sm font-black uppercase tracking-wider rounded-xl">
             Search
@@ -119,9 +142,16 @@ export default function Radio() {
         <div className="flex items-center gap-2 mb-3">
           <Globe className="w-3.5 h-3.5 text-[#E8A83A]" />
           <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B]">
-            {submitted ? `Results for "${submitted}"` : `Popular ${country || "worldwide"}`}
-            {country && !submitted && (
-              <button onClick={() => setCountry("")} className="ml-2 text-[#C0392B] normal-case tracking-normal font-semibold">
+            {submitted
+              ? `Results for "${submitted}"`
+              : selectedGenre
+                ? `Genre · ${selectedGenre.name || selectedGenre.text}`
+                : `Popular ${country || "worldwide"}`}
+            {(country || genreId) && !submitted && (
+              <button
+                onClick={() => { setCountry(""); setGenreId(""); }}
+                className="ml-2 text-[#C0392B] normal-case tracking-normal font-semibold"
+              >
                 clear
               </button>
             )}

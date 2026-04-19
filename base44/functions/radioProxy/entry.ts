@@ -13,12 +13,15 @@ const ROUTES = {
   random: () => `/radios/random`,
   countries: () => `/countries`,
   genres: () => `/genres`,
+  genreRadios: (p) => `/genres/${encodeURIComponent(p.genreId)}/radios`,
 };
+
+const PATH_ONLY_KEYS = new Set(["country", "genreId"]);
 
 function buildQuery(params = {}) {
   const qs = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
-    if (v === undefined || v === null || v === "" || k === "country") return;
+    if (v === undefined || v === null || v === "" || PATH_ONLY_KEYS.has(k)) return;
     qs.append(k, String(v));
   });
   const s = qs.toString();

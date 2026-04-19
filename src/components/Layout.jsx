@@ -61,7 +61,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/my-branding", label: "My Branding", icon: Palette },
       { path: "/pricing", label: "Credits & Plans", icon: Zap },
-      { path: "/radio", label: "Radio", icon: Music },
+      { path: "/radio", label: "Media Hub", icon: Music },
     ],
   },
 ];
@@ -155,7 +155,7 @@ export default function Layout() {
               `}
             >
               <Music className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Radio</span>
+              <span className="hidden sm:inline">Media</span>
             </Link>
           </div>
 

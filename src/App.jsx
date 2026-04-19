@@ -23,7 +23,7 @@ import Escrow from "./pages/Escrow";
 import LiveTraffic from "./pages/LiveTraffic";
 import Rewards from "./pages/Rewards";
 import Alerts from "./pages/Alerts";
-import Radio from "./pages/Radio";
+import RockRadio from "./pages/RockRadio";
 import Analytics from "./pages/Analytics";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
@@ -74,7 +74,7 @@ const AuthenticatedApp = () => {
         <Route path="/live-traffic" element={<LiveTraffic />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/alerts" element={<Alerts />} />
-        <Route path="/radio" element={<Radio />} />
+        <Route path="/radio" element={<RockRadio />} />
         <Route path="/analytics" element={<Analytics />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

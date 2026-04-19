@@ -8,7 +8,6 @@ import {
   ChevronLeft, ArrowLeft, Music, BarChart3,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import MiniPlayer from "@/components/radio/MiniPlayer";
 
 // Routes considered "child" screens that show a back button.
 // Any route deeper than these (with a param) also qualifies.
@@ -259,9 +258,6 @@ export default function Layout() {
 
       {/* Mobile bottom nav (hidden on md+) */}
       <MobileBottomNav />
-
-      {/* Global persistent mini player */}
-      <MiniPlayer />
     </div>
   );
 }

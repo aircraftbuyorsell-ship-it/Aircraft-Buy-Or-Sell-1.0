@@ -28,6 +28,8 @@ import Rewards from "./pages/Rewards";
 import Alerts from "./pages/Alerts";
 import RockRadio from "./pages/RockRadio";
 import Analytics from "./pages/Analytics";
+import CardRegistry from "./pages/CardRegistry";
+import PublicCard from "./pages/PublicCard";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
@@ -79,7 +81,10 @@ const AuthenticatedApp = () => {
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/radio" element={<RockRadio />} />
         <Route path="/analytics" element={<Analytics />} />
+        <Route path="/cards" element={<CardRegistry />} />
       </Route>
+      {/* Public shareable card — no layout, outside main app shell */}
+      <Route path="/c/:code" element={<PublicCard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

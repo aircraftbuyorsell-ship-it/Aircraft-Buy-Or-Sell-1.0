@@ -8,6 +8,8 @@ import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import OwnershipTrace from "@/components/ownership/OwnershipTrace";
 import VerifiedTitleStamp from "@/components/ownership/VerifiedTitleStamp";
+import CardIdentityBlock from "@/components/cards/CardIdentityBlock";
+import { ensureCardForListing } from "@/lib/atiCard";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -103,6 +105,15 @@ export default function ATIPassport() {
   const { data: ownershipEvents = [] } = useQuery({
     queryKey: ["ownership-trace", listingId],
     queryFn: () => base44.entities.OwnershipTrace.filter({ listing: listingId }, "-event_date", 50),
+    enabled: !!listingId,
+  });
+
+  const { data: card } = useQuery({
+    queryKey: ["ati-card", listingId],
+    queryFn: async () => {
+      const cards = await base44.entities.ATICard.filter({ listing: listingId }, "-created_date", 1);
+      return cards[0] || null;
+    },
     enabled: !!listingId,
   });
   const verifiedOwnershipCount = ownershipEvents.filter(e => e.verification_status === "verified").length;
@@ -252,6 +263,16 @@ Return ONLY raw JSON — no markdown, no explanation:
         discount_pct: discountPct,
       });
 
+      // Issue/refresh ATI card in the registry (Identity layer — MVP)
+      try {
+        const me = await base44.auth.me();
+        await ensureCardForListing({ ...listing, id: listingId }, { issuerEmail: me?.email });
+        queryClient.invalidateQueries({ queryKey: ["ati-card", listingId] });
+        queryClient.invalidateQueries({ queryKey: ["ati-cards"] });
+      } catch (cardErr) {
+        console.warn("Card registry update failed:", cardErr);
+      }
+
       // Consume tokens after successful generation (skip for enterprise)
       if (tier !== "enterprise" && behavior?.id) {
         const newBalance = Math.max(0, tokens - cost);
@@ -327,6 +348,9 @@ Return ONLY raw JSON — no markdown, no explanation:
           </div>
         ) : (
           <>
+            {/* Card Identity — Registry ID, status, roles, share */}
+            {card && <CardIdentityBlock card={card} />}
+
             {/* Score + Dimensions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">

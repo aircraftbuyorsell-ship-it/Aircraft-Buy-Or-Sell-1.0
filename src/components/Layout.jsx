@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
   Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift, Bell,
-  ChevronLeft, ArrowLeft, Music, BarChart3,
+  ChevronLeft, ArrowLeft, Music, BarChart3, Fingerprint,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -32,6 +32,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/", label: "Dashboard", icon: LayoutDashboard },
       { path: "/listings", label: "Listings", icon: Plane },
+      { path: "/cards", label: "Card Registry", icon: Fingerprint },
       { path: "/deal-radar", label: "Deal Radar", icon: Radar },
       { path: "/analytics", label: "Analytics", icon: BarChart3 },
     ],

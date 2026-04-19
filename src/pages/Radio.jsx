@@ -63,8 +63,8 @@ export default function Radio() {
   });
 
   const { data: genres = [], isLoading: loadingGenres } = useQuery({
-    queryKey: ["radio-genres"],
-    queryFn: () => callRadio("genres"),
+    queryKey: ["radio-genres-all"],
+    queryFn: () => callRadio("allGenres"),
     staleTime: 60 * 60 * 1000,
   });
 

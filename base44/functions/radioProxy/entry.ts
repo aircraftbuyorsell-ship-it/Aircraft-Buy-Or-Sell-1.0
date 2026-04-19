@@ -38,16 +38,35 @@ Deno.serve(async (req) => {
     if (!key) return Response.json({ error: "API key not configured" }, { status: 500 });
 
     const { action = "popular", params = {} } = await req.json().catch(() => ({}));
+
+    const headers = { "X-RapidAPI-Key": key, "X-RapidAPI-Host": HOST };
+
+    // Aggregate all pages of /genres (277 total, 20 per page)
+    if (action === "allGenres") {
+      const limit = 100;
+      let page = 1;
+      let all = [];
+      let totalPages = 1;
+      do {
+        const url = `${BASE}/genres?page=${page}&limit=${limit}`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) {
+          const text = await res.text();
+          return Response.json({ error: `Upstream ${res.status}`, details: text }, { status: res.status });
+        }
+        const json = await res.json();
+        all = all.concat(json?.data || []);
+        totalPages = json?.meta?.totalPages || 1;
+        page += 1;
+      } while (page <= totalPages && page <= 20);
+      return Response.json({ success: true, data: all, meta: { total: all.length } });
+    }
+
     const routeFn = ROUTES[action];
     if (!routeFn) return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
     const url = `${BASE}${routeFn(params)}${buildQuery(params)}`;
-    const res = await fetch(url, {
-      headers: {
-        "X-RapidAPI-Key": key,
-        "X-RapidAPI-Host": HOST,
-      },
-    });
+    const res = await fetch(url, { headers });
 
     if (!res.ok) {
       const text = await res.text();

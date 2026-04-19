@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Email address"
     },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
     "aircraft_preference": {
       "type": "string",
       "description": "Aircraft type preference"
@@ -39,6 +43,15 @@
       "type": "string",
       "description": "Internal notes"
     },
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Linked aircraft listing"
+    },
+    "listing_label": {
+      "type": "string",
+      "description": "Snapshot of aircraft (year make model N-number)"
+    },
     "rules_agreed": {
       "type": "boolean",
       "default": false,
@@ -48,5 +61,44 @@
   "required": [
     "name",
     "email"
-  ]
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

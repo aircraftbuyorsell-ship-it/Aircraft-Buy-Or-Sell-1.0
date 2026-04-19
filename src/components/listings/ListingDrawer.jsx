@@ -1,5 +1,6 @@
-import { X, ExternalLink, CheckCircle2, Cpu } from "lucide-react";
-import { useEffect } from "react";
+import { X, ExternalLink, CheckCircle2, Cpu, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import AddLeadModal from "@/components/leads/AddLeadModal";
 
 function Row({ label, value }) {
   if (value == null || value === "") return null;
@@ -27,6 +28,8 @@ function ATIBadge({ score }) {
 }
 
 export default function ListingDrawer({ listing: l, onClose }) {
+  const [addLeadOpen, setAddLeadOpen] = useState(false);
+
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
@@ -161,15 +164,29 @@ export default function ListingDrawer({ listing: l, onClose }) {
             </div>
 
             {/* Footer CTA */}
-            <div className="p-6 border-t border-slate-800">
+            <div className="p-6 border-t border-slate-800 space-y-2">
               <button className="w-full bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
                 <Cpu className="w-4 h-4" />
                 Generate ATI Score
+              </button>
+              <button
+                onClick={() => setAddLeadOpen(true)}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm py-3 rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-700"
+              >
+                <UserPlus className="w-4 h-4" />
+                Capture Lead for this Aircraft
               </button>
             </div>
           </>
         )}
       </div>
+
+      <AddLeadModal
+        open={addLeadOpen}
+        onClose={() => setAddLeadOpen(false)}
+        listing={l}
+        onSaved={() => { /* invalidation happens on Leads page */ }}
+      />
     </>
   );
 }

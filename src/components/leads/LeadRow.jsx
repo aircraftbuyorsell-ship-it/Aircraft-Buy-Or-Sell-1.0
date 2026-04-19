@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Mail, Lock, Unlock } from "lucide-react";
+import { ChevronDown, Mail, Lock, Unlock, Plane } from "lucide-react";
 
 const STATUS_CONFIG = {
   new:         { label: "New",         bg: "rgba(24,95,165,0.1)",   text: "#185FA5",  border: "rgba(24,95,165,0.2)" },
@@ -63,6 +63,11 @@ export default function LeadRow({ lead, unlocked, onUnlock, onStatusChange, unlo
         </p>
         {lead.aircraft_preference && (
           <p className="text-[11px] text-[#6B6560] mt-0.5 truncate max-w-xs">{lead.aircraft_preference}</p>
+        )}
+        {lead.listing_label && (
+          <p className="text-[10px] text-[#0B2D5B] mt-0.5 truncate max-w-xs flex items-center gap-1 font-semibold">
+            <Plane className="w-2.5 h-2.5 shrink-0" /> {lead.listing_label}
+          </p>
         )}
       </div>
 

@@ -22,6 +22,7 @@ import ServiceFinder from "./pages/ServiceFinder";
 import Escrow from "./pages/Escrow";
 import LiveTraffic from "./pages/LiveTraffic";
 import Rewards from "./pages/Rewards";
+import Alerts from "./pages/Alerts";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
         <Route path="/escrow" element={<Escrow />} />
         <Route path="/live-traffic" element={<LiveTraffic />} />
         <Route path="/rewards" element={<Rewards />} />
+        <Route path="/alerts" element={<Alerts />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

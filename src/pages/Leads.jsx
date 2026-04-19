@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Users, Search, X, Lock, Zap, Sparkles } from "lucide-react";
+import { Users, Search, X, Lock, Zap, Sparkles, UserPlus } from "lucide-react";
 import { useBehavior } from "@/lib/useBehavior";
 import { toCredits, fromCredits } from "@/lib/pricing";
 import LeadPackages, { LEAD_UNLOCK_COST } from "@/components/leads/LeadPackages";
 import LeadRow, { STATUS_CONFIG } from "@/components/leads/LeadRow";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
+import AddLeadModal from "@/components/leads/AddLeadModal";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -37,6 +38,7 @@ export default function Leads() {
   const [unlocked, setUnlocked] = useState(() => loadUnlocks(userEmail));
   const [gate, setGate] = useState(null); // { creditsNeeded }
   const [toast, setToast] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const userCredits = toCredits(tokens);
   const isEnterprise = tier === "enterprise";
@@ -133,8 +135,14 @@ export default function Leads() {
               {stats.unlocked}/{stats.total} contacts unlocked · {userCredits.toLocaleString()} credits available
             </p>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#E8A83A] text-[#0B2D5B] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full shrink-0">
-            <Zap className="w-3.5 h-3.5" /> {LEAD_UNLOCK_COST} cr / single
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={() => setAddOpen(true)}
+              className="flex items-center gap-1.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full transition-colors">
+              <UserPlus className="w-3.5 h-3.5" /> Add Lead
+            </button>
+            <div className="flex items-center gap-1.5 bg-[#E8A83A] text-[#0B2D5B] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full">
+              <Zap className="w-3.5 h-3.5" /> {LEAD_UNLOCK_COST} cr / single
+            </div>
           </div>
         </div>
 
@@ -268,6 +276,16 @@ export default function Leads() {
         requiredTokens={gate ? fromCredits(gate.creditsNeeded) : 0}
         userTokens={tokens}
         isVerified={behavior?.verification_paid}
+      />
+
+      <AddLeadModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ["leads"] });
+          setToast({ msg: "Lead added successfully", color: "#0F7A56" });
+          setTimeout(() => setToast(null), 2500);
+        }}
       />
     </div>
   );

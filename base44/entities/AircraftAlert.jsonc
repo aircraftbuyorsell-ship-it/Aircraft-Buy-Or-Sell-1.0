@@ -1,0 +1,108 @@
+{
+  "name": "AircraftAlert",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Owner of the alert"
+    },
+    "name": {
+      "type": "string",
+      "description": "Friendly alert name"
+    },
+    "make": {
+      "type": "string",
+      "description": "Aircraft make (partial match, case-insensitive)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model (partial match, case-insensitive)"
+    },
+    "year_min": {
+      "type": "number",
+      "description": "Minimum year of manufacture"
+    },
+    "year_max": {
+      "type": "number",
+      "description": "Maximum year of manufacture"
+    },
+    "max_price": {
+      "type": "number",
+      "description": "Maximum asking price (USD)"
+    },
+    "min_ati": {
+      "type": "number",
+      "description": "Minimum ATI score (0-120)"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "email",
+        "digest",
+        "in_app"
+      ],
+      "default": "email",
+      "description": "Notification channel"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the alert is currently active"
+    },
+    "matches_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total matches so far"
+    },
+    "last_matched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time this alert matched a listing"
+    }
+  },
+  "required": [
+    "user_email",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

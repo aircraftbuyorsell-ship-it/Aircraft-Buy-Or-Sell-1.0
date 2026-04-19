@@ -20,16 +20,13 @@
       "type": "string",
       "description": "US state (2-letter)"
     },
-    "zip": {
-      "type": "string"
-    },
     "ownership_type": {
       "type": "string",
-      "description": "FAA ownership type (Individual, LLC, Co-Owned, Partnership, Corporation, etc.)"
+      "description": "FAA ownership type code"
     },
     "cert_date": {
       "type": "string",
-      "description": "Certificate issue date (YYYY-MM-DD or YYYYMMDD)"
+      "description": "Certificate issue date"
     },
     "expiration": {
       "type": "string",

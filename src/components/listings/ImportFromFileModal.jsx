@@ -128,7 +128,7 @@ export default function ImportFromFileModal({ onClose, onImported }) {
   const [aircraftList, setAircraftList] = useState([]); // parsed items
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [useRegex, setUseRegex] = useState(false); // ZIP chunks → regex parser (fast, no AI)
+  const [parseMode, setParseMode] = useState("ai-file"); // ai-file | regex-chunks | ai-chunks
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
@@ -150,7 +150,7 @@ export default function ImportFromFileModal({ onClose, onImported }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
       // Fast path: regex-based chunk parser (ZIP of .txt files)
-      if (useRegex && isZip) {
+      if (parseMode === "regex-chunks" && isZip) {
         const res = await base44.functions.invoke("parseChunksZip", { file_url, dryRun: true });
         const parsed = res.data?.parsed || [];
         if (!parsed.length) {
@@ -172,6 +172,20 @@ export default function ImportFromFileModal({ onClose, onImported }) {
           visibility: "public",
         }));
         setAircraftList(mapped);
+        setStep("review");
+        return;
+      }
+
+      // AI per-chunk parser (mirrors n8n workflow: Read → Extract → AI → Store)
+      if (parseMode === "ai-chunks" && isZip) {
+        const res = await base44.functions.invoke("aiParseChunksZip", { file_url, dryRun: true });
+        const parsed = res.data?.parsed || [];
+        if (!parsed.length) {
+          setError("V ZIP archivu nebyly nalezeny žádné .txt chunky.");
+          setStep("input");
+          return;
+        }
+        setAircraftList(parsed);
         setStep("review");
         return;
       }
@@ -302,19 +316,31 @@ Return ONLY fields explicitly present — use null when unknown. Never fabricate
                 </div>
               </label>
 
-              {/* Regex parser toggle — for ZIP archives of .txt chunks */}
-              <div className="flex items-center gap-3 bg-[rgba(212,160,23,0.05)] border border-[rgba(212,160,23,0.2)] rounded-xl px-4 py-3">
-                <input
-                  type="checkbox"
-                  id="useRegex"
-                  checked={useRegex}
-                  onChange={(e) => setUseRegex(e.target.checked)}
-                  className="accent-[#D4A017]"
-                />
-                <label htmlFor="useRegex" className="flex-1 cursor-pointer">
-                  <p className="text-[12px] font-bold text-[#1A1814]">Regex parser (rychlý, bez AI)</p>
-                  <p className="text-[10px] text-[#6B6560]">Pro ZIP archivy s <code className="text-[#A67C00]">.txt</code> chunky — parsuje manufacturer, model, year, registration, price přímo regexem.</p>
-                </label>
+              {/* Parse mode selector */}
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-2">Režim parsování</label>
+                <div className="space-y-2">
+                  {[
+                    { id: "ai-file", title: "AI na celý soubor", desc: "Standardně — pro JSON, CSV, PDF, obrázky i malé ZIPy" },
+                    { id: "regex-chunks", title: "Regex parser (rychlý, bez AI)", desc: "ZIP s .txt chunky — přímá extrakce bez LLM" },
+                    { id: "ai-chunks", title: "AI per chunk (n8n workflow)", desc: "ZIP s .txt chunky — AI analyzuje každý chunk zvlášť" },
+                  ].map(m => (
+                    <label key={m.id} className={`flex items-start gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${parseMode === m.id ? "border-[#D4A017] bg-[rgba(212,160,23,0.06)]" : "border-black/10 bg-white hover:border-black/20"}`}>
+                      <input
+                        type="radio"
+                        name="parseMode"
+                        value={m.id}
+                        checked={parseMode === m.id}
+                        onChange={(e) => setParseMode(e.target.value)}
+                        className="accent-[#D4A017] mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <p className="text-[12px] font-bold text-[#1A1814]">{m.title}</p>
+                        <p className="text-[10px] text-[#6B6560]">{m.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               {file && (

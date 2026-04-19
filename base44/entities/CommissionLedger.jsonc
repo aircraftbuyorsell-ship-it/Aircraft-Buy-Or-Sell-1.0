@@ -1,0 +1,135 @@
+{
+  "name": "CommissionLedger",
+  "type": "object",
+  "properties": {
+    "ati_card": {
+      "type": "string",
+      "relationType": "ATICard",
+      "description": "Card the commission belongs to"
+    },
+    "public_card_code": {
+      "type": "string",
+      "description": "Denormalized card code for display"
+    },
+    "escrow_transaction": {
+      "type": "string",
+      "relationType": "EscrowTransaction",
+      "description": "Finalized escrow transaction (source of truth for gross amount)"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Total gross sale amount (USD) \u2014 from finalized escrow"
+    },
+    "commission_pool": {
+      "type": "number",
+      "description": "Total commission pool (e.g. finder's fee amount)"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "level": {
+      "type": "number",
+      "enum": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "description": "Waterfall level: 0=Issuer (platform), 1=Marketplace, 2=Broker, 3=Sub-broker"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "issuer",
+        "marketplace",
+        "broker",
+        "sub_broker"
+      ],
+      "description": "Payee role"
+    },
+    "payee_email": {
+      "type": "string",
+      "description": "Email of the payee"
+    },
+    "payee_slug": {
+      "type": "string",
+      "description": "Affiliate link slug that earned this commission (if any)"
+    },
+    "percentage": {
+      "type": "number",
+      "description": "Percentage of commission pool awarded to this payee (0-100)"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Calculated commission amount in currency"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "allocated",
+        "batched",
+        "paid",
+        "disputed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Commission lifecycle status"
+    },
+    "settlement": {
+      "type": "string",
+      "relationType": "Settlement",
+      "description": "Settlement batch this entry belongs to"
+    },
+    "attribution_reason": {
+      "type": "string",
+      "description": "Why this payee won attribution (e.g. first_verified_source_locked)"
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ati_card",
+    "role",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.payee_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

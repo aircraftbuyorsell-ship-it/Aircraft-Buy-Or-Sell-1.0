@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ShieldCheck, Fingerprint, Percent, Users, Lock, TrendingUp, ArrowRight, CheckCircle2, Plane, Radar, Handshake } from "lucide-react";
 import { Link } from "react-router-dom";
+import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 
 // ———————————————————————————————————————————————
 // Palette: Navy #0B2D5B · Amber #E8A83A · Deep #1A1814
@@ -57,13 +58,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white">
       {/* ———————— HERO ———————— */}
       <section className="relative overflow-hidden bg-white border-b border-black/[0.06]">
+        {/* Rotating globe background */}
+        <RotatingGlobe className="absolute inset-0 w-full h-full pointer-events-none opacity-90" />
+        {/* Soft left-side fade so text stays readable over the globe */}
         <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 30%, #0B2D5B 1px, transparent 1px), radial-gradient(circle at 70% 70%, #0B2D5B 1px, transparent 1px), linear-gradient(to right, #0B2D5B 1px, transparent 1px), linear-gradient(to bottom, #0B2D5B 1px, transparent 1px)",
-            backgroundSize: "80px 80px, 80px 80px, 160px 160px, 160px 160px",
-          }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 100%)" }}
         />
 
         <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-16 md:pb-20 text-center">

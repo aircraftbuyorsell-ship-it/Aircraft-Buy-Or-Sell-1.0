@@ -1,14 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles, FileArchive } from "lucide-react";
+import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles, FileArchive, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
 import ImportFromFileModal from "@/components/listings/ImportFromFileModal";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
+import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
+import { usePullToRefresh } from "@/lib/usePullToRefresh";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -127,9 +129,13 @@ export default function Listings() {
     openFn();
   };
 
-  const { data: listings = [], isLoading } = useQuery({
+  const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ["listings-public"],
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active", visibility: "public" }, "-ati_score", 100),
+  });
+
+  const { distance, pulling, refreshing } = usePullToRefresh({
+    onRefresh: () => refetch(),
   });
 
   const makes = useMemo(() => [...new Set(listings.map(l => l.make).filter(Boolean))].sort(), [listings]);
@@ -144,6 +150,19 @@ export default function Listings() {
 
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
+      {/* Pull-to-refresh indicator (mobile) */}
+      <div
+        className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150 bg-[#F7F4EF]"
+        style={{ height: distance }}
+      >
+        {(pulling || refreshing) && (
+          <RefreshCw
+            className={`w-5 h-5 text-[#0B2D5B] ${refreshing ? "animate-spin" : ""}`}
+            style={{ transform: `rotate(${Math.min(360, distance * 4)}deg)` }}
+          />
+        )}
+      </div>
+
       {/* Header */}
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
         <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017] mb-1">Market · Listings</p>
@@ -199,27 +218,27 @@ export default function Listings() {
 
         {showFilters && (
           <div className="mt-3 bg-white border border-black/[0.07] rounded-xl p-4 flex flex-wrap gap-4">
-            <div>
+            <div className="min-w-[180px]">
               <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Make</label>
-              <select
+              <BottomSheetSelect
+                label="Filter by make"
                 value={makeFilter}
-                onChange={e => setMakeFilter(e.target.value)}
-                className="text-sm border border-black/10 rounded-lg px-3 py-2 text-[#1A1814] bg-white focus:outline-none focus:border-[#D4A017]"
-              >
-                <option value="">All makes</option>
-                {makes.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+                onChange={setMakeFilter}
+                options={[{ value: "", label: "All makes" }, ...makes.map(m => ({ value: m, label: m }))]}
+                placeholder="All makes"
+                className="w-full"
+              />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">
                 Min ATI: <span className="text-[#D4A017]">{minATI}</span>
               </label>
               <input type="range" min={0} max={100} step={5} value={minATI} onChange={e => setMinATI(+e.target.value)}
-                className="w-36 accent-[#D4A017]" />
+                className="w-36 accent-[#D4A017] touch-target-compact" />
             </div>
             {(makeFilter || minATI > 0) && (
               <button onClick={() => { setMakeFilter(""); setMinATI(0); }}
-                className="text-[11px] text-[#C0392B] font-medium self-end pb-2">Clear filters</button>
+                className="text-[11px] text-[#C0392B] font-medium self-end pb-2 touch-target-compact">Clear filters</button>
             )}
           </div>
         )}

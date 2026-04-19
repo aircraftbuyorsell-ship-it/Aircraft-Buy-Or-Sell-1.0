@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 import { User, ShieldCheck, CreditCard, Package, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import DeleteAccountCard from "@/components/account/DeleteAccountCard";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -195,6 +196,9 @@ export default function MyAccount() {
             </div>
           }
         </div>
+
+        {/* Delete account */}
+        <DeleteAccountCard alreadyRequested={!!authUser?.deletion_requested_at} />
       </div>
     </div>);
 

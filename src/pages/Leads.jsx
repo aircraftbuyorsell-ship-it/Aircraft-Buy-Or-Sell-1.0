@@ -7,6 +7,7 @@ import { toCredits, fromCredits } from "@/lib/pricing";
 import LeadPackages, { LEAD_UNLOCK_COST } from "@/components/leads/LeadPackages";
 import LeadRow, { STATUS_CONFIG } from "@/components/leads/LeadRow";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
+import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -179,16 +180,25 @@ export default function Leads() {
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors" />
             {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C]"><X className="w-3.5 h-3.5" /></button>}
           </div>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#6B6560] focus:outline-none focus:border-[#0B2D5B]">
-            <option value="">All Status</option>
-            {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-          </select>
-          <select value={budgetFilter} onChange={e => setBudgetFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#6B6560] focus:outline-none focus:border-[#0B2D5B]">
-            <option value="">All Budgets</option>
-            {BUDGET_ORDER.map(b => <option key={b} value={b}>{b}</option>)}
-          </select>
+          <BottomSheetSelect
+            label="Filter by status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "", label: "All Status" },
+              ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label })),
+            ]}
+            placeholder="All Status"
+            className="min-w-[140px]"
+          />
+          <BottomSheetSelect
+            label="Filter by budget"
+            value={budgetFilter}
+            onChange={setBudgetFilter}
+            options={[{ value: "", label: "All Budgets" }, ...BUDGET_ORDER.map(b => ({ value: b, label: b }))]}
+            placeholder="All Budgets"
+            className="min-w-[140px]"
+          />
         </div>
 
         {/* Table */}

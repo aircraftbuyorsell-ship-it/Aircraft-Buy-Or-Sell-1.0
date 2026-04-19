@@ -1,12 +1,21 @@
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
   Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift,
-  ChevronLeft,
+  ChevronLeft, ArrowLeft,
 } from "lucide-react";
+import MobileBottomNav from "@/components/MobileBottomNav";
+
+// Routes considered "child" screens that show a back button.
+// Any route deeper than these (with a param) also qualifies.
+const BACK_BUTTON_ROUTES = [
+  /^\/ati-passport\/[^/]+$/,
+];
+// Top-level pages that should NEVER show a back button (main tabs)
+const TOP_LEVEL = new Set(["/", "/listings", "/deal-radar", "/my-account", "/live-traffic", "/escrow"]);
 
 // Primary top-bar items — always visible (highest-intent, daily workflows)
 const TOP_ITEMS = [
@@ -58,8 +67,12 @@ const IDLE_MS = 7000;
 
 export default function Layout() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const idleTimer = useRef(null);
+
+  // Back button visibility — matches patterns above, not main tabs
+  const showBack = !TOP_LEVEL.has(pathname) && BACK_BUTTON_ROUTES.some(re => re.test(pathname));
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
@@ -93,15 +106,27 @@ export default function Layout() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F4EF]">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-[#111113] border-b border-white/5">
-        <div className="flex items-center gap-3 px-4 h-12">
-          <button
-            onClick={() => setSidebarOpen(v => !v)}
-            className="text-[#8A8780] hover:text-[#F0EDE6] p-1 shrink-0"
-            title="Menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+      <header className="sticky top-0 z-40 bg-[#111113] border-b border-white/5 safe-top">
+        <div className="flex items-center gap-2 px-3 sm:px-4 h-12">
+          {showBack ? (
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[#8A8780] hover:text-[#F0EDE6] touch-target-compact p-1.5 shrink-0 flex items-center gap-1"
+              title="Back"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setSidebarOpen(v => !v)}
+              className="text-[#8A8780] hover:text-[#F0EDE6] touch-target-compact p-1.5 shrink-0"
+              title="Menu"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
 
           <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
             {currentUser?.personalization_enabled && currentUser?.brand_logo_url ? (
@@ -210,9 +235,13 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
+      {/* Content — pb keeps content clear of mobile bottom nav */}
+      <main className="flex-1 overflow-auto pb-[72px] md:pb-0">
         <Outlet />
       </main>
+
+      {/* Mobile bottom nav (hidden on md+) */}
+      <MobileBottomNav />
     </div>
   );
 }

@@ -1,61 +1,49 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Plane, BarChart2, Zap, DollarSign, ArrowUpRight, TrendingUp, TrendingDown } from "lucide-react";
+import { FileText, BarChart3, DollarSign, ChevronDown, Plane, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-function GoldLabel({ children }) {
-  return (
-    <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017] mb-1">
-      {children}
-    </p>
-  );
-}
+// ———————————————————————————————————————————————
+// Color palette (AircraftValuation.com inspired)
+// Navy: #0B2D5B  Amber: #E8A83A  Deep text: #1A1814
+// ———————————————————————————————————————————————
 
-function StatCard({ label, value, icon: Icon, sub, trend, loading }) {
+function NavyCircleIcon({ icon: Icon }) {
   return (
-    <div className="bg-white border border-black/[0.07] rounded-xl p-5 flex flex-col gap-1">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#AAA49C]">{label}</p>
-          {loading ? (
-            <div className="h-8 w-20 bg-black/5 rounded animate-pulse mt-2" />
-          ) : (
-            <p className="text-3xl font-bold text-[#1A1814] mt-1 leading-none">{value}</p>
-          )}
-          {sub && <p className="text-[11px] text-[#AAA49C] mt-1">{sub}</p>}
-        </div>
-        <div className="w-9 h-9 rounded-lg bg-[#F7F4EF] flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-[#D4A017]" />
-        </div>
-      </div>
-      {trend != null && !loading && (
-        <div className={`flex items-center gap-1 text-[11px] font-medium mt-1 ${trend >= 0 ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
-          {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {trend >= 0 ? "+" : ""}{trend}%
-        </div>
-      )}
+    <div className="w-14 h-14 rounded-full bg-[#0B2D5B] flex items-center justify-center mx-auto shadow-md">
+      <Icon className="w-6 h-6 text-white" strokeWidth={2} />
     </div>
   );
 }
 
-function ATIBadge({ score }) {
-  if (score == null) return <div className="w-10 h-10 rounded-full bg-black/5 animate-pulse" />;
-  const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#A67C00" : "#C0392B";
-  const label = score >= 85 ? "EXCELLENT" : score >= 65 ? "GOOD" : "POOR";
+function FeatureCard({ icon, title, body }) {
   return (
-    <div className="relative w-10 h-10 shrink-0">
-      <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
-        <circle cx="20" cy="20" r="16" fill="none" stroke="#F0EDE6" strokeWidth="3" />
-        <circle
-          cx="20" cy="20" r="16"
-          fill="none" stroke={color} strokeWidth="3"
-          strokeDasharray={`${(score / 120) * 100.5} 100.5`}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[10px] font-black text-[#1A1814]">{score}</span>
+    <div className="bg-white rounded-lg border border-black/[0.06] p-6 md:p-8 text-center shadow-sm hover:shadow-md transition-shadow">
+      <NavyCircleIcon icon={icon} />
+      <h3 className="text-lg font-black text-[#0B2D5B] mt-5 uppercase tracking-tight">{title}</h3>
+      <p className="text-sm text-[#4A4845] leading-relaxed mt-3">{body}</p>
+    </div>
+  );
+}
+
+function StepCard({ n, title, body }) {
+  return (
+    <div className="flex-1 text-center">
+      <p className="text-5xl font-black text-[#E8A83A] leading-none">{n}.</p>
+      <div className="mt-4 w-full aspect-[4/3] bg-gradient-to-br from-[#0B2D5B] to-[#143C75] rounded-lg flex items-center justify-center">
+        <Plane className="w-16 h-16 text-white/20" strokeWidth={1} />
       </div>
+      <h4 className="text-base font-black text-[#0B2D5B] uppercase mt-4 tracking-tight">{title}</h4>
+      <p className="text-sm text-[#4A4845] mt-2 leading-relaxed px-2">{body}</p>
+    </div>
+  );
+}
+
+function StatPill({ value, label }) {
+  return (
+    <div className="text-center">
+      <p className="text-3xl md:text-4xl font-black text-[#0B2D5B] leading-none">{value}</p>
+      <p className="text-[10px] md:text-[11px] text-[#6B6560] uppercase tracking-[0.15em] font-semibold mt-1.5">{label}</p>
     </div>
   );
 }
@@ -68,17 +56,15 @@ const MARKET_PULSE = [
 ];
 
 export default function Dashboard() {
-  const { data: listings = [], isLoading: loadingListings } = useQuery({
+  const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }),
   });
-
-  const { data: deals = [], isLoading: loadingDeals } = useQuery({
+  const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
     queryFn: () => base44.entities.DealRadar.list(),
   });
-
-  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+  const { data: orders = [] } = useQuery({
     queryKey: ["orders-paid"],
     queryFn: () => base44.entities.Order.filter({ status: "paid" }),
   });
@@ -86,137 +72,198 @@ export default function Dashboard() {
   const total_listings = listings.length;
   const avg_ati = listings.length > 0
     ? Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length)
-    : null;
-  const hot_deals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
+    : 0;
+  const hot_deals = deals.filter(d => (d.deal_score || 0) >= 8.5).length;
   const total_revenue = orders.reduce((s, o) => s + (o.amount || 0), 0);
 
-  const recent = [...listings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 5);
-
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
-      {/* Page header */}
-      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <GoldLabel>Live · Global Network</GoldLabel>
-          <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Dashboard</h1>
-          <p className="text-[#6B6560] text-sm mt-0.5">Aircraft transaction intelligence at a glance</p>
+    <div className="min-h-screen bg-white">
+      {/* ———————— HERO ———————— */}
+      <section className="relative overflow-hidden bg-white border-b border-black/[0.06]">
+        {/* blueprint / circuit bg pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 30%, #0B2D5B 1px, transparent 1px), radial-gradient(circle at 70% 70%, #0B2D5B 1px, transparent 1px), linear-gradient(to right, #0B2D5B 1px, transparent 1px), linear-gradient(to bottom, #0B2D5B 1px, transparent 1px)",
+            backgroundSize: "80px 80px, 80px 80px, 160px 160px, 160px 160px",
+          }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-16 md:pb-24 text-center">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-[#1A1814] leading-[1.15] uppercase tracking-tight max-w-4xl mx-auto">
+            Discover Your Aircraft's Value With The Aviation Industry's Most Powerful Valuation Tool
+          </h1>
+          <p className="text-sm md:text-base text-[#4A4845] mt-5 max-w-3xl mx-auto leading-relaxed">
+            Enter your aircraft's details (serial number, registration number, category, make & model) to get an accurate, real-time market and asking aircraft values powered by ABOS trusted aircraft data.
+          </p>
+
+          <div className="mt-10 bg-white rounded-xl shadow-[0_8px_30px_rgba(11,45,91,0.08)] border border-black/[0.06] p-6 md:p-8 max-w-3xl mx-auto">
+            <Link
+              to="/listings"
+              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-8 py-4 rounded-md tracking-wider transition-colors"
+            >
+              <FileText className="w-5 h-5" />
+              Start My AircraftValuation
+            </Link>
+          </div>
+
+          <ChevronDown className="w-6 h-6 text-[#AAA49C] mx-auto mt-10 animate-bounce" />
         </div>
+      </section>
+
+      {/* ———————— WHAT IS ———————— */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
+        <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight">
+          What Is <span className="text-[#0B2D5B]">ABOS Valuation?</span>
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-5 mt-12">
+          <FeatureCard
+            icon={FileText}
+            title="Instant Aircraft Values"
+            body="Get instant base, asking, and market aircraft prices from ABOS — the most accurate aircraft valuation tool in the aviation industry."
+          />
+          <FeatureCard
+            icon={BarChart3}
+            title="The Industry's Most Powerful Tool"
+            body="ABOS is powered by over $20B transactions annually from Jets, Piston Aircraft, Helicopters, Experimental Aircraft, and even Warbirds."
+          />
+          <FeatureCard
+            icon={DollarSign}
+            title="Improve Your Return on Investment"
+            body="Monitor aircraft base, asking, and market values to determine which assets will attract the most buyers and bring the biggest return."
+          />
+        </div>
+      </section>
+
+      {/* ———————— LIVE STATS (platform data) ———————— */}
+      <section className="bg-[#F7F4EF] border-y border-black/[0.06] py-10 md:py-14">
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-[#E8A83A] font-semibold text-center">Live Platform Data</p>
+          <h3 className="text-xl md:text-2xl font-black text-[#0B2D5B] text-center mt-1 uppercase tracking-tight">
+            Real-Time Market Pulse
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
+            <StatPill value={total_listings} label="Aircraft Cards" />
+            <StatPill value={avg_ati || "—"} label="Avg ATI Score" />
+            <StatPill value={hot_deals} label="Hot Deals" />
+            <StatPill value={`$${(total_revenue / 1000).toFixed(1)}k`} label="Transacted" />
+          </div>
+        </div>
+      </section>
+
+      {/* ———————— HOW IT WORKS ———————— */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
+        <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[#E8A83A] text-center">How It Works</p>
+        <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight mt-2">
+          Get Your ABOS Valuation in 3 Simple Steps
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8 mt-12">
+          <StepCard n="1" title="Enter Aircraft Information" body="Input your Serial Number, Make, Model, Year, and Registration Number to get started." />
+          <StepCard n="2" title="Confirm the Details" body="Add airframe time, avionics, and location for accurate aircraft values." />
+          <StepCard n="3" title="View Your Aircraft Values" body="Instantly see your aircraft's base, asking, and market value with ATI transparency score." />
+        </div>
+
+        <div className="text-center mt-12">
+          <Link
+            to="/listings"
+            className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors"
+          >
+            Start My ABOS Valuation <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ———————— MARKET PREDICTION ———————— */}
+      <section className="bg-[#0B2D5B] text-white py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-8">
+          <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[#E8A83A] text-center">Market Prediction</p>
+          <h2 className="text-2xl md:text-3xl font-black text-center uppercase tracking-tight mt-2">
+            GA Sector Trends — Next 30 Days
+          </h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
+            {MARKET_PULSE.map(m => (
+              <div key={m.type} className="bg-white/5 backdrop-blur rounded-lg border border-white/10 p-5">
+                <p className="text-[10px] uppercase tracking-wider text-white/60 font-semibold">{m.type}</p>
+                <p className="text-3xl font-black text-white mt-2">{m.ati}</p>
+                <p className="text-[11px] text-white/60 mt-0.5">Avg ATI Score</p>
+                <div className={`mt-3 inline-flex items-center gap-1 text-sm font-bold px-2 py-1 rounded ${m.trend >= 0 ? "bg-[#E8A83A]/20 text-[#E8A83A]" : "bg-red-500/20 text-red-300"}`}>
+                  {m.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {m.trend >= 0 ? "+" : ""}{m.trend}%
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-center text-white/70 text-sm mt-10 max-w-2xl mx-auto leading-relaxed">
+            ABOS combines real-time aviation market data, aircraft-specific details, and decades of industry experience to help you understand your aircraft's market position — fast, simple, accurate.
+          </p>
+        </div>
+      </section>
+
+      {/* ———————— RECENT CARDS ———————— */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[#E8A83A]">Your Fleet</p>
+            <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight mt-1">Recent Aircraft Cards</h2>
+          </div>
+          <Link to="/listings" className="text-sm font-black text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition-colors flex items-center gap-1">
+            View All <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {listings.slice(0, 6).map(l => {
+            const score = l.ati_score || 0;
+            const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#E8A83A" : score > 0 ? "#C0392B" : "#AAA49C";
+            return (
+              <Link key={l.id} to={`/ati-passport/${l.id}`} className="block bg-white border border-black/[0.08] rounded-lg p-5 hover:border-[#0B2D5B] hover:shadow-lg transition-all">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-[#6B6560] font-semibold">{l.registration || "—"}</p>
+                    <p className="text-lg font-black text-[#1A1814] mt-0.5 truncate">
+                      {l.year} {l.make} {l.model}
+                    </p>
+                  </div>
+                  <div className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm" style={{ backgroundColor: color }}>
+                    {score || "—"}
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-black/[0.06] flex items-center justify-between">
+                  <p className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold">Asking</p>
+                  <p className="text-base font-black text-[#0B2D5B]">
+                    {l.asking_price ? `$${l.asking_price.toLocaleString()}` : "—"}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+          {listings.length === 0 && (
+            <div className="md:col-span-2 lg:col-span-3 text-center py-16 text-[#AAA49C]">
+              <Plane className="w-10 h-10 mx-auto opacity-30 mb-3" />
+              <p className="text-sm">No aircraft cards yet — start your first valuation above.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ———————— FOOTER CTA ———————— */}
+      <section className="bg-[#F7F4EF] border-t border-black/[0.06] py-16 text-center">
+        <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight">
+          Your Aircraft. <span className="text-[#0B2D5B]">Your Value.</span>
+        </h2>
+        <p className="text-[#E8A83A] font-black text-lg mt-2 uppercase tracking-wider">Fast. Easy. Free of Charge.</p>
         <Link
           to="/listings"
-          className="inline-flex items-center gap-2 bg-[#1A1814] text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-[#D4A017] transition-colors shrink-0"
+          className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors mt-8"
         >
-          + New Aircraft Card
+          Start My ABOS Valuation <ArrowRight className="w-4 h-4" />
         </Link>
-      </div>
-
-      <div className="px-4 md:px-8 pb-8 space-y-6">
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-          <StatCard label="Aircraft Cards" value={total_listings} icon={Plane} sub={`${listings.filter(l => l.ati_score).length} evaluated`} loading={loadingListings} />
-          <StatCard label="Avg ATI Score" value={avg_ati ?? "—"} icon={BarChart2} sub="out of 120" loading={loadingListings} />
-          <StatCard label="Hot Deals" value={hot_deals} icon={Zap} sub="score ≥ 8.5" loading={loadingDeals} />
-          <StatCard label="Revenue" value={`$${total_revenue.toLocaleString()}`} icon={DollarSign} sub="paid orders" loading={loadingOrders} />
-        </div>
-
-        {/* Hero promo banner */}
-        <div className="relative bg-[#111113] rounded-2xl overflow-hidden px-6 md:px-10 py-8 md:py-10">
-          <div className="relative z-10">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#D4A017] font-semibold mb-3">Off-market · Transaction Intelligence</p>
-            <h2 className="text-2xl md:text-3xl font-black text-[#F0EDE6] leading-tight mb-2">
-              Off-market exposure.<br />
-              <span className="text-[#D4A017]">Transaction intelligence.</span>
-            </h2>
-            <div className="flex flex-wrap gap-6 mt-6">
-              {[{ val: "270k", label: "Members" }, { val: "4,440", label: "Off-market" }, { val: "87", label: "Countries" }].map(item => (
-                <div key={item.label}>
-                  <p className="text-xl md:text-2xl font-black text-[#F0EDE6]">{item.val}</p>
-                  <p className="text-[11px] text-[#8A8780] uppercase tracking-wider">{item.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* decorative */}
-          <div className="absolute right-0 top-0 bottom-0 w-40 md:w-64 opacity-[0.04]">
-            <svg viewBox="0 0 200 200" className="w-full h-full" fill="white">
-              <text x="20" y="160" fontSize="180" fontFamily="serif" fontStyle="italic">IZ</text>
-            </svg>
-          </div>
-        </div>
-
-        {/* Bottom row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          {/* Recent Aircraft Cards */}
-          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-black/[0.06] flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[#1A1814]">Recent Aircraft Cards</h3>
-              <Link to="/listings" className="text-[11px] text-[#D4A017] font-semibold hover:text-[#A67C00] flex items-center gap-0.5">
-                View all <ArrowUpRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="divide-y divide-black/[0.05]">
-              {loadingListings ? (
-                [...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-3.5">
-                    <div className="w-10 h-10 rounded-full bg-black/5 animate-pulse shrink-0" />
-                    <div className="flex-1 space-y-1.5">
-                      <div className="h-3.5 bg-black/5 rounded animate-pulse w-2/3" />
-                      <div className="h-2.5 bg-black/5 rounded animate-pulse w-1/3" />
-                    </div>
-                  </div>
-                ))
-              ) : recent.length === 0 ? (
-                <div className="px-5 py-10 text-center text-[#AAA49C] text-sm">No aircraft cards yet</div>
-              ) : (
-                recent.map((l) => (
-                  <Link key={l.id} to={`/ati-passport/${l.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#F7F4EF] transition-colors">
-                    <ATIBadge score={l.ati_score} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1814] truncate">
-                        {l.year && `${l.year} `}{l.make} {l.model}
-                      </p>
-                      <p className="text-[11px] text-[#AAA49C] font-mono">{l.registration || "—"}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[11px] text-[#AAA49C]">{l.asking_price ? `$${l.asking_price.toLocaleString()}` : "No price"}</p>
-                      <p className={`text-[9px] uppercase tracking-wider font-bold mt-0.5 ${l.ati_score ? "text-[#0F7A56]" : "text-[#AAA49C]"}`}>
-                        {l.ati_score ? "EVALUATED" : l.status?.toUpperCase() || "DRAFT"}
-                      </p>
-                    </div>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-[#AAA49C] shrink-0" />
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Market Pulse */}
-          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-black/[0.06]">
-              <h3 className="text-sm font-bold text-[#1A1814]">Market Pulse</h3>
-              <p className="text-[11px] text-[#AAA49C] mt-0.5">GA sector trends — last 30 days</p>
-            </div>
-            <div className="divide-y divide-black/[0.05]">
-              {MARKET_PULSE.map((item) => (
-                <div key={item.type} className="flex items-center px-5 py-4 gap-4">
-                  <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${item.trend >= 0 ? "bg-[rgba(15,122,86,0.08)]" : "bg-[rgba(192,57,43,0.08)]"}`}>
-                    {item.trend >= 0
-                      ? <TrendingUp className="w-3.5 h-3.5 text-[#0F7A56]" />
-                      : <TrendingDown className="w-3.5 h-3.5 text-[#C0392B]" />
-                    }
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#1A1814]">{item.type}</p>
-                    <p className="text-[11px] text-[#AAA49C]">Avg ATI: {item.ati}</p>
-                  </div>
-                  <span className={`text-sm font-bold ${item.trend >= 0 ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
-                    {item.trend >= 0 ? "+" : ""}{item.trend}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

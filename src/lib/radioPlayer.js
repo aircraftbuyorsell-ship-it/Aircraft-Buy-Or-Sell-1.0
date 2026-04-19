@@ -9,11 +9,15 @@ function ensureAudio() {
   if (audioEl) return audioEl;
   audioEl = new Audio();
   audioEl.preload = "none";
-  audioEl.crossOrigin = "anonymous";
+  // NOTE: no crossOrigin — most radio streams don't send CORS headers.
+  // We only play, not read samples, so CORS is not needed.
   audioEl.addEventListener("playing", () => update({ playing: true, loading: false, error: null }));
   audioEl.addEventListener("pause", () => update({ playing: false }));
   audioEl.addEventListener("waiting", () => update({ loading: true }));
-  audioEl.addEventListener("error", () => update({ playing: false, loading: false, error: "Stream unavailable" }));
+  audioEl.addEventListener("error", () => {
+    console.warn("Radio stream error:", audioEl?.error?.code, audioEl?.src);
+    update({ playing: false, loading: false, error: "Stream unavailable" });
+  });
   return audioEl;
 }
 
@@ -23,9 +27,22 @@ function update(patch) {
 }
 
 function pickStream(station) {
-  const streams = station?.streams || [];
-  const https = streams.find((s) => s.isHttps);
-  return (https || streams[0])?.url || null;
+  if (!station) return null;
+  // Try the various shapes the 50K Radio Stations API can return
+  const streams = station.streams || station.urls || [];
+  const candidates = [];
+  for (const s of streams) {
+    if (!s) continue;
+    if (typeof s === "string") candidates.push(s);
+    else candidates.push(s.url || s.stream || s.src);
+  }
+  if (station.url) candidates.push(station.url);
+  if (station.stream) candidates.push(station.stream);
+  if (station.streamUrl) candidates.push(station.streamUrl);
+  const valid = candidates.filter(Boolean);
+  // Prefer HTTPS to avoid mixed-content blocking
+  const https = valid.find((u) => u.startsWith("https://"));
+  return https || valid[0] || null;
 }
 
 export const radioPlayer = {

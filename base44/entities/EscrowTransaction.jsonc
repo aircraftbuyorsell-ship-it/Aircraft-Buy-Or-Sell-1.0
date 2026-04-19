@@ -1,0 +1,130 @@
+{
+  "name": "EscrowTransaction",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "aircraft_label": {
+      "type": "string",
+      "description": "Snapshot of aircraft (year make model N-number)"
+    },
+    "buyer_name": {
+      "type": "string",
+      "description": "Buyer full name or company"
+    },
+    "buyer_email": {
+      "type": "string",
+      "description": "Buyer email"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Seller full name or company"
+    },
+    "seller_email": {
+      "type": "string",
+      "description": "Seller email"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Originating broker (finder)"
+    },
+    "broker_email": {
+      "type": "string",
+      "description": "Broker email"
+    },
+    "sale_amount": {
+      "type": "number",
+      "description": "Total agreed sale price"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Currency"
+    },
+    "finders_fee_pct": {
+      "type": "number",
+      "description": "Agreed finder's fee percentage"
+    },
+    "finders_fee_amount": {
+      "type": "number",
+      "description": "Calculated finder's fee amount"
+    },
+    "seller_net": {
+      "type": "number",
+      "description": "Net amount seller receives after fee"
+    },
+    "inspection_period_days": {
+      "type": "number",
+      "default": 3,
+      "description": "Inspection period in days"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "contract_sent",
+        "contract_signed",
+        "funds_pending",
+        "funds_secured",
+        "inspection",
+        "released",
+        "closed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "draft"
+    },
+    "escrow_provider": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "escrow_com"
+      ],
+      "default": "internal"
+    },
+    "escrow_external_id": {
+      "type": "string",
+      "description": "Escrow.com transaction ID"
+    },
+    "escrow_landing_url": {
+      "type": "string",
+      "description": "Escrow.com buyer landing URL"
+    },
+    "proof_of_funds_url": {
+      "type": "string",
+      "description": "Uploaded proof-of-funds file URL"
+    },
+    "proof_of_funds_name": {
+      "type": "string",
+      "description": "Proof-of-funds filename"
+    },
+    "proof_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "contract_text": {
+      "type": "string",
+      "description": "Generated Hustle Contract text"
+    },
+    "contract_url": {
+      "type": "string",
+      "description": "URL of generated Hustle Contract PDF"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "buyer_name",
+    "seller_name",
+    "sale_amount"
+  ]
+}

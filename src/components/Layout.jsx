@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
-  Palette, Zap, Calculator, MapPin, BadgeCheck,
+  Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake,
 } from "lucide-react";
 import TokenBalance from "./marketing/TokenBalance";
 
@@ -24,6 +24,7 @@ const NAV_GROUPS = [
     label: "CRM & Engagement",
     items: [
       { path: "/leads", label: "Leads", icon: Users },
+      { path: "/escrow", label: "Escrow & Contracts", icon: Handshake, hint: "Hustle · Finder's Fee %" },
       { path: "/verification-center", label: "Verification", icon: BadgeCheck, hint: "3-step · $8 → 20 credits" },
       { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
     ],

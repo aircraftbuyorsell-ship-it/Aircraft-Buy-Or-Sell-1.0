@@ -57,9 +57,13 @@ for (let lat = -90; lat <= 90; lat += STEP) {
  * Rotating globe canvas — Navy/Amber tinted to match ABOS theme.
  * Renders inside its parent (absolute inset-0). Parent should be `relative`.
  */
-export default function RotatingGlobe({ className = "" }) {
+export default function RotatingGlobe({ className = "", theme = "light" }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
+  const themeRef = useRef(theme);
+
+  // Keep latest theme available inside the animation loop without restarting it
+  useEffect(() => { themeRef.current = theme; }, [theme]);
 
   useEffect(() => {
     const cv = canvasRef.current;
@@ -98,27 +102,47 @@ export default function RotatingGlobe({ className = "" }) {
     };
 
     const draw = () => {
+      const isDark = themeRef.current === "dark";
+      // Color palettes per theme
+      const C = isDark ? {
+        sphere: "rgba(232,168,58,0.05)",
+        ocean: "rgba(180,200,230,0.10)",
+        land: (depth) => `rgba(210,225,245,${0.35 + depth * 0.45})`,
+        marker: "rgba(232,168,58,0.55)",
+        rim: "rgba(232,168,58,0.22)",
+        atmIn: "rgba(232,168,58,0.14)",
+        atmOut: "rgba(232,168,58,0)",
+      } : {
+        sphere: "rgba(11,45,91,0.06)",
+        ocean: "rgba(11,45,91,0.12)",
+        land: (depth) => `rgba(11,45,91,${0.28 + depth * 0.5})`,
+        marker: "rgba(11,45,91,0.5)",
+        rim: "rgba(11,45,91,0.18)",
+        atmIn: "rgba(232,168,58,0.09)",
+        atmOut: "rgba(232,168,58,0)",
+      };
+
       ctx.clearRect(0, 0, W, H);
 
-      // Sphere base — subtle navy tint
+      // Sphere base
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(11,45,91,0.06)"; ctx.fill();
+      ctx.fillStyle = C.sphere; ctx.fill();
 
-      // Ocean dots — muted navy
-      ctx.fillStyle = "rgba(11,45,91,0.12)";
+      // Ocean dots
+      ctx.fillStyle = C.ocean;
       for (const [lon, lat] of oceanDots) {
         const p = project(lon, lat); if (!p.vis) continue;
         ctx.beginPath(); ctx.arc(p.sx, p.sy, 0.7 * DPR, 0, Math.PI * 2); ctx.fill();
       }
 
-      // Land dots — Navy
+      // Land dots
       for (const [lon, lat] of landDots) {
         const p = project(lon, lat); if (!p.vis) continue;
         ctx.beginPath(); ctx.arc(p.sx, p.sy, 1.15 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(11,45,91,${0.28 + p.depth * 0.5})`; ctx.fill();
+        ctx.fillStyle = C.land(p.depth); ctx.fill();
       }
 
-      // Active marker — Amber
+      // Active marker — Amber (both themes)
       const hm = MARKERS[hlIdx % MARKERS.length];
       const hp = project(hm.lon, hm.lat);
       if (hp.vis) {
@@ -133,22 +157,22 @@ export default function RotatingGlobe({ className = "" }) {
         ctx.fillStyle = "#E8A83A"; ctx.fill();
       }
 
-      // Market dots — Navy blue
+      // Market dots
       MARKERS.forEach((m, i) => {
         if (i === hlIdx % MARKERS.length) return;
         const p = project(m.lon, m.lat); if (!p.vis) return;
         ctx.beginPath(); ctx.arc(p.sx, p.sy, 2 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(11,45,91,0.5)"; ctx.fill();
+        ctx.fillStyle = C.marker; ctx.fill();
       });
 
       // Rim
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(11,45,91,0.18)"; ctx.lineWidth = 1 * DPR; ctx.stroke();
+      ctx.strokeStyle = C.rim; ctx.lineWidth = 1 * DPR; ctx.stroke();
 
-      // Amber atmosphere
+      // Atmosphere
       const atm = ctx.createRadialGradient(CX, CY, R * 0.95, CX, CY, R * 1.1);
-      atm.addColorStop(0, "rgba(232,168,58,0.09)");
-      atm.addColorStop(1, "rgba(232,168,58,0)");
+      atm.addColorStop(0, C.atmIn);
+      atm.addColorStop(1, C.atmOut);
       ctx.beginPath(); ctx.arc(CX, CY, R * 1.1, 0, Math.PI * 2); ctx.fillStyle = atm; ctx.fill();
     };
 

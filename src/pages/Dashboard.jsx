@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, Fingerprint, Percent, Users, Lock, TrendingUp, ArrowRight, CheckCircle2, Plane, Radar, Handshake } from "lucide-react";
+import { ShieldCheck, Fingerprint, Percent, Users, Lock, TrendingUp, ArrowRight, CheckCircle2, Plane, Radar, Handshake, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
+import MarketPulse from "@/components/dashboard/MarketPulse";
 
 // ———————————————————————————————————————————————
 // Palette: Navy #0B2D5B · Amber #E8A83A · Deep #1A1814
@@ -39,6 +41,9 @@ function StatPill({ value, label }) {
 }
 
 export default function Dashboard() {
+  const [globeTheme, setGlobeTheme] = useState("light");
+  const isDark = globeTheme === "dark";
+
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }),
@@ -58,26 +63,48 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white">
       {/* ———————— HERO ———————— */}
-      <section className="relative overflow-hidden bg-white border-b border-black/[0.06]">
+      <section
+        className="relative overflow-hidden border-b border-black/[0.06] transition-colors duration-500"
+        style={{ backgroundColor: isDark ? "#0B1A33" : "#FFFFFF" }}
+      >
         {/* Rotating globe background */}
-        <RotatingGlobe className="absolute inset-0 w-full h-full pointer-events-none opacity-90" />
+        <RotatingGlobe theme={globeTheme} className="absolute inset-0 w-full h-full pointer-events-none opacity-90" />
         {/* Soft left-side fade so text stays readable over the globe */}
         <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 100%)" }}
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+          style={{
+            background: isDark
+              ? "linear-gradient(90deg, rgba(11,26,51,0.92) 0%, rgba(11,26,51,0.70) 40%, rgba(11,26,51,0.15) 70%, rgba(11,26,51,0) 100%)"
+              : "linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 100%)",
+          }}
         />
 
+        {/* Theme toggle — affects globe only */}
+        <button
+          onClick={() => setGlobeTheme(t => t === "light" ? "dark" : "light")}
+          className={`absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full border backdrop-blur text-[10px] font-black uppercase tracking-wider transition-colors ${
+            isDark
+              ? "bg-white/10 border-white/20 text-[#E8A83A] hover:bg-white/20"
+              : "bg-white/70 border-black/10 text-[#0B2D5B] hover:bg-white"
+          }`}
+          aria-label="Toggle globe theme"
+          title="Toggle globe theme"
+        >
+          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          {isDark ? "Light Globe" : "Dark Globe"}
+        </button>
+
         <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-16 md:pb-20 text-center">
-          <div className="inline-flex items-center gap-2 bg-[#0B2D5B]/5 border border-[#0B2D5B]/15 rounded-full px-4 py-1.5 mb-6">
-            <Lock className="w-3.5 h-3.5 text-[#0B2D5B]" />
-            <p className="text-[11px] uppercase tracking-[0.15em] font-black text-[#0B2D5B]">Private · Verified Dealers & Brokers Only</p>
+          <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border ${isDark ? "bg-white/10 border-white/20" : "bg-[#0B2D5B]/5 border-[#0B2D5B]/15"}`}>
+            <Lock className={`w-3.5 h-3.5 ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`} />
+            <p className={`text-[11px] uppercase tracking-[0.15em] font-black ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`}>Private · Verified Dealers & Brokers Only</p>
           </div>
 
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-[#1A1814] leading-[1.15] uppercase tracking-tight max-w-5xl mx-auto">
-            <span className="text-[#0B2D5B]">ATI Score Cards</span>, <span className="text-[#E8A83A]">Escrow</span> & <span className="text-[#0B2D5B]">Live Traffic</span> — The Three Pillars Of Transparent Aviation Deal-Making
+          <h1 className={`text-2xl md:text-4xl lg:text-5xl font-black leading-[1.15] uppercase tracking-tight max-w-5xl mx-auto ${isDark ? "text-white" : "text-[#1A1814]"}`}>
+            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Score Cards</span>, <span className="text-[#E8A83A]">Escrow</span> & <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Live Traffic</span> — The Three Pillars Of Transparent Aviation Deal-Making
           </h1>
-          <p className="text-sm md:text-base text-[#4A4845] mt-5 max-w-3xl mx-auto leading-relaxed">
-            Generate verifiable <b className="text-[#0B2D5B]">ATI Score Cards</b> live, close deals in protected <b className="text-[#E8A83A]">Escrow</b>, and track any aircraft in real-time with <b className="text-[#0B2D5B]">Live Traffic</b>. Built for professional dealers & brokers.
+          <p className={`text-sm md:text-base mt-5 max-w-3xl mx-auto leading-relaxed ${isDark ? "text-white/80" : "text-[#4A4845]"}`}>
+            Generate verifiable <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Score Cards</b> live, close deals in protected <b className="text-[#E8A83A]">Escrow</b>, and track any aircraft in real-time with <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Live Traffic</b>. Built for professional dealers & brokers.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -104,11 +131,14 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <p className="text-[11px] text-[#6B6560] uppercase tracking-wider mt-6 font-semibold">
+          <p className={`text-[11px] uppercase tracking-wider mt-6 font-semibold ${isDark ? "text-white/60" : "text-[#6B6560]"}`}>
             <Link to="/rewards" className="text-[#E8A83A] hover:underline">🎁 Earn free credits</Link> — invite dealers, hit ATI 90+ milestones, unlock more.
           </p>
         </div>
       </section>
+
+      {/* ———————— MARKET PULSE ———————— */}
+      <MarketPulse />
 
       {/* ———————— NOT ANOTHER valuation / WHAT IT IS ———————— */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">

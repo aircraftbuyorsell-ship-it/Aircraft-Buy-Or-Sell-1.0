@@ -15,6 +15,8 @@ import MyAccount from "./pages/MyAccount";
 import Leads from "./pages/Leads";
 import MyBranding from "./pages/MyBranding";
 import VerifiedUsers from "./pages/VerifiedUsers";
+import Pricing from "./pages/Pricing";
+import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
 
 const AuthenticatedApp = () => {
@@ -54,6 +56,7 @@ const AuthenticatedApp = () => {
         <Route path="/leads" element={<Leads />} />
         <Route path="/my-branding" element={<MyBranding />} />
         <Route path="/verified-users" element={<VerifiedUsers />} />
+        <Route path="/pricing" element={<Pricing />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
@@ -68,6 +71,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
+          <CountdownOffer />
         </Router>
         <Toaster />
       </QueryClientProvider>

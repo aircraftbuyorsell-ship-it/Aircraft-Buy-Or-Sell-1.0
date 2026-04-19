@@ -3,6 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Cpu, ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
+import UpgradeGate from "@/components/marketing/UpgradeGate";
+import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
+import { TOKEN_COSTS } from "@/lib/pricing";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -75,6 +78,10 @@ export default function ATIPassport() {
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState(null);
+  const [showGate, setShowGate] = useState(false);
+
+  useAutoTrack("ati_passport");
+  const { behavior, tokens, tier, isVerified, track } = useBehavior();
 
   const { data: listing, isLoading: loadingListing } = useQuery({
     queryKey: ["listing", listingId],
@@ -95,6 +102,14 @@ export default function ATIPassport() {
 
   const handleGenerate = async () => {
     if (!listing) return;
+    // Gate: require verified + enough tokens for full ATI
+    const cost = TOKEN_COSTS.ati_passport_full;
+    if (tier !== "enterprise" && (!isVerified || tokens < cost)) {
+      track("limit_hit", { feature: "ati_passport_full" });
+      setShowGate(true);
+      return;
+    }
+    track("ati_generate_attempt", { listingId });
     setGenerating(true);
     setError(null);
     try {
@@ -228,8 +243,21 @@ Return ONLY raw JSON — no markdown, no explanation:
         discount_pct: discountPct,
       });
 
+      // Consume tokens after successful generation (skip for enterprise)
+      if (tier !== "enterprise" && behavior?.id) {
+        const newBalance = Math.max(0, tokens - cost);
+        await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: newBalance });
+        await base44.entities.TokenTransaction.create({
+          user_email: behavior.user_email,
+          type: "consumption",
+          amount: -cost,
+          feature: "ati_passport_full",
+          balance_after: newBalance,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["passport", listingId] });
       queryClient.invalidateQueries({ queryKey: ["listing", listingId] });
+      queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
     } catch (e) {
       setError(e.message || "Generation failed");
     } finally {
@@ -408,6 +436,15 @@ Return ONLY raw JSON — no markdown, no explanation:
           </>
         )}
       </div>
+
+      <UpgradeGate
+        open={showGate}
+        onClose={() => setShowGate(false)}
+        feature="ati_passport_full"
+        requiredTokens={TOKEN_COSTS.ati_passport_full}
+        userTokens={tokens}
+        isVerified={isVerified}
+      />
     </div>
   );
 }

@@ -6,6 +6,9 @@ import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
 import ImportFromFileModal from "@/components/listings/ImportFromFileModal";
+import UpgradeGate from "@/components/marketing/UpgradeGate";
+import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
+import { TOKEN_COSTS } from "@/lib/pricing";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -108,6 +111,21 @@ export default function Listings() {
   const [minATI, setMinATI] = useState(0);
   const [showFBImport, setShowFBImport] = useState(false);
   const [showFileImport, setShowFileImport] = useState(false);
+  const [gate, setGate] = useState(null); // { feature, requiredTokens }
+
+  useAutoTrack("listings");
+  const { tokens, tier, isVerified, track } = useBehavior();
+
+  const requireFeature = (feature, requiredTokens, openFn) => {
+    const isFree = tier === "free_explorer" && !isVerified;
+    const outOfCredits = tokens < requiredTokens;
+    if (isFree || outOfCredits) {
+      track("limit_hit", { feature });
+      setGate({ feature, requiredTokens });
+      return;
+    }
+    openFn();
+  };
 
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ["listings-public"],
@@ -136,14 +154,14 @@ export default function Listings() {
           </div>
           <div className="flex gap-2 shrink-0">
             <button
-              onClick={() => setShowFileImport(true)}
+              onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowFileImport(true))}
               className="flex items-center gap-2 bg-white border border-[#D4A017] text-[#A67C00] hover:bg-[#D4A017] hover:text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
             >
               <FileArchive className="w-4 h-4" />
               Import ZIP / JSON
             </button>
             <button
-              onClick={() => setShowFBImport(true)}
+              onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
               className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
             >
               <Sparkles className="w-4 h-4" />
@@ -253,6 +271,15 @@ export default function Listings() {
           }}
         />
       )}
+
+      <UpgradeGate
+        open={!!gate}
+        onClose={() => setGate(null)}
+        feature={gate?.feature}
+        requiredTokens={gate?.requiredTokens}
+        userTokens={tokens}
+        isVerified={isVerified}
+      />
     </div>
   );
 }

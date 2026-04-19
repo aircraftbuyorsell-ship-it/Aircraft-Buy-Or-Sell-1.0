@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User,
-  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users, Palette
+  Menu, X, ShieldCheck, BarChart2, Wifi, Calculator, Users, Palette, Zap
 } from "lucide-react";
+import TokenBalance from "./marketing/TokenBalance";
 
 const NAV_ITEMS = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { path: "/leads", label: "Leads", icon: Users },
   { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
   { path: "/my-branding", label: "My Branding", icon: Palette },
+  { path: "/pricing", label: "Credits & Plans", icon: Zap },
   { path: "/my-account", label: "My Account", icon: User },
 ];
 
@@ -123,6 +125,9 @@ export default function Layout() {
             ))}
           </div>
         </nav>
+
+        {/* Token balance widget */}
+        <TokenBalance />
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-white/5">

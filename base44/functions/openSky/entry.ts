@@ -28,16 +28,26 @@ async function getAccessToken() {
     client_id: id,
     client_secret: secret,
   });
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-  if (!res.ok) throw new Error(`OpenSky auth failed: ${res.status}`);
-  const data = await res.json();
-  cachedToken = data.access_token;
-  cachedTokenExpiry = Date.now() + (data.expires_in || 1800) * 1000;
-  return cachedToken;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`OpenSky auth failed: ${res.status}`);
+    const data = await res.json();
+    cachedToken = data.access_token;
+    cachedTokenExpiry = Date.now() + (data.expires_in || 1800) * 1000;
+    return cachedToken;
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("OpenSky auth server unreachable — try again shortly");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function openSkyFetch(path) {

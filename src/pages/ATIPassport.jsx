@@ -14,6 +14,8 @@ import EventTimeline from "@/components/cards/EventTimeline";
 import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
+import ATIWizard from "@/components/ati-wizard/ATIWizard";
+import { Wand2 } from "lucide-react";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 
@@ -89,6 +91,7 @@ export default function ATIPassport() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState(null);
   const [showGate, setShowGate] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useAutoTrack("ati_passport");
   const { behavior, tokens, tier, isVerified, track } = useBehavior();
@@ -385,14 +388,25 @@ Return ONLY raw JSON — no markdown, no explanation:
                 {error}
               </div>
             )}
-            <button
-              onClick={handleGenerate}
-              disabled={generating}
-              className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-50 text-white font-bold px-8 py-3 rounded-xl transition-colors"
-            >
-              <Cpu className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
-              {generating ? "Generating ATI Score…" : "Generate ATI Score"}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => setWizardOpen(true)}
+                disabled={generating}
+                className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+              >
+                <Wand2 className="w-5 h-5" />
+                Launch ATI Wizard
+              </button>
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-colors"
+              >
+                <Cpu className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
+                {generating ? "Generating…" : "Quick Score"}
+              </button>
+            </div>
+            <p className="text-[11px] text-[#AAA49C] mt-2">Wizard = guided, more accurate · Quick = one-click from listing data</p>
           </div>
         ) : (
           <>
@@ -493,15 +507,23 @@ Return ONLY raw JSON — no markdown, no explanation:
               </div>
             )}
 
-            {/* Regenerate button */}
-            <div className="flex justify-end">
+            {/* Regenerate buttons */}
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setWizardOpen(true)}
+                disabled={generating}
+                className="flex items-center gap-2 text-[11px] text-[#AAA49C] hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                Re-score with Wizard
+              </button>
               <button
                 onClick={handleGenerate}
                 disabled={generating}
                 className="flex items-center gap-2 text-[11px] text-[#AAA49C] hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
-                {generating ? "Regenerating…" : "Regenerate ATI Score"}
+                {generating ? "Regenerating…" : "Quick Regenerate"}
               </button>
             </div>
 
@@ -557,6 +579,12 @@ Return ONLY raw JSON — no markdown, no explanation:
         requiredTokens={TOKEN_COSTS.ati_passport_full}
         userTokens={tokens}
         isVerified={isVerified}
+      />
+
+      <ATIWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        listing={listing}
       />
     </div>
   );

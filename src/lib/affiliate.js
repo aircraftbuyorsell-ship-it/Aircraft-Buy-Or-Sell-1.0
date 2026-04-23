@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { logDecision } from "@/lib/logDecision";
 
 /**
  * Affiliate chain + lead event engine.
@@ -105,10 +106,31 @@ export async function logEvent({
 
   // First-verified-source lock on the card
   if (is_verified && card?.id && !card.first_verified_source_id) {
+    const lockedSlug = affiliate_link?.slug || "direct";
     await base44.entities.ATICard.update(card.id, {
-      first_verified_source_id: affiliate_link?.slug || "direct",
+      first_verified_source_id: lockedSlug,
       first_verified_locked_at: new Date().toISOString(),
       status: card.status === "issued" || card.status === "draft" ? "engaged" : card.status,
+    });
+
+    // ─── Decision Log: first-verified-source lock (one-shot, permanent) ──
+    logDecision({
+      type: "first_verified_source",
+      subject: { type: "ati_card", id: card.id, label: card.public_card_code },
+      inputs: {
+        event_type,
+        chain_slugs: chain_slugs || [],
+        candidate_slug: lockedSlug,
+      },
+      outputs: {
+        locked_slug: lockedSlug,
+        owner_email: affiliate_link?.owner_email || null,
+        owner_role: affiliate_link?.owner_role || "direct",
+      },
+      version: "attribution_v1",
+      source: "lib/affiliate:logEvent",
+      actor: actor_email || "system",
+      reasoning: `First verified source locked — ${lockedSlug} wins attribution for this card forever.`,
     });
   }
 

@@ -12,6 +12,7 @@ import CardIdentityBlock from "@/components/cards/CardIdentityBlock";
 import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
 import EventTimeline from "@/components/cards/EventTimeline";
 import { ensureCardForListing } from "@/lib/atiCard";
+import { logDecision } from "@/lib/logDecision";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -266,6 +267,47 @@ Return ONLY raw JSON — no markdown, no explanation:
         deal_label,
         discount_pct: discountPct,
       });
+
+      // ─── Decision Log: ATI score + Deal Radar eligibility ──────────────
+      const subjectLabel = `${listing.registration || "—"} · ${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim();
+      logDecision({
+        type: "ati_score",
+        subject: { type: "listing", id: listingId, label: subjectLabel },
+        inputs: {
+          year: listing.year, make: listing.make, model: listing.model,
+          total_time: listing.total_time, engine_hours: listing.engine_hours, tbo: listing.tbo,
+          fresh_annual: listing.fresh_annual, avionics: listing.avionics,
+          asking_price: listing.asking_price,
+        },
+        outputs: {
+          ati_total,
+          score_label: result.score_label,
+          dimensions: {
+            documentation: result.documentation, technical: result.technical,
+            transparency: result.transparency, transaction_ready: result.transaction_ready,
+            usage_mission: result.usage_mission, storage_exposure: result.storage_exposure,
+            config_clarity: result.config_clarity, market_readiness: result.market_readiness,
+          },
+          omvm_value, discount_pct: discountPct, deal_score, deal_label,
+        },
+        version: "ati_v2",
+        source: "pages/ATIPassport:handleGenerate",
+        actor: me?.email || "system",
+        reasoning: result.ai_summary,
+      });
+
+      if (result.deal_radar_eligible) {
+        logDecision({
+          type: "deal_radar_eligible",
+          subject: { type: "listing", id: listingId, label: subjectLabel },
+          inputs: { ati_total, discount_pct: discountPct, asking_price: listing.asking_price, omvm_value },
+          outputs: { eligible: true, co_ownership_viable: result.co_ownership_viable },
+          version: "deal_radar_v1",
+          source: "pages/ATIPassport:handleGenerate",
+          actor: me?.email || "system",
+          reasoning: `ATI ${ati_total} ≥ 93 AND discount ${discountPct}% ≥ 8% → qualifies for Deal Radar`,
+        });
+      }
 
       // Issue/refresh ATI card in the registry (Identity layer — MVP)
       try {

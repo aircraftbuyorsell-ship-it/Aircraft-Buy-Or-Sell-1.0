@@ -1,5 +1,6 @@
 import { base44 } from "@/api/base44Client";
 import { resolveAttribution } from "@/lib/affiliate";
+import { logDecision } from "@/lib/logDecision";
 
 /**
  * 3-Level Waterfall Commission Model
@@ -165,6 +166,31 @@ export async function persistLedger({ card, escrow, levels }) {
   for (const r of records) {
     created.push(await base44.entities.CommissionLedger.create(r));
   }
+
+  // ─── Decision Log: commission waterfall split ──────────────────────────
+  logDecision({
+    type: "commission_split",
+    subject: { type: "escrow", id: escrow.id, label: `${escrow.aircraft_label || ""} · $${escrow.sale_amount || 0}` },
+    inputs: {
+      sale_amount: escrow.sale_amount,
+      finders_fee_pct: escrow.finders_fee_pct,
+      commission_pool: escrow.finders_fee_amount,
+      card_code: card?.public_card_code,
+      first_verified_source: card?.first_verified_source_id,
+    },
+    outputs: {
+      levels: levels.map(l => ({
+        level: l.level, role: l.role, payee_email: l.payee_email,
+        payee_slug: l.payee_slug, percentage: l.percentage, amount: l.amount,
+      })),
+      total_allocated: levels.reduce((s, l) => s + (l.amount || 0), 0),
+    },
+    version: "waterfall_v1",
+    source: "lib/commission:persistLedger",
+    actor: "system",
+    reasoning: levels[0]?.attribution_reason || "platform_fee",
+  });
+
   return created;
 }
 

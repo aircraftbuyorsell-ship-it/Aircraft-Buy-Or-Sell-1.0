@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
   Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift, Bell,
-  ChevronLeft, ArrowLeft, Music, BarChart3, Fingerprint, DollarSign,
+  ChevronLeft, ArrowLeft, Music, BarChart3, Fingerprint, DollarSign, Activity,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -55,6 +55,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/verification-center", label: "Verification", icon: BadgeCheck },
       { path: "/verified-users", label: "Verified Users", icon: ShieldCheck, adminOnly: true },
       { path: "/commissions", label: "Commissions", icon: DollarSign, adminOnly: true },
+      { path: "/decisions", label: "Decision Stream", icon: Activity, adminOnly: true },
     ],
   },
   {

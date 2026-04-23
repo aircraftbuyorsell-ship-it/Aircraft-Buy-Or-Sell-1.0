@@ -168,6 +168,23 @@
       "default": 0,
       "description": "Times shared"
     },
+    "image_attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of uploaded images (photos, logbook scans, maintenance records) attached to this card"
+    },
+    "average_review_rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Aggregated average rating from approved ATICardReview entries (0-5, one decimal)"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of approved reviews"
+    },
     "issued_at": {
       "type": "string",
       "format": "date-time"
@@ -194,6 +211,15 @@
         },
         {
           "data.card_owner_email": "{{user.email}}"
+        },
+        {
+          "data.subject_owner_email": "{{user.email}}"
+        },
+        {
+          "data.subject_operator_email": "{{user.email}}"
+        },
+        {
+          "data.distribution_owner_email": "{{user.email}}"
         },
         {
           "user_condition": {

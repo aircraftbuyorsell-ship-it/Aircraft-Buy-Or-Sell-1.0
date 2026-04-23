@@ -11,6 +11,9 @@ import VerifiedTitleStamp from "@/components/ownership/VerifiedTitleStamp";
 import CardIdentityBlock from "@/components/cards/CardIdentityBlock";
 import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
 import EventTimeline from "@/components/cards/EventTimeline";
+import CardImageGallery from "@/components/cards/CardImageGallery";
+import CardInlineEditor from "@/components/cards/CardInlineEditor";
+import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 
@@ -396,6 +399,12 @@ Return ONLY raw JSON — no markdown, no explanation:
             {/* Card Identity — Registry ID, status, roles, share */}
             {card && <CardIdentityBlock card={card} />}
 
+            {/* Privileged inline edit (owner/operator/broker/issuer/admin) */}
+            {card && <CardInlineEditor card={card} />}
+
+            {/* Image gallery — photos, logbook scans, maintenance records */}
+            {card && <CardImageGallery card={card} />}
+
             {/* Score + Dimensions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">
@@ -495,6 +504,9 @@ Return ONLY raw JSON — no markdown, no explanation:
                 {generating ? "Regenerating…" : "Regenerate ATI Score"}
               </button>
             </div>
+
+            {/* User reviews (Hodnocení) */}
+            {card && <ReviewsPanel card={card} />}
 
             {/* Affiliate Links + Event timeline (MVP Phase 2) */}
             {card && (

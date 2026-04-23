@@ -4,6 +4,9 @@ import { useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Fingerprint, Plane, Shield, QrCode, ExternalLink, Lock } from "lucide-react";
 import { STATUS_META, CARD_TYPE_META } from "@/lib/atiCard";
+import CardImageGallery from "@/components/cards/CardImageGallery";
+import ReviewsPanel from "@/components/cards/ReviewsPanel";
+import StarRating from "@/components/cards/StarRating";
 import { parseChainFromUrl, resolveLinkBySlug, logEvent, bumpLinkCounter } from "@/lib/affiliate";
 
 /**
@@ -122,11 +125,21 @@ export default function PublicCard() {
               {card.aircraft_registration && (
                 <p className="font-mono text-sm text-white/70 mt-0.5">{card.aircraft_registration}</p>
               )}
-              <div className="flex items-center gap-4 mt-4">
+              <div className="flex items-center gap-4 mt-4 flex-wrap">
                 {ati != null && (
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">ATI Score</p>
                     <p className="text-3xl font-black" style={{ color: atiColor }}>{ati}<span className="text-base text-white/40 font-normal">/120</span></p>
+                  </div>
+                )}
+                {(card.average_review_rating > 0) && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Reviews</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <StarRating value={card.average_review_rating} size="sm" />
+                      <span className="text-sm font-bold">{card.average_review_rating.toFixed(1)}</span>
+                      <span className="text-[11px] text-white/50">({card.review_count || 0})</span>
+                    </div>
                   </div>
                 )}
                 <div>
@@ -169,6 +182,12 @@ export default function PublicCard() {
             ))}
           </div>
         </div>
+
+        {/* Image gallery (read-only for public) */}
+        {card.image_attachments?.length > 0 && <CardImageGallery card={card} />}
+
+        {/* Highlighted approved reviews */}
+        <ReviewsPanel card={card} limit={3} publicOnly />
 
         {/* Locked CTA — sign in for the full passport */}
         <div className="bg-[#1A1814] text-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-start gap-5">

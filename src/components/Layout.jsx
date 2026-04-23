@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X, ShieldCheck, Users,
   Palette, Zap, Calculator, MapPin, BadgeCheck, Handshake, Radio, Gift, Bell,
-  ChevronLeft, ArrowLeft, Music, BarChart3, Fingerprint, DollarSign, Activity,
+  ChevronLeft, ArrowLeft, Music, BarChart3, Fingerprint, DollarSign, Activity, TrendingUp,
 } from "lucide-react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
@@ -42,6 +42,7 @@ const SIDEBAR_SECTIONS = [
     label: "Analyze & Plan",
     items: [
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+      { path: "/omvm-analytics", label: "OMVM Analytics", icon: TrendingUp },
       { path: "/service-finder", label: "Service Finder", icon: MapPin },
     ],
   },

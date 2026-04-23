@@ -224,12 +224,24 @@ Return ONLY raw JSON — no markdown, no explanation:
         result.transaction_ready + result.usage_mission + result.storage_exposure +
         result.config_clarity + result.market_readiness;
 
-      // OMVM valuation
-      const tbo = listing.tbo || 2000;
-      const engineAdj = (tbo - (listing.engine_hours || 0)) * 12;
-      const avionicsAdj = (listing.avionics?.split(",").length || 0) * 4500;
-      const maintAdj = listing.fresh_annual ? 6000 : 0;
-      const omvm_value = Math.round(200000 + engineAdj + avionicsAdj + maintAdj);
+      // OMVM valuation — dynamic via computeOMVMAnalytics (data-driven, market + expert calibrated)
+      let omvm_value = 200000; // fallback if backend analytics unavailable
+      try {
+        const omvmAnalyticsResponse = await base44.functions.invoke("computeOMVMAnalytics", {
+          make: listing.make,
+          model: listing.model,
+          targetListingId: listingId,
+          horizonYears: 1,
+        });
+        const projected = omvmAnalyticsResponse?.data?.projection?.[0]?.projected_value;
+        if (Number.isFinite(projected) && projected > 0) {
+          omvm_value = Math.round(projected);
+        } else {
+          console.warn("computeOMVMAnalytics returned no projection — using fallback.");
+        }
+      } catch (omvmErr) {
+        console.warn("computeOMVMAnalytics failed — using fallback:", omvmErr?.message);
+      }
       const discountPct = listing.asking_price
         ? Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10
         : null;

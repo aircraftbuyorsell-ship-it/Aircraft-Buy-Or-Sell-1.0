@@ -1,5 +1,6 @@
 import { X, ExternalLink, CheckCircle2, Cpu, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AddLeadModal from "@/components/leads/AddLeadModal";
 
 function Row({ label, value }) {
@@ -29,6 +30,7 @@ function ATIBadge({ score }) {
 
 export default function ListingDrawer({ listing: l, onClose }) {
   const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
@@ -165,7 +167,10 @@ export default function ListingDrawer({ listing: l, onClose }) {
 
             {/* Footer CTA */}
             <div className="p-6 border-t border-slate-800 space-y-2">
-              <button className="w-full bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={() => { onClose(); navigate(`/ati-passport/${l.id}`); }}
+                className="w-full bg-sky-500 hover:bg-sky-400 text-white font-semibold text-sm py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
                 <Cpu className="w-4 h-4" />
                 Generate ATI Score
               </button>

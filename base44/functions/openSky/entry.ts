@@ -37,14 +37,20 @@ async function getAccessToken() {
       body,
       signal: controller.signal,
     });
-    if (!res.ok) throw new Error(`OpenSky auth failed: ${res.status}`);
+    if (!res.ok) {
+      // Fall back to anonymous access if OAuth2 credentials are invalid/expired.
+      // Anonymous users get 400 credits/day and current-time-only data.
+      console.warn(`OpenSky OAuth2 failed (${res.status}) — falling back to anonymous access. Refresh credentials at opensky-network.org/account.`);
+      return null;
+    }
     const data = await res.json();
     cachedToken = data.access_token;
     cachedTokenExpiry = Date.now() + (data.expires_in || 1800) * 1000;
     return cachedToken;
   } catch (e) {
-    if (e.name === "AbortError") throw new Error("OpenSky auth server unreachable — try again shortly");
-    throw e;
+    // Any auth failure → fall back to anonymous mode rather than blocking the call.
+    console.warn(`OpenSky auth error (${e.name}: ${e.message}) — falling back to anonymous access.`);
+    return null;
   } finally {
     clearTimeout(timer);
   }

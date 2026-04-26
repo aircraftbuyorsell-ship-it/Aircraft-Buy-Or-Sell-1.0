@@ -4,6 +4,7 @@
   "properties": {
     "user_email": {
       "type": "string",
+      "format": "email",
       "description": "Email of the user who earned the reward"
     },
     "milestone_type": {
@@ -16,14 +17,16 @@
         "first_escrow",
         "manual_admin"
       ],
-      "description": "Type of milestone achieved"
+      "description": "Type of milestone achieved (formal enum, additions require schema update)"
     },
     "tokens_awarded": {
       "type": "number",
+      "minimum": 0,
       "description": "Raw tokens credited (1 token = 5 displayed credits)"
     },
     "credits_awarded": {
       "type": "number",
+      "minimum": 0,
       "description": "Credits granted (display units)"
     },
     "reference_id": {
@@ -32,11 +35,19 @@
     },
     "reference_type": {
       "type": "string",
-      "description": "Kind of reference: listing, user, escrow"
+      "enum": [
+        "listing",
+        "user",
+        "escrow",
+        "ati_card",
+        "other"
+      ],
+      "description": "Kind of reference"
     },
     "note": {
       "type": "string",
-      "description": "Human-readable description of the achievement"
+      "maxLength": 500,
+      "description": "Human-readable description of the achievement (max 500 chars)"
     }
   },
   "required": [

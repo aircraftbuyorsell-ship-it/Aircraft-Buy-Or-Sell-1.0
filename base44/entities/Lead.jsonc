@@ -4,23 +4,28 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Full name"
+      "maxLength": 200,
+      "description": "Full name of the lead"
     },
     "email": {
       "type": "string",
-      "description": "Email address"
+      "format": "email",
+      "description": "Email address of the lead"
     },
     "phone": {
       "type": "string",
-      "description": "Phone number"
+      "maxLength": 50,
+      "description": "Phone number (international format recommended)"
     },
     "aircraft_preference": {
       "type": "string",
-      "description": "Aircraft type preference"
+      "maxLength": 200,
+      "description": "Aircraft type preference (e.g. 'SEP, IFR-equipped')"
     },
     "budget": {
       "type": "string",
-      "description": "Preferred budget range"
+      "maxLength": 100,
+      "description": "Preferred budget range (e.g. '$100k\u2013$200k')"
     },
     "status": {
       "type": "string",
@@ -33,15 +38,17 @@
         "lost"
       ],
       "default": "new",
-      "description": "Lead status"
+      "description": "Lead status in the sales pipeline"
     },
     "source": {
       "type": "string",
-      "description": "Lead source"
+      "maxLength": 100,
+      "description": "Lead source (e.g. 'web', 'referral', 'partner')"
     },
     "notes": {
       "type": "string",
-      "description": "Internal notes"
+      "maxLength": 2000,
+      "description": "Internal notes (max 2000 chars)"
     },
     "listing": {
       "type": "string",
@@ -55,7 +62,7 @@
     "rules_agreed": {
       "type": "boolean",
       "default": false,
-      "description": "Agreed to rules"
+      "description": "Whether the lead agreed to the platform rules"
     }
   },
   "required": [
@@ -63,7 +70,18 @@
     "email"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {

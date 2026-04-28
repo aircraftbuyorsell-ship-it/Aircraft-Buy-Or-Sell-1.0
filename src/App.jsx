@@ -33,6 +33,8 @@ import PublicCard from "./pages/PublicCard";
 import Commissions from "./pages/Commissions";
 import DecisionStream from "./pages/DecisionStream";
 import OMVMAnalytics from "./pages/OMVMAnalytics";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReferralCapture from "./components/ReferralCapture";
 import CountdownOffer from "./components/marketing/CountdownOffer";
 import { useBranding } from "@/lib/useBranding";
@@ -88,6 +90,8 @@ const AuthenticatedApp = () => {
         <Route path="/commissions" element={<Commissions />} />
         <Route path="/decisions" element={<DecisionStream />} />
         <Route path="/omvm-analytics" element={<OMVMAnalytics />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Route>
       {/* Public shareable card — no layout, outside main app shell */}
       <Route path="/c/:code" element={<PublicCard />} />

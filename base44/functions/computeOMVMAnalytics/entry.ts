@@ -19,7 +19,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 function linearRegression(points) {
   // points: [{x, y}]
   const n = points.length;
-  if (n < 2) return { slope: 0, intercept: 0, r2: 0 };
+  if (n < 2) return { slope: 0, intercept: 0, r2: 0, sampleSize: n };
   const sumX = points.reduce((s, p) => s + p.x, 0);
   const sumY = points.reduce((s, p) => s + p.y, 0);
   const meanX = sumX / n;
@@ -38,7 +38,19 @@ function linearRegression(points) {
     ssTot += (p.y - meanY) ** 2;
   }
   const r2 = ssTot === 0 ? 0 : 1 - ssRes / ssTot;
-  return { slope, intercept, r2 };
+  return { slope, intercept, r2, sampleSize: n };
+}
+
+function median(values) {
+  const sorted = values.filter((v) => Number.isFinite(v) && v > 0).sort((a, b) => a - b);
+  if (sorted.length === 0) return null;
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function ageAdjustPrice(price, fromAge, toAge, slope) {
+  if (!Number.isFinite(price) || price <= 0) return null;
+  return price * Math.exp(slope * (toAge - fromAge));
 }
 
 Deno.serve(async (req) => {
@@ -63,16 +75,32 @@ Deno.serve(async (req) => {
 
     const currentYear = new Date().getFullYear();
 
+    let target = null;
+    if (targetListingId) {
+      target = await base44.asServiceRole.entities.AircraftListing.get(targetListingId);
+    }
+
     // 2) Depreciation curve: age vs log(price)
     const agePoints = valid
       .filter((l) => l.asking_price > 0)
       .map((l) => ({ x: currentYear - l.year, y: Math.log(l.asking_price) }));
     const dep = linearRegression(agePoints);
-    // price(age) = exp(intercept + slope * age)
-    const depreciationCurve = Array.from({ length: 51 }, (_, age) => ({
-      age,
-      estimated_price: Math.round(Math.exp(dep.intercept + dep.slope * age)),
-    }));
+    const priceSamples = valid.map((l) => l.asking_price);
+    const medianComparablePrice = median(priceSamples);
+    const targetAge = target ? currentYear - (target.year || currentYear) : null;
+    const benchmarkValue = target?.asking_price || medianComparablePrice || 0;
+
+    // price(age) = exp(intercept + slope * age), with data-driven fallback when samples are sparse
+    const depreciationCurve = Array.from({ length: 51 }, (_, age) => {
+      const regressionPrice = dep.sampleSize >= 2 ? Math.exp(dep.intercept + dep.slope * age) : null;
+      const adjustedBenchmark = targetAge != null
+        ? ageAdjustPrice(benchmarkValue, targetAge, age, dep.slope)
+        : benchmarkValue;
+      return {
+        age,
+        estimated_price: Math.round(regressionPrice || adjustedBenchmark || 0),
+      };
+    });
     const annualDepreciationPct = Math.round((1 - Math.exp(dep.slope)) * 1000) / 10;
 
     // 3) Engine-remaining impact: (tbo - engine_hours)/tbo vs price
@@ -123,17 +151,15 @@ Deno.serve(async (req) => {
 
     // 6) Projection for target listing (or synthetic)
     let projection = null;
-    let target = null;
-    if (targetListingId) {
-      target = await base44.asServiceRole.entities.AircraftListing.get(targetListingId);
-    }
     if (target) {
       const baseAge = currentYear - (target.year || currentYear);
       // Future demand factor: apply compounding demand trend diluted over years
       const years = Array.from({ length: horizonYears + 1 }, (_, i) => i);
       projection = years.map((y) => {
         const age = baseAge + y;
-        const rawPrice = Math.exp(dep.intercept + dep.slope * age);
+        const regressionPrice = dep.sampleSize >= 2 ? Math.exp(dep.intercept + dep.slope * age) : null;
+        const benchmarkPrice = ageAdjustPrice(benchmarkValue, baseAge, age, dep.slope);
+        const rawPrice = regressionPrice || benchmarkPrice || 0;
         // Engine adjustment relative to current engine (assume +100h/year usage)
         const projectedEngineHours = (target.engine_hours || 0) + y * 100;
         const engFrac = target.tbo
@@ -174,6 +200,12 @@ Deno.serve(async (req) => {
         avg_delta_pct: Math.round(avgExpertDelta * 100) / 100,
         multiplier: Math.round(calibrationMultiplier * 10000) / 10000,
         sample: deltas.length,
+      },
+      valuation_basis: {
+        median_comparable_price: medianComparablePrice ? Math.round(medianComparablePrice) : null,
+        benchmark_value: Math.round(benchmarkValue),
+        regression_sample_size: dep.sampleSize,
+        fallback_used: dep.sampleSize < 2,
       },
       projection,
       target: target

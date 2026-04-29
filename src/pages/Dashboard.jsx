@@ -17,18 +17,18 @@ function NavyIcon({ icon: Icon, size = "md" }) {
   return (
     <div className={`${s} rounded-full bg-[#0B2D5B] flex items-center justify-center mx-auto shadow-md`}>
       <Icon className={`${i} text-white`} strokeWidth={2} />
-    </div>
-  );
+    </div>);
+
 }
 
 function PillarCard({ icon, title, body }) {
   return (
     <div className="bg-white rounded-lg border border-black/[0.06] p-6 md:p-8 text-center shadow-sm hover:shadow-md transition-shadow">
       <NavyIcon icon={icon} />
-      <h3 className="text-lg font-black text-[#0B2D5B] mt-5 uppercase tracking-tight">{title}</h3>
+      <h3 className="text-[#0B2D5B] mt-5 text-base font-black text-center uppercase tracking-tight">{title}</h3>
       <p className="text-sm text-[#4A4845] leading-relaxed mt-3">{body}</p>
-    </div>
-  );
+    </div>);
+
 }
 
 function StatPill({ value, label }) {
@@ -36,8 +36,8 @@ function StatPill({ value, label }) {
     <div className="text-center">
       <p className="text-3xl md:text-4xl font-black text-[#0B2D5B] leading-none">{value}</p>
       <p className="text-[10px] md:text-[11px] text-[#6B6560] uppercase tracking-[0.15em] font-semibold mt-1.5">{label}</p>
-    </div>
-  );
+    </div>);
+
 }
 
 export default function Dashboard() {
@@ -46,50 +46,50 @@ export default function Dashboard() {
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
-    queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }),
+    queryFn: () => base44.entities.AircraftListing.filter({ status: "active" })
   });
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
-    queryFn: () => base44.entities.DealRadar.list(),
+    queryFn: () => base44.entities.DealRadar.list()
   });
 
   const total_listings = listings.length;
-  const avg_ati = listings.length > 0
-    ? Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length)
-    : 0;
-  const hot_deals = deals.filter(d => (d.deal_score || 0) >= 8.5).length;
-  const evaluated = listings.filter(l => l.ati_score).length;
+  const avg_ati = listings.length > 0 ?
+  Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length) :
+  0;
+  const hot_deals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
+  const evaluated = listings.filter((l) => l.ati_score).length;
 
   return (
     <div className="min-h-screen bg-white">
       {/* ———————— HERO ———————— */}
       <section
         className="relative overflow-hidden border-b border-black/[0.06] transition-colors duration-500"
-        style={{ backgroundColor: isDark ? "#0B1A33" : "#FFFFFF" }}
-      >
+        style={{ backgroundColor: isDark ? "#0B1A33" : "#FFFFFF" }}>
+        
         {/* Rotating globe background */}
         <RotatingGlobe theme={globeTheme} className="absolute inset-0 w-full h-full pointer-events-none opacity-90" />
         {/* Soft left-side fade so text stays readable over the globe */}
         <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
-            background: isDark
-              ? "linear-gradient(90deg, rgba(11,26,51,0.92) 0%, rgba(11,26,51,0.70) 40%, rgba(11,26,51,0.15) 70%, rgba(11,26,51,0) 100%)"
-              : "linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 100%)",
-          }}
-        />
+            background: isDark ?
+            "linear-gradient(90deg, rgba(11,26,51,0.92) 0%, rgba(11,26,51,0.70) 40%, rgba(11,26,51,0.15) 70%, rgba(11,26,51,0) 100%)" :
+            "linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 40%, rgba(255,255,255,0.2) 70%, rgba(255,255,255,0) 100%)"
+          }} />
+        
 
         {/* Theme toggle — affects globe only */}
         <button
-          onClick={() => setGlobeTheme(t => t === "light" ? "dark" : "light")}
+          onClick={() => setGlobeTheme((t) => t === "light" ? "dark" : "light")}
           className={`absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full border backdrop-blur text-[10px] font-black uppercase tracking-wider transition-colors ${
-            isDark
-              ? "bg-white/10 border-white/20 text-[#E8A83A] hover:bg-white/20"
-              : "bg-white/70 border-black/10 text-[#0B2D5B] hover:bg-white"
-          }`}
+          isDark ?
+          "bg-white/10 border-white/20 text-[#E8A83A] hover:bg-white/20" :
+          "bg-white/70 border-black/10 text-[#0B2D5B] hover:bg-white"}`
+          }
           aria-label="Toggle globe theme"
-          title="Toggle globe theme"
-        >
+          title="Toggle globe theme">
+          
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           {isDark ? "Light Globe" : "Dark Globe"}
         </button>
@@ -110,22 +110,22 @@ export default function Dashboard() {
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
               to="/listings"
-              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors"
-            >
+              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
+              
               <Fingerprint className="w-5 h-5" />
               Generate ATI Score Card
             </Link>
             <Link
               to="/escrow"
-              className="inline-flex items-center gap-2.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors"
-            >
+              className="inline-flex items-center gap-2.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
+              
               <Handshake className="w-5 h-5" />
               Open Escrow Deal
             </Link>
             <Link
               to="/live-traffic"
-              className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors"
-            >
+              className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors">
+              
               <Radar className="w-5 h-5" />
               Track Aircraft Live
             </Link>
@@ -151,18 +151,18 @@ export default function Dashboard() {
           <PillarCard
             icon={ShieldCheck}
             title="ATI Score Card · Aircraft ID"
-            body="Every aircraft carries a verifiable Aircraft Transparency Index card — 8 dimensions, 120 points, transparent ownership history. No more guessing. No more hidden damage."
-          />
+            body="Every aircraft carries a verifiable Aircraft Transparency Index card — 8 dimensions, 120 points, transparent ownership history. No more guessing. No more hidden damage." />
+          
           <PillarCard
             icon={Percent}
             title="% Hustling · No Price Tags"
-            body="Off-market deals run on percentages, not sticker prices. Claim your finder's fee transparently. Every professional hustles openly — everyone gets paid."
-          />
+            body="Off-market deals run on percentages, not sticker prices. Claim your finder's fee transparently. Every professional hustles openly — everyone gets paid." />
+          
           <PillarCard
             icon={Handshake}
             title="All-In-One Dealer Intelligence"
-            body="ATI scoring, deal radar, lead CRM, broker network, and transparent ownership chain — one zone for smart, fast, profitable decisions."
-          />
+            body="ATI scoring, deal radar, lead CRM, broker network, and transparent ownership chain — one zone for smart, fast, profitable decisions." />
+          
         </div>
       </section>
 
@@ -191,24 +191,24 @@ export default function Dashboard() {
 
         <div className="grid md:grid-cols-4 gap-6 mt-12">
           {[
-            { n: "01", title: "Aircraft Gets ATI ID", body: "Dealer imports or claims an aircraft. An ATI Score Card is generated with verifiable history and transparency score." },
-            { n: "02", title: "Ownership Registered", body: "The rightful owner or finder locks in their claim on the card — protected by the transparent registry." },
-            { n: "03", title: "Hustle With %", body: "Share the aircraft inside the zone with a finder's-fee %. No price tags. Brokers forward deals freely." },
-            { n: "04", title: "Deal Closes — All Paid", body: "When the aircraft sells, the transparent chain pays every % participant. Everyone is happy. Everyone hustles again." },
-          ].map(s => (
-            <div key={s.n} className="relative">
+          { n: "01", title: "Aircraft Gets ATI ID", body: "Dealer imports or claims an aircraft. An ATI Score Card is generated with verifiable history and transparency score." },
+          { n: "02", title: "Ownership Registered", body: "The rightful owner or finder locks in their claim on the card — protected by the transparent registry." },
+          { n: "03", title: "Hustle With %", body: "Share the aircraft inside the zone with a finder's-fee %. No price tags. Brokers forward deals freely." },
+          { n: "04", title: "Deal Closes — All Paid", body: "When the aircraft sells, the transparent chain pays every % participant. Everyone is happy. Everyone hustles again." }].
+          map((s) =>
+          <div key={s.n} className="relative">
               <p className="text-5xl font-black text-[#E8A83A] leading-none">{s.n}</p>
               <h4 className="text-base font-black text-[#0B2D5B] uppercase mt-3 tracking-tight">{s.title}</h4>
               <p className="text-sm text-[#4A4845] mt-2 leading-relaxed">{s.body}</p>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="text-center mt-12">
           <Link
             to="/listings"
-            className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors"
-          >
+            className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors">
+            
             Start Hustling Transparently <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -224,34 +224,34 @@ export default function Dashboard() {
 
           <div className="grid md:grid-cols-3 gap-5 mt-12">
             {[
-              { icon: Users, title: "Aircraft Dealers", body: "Manage your inventory with verifiable ATI IDs. Surface off-market opportunities before anyone else." },
-              { icon: Handshake, title: "Brokers", body: "Forward deals transparently with locked-in %. Never lose your finder's fee to a handshake gone wrong." },
-              { icon: TrendingUp, title: "Operators & Flippers", body: "Find mispriced aircraft, verify ownership, act fast. The zone rewards speed and transparency." },
-            ].map(x => (
-              <div key={x.title} className="bg-white/5 backdrop-blur rounded-lg border border-white/10 p-6">
+            { icon: Users, title: "Aircraft Dealers", body: "Manage your inventory with verifiable ATI IDs. Surface off-market opportunities before anyone else." },
+            { icon: Handshake, title: "Brokers", body: "Forward deals transparently with locked-in %. Never lose your finder's fee to a handshake gone wrong." },
+            { icon: TrendingUp, title: "Operators & Flippers", body: "Find mispriced aircraft, verify ownership, act fast. The zone rewards speed and transparency." }].
+            map((x) =>
+            <div key={x.title} className="bg-white/5 backdrop-blur rounded-lg border border-white/10 p-6">
                 <div className="w-12 h-12 rounded-full bg-[#E8A83A] flex items-center justify-center">
                   <x.icon className="w-5 h-5 text-[#0B2D5B]" strokeWidth={2.5} />
                 </div>
                 <h4 className="text-lg font-black uppercase tracking-tight mt-4">{x.title}</h4>
                 <p className="text-sm text-white/75 mt-2 leading-relaxed">{x.body}</p>
               </div>
-            ))}
+            )}
           </div>
 
           <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3">
             {[
-              "No price tags — only %",
-              "Verified ownership chain",
-              "Off-market exclusivity",
-              "Finder's fee protected",
-              "ATI transparency score",
-              "Zero public listings",
-            ].map(x => (
-              <div key={x} className="flex items-center gap-2 text-sm text-white/90">
+            "No price tags — only %",
+            "Verified ownership chain",
+            "Off-market exclusivity",
+            "Finder's fee protected",
+            "ATI transparency score",
+            "Zero public listings"].
+            map((x) =>
+            <div key={x} className="flex items-center gap-2 text-sm text-white/90">
                 <CheckCircle2 className="w-4 h-4 text-[#E8A83A]" />
                 {x}
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -270,11 +270,11 @@ export default function Dashboard() {
 
         <div className="grid lg:grid-cols-[1fr_340px] gap-6">
           <div className="grid sm:grid-cols-2 gap-4">
-          {listings.slice(0, 6).map(l => {
-            const score = l.ati_score || 0;
-            const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#E8A83A" : score > 0 ? "#C0392B" : "#AAA49C";
-            return (
-              <Link key={l.id} to={`/ati-passport/${l.id}`} className="block bg-white border border-black/[0.08] rounded-lg p-5 hover:border-[#0B2D5B] hover:shadow-lg transition-all">
+          {listings.slice(0, 6).map((l) => {
+              const score = l.ati_score || 0;
+              const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#E8A83A" : score > 0 ? "#C0392B" : "#AAA49C";
+              return (
+                <Link key={l.id} to={`/ati-passport/${l.id}`} className="block bg-white border border-black/[0.08] rounded-lg p-5 hover:border-[#0B2D5B] hover:shadow-lg transition-all">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-wider text-[#E8A83A] font-black">ATI ID</p>
@@ -291,15 +291,15 @@ export default function Dashboard() {
                   <p className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold">Finder's Fee</p>
                   <p className="text-base font-black text-[#0B2D5B]">%</p>
                 </div>
-              </Link>
-            );
-          })}
-          {listings.length === 0 && (
+              </Link>);
+
+            })}
+          {listings.length === 0 &&
             <div className="sm:col-span-2 text-center py-16 text-[#AAA49C]">
               <Plane className="w-10 h-10 mx-auto opacity-30 mb-3" />
               <p className="text-sm">No ATI score cards in your zone yet.</p>
             </div>
-          )}
+            }
           </div>
 
           {/* AI Insights side panel */}
@@ -319,11 +319,11 @@ export default function Dashboard() {
         </p>
         <Link
           to="/listings"
-          className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors mt-8"
-        >
+          className="inline-flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm px-8 py-4 rounded-md tracking-wider transition-colors mt-8">
+          
           Enter The IntraZone <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
-    </div>
-  );
+    </div>);
+
 }

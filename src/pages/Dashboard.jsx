@@ -25,7 +25,7 @@ function PillarCard({ icon, title, body }) {
   return (
     <div className="bg-white rounded-lg border border-black/[0.06] p-6 md:p-8 text-center shadow-sm hover:shadow-md transition-shadow">
       <NavyIcon icon={icon} />
-      <h3 className="text-[#0B2D5B] mt-5 text-base font-black text-center uppercase tracking-tight">{title}</h3>
+      <h3 className="bg-transparent text-[#0B2D5B] mt-5 text-base font-black text-center uppercase tracking-tight">{title}</h3>
       <p className="text-sm text-[#4A4845] leading-relaxed mt-3">{body}</p>
     </div>);
 

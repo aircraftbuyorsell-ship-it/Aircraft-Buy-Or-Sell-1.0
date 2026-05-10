@@ -20,6 +20,7 @@ import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";
+import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
@@ -548,6 +549,9 @@ Return ONLY raw JSON:
                 ))}
               </div>
             </div>
+
+            {/* ── Score Breakdown (detailed readiness) ── */}
+            <ATIScoreBreakdown passport={passport} missing_data={passport.missing_data} />
 
             {/* ── Executive Summary ── */}
             {passport.ai_summary && (

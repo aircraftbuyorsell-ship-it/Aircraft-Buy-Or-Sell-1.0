@@ -20,6 +20,7 @@ import OpexCalculator from "./pages/OpexCalculator";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ATICard from "./pages/ATICard";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
         <Route path="/listings" element={<Listings />} />
         <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
         <Route path="/ati-passport" element={<Navigate to="/listings" replace />} />
+        <Route path="/ati-card/:cardCode" element={<ATICard />} />
         <Route path="/deal-radar" element={<DealRadar />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />

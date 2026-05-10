@@ -7,6 +7,9 @@ import {
 } from "@/lib/opexEngine";
 import ReserveCard from "@/components/opex/ReserveCard";
 import ClaritySummary from "@/components/opex/ClaritySummary";
+import LocationAdjustments, { LOCATION_RATES } from "@/components/opex/LocationAdjustments";
+import MaintenanceSchedule from "@/components/opex/MaintenanceSchedule";
+import ComplianceTracker from "@/components/opex/ComplianceTracker";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -76,6 +79,18 @@ export default function OpexCalculator() {
   const [partsAccessibility, setPartsAccessibility] = useState("good");
   const [avionicsSupport, setAvionicsSupport] = useState("supported");
 
+  // --- Location & Regional ---
+  const [location, setLocation] = useState("north-america");
+  const locationMult = LOCATION_RATES[location] || LOCATION_RATES["north-america"];
+
+  // --- Compliance ---
+  const [adsb, setAdsb] = useState(true);
+  const [altimeterCert, setAltimeterCert] = useState(true);
+  const [transponderCert, setTransponderCert] = useState(true);
+  const [staticPortCert, setStaticPortCert] = useState(true);
+  const [annualInspection, setAnnualInspection] = useState(true);
+  const [airworthinessAlert, setAirworthinessAlert] = useState(false);
+
   const pickPreset = (p) => {
     setPreset(p);
     setFuelRate(p.fuel);
@@ -95,8 +110,14 @@ export default function OpexCalculator() {
   const propReserveYr = reserves.prop * annualHours;
   const inspectionReserveYr = reserves.inspection * annualHours;
 
-  const variable = annualHours * (fuelRate + maintRate);
-  const fixed = insuranceYr + hangarYr;
+  // Apply location multipliers
+  const adjustedFuelRate = fuelRate * locationMult.fuel;
+  const adjustedMaintRate = maintRate * locationMult.maintenance;
+  const adjustedHangarYr = hangarYr * locationMult.hangar;
+  const adjustedInsuranceYr = insuranceYr * locationMult.insurance;
+
+  const variable = annualHours * (adjustedFuelRate + adjustedMaintRate);
+  const fixed = adjustedInsuranceYr + adjustedHangarYr;
   const reservesTotal = engineReserveYr + propReserveYr + inspectionReserveYr;
   const totalAnnual = variable + fixed + reservesTotal;
   const perHour = annualHours > 0 ? totalAnnual / annualHours : 0;
@@ -217,6 +238,16 @@ export default function OpexCalculator() {
               </div>
             </div>
 
+            {/* Location adjustments */}
+            <LocationAdjustments
+              location={location}
+              onChange={setLocation}
+              fuelRate={fuelRate}
+              maintRate={maintRate}
+              hangarYr={hangarYr}
+              insuranceYr={insuranceYr}
+            />
+
             {/* Service accessibility */}
             <div className="bg-white border border-black/[0.07] rounded-2xl p-5 space-y-4">
               <SectionHeader icon={MapPin} title="Service Accessibility" desc="Support network in your region" />
@@ -272,11 +303,11 @@ export default function OpexCalculator() {
 
           {/* Results column */}
           <div className="space-y-3">
-            <StatCard label="Total / Year" value={Math.round(totalAnnual)} sub={`Incl. reserves`} icon={TrendingUp} />
+            <StatCard label="Total / Year" value={Math.round(totalAnnual)} sub={`Incl. reserves + location (${locationMult.fuel}× fuel)`} icon={TrendingUp} />
             <StatCard label="Monthly Ownership" value={Math.round(monthly)} sub="Year ÷ 12" icon={Calculator} accent="#185FA5" />
             <StatCard label="Cost / Flight Hour" value={Math.round(perHour)} sub="True $/hr" icon={Gauge} accent="#0F7A56" />
-            <StatCard label="Variable (fuel + maint)" value={Math.round(variable)} sub={`${annualHours} hr`} icon={Fuel} accent="#185FA5" />
-            <StatCard label="Fixed (insurance + hangar)" value={Math.round(fixed)} icon={Wrench} accent="#A67C00" />
+            <StatCard label="Variable (fuel + maint)" value={Math.round(variable)} sub={`${annualHours} hr (adj.)`} icon={Fuel} accent="#185FA5" />
+            <StatCard label="Fixed (insurance + hangar)" value={Math.round(fixed)} sub="Adjusted for region" icon={Wrench} accent="#A67C00" />
 
             <div className="pt-2">
               <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#E8A83A] mb-2">Reserves (per-hour accrual)</p>
@@ -306,6 +337,49 @@ export default function OpexCalculator() {
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Maintenance Schedule + Compliance */}
+        <div className="grid lg:grid-cols-2 gap-4 mt-5">
+          <MaintenanceSchedule
+            annualHours={annualHours}
+            engineHours={engineHours}
+            engineTBO={preset.tbo}
+            annualOverdue={annualOverdue}
+          />
+          <ComplianceTracker
+            adsb={adsb}
+            altimeterCert={altimeterCert}
+            transponderCert={transponderCert}
+            staticPortCert={staticPortCert}
+            annualInspection={annualInspection}
+            airworthinessAlert={airworthinessAlert}
+          />
+        </div>
+
+        {/* Compliance controls (hidden in accordion) */}
+        <div className="mt-4 bg-white border border-black/[0.07] rounded-2xl p-4">
+          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Certification Status</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {[
+              { label: "ADS-B", state: adsb, setState: setAdsb },
+              { label: "Altimeter Cert", state: altimeterCert, setState: setAltimeterCert },
+              { label: "Transponder Cert", state: transponderCert, setState: setTransponderCert },
+              { label: "Static Port Cert", state: staticPortCert, setState: setStaticPortCert },
+              { label: "Annual Inspection", state: annualInspection, setState: setAnnualInspection },
+              { label: "Airworthiness Alert", state: airworthinessAlert, setState: setAirworthinessAlert },
+            ].map(item => (
+              <label key={item.label} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={item.state}
+                  onChange={e => item.setState(e.target.checked)}
+                  className={`accent-${item.state ? "[#0F7A56]" : "[#C0392B]"}`}
+                />
+                <span className="text-[11px] text-[#6B6560] font-medium">{item.label}</span>
+              </label>
+            ))}
           </div>
         </div>
 

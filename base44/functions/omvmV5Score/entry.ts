@@ -66,7 +66,22 @@ Deno.serve(async (req) => {
       if (den > 0) engineSlope = num / den;
     }
 
-    // 4) Expert calibration multiplier
+    // 4) ATI transparency impact — lower ATI = discount on valuation
+    let atiDiscount = 1.0;
+    if (listingId) {
+      const passports = await base44.asServiceRole.entities.ATIPassport.filter(
+        { listing: listingId }, '-created_date', 1
+      );
+      if (passports.length > 0) {
+        const ati = passports[0].ati_total || 0;
+        // ATI 0-50 = -30%, 50-70 = -15%, 70-90 = -5%, 90+ = 0%
+        if (ati < 50) atiDiscount = 0.7;
+        else if (ati < 70) atiDiscount = 0.85;
+        else if (ati < 90) atiDiscount = 0.95;
+      }
+    }
+
+    // 5) Expert calibration multiplier
     const expertReviews = await base44.asServiceRole.entities.ExpertValuation.filter(
       { status: 'accepted' }, '-created_date', 100
     );
@@ -74,11 +89,11 @@ Deno.serve(async (req) => {
     const avgExpertDelta = deltas.length > 0 ? deltas.reduce((s, d) => s + d, 0) / deltas.length : 0;
     const calibrationMultiplier = 1 + avgExpertDelta / 100;
 
-    // 5) Avionics premium (capped to avoid inflating low-sample valuations)
+    // 6) Avionics premium (capped to avoid inflating low-sample valuations)
     const avionicsList = (listing.avionics || '').split(',').map(a => a.trim()).filter(Boolean);
     const avionicsPremium = Math.min(avionicsList.length * 2500, 15000);
 
-    // 6) Base OMVM calculation
+    // 8) Base OMVM calculation with ATI discount applied
     const regressionBase = valid.length >= 3 ? Math.exp(intercept + slope * age) : null;
 
     // Fallback: use median of comps if regression fails
@@ -87,10 +102,10 @@ Deno.serve(async (req) => {
 
     const baseValue = regressionBase || medianBase;
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
-    const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier;
+    const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
     const omvmValue = Math.max(10000, Math.round(rawOMVM / 1000) * 1000);
 
-    // 7) Deal scoring
+    // 9) Deal scoring
     const askingPrice = listing.asking_price || null;
     const discountPct = askingPrice ? Math.round(((omvmValue - askingPrice) / omvmValue) * 1000) / 10 : null;
     const dealScore = discountPct == null ? null
@@ -107,10 +122,10 @@ Deno.serve(async (req) => {
       : dealScore >= 5 ? 'fair'
       : 'overpriced';
 
-    // 8) Confidence
+    // 10) Confidence
     const confidence = valid.length >= 10 ? 'HIGH' : valid.length >= 3 ? 'MEDIUM' : 'LOW';
 
-    // 9) Persist to listing if we have an ID
+    // 11) Persist to listing if we have an ID
     if (listingId) {
       await base44.entities.AircraftListing.update(listingId, {
         omvm_value: omvmValue,
@@ -130,6 +145,7 @@ Deno.serve(async (req) => {
       comp_sample: valid.length,
       engine_remaining_pct: Math.round(engineRemainingFrac * 100),
       expert_calibration: { avg_delta_pct: avgExpertDelta, multiplier: calibrationMultiplier, sample: deltas.length },
+      ati_transparency_discount: atiDiscount,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

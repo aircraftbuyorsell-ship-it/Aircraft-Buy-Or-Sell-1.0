@@ -116,9 +116,7 @@ Return ONLY raw JSON without markdown.`,
     Object.keys(payload).forEach((k) => {
       if (payload[k] === "") delete payload[k];
     });
-    // Create via backend (bypasses RLS, enforces role check server-side)
-    const res = await base44.functions.invoke("createListingsBulk", { listings: [payload] });
-    const listing = res?.data?.created?.[0];
+    const listing = await base44.entities.AircraftListing.create(payload);
     onImported(listing);
     onClose();
   };

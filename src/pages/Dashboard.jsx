@@ -110,10 +110,10 @@ export default function Dashboard() {
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
               to="/listings"
-              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">AIRCRAFT WIZARD
-
-
-
+              className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
+              
+              <ShieldCheck className="w-5 h-5" />
+              Generate Report
             </Link>
             <Link
               to="/escrow"

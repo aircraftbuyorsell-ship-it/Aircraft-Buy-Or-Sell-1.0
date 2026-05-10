@@ -1,9 +1,0 @@
-{
-  "name": "ABOS v0.5 IntraZone (Copy)",
-  "site": {
-    "installCommand": "npm install",
-    "buildCommand": "npm run build",
-    "serveCommand": "npm run dev",
-    "outputDirectory": "./dist"
-  }
-}

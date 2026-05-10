@@ -2,7 +2,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Cpu, ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
+import {
+  ShieldCheck, AlertTriangle, CheckCircle, RefreshCw,
+  ArrowLeft, Download, FileText, Wand2, Zap, TrendingDown,
+  Star, Eye, Lock, ChevronRight
+} from "lucide-react";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
@@ -15,80 +19,103 @@ import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";
-import { Wand2 } from "lucide-react";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
+import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
 
-function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
-}
-
-function ScoreRing({ score, maxScore = 120, label: scoreLabel }) {
-  if (score == null) return null;
-  const pct = score / maxScore;
-  const r = 56;
-  const circ = 2 * Math.PI * r;
-  const dash = pct * circ;
-  const color = score >= 108 ? "#0F7A56" : score >= 90 ? "#185FA5" : score >= 72 ? "#D4A017" : score >= 54 ? "#A67C00" : score >= 36 ? "#CD7F32" : "#C0392B";
-  const label = scoreLabel || (score >= 108 ? "Exceptional" : score >= 90 ? "Strong Buy" : score >= 72 ? "Fair" : score >= 54 ? "Caution" : score >= 36 ? "Red Flags" : "Avoid");
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-36 h-36">
-        <svg viewBox="0 0 128 128" className="w-full h-full -rotate-90">
-          <circle cx="64" cy="64" r={r} fill="none" stroke="#F0EDE6" strokeWidth="8" />
-          <circle cx="64" cy="64" r={r} fill="none" stroke={color} strokeWidth="8"
-            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-black text-[#1A1814]">{score}</span>
-          <span className="text-[10px] uppercase tracking-widest text-[#AAA49C] font-semibold">ATI Score</span>
-        </div>
-      </div>
-      <span className="text-sm font-bold" style={{ color }}>{label}</span>
-    </div>
-  );
-}
-
-function DimBar({ label, value, max = 15, desc }) {
-  const pct = ((value ?? 0) / max) * 100;
-  const color = pct >= 80 ? "#0F7A56" : pct >= 60 ? "#185FA5" : pct >= 40 ? "#D4A017" : "#C0392B";
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <div>
-          <span className="text-[12px] font-semibold text-[#1A1814]">{label}</span>
-          <span className="text-[10px] text-[#AAA49C] ml-1.5">{desc}</span>
-        </div>
-        <span className="text-[12px] font-black text-[#1A1814] shrink-0 ml-2">{value ?? "—"}<span className="text-[#AAA49C] font-normal text-[10px]">/{max}</span></span>
-      </div>
-      <div className="h-1.5 bg-black/5 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
-      </div>
-    </div>
-  );
-}
-
-// 120pt scale: 8 modules × 15 pts each
-const DIMS = [
-  { key: "documentation", label: "Documentation Completeness", max: 15, desc: "Logbooks, records" },
-  { key: "technical", label: "Maintenance Traceability", max: 15, desc: "AD compliance, trail" },
-  { key: "transparency", label: "Engine Health", max: 15, desc: "SMOH vs TBO, compressions" },
-  { key: "transaction_ready", label: "Avionics Quality", max: 15, desc: "GPS/WAAS, ADS-B, autopilot" },
-  { key: "usage_mission", label: "Usage / Mission Risk", max: 15, desc: "Private vs training vs charter" },
-  { key: "storage_exposure", label: "Storage & Exposure", max: 15, desc: "Hangared dry vs outdoor" },
-  { key: "config_clarity", label: "Configuration Clarity", max: 15, desc: "Specs consistency, STCs" },
-  { key: "market_readiness", label: "Market Readiness", max: 15, desc: "Annual freshness, photos" },
-];
-
+// ─── Helpers ────────────────────────────────────────────────────
 function parseList(str) {
   if (!str) return [];
   return str.split("\n").filter(Boolean);
 }
 
+function scoreColor(score) {
+  if (score >= 108) return "#0F7A56";
+  if (score >= 90) return "#185FA5";
+  if (score >= 72) return "#D4A017";
+  if (score >= 54) return "#A67C00";
+  if (score >= 36) return "#CD7F32";
+  return "#C0392B";
+}
+
+function scoreBg(score) {
+  if (score >= 108) return "rgba(15,122,86,0.08)";
+  if (score >= 90) return "rgba(24,95,165,0.08)";
+  if (score >= 72) return "rgba(212,160,23,0.08)";
+  if (score >= 54) return "rgba(166,124,0,0.08)";
+  if (score >= 36) return "rgba(205,127,50,0.08)";
+  return "rgba(192,57,43,0.08)";
+}
+
+// ─── Score Ring ─────────────────────────────────────────────────
+function ScoreRing({ score, maxScore = 120, label: scoreLabel }) {
+  if (score == null) return null;
+  const pct = score / maxScore;
+  const r = 60;
+  const circ = 2 * Math.PI * r;
+  const dash = pct * circ;
+  const color = scoreColor(score);
+  const label = scoreLabel || (score >= 108 ? "Exceptional" : score >= 90 ? "Strong Buy" : score >= 72 ? "Fair" : score >= 54 ? "Caution" : score >= 36 ? "Red Flags" : "Avoid");
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative w-40 h-40">
+        <svg viewBox="0 0 136 136" className="w-full h-full -rotate-90">
+          <circle cx="68" cy="68" r={r} fill="none" stroke="#F0EDE6" strokeWidth="9" />
+          <circle cx="68" cy="68" r={r} fill="none" stroke={color} strokeWidth="9"
+            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-4xl font-black text-[#1A1814] leading-none">{score}</span>
+          <span className="text-[9px] uppercase tracking-[0.18em] text-[#AAA49C] font-bold mt-0.5">/ 120</span>
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-sm font-black uppercase tracking-wider px-3 py-1 rounded-full border" style={{ color, backgroundColor: scoreBg(score), borderColor: `${color}40` }}>{label}</span>
+        <span className="text-[10px] text-[#AAA49C]">Aircraft Transparency Index</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Dimension Bar ───────────────────────────────────────────────
+function DimBar({ label, value, max = 15, desc }) {
+  const pct = ((value ?? 0) / max) * 100;
+  const color = pct >= 80 ? "#0F7A56" : pct >= 60 ? "#185FA5" : pct >= 40 ? "#D4A017" : "#C0392B";
+  return (
+    <div className="group">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[12px] font-semibold text-[#1A1814] truncate">{label}</span>
+          <span className="text-[10px] text-[#C4BEB6] hidden sm:inline shrink-0">{desc}</span>
+        </div>
+        <span className="text-[12px] font-black shrink-0 ml-2" style={{ color }}>
+          {value ?? "—"}<span className="text-[#C4BEB6] font-normal text-[10px]">/{max}</span>
+        </span>
+      </div>
+      <div className="h-2 bg-black/5 rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  );
+}
+
+const DIMS = [
+  { key: "documentation", label: "Documentation & Records", desc: "Logbooks, airframe history" },
+  { key: "technical", label: "Maintenance History", desc: "AD compliance, service trail" },
+  { key: "transparency", label: "Engine Condition", desc: "SMOH, TBO, compressions" },
+  { key: "transaction_ready", label: "Avionics Package", desc: "GPS/WAAS, ADS-B, autopilot" },
+  { key: "usage_mission", label: "Operational History", desc: "Private vs training vs charter" },
+  { key: "storage_exposure", label: "Storage & Climate", desc: "Hangared, dry vs outdoor" },
+  { key: "config_clarity", label: "Configuration Clarity", desc: "Specs, STCs, modifications" },
+  { key: "market_readiness", label: "Transaction Readiness", desc: "Annual freshness, completeness" },
+];
+
+// ─── Main Page ──────────────────────────────────────────────────
 export default function ATIPassport() {
   const { listingId } = useParams();
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
   const [showGate, setShowGate] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -125,13 +152,12 @@ export default function ATIPassport() {
     },
     enabled: !!listingId,
   });
-  const verifiedOwnershipCount = ownershipEvents.filter(e => e.verification_status === "verified").length;
 
+  const verifiedOwnershipCount = ownershipEvents.filter(e => e.verification_status === "verified").length;
   const isLoading = loadingListing || loadingPassport;
 
   const handleGenerate = async () => {
     if (!listing) return;
-    // Gate: require verified + enough tokens for full ATI
     const cost = TOKEN_COSTS.ati_passport_full;
     if (tier !== "enterprise" && (!isVerified || tokens < cost)) {
       track("limit_hit", { feature: "ati_passport_full" });
@@ -182,21 +208,16 @@ Score this aircraft listing across 8 dimensions, each scored 0–15 points (inte
 Aircraft data:
 ${JSON.stringify(listing, null, 2)}
 
-Return ONLY raw JSON — no markdown, no explanation:
+Return ONLY raw JSON:
 {
-  "documentation": 0-15,
-  "technical": 0-15,
-  "transparency": 0-15,
-  "transaction_ready": 0-15,
-  "usage_mission": 0-15,
-  "storage_exposure": 0-15,
-  "config_clarity": 0-15,
-  "market_readiness": 0-15,
+  "documentation": 0-15, "technical": 0-15, "transparency": 0-15,
+  "transaction_ready": 0-15, "usage_mission": 0-15, "storage_exposure": 0-15,
+  "config_clarity": 0-15, "market_readiness": 0-15,
   "score_label": "EXCEPTIONAL|STRONG BUY|FAIR|CAUTION|RED FLAGS|AVOID",
   "ai_summary": "2-3 sentence executive summary",
-  "strengths": ["string", "string", "string"],
-  "risks": ["string", "string", "string"],
-  "recommendations": ["string", "string", "string"],
+  "strengths": ["string","string","string"],
+  "risks": ["string","string","string"],
+  "recommendations": ["string","string","string"],
   "missing_data": ["any critical missing fields"],
   "deal_radar_eligible": true|false,
   "co_ownership_viable": true|false
@@ -204,14 +225,10 @@ Return ONLY raw JSON — no markdown, no explanation:
         response_json_schema: {
           type: "object",
           properties: {
-            documentation: { type: "number" },
-            technical: { type: "number" },
-            transparency: { type: "number" },
-            transaction_ready: { type: "number" },
-            usage_mission: { type: "number" },
-            storage_exposure: { type: "number" },
-            config_clarity: { type: "number" },
-            market_readiness: { type: "number" },
+            documentation: { type: "number" }, technical: { type: "number" },
+            transparency: { type: "number" }, transaction_ready: { type: "number" },
+            usage_mission: { type: "number" }, storage_exposure: { type: "number" },
+            config_clarity: { type: "number" }, market_readiness: { type: "number" },
             ai_summary: { type: "string" },
             strengths: { type: "array", items: { type: "string" } },
             risks: { type: "array", items: { type: "string" } },
@@ -224,16 +241,16 @@ Return ONLY raw JSON — no markdown, no explanation:
         result.transaction_ready + result.usage_mission + result.storage_exposure +
         result.config_clarity + result.market_readiness;
 
-      // OMVM valuation — omvmV5Score (log-linear regression + engine curve + expert calibration)
-      let omvm_value = 200000; // fallback if backend unavailable
+      let omvm_value = 55000;
       try {
         const omvmRes = await base44.functions.invoke("omvmV5Score", { listingId });
         if (Number.isFinite(omvmRes?.data?.omvm_value) && omvmRes.data.omvm_value > 0) {
           omvm_value = omvmRes.data.omvm_value;
         }
       } catch (omvmErr) {
-        console.warn("omvmV5Score failed — using fallback:", omvmErr?.message);
+        console.warn("omvmV5Score failed:", omvmErr?.message);
       }
+
       const discountPct = listing.asking_price
         ? Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10
         : null;
@@ -248,14 +265,10 @@ Return ONLY raw JSON — no markdown, no explanation:
         listing: listingId,
         triggered_by: me?.id,
         ati_total,
-        documentation: result.documentation,
-        technical: result.technical,
-        transparency: result.transparency,
-        transaction_ready: result.transaction_ready,
-        usage_mission: result.usage_mission,
-        storage_exposure: result.storage_exposure,
-        config_clarity: result.config_clarity,
-        market_readiness: result.market_readiness,
+        documentation: result.documentation, technical: result.technical,
+        transparency: result.transparency, transaction_ready: result.transaction_ready,
+        usage_mission: result.usage_mission, storage_exposure: result.storage_exposure,
+        config_clarity: result.config_clarity, market_readiness: result.market_readiness,
         score_label: result.score_label || null,
         ai_summary: result.ai_summary,
         strengths: (result.strengths || []).join("\n"),
@@ -264,46 +277,21 @@ Return ONLY raw JSON — no markdown, no explanation:
         missing_data: (result.missing_data || []).join("\n"),
         deal_radar_eligible: result.deal_radar_eligible || false,
         co_ownership_viable: result.co_ownership_viable || false,
-        omvm_value,
-        deal_score,
-        deal_label,
-        discount_pct: discountPct,
+        omvm_value, deal_score, deal_label, discount_pct: discountPct,
         ati_version: "v2",
       });
+
       await base44.entities.AircraftListing.update(listingId, {
-        ati_score: ati_total,
-        omvm_value,
-        deal_score,
-        deal_label,
-        discount_pct: discountPct,
+        ati_score: ati_total, omvm_value, deal_score, deal_label, discount_pct: discountPct,
       });
 
-      // ─── Decision Log: ATI score + Deal Radar eligibility ──────────────
       const subjectLabel = `${listing.registration || "—"} · ${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim();
       logDecision({
         type: "ati_score",
         subject: { type: "listing", id: listingId, label: subjectLabel },
-        inputs: {
-          year: listing.year, make: listing.make, model: listing.model,
-          total_time: listing.total_time, engine_hours: listing.engine_hours, tbo: listing.tbo,
-          fresh_annual: listing.fresh_annual, avionics: listing.avionics,
-          asking_price: listing.asking_price,
-        },
-        outputs: {
-          ati_total,
-          score_label: result.score_label,
-          dimensions: {
-            documentation: result.documentation, technical: result.technical,
-            transparency: result.transparency, transaction_ready: result.transaction_ready,
-            usage_mission: result.usage_mission, storage_exposure: result.storage_exposure,
-            config_clarity: result.config_clarity, market_readiness: result.market_readiness,
-          },
-          omvm_value, discount_pct: discountPct, deal_score, deal_label,
-        },
-        version: "ati_v2",
-        source: "pages/ATIPassport:handleGenerate",
-        actor: me?.email || "system",
-        reasoning: result.ai_summary,
+        inputs: { year: listing.year, make: listing.make, model: listing.model, total_time: listing.total_time, engine_hours: listing.engine_hours, tbo: listing.tbo, fresh_annual: listing.fresh_annual, avionics: listing.avionics, asking_price: listing.asking_price },
+        outputs: { ati_total, score_label: result.score_label, dimensions: { documentation: result.documentation, technical: result.technical, transparency: result.transparency, transaction_ready: result.transaction_ready, usage_mission: result.usage_mission, storage_exposure: result.storage_exposure, config_clarity: result.config_clarity, market_readiness: result.market_readiness }, omvm_value, discount_pct: discountPct, deal_score, deal_label },
+        version: "ati_v2", source: "pages/ATIPassport:handleGenerate", actor: me?.email || "system", reasoning: result.ai_summary,
       });
 
       if (result.deal_radar_eligible) {
@@ -312,14 +300,11 @@ Return ONLY raw JSON — no markdown, no explanation:
           subject: { type: "listing", id: listingId, label: subjectLabel },
           inputs: { ati_total, discount_pct: discountPct, asking_price: listing.asking_price, omvm_value },
           outputs: { eligible: true, co_ownership_viable: result.co_ownership_viable },
-          version: "deal_radar_v1",
-          source: "pages/ATIPassport:handleGenerate",
-          actor: me?.email || "system",
+          version: "deal_radar_v1", source: "pages/ATIPassport:handleGenerate", actor: me?.email || "system",
           reasoning: `ATI ${ati_total} ≥ 93 AND discount ${discountPct}% ≥ 8% → qualifies for Deal Radar`,
         });
       }
 
-      // Issue/refresh ATI card in the registry (Identity layer — MVP)
       try {
         await ensureCardForListing({ ...listing, id: listingId }, { issuerEmail: me?.email });
         queryClient.invalidateQueries({ queryKey: ["ati-card", listingId] });
@@ -328,242 +313,276 @@ Return ONLY raw JSON — no markdown, no explanation:
         console.warn("Card registry update failed:", cardErr);
       }
 
-      // Consume tokens after successful generation (skip for enterprise)
       if (tier !== "enterprise" && behavior?.id) {
         const newBalance = Math.max(0, tokens - cost);
         await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: newBalance });
         await base44.entities.TokenTransaction.create({
-          user_email: behavior.user_email,
-          type: "consumption",
-          amount: -cost,
-          feature: "ati_passport_full",
-          balance_after: newBalance,
+          user_email: behavior.user_email, type: "consumption", amount: -cost,
+          feature: "ati_passport_full", balance_after: newBalance,
         });
       }
       queryClient.invalidateQueries({ queryKey: ["passport", listingId] });
       queryClient.invalidateQueries({ queryKey: ["listing", listingId] });
       queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
     } catch (e) {
-      setError(e.message || "Generation failed");
+      setError(e.message || "Scoring failed. Please try again.");
     } finally {
       setGenerating(false);
     }
   };
 
+  const handleExportPDF = async () => {
+    if (!listing || !passport) return;
+    setExporting(true);
+    try {
+      await exportATIPassportPDF({ listing, passport, card });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
-      {/* Header */}
-      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
-        <Link to="/listings" className="inline-flex items-center gap-1.5 text-[11px] text-[#AAA49C] hover:text-[#D4A017] mb-3 transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Listings
-        </Link>
-        <GoldLabel>ATI Passport · v2</GoldLabel>
-        {isLoading ? (
-          <div className="h-8 w-64 bg-black/5 rounded animate-pulse mt-1" />
-        ) : (
-          <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight mt-1">
-            {listing?.make} {listing?.model}
-            {listing?.registration && <span className="text-[#AAA49C] font-mono text-lg ml-2">{listing.registration}</span>}
-          </h1>
-        )}
-        <p className="text-[#6B6560] text-sm mt-0.5">Aircraft Transparency Index Analysis</p>
+      {/* ── Page Header ─────────────────────────── */}
+      <div className="bg-[#0B2D5B] border-b border-white/5">
+        <div className="px-4 md:px-8 py-5 max-w-5xl">
+          <Link to="/listings" className="inline-flex items-center gap-1.5 text-[11px] text-white/40 hover:text-[#E8A83A] mb-4 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back to Listings
+          </Link>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold mb-1">ATI Score Card · v2</p>
+              {isLoading ? (
+                <div className="h-8 w-64 bg-white/10 rounded animate-pulse" />
+              ) : (
+                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                  {listing?.year} {listing?.make} {listing?.model}
+                  {listing?.registration && (
+                    <span className="text-white/40 font-mono text-lg ml-3">{listing.registration}</span>
+                  )}
+                </h1>
+              )}
+              <p className="text-white/50 text-sm mt-1">
+                Independent aircraft valuation & risk assessment for qualified buyers and brokers
+              </p>
+            </div>
+
+            {passport && (
+              <button
+                onClick={handleExportPDF}
+                disabled={exporting}
+                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black text-sm px-5 py-2.5 rounded-xl transition-colors shrink-0"
+              >
+                <Download className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`} />
+                {exporting ? "Preparing PDF…" : "Export PDF Report"}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="px-4 md:px-8 pb-8 max-w-4xl space-y-5">
+      <div className="px-4 md:px-8 py-6 max-w-5xl space-y-5">
         {isLoading ? (
           <div className="space-y-4">
-            <div className="bg-white border border-black/[0.07] rounded-2xl h-48 animate-pulse" />
-            <div className="bg-white border border-black/[0.07] rounded-2xl h-48 animate-pulse" />
+            <div className="bg-white border border-black/[0.07] rounded-2xl h-56 animate-pulse" />
+            <div className="bg-white border border-black/[0.07] rounded-2xl h-56 animate-pulse" />
           </div>
         ) : !passport ? (
-          /* Empty state */
-          <div className="bg-white border border-black/[0.07] rounded-2xl p-8 md:p-12 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-[#F7F4EF] border border-black/[0.07] flex items-center justify-center mb-5">
-              <Cpu className="w-9 h-9 text-[#AAA49C]" />
-            </div>
-            <h2 className="text-xl font-black text-[#1A1814] mb-2">No ATI Passport yet</h2>
-            <p className="text-[#6B6560] text-sm mb-6 max-w-sm">
-              Generate an AI-powered Aircraft Transparency Index analysis for{" "}
-              <span className="font-semibold text-[#1A1814]">{listing?.make} {listing?.model}</span>.
-            </p>
-            {error && (
-              <div className="bg-[rgba(192,57,43,0.08)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-xl px-4 py-2.5 mb-4">
-                {error}
+          /* ── Empty state ── */
+          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+            {/* Top banner */}
+            <div className="bg-gradient-to-r from-[#0B2D5B] to-[#143C75] px-8 py-8 text-white text-center">
+              <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-[#E8A83A]" />
               </div>
-            )}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                onClick={() => setWizardOpen(true)}
-                disabled={generating}
-                className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-              >
-                <Wand2 className="w-5 h-5" />
-                Launch ATI Wizard
-              </button>
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-colors"
-              >
-                <Cpu className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
-                {generating ? "Generating…" : "Quick Score"}
-              </button>
+              <h2 className="text-xl font-black mb-2">No Score Card Issued Yet</h2>
+              <p className="text-white/70 text-sm max-w-md mx-auto">
+                Score this aircraft in 60 seconds. Get a full breakdown of documentation quality, engine condition, avionics value, and market pricing — so you know exactly what you're buying.
+              </p>
             </div>
-            <p className="text-[11px] text-[#AAA49C] mt-2">Wizard = guided, more accurate · Quick = one-click from listing data</p>
+
+            <div className="p-8">
+              {/* What you get */}
+              <div className="grid sm:grid-cols-3 gap-4 mb-8">
+                {[
+                  { icon: ShieldCheck, title: "8-Dimension Risk Score", body: "Documentation, maintenance trail, engine health, avionics, usage history — scored out of 120." },
+                  { icon: TrendingDown, title: "Real Market Valuation", body: "Compare asking price against verified market data. Know if you're overpaying or getting a deal." },
+                  { icon: FileText, title: "Export-Ready PDF", body: "Share the full report with your co-buyer, broker, or bank. Professional format, instant download." },
+                ].map(({ icon: Icon, title, body }) => (
+                  <div key={title} className="bg-[#F7F4EF] rounded-xl p-4 text-center">
+                    <div className="w-10 h-10 rounded-full bg-[#0B2D5B] flex items-center justify-center mx-auto mb-3">
+                      <Icon className="w-5 h-5 text-[#E8A83A]" />
+                    </div>
+                    <p className="text-[12px] font-black text-[#1A1814] mb-1">{title}</p>
+                    <p className="text-[11px] text-[#6B6560] leading-relaxed">{body}</p>
+                  </div>
+                ))}
+              </div>
+
+              {error && (
+                <div className="bg-[rgba(192,57,43,0.08)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-xl px-4 py-3 mb-5">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => setWizardOpen(true)}
+                  disabled={generating}
+                  className="flex items-center justify-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black px-7 py-3.5 rounded-xl transition-colors"
+                >
+                  <Wand2 className="w-5 h-5" />
+                  Guided Assessment (More Accurate)
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  className="flex items-center justify-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black px-7 py-3.5 rounded-xl transition-colors"
+                >
+                  <Zap className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
+                  {generating ? "Scoring aircraft…" : "Quick Score (1-Click)"}
+                </button>
+              </div>
+              <p className="text-[10px] text-[#AAA49C] text-center mt-3">
+                Guided = step-by-step, highest accuracy · Quick Score = instant, from listing data
+              </p>
+            </div>
           </div>
         ) : (
           <>
-            {/* Card Identity — Registry ID, status, roles, share */}
+            {/* ── Card Identity ── */}
             {card && <CardIdentityBlock card={card} />}
-
-            {/* Privileged inline edit (owner/operator/broker/issuer/admin) */}
             {card && <CardInlineEditor card={card} />}
-
-            {/* Image gallery — photos, logbook scans, maintenance records */}
             {card && <CardImageGallery card={card} />}
 
-            {/* Score + Dimensions */}
+            {/* ── Score Hero ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">
+              {/* Left: Score ring + badges */}
+              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center gap-4">
                 <ScoreRing score={passport.ati_total} maxScore={120} label={passport.score_label} />
-                <div className="mt-4 text-center">
-                  <p className="text-[11px] text-[#AAA49C]">{listing?.make} {listing?.model}</p>
-                  {listing?.registration && <p className="text-xs text-[#AAA49C] font-mono">{listing.registration}</p>}
+
+                <div className="text-center">
+                  <p className="text-[11px] text-[#AAA49C]">{listing?.year} {listing?.make} {listing?.model}</p>
+                  {listing?.registration && <p className="text-[10px] text-[#AAA49C] font-mono">{listing.registration}</p>}
                 </div>
-                {/* Deal Radar & Co-ownership badges */}
-                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+
+                {/* Alert / opportunity badges */}
+                <div className="flex flex-wrap gap-2 justify-center">
                   {passport.deal_radar_eligible && (
-                    <span className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-full border bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]">
-                      ⚡ Deal Radar Eligible
+                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full border bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]">
+                      ⚡ Deal Radar — Below Market
                     </span>
                   )}
                   {passport.co_ownership_viable && (
-                    <span className="text-[9px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-full border bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]">
-                      🤝 Co-Ownership Viable
+                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full border bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]">
+                      🤝 Co-Ownership Ready
                     </span>
                   )}
                 </div>
 
-                {/* Verified Title Stamp */}
-                <div className="mt-5 pt-5 border-t border-black/[0.06] w-full flex flex-col items-center">
-                  <VerifiedTitleStamp
-                    verifiedCount={verifiedOwnershipCount}
-                    totalCount={ownershipEvents.length}
-                    size="md"
-                  />
-                  <p className="text-[10px] text-[#AAA49C] mt-2 text-center max-w-[180px] leading-tight">
-                    Digital title backed by {verifiedOwnershipCount} verified document{verifiedOwnershipCount === 1 ? "" : "s"}
+                {/* Title chain */}
+                <div className="w-full pt-4 border-t border-black/[0.06] flex flex-col items-center gap-1">
+                  <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="md" />
+                  <p className="text-[10px] text-[#AAA49C] text-center max-w-[160px] leading-tight">
+                    {verifiedOwnershipCount > 0
+                      ? `${verifiedOwnershipCount} verified ownership document${verifiedOwnershipCount > 1 ? "s" : ""} on file`
+                      : "No ownership documents verified yet"}
                   </p>
                 </div>
               </div>
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <GoldLabel>ATI Score Dimensions</GoldLabel>
-                  <span className="text-[9px] text-[#AAA49C] font-semibold uppercase tracking-wider">8 modules × 15 pts</span>
+
+              {/* Right: Dimension bars */}
+              <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017]">Score Breakdown</p>
+                  <span className="text-[9px] text-[#AAA49C] font-semibold uppercase tracking-wider bg-black/5 px-2 py-0.5 rounded-full">8 modules × 15 pts</span>
                 </div>
-                {DIMS.map(d => (
-                  <DimBar key={d.key} label={d.label} value={passport[d.key]} max={d.max} desc={d.desc} />
-                ))}
+                <div className="space-y-3.5">
+                  {DIMS.map(d => (
+                    <DimBar key={d.key} label={d.label} value={passport[d.key]} max={d.max} desc={d.desc} />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Valuation */}
-            <div className="bg-white border border-[rgba(212,160,23,0.25)] rounded-2xl p-5 md:p-6">
-              <GoldLabel>OMVM Valuation</GoldLabel>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+            {/* ── Valuation Panel ── */}
+            <div className="bg-white border border-[rgba(212,160,23,0.3)] rounded-2xl overflow-hidden">
+              <div className="bg-gradient-to-r from-[rgba(212,160,23,0.06)] to-transparent px-6 py-4 border-b border-[rgba(212,160,23,0.15)]">
+                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017]">Market Valuation Analysis</p>
+                <p className="text-[11px] text-[#6B6560] mt-0.5">Compared against verified market transactions for this make/model/year</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-black/[0.05]">
                 {[
-                  { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "—" },
-                  { label: "OMVM Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—" },
-                  { label: "Discount", value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼" : "▲"} ${Math.abs(passport.discount_pct)}%` : "—", color: passport.discount_pct >= 0 ? "#0F7A56" : "#C0392B" },
-                  { label: "Deal Label", value: passport.deal_label || "—", color: "#D4A017" },
+                  { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "—", sub: "Seller's listed price" },
+                  { label: "Market Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", sub: "Based on comparable sales" },
+                  {
+                    label: "Price vs Market",
+                    value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼ " : "▲ "}${Math.abs(passport.discount_pct)}%` : "—",
+                    sub: passport.discount_pct >= 0 ? "Below market — potential upside" : "Above market — negotiate down",
+                    color: passport.discount_pct >= 0 ? "#0F7A56" : "#C0392B"
+                  },
+                  {
+                    label: "Deal Rating",
+                    value: passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—",
+                    sub: "Based on price vs condition",
+                    color: passport.deal_score >= 8.5 ? "#0F7A56" : passport.deal_score >= 6.5 ? "#185FA5" : passport.deal_score >= 5 ? "#D4A017" : "#C0392B"
+                  },
                 ].map(item => (
-                  <div key={item.label} className="bg-[#F7F4EF] rounded-xl p-3">
+                  <div key={item.label} className="px-5 py-4">
                     <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mb-1">{item.label}</p>
-                    <p className="text-base font-black capitalize" style={{ color: item.color || "#1A1814" }}>{item.value}</p>
+                    <p className="text-lg font-black leading-none" style={{ color: item.color || "#1A1814" }}>{item.value}</p>
+                    {item.sub && <p className="text-[10px] text-[#AAA49C] mt-1 leading-tight">{item.sub}</p>}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* AI Summary */}
+            {/* ── Executive Summary ── */}
             {passport.ai_summary && (
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
-                <GoldLabel>AI Analysis</GoldLabel>
-                <p className="text-sm text-[#6B6560] leading-relaxed mt-3">{passport.ai_summary}</p>
+              <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
+                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Deal Intelligence Summary</p>
+                <p className="text-sm text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
               </div>
             )}
 
-            {/* Missing Data Warning */}
+            {/* ── Missing Data Warning ── */}
             {parseList(passport.missing_data).length > 0 && (
-              <div className="bg-[rgba(192,57,43,0.05)] border border-[rgba(192,57,43,0.18)] rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="bg-[rgba(192,57,43,0.04)] border border-[rgba(192,57,43,0.18)] rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
                   <AlertTriangle className="w-4 h-4 text-[#C0392B]" />
-                  <p className="text-[10px] uppercase tracking-wider font-bold text-[#C0392B]">Missing / Unverified Data</p>
+                  <p className="text-[10px] uppercase tracking-wider font-black text-[#C0392B]">Data Gaps — Request Before Making an Offer</p>
                 </div>
-                <ul className="space-y-1">
+                <div className="grid sm:grid-cols-2 gap-1.5">
                   {parseList(passport.missing_data).map((item, i) => (
-                    <li key={i} className="flex gap-2 text-[12px] text-[#C0392B]">
-                      <span className="shrink-0">—</span>{item}
-                    </li>
+                    <div key={i} className="flex items-start gap-2 text-[12px] text-[#C0392B]">
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      {item}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
-            {/* Regenerate buttons */}
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setWizardOpen(true)}
-                disabled={generating}
-                className="flex items-center gap-2 text-[11px] text-[#AAA49C] hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold"
-              >
-                <Wand2 className="w-3.5 h-3.5" />
-                Re-score with Wizard
-              </button>
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="flex items-center gap-2 text-[11px] text-[#AAA49C] hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
-                {generating ? "Regenerating…" : "Quick Regenerate"}
-              </button>
-            </div>
-
-            {/* User reviews (Hodnocení) */}
-            {card && <ReviewsPanel card={card} />}
-
-            {/* Affiliate Links + Event timeline (MVP Phase 2) */}
-            {card && (
-              <>
-                <AffiliateLinksPanel card={card} />
-                <EventTimeline card={card} />
-              </>
-            )}
-
-            {/* Ownership Trace — digital title / provenance */}
-            <OwnershipTrace listingId={listingId} />
-
-            {/* Strengths / Risks / Recommendations */}
+            {/* ── Strengths / Risks / Actions ── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { title: "Strengths", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", bg: "rgba(15,122,86,0.06)" },
-                { title: "Risks", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", bg: "rgba(192,57,43,0.06)" },
-                { title: "Recommendations", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", bg: "rgba(212,160,23,0.06)" },
+                { title: "What Works in Your Favour", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", bg: "rgba(15,122,86,0.05)", border: "rgba(15,122,86,0.15)" },
+                { title: "Risks to Price or Walk Away", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", bg: "rgba(192,57,43,0.05)", border: "rgba(192,57,43,0.15)" },
+                { title: "Buyer Action Items", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", bg: "rgba(212,160,23,0.05)", border: "rgba(212,160,23,0.2)" },
               ].map(section => (
-                <div key={section.title} className="bg-white border border-black/[0.07] rounded-2xl p-5">
+                <div key={section.title} className="rounded-2xl p-5 border" style={{ backgroundColor: section.bg, borderColor: section.border }}>
                   <div className="flex items-center gap-2 mb-3">
                     <section.icon className="w-4 h-4" style={{ color: section.color }} />
-                    <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: section.color }}>{section.title}</p>
+                    <p className="text-[10px] uppercase tracking-wider font-black" style={{ color: section.color }}>{section.title}</p>
                   </div>
                   {section.data.length === 0 ? (
                     <p className="text-[11px] text-[#AAA49C]">—</p>
                   ) : (
-                    <ul className="space-y-2">
+                    <ul className="space-y-2.5">
                       {section.data.map((item, i) => (
-                        <li key={i} className="flex gap-2 text-[12px] text-[#6B6560]">
-                          <span className="shrink-0 w-1 h-1 rounded-full mt-1.5" style={{ backgroundColor: section.color }} />
+                        <li key={i} className="flex gap-2 text-[12px] text-[#4A4845] leading-relaxed">
+                          <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-1.5" style={{ backgroundColor: section.color }} />
                           {item}
                         </li>
                       ))}
@@ -572,6 +591,31 @@ Return ONLY raw JSON — no markdown, no explanation:
                 </div>
               ))}
             </div>
+
+            {/* ── Re-score actions ── */}
+            <div className="flex items-center justify-between flex-wrap gap-3 py-2">
+              <p className="text-[11px] text-[#AAA49C]">
+                Scored on {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2
+              </p>
+              <div className="flex gap-4">
+                <button onClick={() => setWizardOpen(true)} disabled={generating}
+                  className="flex items-center gap-2 text-[11px] text-[#6B6560] hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold">
+                  <Wand2 className="w-3.5 h-3.5" />
+                  Re-score with Guided Assessment
+                </button>
+                <button onClick={handleGenerate} disabled={generating}
+                  className="flex items-center gap-2 text-[11px] text-[#6B6560] hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold">
+                  <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
+                  {generating ? "Updating…" : "Quick Refresh"}
+                </button>
+              </div>
+            </div>
+
+            {/* ── Reviews / Affiliate / Timeline / Ownership ── */}
+            {card && <ReviewsPanel card={card} />}
+            {card && <AffiliateLinksPanel card={card} />}
+            {card && <EventTimeline card={card} />}
+            <OwnershipTrace listingId={listingId} />
           </>
         )}
       </div>

@@ -203,60 +203,92 @@ Return JSON with explicit fields only (use null if not found):
           {/* Step 0: Source */}
           {step === 0 && (
             <>
+              <div className="bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.2)] rounded-lg px-4 py-2.5 mb-4">
+                <p className="text-[11px] font-bold text-[#A67C00] mb-1">💡 Fastest way:</p>
+                <p className="text-[12px] text-[#6B6560]">Copy the full listing text from any website (Facebook, Controller, Trade-A-Plane, etc.) and paste it below. AI will extract all specs automatically.</p>
+              </div>
+
               <div className="flex gap-2 bg-[#F7F4EF] rounded-lg p-1 w-fit">
                 {[
-                  { id: "file", label: "File (ZIP/JSON)" },
-                  { id: "url", label: "URL" },
-                  { id: "text", label: "Paste Text" },
+                  { id: "text", label: "📋 Paste Text", desc: "Fastest" },
+                  { id: "url", label: "🔗 URL" },
+                  { id: "file", label: "📁 File (ZIP/JSON)" },
                 ].map(m => (
                   <button
                     key={m.id}
                     onClick={() => setMode(m.id)}
                     className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
                       mode === m.id
-                        ? "bg-white text-[#1A1814]"
+                        ? "bg-white text-[#1A1814] shadow-sm"
                         : "text-[#AAA49C] hover:text-[#6B6560]"
                     }`}
+                    title={m.desc}
                   >
                     {m.label}
                   </button>
                 ))}
               </div>
 
-              {mode === "file" && (
-                <label className="block border-2 border-dashed border-black/10 hover:border-[#D4A017] rounded-lg p-6 text-center cursor-pointer transition-colors">
-                  <Upload className="w-8 h-8 text-[#AAA49C] mx-auto mb-2" />
-                  <p className="text-sm font-bold text-[#1A1814]">
-                    {file ? file.name : "Click to select file"}
-                  </p>
-                  <p className="text-[10px] text-[#AAA49C] mt-1">.zip, .json, .csv, .pdf, .txt, .xlsx</p>
-                  <input
-                    type="file"
-                    accept=".zip,.json,.csv,.pdf,.txt,.xlsx"
-                    onChange={e => setFile(e.target.files?.[0])}
-                    className="hidden"
+              {mode === "text" && (
+                <>
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-4 space-y-2 text-[11px] text-[#6B6560] mb-4">
+                    <p className="font-bold text-[#0B2D5B]">✓ What you can paste:</p>
+                    <ul className="space-y-1 ml-4">
+                      <li>• Full Facebook Marketplace listing</li>
+                      <li>• Controller.com or Trade-A-Plane advertisement</li>
+                      <li>• Email describing the aircraft</li>
+                      <li>• Logbook notes or maintenance records</li>
+                      <li>• Any unstructured aircraft text</li>
+                    </ul>
+                  </div>
+                  <textarea
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    placeholder={`Example: "2015 Cessna 172S, N12345, TT 3,847 hrs, SMOH 187 hrs, fresh annual 3/2025. IFR equipped with Garmin G1000 NXi. Fresh paint 2024, interior excellent. $285,000. Call John: 555-1234..."`}
+                    rows={8}
+                    className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#999] placeholder-opacity-50 focus:outline-none focus:border-[#D4A017] resize-none font-mono"
                   />
-                </label>
+                  <p className="text-[10px] text-[#AAA49C] italic">Don't worry about formatting — AI will find and extract all relevant specs automatically.</p>
+                </>
               )}
 
               {mode === "url" && (
-                <input
-                  type="url"
-                  value={url}
-                  onChange={e => setUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-4 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017]"
-                />
+                <>
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#6B6560] mb-3">
+                    <p className="font-bold text-[#0B2D5B] mb-1">✓ Paste any listing URL:</p>
+                    <p>Controller.com • Trade-A-Plane • Facebook Marketplace • eBay Motors • Craigslist • etc.</p>
+                  </div>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    placeholder="https://www.controller.com/listing/..."
+                    className="w-full px-4 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017]"
+                  />
+                  <p className="text-[10px] text-[#AAA49C] mt-2">AI will fetch and analyze the page content directly.</p>
+                </>
               )}
 
-              {mode === "text" && (
-                <textarea
-                  value={text}
-                  onChange={e => setText(e.target.value)}
-                  placeholder="Paste listing text or specs..."
-                  rows={6}
-                  className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] resize-none"
-                />
+              {mode === "file" && (
+                <>
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#6B6560] mb-3">
+                    <p className="font-bold text-[#0B2D5B] mb-1">✓ Upload file with specs:</p>
+                    <p>.zip • .json • .csv • .pdf • .txt • .xlsx</p>
+                  </div>
+                  <label className="block border-2 border-dashed border-black/10 hover:border-[#D4A017] rounded-lg p-6 text-center cursor-pointer transition-colors">
+                    <Upload className="w-8 h-8 text-[#AAA49C] mx-auto mb-2" />
+                    <p className="text-sm font-bold text-[#1A1814]">
+                      {file ? file.name : "Click to select file"}
+                    </p>
+                    <p className="text-[10px] text-[#AAA49C] mt-1">Or drag & drop</p>
+                    <input
+                      type="file"
+                      accept=".zip,.json,.csv,.pdf,.txt,.xlsx"
+                      onChange={e => setFile(e.target.files?.[0])}
+                      className="hidden"
+                    />
+                  </label>
+                </>
               )}
 
               {error && (

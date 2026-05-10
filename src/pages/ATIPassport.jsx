@@ -5,9 +5,10 @@ import { useParams, Link } from "react-router-dom";
 import {
   ShieldCheck, AlertTriangle, CheckCircle, RefreshCw,
   ArrowLeft, Download, FileText, Wand2, Zap, TrendingDown,
-  Star, Eye, Lock, ChevronRight
+  Star, Eye, ChevronRight, Lock
 } from "lucide-react";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
+import ATIPaymentGate from "@/components/ati/ATIPaymentGate";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import OwnershipTrace from "@/components/ownership/OwnershipTrace";
@@ -119,6 +120,7 @@ export default function ATIPassport() {
   const [error, setError] = useState(null);
   const [showGate, setShowGate] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [paymentGateOpen, setPaymentGateOpen] = useState(false);
 
   useAutoTrack("ati_passport");
   const { behavior, tokens, tier, isVerified, track } = useBehavior();
@@ -370,12 +372,11 @@ Return ONLY raw JSON:
 
             {passport && (
               <button
-                onClick={handleExportPDF}
-                disabled={exporting}
-                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black text-sm px-5 py-2.5 rounded-xl transition-colors shrink-0"
+                onClick={() => setPaymentGateOpen(true)}
+                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-black text-sm px-5 py-2.5 rounded-xl transition-colors shrink-0"
               >
-                <Download className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`} />
-                {exporting ? "Preparing PDF…" : "Export PDF Report"}
+                <Lock className="w-4 h-4" />
+                Unlock Full Report
               </button>
             )}
           </div>
@@ -391,6 +392,7 @@ Return ONLY raw JSON:
         ) : !passport ? (
           /* ── Empty state ── */
           <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          
             {/* Top banner */}
             <div className="bg-gradient-to-r from-[#0B2D5B] to-[#143C75] px-8 py-8 text-white text-center">
               <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
@@ -451,6 +453,15 @@ Return ONLY raw JSON:
           </div>
         ) : (
           <>
+            {/* Payment gate before full report */}
+            {paymentGateOpen && (
+              <ATIPaymentGate
+                listing={listing}
+                onClose={() => setPaymentGateOpen(false)}
+                onUnlock={handleGenerate}
+              />
+            )}
+
             {/* ── Card Identity ── */}
             {card && <CardIdentityBlock card={card} />}
             {card && <CardInlineEditor card={card} />}

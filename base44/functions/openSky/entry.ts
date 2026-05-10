@@ -13,7 +13,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
 const FETCH_TIMEOUT_MS = 8000;
-const RETRY_DELAY_MS = 2000;
+const RETRY_DELAY_MS = 2084;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;

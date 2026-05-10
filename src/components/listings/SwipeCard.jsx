@@ -197,12 +197,30 @@ function SwipeableCard({ listing, onLike, onDiscard }) {
   );
 }
 
-// ─── Public export: stacked deck ──────────────────────────────
+// ─── Public export: carousel with center card + blurred sides ────
 export default function SwipeDeck({ listings, onLike, onDiscard }) {
-  // Show top 3 in a stacked deck
-  const visible = listings.slice(0, 3);
+  const [current, setCurrent] = useState(0);
+  const visible = listings.slice(current, current + 3);
 
   if (listings.length === 0) return null;
+
+  const handleNextSlide = () => {
+    if (current + 3 < listings.length) setCurrent(current + 1);
+  };
+
+  const handlePrevSlide = () => {
+    if (current > 0) setCurrent(current - 1);
+  };
+
+  const handleLikeCard = (l) => {
+    onLike(l);
+    handleNextSlide();
+  };
+
+  const handleDiscardCard = (l) => {
+    onDiscard(l);
+    handleNextSlide();
+  };
 
   return (
     <div className="w-full">
@@ -228,30 +246,58 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
         <p className="text-[11px] text-[#0B2D5B] font-semibold">👆 Swipe or tap buttons to browse</p>
       </div>
 
-      {/* Deck container */}
-      <div className="relative w-full mx-auto px-4 sm:px-0" style={{ height: "clamp(420px, 80vh, 620px)" }}>
-        {/* Background cards (depth effect) */}
-        {visible.slice(1).map((l, i) => (
+      {/* Carousel container — center card + blurred sides */}
+      <div
+        className="relative w-full mx-auto overflow-hidden"
+        style={{
+          height: "clamp(420px, 80vh, 620px)",
+          perspective: "1000px",
+        }}
+      >
+        {/* Blurred left card (peek from left) */}
+        {visible[0] && (
           <div
-            key={l.id}
-            className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+            className="absolute inset-y-0 left-0 w-1/4 md:w-1/3 pointer-events-none z-0 flex items-center justify-center px-2"
             style={{
-              transform: `scale(${1 - (i + 1) * 0.05}) translateY(${(i + 1) * 14}px)`,
-              zIndex: visible.length - i - 2,
-              opacity: 1 - (i + 1) * 0.18,
+              opacity: 0.35,
             }}
           >
-            <Card listing={l} />
+            <div className="w-full h-4/5 rounded-2xl overflow-hidden blur-md scale-75 origin-right">
+              <Card listing={visible[0]} />
+            </div>
           </div>
-        ))}
+        )}
 
-        {/* Top draggable card */}
-        <SwipeableCard
-          key={visible[0].id}
-          listing={visible[0]}
-          onLike={onLike}
-          onDiscard={onDiscard}
-        />
+        {/* Center main draggable card (full focus) */}
+        <div
+          className="absolute inset-0 flex items-center justify-center px-4 sm:px-0"
+          style={{ zIndex: 10 }}
+        >
+          <div className="w-full max-w-sm sm:max-w-md" style={{ height: "100%" }}>
+            {visible[0] && (
+              <SwipeableCard
+                key={visible[0].id}
+                listing={visible[0]}
+                onLike={handleLikeCard}
+                onDiscard={handleDiscardCard}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Blurred right card (peek from right) */}
+        {visible[1] && (
+          <div
+            className="absolute inset-y-0 right-0 w-1/4 md:w-1/3 pointer-events-none z-0 flex items-center justify-center px-2"
+            style={{
+              opacity: 0.35,
+            }}
+          >
+            <div className="w-full h-4/5 rounded-2xl overflow-hidden blur-md scale-75 origin-left">
+              <Card listing={visible[1]} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

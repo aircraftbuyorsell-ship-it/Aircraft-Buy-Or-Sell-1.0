@@ -64,13 +64,16 @@ export function useBehavior() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user-behavior"] }),
   });
 
+  const isAdmin = behavior?._user?.role === "admin";
+
   return {
     behavior,
     user: behavior?._user,
-    tier: behavior?.tier || "free_explorer",
-    tokens: behavior?.tokens_remaining || 0,
+    tier: isAdmin ? "enterprise" : (behavior?.tier || "free_explorer"),
+    tokens: isAdmin ? 999999 : (behavior?.tokens_remaining || 0),
     engagement: behavior?.engagement_score || 0,
-    isVerified: !!behavior?.verification_paid,
+    isVerified: isAdmin ? true : !!behavior?.verification_paid,
+    isAdmin,
     track: (type, payload) => trackMutation.mutate({ type, payload }),
   };
 }

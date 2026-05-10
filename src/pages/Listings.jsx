@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import {
   Plane, Search, SlidersHorizontal, X, ArrowUpRight,
   Upload, FileArchive, RefreshCw, TrendingDown, TrendingUp,
-  ShieldCheck, Zap, ChevronRight
+  ShieldCheck, LayoutList, CreditCard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
@@ -15,6 +15,7 @@ import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
+import SwipeCard from "@/components/listings/SwipeCard";
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -159,6 +160,9 @@ export default function Listings() {
   const [showFBImport, setShowFBImport] = useState(false);
   const [showFileImport, setShowFileImport] = useState(false);
   const [gate, setGate] = useState(null);
+  const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
+  const [shortlisted, setShortlisted] = useState([]);
+  const [discarded, setDiscarded] = useState([]);
 
   useAutoTrack("listings");
   const { tokens, tier, isVerified, track } = useBehavior();
@@ -222,6 +226,17 @@ export default function Listings() {
               </p>
             </div>
             <div className="flex gap-2 shrink-0">
+              {/* View mode toggle */}
+              <div className="flex bg-white/10 rounded-xl p-1 border border-white/15">
+                <button onClick={() => setViewMode("cards")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${viewMode === "cards" ? "bg-white text-[#0B2D5B]" : "text-white/60 hover:text-white"}`}>
+                  <CreditCard className="w-3.5 h-3.5" /> Cards
+                </button>
+                <button onClick={() => setViewMode("list")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${viewMode === "list" ? "bg-white text-[#0B2D5B]" : "text-white/60 hover:text-white"}`}>
+                  <LayoutList className="w-3.5 h-3.5" /> List
+                </button>
+              </div>
               <button
                 onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowFileImport(true))}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
@@ -327,18 +342,11 @@ export default function Listings() {
         )}
       </div>
 
-      {/* ── Listing Table ── */}
+      {/* ── Listings ── */}
       <div className="px-4 md:px-8 pb-8">
-        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-          {/* Table header */}
-          <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
-            <div className="w-10 shrink-0" />
-            <div className="flex-1 text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Aircraft</div>
-            <div className="shrink-0 w-32 text-right text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Price / Market</div>
-          </div>
-
-          {isLoading ? (
-            [...Array(6)].map((_, i) => (
+        {isLoading ? (
+          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.05]">
                 <div className="w-10 h-10 rounded-full bg-black/5 animate-pulse shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -347,32 +355,70 @@ export default function Listings() {
                 </div>
                 <div className="h-6 bg-black/5 rounded animate-pulse w-24" />
               </div>
-            ))
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center py-20 text-[#AAA49C]">
-              <Plane className="w-10 h-10 mb-3 opacity-30" />
-              <p className="text-sm font-semibold text-[#6B6560]">No aircraft match your criteria</p>
-              <p className="text-[11px] mt-1">Try adjusting your filters or adding a new listing</p>
-              <button
-                onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
-                className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-sm font-bold px-5 py-2.5 rounded-xl"
-              >
-                <Upload className="w-4 h-4" />
-                Add First Listing
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-20 text-[#AAA49C]">
+            <Plane className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-sm font-semibold text-[#6B6560]">No aircraft match your criteria</p>
+            <p className="text-[11px] mt-1">Try adjusting your filters or adding a new listing</p>
+            <button
+              onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
+              className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-sm font-bold px-5 py-2.5 rounded-xl"
+            >
+              <Upload className="w-4 h-4" />
+              Add First Listing
+            </button>
+          </div>
+        ) : viewMode === "cards" ? (
+          /* ── SWIPE CARD VIEW ── */
+          <div className="max-w-md mx-auto space-y-4">
+            {shortlisted.length > 0 && (
+              <div className="flex items-center gap-2 bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-xl px-4 py-2.5">
+                <ShieldCheck className="w-4 h-4 text-[#0F7A56] shrink-0" />
+                <p className="text-[12px] text-[#0F7A56] font-bold">
+                  {shortlisted.length} aircraft shortlisted — open each to view the full Score Card
+                </p>
+                <button onClick={() => setShortlisted([])} className="ml-auto text-[#0F7A56] opacity-60 hover:opacity-100">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            {filtered
+              .filter(l => !discarded.includes(l.id))
+              .map(l => (
+                <SwipeCard
+                  key={l.id}
+                  listing={l}
+                  onLike={(listing) => setShortlisted(prev => prev.includes(listing.id) ? prev : [...prev, listing.id])}
+                  onDiscard={(listing) => setDiscarded(prev => [...prev, listing.id])}
+                />
+              ))}
+            {discarded.length > 0 && (
+              <button onClick={() => setDiscarded([])}
+                className="w-full text-[11px] text-[#AAA49C] hover:text-[#0B2D5B] font-semibold py-2 transition-colors">
+                ↺ Restore {discarded.length} skipped aircraft
               </button>
+            )}
+          </div>
+        ) : (
+          /* ── LIST VIEW ── */
+          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+            <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
+              <div className="w-10 shrink-0" />
+              <div className="flex-1 text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Aircraft</div>
+              <div className="shrink-0 w-32 text-right text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Price / Market</div>
             </div>
-          ) : (
-            filtered.map(l => <ListingRow key={l.id} listing={l} onClick={setSelected} />)
-          )}
-        </div>
+            {filtered.map(l => <ListingRow key={l.id} listing={l} onClick={setSelected} />)}
+          </div>
+        )}
 
-        {/* Score card CTA — nudge unscored listings */}
+        {/* Score CTA */}
         {!isLoading && listings.filter(l => !l.ati_score).length > 0 && (
           <div className="mt-3 flex items-center gap-3 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
             <ShieldCheck className="w-4 h-4 text-[#0B2D5B] shrink-0" />
             <p className="text-[12px] text-[#4A4845]">
-              <span className="font-black text-[#0B2D5B]">{listings.filter(l => !l.ati_score).length} aircraft</span> haven't been scored yet.
-              Open any listing and issue an ATI Score Card to unlock full deal intelligence.
+              <span className="font-black text-[#0B2D5B]">{listings.filter(l => !l.ati_score).length} aircraft</span> haven't been scored yet — open any listing and issue an ATI Score Card.
             </p>
           </div>
         )}

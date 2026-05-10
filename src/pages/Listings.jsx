@@ -1,7 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
-import { Plane, Search, SlidersHorizontal, X, ArrowUpRight, Sparkles, FileArchive, RefreshCw } from "lucide-react";
+import {
+  Plane, Search, SlidersHorizontal, X, ArrowUpRight,
+  Upload, FileArchive, RefreshCw, TrendingDown, TrendingUp,
+  ShieldCheck, Zap, ChevronRight
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
@@ -12,23 +16,20 @@ import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
 
-function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
-}
-
+// ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
   if (score == null) return (
-    <div className="w-9 h-9 rounded-full bg-black/5 flex items-center justify-center">
+    <div className="w-10 h-10 rounded-full bg-black/5 border border-black/[0.06] flex items-center justify-center shrink-0">
       <span className="text-[9px] text-[#AAA49C] font-bold">—</span>
     </div>
   );
-  const color = score >= 85 ? "#0F7A56" : score >= 65 ? "#A67C00" : "#C0392B";
+  const color = score >= 90 ? "#0F7A56" : score >= 72 ? "#185FA5" : score >= 54 ? "#D4A017" : "#C0392B";
   return (
-    <div className="relative w-9 h-9 shrink-0">
-      <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-        <circle cx="18" cy="18" r="14" fill="none" stroke="#F0EDE6" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="14" fill="none" stroke={color} strokeWidth="2.5"
-          strokeDasharray={`${(score / 120) * 87.96} 87.96`} strokeLinecap="round" />
+    <div className="relative w-10 h-10 shrink-0">
+      <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="#F0EDE6" strokeWidth="3" />
+        <circle cx="20" cy="20" r="16" fill="none" stroke={color} strokeWidth="3"
+          strokeDasharray={`${(score / 120) * 100.5} 100.5`} strokeLinecap="round" />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-[9px] font-black text-[#1A1814]">{score}</span>
@@ -37,73 +38,117 @@ function ATIBadge({ score }) {
   );
 }
 
-function DealBadge({ label, score }) {
-  if (!label && !score) return null;
+// ─── Deal Badge ──────────────────────────────────────────────────
+function DealBadge({ label }) {
+  if (!label) return null;
   const styles = {
-    "hot deal": "bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.25)]",
-    "good deal": "bg-[rgba(15,122,86,0.08)] text-[#0F7A56] border-[rgba(15,122,86,0.2)]",
+    "hot deal": "bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]",
+    "good deal": "bg-[rgba(15,122,86,0.1)] text-[#0F7A56] border-[rgba(15,122,86,0.25)]",
     "fair": "bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]",
     "overpriced": "bg-[rgba(192,57,43,0.08)] text-[#C0392B] border-[rgba(192,57,43,0.2)]",
   };
-  const key = (label || "").toLowerCase();
+  const key = label.toLowerCase();
   return (
-    <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full border ${styles[key] || "bg-black/5 text-[#AAA49C] border-black/10"}`}>
-      {label || "—"}
+    <span className={`text-[8px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border ${styles[key] || "bg-black/5 text-[#AAA49C] border-black/10"}`}>
+      {label}
     </span>
   );
 }
 
+// ─── Listing Row ─────────────────────────────────────────────────
 function ListingRow({ listing, onClick }) {
   const enginePct = listing.tbo
     ? Math.max(0, Math.min(100, ((listing.tbo - (listing.engine_hours || 0)) / listing.tbo) * 100))
     : null;
+  const engineColor = enginePct > 60 ? "#0F7A56" : enginePct > 30 ? "#D4A017" : "#C0392B";
+  const hasDiscount = listing.discount_pct != null;
+  const isBelow = hasDiscount && listing.discount_pct >= 0;
 
   return (
     <div
       onClick={() => onClick(listing)}
-      className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 md:px-6 py-4 hover:bg-[#F7F4EF] transition-colors cursor-pointer border-b border-black/[0.05] last:border-0"
+      className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 md:px-6 py-4 hover:bg-[#F7F4EF] transition-all cursor-pointer border-b border-black/[0.05] last:border-0"
     >
+      {/* ATI Ring */}
       <ATIBadge score={listing.ati_score} />
+
+      {/* Main info */}
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-bold text-[#1A1814]">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <p className="text-sm font-black text-[#1A1814]">
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
           </p>
-          <DealBadge label={listing.deal_label} score={listing.deal_score} />
+          {listing.registration && (
+            <span className="text-[10px] text-[#AAA49C] font-mono bg-black/5 px-1.5 py-0.5 rounded">
+              {listing.registration}
+            </span>
+          )}
+          <DealBadge label={listing.deal_label} />
         </div>
-        <div className="flex flex-wrap gap-3 mt-1">
-          <span className="text-[11px] text-[#AAA49C] font-mono">{listing.registration || "—"}</span>
-          {listing.total_time && <span className="text-[11px] text-[#6B6560]">{listing.total_time.toLocaleString()} TT</span>}
-          {listing.engine_hours && <span className="text-[11px] text-[#6B6560]">{listing.engine_hours.toLocaleString()} ENG</span>}
-          {listing.avionics && <span className="text-[11px] text-[#6B6560] truncate max-w-[120px]">{listing.avionics}</span>}
+
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {listing.total_time && (
+            <span className="text-[11px] text-[#6B6560]">
+              <span className="text-[#AAA49C]">TT</span> {listing.total_time.toLocaleString()} hrs
+            </span>
+          )}
+          {listing.engine_hours && (
+            <span className="text-[11px] text-[#6B6560]">
+              <span className="text-[#AAA49C]">ENG</span> {listing.engine_hours.toLocaleString()} hrs
+            </span>
+          )}
+          {listing.avionics && (
+            <span className="text-[11px] text-[#6B6560] truncate max-w-[150px]">{listing.avionics}</span>
+          )}
         </div>
+
+        {/* Engine life bar */}
         {enginePct != null && (
-          <div className="mt-2 w-full max-w-[120px] h-1 bg-black/5 rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-[#D4A017]" style={{ width: `${enginePct}%` }} />
+          <div className="mt-2 flex items-center gap-2">
+            <div className="w-24 h-1.5 bg-black/5 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
+            </div>
+            <span className="text-[9px] text-[#AAA49C]">{Math.round(enginePct)}% eng life</span>
           </div>
         )}
       </div>
-      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0">
-        <p className="text-base font-black text-[#1A1814]">
-          {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : "—"}
-        </p>
-        {listing.omvm_value && (
-          <p className={`text-[10px] font-semibold ${listing.discount_pct >= 0 ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
-            {listing.discount_pct >= 0 ? "▼" : "▲"} {Math.abs(listing.discount_pct)}% vs OMVM
+
+      {/* Price + ATI link */}
+      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
+        <div className="text-right">
+          <p className="text-base font-black text-[#1A1814]">
+            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-sm">Price on request</span>}
           </p>
-        )}
+          {hasDiscount && (
+            <div className={`flex items-center justify-end gap-0.5 text-[10px] font-bold ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
+              {isBelow ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+              {Math.abs(listing.discount_pct)}% {isBelow ? "below" : "above"} market
+            </div>
+          )}
+        </div>
         <Link
           to={`/ati-passport/${listing.id}`}
           onClick={e => e.stopPropagation()}
-          className="text-[10px] text-[#D4A017] font-semibold hover:text-[#A67C00] flex items-center gap-0.5 uppercase tracking-wider"
+          className="flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider transition-colors whitespace-nowrap group-hover:gap-1.5"
         >
-          ATI <ArrowUpRight className="w-3 h-3" />
+          View Score Card <ArrowUpRight className="w-3 h-3" />
         </Link>
       </div>
     </div>
   );
 }
 
+// ─── Stat Pill ───────────────────────────────────────────────────
+function StatPill({ value, label, color = "#0B2D5B" }) {
+  return (
+    <div className="text-center px-4">
+      <p className="text-xl font-black" style={{ color }}>{value}</p>
+      <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────
 export default function Listings() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState(null);
@@ -113,7 +158,7 @@ export default function Listings() {
   const [minATI, setMinATI] = useState(0);
   const [showFBImport, setShowFBImport] = useState(false);
   const [showFileImport, setShowFileImport] = useState(false);
-  const [gate, setGate] = useState(null); // { feature, requiredTokens }
+  const [gate, setGate] = useState(null);
 
   useAutoTrack("listings");
   const { tokens, tier, isVerified, track } = useBehavior();
@@ -134,9 +179,7 @@ export default function Listings() {
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active", visibility: "public" }, "-ati_score", 100),
   });
 
-  const { distance, pulling, refreshing } = usePullToRefresh({
-    onRefresh: () => refetch(),
-  });
+  const { distance, pulling, refreshing } = usePullToRefresh({ onRefresh: () => refetch() });
 
   const makes = useMemo(() => [...new Set(listings.map(l => l.make).filter(Boolean))].sort(), [listings]);
 
@@ -148,57 +191,76 @@ export default function Listings() {
     return true;
   }), [listings, search, makeFilter, minATI]);
 
+  // Stats
+  const scoredCount = listings.filter(l => l.ati_score).length;
+  const hotDeals = listings.filter(l => l.deal_label === "hot deal").length;
+  const avgATI = scoredCount > 0
+    ? Math.round(listings.filter(l => l.ati_score).reduce((s, l) => s + l.ati_score, 0) / scoredCount)
+    : null;
+
   return (
     <div className="min-h-screen bg-[#F7F4EF]">
-      {/* Pull-to-refresh indicator (mobile) */}
-      <div
-        className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150 bg-[#F7F4EF]"
-        style={{ height: distance }}
-      >
+      {/* Pull-to-refresh */}
+      <div className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150 bg-[#F7F4EF]" style={{ height: distance }}>
         {(pulling || refreshing) && (
-          <RefreshCw
-            className={`w-5 h-5 text-[#0B2D5B] ${refreshing ? "animate-spin" : ""}`}
-            style={{ transform: `rotate(${Math.min(360, distance * 4)}deg)` }}
-          />
+          <RefreshCw className={`w-5 h-5 text-[#0B2D5B] ${refreshing ? "animate-spin" : ""}`}
+            style={{ transform: `rotate(${Math.min(360, distance * 4)}deg)` }} />
         )}
       </div>
 
-      {/* Header */}
-      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
-        <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017] mb-1">Market · Listings</p>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Aircraft Listings</h1>
-            <p className="text-[#6B6560] text-sm mt-0.5">{filtered.length} aircraft available</p>
+      {/* ── Header ── */}
+      <div className="bg-[#0B2D5B] border-b border-white/5">
+        <div className="px-4 md:px-8 py-6">
+          <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold mb-2">Market · Aircraft Inventory</p>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                Off-Market Aircraft
+              </h1>
+              <p className="text-white/50 text-sm mt-1">
+                {filtered.length} aircraft — independently scored, priced against real market data
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowFileImport(true))}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+              >
+                <FileArchive className="w-4 h-4" />
+                <span className="hidden sm:inline">Import ZIP / JSON</span>
+                <span className="sm:hidden">ZIP</span>
+              </button>
+              <button
+                onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
+                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-sm font-black px-4 py-2.5 rounded-xl transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Add Listing
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <button
-              onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowFileImport(true))}
-              className="flex items-center gap-2 bg-white border border-[#D4A017] text-[#A67C00] hover:bg-[#D4A017] hover:text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
-            >
-              <FileArchive className="w-4 h-4" />
-              Import ZIP / JSON
-            </button>
-            <button
-              onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
-              className="flex items-center gap-2 bg-[#D4A017] hover:bg-[#A67C00] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
-            >
-              <Sparkles className="w-4 h-4" />
-              Import listing
-            </button>
-          </div>
+
+          {/* Inline stats */}
+          {!isLoading && listings.length > 0 && (
+            <div className="flex items-center gap-0 mt-5 divide-x divide-white/10 bg-white/5 rounded-xl w-fit">
+              <StatPill value={listings.length} label="Total Aircraft" color="#E8A83A" />
+              <StatPill value={scoredCount} label="ATI Scored" color="#6FA3E8" />
+              <StatPill value={hotDeals} label="Hot Deals" color="#F5C842" />
+              {avgATI && <StatPill value={avgATI} label="Avg ATI Score" color="#A8D5BE" />}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Search & Filters */}
-      <div className="px-4 md:px-8 pb-4">
+      {/* ── Search & Filters ── */}
+      <div className="px-4 md:px-8 py-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search make, model, registration…"
+              placeholder="Search make, model or tail number…"
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors"
             />
             {search && (
@@ -209,7 +271,7 @@ export default function Listings() {
           </div>
           <button
             onClick={() => setShowFilters(v => !v)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-white border-black/10 text-[#6B6560] hover:border-[#D4A017]"}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-white border-black/10 text-[#6B6560] hover:border-[#D4A017]"}`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filters</span>
@@ -217,64 +279,112 @@ export default function Listings() {
         </div>
 
         {showFilters && (
-          <div className="mt-3 bg-white border border-black/[0.07] rounded-xl p-4 flex flex-wrap gap-4">
+          <div className="mt-3 bg-white border border-black/[0.07] rounded-xl p-4 flex flex-wrap gap-5 items-end">
             <div className="min-w-[180px]">
-              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Make</label>
+              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Manufacturer</label>
               <BottomSheetSelect
                 label="Filter by make"
                 value={makeFilter}
                 onChange={setMakeFilter}
-                options={[{ value: "", label: "All makes" }, ...makes.map(m => ({ value: m, label: m }))]}
-                placeholder="All makes"
+                options={[{ value: "", label: "All manufacturers" }, ...makes.map(m => ({ value: m, label: m }))]}
+                placeholder="All manufacturers"
                 className="w-full"
               />
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">
-                Min ATI: <span className="text-[#D4A017]">{minATI}</span>
+                Min ATI Score: <span className="text-[#D4A017] font-black">{minATI}</span>
               </label>
-              <input type="range" min={0} max={100} step={5} value={minATI} onChange={e => setMinATI(+e.target.value)}
+              <input type="range" min={0} max={100} step={5} value={minATI}
+                onChange={e => setMinATI(+e.target.value)}
                 className="w-36 accent-[#D4A017] touch-target-compact" />
             </div>
             {(makeFilter || minATI > 0) && (
               <button onClick={() => { setMakeFilter(""); setMinATI(0); }}
-                className="text-[11px] text-[#C0392B] font-medium self-end pb-2 touch-target-compact">Clear filters</button>
+                className="text-[11px] text-[#C0392B] font-bold hover:underline pb-1 touch-target-compact">
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Active filter pills */}
+        {(makeFilter || minATI > 0) && (
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {makeFilter && (
+              <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
+                {makeFilter}
+                <button onClick={() => setMakeFilter("")}><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {minATI > 0 && (
+              <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
+                ATI ≥ {minATI}
+                <button onClick={() => setMinATI(0)}><X className="w-3 h-3" /></button>
+              </span>
             )}
           </div>
         )}
       </div>
 
-      {/* List */}
+      {/* ── Listing Table ── */}
       <div className="px-4 md:px-8 pb-8">
         <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+          {/* Table header */}
+          <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
+            <div className="w-10 shrink-0" />
+            <div className="flex-1 text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Aircraft</div>
+            <div className="shrink-0 w-32 text-right text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Price / Market</div>
+          </div>
+
           {isLoading ? (
             [...Array(6)].map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.05]">
-                <div className="w-9 h-9 rounded-full bg-black/5 animate-pulse shrink-0" />
+                <div className="w-10 h-10 rounded-full bg-black/5 animate-pulse shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-black/5 rounded animate-pulse w-1/2" />
                   <div className="h-3 bg-black/5 rounded animate-pulse w-1/3" />
                 </div>
-                <div className="h-6 bg-black/5 rounded animate-pulse w-20" />
+                <div className="h-6 bg-black/5 rounded animate-pulse w-24" />
               </div>
             ))
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center py-20 text-[#AAA49C]">
               <Plane className="w-10 h-10 mb-3 opacity-30" />
-              <p className="text-sm font-medium">No listings match your filters</p>
+              <p className="text-sm font-semibold text-[#6B6560]">No aircraft match your criteria</p>
+              <p className="text-[11px] mt-1">Try adjusting your filters or adding a new listing</p>
+              <button
+                onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
+                className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-sm font-bold px-5 py-2.5 rounded-xl"
+              >
+                <Upload className="w-4 h-4" />
+                Add First Listing
+              </button>
             </div>
           ) : (
             filtered.map(l => <ListingRow key={l.id} listing={l} onClick={setSelected} />)
           )}
         </div>
+
+        {/* Score card CTA — nudge unscored listings */}
+        {!isLoading && listings.filter(l => !l.ati_score).length > 0 && (
+          <div className="mt-3 flex items-center gap-3 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
+            <ShieldCheck className="w-4 h-4 text-[#0B2D5B] shrink-0" />
+            <p className="text-[12px] text-[#4A4845]">
+              <span className="font-black text-[#0B2D5B]">{listings.filter(l => !l.ati_score).length} aircraft</span> haven't been scored yet.
+              Open any listing and issue an ATI Score Card to unlock full deal intelligence.
+            </p>
+          </div>
+        )}
       </div>
 
+      {/* Modals */}
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
 
       {showFBImport && (
         <ImportFromFBModal
           onClose={() => setShowFBImport(false)}
-          onImported={(listing) => {
+          onImported={() => {
             queryClient.invalidateQueries({ queryKey: ["listings-public"] });
             setShowFBImport(false);
           }}

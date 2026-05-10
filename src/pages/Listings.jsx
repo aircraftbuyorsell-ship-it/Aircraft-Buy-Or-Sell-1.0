@@ -11,6 +11,7 @@ import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
 import ImportFromFileModal from "@/components/listings/ImportFromFileModal";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
+import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
@@ -158,8 +159,9 @@ export default function Listings() {
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
   const [showFBImport, setShowFBImport] = useState(false);
-  const [showFileImport, setShowFileImport] = useState(false);
-  const [gate, setGate] = useState(null);
+   const [showFileImport, setShowFileImport] = useState(false);
+   const [showWizard, setShowWizard] = useState(false);
+   const [gate, setGate] = useState(null);
   const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
@@ -246,11 +248,11 @@ export default function Listings() {
                 <span className="sm:hidden">ZIP</span>
               </button>
               <button
-                onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
+                onClick={() => setShowWizard(true)}
                 className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-sm font-black px-4 py-2.5 rounded-xl transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Add Listing
+                Add Aircraft
               </button>
             </div>
           </div>
@@ -571,6 +573,15 @@ export default function Listings() {
           }}
         />
       )}
+
+      <AircraftWizard
+        open={showWizard}
+        onClose={() => setShowWizard(false)}
+        onPublish={() => {
+          queryClient.invalidateQueries({ queryKey: ["listings-public"] });
+          setShowWizard(false);
+        }}
+      />
 
       <UpgradeGate
         open={!!gate}

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketPulse from "@/components/dashboard/MarketPulse";
+import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 
 // ———————————————————————————————————————————————
 // Palette: Navy #0B2D5B · Amber #E8A83A · Deep #1A1814
@@ -42,6 +43,7 @@ function StatPill({ value, label }) {
 
 export default function Dashboard() {
   const [globeTheme, setGlobeTheme] = useState("light");
+  const [wizardOpen, setWizardOpen] = useState(false);
   const isDark = globeTheme === "dark";
 
   const { data: listings = [] } = useQuery({
@@ -115,13 +117,13 @@ export default function Dashboard() {
               <ShieldCheck className="w-5 h-5" />
               Generate Report
             </Link>
-            <Link
-              to="/escrow"
+            <button
+              onClick={() => setWizardOpen(true)}
               className="inline-flex items-center gap-2.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
               
               <Handshake className="w-5 h-5" />
-              Open Escrow Deal
-            </Link>
+              Add Aircraft
+            </button>
             <Link
               to="/live-traffic"
               className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors">
@@ -324,6 +326,8 @@ export default function Dashboard() {
           Get Started <ArrowRight className="w-4 h-4" />
         </Link>
       </section>
+
+      <AircraftWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />
     </div>);
 
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Radio, Search, Plane, AlertCircle, Navigation, Gauge, Clock, MapPin } from "lucide-react";
+import { Radio, Search, Plane, AlertCircle, Navigation, Gauge, Clock, MapPin, Fuel, Zap } from "lucide-react";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -59,6 +59,8 @@ export default function LiveTraffic() {
   const [resolved, setResolved] = useState(null); // { hex, source, reg }
   const [state, setState] = useState(null);
   const [flights, setFlights] = useState(null);
+  const [fuelData, setFuelData] = useState(null);
+  const [enduranceData, setEnduranceData] = useState(null);
   const [error, setError] = useState(null);
 
   const lookupMutation = useMutation({
@@ -66,6 +68,8 @@ export default function LiveTraffic() {
       setError(null);
       setState(null);
       setFlights(null);
+      setFuelData(null);
+      setEnduranceData(null);
       setResolved(null);
       const info = await resolveToHex(query);
       setResolved(info);
@@ -75,6 +79,8 @@ export default function LiveTraffic() {
       ]);
       return {
         state: stateRes.status === "fulfilled" ? (stateRes.value.data?.state || null) : null,
+        fuel_estimate: stateRes.status === "fulfilled" ? (stateRes.value.data?.fuel_estimate || null) : null,
+        endurance: stateRes.status === "fulfilled" ? (stateRes.value.data?.endurance || null) : null,
         stateError: stateRes.status === "rejected" ? stateRes.reason?.response?.data?.error || stateRes.reason?.message : null,
         flights: flightsRes.status === "fulfilled" ? (flightsRes.value.data?.flights || []) : [],
         flightsError: flightsRes.status === "rejected" ? flightsRes.reason?.response?.data?.error || flightsRes.reason?.message : null,
@@ -82,6 +88,8 @@ export default function LiveTraffic() {
     },
     onSuccess: (data) => {
       setState(data.state);
+      setFuelData(data.fuel_estimate);
+      setEnduranceData(data.endurance);
       setFlights(data.flights);
       if (data.stateError && data.flightsError) {
         setError(`OpenSky unavailable: ${data.stateError}`);
@@ -170,6 +178,25 @@ export default function LiveTraffic() {
                   <StatTile icon={Navigation} label="Heading" value={state.true_track != null ? Math.round(state.true_track) + "°" : "—"} sub="true track" />
                   <StatTile icon={MapPin} label="Position" value={state.latitude != null ? `${state.latitude.toFixed(3)}, ${state.longitude.toFixed(3)}` : "—"} sub={state.origin_country} />
                 </div>
+                
+                {/* Fuel & Endurance */}
+                {fuelData && enduranceData && (
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 bg-[rgba(232,168,58,0.06)] border border-[rgba(232,168,58,0.2)] rounded-md p-4">
+                    <StatTile icon={Fuel} label="Est. Fuel Burn" value={fuelData.estimated_gph} sub="gal/hr" />
+                    <StatTile icon={Zap} label="Fuel Burned (est.)" value={fuelData.estimated_fuel_burned_gal?.toLocaleString() || "—"} sub={`${fuelData.hours_airborne}h airborne`} />
+                    <StatTile icon={Gauge} label="Remaining Fuel" value={enduranceData.estimated_remaining_gal?.toLocaleString() || "—"} sub={`(~${enduranceData.typical_fuel_capacity_gal} gal cap)`} />
+                    <StatTile icon={Clock} label="Endurance" value={enduranceData.estimated_endurance_hours} sub="hours remaining" />
+                    <div className="col-span-2 md:col-span-1">
+                      <div className={`text-[10px] uppercase tracking-wider font-black px-2 py-1 rounded text-center ${
+                        enduranceData.fuel_reserve_status === "CRITICAL" ? "bg-[#C0392B] text-white" :
+                        enduranceData.fuel_reserve_status === "LOW" ? "bg-[#E8A83A] text-[#0B2D5B]" :
+                        "bg-[#0F7A56] text-white"
+                      }`}>
+                        {enduranceData.fuel_reserve_status}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <p className="text-[10px] text-[#AAA49C] mt-2 uppercase tracking-wider">
                   Last contact: {formatTime(state.last_contact)} · {state.position_source === 0 ? "ADS-B" : "MLAT/FLARM"}
                 </p>

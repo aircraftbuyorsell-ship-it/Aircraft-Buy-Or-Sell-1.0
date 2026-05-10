@@ -1,8 +1,9 @@
 // OpenSky Network API proxy — anonymous or OAuth2 client-credentials.
 // Actions:
-//   action="state"   params: { icao24 }           → live position/altitude/velocity
-//   action="flights" params: { icao24, days=7 }   → recent flights (history)
-//   action="track"   params: { icao24 }           → trajectory waypoints
+//   action="state"       params: { icao24 }           → live position/altitude/velocity + fuel/ops estimates
+//   action="flights"     params: { icao24, days=7 }   → recent flights (history)
+//   action="track"       params: { icao24 }           → trajectory waypoints
+//   action="inflight"    params: { icao24 }           → current flight ops (fuel burn, endurance)
 //
 // icao24 MUST be a 6-char hex Mode-S code (lowercase). Registrations (N123AB, OK-LAD)
 // must be resolved to hex on the client via FAAAircraft.mode_s_hex before calling.
@@ -103,6 +104,68 @@ function parseState(arr) {
   };
 }
 
+// Estimate fuel consumption based on aircraft type & flight phase
+function estimateFuelConsumption(state) {
+  if (!state || state.on_ground) return null;
+  
+  const alt = state.baro_altitude || 0;
+  const speed = state.velocity || 0;
+  const vrate = state.vertical_rate || 0;
+  
+  // Simple aircraft type guess from category code
+  const category = state.category || 0;
+  const isCommercial = [30, 31, 32, 33, 34, 35].includes(category); // B77, B78, A320, etc.
+  const isSEP = [2, 3].includes(category); // Single-engine prop, multi-engine prop
+  const isHeli = [36, 37, 38, 39, 40, 41].includes(category);
+  
+  // Base fuel burn estimates (gallons/hour) — typical values
+  let baseBurnGPH = 10; // Default SEP
+  if (isCommercial) baseBurnGPH = 800; // Large jet
+  if (category === 4 || category === 5) baseBurnGPH = 50; // Business jet
+  if (isSEP) baseBurnGPH = 8; // GA single-engine
+  if (isHeli) baseBurnGPH = 20;
+  
+  // Adjust for flight phase
+  let phaseMult = 1;
+  if (Math.abs(vrate) > 500) phaseMult = 1.3; // Climb/descent = high burn
+  if (alt > 15000 && speed > 400) phaseMult = 0.85; // Cruise at altitude = efficient
+  if (speed < 50) phaseMult = 0.5; // Slow flight
+  
+  const estimatedGPH = baseBurnGPH * phaseMult;
+  const hoursFlown = state.last_contact ? (Date.now() / 1000 - state.time_position) / 3600 : 0;
+  const fuelBurned = Math.max(0, estimatedGPH * Math.min(hoursFlown, 24)); // Cap at 24h to avoid overflow
+  
+  return {
+    estimated_gph: Math.round(estimatedGPH * 10) / 10,
+    phase_multiplier: phaseMult,
+    estimated_fuel_burned_gal: Math.round(fuelBurned),
+    hours_airborne: Math.round(hoursFlown * 100) / 100,
+  };
+}
+
+// Estimate endurance based on typical fuel tanks & burn rate
+function estimateEndurance(state, fuelEst) {
+  if (!fuelEst || !state) return null;
+  
+  const category = state.category || 0;
+  const isCommercial = [30, 31, 32, 33, 34, 35].includes(category);
+  const isSEP = [2, 3].includes(category);
+  
+  let typicalFuelCap = 50; // SEP default (gal)
+  if (isCommercial) typicalFuelCap = 50000;
+  if (category === 4 || category === 5) typicalFuelCap = 6000;
+  
+  const availableFuel = Math.max(0, typicalFuelCap - fuelEst.estimated_fuel_burned_gal);
+  const enduranceHours = availableFuel / fuelEst.estimated_gph;
+  
+  return {
+    typical_fuel_capacity_gal: typicalFuelCap,
+    estimated_remaining_gal: Math.round(availableFuel),
+    estimated_endurance_hours: Math.round(enduranceHours * 10) / 10,
+    fuel_reserve_status: enduranceHours < 1 ? "CRITICAL" : enduranceHours < 3 ? "LOW" : "ADEQUATE",
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -122,7 +185,31 @@ Deno.serve(async (req) => {
     if (action === "state") {
       const data = await openSkyFetch(`/states/all?icao24=${hex}`);
       const state = data?.states?.[0] ? parseState(data.states[0]) : null;
-      return Response.json({ time: data?.time || null, state });
+      const fuelEst = state ? estimateFuelConsumption(state) : null;
+      const endurance = fuelEst ? estimateEndurance(state, fuelEst) : null;
+      return Response.json({ time: data?.time || null, state, fuel_estimate: fuelEst, endurance });
+    }
+    
+    if (action === "inflight") {
+      // Get current state + compute full in-flight metrics
+      const data = await openSkyFetch(`/states/all?icao24=${hex}`);
+      const state = data?.states?.[0] ? parseState(data.states[0]) : null;
+      
+      if (!state || state.on_ground) {
+        return Response.json({ error: "Aircraft not airborne", state });
+      }
+      
+      const fuelEst = estimateFuelConsumption(state);
+      const endurance = estimateEndurance(state, fuelEst);
+      const flightHistory = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${Math.floor(Date.now() / 1000) - 86400}&end=${Math.floor(Date.now() / 1000)}`);
+      
+      return Response.json({
+        time: data?.time || null,
+        state,
+        fuel_estimate: fuelEst,
+        endurance,
+        recent_flights: flightHistory || [],
+      });
     }
 
     if (action === "flights") {

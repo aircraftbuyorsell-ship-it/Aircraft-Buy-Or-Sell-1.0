@@ -396,11 +396,11 @@ Return ONLY raw JSON:
             {/* Top banner */}
             <div className="bg-gradient-to-r from-[#0B2D5B] to-[#143C75] px-8 py-8 text-white text-center">
               <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-[#E8A83A]" />
+                <ShieldCheck className="w-8 h-8 text-[#E8A83A]" />
               </div>
-              <h2 className="text-xl font-black mb-2">No Score Card Issued Yet</h2>
-              <p className="text-white/70 text-sm max-w-md mx-auto">
-                Score this aircraft in 60 seconds. Get a full breakdown of documentation quality, engine condition, avionics value, and market pricing — so you know exactly what you're buying.
+              <h2 className="text-2xl font-black mb-2">Get Your Aircraft Intelligence Report</h2>
+              <p className="text-white/70 text-sm max-w-md mx-auto leading-relaxed">
+                Comprehensive evaluation of aircraft condition, value, and deal potential. Professional-grade transparency for confident buying decisions.
               </p>
             </div>
 
@@ -408,9 +408,9 @@ Return ONLY raw JSON:
               {/* What you get */}
               <div className="grid sm:grid-cols-3 gap-4 mb-8">
                 {[
-                  { icon: ShieldCheck, title: "8-Dimension Risk Score", body: "Documentation, maintenance trail, engine health, avionics, usage history — scored out of 120." },
-                  { icon: TrendingDown, title: "Real Market Valuation", body: "Compare asking price against verified market data. Know if you're overpaying or getting a deal." },
-                  { icon: FileText, title: "Export-Ready PDF", body: "Share the full report with your co-buyer, broker, or bank. Professional format, instant download." },
+                  { icon: ShieldCheck, title: "Complete Condition Analysis", body: "Documentation quality, maintenance history, engine condition, avionics package, and operational readiness — all assessed professionally." },
+                  { icon: TrendingDown, title: "Market Valuation", body: "Verified comparable sales data for your aircraft type. Know the true market value and identify genuine opportunities." },
+                  { icon: FileText, title: "Professional PDF Report", body: "Polished, shareable report for banks, partners, and advisors. Includes detailed findings and recommendations." },
                 ].map(({ icon: Icon, title, body }) => (
                   <div key={title} className="bg-[#F7F4EF] rounded-xl p-4 text-center">
                     <div className="w-10 h-10 rounded-full bg-[#0B2D5B] flex items-center justify-center mx-auto mb-3">
@@ -435,7 +435,7 @@ Return ONLY raw JSON:
                   className="flex items-center justify-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black px-7 py-3.5 rounded-xl transition-colors"
                 >
                   <Wand2 className="w-5 h-5" />
-                  Guided Assessment (More Accurate)
+                  Detailed Assessment
                 </button>
                 <button
                   onClick={handleGenerate}
@@ -443,11 +443,11 @@ Return ONLY raw JSON:
                   className="flex items-center justify-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black px-7 py-3.5 rounded-xl transition-colors"
                 >
                   <Zap className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
-                  {generating ? "Scoring aircraft…" : "Quick Score (1-Click)"}
+                  {generating ? "Generating report…" : "Generate Report"}
                 </button>
               </div>
               <p className="text-[10px] text-[#AAA49C] text-center mt-3">
-                Guided = step-by-step, highest accuracy · Quick Score = instant, from listing data
+                Detailed = comprehensive step-by-step assessment · Quick = instant analysis from listing information
               </p>
             </div>
           </div>
@@ -552,7 +552,7 @@ Return ONLY raw JSON:
             {/* ── Executive Summary ── */}
             {passport.ai_summary && (
               <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
-                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Deal Intelligence Summary</p>
+                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Assessment Overview</p>
                 <p className="text-sm text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
               </div>
             )}

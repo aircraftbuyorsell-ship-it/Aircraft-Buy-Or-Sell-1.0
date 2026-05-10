@@ -21,6 +21,67 @@ const DIMENSIONS = [
   { key: "market_readiness", label: "Market Readiness" },
 ];
 
+// ─── STRICT DOCUMENTATION RULES ───────────────────────────────────────
+// Points only awarded if documentation is uploaded and verified OR explicitly
+// marked as "not applicable" with justification
+const REQUIRED_DOCUMENTS = {
+  documentation: [
+    { name: "Logbook (complete)", description: "Full aircraft logbook records", critical: true },
+    { name: "Title/Deed", description: "Aircraft ownership certificate", critical: true },
+    { name: "Airworthiness Certificate", description: "Current airworthiness documentation", critical: true },
+    { name: "Registration Certificate", description: "FAA registration (Form 1500 or equivalent)", critical: true },
+    { name: "Damage History", description: "Accident/incident history disclosure", critical: true },
+  ],
+  technical: [
+    { name: "Annual Inspection Records", description: "Recent annual inspection reports", critical: true },
+    { name: "AD Compliance Log", description: "Airworthiness Directive compliance proof", critical: true },
+    { name: "Maintenance Records", description: "Service/repair documentation (last 5 years)", critical: true },
+    { name: "Engine Overhaul Documentation", description: "Major overhaul certificates & logs", critical: false },
+  ],
+  transparency: [
+    { name: "Engine Compression Test", description: "Recent compression check results", critical: true },
+    { name: "Oil Analysis Report", description: "Engine oil analysis (last 100 hrs)", critical: false },
+    { name: "TBO Documentation", description: "Proof of TBO calculation & remaining life", critical: true },
+  ],
+  transaction_ready: [
+    { name: "Avionics Logbook", description: "Avionics installation & maintenance records", critical: false },
+    { name: "TSO/STC Certificates", description: "Technical Standard Order approvals", critical: false },
+  ],
+  storage_exposure: [
+    { name: "Storage Location Documentation", description: "Proof of current hangar/storage", critical: false },
+  ],
+  config_clarity: [
+    { name: "Aircraft Configuration Sheet", description: "Current equipment list (W&B)", critical: true },
+    { name: "STC/Modification List", description: "All modifications & their approval docs", critical: true },
+  ],
+  market_readiness: [
+    { name: "Photos (exterior/interior/panel)", description: "High-quality aircraft photos", critical: false },
+    { name: "Recent Annual Inspection", description: "Annual inspection within 12 months", critical: true },
+  ],
+};
+
+function calculateDocumentationScore(dimAnswers, dimEvidence, dimension) {
+  // STRICT RULE: No points without evidence or explicit "not applicable"
+  if (!dimEvidence || dimEvidence.length === 0) {
+    const hasNotApplicable = dimAnswers?.documentation_status === "not_applicable" && 
+                             dimAnswers?.not_applicable_reason;
+    if (!hasNotApplicable) {
+      return 0; // Zero points if no evidence and not explicitly marked N/A
+    }
+  }
+  
+  // If evidence exists, check if verification status is marked
+  const isVerified = dimAnswers?.verification_status === "verified";
+  const isPending = dimAnswers?.verification_status === "pending";
+  
+  // Points only if verified or explicitly confirmed as complete
+  if (!isVerified && !dimAnswers?.documentation_complete) {
+    return Math.max(0, (dimEvidence?.length || 0) * 2); // Partial credit for uploaded but unverified
+  }
+  
+  return 15; // Full points for verified or confirmed complete
+}
+
 function labelFromTotal(total) {
   if (total >= 108) return "EXCEPTIONAL";
   if (total >= 90) return "STRONG BUY";
@@ -52,15 +113,29 @@ Deno.serve(async (req) => {
       const dimAnswers = answers[d.key] || {};
       const dimEvidence = evidence[d.key] || [];
       const hasAnyAnswer = Object.values(dimAnswers).some((v) => v != null && v !== "");
+      
+      // SPECIAL HANDLING FOR DOCUMENTATION DIMENSION
+      let baseScore = null;
+      if (d.key === "documentation") {
+        baseScore = calculateDocumentationScore(dimAnswers, dimEvidence, d.key);
+      }
 
       const prompt = `You are the ATI scoring engine for ABOS aviation marketplace.
 Score ONE dimension only: "${d.label}" on a 0-15 integer scale.
 
-RULES:
+STRICT RULES FOR THIS SUBMISSION:
+${d.key === "documentation" ? `
+- DOCUMENTATION DIMENSION: Points (>0) ONLY if evidence files are uploaded AND verified, OR explicitly marked "not applicable" with justification.
+- If documentation_status = "not_applicable" AND not_applicable_reason provided → proceed with scoring.
+- If documentation_status = "pending" → cap score at 8 (unverified evidence).
+- If NO evidence uploaded AND NOT marked N/A → SCORE MUST BE 0.
+- Required docs for this aircraft: ${(REQUIRED_DOCUMENTS[d.key] || []).map(d => d.name).join(", ")}
+` : `
 - Be conservative. Missing or vague data MUST lower the score.
 - If no user input was provided, score based on listing data only and cap at 7.
 - Flag regulatory issues (e.g. non-ADS-B, overdue ADs) as risks.
 - Never fabricate data — if unclear, mark as missing.
+`}
 
 Listing snapshot:
 ${JSON.stringify({
@@ -103,7 +178,21 @@ Return ONLY JSON:
       if (dimEvidence.length > 0) payload.file_urls = dimEvidence.slice(0, 6);
 
       const result = await base44.integrations.Core.InvokeLLM(payload);
-      const score = Math.max(0, Math.min(15, Math.round(result.score ?? (hasAnyAnswer ? 8 : 5))));
+      
+      // Apply strict documentation rules
+      let score = Math.max(0, Math.min(15, Math.round(result.score ?? (hasAnyAnswer ? 8 : 5))));
+      if (d.key === "documentation" && baseScore !== null) {
+        score = baseScore;
+      }
+      
+      // For documentation: if no evidence and not N/A, force zero
+      if (d.key === "documentation" && (!dimEvidence || dimEvidence.length === 0)) {
+        const isNotApplicable = dimAnswers?.documentation_status === "not_applicable" && dimAnswers?.not_applicable_reason;
+        if (!isNotApplicable) {
+          score = 0;
+        }
+      }
+      
       scored[d.key] = { score, ...result };
       (result.strengths || []).forEach((s) => strengths.push(`${d.label}: ${s}`));
       (result.risks || []).forEach((r) => riskFlags.push(`${d.label}: ${r}`));

@@ -372,65 +372,159 @@ export default function Listings() {
           </div>
         ) : viewMode === "cards" ? (
           /* ── TINDER SWIPE DECK ── */
-          <div className="max-w-md mx-auto">
-            {shortlisted.length > 0 && (
-              <div className="flex items-center gap-2 bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-xl px-4 py-2.5 mb-4">
-                <ShieldCheck className="w-4 h-4 text-[#0F7A56] shrink-0" />
-                <p className="text-[12px] text-[#0F7A56] font-bold">
-                  {shortlisted.length} aircraft shortlisted
-                </p>
-                <button onClick={() => setShortlisted([])} className="ml-auto text-[#0F7A56] opacity-60 hover:opacity-100">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Main deck (left, full width on mobile) */}
+            <div className="w-full lg:flex-1 min-w-0">
+              {/* Shortlist banner */}
+              {shortlisted.length > 0 && (
+                <div className="flex items-center gap-2 bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-xl px-4 py-2.5 mb-4">
+                  <ShieldCheck className="w-4 h-4 text-[#0F7A56] shrink-0" />
+                  <p className="text-[12px] text-[#0F7A56] font-bold">
+                    {shortlisted.length} shortlisted
+                  </p>
+                  <button onClick={() => setShortlisted([])} className="ml-auto text-[#0F7A56] opacity-60 hover:opacity-100">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
 
-            {filtered.filter(l => !discarded.includes(l.id)).length === 0 ? (
-              <div className="text-center py-16 text-[#AAA49C]">
-                <p className="text-2xl mb-2">✈️</p>
-                <p className="text-sm font-semibold text-[#6B6560]">You've reviewed all aircraft</p>
+              {filtered.filter(l => !discarded.includes(l.id)).length === 0 ? (
+                <div className="text-center py-16 text-[#AAA49C]">
+                  <p className="text-2xl mb-2">✈️</p>
+                  <p className="text-sm font-semibold text-[#6B6560]">You've reviewed all aircraft</p>
+                  {discarded.length > 0 && (
+                    <button onClick={() => setDiscarded([])}
+                      className="mt-4 text-[11px] text-[#D4A017] font-bold hover:underline">
+                      ↺ Restore {discarded.length} skipped
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <SwipeDeck
+                    listings={filtered.filter(l => !discarded.includes(l.id))}
+                    onLike={(l) => setShortlisted(prev => prev.includes(l.id) ? prev : [...prev, l.id])}
+                    onDiscard={(l) => setDiscarded(prev => [...prev, l.id])}
+                  />
+                  {/* Mobile action buttons */}
+                  <div className="flex lg:hidden items-center justify-center gap-6 mt-6">
+                    <button
+                      onClick={() => {
+                        const top = filtered.filter(l => !discarded.includes(l.id))[0];
+                        if (top) setDiscarded(prev => [...prev, top.id]);
+                      }}
+                      className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(192,57,43,0.3)] text-[#C0392B] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
+                      title="Skip (Swipe left)"
+                    >
+                      <ThumbsDown className="w-5 h-5" />
+                    </button>
+                    <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider font-semibold">
+                      {filtered.filter(l => !discarded.includes(l.id)).length} left
+                    </p>
+                    <button
+                      onClick={() => {
+                        const top = filtered.filter(l => !discarded.includes(l.id))[0];
+                        if (top) {
+                          setShortlisted(prev => prev.includes(top.id) ? prev : [...prev, top.id]);
+                          setDiscarded(prev => [...prev, top.id]);
+                        }
+                      }}
+                      className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(15,122,86,0.3)] text-[#0F7A56] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
+                      title="Shortlist (Swipe right)"
+                    >
+                      <ThumbsUp className="w-5 h-5" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Desktop sidebar stats */}
+            <div className="hidden lg:flex flex-col gap-4 w-80 shrink-0">
+              {/* Summary card */}
+              <div className="bg-white border border-black/[0.07] rounded-2xl p-5 sticky top-4">
+                <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B] mb-4">Session Stats</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Remaining</p>
+                    <p className="text-3xl font-black text-[#0B2D5B]">
+                      {filtered.filter(l => !discarded.includes(l.id)).length}
+                    </p>
+                  </div>
+
+                  <div className="h-px bg-black/[0.06]" />
+
+                  <div>
+                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Shortlisted</p>
+                    <p className="text-2xl font-black text-[#0F7A56]">{shortlisted.length}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Skipped</p>
+                    <p className="text-2xl font-black text-[#C0392B]">{discarded.length}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Reviewed</p>
+                    <p className="text-2xl font-black text-[#D4A017]">
+                      {shortlisted.length + discarded.length} / {filtered.length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mt-5 pt-4 border-t border-black/[0.06]">
+                  <div className="h-2 bg-black/[0.05] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#D4A017] to-[#0B2D5B] rounded-full transition-all"
+                      style={{
+                        width: `${filtered.length > 0 ? ((shortlisted.length + discarded.length) / filtered.length) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-[9px] text-[#AAA49C] mt-2 text-center">
+                    {filtered.length > 0 ? Math.round(((shortlisted.length + discarded.length) / filtered.length) * 100) : 0}% Complete
+                  </p>
+                </div>
+
+                {/* Actions */}
                 {discarded.length > 0 && (
-                  <button onClick={() => setDiscarded([])}
-                    className="mt-4 text-[11px] text-[#D4A017] font-bold hover:underline">
-                    ↺ Restore {discarded.length} skipped
+                  <button
+                    onClick={() => setDiscarded([])}
+                    className="w-full mt-4 text-[11px] text-[#D4A017] font-bold hover:text-[#A67C00] transition-colors py-2 border-t border-black/[0.06]"
+                  >
+                    ↺ Restore skipped
                   </button>
                 )}
               </div>
-            ) : (
-              <>
-                <SwipeDeck
-                  listings={filtered.filter(l => !discarded.includes(l.id))}
-                  onLike={(l) => setShortlisted(prev => prev.includes(l.id) ? prev : [...prev, l.id])}
-                  onDiscard={(l) => setDiscarded(prev => [...prev, l.id])}
-                />
-                <div className="flex items-center justify-center gap-6 mt-6">
-                  <button
-                    onClick={() => {
-                      const top = filtered.filter(l => !discarded.includes(l.id))[0];
-                      if (top) setDiscarded(prev => [...prev, top.id]);
-                    }}
-                    className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(192,57,43,0.3)] text-[#C0392B] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
-                  >
-                    <ThumbsDown className="w-5 h-5" />
-                  </button>
-                  <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider font-semibold">
-                    {filtered.filter(l => !discarded.includes(l.id)).length} remaining
-                  </p>
-                  <button
-                    onClick={() => {
-                      const top = filtered.filter(l => !discarded.includes(l.id))[0];
-                      if (top) {
-                        setShortlisted(prev => prev.includes(top.id) ? prev : [...prev, top.id]);
-                        setDiscarded(prev => [...prev, top.id]);
-                      }
-                    }}
-                    className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(15,122,86,0.3)] text-[#0F7A56] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
-                  >
-                    <ThumbsUp className="w-5 h-5" />
-                  </button>
+
+              {/* Top shortlisted preview (if any) */}
+              {shortlisted.length > 0 && (
+                <div className="bg-[rgba(15,122,86,0.06)] border border-[rgba(15,122,86,0.2)] rounded-2xl p-5">
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0F7A56] mb-3">Your Shortlist</p>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {filtered
+                      .filter(l => shortlisted.includes(l.id))
+                      .slice(0, 5)
+                      .map(l => (
+                        <div key={l.id} className="flex items-start gap-2 pb-2 border-b border-[rgba(15,122,86,0.1)] last:border-0">
+                          <div className="shrink-0 w-8 h-8 rounded bg-[#0F7A56] flex items-center justify-center">
+                            <span className="text-white text-[10px] font-black">✓</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-bold text-[#0F7A56] truncate">{l.year} {l.make} {l.model}</p>
+                            <p className="text-[10px] text-[#6B6560] font-mono">{l.registration}</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                  {shortlisted.length > 5 && (
+                    <p className="text-[9px] text-[#6B6560] mt-2 text-center font-semibold">+{shortlisted.length - 5} more</p>
+                  )}
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         ) : (
           /* ── LIST VIEW ── */

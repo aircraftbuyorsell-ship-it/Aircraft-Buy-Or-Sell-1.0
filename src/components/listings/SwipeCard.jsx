@@ -205,29 +205,54 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
   if (listings.length === 0) return null;
 
   return (
-    <div className="relative w-full" style={{ height: 520 }}>
-      {/* Background cards (depth effect) */}
-      {visible.slice(1).map((l, i) => (
-        <div
-          key={l.id}
-          className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-          style={{
-            transform: `scale(${1 - (i + 1) * 0.04}) translateY(${(i + 1) * 12}px)`,
-            zIndex: visible.length - i - 2,
-            opacity: 1 - (i + 1) * 0.15,
-          }}
-        >
-          <Card listing={l} />
+    <div className="w-full">
+      {/* Desktop/Tablet header hint */}
+      <div className="hidden md:flex items-center justify-center gap-4 mb-6 px-4">
+        <div className="flex items-center gap-2 text-[11px] text-[#AAA49C] font-semibold uppercase tracking-wider">
+          <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+          </svg>
+          Swipe left to skip
         </div>
-      ))}
+        <div className="h-4 w-px bg-black/10" />
+        <div className="flex items-center gap-2 text-[11px] text-[#AAA49C] font-semibold uppercase tracking-wider">
+          Swipe right to shortlist
+          <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </div>
+      </div>
 
-      {/* Top draggable card */}
-      <SwipeableCard
-        key={visible[0].id}
-        listing={visible[0]}
-        onLike={onLike}
-        onDiscard={onDiscard}
-      />
+      {/* Mobile instruction banner */}
+      <div className="md:hidden mb-4 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.15)] rounded-xl px-4 py-2.5 text-center">
+        <p className="text-[11px] text-[#0B2D5B] font-semibold">👆 Swipe or tap buttons to browse</p>
+      </div>
+
+      {/* Deck container */}
+      <div className="relative w-full mx-auto px-4 sm:px-0" style={{ height: "clamp(420px, 80vh, 620px)" }}>
+        {/* Background cards (depth effect) */}
+        {visible.slice(1).map((l, i) => (
+          <div
+            key={l.id}
+            className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+            style={{
+              transform: `scale(${1 - (i + 1) * 0.05}) translateY(${(i + 1) * 14}px)`,
+              zIndex: visible.length - i - 2,
+              opacity: 1 - (i + 1) * 0.18,
+            }}
+          >
+            <Card listing={l} />
+          </div>
+        ))}
+
+        {/* Top draggable card */}
+        <SwipeableCard
+          key={visible[0].id}
+          listing={visible[0]}
+          onLike={onLike}
+          onDiscard={onDiscard}
+        />
+      </div>
     </div>
   );
 }

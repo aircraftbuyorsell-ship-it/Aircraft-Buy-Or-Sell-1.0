@@ -13,6 +13,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
 const FETCH_TIMEOUT_MS = 8000;
+const RETRY_DELAY_MS = 2000;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
@@ -57,7 +58,7 @@ async function getAccessToken() {
   }
 }
 
-async function openSkyFetch(path) {
+async function openSkyFetch(path, retries = 2) {
   const token = await getAccessToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const controller = new AbortController();
@@ -71,6 +72,11 @@ async function openSkyFetch(path) {
     if (!text) return null;
     try { return JSON.parse(text); } catch { return null; }
   } catch (e) {
+    if (e.name === "AbortError" && retries > 0) {
+      console.warn(`OpenSky timeout, retrying in ${RETRY_DELAY_MS}ms...`);
+      await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+      return openSkyFetch(path, retries - 1);
+    }
     if (e.name === "AbortError") throw new Error("OpenSky request timed out — try again shortly");
     throw e;
   } finally {

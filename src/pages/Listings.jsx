@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import {
   Plane, Search, SlidersHorizontal, X, ArrowUpRight,
   Upload, FileArchive, RefreshCw, TrendingDown, TrendingUp,
-  ShieldCheck, LayoutList, CreditCard
+  ShieldCheck, LayoutList, CreditCard, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
@@ -15,7 +15,7 @@ import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
-import SwipeCard from "@/components/listings/SwipeCard";
+import SwipeDeck from "@/components/listings/SwipeCard";
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -371,34 +371,65 @@ export default function Listings() {
             </button>
           </div>
         ) : viewMode === "cards" ? (
-          /* ── SWIPE CARD VIEW ── */
-          <div className="max-w-md mx-auto space-y-4">
+          /* ── TINDER SWIPE DECK ── */
+          <div className="max-w-md mx-auto">
             {shortlisted.length > 0 && (
-              <div className="flex items-center gap-2 bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-xl px-4 py-2.5">
+              <div className="flex items-center gap-2 bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-xl px-4 py-2.5 mb-4">
                 <ShieldCheck className="w-4 h-4 text-[#0F7A56] shrink-0" />
                 <p className="text-[12px] text-[#0F7A56] font-bold">
-                  {shortlisted.length} aircraft shortlisted — open each to view the full Score Card
+                  {shortlisted.length} aircraft shortlisted
                 </p>
                 <button onClick={() => setShortlisted([])} className="ml-auto text-[#0F7A56] opacity-60 hover:opacity-100">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
-            {filtered
-              .filter(l => !discarded.includes(l.id))
-              .map(l => (
-                <SwipeCard
-                  key={l.id}
-                  listing={l}
-                  onLike={(listing) => setShortlisted(prev => prev.includes(listing.id) ? prev : [...prev, listing.id])}
-                  onDiscard={(listing) => setDiscarded(prev => [...prev, listing.id])}
+
+            {filtered.filter(l => !discarded.includes(l.id)).length === 0 ? (
+              <div className="text-center py-16 text-[#AAA49C]">
+                <p className="text-2xl mb-2">✈️</p>
+                <p className="text-sm font-semibold text-[#6B6560]">You've reviewed all aircraft</p>
+                {discarded.length > 0 && (
+                  <button onClick={() => setDiscarded([])}
+                    className="mt-4 text-[11px] text-[#D4A017] font-bold hover:underline">
+                    ↺ Restore {discarded.length} skipped
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                <SwipeDeck
+                  listings={filtered.filter(l => !discarded.includes(l.id))}
+                  onLike={(l) => setShortlisted(prev => prev.includes(l.id) ? prev : [...prev, l.id])}
+                  onDiscard={(l) => setDiscarded(prev => [...prev, l.id])}
                 />
-              ))}
-            {discarded.length > 0 && (
-              <button onClick={() => setDiscarded([])}
-                className="w-full text-[11px] text-[#AAA49C] hover:text-[#0B2D5B] font-semibold py-2 transition-colors">
-                ↺ Restore {discarded.length} skipped aircraft
-              </button>
+                <div className="flex items-center justify-center gap-6 mt-6">
+                  <button
+                    onClick={() => {
+                      const top = filtered.filter(l => !discarded.includes(l.id))[0];
+                      if (top) setDiscarded(prev => [...prev, top.id]);
+                    }}
+                    className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(192,57,43,0.3)] text-[#C0392B] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
+                  >
+                    <ThumbsDown className="w-5 h-5" />
+                  </button>
+                  <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider font-semibold">
+                    {filtered.filter(l => !discarded.includes(l.id)).length} remaining
+                  </p>
+                  <button
+                    onClick={() => {
+                      const top = filtered.filter(l => !discarded.includes(l.id))[0];
+                      if (top) {
+                        setShortlisted(prev => prev.includes(top.id) ? prev : [...prev, top.id]);
+                        setDiscarded(prev => [...prev, top.id]);
+                      }
+                    }}
+                    className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(15,122,86,0.3)] text-[#0F7A56] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
+                  >
+                    <ThumbsUp className="w-5 h-5" />
+                  </button>
+                </div>
+              </>
             )}
           </div>
         ) : (

@@ -224,23 +224,15 @@ Return ONLY raw JSON — no markdown, no explanation:
         result.transaction_ready + result.usage_mission + result.storage_exposure +
         result.config_clarity + result.market_readiness;
 
-      // OMVM valuation — dynamic via computeOMVMAnalytics (data-driven, market + expert calibrated)
-      let omvm_value = 200000; // fallback if backend analytics unavailable
+      // OMVM valuation — omvmV5Score (log-linear regression + engine curve + expert calibration)
+      let omvm_value = 200000; // fallback if backend unavailable
       try {
-        const omvmAnalyticsResponse = await base44.functions.invoke("computeOMVMAnalytics", {
-          make: listing.make,
-          model: listing.model,
-          targetListingId: listingId,
-          horizonYears: 1,
-        });
-        const projected = omvmAnalyticsResponse?.data?.projection?.[0]?.projected_value;
-        if (Number.isFinite(projected) && projected > 0) {
-          omvm_value = Math.round(projected);
-        } else {
-          console.warn("computeOMVMAnalytics returned no projection — using fallback.");
+        const omvmRes = await base44.functions.invoke("omvmV5Score", { listingId });
+        if (Number.isFinite(omvmRes?.data?.omvm_value) && omvmRes.data.omvm_value > 0) {
+          omvm_value = omvmRes.data.omvm_value;
         }
       } catch (omvmErr) {
-        console.warn("computeOMVMAnalytics failed — using fallback:", omvmErr?.message);
+        console.warn("omvmV5Score failed — using fallback:", omvmErr?.message);
       }
       const discountPct = listing.asking_price
         ? Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10

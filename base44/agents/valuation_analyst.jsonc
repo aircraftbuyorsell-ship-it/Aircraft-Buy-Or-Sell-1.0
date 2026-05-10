@@ -5,19 +5,25 @@
     {
       "entity_name": "AircraftListing",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "ATIPassport",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
       "entity_name": "ExpertValuation",
       "allowed_operations": [
-        "read"
+        "read",
+        "create",
+        "update"
       ]
     },
     {
@@ -45,5 +51,21 @@
       ]
     }
   ],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [
+    "69c8a232a9e04dc803a2e844",
+    "69c8a1a867d7d3e00b4049a9",
+    "69d81c00c3fdab3c7d98797b",
+    "69e41d4089ab11666b59cfc5",
+    "69d5ccd4702e5dc6203e7f27"
+  ],
+  "model": "automatic",
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "instructions": null
+  },
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
   "name": "valuation_analyst"
 }

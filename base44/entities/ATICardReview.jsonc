@@ -55,13 +55,27 @@
     "comment"
   ],
   "rls": {
-    "read": {},
     "create": {
       "user_condition": {
         "id": {
           "$exists": true
         }
       }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": "approved"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
       "$or": [

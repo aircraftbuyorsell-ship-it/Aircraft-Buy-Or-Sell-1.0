@@ -31,5 +31,13 @@
       "type": "string",
       "description": "Selected brand font family"
     }
-  }
+  },
+  "required": [
+    "referred_by_email",
+    "company_name",
+    "brand_logo_url",
+    "brand_primary_color",
+    "brand_accent_color",
+    "brand_font"
+  ]
 }

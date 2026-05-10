@@ -9,7 +9,7 @@
     },
     "aircraft_label": {
       "type": "string",
-      "description": "Snapshot of aircraft (year make model N-number)"
+      "description": "Aircraft snapshot label (year make model reg)"
     },
     "buyer_name": {
       "type": "string",
@@ -29,7 +29,7 @@
     },
     "broker_name": {
       "type": "string",
-      "description": "Originating broker (finder)"
+      "description": "Broker / finder name"
     },
     "broker_email": {
       "type": "string",
@@ -37,16 +37,22 @@
     },
     "sale_amount": {
       "type": "number",
-      "description": "Total agreed sale price"
+      "description": "Agreed sale price"
     },
     "currency": {
       "type": "string",
-      "default": "USD",
-      "description": "Currency"
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CZK",
+        "CHF"
+      ],
+      "default": "USD"
     },
     "finders_fee_pct": {
       "type": "number",
-      "description": "Agreed finder's fee percentage"
+      "description": "Finder's fee percentage"
     },
     "finders_fee_amount": {
       "type": "number",
@@ -54,12 +60,7 @@
     },
     "seller_net": {
       "type": "number",
-      "description": "Net amount seller receives after fee"
-    },
-    "inspection_period_days": {
-      "type": "number",
-      "default": 3,
-      "description": "Inspection period in days"
+      "description": "Net amount seller receives"
     },
     "status": {
       "type": "string",
@@ -89,30 +90,6 @@
       "type": "string",
       "description": "Escrow.com transaction ID"
     },
-    "escrow_landing_url": {
-      "type": "string",
-      "description": "Escrow.com buyer landing URL"
-    },
-    "proof_of_funds_url": {
-      "type": "string",
-      "description": "Uploaded proof-of-funds file URL"
-    },
-    "proof_of_funds_name": {
-      "type": "string",
-      "description": "Proof-of-funds filename"
-    },
-    "proof_verified": {
-      "type": "boolean",
-      "default": false
-    },
-    "contract_text": {
-      "type": "string",
-      "description": "Generated Hustle Contract text"
-    },
-    "contract_url": {
-      "type": "string",
-      "description": "URL of generated Hustle Contract PDF"
-    },
     "notes": {
       "type": "string",
       "description": "Internal notes"
@@ -126,5 +103,60 @@
     "buyer_name",
     "seller_name",
     "sale_amount"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.buyer_email": "{{user.email}}"
+        },
+        {
+          "data.seller_email": "{{user.email}}"
+        },
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.buyer_email": "{{user.email}}"
+        },
+        {
+          "data.seller_email": "{{user.email}}"
+        },
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

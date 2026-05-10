@@ -4,62 +4,44 @@
   "properties": {
     "registration": {
       "type": "string",
-      "description": "Aircraft registration number (e.g. N123AB, OK-LAD) \u2014 uppercase, no spaces"
+      "description": "Aircraft registration (e.g. N123AB)"
     },
     "make": {
       "type": "string",
-      "description": "Aircraft manufacturer (e.g. Cessna, Piper, Mooney)"
+      "description": "Manufacturer (e.g. Cessna, Piper)"
     },
     "model": {
       "type": "string",
-      "description": "Aircraft model (e.g. 172, M20C, PA-28)"
+      "description": "Aircraft model (e.g. 172, PA-28)"
     },
     "year": {
       "type": "number",
-      "minimum": 1900,
-      "maximum": 2035,
-      "description": "Year of manufacture (1900\u20132035)"
+      "description": "Year of manufacture"
     },
     "total_time": {
       "type": "number",
-      "minimum": 0,
-      "description": "Airframe total hours since new (TTSN). Must be \u2265 0."
+      "description": "Airframe total time (hours)"
     },
     "engine_hours": {
       "type": "number",
-      "minimum": 0,
-      "description": "Primary engine hours since major overhaul (SMOH). Must be \u2265 0."
-    },
-    "engine_count": {
-      "type": "number",
-      "minimum": 1,
-      "maximum": 8,
-      "default": 1,
-      "description": "Number of engines (1\u20138)"
+      "description": "Engine hours since overhaul (SMOH)"
     },
     "tbo": {
       "type": "number",
-      "minimum": 0,
-      "description": "Time between overhauls (manufacturer-published TBO in hours). Must be \u2265 0."
+      "description": "Time between overhauls (TBO hours)"
     },
     "last_annual": {
       "type": "string",
       "format": "date",
-      "description": "Date of last annual inspection (ISO 8601 date: YYYY-MM-DD)"
-    },
-    "fresh_annual": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether the aircraft has a fresh annual inspection"
+      "description": "Date of last annual inspection"
     },
     "avionics": {
       "type": "string",
-      "description": "Comma-separated list of avionics (e.g. 'Garmin G1000, GTN 750, GTX 345 ADS-B Out, KAP 140 autopilot')"
+      "description": "Avionics equipment (comma-separated)"
     },
     "asking_price": {
       "type": "number",
-      "minimum": 0,
-      "description": "Asking price in the currency specified by the 'currency' field"
+      "description": "Asking price"
     },
     "currency": {
       "type": "string",
@@ -68,23 +50,18 @@
         "EUR",
         "GBP",
         "CZK",
-        "CHF",
-        "CAD",
-        "AUD"
+        "CHF"
       ],
-      "default": "USD",
-      "description": "Price currency (ISO 4217 code)"
+      "default": "USD"
     },
     "status": {
       "type": "string",
       "enum": [
         "active",
         "sold",
-        "expired",
         "draft"
       ],
-      "default": "active",
-      "description": "Listing status"
+      "default": "active"
     },
     "visibility": {
       "type": "string",
@@ -92,25 +69,23 @@
         "public",
         "private"
       ],
-      "default": "public",
-      "description": "Listing visibility \u2014 public is searchable by all users; private only by owner/admin"
+      "default": "public"
     },
     "ati_score": {
       "type": "number",
       "minimum": 0,
       "maximum": 120,
-      "description": "ATI score (0\u2013120, populated by ATIPassport generation)"
+      "description": "ATI score (0\u2013120)"
     },
     "omvm_value": {
       "type": "number",
-      "minimum": 0,
-      "description": "OMVM estimated market value in USD"
+      "description": "Off-Market Value Model estimate (USD)"
     },
     "deal_score": {
       "type": "number",
       "minimum": 0,
       "maximum": 10,
-      "description": "Deal score (0\u201310, higher = better deal vs OMVM)"
+      "description": "Deal score (0\u201310)"
     },
     "deal_label": {
       "type": "string",
@@ -120,33 +95,24 @@
         "fair",
         "overpriced"
       ],
-      "description": "Human-readable deal classification"
+      "description": "Deal classification"
     },
     "discount_pct": {
       "type": "number",
-      "description": "Discount percentage vs OMVM (positive = below market, negative = above market)"
-    },
-    "source_url": {
-      "type": "string",
-      "description": "Original listing URL (e.g. Controller.com, Trade-A-Plane, Facebook Marketplace)"
-    },
-    "source_platform": {
-      "type": "string",
-      "description": "Source platform name (e.g. 'controller', 'facebook', 'manual')"
+      "description": "% discount vs OMVM (positive = below market)"
     },
     "ai_summary": {
       "type": "string",
-      "maxLength": 1000,
-      "description": "AI-generated listing summary (max 1000 chars)"
+      "description": "AI-generated listing summary"
     },
-    "raw_text": {
+    "source_url": {
       "type": "string",
-      "description": "Raw scraped text from source platform"
+      "description": "Original listing URL"
     },
     "owner": {
       "type": "string",
       "relationType": "User",
-      "description": "Listing owner (User entity)"
+      "description": "Listing owner"
     }
   },
   "required": [

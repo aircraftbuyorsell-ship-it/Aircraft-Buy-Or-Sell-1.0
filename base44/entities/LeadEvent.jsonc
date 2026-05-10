@@ -76,8 +76,16 @@
     "event_type"
   ],
   "rls": {
-    "read": {},
-    "create": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
     "update": {
       "user_condition": {
         "role": "admin"

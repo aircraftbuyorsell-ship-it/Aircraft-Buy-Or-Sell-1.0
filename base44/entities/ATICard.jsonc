@@ -221,10 +221,16 @@
   ],
   "rls": {
     "create": {
-      "data.issuer_email": "{{user.email}}",
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.issuer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [

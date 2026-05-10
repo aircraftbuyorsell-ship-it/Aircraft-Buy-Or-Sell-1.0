@@ -33,7 +33,8 @@ Deno.serve(async (req) => {
     const valid = comps.filter(l => l.asking_price > 5000 && l.year && l.year > 1950 && l.id !== listingId);
 
     // 2) Depreciation curve — log-linear regression: ln(price) ~ age
-    let slope = -0.04, intercept = 12.5; // sensible defaults
+    // Defaults: intercept=11.0 → exp(11.0)=$59k base, slope=-0.03 → ~3% annual depreciation
+    let slope = -0.03, intercept = 11.0;
     if (valid.length >= 3) {
       const pts = valid.map(l => ({ x: currentYear - l.year, y: Math.log(l.asking_price) }));
       const n = pts.length;
@@ -73,16 +74,16 @@ Deno.serve(async (req) => {
     const avgExpertDelta = deltas.length > 0 ? deltas.reduce((s, d) => s + d, 0) / deltas.length : 0;
     const calibrationMultiplier = 1 + avgExpertDelta / 100;
 
-    // 5) Avionics premium
+    // 5) Avionics premium (capped to avoid inflating low-sample valuations)
     const avionicsList = (listing.avionics || '').split(',').map(a => a.trim()).filter(Boolean);
-    const avionicsPremium = avionicsList.length * 3500;
+    const avionicsPremium = Math.min(avionicsList.length * 2500, 15000);
 
     // 6) Base OMVM calculation
     const regressionBase = valid.length >= 3 ? Math.exp(intercept + slope * age) : null;
 
     // Fallback: use median of comps if regression fails
     const prices = valid.map(l => l.asking_price).sort((a, b) => a - b);
-    const medianBase = prices.length > 0 ? prices[Math.floor(prices.length / 2)] : 150000;
+    const medianBase = prices.length > 0 ? prices[Math.floor(prices.length / 2)] : 55000;
 
     const baseValue = regressionBase || medianBase;
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining

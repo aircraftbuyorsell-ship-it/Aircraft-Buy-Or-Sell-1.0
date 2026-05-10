@@ -8,8 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
-import ImportFromFBModal from "@/components/listings/ImportFromFBModal";
-import ImportFromFileModal from "@/components/listings/ImportFromFileModal";
+import ImportAndEditFlow from "@/components/listings/ImportAndEditFlow";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
@@ -158,10 +157,9 @@ export default function Listings() {
   const [showFilters, setShowFilters] = useState(false);
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
-  const [showFBImport, setShowFBImport] = useState(false);
-   const [showFileImport, setShowFileImport] = useState(false);
-   const [showWizard, setShowWizard] = useState(false);
-   const [gate, setGate] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [gate, setGate] = useState(null);
   const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
@@ -240,12 +238,12 @@ export default function Listings() {
                 </button>
               </div>
               <button
-                onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowFileImport(true))}
+                onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowImport(true))}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
               >
                 <FileArchive className="w-4 h-4" />
-                <span className="hidden sm:inline">Import ZIP / JSON</span>
-                <span className="sm:hidden">ZIP</span>
+                <span className="hidden sm:inline">Import & Edit</span>
+                <span className="sm:hidden">Import</span>
               </button>
               <button
                 onClick={() => setShowWizard(true)}
@@ -365,7 +363,7 @@ export default function Listings() {
             <p className="text-sm font-semibold text-[#6B6560]">No aircraft match your criteria</p>
             <p className="text-[11px] mt-1">Try adjusting your filters or adding a new listing</p>
             <button
-              onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowFBImport(true))}
+              onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowImport(true))}
               className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-sm font-bold px-5 py-2.5 rounded-xl"
             >
               <Upload className="w-4 h-4" />
@@ -554,25 +552,14 @@ export default function Listings() {
       {/* Modals */}
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
 
-      {showFBImport && (
-        <ImportFromFBModal
-          onClose={() => setShowFBImport(false)}
-          onImported={() => {
-            queryClient.invalidateQueries({ queryKey: ["listings-public"] });
-            setShowFBImport(false);
-          }}
-        />
-      )}
-
-      {showFileImport && (
-        <ImportFromFileModal
-          onClose={() => setShowFileImport(false)}
-          onImported={() => {
-            queryClient.invalidateQueries({ queryKey: ["listings-public"] });
-            setShowFileImport(false);
-          }}
-        />
-      )}
+      <ImportAndEditFlow
+        open={showImport}
+        onClose={() => setShowImport(false)}
+        onPublish={() => {
+          queryClient.invalidateQueries({ queryKey: ["listings-public"] });
+          setShowImport(false);
+        }}
+      />
 
       <AircraftWizard
         open={showWizard}

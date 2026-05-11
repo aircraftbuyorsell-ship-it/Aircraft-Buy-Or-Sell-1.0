@@ -1,6 +1,55 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
+ * Category depreciation table for rare aircraft with < 3 comps.
+ * Returns a depreciated base value using (base * (1 - rate)^age), floored at $10K.
+ */
+function getCategoryBaseValue(make, model, age) {
+  const categories = {
+    // Single-engine piston
+    'cessna':       { base: 80000,   annualDepreciation: 0.03 },
+    'piper':        { base: 75000,   annualDepreciation: 0.03 },
+    'beechcraft':   { base: 120000,  annualDepreciation: 0.035 },
+    'cirrus':       { base: 350000,  annualDepreciation: 0.04 },
+    'mooney':       { base: 100000,  annualDepreciation: 0.03 },
+    'diamond':      { base: 200000,  annualDepreciation: 0.035 },
+    // Multi-engine piston
+    'baron':        { base: 250000,  annualDepreciation: 0.04 },
+    'seneca':       { base: 180000,  annualDepreciation: 0.04 },
+    'twin':         { base: 200000,  annualDepreciation: 0.04 },
+    // Turboprop
+    'king air':     { base: 800000,  annualDepreciation: 0.05 },
+    'pilatus':      { base: 2500000, annualDepreciation: 0.05 },
+    'tbm':          { base: 1800000, annualDepreciation: 0.05 },
+    'socata':       { base: 1500000, annualDepreciation: 0.05 },
+    // Light jet
+    'citation':     { base: 3000000, annualDepreciation: 0.06 },
+    'phenom':       { base: 2500000, annualDepreciation: 0.06 },
+    'eclipse':      { base: 1200000, annualDepreciation: 0.06 },
+    // Experimental / homebuilt
+    'experimental': { base: 60000,  annualDepreciation: 0.02 },
+    'homebuilt':    { base: 60000,  annualDepreciation: 0.02 },
+    'rv-':          { base: 80000,  annualDepreciation: 0.02 },
+    // Default
+    'default':      { base: 80000,  annualDepreciation: 0.03 },
+  };
+
+  const makeLower = (make || '').toLowerCase();
+  const modelLower = (model || '').toLowerCase();
+  let category = categories['default'];
+
+  for (const [key, value] of Object.entries(categories)) {
+    if (key !== 'default' && (makeLower.includes(key) || modelLower.includes(key))) {
+      category = value;
+      break;
+    }
+  }
+
+  const depreciatedValue = category.base * Math.pow(1 - category.annualDepreciation, Math.max(0, age));
+  return Math.max(depreciatedValue, 10000);
+}
+
+/**
  * OMVM v5 — Off-Market Valuation Model
  * Log-linear depreciation + engine remaining curve + expert calibration.
  * Body: { listingId } OR { make, model, year, engine_hours, tbo, avionics, asking_price }
@@ -93,14 +142,23 @@ Deno.serve(async (req) => {
     const avionicsList = (listing.avionics || '').split(',').map(a => a.trim()).filter(Boolean);
     const avionicsPremium = Math.min(avionicsList.length * 2500, 15000);
 
-    // 8) Base OMVM calculation with ATI discount applied
-    const regressionBase = valid.length >= 3 ? Math.exp(intercept + slope * age) : null;
+    // 8) Base OMVM calculation — 3-tier fallback
+    let baseValue, confidence;
 
-    // Fallback: use median of comps if regression fails
-    const prices = valid.map(l => l.asking_price).sort((a, b) => a - b);
-    const medianBase = prices.length > 0 ? prices[Math.floor(prices.length / 2)] : 55000;
-
-    const baseValue = regressionBase || medianBase;
+    if (valid.length >= 10) {
+      // HIGH: log-linear regression on comps
+      baseValue = Math.exp(intercept + slope * age);
+      confidence = 'HIGH';
+    } else if (valid.length >= 3) {
+      // MEDIUM: median of available comps
+      const prices = valid.map(l => l.asking_price).sort((a, b) => a - b);
+      baseValue = prices[Math.floor(prices.length / 2)];
+      confidence = 'MEDIUM';
+    } else {
+      // LOW: category depreciation table (prevents $55K hardcoded nonsense)
+      baseValue = getCategoryBaseValue(listing.make, listing.model, age);
+      confidence = 'LOW';
+    }
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
     const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
     const omvmValue = Math.max(10000, Math.round(rawOMVM / 1000) * 1000);
@@ -121,9 +179,6 @@ Deno.serve(async (req) => {
       : dealScore >= 6.5 ? 'good deal'
       : dealScore >= 5 ? 'fair'
       : 'overpriced';
-
-    // 10) Confidence
-    const confidence = valid.length >= 10 ? 'HIGH' : valid.length >= 3 ? 'MEDIUM' : 'LOW';
 
     // 11) Persist to listing if we have an ID
     if (listingId) {

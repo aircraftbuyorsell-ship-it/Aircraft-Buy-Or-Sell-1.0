@@ -104,33 +104,36 @@ export default function Dashboard() {
           </div>
 
           <h1 className={`text-2xl md:text-4xl lg:text-5xl font-black leading-[1.15] uppercase tracking-tight max-w-5xl mx-auto ${isDark ? "text-white" : "text-[#1A1814]"}`}>
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Aircraft Intelligence Reports</span>, <span className="text-[#E8A83A]">Secure Escrow</span> & <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Real-Time Tracking</span> — Professional Aviation Marketplace
+            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Reports</span> · <span className="text-[#E8A83A]">Live Tracking</span> · <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>AI Pre-Buy Inspection</span> · <span className="text-[#E8A83A]">Secure Escrow</span>
           </h1>
           <p className={`text-sm md:text-base mt-5 max-w-3xl mx-auto leading-relaxed ${isDark ? "text-white/80" : "text-[#4A4845]"}`}>
-            Generate comprehensive <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>aircraft intelligence reports</b>, close transactions with protected <b className="text-[#E8A83A]">escrow services</b>, and track aircraft activity in real-time. The trusted platform for aviation professionals and brokers.
+            The professional aviation platform for verified dealers and brokers. Generate <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI intelligence reports</b>, track any aircraft <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>live via ADS-B</b>, run an <b className="text-[#E8A83A]">AI-powered pre-buy inspection with Max</b>, and close deals through <b className="text-[#E8A83A]">protected escrow</b>.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <div className="mt-10 flex flex-wrap gap-3 justify-center items-center">
             <Link
               to="/listings"
               className="inline-flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
-              
               <ShieldCheck className="w-5 h-5" />
-              Generate Report
+              ATI Report
             </Link>
-            <button
-              onClick={() => setWizardOpen(true)}
+            <Link
+              to="/pre-buy-inspection"
               className="inline-flex items-center gap-2.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] uppercase font-black text-sm md:text-base px-6 py-3.5 rounded-md tracking-wider transition-colors">
-              
-              <Handshake className="w-5 h-5" />
-              Add Aircraft
-            </button>
+              <Plane className="w-5 h-5" />
+              Live Pre-Buy with Max
+            </Link>
             <Link
               to="/live-traffic"
               className="inline-flex items-center gap-2.5 bg-white border-2 border-[#0B2D5B] text-[#0B2D5B] hover:bg-[#0B2D5B] hover:text-white uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors">
-              
               <Radar className="w-5 h-5" />
-              Track Aircraft Live
+              Live Tracking
+            </Link>
+            <Link
+              to="/escrow"
+              className="inline-flex items-center gap-2.5 bg-white border-2 border-[#E8A83A] text-[#0B2D5B] hover:bg-[#E8A83A] uppercase font-black text-sm md:text-base px-6 py-[13px] rounded-md tracking-wider transition-colors">
+              <Handshake className="w-5 h-5" />
+              Secure Escrow
             </Link>
           </div>
 
@@ -150,22 +153,23 @@ export default function Dashboard() {
           Professional-Grade Intelligence, Transparency & Results
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-5 mt-12">
+        <div className="grid md:grid-cols-4 gap-5 mt-12">
           <PillarCard
             icon={ShieldCheck}
-            title="Complete Aircraft Reports"
-            body="Professional aircraft intelligence with verified ownership history, condition analysis, and valuation data — comprehensive evaluation in one report." />
-          
+            title="ATI Report"
+            body="Full aircraft intelligence scoring across 8 dimensions — documentation, engine, avionics, usage risk, and more. Know exactly what you're buying." />
           <PillarCard
-            icon={Percent}
-            title="Commission Management"
-            body="Transparent commission tracking and payment processing. Manage finder's fees, broker percentages, and payouts securely within the platform." />
-          
+            icon={Radar}
+            title="Live ADS-B Tracking"
+            body="Track any aircraft in real time by N-number or Mode-S hex. Live position, altitude, speed, and 7-day flight history via OpenSky Network." />
+          <PillarCard
+            icon={TrendingUp}
+            title="AI Pre-Buy Inspection"
+            body="Point your phone at the aircraft and Max AI analyses the live feed — calling out corrosion, wear, damage, and green flags by voice in real time." />
           <PillarCard
             icon={Handshake}
-            title="Professional Network"
-            body="Direct access to verified dealers, brokers, and operators. Lead management, deal tracking, and secure communication all in one place." />
-          
+            title="Secure Escrow"
+            body="Protected buyer-seller escrow with transparent commission management, finder's fees, and payout tracking — all in one professional workflow." />
         </div>
       </section>
 
@@ -194,10 +198,10 @@ export default function Dashboard() {
 
         <div className="grid md:grid-cols-4 gap-6 mt-12">
           {[
-          { n: "01", title: "Add Aircraft", body: "Import or list an aircraft to the platform. Generate a comprehensive intelligence report with verified history and condition analysis." },
-          { n: "02", title: "Set Commission", body: "Establish commission percentages and finder's fees. Secure, transparent tracking of all stakeholders in each transaction." },
-          { n: "03", title: "Share with Buyers", body: "Distribute aircraft information to verified brokers and professionals within your network. Professional presentation and secure communication." },
-          { n: "04", title: "Close & Settle", body: "When the aircraft sells, the platform processes and distributes commissions to all participants transparently and securely." }].
+          { n: "01", title: "Generate ATI Report", body: "Add an aircraft and instantly generate a professional ATI intelligence report scoring 8 dimensions of condition, value, and risk." },
+          { n: "02", title: "Live Pre-Buy with Max", body: "On-site inspection? Point your camera at the aircraft and Max AI analyses the live feed — flagging corrosion, wear, and issues by voice." },
+          { n: "03", title: "Track it Live", body: "Verify the aircraft is active. Track it by N-number via ADS-B — real-time position, altitude, and 7-day flight history included." },
+          { n: "04", title: "Close via Escrow", body: "Execute the deal through protected escrow. Commission splits, finder's fees, and payouts all managed transparently on-platform." }].
           map((s) =>
           <div key={s.n} className="relative">
               <p className="text-5xl font-black text-[#E8A83A] leading-none">{s.n}</p>

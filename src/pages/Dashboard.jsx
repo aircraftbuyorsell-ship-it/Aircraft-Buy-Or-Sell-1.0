@@ -7,6 +7,7 @@ import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketPulse from "@/components/dashboard/MarketPulse";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
+import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 
 // ———————————————————————————————————————————————
 // Palette: Navy #0B2D5B · Amber #E8A83A · Deep #1A1814
@@ -256,6 +257,11 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* ———————— MARKET FORECAST CHARTS ———————— */}
+      <section className="max-w-6xl mx-auto px-4 md:px-8 py-10">
+        <MarketForecastCharts />
       </section>
 
       {/* ———————— RECENT CARDS + AI INSIGHTS ———————— */}

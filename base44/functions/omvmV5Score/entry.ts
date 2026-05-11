@@ -74,12 +74,23 @@ Deno.serve(async (req) => {
     const currentYear = new Date().getFullYear();
     const age = currentYear - (listing.year || currentYear);
 
-    // 1) Pull historical comps for make/model
+    // 1) Pull historical comps for make, then filter by model prefix in code
     const filter = {};
     if (listing.make) filter.make = listing.make;
-    if (listing.model) filter.model = listing.model;
     const comps = await base44.asServiceRole.entities.AircraftListing.filter(filter, '-created_date', 500);
-    const valid = comps.filter(l => l.asking_price > 5000 && l.year && l.year > 1950 && l.id !== listingId);
+
+    // Extract model prefix: "172S" → "172", "172RG" → "172", "152" → "152"
+    const modelPrefix = (listing.model || '').replace(/[A-Z]+$/, '').trim();
+
+    const valid = comps.filter(l => {
+      const compPrefix = (l.model || '').replace(/[A-Z]+$/, '').trim();
+      return (
+        l.asking_price > 5000 &&
+        l.year && l.year > 1950 &&
+        l.id !== listingId &&
+        compPrefix === modelPrefix
+      );
+    });
 
     // 2) Depreciation curve — log-linear regression: ln(price) ~ age
     // Defaults: intercept=11.0 → exp(11.0)=$59k base, slope=-0.03 → ~3% annual depreciation

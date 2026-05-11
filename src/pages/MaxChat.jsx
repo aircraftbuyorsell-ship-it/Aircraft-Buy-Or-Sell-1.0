@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Mic, MicOff, Send, Volume2, VolumeX, Loader2, RotateCcw, FileText, ChevronDown } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
@@ -16,73 +16,97 @@ WHAT YOU DO:
 - Clarify what ATI score labels mean: EXCEPTIONAL (108+), STRONG BUY (93+), FAIR (72+), CAUTION (54+), RED FLAGS (36+), AVOID (<36)
 
 STRICT RESTRICTIONS — never reveal these:
-- Do NOT explain internal algorithms, formulas, or scoring methodology in detail (how OMVM is calculated, exact weighting, depreciation curves, etc.)
+- Do NOT explain internal algorithms, formulas, or scoring methodology in detail
 - Do NOT reveal internal business logic, commission waterfall structures, or pricing tier mechanics
 - Do NOT discuss competitor platforms or make comparative claims
-- Do NOT provide legal, financial, or airworthiness advice — always recommend consulting a licensed professional
+- Do NOT provide legal, financial, or airworthiness advice
 
 RELEVANCE FILTER:
 - If a question is not related to aviation, aircraft transactions, or the ABOS platform, politely decline and redirect: "I'm Max, ABOS's aviation specialist — that's a bit outside my flight plan! Is there anything aviation or ABOS related I can help with?"
 
 ATI REPORT SUPPORT:
-- If the user shares ATI data (scores, labels, dimensions, aircraft info), acknowledge it and help them interpret what it means for the transaction — is it a strong buy? What risks are flagged? What should they verify before closing?
-- Be practical: translate scores into real-world buying/selling guidance
+- If the user shares ATI data, help them interpret what it means for the transaction.
 
-Keep answers to 2–4 sentences unless more detail is needed. Always end with a helpful next step or question.`;
+Keep answers to 2–4 sentences unless more detail is needed. In voice mode, be extra concise — 1–2 sentences max.`;
 
-const SUGGESTED_QUESTIONS = [
-  "How does the ATI score work?",
-  "What is Deal Radar?",
-  "How does escrow work?",
-  "How do I add an aircraft?",
-  "What are credits used for?",
-  "How is the aircraft value calculated?",
+// ─── Instrument button positions around the circle (clock positions) ───
+const INSTRUMENT_POSITIONS = [
+  { id: "voice", angle: -90, label: "Voice", color: "#E8A83A" },   // top
+  { id: "chat",  angle: -30, label: "Chat",  color: "#4A90D9" },   // top-right
+  { id: "ati",   angle:  30, label: "ATI",   color: "#0F7A56" },   // bottom-right
+  { id: "reset", angle:  90, label: "Reset", color: "#AAA49C" },   // bottom
+  { id: "mute",  angle: 150, label: "Sound", color: "#CD7F32" },   // bottom-left
+  { id: "msgs",  angle: 210, label: "Log",   color: "#185FA5" },   // top-left
 ];
 
-function MessageBubble({ msg, speaking }) {
+function getCirclePos(angleDeg, radius) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return {
+    x: Math.cos(rad) * radius,
+    y: Math.sin(rad) * radius,
+  };
+}
+
+// ─── Instrument Button ───────────────────────────────────────────
+function InstrumentBtn({ id, angle, label, color, active, onClick, children, pulsing }) {
+  const pos = getCirclePos(angle, 96);
+  return (
+    <button
+      onClick={() => onClick(id)}
+      title={label}
+      className={`absolute flex flex-col items-center justify-center transition-all duration-200 rounded-full border-2 shadow-lg
+        w-14 h-14 text-white text-[9px] font-black uppercase tracking-wide
+        hover:scale-110 active:scale-95
+        ${pulsing ? "animate-pulse" : ""}
+      `}
+      style={{
+        left: `calc(50% + ${pos.x}px - 28px)`,
+        top:  `calc(50% + ${pos.y}px - 28px)`,
+        backgroundColor: active ? color : "#1C2B3A",
+        borderColor: active ? color : `${color}60`,
+        boxShadow: active ? `0 0 16px ${color}80` : `0 2px 8px rgba(0,0,0,0.4)`,
+      }}
+    >
+      {children}
+      <span className="mt-0.5 leading-none" style={{ color: active ? "white" : color }}>{label}</span>
+    </button>
+  );
+}
+
+// ─── Audio waveform viz ──────────────────────────────────────────
+function VoiceWave({ active }) {
+  if (!active) return null;
+  return (
+    <div className="flex items-end gap-0.5 h-5">
+      {[3,5,8,12,8,5,3].map((h, i) => (
+        <div
+          key={i}
+          className="w-1 rounded-full bg-[#E8A83A] animate-bounce"
+          style={{ height: `${h}px`, animationDelay: `${i * 0.08}s`, animationDuration: "0.5s" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Message bubble (compact) ───────────────────────────────────
+function MsgBubble({ msg }) {
   const isUser = msg.role === "user";
   return (
-    <div className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}>
-      {!isUser && (
-        <img
-          src={PILOT_AVATAR}
-          alt="Max"
-          className="w-9 h-9 rounded-full object-cover shrink-0 self-end"
-          style={{ mixBlendMode: "multiply" }}
-        />
-      )}
-      <div
-        className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-          isUser
-            ? "bg-[#0B2D5B] text-white rounded-br-sm"
-            : "bg-white border border-black/[0.08] text-[#1A1814] rounded-bl-sm shadow-sm"
-        }`}
-      >
-        {isUser ? (
-          <p>{msg.content}</p>
-        ) : (
+    <div className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+        isUser ? "bg-[#0B2D5B] text-white rounded-br-sm" : "bg-white/90 border border-white/20 text-[#1A1814] rounded-bl-sm"
+      }`}>
+        {isUser ? <p>{msg.content}</p> : (
           <ReactMarkdown
-            className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            className="prose prose-xs max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
             components={{
-              p: ({ children }) => <p className="my-1">{children}</p>,
-              ul: ({ children }) => <ul className="my-1 ml-4 list-disc">{children}</ul>,
-              li: ({ children }) => <li className="my-0.5">{children}</li>,
+              p: ({ children }) => <p className="my-0.5">{children}</p>,
               strong: ({ children }) => <strong className="font-bold text-[#0B2D5B]">{children}</strong>,
             }}
           >
             {msg.content}
           </ReactMarkdown>
-        )}
-        {!isUser && speaking && (
-          <div className="flex gap-0.5 mt-1.5 items-end h-3">
-            {[1, 2, 3, 4].map(i => (
-              <div
-                key={i}
-                className="w-1 bg-[#4A90D9] rounded-full animate-bounce"
-                style={{ height: `${8 + (i % 2) * 4}px`, animationDelay: `${i * 0.1}s` }}
-              />
-            ))}
-          </div>
         )}
       </div>
     </div>
@@ -91,75 +115,77 @@ function MessageBubble({ msg, speaking }) {
 
 export default function MaxChat() {
   const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Hey! I'm Max, your ABOS aviation guide ✈️ I can help you understand ATI reports, find great deals, navigate escrow, or anything else on the platform. What can I help you with?",
-    },
+    { role: "assistant", content: "Hey! I'm Max ✈️ Tap the mic button to start a voice conversation, or use Chat mode to type." }
   ]);
   const [input, setInput] = useState("");
   const [atiContext, setAtiContext] = useState("");
-  const [showAtiPanel, setShowAtiPanel] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Panel visibility
+  const [showChat, setShowChat] = useState(false);
+  const [showAti, setShowAti] = useState(false);
+  const [showLog, setShowLog] = useState(false);
+
+  // Voice / TTS
+  const [voiceMode, setVoiceMode] = useState(false);
   const [listening, setListening] = useState(false);
-  const [ttsEnabled, setTtsEnabled] = useState(true);
   const [speaking, setSpeaking] = useState(false);
-  const [speakingMsgIdx, setSpeakingMsgIdx] = useState(null);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [micPermission, setMicPermission] = useState("unknown"); // "unknown" | "granted" | "denied"
 
   const bottomRef = useRef(null);
   const recognitionRef = useRef(null);
-  const synthRef = useRef(window.speechSynthesis);
+  const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
+  const voiceModeRef = useRef(false);
+
+  useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, showLog]);
 
-  // Cleanup speech on unmount
   useEffect(() => {
     return () => {
       synthRef.current?.cancel();
-      if (recognitionRef.current) recognitionRef.current.stop();
+      recognitionRef.current?.stop();
     };
   }, []);
 
-  const speak = (text, msgIdx) => {
-    if (!ttsEnabled || !synthRef.current) return;
+  // ── TTS ──────────────────────────────────────────────────────
+  const speak = useCallback((text, onDone) => {
+    if (!ttsEnabled || !synthRef.current) { onDone?.(); return; }
     synthRef.current.cancel();
     const utterance = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g, ""));
     utterance.rate = 1.05;
-    utterance.pitch = 1.0;
+    utterance.pitch = 0.85;
     utterance.volume = 1;
-    // Prefer a male English voice
     const voices = synthRef.current.getVoices();
     const preferred =
       voices.find(v => v.name === "Google UK English Male") ||
-      voices.find(v => v.name === "Google US English") ||
       voices.find(v => v.name.toLowerCase().includes("male") && v.lang.startsWith("en")) ||
       voices.find(v => v.name.includes("David") && v.lang.startsWith("en")) ||
-      voices.find(v => v.name.includes("James") && v.lang.startsWith("en")) ||
       voices.find(v => v.name.includes("Daniel") && v.lang.startsWith("en")) ||
       voices.find(v => v.lang.startsWith("en-US") || v.lang.startsWith("en-GB")) ||
       voices[0];
     if (preferred) utterance.voice = preferred;
-    utterance.pitch = 0.85; // slightly lower = more masculine
-
-    utterance.onstart = () => { setSpeaking(true); setSpeakingMsgIdx(msgIdx); };
-    utterance.onend = () => { setSpeaking(false); setSpeakingMsgIdx(null); };
-    utterance.onerror = () => { setSpeaking(false); setSpeakingMsgIdx(null); };
+    utterance.onstart = () => setSpeaking(true);
+    utterance.onend = () => { setSpeaking(false); onDone?.(); };
+    utterance.onerror = () => { setSpeaking(false); onDone?.(); };
     synthRef.current.speak(utterance);
-  };
+  }, [ttsEnabled]);
 
-  const sendMessage = async (text) => {
+  // ── LLM call ─────────────────────────────────────────────────
+  const sendMessage = useCallback(async (text) => {
     if (!text.trim() || loading) return;
     const userMsg = { role: "user", content: text.trim() };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      const history = newMessages.slice(-10);
+      const history = [...messages, userMsg].slice(-10);
       const atiSection = atiContext.trim()
-        ? `\n\n--- ATI REPORT DATA PROVIDED BY USER ---\n${atiContext.trim()}\n--- END ATI DATA ---`
+        ? `\n\n--- ATI REPORT DATA ---\n${atiContext.trim()}\n--- END ---`
         : "";
       const prompt = `${SYSTEM_PROMPT}${atiSection}\n\n--- Conversation ---\n${
         history.map(m => `${m.role === "user" ? "User" : "Max"}: ${m.content}`).join("\n")
@@ -167,40 +193,37 @@ export default function MaxChat() {
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt,
-        model: "gpt_5_mini",
+        model: "gemini_3_1_pro",
       });
 
-      const assistantMsg = { role: "assistant", content: result };
-      setMessages(prev => {
-        const updated = [...prev, assistantMsg];
-        const idx = updated.length - 1;
-        setTimeout(() => speak(result, idx), 100);
-        return updated;
-      });
-    } catch (e) {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "Sorry, I hit a turbulence pocket! Try again in a moment. ✈️",
-      }]);
+      setMessages(prev => [...prev, { role: "assistant", content: result }]);
+
+      // After speaking, if still in voice mode → restart listening
+      if (voiceModeRef.current) {
+        speak(result, () => {
+          if (voiceModeRef.current) startRecognition();
+        });
+      } else {
+        speak(result);
+      }
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, turbulence pocket! Try again. ✈️" }]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, messages, atiContext, speak]);
 
-  const startListening = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in your browser. Try Chrome.");
-      return;
-    }
-    synthRef.current?.cancel();
-    const recognition = new SpeechRecognition();
+  // ── Speech recognition ───────────────────────────────────────
+  const startRecognition = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    const recognition = new SR();
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
+    recognition.continuous = false;
     recognition.onresult = (e) => {
       const transcript = e.results[0][0].transcript;
-      setInput(transcript);
       setListening(false);
       sendMessage(transcript);
     };
@@ -209,189 +232,270 @@ export default function MaxChat() {
     recognitionRef.current = recognition;
     recognition.start();
     setListening(true);
+  }, [sendMessage]);
+
+  const requestMicAndStartVoice = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicPermission("granted");
+      setVoiceMode(true);
+      synthRef.current?.cancel();
+      // Greeting then start listening
+      speak("Voice mode active. Go ahead!", () => startRecognition());
+    } catch {
+      setMicPermission("denied");
+      setVoiceMode(false);
+    }
   };
 
-  const stopListening = () => {
+  const stopVoiceMode = () => {
+    setVoiceMode(false);
     recognitionRef.current?.stop();
+    synthRef.current?.cancel();
     setListening(false);
+    setSpeaking(false);
   };
 
-  const reset = () => {
-    synthRef.current?.cancel();
-    setSpeaking(false);
-    setMessages([{
-      role: "assistant",
-      content: "Hey! I'm Max, your ABOS aviation guide ✈️ I can help you with ATI scores, valuations, escrow, deals, or anything about the platform. What can I help you with?",
-    }]);
+  // ── Instrument button handler ────────────────────────────────
+  const handleInstrument = (id) => {
+    if (id === "voice") {
+      if (voiceMode) {
+        stopVoiceMode();
+      } else {
+        requestMicAndStartVoice();
+      }
+    } else if (id === "chat") {
+      setShowChat(v => !v);
+      setShowAti(false);
+      setShowLog(false);
+    } else if (id === "ati") {
+      setShowAti(v => !v);
+      setShowChat(false);
+      setShowLog(false);
+    } else if (id === "reset") {
+      stopVoiceMode();
+      setMessages([{ role: "assistant", content: "Conversation reset. I'm Max ✈️ Ready when you are!" }]);
+    } else if (id === "mute") {
+      setTtsEnabled(v => {
+        if (v) synthRef.current?.cancel();
+        return !v;
+      });
+    } else if (id === "msgs") {
+      setShowLog(v => !v);
+      setShowChat(false);
+      setShowAti(false);
+    }
   };
+
+  const isActive = (id) => {
+    if (id === "voice") return voiceMode;
+    if (id === "chat") return showChat;
+    if (id === "ati") return showAti || !!atiContext;
+    if (id === "mute") return ttsEnabled;
+    if (id === "msgs") return showLog;
+    return false;
+  };
+
+  const getIcon = (id) => {
+    if (id === "voice") return voiceMode ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />;
+    if (id === "chat") return <MessageCircle className="w-5 h-5" />;
+    if (id === "ati") return <FileText className="w-5 h-5" />;
+    if (id === "reset") return <RotateCcw className="w-5 h-5" />;
+    if (id === "mute") return ttsEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />;
+    if (id === "msgs") return <MessageCircle className="w-5 h-5" />;
+    return null;
+  };
+
+  // Status text
+  const statusText = loading ? "Thinking…"
+    : speaking ? "Speaking…"
+    : listening ? "Listening…"
+    : voiceMode ? "Voice Active — Say Something"
+    : "Tap mic for voice · tap chat to type";
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#0B2D5B] px-4 md:px-8 py-4 flex items-center gap-4">
-        <div className="relative">
-          <img
-            src={PILOT_AVATAR}
-            alt="Max"
-            className="w-12 h-12 rounded-full object-cover border-2 border-[#E8A83A]"
-            style={{ mixBlendMode: "multiply", background: "#4A90D9" }}
-          />
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0B2D5B]" />
-        </div>
-        <div className="flex-1">
-          <h1 className="text-white font-black text-lg leading-tight">Max — ABOS Guide</h1>
-          <p className="text-[#E8A83A] text-[11px] uppercase tracking-wider font-semibold">
-            {speaking ? "Speaking…" : listening ? "Listening…" : "Online · Aviation AI Assistant"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => { setTtsEnabled(v => !v); if (!ttsEnabled === false) synthRef.current?.cancel(); }}
-            className={`p-2 rounded-lg border transition-colors ${ttsEnabled ? "bg-[#E8A83A]/20 border-[#E8A83A]/40 text-[#E8A83A]" : "bg-white/5 border-white/10 text-white/40"}`}
-            title={ttsEnabled ? "Mute Max" : "Unmute Max"}
-          >
-            {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={reset}
-            className="p-2 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white transition-colors"
-            title="Reset conversation"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-[#0B1A33] to-[#0D2244] flex flex-col items-center justify-start px-4 py-6 md:py-10">
+
+      {/* ── Title ── */}
+      <div className="text-center mb-6">
+        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Cockpit · AI Assistant</p>
+        <h1 className="text-white text-2xl font-black tracking-tight">Max</h1>
+        <p className="text-white/40 text-[11px] mt-0.5">{statusText}</p>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-4">
-        {/* Suggested questions (shown only at start) */}
-        {messages.length === 1 && (
-          <div className="flex flex-wrap gap-2 pb-2">
-            {SUGGESTED_QUESTIONS.map(q => (
-              <button
-                key={q}
-                onClick={() => sendMessage(q)}
-                className="text-[11px] bg-white border border-[#0B2D5B]/15 text-[#0B2D5B] font-semibold px-3 py-1.5 rounded-full hover:bg-[#EBF4FF] hover:border-[#4A90D9] transition-colors"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* ── Cockpit Panel ── */}
+      <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>
+        {/* Outer ring */}
+        <div
+          className="absolute inset-0 rounded-full border-2 border-[#E8A83A]/20"
+          style={{
+            background: "radial-gradient(circle, rgba(11,45,91,0.6) 0%, rgba(7,18,38,0.9) 100%)",
+            boxShadow: voiceMode
+              ? "0 0 40px rgba(232,168,58,0.3), inset 0 0 30px rgba(232,168,58,0.05)"
+              : "0 0 24px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.3)",
+          }}
+        />
 
-        {messages.map((msg, i) => (
-          <MessageBubble key={i} msg={msg} speaking={speaking && speakingMsgIdx === i} />
+        {/* Tick marks */}
+        {[0,30,60,90,120,150,180,210,240,270,300,330].map(a => {
+          const r = (a * Math.PI) / 180;
+          const isMajor = a % 60 === 0;
+          return (
+            <div
+              key={a}
+              className="absolute"
+              style={{
+                width: isMajor ? 2 : 1,
+                height: isMajor ? 10 : 6,
+                backgroundColor: isMajor ? "#E8A83A80" : "#FFFFFF30",
+                left: `calc(50% + ${Math.cos(r) * 130}px - ${isMajor ? 1 : 0.5}px)`,
+                top:  `calc(50% + ${Math.sin(r) * 130}px - ${isMajor ? 5 : 3}px)`,
+                transform: `rotate(${a}deg)`,
+                transformOrigin: "center center",
+              }}
+            />
+          );
+        })}
+
+        {/* 6 instrument buttons */}
+        {INSTRUMENT_POSITIONS.map(inst => (
+          <InstrumentBtn
+            key={inst.id}
+            {...inst}
+            active={isActive(inst.id)}
+            onClick={handleInstrument}
+            pulsing={(inst.id === "voice" && listening) || (inst.id === "voice" && speaking && voiceMode)}
+          >
+            {getIcon(inst.id)}
+          </InstrumentBtn>
         ))}
 
-        {loading && (
-          <div className="flex gap-3 items-end">
+        {/* Center — Max avatar */}
+        <div className="relative z-10 flex flex-col items-center justify-center">
+          {/* Glow ring */}
+          <div
+            className="absolute rounded-full transition-all duration-500"
+            style={{
+              width: 76, height: 76,
+              background: voiceMode
+                ? "radial-gradient(circle, rgba(232,168,58,0.35) 0%, transparent 70%)"
+                : speaking
+                ? "radial-gradient(circle, rgba(74,144,217,0.3) 0%, transparent 70%)"
+                : "transparent",
+            }}
+          />
+          <div
+            className="relative w-16 h-16 rounded-full border-2 overflow-hidden transition-all duration-300"
+            style={{
+              borderColor: voiceMode ? "#E8A83A" : speaking ? "#4A90D9" : "#FFFFFF30",
+              boxShadow: voiceMode ? "0 0 20px rgba(232,168,58,0.5)" : speaking ? "0 0 16px rgba(74,144,217,0.5)" : "none",
+            }}
+          >
             <img
               src={PILOT_AVATAR}
               alt="Max"
-              className="w-9 h-9 rounded-full object-cover shrink-0"
-              style={{ mixBlendMode: "multiply" }}
+              className="w-full h-full object-cover"
+              style={{ mixBlendMode: "multiply", background: "#4A90D9" }}
             />
-            <div className="bg-white border border-black/[0.08] rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-              <div className="flex gap-1 items-center">
-                <div className="w-1.5 h-1.5 bg-[#4A90D9] rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
-                <div className="w-1.5 h-1.5 bg-[#4A90D9] rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-                <div className="w-1.5 h-1.5 bg-[#4A90D9] rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
-              </div>
-            </div>
           </div>
-        )}
-        <div ref={bottomRef} />
+
+          {/* Voice waveform / loading */}
+          <div className="mt-2 h-5 flex items-center justify-center">
+            {loading ? (
+              <Loader2 className="w-4 h-4 text-[#4A90D9] animate-spin" />
+            ) : (
+              <VoiceWave active={listening || speaking} />
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* ATI Context Panel */}
-      {showAtiPanel && (
-        <div className="bg-[#EBF4FF] border-t border-[#4A90D9]/20 px-4 md:px-8 py-3">
-          <p className="text-[10px] uppercase tracking-wider font-black text-[#4A90D9] mb-1.5 flex items-center gap-1.5">
-            <FileText className="w-3 h-3" /> Paste ATI report data for Max to analyse
+      {/* ── Permission denied notice ── */}
+      {micPermission === "denied" && (
+        <div className="mt-4 text-[11px] text-red-400 bg-red-900/20 border border-red-500/30 rounded-xl px-4 py-2 text-center max-w-xs">
+          Microphone access denied. Please allow it in your browser settings.
+        </div>
+      )}
+
+      {/* ── Chat input panel ── */}
+      {showChat && (
+        <div className="mt-6 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur">
+          <div className="flex gap-2 items-end">
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
+              placeholder="Ask Max anything about ABOS…"
+              rows={2}
+              className="flex-1 resize-none px-3 py-2 bg-white/10 border border-white/15 rounded-xl text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#E8A83A]/60"
+            />
+            <button
+              onClick={() => sendMessage(input)}
+              disabled={loading || !input.trim()}
+              className="shrink-0 w-10 h-10 rounded-xl bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-30 flex items-center justify-center transition-colors"
+            >
+              {loading ? <Loader2 className="w-4 h-4 text-[#0B2D5B] animate-spin" /> : <Send className="w-4 h-4 text-[#0B2D5B]" />}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── ATI context panel ── */}
+      {showAti && (
+        <div className="mt-4 w-full max-w-md bg-[#0F7A56]/10 border border-[#0F7A56]/30 rounded-2xl p-4 backdrop-blur">
+          <p className="text-[10px] uppercase tracking-wider font-black text-[#4ADE80] mb-2 flex items-center gap-1.5">
+            <FileText className="w-3 h-3" /> Paste ATI Report Data
           </p>
           <textarea
             value={atiContext}
             onChange={e => setAtiContext(e.target.value)}
-            placeholder="Paste ATI scores, dimensions, aircraft details, or any report data here… e.g. 'ATI Total: 87, Documentation: 12/15, Engine: 10/15, asking $185k, OMVM $195k'"
+            placeholder="e.g. ATI Total: 87, Documentation: 12/15, Engine: 10/15, asking $185k, OMVM $195k…"
             rows={3}
-            className="w-full resize-none px-3 py-2 bg-white border border-[#4A90D9]/30 rounded-xl text-xs text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#4A90D9]"
+            className="w-full resize-none px-3 py-2 bg-white/10 border border-white/15 rounded-xl text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#0F7A56]/60"
           />
-          {atiContext && (
-            <p className="text-[9px] text-[#4A90D9] mt-1 font-semibold">✓ Max will use this ATI context in his next response</p>
-          )}
+          {atiContext && <p className="text-[9px] text-[#4ADE80] mt-1 font-semibold">✓ Max will analyse this ATI data</p>}
         </div>
       )}
 
-      {/* Input bar */}
-      <div className="bg-white border-t border-black/[0.07] px-4 md:px-8 py-4">
-        <div className="flex gap-3 items-end max-w-4xl mx-auto">
-          {/* ATI context toggle */}
-          <button
-            onClick={() => setShowAtiPanel(v => !v)}
-            className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border transition-all ${
-              showAtiPanel || atiContext
-                ? "bg-[#EBF4FF] border-[#4A90D9] text-[#4A90D9]"
-                : "bg-[#F7F4EF] border-black/10 text-[#6B6560] hover:border-[#4A90D9] hover:text-[#4A90D9]"
-            }`}
-            title="Share ATI report data with Max"
-          >
-            <FileText className="w-4 h-4" />
-          </button>
-
-          {/* Voice button */}
-          <button
-            onMouseDown={startListening}
-            onMouseUp={stopListening}
-            onTouchStart={startListening}
-            onTouchEnd={stopListening}
-            disabled={loading}
-            className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border transition-all ${
-              listening
-                ? "bg-red-500 border-red-400 text-white animate-pulse"
-                : "bg-[#F7F4EF] border-black/10 text-[#6B6560] hover:border-[#4A90D9] hover:text-[#4A90D9]"
-            }`}
-            title="Hold to speak"
-          >
-            {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-          </button>
-
-          <div className="flex-1 relative">
-            <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage(input);
-                }
-              }}
-              placeholder="Ask Max anything about ABOS…"
-              rows={1}
-              className="w-full resize-none px-4 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#4A90D9] transition-colors"
-              style={{ minHeight: "44px", maxHeight: "120px" }}
-              onInput={e => {
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-              }}
-            />
+      {/* ── Message log ── */}
+      {showLog && (
+        <div className="mt-4 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur max-h-72 overflow-y-auto flex flex-col gap-2">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] text-white/40 uppercase tracking-wider font-bold">Conversation Log</p>
+            <button onClick={() => setShowLog(false)} className="text-white/30 hover:text-white/60">
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
-
-          <button
-            onClick={() => sendMessage(input)}
-            disabled={loading || !input.trim()}
-            className="shrink-0 w-11 h-11 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-40 flex items-center justify-center transition-colors"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 text-white animate-spin" />
-            ) : (
-              <Send className="w-4 h-4 text-white" />
-            )}
-          </button>
+          {messages.map((msg, i) => <MsgBubble key={i} msg={msg} />)}
+          {loading && (
+            <div className="flex gap-1 items-center pl-1 py-1">
+              {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 bg-[#4A90D9] rounded-full animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />)}
+            </div>
+          )}
+          <div ref={bottomRef} />
         </div>
-        <p className="text-center text-[9px] text-[#AAA49C] mt-2 uppercase tracking-wider">
-          Hold mic to speak · Enter to send · Max uses AI — verify critical info
-        </p>
+      )}
+
+      {/* ── Instruction hints ── */}
+      <div className="mt-8 flex flex-wrap justify-center gap-3 max-w-xs text-center">
+        {[
+          { icon: "🎙️", text: "Mic — live voice chat" },
+          { icon: "💬", text: "Chat — type a message" },
+          { icon: "📄", text: "ATI — paste report data" },
+          { icon: "📋", text: "Log — view history" },
+          { icon: "🔊", text: "Sound — toggle TTS" },
+          { icon: "↺",  text: "Reset — new session" },
+        ].map(h => (
+          <div key={h.text} className="flex items-center gap-1.5 text-[10px] text-white/30 font-semibold">
+            <span>{h.icon}</span>
+            <span>{h.text}</span>
+          </div>
+        ))}
       </div>
+
+      <p className="mt-6 text-[9px] text-white/20 uppercase tracking-wider text-center">
+        Powered by Gemini 3.1 Pro · ABOS Aviation Intelligence
+      </p>
     </div>
   );
 }

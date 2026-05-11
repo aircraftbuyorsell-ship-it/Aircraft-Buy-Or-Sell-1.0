@@ -10,58 +10,67 @@ const TOUR_STEPS = [
     title: "ATI Score Card",
     desc: "Get key insights and transparency scores for any aircraft.",
     icon: ShieldCheck,
+    speech: "Hi! I'm Max, your ABOS guide! Let's start with the ATI Score Card — your aircraft's trust passport! 🛫",
   },
   {
     n: 2,
     title: "Listings",
     desc: "View all your active aircraft listings in one place.",
     icon: Plane,
+    speech: "Here you'll find all aircraft on the market — swipe like Tinder or browse the list view! ✈️",
   },
   {
     n: 3,
     title: "Deal Radar",
     desc: "Discover hot deals — aircraft priced below market value.",
     icon: Radar,
+    speech: "Deal Radar catches aircraft priced 8%+ below market with ATI 93+. These go fast! 🎯",
   },
   {
     n: 4,
     title: "Analytics",
     desc: "Get insights into market trends and price movements.",
     icon: BarChart3,
+    speech: "Analytics shows real price trends, time-on-market data, and AI market forecasts. 📊",
   },
   {
     n: 5,
     title: "OPEX Calculator",
     desc: "Calculate real ownership costs before you buy.",
     icon: Calculator,
+    speech: "Don't just think about purchase price — know your true annual ownership cost before signing! 🔢",
   },
   {
     n: 6,
     title: "Escrow",
     desc: "Secure aircraft transactions with protected escrow services.",
     icon: Handshake,
+    speech: "Our escrow system protects both buyer and seller — funds are secured before the aircraft moves! 🤝",
   },
   {
     n: 7,
     title: "Leads CRM",
     desc: "Manage your buyer leads and track your sales pipeline.",
     icon: Users,
+    speech: "Capture buyer leads directly from listings and track them through your sales pipeline! 👥",
   },
   {
     n: 8,
     title: "Credits & Plans",
     desc: "Credits & plans to power your ABOS experience.",
     icon: Zap,
+    speech: "Credits never expire! Verify your account to get your starter pack. You're all set — happy flying! 🚀",
   },
 ];
 
-const TOUR_KEY = "abos_tour_completed_v2";
+const TOUR_KEY = "abos_tour_completed_v3";
 
-const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/183d47bee_generated_image.png";
+const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
 
 export default function ABOSTour() {
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
+  const [speechVisible, setSpeechVisible] = useState(false);
 
   useEffect(() => {
     const done = localStorage.getItem(TOUR_KEY);
@@ -70,6 +79,13 @@ export default function ABOSTour() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // Re-trigger speech bubble animation on step change
+  useEffect(() => {
+    setSpeechVisible(false);
+    const t = setTimeout(() => setSpeechVisible(true), 120);
+    return () => clearTimeout(t);
+  }, [step]);
 
   const close = () => {
     localStorage.setItem(TOUR_KEY, "1");
@@ -96,7 +112,7 @@ export default function ABOSTour() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[600px] overflow-hidden">
 
         {/* ── Header ── */}
-        <div className="relative bg-[#4A90D9] px-6 pt-5 pb-14">
+        <div className="relative bg-[#4A90D9] px-6 pt-5 pb-4 pr-[230px]">
           {/* Logo + title row */}
           <div className="flex items-center gap-2 mb-1">
             <div className="w-6 h-6 rounded bg-white/20 flex items-center justify-center">
@@ -114,12 +130,27 @@ export default function ABOSTour() {
             <X className="w-5 h-5" />
           </button>
 
-          {/* Pilot avatar — positioned at top-right of header */}
-          <img
-            src={PILOT_AVATAR}
-            alt="ABOS Guide Pilot"
-            className="absolute top-2 right-10 h-[110px] w-auto object-contain drop-shadow-lg"
-          />
+          {/* Pilot avatar + speech bubble */}
+          <div className="absolute top-1 right-4 flex items-end gap-2">
+            {/* Speech bubble */}
+            <div
+              className={`relative max-w-[200px] bg-white rounded-2xl rounded-br-none px-3 py-2 shadow-md transition-all duration-300 ${
+                speechVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+              }`}
+              style={{ transformOrigin: "bottom right" }}
+            >
+              <p className="text-[11px] text-[#1A1814] leading-snug font-medium">{currentStep.speech}</p>
+              {/* Tail pointing right-down */}
+              <div className="absolute -right-2 bottom-0 w-0 h-0 border-t-[8px] border-t-transparent border-l-[10px] border-l-white border-b-0" />
+            </div>
+            {/* Avatar with multiply blend to remove white bg */}
+            <img
+              src={PILOT_AVATAR}
+              alt="ABOS Guide Pilot"
+              className="h-[100px] w-auto object-contain shrink-0"
+              style={{ mixBlendMode: "multiply" }}
+            />
+          </div>
         </div>
 
         {/* ── Feature Grid ── */}

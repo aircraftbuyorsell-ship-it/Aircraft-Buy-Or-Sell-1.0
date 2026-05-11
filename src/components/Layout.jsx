@@ -207,6 +207,24 @@ export default function Layout() {
       </main>
 
       <ABOSTour />
+
+      {/* Floating Max Chat button */}
+      {pathname !== "/max-chat" && (
+        <Link
+          to="/max-chat"
+          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white pl-2 pr-4 py-2 rounded-full shadow-xl border border-[#E8A83A]/30 transition-all hover:scale-105 active:scale-95"
+          title="Chat with Max"
+        >
+          <img
+            src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png"
+            alt="Max"
+            className="w-8 h-8 rounded-full object-cover border border-[#E8A83A]/60"
+            style={{ mixBlendMode: "multiply", background: "#4A90D9" }}
+          />
+          <span className="text-[12px] font-black uppercase tracking-wide">Ask Max</span>
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0B2D5B]" />
+        </Link>
+      )}
     </div>
   );
 }

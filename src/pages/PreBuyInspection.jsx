@@ -10,11 +10,14 @@ import { Link } from "react-router-dom";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
 
-// ─── Build WebSocket URL using the same origin as the app ─────────
+// ─── Build WebSocket URL with auth token ──────────────────────────
 function buildWsUrl() {
   const { appId } = appParams;
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${window.location.host}/api/apps/${appId}/functions/geminiLiveProxy`;
+  // Browser WS can't send custom headers — pass token as query param
+  const token = localStorage.getItem("base44_access_token") || localStorage.getItem("token") || appParams.token || "";
+  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `${proto}://${window.location.host}/api/apps/${appId}/functions/geminiLiveProxy${tokenParam}`;
 }
 
 // ─── Safe base64 encode for large typed arrays ────────────────────

@@ -86,11 +86,21 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "id": {
-          "$exists": true
+      "$or": [
+        {
+          "data.expert_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "appraiser"
+          }
         }
-      }
+      ]
     },
     "read": {
       "$or": [

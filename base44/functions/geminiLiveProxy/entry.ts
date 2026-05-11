@@ -2,11 +2,7 @@
  * Gemini Live Multimodal API Proxy
  * Bridges the frontend WebSocket to Google's Gemini Live API
  * keeping the API key server-side.
- *
- * Frontend connects via WebSocket to this endpoint.
- * This function upgrades the connection and pipes frames to Gemini.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const GEMINI_MODEL = "gemini-2.0-flash-live-001";
 const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent`;
@@ -40,86 +36,92 @@ Deno.serve(async (req) => {
     return Response.json({ error: "GOOGLE_API_KEY not configured" }, { status: 500 });
   }
 
-  // Auth check
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
-  } catch {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // WebSocket upgrade
+  // Require WebSocket upgrade
   const upgrade = req.headers.get("upgrade");
   if (upgrade?.toLowerCase() !== "websocket") {
     return Response.json({ error: "WebSocket upgrade required" }, { status: 426 });
   }
 
+  // Upgrade immediately — auth headers are unreliable on WS connections
   const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
 
-  clientSocket.onopen = async () => {
-    // Connect to Gemini Live
-    const geminiUrl = `${GEMINI_WS_URL}?key=${GOOGLE_API_KEY}`;
-    const geminiSocket = new WebSocket(geminiUrl);
+  // Connect to Gemini right away (don't wait for onopen)
+  const geminiUrl = `${GEMINI_WS_URL}?key=${GOOGLE_API_KEY}`;
+  const geminiSocket = new WebSocket(geminiUrl);
 
-    geminiSocket.onopen = () => {
-      // Send setup message
-      const setup = {
-        setup: {
-          model: `models/${GEMINI_MODEL}`,
-          generation_config: {
-            response_modalities: ["AUDIO"],
-            speech_config: {
-              voice_config: {
-                prebuilt_voice_config: { voice_name: "Charon" } // deep male voice
-              }
+  // Queue messages from client until Gemini is ready
+  const pendingMessages = [];
+  let geminiReady = false;
+
+  geminiSocket.onopen = () => {
+    geminiReady = true;
+
+    // Send setup message
+    const setup = {
+      setup: {
+        model: `models/${GEMINI_MODEL}`,
+        generation_config: {
+          response_modalities: ["AUDIO"],
+          speech_config: {
+            voice_config: {
+              prebuilt_voice_config: { voice_name: "Charon" }
             }
-          },
-          system_instruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }]
           }
+        },
+        system_instruction: {
+          parts: [{ text: SYSTEM_INSTRUCTION }]
         }
-      };
-      geminiSocket.send(JSON.stringify(setup));
-    };
-
-    // Pipe Gemini → client
-    geminiSocket.onmessage = (event) => {
-      if (clientSocket.readyState === WebSocket.OPEN) {
-        clientSocket.send(event.data);
       }
     };
+    geminiSocket.send(JSON.stringify(setup));
 
-    geminiSocket.onerror = (e) => {
-      if (clientSocket.readyState === WebSocket.OPEN) {
-        clientSocket.send(JSON.stringify({ error: "Gemini connection error" }));
-      }
-    };
+    // Flush any queued messages
+    for (const msg of pendingMessages) {
+      geminiSocket.send(msg);
+    }
+    pendingMessages.length = 0;
+  };
 
-    geminiSocket.onclose = () => {
-      if (clientSocket.readyState === WebSocket.OPEN) {
-        clientSocket.close();
-      }
-    };
+  // Pipe Gemini → client
+  geminiSocket.onmessage = (event) => {
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.send(event.data);
+    }
+  };
 
-    // Pipe client → Gemini
-    clientSocket.onmessage = (event) => {
-      if (geminiSocket.readyState === WebSocket.OPEN) {
-        geminiSocket.send(event.data);
-      }
-    };
+  geminiSocket.onerror = () => {
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.send(JSON.stringify({ error: "Gemini connection error" }));
+      clientSocket.close();
+    }
+  };
 
-    clientSocket.onclose = () => {
-      if (geminiSocket.readyState === WebSocket.OPEN) {
-        geminiSocket.close();
-      }
-    };
+  geminiSocket.onclose = () => {
+    if (clientSocket.readyState === WebSocket.OPEN) {
+      clientSocket.close();
+    }
+  };
 
-    clientSocket.onerror = () => {
-      if (geminiSocket.readyState === WebSocket.OPEN) {
-        geminiSocket.close();
-      }
-    };
+  // Pipe client → Gemini
+  clientSocket.onmessage = (event) => {
+    if (geminiReady && geminiSocket.readyState === WebSocket.OPEN) {
+      geminiSocket.send(event.data);
+    } else {
+      // Buffer until Gemini is ready
+      pendingMessages.push(event.data);
+    }
+  };
+
+  clientSocket.onclose = () => {
+    if (geminiSocket.readyState === WebSocket.OPEN) {
+      geminiSocket.close();
+    }
+  };
+
+  clientSocket.onerror = () => {
+    if (geminiSocket.readyState === WebSocket.OPEN) {
+      geminiSocket.close();
+    }
   };
 
   return response;

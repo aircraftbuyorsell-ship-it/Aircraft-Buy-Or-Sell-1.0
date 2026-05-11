@@ -168,7 +168,7 @@ function LandingPage({ onStart }) {
 
 // ─── Live Session ─────────────────────────────────────────────────
 function LiveSession({ onBack }) {
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("idle"); // idle | connecting | live | ws_error | error
   const [findings, setFindings] = useState([]);
   const [currentSpeech, setCurrentSpeech] = useState("");
   const [micEnabled, setMicEnabled] = useState(true);
@@ -186,15 +186,19 @@ function LiveSession({ onBack }) {
   const audioQueueRef = useRef([]);
   const playingRef = useRef(false);
 
-  const cleanup = useCallback(() => {
+  const cleanupWS = useCallback(() => {
     clearInterval(frameIntervalRef.current);
     if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
-    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
     if (processorRef.current) { processorRef.current.disconnect(); processorRef.current = null; }
     if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
-    setStatus("idle");
     setCurrentSpeech("");
   }, []);
+
+  const cleanup = useCallback(() => {
+    cleanupWS();
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    setStatus("idle");
+  }, [cleanupWS]);
 
   useEffect(() => () => cleanup(), [cleanup]);
 
@@ -249,6 +253,29 @@ function LiveSession({ onBack }) {
     wsRef.current.send(JSON.stringify({ realtime_input: { media_chunks: [{ mime_type: "image/jpeg", data: base64 }] } }));
   }, []);
 
+  const connectWS = useCallback(async () => {
+    setStatus("connecting");
+    setErrorMsg("");
+    try {
+      const { appId, appBaseUrl } = appParams;
+      const httpBase = appBaseUrl ? `${appBaseUrl}/api/apps/${appId}/functions` : `https://appapi.base44.com/api/apps/${appId}/functions`;
+      const ws = new WebSocket(`${httpBase.replace(/^https/, "wss").replace(/^http/, "ws")}/geminiLiveProxy`);
+      wsRef.current = ws;
+      ws.onmessage = (e) => handleGeminiMessage(e.data);
+      ws.onerror = () => {
+        setStatus("ws_error");
+        setErrorMsg("Gemini connection lost. Camera is still active — tap Retry to reconnect.");
+        cleanupWS();
+      };
+      ws.onclose = () => { /* camera stays on */ };
+      ws.onopen = () => { frameIntervalRef.current = setInterval(sendFrame, 2000); };
+    } catch (e) {
+      setStatus("ws_error");
+      setErrorMsg("Could not connect to inspection service: " + e.message);
+      cleanupWS();
+    }
+  }, [handleGeminiMessage, sendFrame, cleanupWS]);
+
   const startSession = async () => {
     setStatus("connecting");
     setErrorMsg("");
@@ -276,20 +303,7 @@ function LiveSession({ onBack }) {
       setErrorMsg("Camera/mic access denied. Please allow permissions and retry.");
       return;
     }
-    try {
-      const { appId, appBaseUrl } = appParams;
-      const httpBase = appBaseUrl ? `${appBaseUrl}/api/apps/${appId}/functions` : `https://appapi.base44.com/api/apps/${appId}/functions`;
-      const ws = new WebSocket(`${httpBase.replace(/^https/, "wss").replace(/^http/, "ws")}/geminiLiveProxy`);
-      wsRef.current = ws;
-      ws.onmessage = (e) => handleGeminiMessage(e.data);
-      ws.onerror = () => { setStatus("error"); setErrorMsg("Connection to Gemini failed. Check your API key."); cleanup(); };
-      ws.onclose = () => { if (status === "live") setStatus("idle"); };
-      ws.onopen = () => { frameIntervalRef.current = setInterval(sendFrame, 2000); };
-    } catch (e) {
-      setStatus("error");
-      setErrorMsg("Could not connect to inspection service: " + e.message);
-      cleanup();
-    }
+    await connectWS();
   };
 
   const flipCamera = async () => {
@@ -306,6 +320,7 @@ function LiveSession({ onBack }) {
   };
 
   const isLive = status === "live";
+  const hasCamera = !!streamRef.current || status === "live" || status === "ws_error";
 
   return (
     <div className="min-h-screen bg-[#060E1A] flex flex-col">
@@ -367,6 +382,18 @@ function LiveSession({ onBack }) {
             <AlertTriangle className="w-10 h-10 text-red-400" />
             <p className="text-red-300 text-sm text-center">{errorMsg}</p>
             <button onClick={() => setStatus("idle")} className="mt-2 text-[11px] text-white/40 hover:text-white underline">Try again</button>
+          </div>
+        )}
+        {status === "ws_error" && (
+          <div className="absolute bottom-3 left-3 right-3 bg-red-900/80 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3">
+            <AlertTriangle className="w-4 h-4 text-red-300 shrink-0" />
+            <p className="text-red-200 text-[11px] flex-1 leading-snug">{errorMsg}</p>
+            <button
+              onClick={connectWS}
+              className="shrink-0 bg-[#E8A83A] text-[#0B2D5B] text-[11px] font-black px-3 py-1.5 rounded-lg"
+            >
+              Retry
+            </button>
           </div>
         )}
         {isLive && (

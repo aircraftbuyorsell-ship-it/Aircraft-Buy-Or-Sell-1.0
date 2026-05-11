@@ -258,11 +258,15 @@ function LiveSession({ onBack }) {
     setErrorMsg("");
     try {
       const { appId, appBaseUrl } = appParams;
-      const httpBase = appBaseUrl ? `${appBaseUrl}/api/apps/${appId}/functions` : `https://appapi.base44.com/api/apps/${appId}/functions`;
-      const ws = new WebSocket(`${httpBase.replace(/^https/, "wss").replace(/^http/, "ws")}/geminiLiveProxy`);
+      const httpBase = (appBaseUrl || "https://appapi.base44.com").replace(/\/$/, "");
+      const wsBase = httpBase.replace(/^https/, "wss").replace(/^http/, "ws");
+      const wsUrl = `${wsBase}/api/apps/${appId}/functions/geminiLiveProxy`;
+      console.log("[PreBuy] Connecting WS:", wsUrl);
+      const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       ws.onmessage = (e) => handleGeminiMessage(e.data);
-      ws.onerror = () => {
+      ws.onerror = (e) => {
+        console.error("[PreBuy] WS error:", e);
         setStatus("ws_error");
         setErrorMsg("Gemini connection lost. Camera is still active — tap Retry to reconnect.");
         cleanupWS();

@@ -1,34 +1,34 @@
 import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Mic, MicOff, Send, Volume2, VolumeX, Loader2, Plane, X, RotateCcw } from "lucide-react";
+import { Mic, MicOff, Send, Volume2, VolumeX, Loader2, RotateCcw, FileText, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
 
-const SYSTEM_PROMPT = `You are Max, the friendly ABOS aviation expert and customer support guide. You are a professional aviation intelligence assistant for the ABOS platform — a private marketplace and intelligence system for verified aircraft dealers, brokers, and operators.
+const SYSTEM_PROMPT = `You are Max, the ABOS aviation assistant. You help users navigate the ABOS platform and understand their aircraft intelligence reports.
 
-Your personality: Friendly, professional, concise. You use aviation analogies naturally. You're enthusiastic about helping users get the most out of ABOS.
+PERSONALITY: Friendly, confident, concise. Male voice and tone. Professional but approachable — like a knowledgeable aviation broker colleague.
 
-Your expertise covers:
-- ATI Score Cards: Aircraft Transparency Index (0–120 score across 8 dimensions) — documentation, technical, transparency, transaction readiness, usage/mission, storage, config clarity, market readiness
-- Aircraft listings and market valuations (OMVM — Off-Market Value Model)
-- Deal Radar: hot deals priced 8%+ below market with ATI 93+
-- Escrow services: secure aircraft transactions with protected funds
-- OPEX Calculator: true cost of ownership (fixed costs, variable, maintenance reserves)
-- Leads CRM: capturing and managing buyer leads through the sales pipeline
-- Analytics: market trends, price movements, time-on-market data
-- Live Traffic: real-time ADS-B aircraft tracking via OpenSky Network
-- Credits & plans: token-based pricing, verification bonuses
+WHAT YOU DO:
+- Guide users on how to use ABOS features (Listings, ATI Score Cards, Deal Radar, Escrow, OPEX Calculator, Leads, Analytics, Live Traffic, Credits)
+- Help users understand and interpret their ATI reports — scores, dimensions, what they mean for a deal
+- Answer questions about aircraft valuations, deal quality, escrow process, and platform navigation
+- Clarify what ATI score labels mean: EXCEPTIONAL (108+), STRONG BUY (93+), FAIR (72+), CAUTION (54+), RED FLAGS (36+), AVOID (<36)
 
-Key facts about ABOS:
-- Private platform for verified professionals only
-- ATI scores range 0–120 (EXCEPTIONAL 108+, STRONG BUY 93+, FAIR 72+, CAUTION 54+, RED FLAGS 36+, AVOID <36)
-- OMVM uses log-linear depreciation + engine remaining curve + expert calibration
-- Escrow statuses: draft → contract_sent → contract_signed → funds_pending → funds_secured → inspection → released → closed
-- Credits never expire
-- Finder's fees and commissions tracked transparently
+STRICT RESTRICTIONS — never reveal these:
+- Do NOT explain internal algorithms, formulas, or scoring methodology in detail (how OMVM is calculated, exact weighting, depreciation curves, etc.)
+- Do NOT reveal internal business logic, commission waterfall structures, or pricing tier mechanics
+- Do NOT discuss competitor platforms or make comparative claims
+- Do NOT provide legal, financial, or airworthiness advice — always recommend consulting a licensed professional
 
-Keep responses concise (2–4 sentences max unless user asks for detail). Always be helpful and actionable. If you don't know something specific about the user's account, guide them to the relevant page.`;
+RELEVANCE FILTER:
+- If a question is not related to aviation, aircraft transactions, or the ABOS platform, politely decline and redirect: "I'm Max, ABOS's aviation specialist — that's a bit outside my flight plan! Is there anything aviation or ABOS related I can help with?"
+
+ATI REPORT SUPPORT:
+- If the user shares ATI data (scores, labels, dimensions, aircraft info), acknowledge it and help them interpret what it means for the transaction — is it a strong buy? What risks are flagged? What should they verify before closing?
+- Be practical: translate scores into real-world buying/selling guidance
+
+Keep answers to 2–4 sentences unless more detail is needed. Always end with a helpful next step or question.`;
 
 const SUGGESTED_QUESTIONS = [
   "How does the ATI score work?",
@@ -93,10 +93,12 @@ export default function MaxChat() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Hey! I'm Max, your ABOS aviation guide ✈️ I can help you with ATI scores, valuations, escrow, deals, or anything about the platform. What can I help you with?",
+      content: "Hey! I'm Max, your ABOS aviation guide ✈️ I can help you understand ATI reports, find great deals, navigate escrow, or anything else on the platform. What can I help you with?",
     },
   ]);
   const [input, setInput] = useState("");
+  const [atiContext, setAtiContext] = useState("");
+  const [showAtiPanel, setShowAtiPanel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
@@ -126,12 +128,19 @@ export default function MaxChat() {
     utterance.rate = 1.05;
     utterance.pitch = 1.0;
     utterance.volume = 1;
-    // Try to pick a nice voice
+    // Prefer a male English voice
     const voices = synthRef.current.getVoices();
-    const preferred = voices.find(v =>
-      v.name.includes("Google") && v.lang.startsWith("en")
-    ) || voices.find(v => v.lang.startsWith("en-US")) || voices[0];
+    const preferred =
+      voices.find(v => v.name === "Google UK English Male") ||
+      voices.find(v => v.name === "Google US English") ||
+      voices.find(v => v.name.toLowerCase().includes("male") && v.lang.startsWith("en")) ||
+      voices.find(v => v.name.includes("David") && v.lang.startsWith("en")) ||
+      voices.find(v => v.name.includes("James") && v.lang.startsWith("en")) ||
+      voices.find(v => v.name.includes("Daniel") && v.lang.startsWith("en")) ||
+      voices.find(v => v.lang.startsWith("en-US") || v.lang.startsWith("en-GB")) ||
+      voices[0];
     if (preferred) utterance.voice = preferred;
+    utterance.pitch = 0.85; // slightly lower = more masculine
 
     utterance.onstart = () => { setSpeaking(true); setSpeakingMsgIdx(msgIdx); };
     utterance.onend = () => { setSpeaking(false); setSpeakingMsgIdx(null); };
@@ -148,8 +157,11 @@ export default function MaxChat() {
     setLoading(true);
 
     try {
-      const history = newMessages.slice(-10); // last 10 msgs for context
-      const prompt = `${SYSTEM_PROMPT}\n\n--- Conversation History ---\n${
+      const history = newMessages.slice(-10);
+      const atiSection = atiContext.trim()
+        ? `\n\n--- ATI REPORT DATA PROVIDED BY USER ---\n${atiContext.trim()}\n--- END ATI DATA ---`
+        : "";
+      const prompt = `${SYSTEM_PROMPT}${atiSection}\n\n--- Conversation ---\n${
         history.map(m => `${m.role === "user" ? "User" : "Max"}: ${m.content}`).join("\n")
       }\n\nMax:`;
 
@@ -291,9 +303,41 @@ export default function MaxChat() {
         <div ref={bottomRef} />
       </div>
 
+      {/* ATI Context Panel */}
+      {showAtiPanel && (
+        <div className="bg-[#EBF4FF] border-t border-[#4A90D9]/20 px-4 md:px-8 py-3">
+          <p className="text-[10px] uppercase tracking-wider font-black text-[#4A90D9] mb-1.5 flex items-center gap-1.5">
+            <FileText className="w-3 h-3" /> Paste ATI report data for Max to analyse
+          </p>
+          <textarea
+            value={atiContext}
+            onChange={e => setAtiContext(e.target.value)}
+            placeholder="Paste ATI scores, dimensions, aircraft details, or any report data here… e.g. 'ATI Total: 87, Documentation: 12/15, Engine: 10/15, asking $185k, OMVM $195k'"
+            rows={3}
+            className="w-full resize-none px-3 py-2 bg-white border border-[#4A90D9]/30 rounded-xl text-xs text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#4A90D9]"
+          />
+          {atiContext && (
+            <p className="text-[9px] text-[#4A90D9] mt-1 font-semibold">✓ Max will use this ATI context in his next response</p>
+          )}
+        </div>
+      )}
+
       {/* Input bar */}
       <div className="bg-white border-t border-black/[0.07] px-4 md:px-8 py-4">
         <div className="flex gap-3 items-end max-w-4xl mx-auto">
+          {/* ATI context toggle */}
+          <button
+            onClick={() => setShowAtiPanel(v => !v)}
+            className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center border transition-all ${
+              showAtiPanel || atiContext
+                ? "bg-[#EBF4FF] border-[#4A90D9] text-[#4A90D9]"
+                : "bg-[#F7F4EF] border-black/10 text-[#6B6560] hover:border-[#4A90D9] hover:text-[#4A90D9]"
+            }`}
+            title="Share ATI report data with Max"
+          >
+            <FileText className="w-4 h-4" />
+          </button>
+
           {/* Voice button */}
           <button
             onMouseDown={startListening}

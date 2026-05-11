@@ -12,12 +12,17 @@ const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e
 
 // ─── Build WebSocket URL with auth token ──────────────────────────
 function buildWsUrl() {
-  const { appId } = appParams;
-  const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  const { appId, appBaseUrl } = appParams;
+  // Use appBaseUrl (the real API server) — app.base44.com may not proxy WS upgrades
+  // Fall back to same-origin if appBaseUrl not available
+  const httpBase = (appBaseUrl || `${window.location.protocol}//${window.location.host}`).replace(/\/$/, "");
+  const wsBase = httpBase.replace(/^https/, "wss").replace(/^http(?!s)/, "ws");
   // Browser WS can't send custom headers — pass token as query param
   const token = localStorage.getItem("base44_access_token") || localStorage.getItem("token") || appParams.token || "";
   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-  return `${proto}://${window.location.host}/api/apps/${appId}/functions/geminiLiveProxy${tokenParam}`;
+  const url = `${wsBase}/api/apps/${appId}/functions/geminiLiveProxy${tokenParam}`;
+  console.log("[PreBuy] WS URL:", url.replace(/token=[^&]+/, "token=***"));
+  return url;
 }
 
 // ─── Safe base64 encode for large typed arrays ────────────────────

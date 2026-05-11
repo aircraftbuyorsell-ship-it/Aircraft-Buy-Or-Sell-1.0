@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
 
@@ -31,12 +32,12 @@ Keep answers to 2–4 sentences unless more detail is needed. In voice mode, be 
 
 // ─── Instrument button positions around the circle (clock positions) ───
 const INSTRUMENT_POSITIONS = [
-  { id: "voice", angle: -90, label: "Voice", color: "#E8A83A" },   // top
-  { id: "chat",  angle: -30, label: "Chat",  color: "#4A90D9" },   // top-right
-  { id: "ati",   angle:  30, label: "ATI",   color: "#0F7A56" },   // bottom-right
-  { id: "reset", angle:  90, label: "Reset", color: "#AAA49C" },   // bottom
-  { id: "mute",  angle: 150, label: "Sound", color: "#CD7F32" },   // bottom-left
-  { id: "msgs",  angle: 210, label: "Log",   color: "#185FA5" },   // top-left
+  { id: "voice",   angle: -90, label: "Voice",   color: "#E8A83A" },  // top
+  { id: "chat",    angle: -30, label: "Chat",    color: "#4A90D9" },  // top-right
+  { id: "inspect", angle:  30, label: "Inspect", color: "#C0392B" },  // bottom-right
+  { id: "reset",   angle:  90, label: "Reset",   color: "#AAA49C" },  // bottom
+  { id: "mute",    angle: 150, label: "Sound",   color: "#CD7F32" },  // bottom-left
+  { id: "msgs",    angle: 210, label: "Log",     color: "#185FA5" },  // top-left
 ];
 
 function getCirclePos(angleDeg, radius) {
@@ -114,6 +115,7 @@ function MsgBubble({ msg }) {
 }
 
 export default function MaxChat() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hey! I'm Max ✈️ Tap the mic button to start a voice conversation, or use Chat mode to type." }
   ]);
@@ -268,10 +270,8 @@ export default function MaxChat() {
       setShowChat(v => !v);
       setShowAti(false);
       setShowLog(false);
-    } else if (id === "ati") {
-      setShowAti(v => !v);
-      setShowChat(false);
-      setShowLog(false);
+    } else if (id === "inspect") {
+      navigate("/pre-buy-inspection");
     } else if (id === "reset") {
       stopVoiceMode();
       setMessages([{ role: "assistant", content: "Conversation reset. I'm Max ✈️ Ready when you are!" }]);
@@ -297,12 +297,12 @@ export default function MaxChat() {
   };
 
   const getIcon = (id) => {
-    if (id === "voice") return voiceMode ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />;
-    if (id === "chat") return <MessageCircle className="w-5 h-5" />;
-    if (id === "ati") return <FileText className="w-5 h-5" />;
-    if (id === "reset") return <RotateCcw className="w-5 h-5" />;
-    if (id === "mute") return ttsEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />;
-    if (id === "msgs") return <MessageCircle className="w-5 h-5" />;
+    if (id === "voice")   return voiceMode ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />;
+    if (id === "chat")    return <MessageCircle className="w-5 h-5" />;
+    if (id === "inspect") return <Video className="w-5 h-5" />;
+    if (id === "reset")   return <RotateCcw className="w-5 h-5" />;
+    if (id === "mute")    return ttsEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />;
+    if (id === "msgs")    return <MessageCircle className="w-5 h-5" />;
     return null;
   };
 
@@ -481,7 +481,7 @@ export default function MaxChat() {
         {[
           { icon: "🎙️", text: "Mic — live voice chat" },
           { icon: "💬", text: "Chat — type a message" },
-          { icon: "📄", text: "ATI — paste report data" },
+          { icon: "🎥", text: "Inspect — live pre-buy" },
           { icon: "📋", text: "Log — view history" },
           { icon: "🔊", text: "Sound — toggle TTS" },
           { icon: "↺",  text: "Reset — new session" },

@@ -22,6 +22,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ATICard from "./pages/ATICard";
 import MaxChat from "./pages/MaxChat";
+import PreBuyInspection from "./pages/PreBuyInspection";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/max-chat" element={<MaxChat />} />
+        <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

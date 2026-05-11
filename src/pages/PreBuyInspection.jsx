@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
 import { appParams } from "@/lib/app-params";
 import {
   Video, VideoOff, Mic, MicOff, AlertTriangle,
@@ -10,6 +9,23 @@ import {
 import { Link } from "react-router-dom";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
+
+// ─── Build WebSocket URL using the same origin as the app ─────────
+function buildWsUrl() {
+  const { appId } = appParams;
+  const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${proto}://${window.location.host}/api/apps/${appId}/functions/geminiLiveProxy`;
+}
+
+// ─── Safe base64 encode for large typed arrays ────────────────────
+function uint8ToBase64(bytes) {
+  let binary = "";
+  const chunkSize = 8192;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
 
 // ─── Finding pill ─────────────────────────────────────────────────
 function FindingBadge({ text, type }) {
@@ -41,7 +57,6 @@ function classifyFinding(text) {
 function LandingPage({ onStart }) {
   return (
     <div className="min-h-screen bg-[#060E1A] flex flex-col">
-      {/* Header */}
       <div className="bg-[#0B2D5B]/80 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-white/5">
         <Link to="/listings" className="text-white/40 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -56,31 +71,24 @@ function LandingPage({ onStart }) {
         </span>
       </div>
 
-      {/* Hero */}
       <div className="relative overflow-hidden flex-1 flex flex-col">
-        {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#0B2D5B]/60 rounded-full blur-3xl" />
           <div className="absolute top-20 left-1/3 w-[300px] h-[300px] bg-[#E8A83A]/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-2xl mx-auto px-4 pt-12 pb-8 text-center">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-[#E8A83A]/10 border border-[#E8A83A]/30 rounded-full px-4 py-1.5 mb-6">
             <Star className="w-3 h-3 text-[#E8A83A]" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8A83A]">Exclusive ABOS Feature</span>
           </div>
 
-          {/* Max avatar large */}
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="absolute w-28 h-28 rounded-full bg-[#E8A83A]/10 animate-ping" style={{ animationDuration: "3s" }} />
             <div className="absolute w-24 h-24 rounded-full bg-[#E8A83A]/15 animate-pulse" />
-            <img
-              src={PILOT_AVATAR}
-              alt="Max"
+            <img src={PILOT_AVATAR} alt="Max"
               className="relative w-20 h-20 rounded-full border-2 border-[#E8A83A]/60 object-cover shadow-2xl"
-              style={{ mixBlendMode: "multiply", background: "#4A90D9" }}
-            />
+              style={{ mixBlendMode: "multiply", background: "#4A90D9" }} />
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
@@ -94,7 +102,6 @@ function LandingPage({ onStart }) {
             Powered by Gemini 2.0 Flash Live Vision · Not a substitute for a certified IA or A&P inspection
           </p>
 
-          {/* CTA */}
           <button
             onClick={onStart}
             className="group inline-flex items-center gap-3 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-black text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-[#E8A83A]/20 hover:shadow-[#E8A83A]/40 hover:scale-105 active:scale-95"
@@ -106,28 +113,12 @@ function LandingPage({ onStart }) {
           <p className="text-[10px] text-white/20 mt-3">Requires camera & microphone access</p>
         </div>
 
-        {/* Feature pills */}
         <div className="relative z-10 px-4 pb-8">
           <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              {
-                icon: Eye,
-                color: "#4A90D9",
-                title: "Real-Time Vision",
-                desc: "Gemini analyzes your live camera feed frame by frame — engine bay, airframe, logbooks, instruments."
-              },
-              {
-                icon: Volume2,
-                color: "#E8A83A",
-                title: "Voice Commentary",
-                desc: "Max speaks findings aloud so you can keep your eyes on the aircraft, hands-free."
-              },
-              {
-                icon: FileText,
-                color: "#0F7A56",
-                title: "Auto-Logged Findings",
-                desc: "Every warning, observation, and green flag is captured and classified automatically."
-              },
+              { icon: Eye, color: "#4A90D9", title: "Real-Time Vision", desc: "Gemini analyzes your live camera feed frame by frame — engine bay, airframe, logbooks, instruments." },
+              { icon: Volume2, color: "#E8A83A", title: "Voice Commentary", desc: "Max speaks findings aloud so you can keep your eyes on the aircraft, hands-free." },
+              { icon: FileText, color: "#0F7A56", title: "Auto-Logged Findings", desc: "Every warning, observation, and green flag is captured and classified automatically." },
             ].map(f => (
               <div key={f.title} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: `${f.color}20`, border: `1px solid ${f.color}40` }}>
@@ -140,7 +131,6 @@ function LandingPage({ onStart }) {
           </div>
         </div>
 
-        {/* Inspection checklist hint */}
         <div className="relative z-10 max-w-2xl mx-auto px-4 pb-10">
           <div className="bg-[#0B2D5B]/60 border border-[#E8A83A]/20 rounded-2xl p-5">
             <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[#E8A83A] mb-3 flex items-center gap-2">
@@ -180,17 +170,116 @@ function LiveSession({ onBack }) {
   const canvasRef = useRef(null);
   const wsRef = useRef(null);
   const streamRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const processorRef = useRef(null);
+  const micSourceRef = useRef(null);
   const frameIntervalRef = useRef(null);
+  const connectTimeoutRef = useRef(null);
   const audioQueueRef = useRef([]);
   const playingRef = useRef(false);
 
+  // ── Audio playback ──────────────────────────────────────────────
+  const playAudioChunk = useCallback(async (base64Audio) => {
+    audioQueueRef.current.push(base64Audio);
+    if (playingRef.current) return;
+    playingRef.current = true;
+    while (audioQueueRef.current.length > 0) {
+      const chunk = audioQueueRef.current.shift();
+      try {
+        const raw = atob(chunk);
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        const pcm = new Int16Array(bytes.buffer);
+        const float32 = new Float32Array(pcm.length);
+        for (let i = 0; i < pcm.length; i++) float32[i] = pcm[i] / 32768;
+        const ctx = new AudioContext({ sampleRate: 24000 });
+        const buffer = ctx.createBuffer(1, float32.length, 24000);
+        buffer.copyToChannel(float32, 0);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        await new Promise(resolve => { source.onended = () => { ctx.close(); resolve(); }; source.start(); });
+      } catch { /* skip corrupt chunk */ }
+    }
+    playingRef.current = false;
+  }, []);
+
+  // ── Gemini message handler ──────────────────────────────────────
+  const handleGeminiMessage = useCallback((data) => {
+    try {
+      const msg = JSON.parse(data);
+      if (msg.setupComplete) {
+        clearTimeout(connectTimeoutRef.current);
+        setStatus("live");
+        return;
+      }
+      if (msg.error) {
+        console.error("[PreBuy] Gemini error:", msg.error);
+        return;
+      }
+      const parts = msg?.serverContent?.modelTurn?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData?.mimeType?.startsWith("audio/")) playAudioChunk(part.inlineData.data);
+        if (part.text) {
+          setCurrentSpeech(part.text);
+          setFindings(prev => [{ text: part.text, type: classifyFinding(part.text), ts: Date.now() }, ...prev].slice(0, 30));
+        }
+      }
+      if (msg?.serverContent?.turnComplete) setCurrentSpeech("");
+    } catch { /* ignore parse errors */ }
+  }, [playAudioChunk]);
+
+  // ── Send video frame ────────────────────────────────────────────
+  const sendFrame = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current || wsRef.current?.readyState !== WebSocket.OPEN) return;
+    const canvas = canvasRef.current;
+    canvas.width = 640;
+    canvas.height = 480;
+    canvas.getContext("2d").drawImage(videoRef.current, 0, 0, 640, 480);
+    const base64 = canvas.toDataURL("image/jpeg", 0.7).split(",")[1];
+    wsRef.current.send(JSON.stringify({
+      realtime_input: { media_chunks: [{ mime_type: "image/jpeg", data: base64 }] }
+    }));
+  }, []);
+
+  // ── Mic audio sender (using AudioWorklet-compatible approach) ───
+  const startMicCapture = useCallback((stream) => {
+    const audioCtx = new AudioContext({ sampleRate: 16000 });
+    const source = audioCtx.createMediaStreamSource(stream);
+    // Use ScriptProcessor but do NOT connect to destination (avoids echo)
+    const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+    processor.onaudioprocess = (e) => {
+      if (!micEnabled || wsRef.current?.readyState !== WebSocket.OPEN) return;
+      const float32 = e.inputBuffer.getChannelData(0);
+      const pcm16 = new Int16Array(float32.length);
+      for (let i = 0; i < float32.length; i++) {
+        pcm16[i] = Math.max(-32768, Math.min(32767, float32[i] * 32768));
+      }
+      const b64 = uint8ToBase64(new Uint8Array(pcm16.buffer));
+      wsRef.current.send(JSON.stringify({
+        realtime_input: { media_chunks: [{ mime_type: "audio/pcm;rate=16000", data: b64 }] }
+      }));
+    };
+    source.connect(processor);
+    // Connect processor to a silent gain node (required for onaudioprocess to fire, but no output)
+    const silentGain = audioCtx.createGain();
+    silentGain.gain.value = 0;
+    processor.connect(silentGain);
+    silentGain.connect(audioCtx.destination);
+    micSourceRef.current = { audioCtx, processor, source };
+  }, [micEnabled]);
+
+  // ── Cleanup helpers ─────────────────────────────────────────────
   const cleanupWS = useCallback(() => {
     clearInterval(frameIntervalRef.current);
-    if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
-    if (processorRef.current) { processorRef.current.disconnect(); processorRef.current = null; }
-    if (audioContextRef.current) { audioContextRef.current.close(); audioContextRef.current = null; }
+    clearTimeout(connectTimeoutRef.current);
+    if (wsRef.current) { try { wsRef.current.close(); } catch {} wsRef.current = null; }
+    if (micSourceRef.current) {
+      try {
+        micSourceRef.current.processor.disconnect();
+        micSourceRef.current.source.disconnect();
+        micSourceRef.current.audioCtx.close();
+      } catch {}
+      micSourceRef.current = null;
+    }
     setCurrentSpeech("");
   }, []);
 
@@ -202,129 +291,102 @@ function LiveSession({ onBack }) {
 
   useEffect(() => () => cleanup(), [cleanup]);
 
-  const playAudioChunk = useCallback(async (base64Audio) => {
-    audioQueueRef.current.push(base64Audio);
-    if (playingRef.current) return;
-    playingRef.current = true;
-    while (audioQueueRef.current.length > 0) {
-      const chunk = audioQueueRef.current.shift();
-      try {
-        const ctx = new AudioContext({ sampleRate: 24000 });
-        const raw = atob(chunk);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-        const pcm = new Int16Array(bytes.buffer);
-        const float32 = new Float32Array(pcm.length);
-        for (let i = 0; i < pcm.length; i++) float32[i] = pcm[i] / 32768;
-        const buffer = ctx.createBuffer(1, float32.length, 24000);
-        buffer.copyToChannel(float32, 0);
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        await new Promise(resolve => { source.onended = () => { ctx.close(); resolve(); }; source.start(); });
-      } catch { /* skip */ }
-    }
-    playingRef.current = false;
-  }, []);
-
-  const handleGeminiMessage = useCallback((data) => {
-    try {
-      const msg = JSON.parse(data);
-      if (msg.setupComplete) { setStatus("live"); return; }
-      const parts = msg?.serverContent?.modelTurn?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData?.mimeType?.startsWith("audio/")) playAudioChunk(part.inlineData.data);
-        if (part.text) {
-          setCurrentSpeech(part.text);
-          setFindings(prev => [{ text: part.text, type: classifyFinding(part.text), ts: Date.now() }, ...prev].slice(0, 30));
-        }
-      }
-      if (msg?.serverContent?.turnComplete) setCurrentSpeech("");
-    } catch { /* ignore */ }
-  }, [playAudioChunk]);
-
-  const sendFrame = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current || wsRef.current?.readyState !== WebSocket.OPEN) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    canvas.width = 640; canvas.height = 480;
-    ctx.drawImage(videoRef.current, 0, 0, 640, 480);
-    const base64 = canvas.toDataURL("image/jpeg", 0.7).split(",")[1];
-    wsRef.current.send(JSON.stringify({ realtime_input: { media_chunks: [{ mime_type: "image/jpeg", data: base64 }] } }));
-  }, []);
-
-  const connectWS = useCallback(async () => {
+  // ── Connect WebSocket ───────────────────────────────────────────
+  const connectWS = useCallback(() => {
+    cleanupWS();
     setStatus("connecting");
     setErrorMsg("");
+
+    const wsUrl = buildWsUrl();
+    console.log("[PreBuy] Connecting to:", wsUrl);
+
+    let ws;
     try {
-      const { appId, appBaseUrl } = appParams;
-      const httpBase = (appBaseUrl || "https://appapi.base44.com").replace(/\/$/, "");
-      const wsBase = httpBase.replace(/^https/, "wss").replace(/^http/, "ws");
-      const wsUrl = `${wsBase}/api/apps/${appId}/functions/geminiLiveProxy`;
-      console.log("[PreBuy] Connecting WS:", wsUrl);
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-      ws.onmessage = (e) => handleGeminiMessage(e.data);
-      ws.onerror = (e) => {
-        console.error("[PreBuy] WS error:", e);
-        setStatus("ws_error");
-        setErrorMsg("Gemini connection lost. Camera is still active — tap Retry to reconnect.");
-        cleanupWS();
-      };
-      ws.onclose = () => { /* camera stays on */ };
-      ws.onopen = () => { frameIntervalRef.current = setInterval(sendFrame, 2000); };
+      ws = new WebSocket(wsUrl);
     } catch (e) {
       setStatus("ws_error");
-      setErrorMsg("Could not connect to inspection service: " + e.message);
-      cleanupWS();
+      setErrorMsg("Could not connect: " + e.message);
+      return;
     }
-  }, [handleGeminiMessage, sendFrame, cleanupWS]);
+    wsRef.current = ws;
 
+    // Timeout if setupComplete never arrives
+    connectTimeoutRef.current = setTimeout(() => {
+      if (status !== "live") {
+        setStatus("ws_error");
+        setErrorMsg("Gemini took too long to respond. Tap Retry.");
+        cleanupWS();
+      }
+    }, 15000);
+
+    ws.onopen = () => {
+      frameIntervalRef.current = setInterval(sendFrame, 2000);
+      // Start mic capture on the existing stream
+      if (streamRef.current) startMicCapture(streamRef.current);
+    };
+
+    ws.onmessage = (e) => handleGeminiMessage(e.data);
+
+    ws.onerror = () => {
+      console.error("[PreBuy] WS error");
+      setStatus("ws_error");
+      setErrorMsg("Gemini connection failed. Camera still active — tap Retry.");
+      cleanupWS();
+    };
+
+    ws.onclose = (e) => {
+      // Only surface as error if we didn't close it ourselves and were live/connecting
+      if (e.code !== 1000 && wsRef.current !== null) {
+        setStatus("ws_error");
+        setErrorMsg(`Connection closed (${e.code}). Tap Retry to reconnect.`);
+        cleanupWS();
+      }
+    };
+  }, [cleanupWS, sendFrame, handleGeminiMessage, startMicCapture]);
+
+  // ── Start session (camera + mic + WS) ──────────────────────────
   const startSession = async () => {
     setStatus("connecting");
     setErrorMsg("");
     setFindings([]);
+
+    let stream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode, width: 640, height: 480 }, audio: true });
-      streamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
-      const audioCtx = new AudioContext({ sampleRate: 16000 });
-      audioContextRef.current = audioCtx;
-      const source = audioCtx.createMediaStreamSource(stream);
-      const processor = audioCtx.createScriptProcessor(4096, 1, 1);
-      processorRef.current = processor;
-      processor.onaudioprocess = (e) => {
-        if (!micEnabled || wsRef.current?.readyState !== WebSocket.OPEN) return;
-        const float32 = e.inputBuffer.getChannelData(0);
-        const pcm16 = new Int16Array(float32.length);
-        for (let i = 0; i < float32.length; i++) pcm16[i] = Math.max(-32768, Math.min(32767, float32[i] * 32768));
-        wsRef.current.send(JSON.stringify({ realtime_input: { media_chunks: [{ mime_type: "audio/pcm;rate=16000", data: btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer))) }] } }));
-      };
-      source.connect(processor);
-      processor.connect(audioCtx.destination);
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: true,
+      });
     } catch {
       setStatus("error");
       setErrorMsg("Camera/mic access denied. Please allow permissions and retry.");
       return;
     }
-    await connectWS();
+
+    streamRef.current = stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+
+    connectWS();
   };
 
   const flipCamera = async () => {
     const newMode = facingMode === "environment" ? "user" : "environment";
     setFacingMode(newMode);
-    if (streamRef.current) {
-      streamRef.current.getVideoTracks().forEach(t => t.stop());
-      const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: newMode, width: 640, height: 480 }, audio: false });
-      const audioTrack = streamRef.current.getAudioTracks()[0];
-      const combined = new MediaStream([...newStream.getVideoTracks(), ...(audioTrack ? [audioTrack] : [])]);
-      streamRef.current = combined;
-      if (videoRef.current) { videoRef.current.srcObject = combined; videoRef.current.play(); }
-    }
+    if (!streamRef.current) return;
+    streamRef.current.getVideoTracks().forEach(t => t.stop());
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: newMode, width: { ideal: 640 }, height: { ideal: 480 } },
+      audio: false,
+    });
+    const audioTrack = streamRef.current.getAudioTracks()[0];
+    const combined = new MediaStream([...newStream.getVideoTracks(), ...(audioTrack ? [audioTrack] : [])]);
+    streamRef.current = combined;
+    if (videoRef.current) { videoRef.current.srcObject = combined; videoRef.current.play().catch(() => {}); }
   };
 
   const isLive = status === "live";
-  const hasCamera = !!streamRef.current || status === "live" || status === "ws_error";
 
   return (
     <div className="min-h-screen bg-[#060E1A] flex flex-col">
@@ -340,7 +402,7 @@ function LiveSession({ onBack }) {
           <div className="flex items-center gap-2">
             <div className={`w-1.5 h-1.5 rounded-full ${isLive ? "bg-green-400 animate-pulse" : status === "connecting" ? "bg-yellow-400 animate-pulse" : "bg-white/20"}`} />
             <p className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">
-              {status === "idle" ? "Ready" : status === "connecting" ? "Connecting…" : isLive ? "Live · Gemini Vision Active" : "Error"}
+              {status === "idle" ? "Ready" : status === "connecting" ? "Connecting…" : isLive ? "Live · Gemini Vision Active" : status === "ws_error" ? "Disconnected" : "Error"}
             </p>
           </div>
         </div>
@@ -392,10 +454,7 @@ function LiveSession({ onBack }) {
           <div className="absolute bottom-3 left-3 right-3 bg-red-900/80 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3">
             <AlertTriangle className="w-4 h-4 text-red-300 shrink-0" />
             <p className="text-red-200 text-[11px] flex-1 leading-snug">{errorMsg}</p>
-            <button
-              onClick={connectWS}
-              className="shrink-0 bg-[#E8A83A] text-[#0B2D5B] text-[11px] font-black px-3 py-1.5 rounded-lg"
-            >
+            <button onClick={connectWS} className="shrink-0 bg-[#E8A83A] text-[#0B2D5B] text-[11px] font-black px-3 py-1.5 rounded-lg">
               Retry
             </button>
           </div>
@@ -437,10 +496,7 @@ function LiveSession({ onBack }) {
 
 // ─── Root ──────────────────────────────────────────────────────────
 export default function PreBuyInspection() {
-  const [mode, setMode] = useState("landing"); // "landing" | "session"
-
-  if (mode === "session") {
-    return <LiveSession onBack={() => setMode("landing")} />;
-  }
+  const [mode, setMode] = useState("landing");
+  if (mode === "session") return <LiveSession onBack={() => setMode("landing")} />;
   return <LandingPage onStart={() => setMode("session")} />;
 }

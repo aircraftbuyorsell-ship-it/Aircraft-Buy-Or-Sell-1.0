@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
+import ABOSTour from "@/components/onboarding/ABOSTour";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -204,6 +205,8 @@ export default function Layout() {
       <main className="flex-1 overflow-auto pb-4">
         <Outlet />
       </main>
+
+      <ABOSTour />
     </div>
   );
 }

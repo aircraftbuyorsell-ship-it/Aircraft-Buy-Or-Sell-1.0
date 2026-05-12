@@ -23,6 +23,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ATICard from "./pages/ATICard";
 import MaxChat from "./pages/MaxChat";
 import PreBuyInspection from "./pages/PreBuyInspection";
+import AdminDataCleanup from "./pages/AdminDataCleanup";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
+        <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

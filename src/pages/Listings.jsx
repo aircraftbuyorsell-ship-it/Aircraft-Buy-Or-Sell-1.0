@@ -20,20 +20,21 @@ import SwipeDeck from "@/components/listings/SwipeCard";
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
   if (score == null) return (
-    <div className="w-10 h-10 rounded-full bg-black/5 border border-black/[0.06] flex items-center justify-center shrink-0">
+    <div className="w-11 h-11 rounded-full bg-[#F0EDE6] border border-black/[0.06] flex items-center justify-center shrink-0">
       <span className="text-[9px] text-[#AAA49C] font-bold">—</span>
     </div>
   );
   const color = score >= 90 ? "#0F7A56" : score >= 72 ? "#185FA5" : score >= 54 ? "#D4A017" : "#C0392B";
+  const bg = score >= 90 ? "rgba(15,122,86,0.08)" : score >= 72 ? "rgba(24,95,165,0.08)" : score >= 54 ? "rgba(212,160,23,0.08)" : "rgba(192,57,43,0.08)";
   return (
-    <div className="relative w-10 h-10 shrink-0">
-      <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
-        <circle cx="20" cy="20" r="16" fill="none" stroke="#F0EDE6" strokeWidth="3" />
-        <circle cx="20" cy="20" r="16" fill="none" stroke={color} strokeWidth="3"
-          strokeDasharray={`${(score / 120) * 100.5} 100.5`} strokeLinecap="round" />
+    <div className="relative w-11 h-11 shrink-0 rounded-full" style={{ background: bg }}>
+      <svg viewBox="0 0 44 44" className="w-full h-full -rotate-90">
+        <circle cx="22" cy="22" r="18" fill="none" stroke={`${color}30`} strokeWidth="3" />
+        <circle cx="22" cy="22" r="18" fill="none" stroke={color} strokeWidth="3"
+          strokeDasharray={`${(score / 120) * 113.1} 113.1`} strokeLinecap="round" />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[9px] font-black text-[#1A1814]">{score}</span>
+        <span className="text-[9px] font-black" style={{ color }}>{score}</span>
       </div>
     </div>
   );
@@ -43,14 +44,17 @@ function ATIBadge({ score }) {
 function DealBadge({ label }) {
   if (!label) return null;
   const styles = {
-    "hot deal": "bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]",
-    "good deal": "bg-[rgba(15,122,86,0.1)] text-[#0F7A56] border-[rgba(15,122,86,0.25)]",
-    "fair": "bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]",
-    "overpriced": "bg-[rgba(192,57,43,0.08)] text-[#C0392B] border-[rgba(192,57,43,0.2)]",
+    "hot deal":   { dot: "#D4A017", bg: "rgba(212,160,23,0.1)",  text: "#A67C00",  border: "rgba(212,160,23,0.25)" },
+    "good deal":  { dot: "#0F7A56", bg: "rgba(15,122,86,0.08)", text: "#0F7A56",  border: "rgba(15,122,86,0.2)" },
+    "fair":       { dot: "#185FA5", bg: "rgba(24,95,165,0.07)", text: "#185FA5",  border: "rgba(24,95,165,0.18)" },
+    "overpriced": { dot: "#C0392B", bg: "rgba(192,57,43,0.07)", text: "#C0392B",  border: "rgba(192,57,43,0.18)" },
   };
-  const key = label.toLowerCase();
+  const s = styles[label.toLowerCase()];
+  if (!s) return null;
   return (
-    <span className={`text-[8px] uppercase tracking-wider font-black px-2 py-0.5 rounded-full border ${styles[key] || "bg-black/5 text-[#AAA49C] border-black/10"}`}>
+    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border"
+      style={{ background: s.bg, color: s.text, borderColor: s.border }}>
+      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.dot }} />
       {label}
     </span>
   );
@@ -68,71 +72,69 @@ function ListingRow({ listing, onClick }) {
   return (
     <div
       onClick={() => onClick(listing)}
-      className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 md:px-6 py-4 hover:bg-[#F7F4EF] transition-all cursor-pointer border-b border-black/[0.05] last:border-0"
+      className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 px-5 md:px-6 py-4 hover:bg-[#FAFAF8] transition-all cursor-pointer border-b border-black/[0.04] last:border-0"
     >
       {/* ATI Ring */}
       <ATIBadge score={listing.ati_score} />
 
       {/* Main info */}
       <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p className="text-sm font-black text-[#1A1814]">
+        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+          <p className="text-[13px] font-black text-[#1A1814] tracking-tight">
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
           </p>
           {listing.registration && (
-            <span className="text-[10px] text-[#AAA49C] font-mono bg-black/5 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] text-[#6B6560] font-mono bg-[#F0EDE6] px-2 py-0.5 rounded-md border border-black/[0.05]">
               {listing.registration}
             </span>
           )}
           <DealBadge label={listing.deal_label} />
         </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
           {listing.total_time && (
             <span className="text-[11px] text-[#6B6560]">
-              <span className="text-[#AAA49C]">TT</span> {listing.total_time.toLocaleString()} hrs
+              <span className="text-[#AAA49C] font-medium">TT </span>{listing.total_time.toLocaleString()} h
             </span>
           )}
           {listing.engine_hours && (
             <span className="text-[11px] text-[#6B6560]">
-              <span className="text-[#AAA49C]">ENG</span> {listing.engine_hours.toLocaleString()} hrs
+              <span className="text-[#AAA49C] font-medium">ENG </span>{listing.engine_hours.toLocaleString()} h
             </span>
           )}
+          {enginePct != null && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-20 h-1 bg-black/[0.06] rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
+              </div>
+              <span className="text-[9px] text-[#AAA49C] font-medium">{Math.round(enginePct)}%</span>
+            </div>
+          )}
           {listing.avionics && (
-            <span className="text-[11px] text-[#6B6560] truncate max-w-[150px]">{listing.avionics}</span>
+            <span className="text-[11px] text-[#AAA49C] truncate max-w-[140px]">{listing.avionics}</span>
           )}
         </div>
-
-        {/* Engine life bar */}
-        {enginePct != null && (
-          <div className="mt-2 flex items-center gap-2">
-            <div className="w-24 h-1.5 bg-black/5 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
-            </div>
-            <span className="text-[9px] text-[#AAA49C]">{Math.round(enginePct)}% eng life</span>
-          </div>
-        )}
       </div>
 
-      {/* Price + ATI link */}
-      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 shrink-0">
+      {/* Price + link */}
+      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0">
         <div className="text-right">
-          <p className="text-base font-black text-[#1A1814]">
-            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-sm">Price on request</span>}
+          <p className="text-[15px] font-black text-[#1A1814] tracking-tight">
+            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-sm font-normal">On request</span>}
           </p>
           {hasDiscount && (
-            <div className={`flex items-center justify-end gap-0.5 text-[10px] font-bold ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
-              {isBelow ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-              {Math.abs(listing.discount_pct)}% {isBelow ? "below" : "above"} market
+            <div className={`flex items-center justify-end gap-0.5 text-[10px] font-bold mt-0.5 ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
+              {isBelow ? <TrendingDown className="w-2.5 h-2.5" /> : <TrendingUp className="w-2.5 h-2.5" />}
+              {Math.abs(listing.discount_pct)}% {isBelow ? "below" : "above"}
             </div>
           )}
         </div>
         <Link
           to={`/ati-passport/${listing.id}`}
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider transition-colors whitespace-nowrap group-hover:gap-1.5"
+          className="flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#A67C00] font-bold transition-colors whitespace-nowrap opacity-0 group-hover:opacity-100"
         >
-          View Score Card <ArrowUpRight className="w-3 h-3" />
+          Score Card <ArrowUpRight className="w-3 h-3" />
         </Link>
       </div>
     </div>
@@ -140,11 +142,11 @@ function ListingRow({ listing, onClick }) {
 }
 
 // ─── Stat Pill ───────────────────────────────────────────────────
-function StatPill({ value, label, color = "#0B2D5B" }) {
+function StatPill({ value, label, color = "#E8A83A" }) {
   return (
-    <div className="text-center px-4">
-      <p className="text-xl font-black" style={{ color }}>{value}</p>
-      <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mt-0.5">{label}</p>
+    <div>
+      <p className="text-lg font-black leading-none" style={{ color }}>{value}</p>
+      <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-semibold mt-1">{label}</p>
     </div>
   );
 }
@@ -213,43 +215,44 @@ export default function Listings() {
       </div>
 
       {/* ── Header ── */}
-      <div className="bg-[#0B2D5B] border-b border-white/5">
-        <div className="px-4 md:px-8 py-6">
-          <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold mb-2">Market · Aircraft Inventory</p>
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="bg-[#0B2D5B]">
+        <div className="px-4 md:px-8 pt-6 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+              <p className="text-[#E8A83A]/70 text-[9px] uppercase tracking-[0.25em] font-bold mb-2">Market · Aircraft Inventory</p>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none">
                 Off-Market Aircraft
               </h1>
-              <p className="text-white/50 text-sm mt-1">
-                {filtered.length} aircraft — independently scored, priced against real market data
-              </p>
+              {!isLoading && (
+                <p className="text-white/40 text-[12px] mt-2 font-medium">
+                  {filtered.length} aircraft · scored against real market data
+                </p>
+              )}
             </div>
-            <div className="flex gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               {/* View mode toggle */}
-              <div className="flex bg-white/10 rounded-xl p-1 border border-white/15">
+              <div className="flex bg-white/[0.07] rounded-lg p-0.5 border border-white/10">
                 <button onClick={() => setViewMode("cards")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${viewMode === "cards" ? "bg-white text-[#0B2D5B]" : "text-white/60 hover:text-white"}`}>
-                  <CreditCard className="w-3.5 h-3.5" /> Cards
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${viewMode === "cards" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/50 hover:text-white/80"}`}>
+                  <CreditCard className="w-3 h-3" /> Cards
                 </button>
                 <button onClick={() => setViewMode("list")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${viewMode === "list" ? "bg-white text-[#0B2D5B]" : "text-white/60 hover:text-white"}`}>
-                  <LayoutList className="w-3.5 h-3.5" /> List
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${viewMode === "list" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/50 hover:text-white/80"}`}>
+                  <LayoutList className="w-3 h-3" /> List
                 </button>
               </div>
               <button
                 onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowImport(true))}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 bg-white/[0.08] hover:bg-white/[0.13] border border-white/[0.12] text-white/80 text-[12px] font-bold px-3.5 py-2 rounded-lg transition-colors"
               >
-                <FileArchive className="w-4 h-4" />
-                <span className="hidden sm:inline">Import & Edit</span>
-                <span className="sm:hidden">Import</span>
+                <FileArchive className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Import</span>
               </button>
               <button
                 onClick={() => setShowWizard(true)}
-                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-sm font-black px-4 py-2.5 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-4 py-2 rounded-lg transition-colors shadow-sm"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="w-3.5 h-3.5" />
                 Add Aircraft
               </button>
             </div>
@@ -257,44 +260,50 @@ export default function Listings() {
 
           {/* Inline stats */}
           {!isLoading && listings.length > 0 && (
-            <div className="flex items-center gap-0 mt-5 divide-x divide-white/10 bg-white/5 rounded-xl w-fit">
-              <StatPill value={listings.length} label="Total Aircraft" color="#E8A83A" />
+            <div className="flex items-center gap-5 mt-5 pt-4 border-t border-white/[0.07]">
+              <StatPill value={listings.length} label="Total" color="#E8A83A" />
+              <div className="w-px h-6 bg-white/10" />
               <StatPill value={scoredCount} label="ATI Scored" color="#6FA3E8" />
+              <div className="w-px h-6 bg-white/10" />
               <StatPill value={hotDeals} label="Hot Deals" color="#F5C842" />
-              {avgATI && <StatPill value={avgATI} label="Avg ATI Score" color="#A8D5BE" />}
+              {avgATI && <>
+                <div className="w-px h-6 bg-white/10" />
+                <StatPill value={avgATI} label="Avg ATI" color="#A8D5BE" />
+              </>}
             </div>
           )}
         </div>
       </div>
 
       {/* ── Search & Filters ── */}
-      <div className="px-4 md:px-8 py-4">
+      <div className="px-4 md:px-8 py-3 bg-white border-b border-black/[0.05] sticky top-0 z-10 shadow-sm">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search make, model or tail number…"
-              className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] transition-colors"
+              placeholder="Make, model or tail number…"
+              className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C]">
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C] hover:text-[#6B6560]">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
           <button
             onClick={() => setShowFilters(v => !v)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-white border-black/10 text-[#6B6560] hover:border-[#D4A017]"}`}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-[#F7F4EF] border-black/[0.07] text-[#6B6560] hover:border-[#D4A017] hover:text-[#D4A017]"}`}
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
+            {(makeFilter || minATI > 0) && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
           </button>
         </div>
 
         {showFilters && (
-          <div className="mt-3 bg-white border border-black/[0.07] rounded-xl p-4 flex flex-wrap gap-5 items-end">
+          <div className="mt-2.5 bg-[#F7F4EF] border border-black/[0.06] rounded-xl p-4 flex flex-wrap gap-5 items-end">
             <div className="min-w-[180px]">
               <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Manufacturer</label>
               <BottomSheetSelect
@@ -316,26 +325,24 @@ export default function Listings() {
             </div>
             {(makeFilter || minATI > 0) && (
               <button onClick={() => { setMakeFilter(""); setMinATI(0); }}
-                className="text-[11px] text-[#C0392B] font-bold hover:underline pb-1 touch-target-compact">
-                Clear all filters
+                className="text-[11px] text-[#C0392B] font-semibold hover:underline pb-1 touch-target-compact">
+                Clear filters
               </button>
             )}
           </div>
         )}
 
         {/* Active filter pills */}
-        {(makeFilter || minATI > 0) && (
-          <div className="flex gap-2 mt-2 flex-wrap">
+        {(makeFilter || minATI > 0) && !showFilters && (
+          <div className="flex gap-1.5 mt-2 flex-wrap">
             {makeFilter && (
               <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
-                {makeFilter}
-                <button onClick={() => setMakeFilter("")}><X className="w-3 h-3" /></button>
+                {makeFilter} <button onClick={() => setMakeFilter("")}><X className="w-2.5 h-2.5" /></button>
               </span>
             )}
             {minATI > 0 && (
               <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
-                ATI ≥ {minATI}
-                <button onClick={() => setMinATI(0)}><X className="w-3 h-3" /></button>
+                ATI ≥ {minATI} <button onClick={() => setMinATI(0)}><X className="w-2.5 h-2.5" /></button>
               </span>
             )}
           </div>
@@ -343,30 +350,32 @@ export default function Listings() {
       </div>
 
       {/* ── Listings ── */}
-      <div className="px-4 md:px-8 pb-8">
+      <div className="px-4 md:px-8 py-5 pb-8">
         {isLoading ? (
           <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.05]">
-                <div className="w-10 h-10 rounded-full bg-black/5 animate-pulse shrink-0" />
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.04]">
+                <div className="w-11 h-11 rounded-full bg-black/[0.05] animate-pulse shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-black/5 rounded animate-pulse w-1/2" />
-                  <div className="h-3 bg-black/5 rounded animate-pulse w-1/3" />
+                  <div className="h-3.5 bg-black/[0.05] rounded-md animate-pulse w-2/5" />
+                  <div className="h-2.5 bg-black/[0.04] rounded-md animate-pulse w-1/3" />
                 </div>
-                <div className="h-6 bg-black/5 rounded animate-pulse w-24" />
+                <div className="h-5 bg-black/[0.05] rounded-md animate-pulse w-20" />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-20 text-[#AAA49C]">
-            <Plane className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-sm font-semibold text-[#6B6560]">No aircraft match your criteria</p>
-            <p className="text-[11px] mt-1">Try adjusting your filters or adding a new listing</p>
+          <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-16 text-[#AAA49C]">
+            <div className="w-12 h-12 rounded-full bg-[#F0EDE6] flex items-center justify-center mb-3">
+              <Plane className="w-6 h-6 text-[#AAA49C]" />
+            </div>
+            <p className="text-sm font-bold text-[#6B6560]">No aircraft match your criteria</p>
+            <p className="text-[11px] mt-1 text-[#AAA49C]">Try adjusting filters or add a new listing</p>
             <button
               onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowImport(true))}
-              className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-sm font-bold px-5 py-2.5 rounded-xl"
+              className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-[12px] font-bold px-5 py-2.5 rounded-xl"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-3.5 h-3.5" />
               Add First Listing
             </button>
           </div>
@@ -528,11 +537,11 @@ export default function Listings() {
           </div>
         ) : (
           /* ── LIST VIEW ── */
-          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-            <div className="hidden sm:flex items-center gap-4 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
-              <div className="w-10 shrink-0" />
-              <div className="flex-1 text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Aircraft</div>
-              <div className="shrink-0 w-32 text-right text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Price / Market</div>
+          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm">
+            <div className="hidden sm:flex items-center gap-5 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
+              <div className="w-11 shrink-0" />
+              <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Aircraft</div>
+              <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Price</div>
             </div>
             {filtered.map(l => <ListingRow key={l.id} listing={l} onClick={setSelected} />)}
           </div>
@@ -540,10 +549,12 @@ export default function Listings() {
 
         {/* Score CTA */}
         {!isLoading && listings.filter(l => !l.ati_score).length > 0 && (
-          <div className="mt-3 flex items-center gap-3 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
-            <ShieldCheck className="w-4 h-4 text-[#0B2D5B] shrink-0" />
-            <p className="text-[12px] text-[#4A4845]">
-              <span className="font-black text-[#0B2D5B]">{listings.filter(l => !l.ati_score).length} aircraft</span> haven't been scored yet — open any listing and issue an ATI Score Card.
+          <div className="mt-4 flex items-center gap-3 bg-white border border-[rgba(11,45,91,0.1)] rounded-xl px-4 py-3 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[rgba(11,45,91,0.07)] flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4 text-[#0B2D5B]" />
+            </div>
+            <p className="text-[12px] text-[#6B6560]">
+              <span className="font-black text-[#0B2D5B]">{listings.filter(l => !l.ati_score).length} aircraft</span> not yet scored — open any listing to issue an ATI Score Card.
             </p>
           </div>
         )}

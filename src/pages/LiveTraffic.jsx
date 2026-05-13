@@ -5,12 +5,13 @@ import L from "leaflet";
 import { base44 } from "@/api/base44Client";
 import {
   Radio, Search, Plane, AlertCircle, Navigation, Gauge,
-  MapPin, Fuel, Zap, RefreshCw, ChevronDown, X
+  MapPin, Fuel, Zap, RefreshCw, ChevronDown, X, History
 } from "lucide-react";
 import ATIMarkerPopup from "@/components/live-traffic/ATIMarkerPopup";
 import TrafficStatsPanel from "@/components/live-traffic/TrafficStatsPanel";
 import { AIRPORT_PRESETS } from "@/components/live-traffic/AirportPresets";
 import TrafficFilterBar, { mapCategoryToMTOW } from "@/components/live-traffic/TrafficFilterBar";
+import TimelineSlider from "@/components/live-traffic/TimelineSlider";
 import { useBehavior } from "@/lib/useBehavior";
 
 // Fix leaflet default icons
@@ -94,6 +95,8 @@ export default function LiveTraffic() {
   const [allowHeavy, setAllowHeavy] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
+  const [isHistorical, setIsHistorical] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
   const mapRef = useRef(null);
 
   // Primary filters
@@ -133,10 +136,11 @@ export default function LiveTraffic() {
   const [flights, setFlights] = useState(null);
   const [lookupError, setLookupError] = useState(null);
 
-  // Fetch area traffic
+  // Fetch area traffic (live)
   const fetchMapTraffic = useCallback(async (bbox, heavy) => {
     setMapLoading(true);
     setMapError(null);
+    setIsHistorical(false);
     try {
       const res = await base44.functions.invoke("openSky", {
         action: "map_states",
@@ -149,6 +153,31 @@ export default function LiveTraffic() {
       });
       setMapAircraft(res.data?.aircraft || []);
       setLastRefresh(new Date());
+    } catch (e) {
+      setMapError(e.response?.data?.error || e.message);
+    } finally {
+      setMapLoading(false);
+    }
+  }, [allowHeavy, isPro]);
+
+  // Fetch historical snapshot at a specific unix timestamp
+  const fetchHistoricalSnapshot = useCallback(async ({ ts, bbox }) => {
+    setMapLoading(true);
+    setMapError(null);
+    setIsHistorical(true);
+    try {
+      const res = await base44.functions.invoke("openSky", {
+        action: "history_states",
+        ts,
+        lamin: bbox.lamin,
+        lomin: bbox.lomin,
+        lamax: bbox.lamax,
+        lomax: bbox.lomax,
+        allow_heavy: allowHeavy,
+        limit: isPro ? 500 : 200,
+      });
+      setMapAircraft(res.data?.aircraft || []);
+      setLastRefresh(new Date(ts * 1000));
     } catch (e) {
       setMapError(e.response?.data?.error || e.message);
     } finally {
@@ -236,6 +265,19 @@ export default function LiveTraffic() {
               {allowHeavy ? "All Traffic (incl. Heavy)" : "GA Only (no heavy)"}
             </button>
 
+            {/* Timeline toggle */}
+            <button
+              onClick={() => setShowTimeline(v => !v)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-bold border transition-all ${
+                showTimeline
+                  ? "bg-white text-[#0B2D5B] border-white"
+                  : "bg-white/[0.07] text-white/60 border-white/10 hover:border-white/20"
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              Replay
+            </button>
+
             {/* Preset selector */}
             <div className="relative">
               <button
@@ -266,6 +308,15 @@ export default function LiveTraffic() {
 
       <div className="px-4 md:px-8 py-5 space-y-5">
 
+        {/* ── Timeline Replay ── */}
+        {showTimeline && (
+          <TimelineSlider
+            preset={selectedPreset}
+            onFetchSnapshot={fetchHistoricalSnapshot}
+            isLoading={mapLoading}
+          />
+        )}
+
         {/* ── Primary Filters ── */}
         <TrafficFilterBar
           nSearch={nSearch} setNSearch={setNSearch}
@@ -278,9 +329,16 @@ export default function LiveTraffic() {
         {filteredAircraft.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
-                {selectedPreset?.label} — {filteredAircraft.length} of {mapAircraft.length} aircraft
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
+                  {selectedPreset?.label} — {filteredAircraft.length} of {mapAircraft.length} aircraft
+                </p>
+                {isHistorical && (
+                  <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(232,168,58,0.15)] text-[#A67C00] border border-[rgba(232,168,58,0.3)]">
+                    <History className="w-2.5 h-2.5" /> Historical
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {lastRefresh && (
                   <p className="text-[10px] text-[#AAA49C]">

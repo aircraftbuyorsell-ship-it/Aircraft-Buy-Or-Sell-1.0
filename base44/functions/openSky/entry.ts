@@ -182,6 +182,68 @@ Deno.serve(async (req) => {
     const { action, icao24, days } = body;
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
 
+    // ── HISTORY STATES: area bounding box at a specific past unix timestamp ──
+    if (action === "history_states") {
+      const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200, ts } = body;
+      if (!ts) return Response.json({ error: "ts (unix timestamp) required" }, { status: 400 });
+
+      // OpenSky /states/all accepts &time= for historical snapshots (authenticated only)
+      const params = new URLSearchParams({ time: String(Math.floor(ts)) });
+      if (lamin != null) params.set("lamin", lamin);
+      if (lomin != null) params.set("lomin", lomin);
+      if (lamax != null) params.set("lamax", lamax);
+      if (lomax != null) params.set("lomax", lomax);
+      const path = `/states/all?${params.toString()}`;
+
+      const data = await openSkyFetch(path);
+      if (!data?.states) return Response.json({ aircraft: [], time: ts, historical: true });
+
+      let states = data.states.map(parseState).filter(s => s && s.latitude && s.longitude);
+
+      if (!allow_heavy) {
+        states = states.filter(s => {
+          const cat = s.category || 0;
+          return cat < 5 || (cat >= 8 && cat <= 17);
+        });
+      }
+      states = states.slice(0, limit);
+
+      const hexList = states.map(s => s.icao24).filter(Boolean);
+      let faaMap = {};
+      if (hexList.length > 0) {
+        try {
+          const faaRecords = await base44.asServiceRole.entities.FAAAircraft.filter(
+            { mode_s_hex: { $in: hexList } }, "", 500
+          );
+          faaRecords.forEach(r => { if (r.mode_s_hex) faaMap[r.mode_s_hex.toLowerCase()] = r; });
+        } catch (e) { console.warn("FAA enrichment failed:", e.message); }
+      }
+
+      const registrations = Object.values(faaMap).map(r => r.n_number ? `N${r.n_number}` : null).filter(Boolean);
+      let atiMap = {};
+      if (registrations.length > 0) {
+        try {
+          const listings = await base44.asServiceRole.entities.AircraftListing.filter(
+            { registration: { $in: registrations }, status: "active" }, "-ati_score", 500
+          );
+          listings.forEach(l => { if (l.registration) atiMap[l.registration.toUpperCase()] = l; });
+        } catch (e) { console.warn("ATI enrichment failed:", e.message); }
+      }
+
+      const aircraft = states.map(s => {
+        const faa = faaMap[s.icao24?.toLowerCase()] || null;
+        const reg = faa?.n_number ? `N${faa.n_number}` : null;
+        const listing = reg ? atiMap[reg.toUpperCase()] || null : null;
+        return {
+          ...s,
+          faa: faa ? { n_number: faa.n_number ? `N${faa.n_number}` : null, name: faa.name, type_aircraft: faa.type_aircraft, mfr_mdl_code: faa.mfr_mdl_code, year_mfr: faa.year_mfr } : null,
+          listing: listing ? { id: listing.id, make: listing.make, model: listing.model, year: listing.year, ati_score: listing.ati_score, deal_label: listing.deal_label, asking_price: listing.asking_price, deal_score: listing.deal_score } : null,
+        };
+      });
+
+      return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical: true });
+    }
+
     // ── MAP STATES: area bounding box — no icao24 needed ──
     if (action === "map_states") {
       const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200 } = body;

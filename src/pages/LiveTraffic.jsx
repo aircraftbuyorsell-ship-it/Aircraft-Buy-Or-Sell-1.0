@@ -302,9 +302,54 @@ export default function LiveTraffic() {
         )}
 
         {/* ── Map ── */}
-        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm" style={{ height: "clamp(360px, 55vh, 620px)" }}>
+        <div className="relative bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm" style={{ height: "clamp(360px, 55vh, 620px)" }}>
+          {/* Map always rendered so it initialises properly */}
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            style={{ height: "100%", width: "100%" }}
+            ref={mapRef}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapRecenter center={mapCenter} zoom={mapZoom} />
+            {filteredAircraft.map((ac) => (
+              <Marker
+                key={ac.icao24}
+                position={[ac.latitude, ac.longitude]}
+                icon={makeAircraftIcon(ac.listing?.ati_score, ac.true_track, ac.on_ground)}
+              >
+                <Popup maxWidth={260}>
+                  <ATIMarkerPopup ac={ac} />
+                </Popup>
+              </Marker>
+            ))}
+            {/* Single aircraft pin */}
+            {singleState?.latitude && singleState?.longitude && (
+              <Marker
+                position={[singleState.latitude, singleState.longitude]}
+                icon={makeAircraftIcon(null, singleState.true_track, singleState.on_ground)}
+              >
+                <Popup>
+                  <div style={{ fontFamily: "Inter, sans-serif", minWidth: 180 }}>
+                    <p style={{ fontWeight: 900, fontSize: 14, color: "#0B2D5B" }}>{resolved?.reg || resolved?.hex}</p>
+                    <p style={{ fontSize: 11, color: "#6B6560" }}>
+                      {m2ft(singleState.baro_altitude)?.toLocaleString()} ft · {mps2kts(singleState.velocity)} kts
+                    </p>
+                    <p style={{ fontSize: 10, color: singleState.on_ground ? "#C0392B" : "#0F7A56", fontWeight: 800, marginTop: 4 }}>
+                      {singleState.on_ground ? "On Ground" : "Airborne"}
+                    </p>
+                  </div>
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
+
+          {/* Overlays on top of map */}
           {!selectedPreset && mapAircraft.length === 0 && !mapLoading && (
-            <div className="flex flex-col items-center justify-center h-full text-[#AAA49C] space-y-3">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-[1000] space-y-3">
               <div className="w-16 h-16 rounded-full bg-[#F0EDE6] flex items-center justify-center">
                 <MapPin className="w-8 h-8 text-[#AAA49C]" />
               </div>
@@ -315,65 +360,20 @@ export default function LiveTraffic() {
             </div>
           )}
 
-          {mapLoading && mapAircraft.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full gap-3">
+          {mapLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm z-[1000] gap-3">
               <div className="w-10 h-10 border-4 border-[#E8A83A]/30 border-t-[#E8A83A] rounded-full animate-spin" />
               <p className="text-sm font-bold text-[#6B6560]">Loading live traffic…</p>
             </div>
           )}
 
           {mapError && (
-            <div className="flex items-center justify-center h-full">
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-[1000]">
               <div className="flex items-center gap-2 text-[#C0392B] text-sm bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] rounded-lg px-4 py-3">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {mapError}
               </div>
             </div>
-          )}
-
-          {(filteredAircraft.length > 0 || selectedPreset) && !mapError && (
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              style={{ height: "100%", width: "100%" }}
-              ref={mapRef}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <MapRecenter center={mapCenter} zoom={mapZoom} />
-              {filteredAircraft.map((ac) => (
-                <Marker
-                  key={ac.icao24}
-                  position={[ac.latitude, ac.longitude]}
-                  icon={makeAircraftIcon(ac.listing?.ati_score, ac.true_track, ac.on_ground)}
-                >
-                  <Popup maxWidth={260}>
-                    <ATIMarkerPopup ac={ac} />
-                  </Popup>
-                </Marker>
-              ))}
-              {/* Single aircraft pin */}
-              {singleState?.latitude && singleState?.longitude && (
-                <Marker
-                  position={[singleState.latitude, singleState.longitude]}
-                  icon={makeAircraftIcon(null, singleState.true_track, singleState.on_ground)}
-                >
-                  <Popup>
-                    <div style={{ fontFamily: "Inter, sans-serif", minWidth: 180 }}>
-                      <p style={{ fontWeight: 900, fontSize: 14, color: "#0B2D5B" }}>{resolved?.reg || resolved?.hex}</p>
-                      <p style={{ fontSize: 11, color: "#6B6560" }}>
-                        {m2ft(singleState.baro_altitude)?.toLocaleString()} ft · {mps2kts(singleState.velocity)} kts
-                      </p>
-                      <p style={{ fontSize: 10, color: singleState.on_ground ? "#C0392B" : "#0F7A56", fontWeight: 800, marginTop: 4 }}>
-                        {singleState.on_ground ? "On Ground" : "Airborne"}
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-              )}
-            </MapContainer>
           )}
         </div>
 

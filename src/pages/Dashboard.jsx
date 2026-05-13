@@ -104,7 +104,7 @@ export default function Dashboard() {
           </div>
 
           <h1 className={`text-2xl md:text-4xl lg:text-5xl font-black leading-[1.15] uppercase tracking-tight max-w-5xl mx-auto ${isDark ? "text-white" : "text-[#1A1814]"}`}>
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Reports</span> · <span className="text-[#E8A83A]">Live Tracking</span> · <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>AI Pre-Buy Inspection</span> · <span className="text-[#E8A83A]">ESCROW</span>
+            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Reports</span> · <span className="text-[#E8A83A]">Live Tracking</span> · <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Pre-Buy Inspection</span> · <span className="text-[#E8A83A]">ESCROW</span>
           </h1>
           <p className={`text-sm md:text-base mt-5 max-w-3xl mx-auto leading-relaxed ${isDark ? "text-white/80" : "text-[#4A4845]"}`}>
             The professional aviation platform for verified dealers and brokers. Generate <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI intelligence reports</b>, track any aircraft <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>live via ADS-B</b>, run an <b className="text-[#E8A83A]">AI-powered pre-buy inspection with Max</b>, and close deals through <b className="text-[#E8A83A]">protected escrow</b>.

@@ -4,12 +4,13 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
 import {
-  Radio, Search, Plane, AlertCircle, Navigation, Gauge, Clock,
-  MapPin, Fuel, Zap, RefreshCw, SlidersHorizontal, ChevronDown, X
+  Radio, Search, Plane, AlertCircle, Navigation, Gauge,
+  MapPin, Fuel, Zap, RefreshCw, ChevronDown, X
 } from "lucide-react";
 import ATIMarkerPopup from "@/components/live-traffic/ATIMarkerPopup";
 import TrafficStatsPanel from "@/components/live-traffic/TrafficStatsPanel";
 import { AIRPORT_PRESETS } from "@/components/live-traffic/AirportPresets";
+import TrafficFilterBar, { mapCategoryToMTOW } from "@/components/live-traffic/TrafficFilterBar";
 import { useBehavior } from "@/lib/useBehavior";
 
 // Fix leaflet default icons
@@ -94,6 +95,36 @@ export default function LiveTraffic() {
   const [showPresets, setShowPresets] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const mapRef = useRef(null);
+
+  // Primary filters
+  const [nSearch, setNSearch] = useState("");
+  const [airportSearch, setAirportSearch] = useState("");
+  const [mtowCategory, setMtowCategory] = useState("all");
+
+  // Filtered aircraft (primary filters applied on frontend)
+  const filteredAircraft = mapAircraft.filter(ac => {
+    // N-number / ICAO24 filter
+    if (nSearch) {
+      const q = nSearch.trim().toUpperCase().replace(/[-\s]/g, "");
+      const nNum = ac.faa?.n_number?.toUpperCase().replace(/[-\s]/g, "") || "";
+      const icao = ac.icao24?.toUpperCase() || "";
+      const callsign = ac.callsign?.toUpperCase().trim() || "";
+      if (!nNum.includes(q) && !icao.includes(q) && !callsign.includes(q)) return false;
+    }
+    // Airport filter (match departure/arrival from recent flights — approximate via callsign prefix)
+    if (airportSearch) {
+      const apt = airportSearch.trim().toUpperCase();
+      const cs = ac.callsign?.toUpperCase().trim() || "";
+      // basic: callsign starts with ICAO airport prefix (KOSH → OSH flights, etc.)
+      if (!cs.startsWith(apt.slice(1)) && !cs.includes(apt)) return false;
+    }
+    // MTOW category filter
+    if (mtowCategory !== "all") {
+      const bucket = mapCategoryToMTOW(ac.category);
+      if (bucket !== mtowCategory) return false;
+    }
+    return true;
+  });
 
   // Single aircraft lookup state
   const [query, setQuery] = useState("");
@@ -235,12 +266,20 @@ export default function LiveTraffic() {
 
       <div className="px-4 md:px-8 py-5 space-y-5">
 
+        {/* ── Primary Filters ── */}
+        <TrafficFilterBar
+          nSearch={nSearch} setNSearch={setNSearch}
+          airportSearch={airportSearch} setAirportSearch={setAirportSearch}
+          mtowCategory={mtowCategory} setMtowCategory={setMtowCategory}
+          activeCount={mapAircraft.length > 0 ? filteredAircraft.length : null}
+        />
+
         {/* ── Stats row ── */}
-        {mapAircraft.length > 0 && (
+        {filteredAircraft.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
-                {selectedPreset?.label} — {mapAircraft.length} aircraft visible
+                {selectedPreset?.label} — {filteredAircraft.length} of {mapAircraft.length} aircraft
               </p>
               <div className="flex items-center gap-2">
                 {lastRefresh && (
@@ -258,7 +297,7 @@ export default function LiveTraffic() {
                 </button>
               </div>
             </div>
-            <TrafficStatsPanel aircraft={mapAircraft} />
+            <TrafficStatsPanel aircraft={filteredAircraft} />
           </div>
         )}
 
@@ -292,7 +331,7 @@ export default function LiveTraffic() {
             </div>
           )}
 
-          {(mapAircraft.length > 0 || selectedPreset) && !mapError && (
+          {(filteredAircraft.length > 0 || selectedPreset) && !mapError && (
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
@@ -304,7 +343,7 @@ export default function LiveTraffic() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               <MapRecenter center={mapCenter} zoom={mapZoom} />
-              {mapAircraft.map((ac) => (
+              {filteredAircraft.map((ac) => (
                 <Marker
                   key={ac.icao24}
                   position={[ac.latitude, ac.longitude]}

@@ -1,75 +1,154 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
 import { base44 } from "@/api/base44Client";
-import { Radio, Search, Plane, AlertCircle, Navigation, Gauge, Clock, MapPin, Fuel, Zap } from "lucide-react";
+import {
+  Radio, Search, Plane, AlertCircle, Navigation, Gauge, Clock,
+  MapPin, Fuel, Zap, RefreshCw, SlidersHorizontal, ChevronDown, X
+} from "lucide-react";
+import ATIMarkerPopup from "@/components/live-traffic/ATIMarkerPopup";
+import TrafficStatsPanel from "@/components/live-traffic/TrafficStatsPanel";
+import { AIRPORT_PRESETS } from "@/components/live-traffic/AirportPresets";
+import { useBehavior } from "@/lib/useBehavior";
 
-function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
-}
+// Fix leaflet default icons
+import "leaflet/dist/leaflet.css";
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
-function StatTile({ icon: Icon, label, value, sub }) {
-  return (
-    <div className="bg-white border border-black/[0.07] rounded-xl p-4">
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon className="w-3.5 h-3.5 text-[#0B2D5B]" />
-        <p className="text-[10px] uppercase tracking-wider font-semibold text-[#AAA49C]">{label}</p>
-      </div>
-      <p className="text-xl font-black text-[#1A1814]">{value}</p>
-      {sub && <p className="text-[10px] text-[#6B6560] mt-0.5">{sub}</p>}
-    </div>
-  );
-}
+// ─── Custom aircraft icons ────────────────────────────────────────
+function makeAircraftIcon(ati, heading, onGround) {
+  const color = ati >= 90 ? "#0F7A56" : ati >= 72 ? "#185FA5" : ati > 0 ? "#D4A017" : "#6B6560";
+  const bg = ati > 0 ? color : "#AAA49C";
+  const rotation = heading != null ? heading : 0;
+  const size = ati > 0 ? 28 : 22;
 
-function formatTime(unix) {
-  if (!unix) return "—";
-  return new Date(unix * 1000).toLocaleString("en-US", {
-    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" style="transform:rotate(${rotation}deg)">
+    <circle cx="12" cy="12" r="11" fill="${bg}" fill-opacity="0.18" stroke="${bg}" stroke-width="1.5"/>
+    <path d="M12 3 L9 14 L12 12 L15 14 Z" fill="${onGround ? '#888' : bg}" stroke="${onGround ? '#888' : bg}" stroke-width="0.5"/>
+    ${ati > 0 ? `<text x="12" y="22" text-anchor="middle" font-size="5" font-weight="900" fill="${bg}" font-family="Inter,sans-serif">${ati}</text>` : ""}
+  </svg>`;
+
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
 }
 
-const HEX_RE = /^[0-9a-f]{6}$/i;
+// ─── Map recenter helper ──────────────────────────────────────────
+function MapRecenter({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.setView(center, zoom || map.getZoom());
+  }, [center, zoom]);
+  return null;
+}
 
-// Resolve query → hex. Accepts direct hex, N-numbers (N123AB), or tail regs (OK-LAD, D-EABC).
+// ─── Single aircraft lookup (legacy N-number search) ─────────────
+const HEX_RE = /^[0-9a-f]{6}$/i;
 async function resolveToHex(query) {
   const q = query.trim();
   if (!q) throw new Error("Enter a registration or Mode-S hex");
-
-  // Direct hex?
   if (HEX_RE.test(q)) return { hex: q.toLowerCase(), source: "hex", reg: null };
-
-  // FAA N-number lookup (strip leading N, normalize)
   const normalized = q.toUpperCase().replace(/[-\s]/g, "");
   const isNreg = /^N[0-9A-Z]{1,5}$/.test(normalized);
-
   if (isNreg) {
-    const nNum = normalized.substring(1); // drop the 'N'
+    const nNum = normalized.substring(1);
     const matches = await base44.entities.FAAAircraft.filter({ n_number: nNum }, "-last_action_date", 1);
     if (matches.length && matches[0].mode_s_hex) {
       return { hex: matches[0].mode_s_hex.toLowerCase(), source: "faa", reg: `N${nNum}` };
     }
-    throw new Error(`N${nNum} not found in FAA registry or missing Mode-S hex. Try the 6-char hex directly.`);
+    throw new Error(`N${nNum} not found in FAA registry. Try the 6-char hex directly.`);
   }
-
-  // Non-N registration (e.g. OK-LAD, D-EABC) — we don't have a lookup table
-  throw new Error(`"${q}" is a non-US registration. Enter the 6-char Mode-S hex instead (e.g. 49d2a4).`);
+  throw new Error(`Non-US registration. Enter the 6-char Mode-S hex instead.`);
 }
 
-export default function LiveTraffic() {
-  const [query, setQuery] = useState("");
-  const [resolved, setResolved] = useState(null); // { hex, source, reg }
-  const [state, setState] = useState(null);
-  const [flights, setFlights] = useState(null);
-  const [fuelData, setFuelData] = useState(null);
-  const [enduranceData, setEnduranceData] = useState(null);
-  const [error, setError] = useState(null);
+function formatTime(unix) {
+  if (!unix) return "—";
+  return new Date(unix * 1000).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+const mps2kts = (v) => v != null ? Math.round(v * 1.94384) : null;
+const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
 
+// ─── Main page ────────────────────────────────────────────────────
+export default function LiveTraffic() {
+  const { tier } = useBehavior();
+  const isPro = tier !== "free_explorer";
+
+  // Map view state
+  const [mapCenter, setMapCenter] = useState([39.5, -98.35]); // USA default
+  const [mapZoom, setMapZoom] = useState(5);
+  const [mapAircraft, setMapAircraft] = useState([]);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState(null);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [allowHeavy, setAllowHeavy] = useState(false);
+  const [showPresets, setShowPresets] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState(null);
+  const mapRef = useRef(null);
+
+  // Single aircraft lookup state
+  const [query, setQuery] = useState("");
+  const [resolved, setResolved] = useState(null);
+  const [singleState, setSingleState] = useState(null);
+  const [flights, setFlights] = useState(null);
+  const [lookupError, setLookupError] = useState(null);
+
+  // Fetch area traffic
+  const fetchMapTraffic = useCallback(async (bbox, heavy) => {
+    setMapLoading(true);
+    setMapError(null);
+    try {
+      const res = await base44.functions.invoke("openSky", {
+        action: "map_states",
+        lamin: bbox.lamin,
+        lomin: bbox.lomin,
+        lamax: bbox.lamax,
+        lomax: bbox.lomax,
+        allow_heavy: heavy ?? allowHeavy,
+        limit: isPro ? 500 : 200,
+      });
+      setMapAircraft(res.data?.aircraft || []);
+      setLastRefresh(new Date());
+    } catch (e) {
+      setMapError(e.response?.data?.error || e.message);
+    } finally {
+      setMapLoading(false);
+    }
+  }, [allowHeavy, isPro]);
+
+  // Load preset
+  const loadPreset = (preset) => {
+    setSelectedPreset(preset);
+    setMapCenter([preset.lat, preset.lng]);
+    setMapZoom(preset.zoom);
+    setShowPresets(false);
+    fetchMapTraffic(preset.bbox, allowHeavy);
+  };
+
+  // Auto-refresh every 30s when a preset is selected
+  useEffect(() => {
+    if (!selectedPreset) return;
+    const interval = setInterval(() => {
+      fetchMapTraffic(selectedPreset.bbox, allowHeavy);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [selectedPreset, allowHeavy, fetchMapTraffic]);
+
+  // Single aircraft lookup
   const lookupMutation = useMutation({
     mutationFn: async () => {
-      setError(null);
-      setState(null);
+      setLookupError(null);
+      setSingleState(null);
       setFlights(null);
-      setFuelData(null);
-      setEnduranceData(null);
       setResolved(null);
       const info = await resolveToHex(query);
       setResolved(info);
@@ -79,160 +158,261 @@ export default function LiveTraffic() {
       ]);
       return {
         state: stateRes.status === "fulfilled" ? (stateRes.value.data?.state || null) : null,
-        fuel_estimate: stateRes.status === "fulfilled" ? (stateRes.value.data?.fuel_estimate || null) : null,
-        endurance: stateRes.status === "fulfilled" ? (stateRes.value.data?.endurance || null) : null,
-        stateError: stateRes.status === "rejected" ? stateRes.reason?.response?.data?.error || stateRes.reason?.message : null,
         flights: flightsRes.status === "fulfilled" ? (flightsRes.value.data?.flights || []) : [],
-        flightsError: flightsRes.status === "rejected" ? flightsRes.reason?.response?.data?.error || flightsRes.reason?.message : null,
+        stateError: stateRes.status === "rejected" ? stateRes.reason?.message : null,
       };
     },
     onSuccess: (data) => {
-      setState(data.state);
-      setFuelData(data.fuel_estimate);
-      setEnduranceData(data.endurance);
+      setSingleState(data.state);
       setFlights(data.flights);
-      if (data.stateError && data.flightsError) {
-        setError(`OpenSky unavailable: ${data.stateError}`);
+      if (data.state?.latitude && data.state?.longitude) {
+        setMapCenter([data.state.latitude, data.state.longitude]);
+        setMapZoom(10);
       }
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setLookupError(e.message),
   });
 
-  const mps2kts = (mps) => mps != null ? Math.round(mps * 1.94384) : null;
-  const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
-
   return (
-    <div className="min-h-screen bg-[#F7F4EF] p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <GoldLabel>Live · OpenSky Network · ADS-B</GoldLabel>
-        <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight mt-1 uppercase">
-          Live Traffic
-        </h1>
-        <p className="text-[#6B6560] text-sm mt-1">
-          Track any aircraft by <b>N-number</b> (US) or <b>Mode-S hex code</b>. Real-time ADS-B position, altitude, velocity & 7-day flight history.
-        </p>
-
-        {/* Search */}
-        <div className="mt-6 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && lookupMutation.mutate()}
-              placeholder="N123AB, N67890, or 6-char hex (3c675a)"
-              className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-md text-sm font-mono focus:outline-none focus:border-[#0B2D5B]"
-            />
+    <div className="min-h-screen bg-[#F7F4EF]">
+      {/* ── Header ── */}
+      <div className="bg-[#0B2D5B] px-4 md:px-8 pt-6 pb-5">
+        <p className="text-[#E8A83A]/70 text-[9px] uppercase tracking-[0.25em] font-bold mb-2">Live · OpenSky Network · ADS-B</p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none uppercase">
+              Live ATI Traffic Map
+            </h1>
+            <p className="text-white/40 text-[12px] mt-2">
+              Real-time aircraft + ATI scoring · perfect for airshows & fly-ins
+            </p>
           </div>
-          <button
-            onClick={() => lookupMutation.mutate()}
-            disabled={lookupMutation.isPending || !query.trim()}
-            className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black uppercase tracking-wider text-sm px-5 rounded-md transition-colors"
-          >
-            <Radio className={`w-4 h-4 ${lookupMutation.isPending ? "animate-pulse" : ""}`} />
-            {lookupMutation.isPending ? "Pinging…" : "Track"}
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Heavy filter toggle */}
+            <button
+              onClick={() => {
+                const next = !allowHeavy;
+                setAllowHeavy(next);
+                if (selectedPreset) fetchMapTraffic(selectedPreset.bbox, next);
+              }}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-[11px] font-bold border transition-all ${
+                allowHeavy
+                  ? "bg-[#E8A83A] text-[#0B2D5B] border-[#E8A83A]"
+                  : "bg-white/[0.07] text-white/60 border-white/10 hover:border-white/20"
+              }`}
+            >
+              <Plane className="w-3.5 h-3.5" />
+              {allowHeavy ? "All Traffic (incl. Heavy)" : "GA Only (no heavy)"}
+            </button>
+
+            {/* Preset selector */}
+            <div className="relative">
+              <button
+                onClick={() => setShowPresets(v => !v)}
+                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-4 py-2 rounded-lg transition-colors"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                {selectedPreset ? selectedPreset.label.split("(")[0].trim() : "Select Airshow / Airport"}
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              {showPresets && (
+                <div className="absolute top-full mt-1 right-0 z-50 bg-white rounded-xl shadow-2xl border border-black/[0.08] min-w-[280px] overflow-hidden">
+                  {AIRPORT_PRESETS.map((p, i) => (
+                    <button
+                      key={i}
+                      onClick={() => loadPreset(p)}
+                      className={`w-full text-left px-4 py-3 text-[12px] font-semibold hover:bg-[#F7F4EF] border-b border-black/[0.04] last:border-0 transition-colors ${selectedPreset?.label === p.label ? "text-[#0B2D5B] font-black bg-[rgba(11,45,91,0.04)]" : "text-[#1A1814]"}`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 md:px-8 py-5 space-y-5">
+
+        {/* ── Stats row ── */}
+        {mapAircraft.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
+                {selectedPreset?.label} — {mapAircraft.length} aircraft visible
+              </p>
+              <div className="flex items-center gap-2">
+                {lastRefresh && (
+                  <p className="text-[10px] text-[#AAA49C]">
+                    Updated {lastRefresh.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </p>
+                )}
+                <button
+                  onClick={() => selectedPreset && fetchMapTraffic(selectedPreset.bbox, allowHeavy)}
+                  disabled={mapLoading}
+                  className="flex items-center gap-1.5 text-[11px] text-[#0B2D5B] font-bold hover:text-[#E8A83A] transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${mapLoading ? "animate-spin" : ""}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <TrafficStatsPanel aircraft={mapAircraft} />
+          </div>
+        )}
+
+        {/* ── Map ── */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm" style={{ height: "clamp(360px, 55vh, 620px)" }}>
+          {!selectedPreset && mapAircraft.length === 0 && !mapLoading && (
+            <div className="flex flex-col items-center justify-center h-full text-[#AAA49C] space-y-3">
+              <div className="w-16 h-16 rounded-full bg-[#F0EDE6] flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-[#AAA49C]" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black text-[#6B6560]">Select an airshow or airport above</p>
+                <p className="text-[11px] mt-1 text-[#AAA49C]">to load live GA traffic with ATI scoring</p>
+              </div>
+            </div>
+          )}
+
+          {mapLoading && mapAircraft.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className="w-10 h-10 border-4 border-[#E8A83A]/30 border-t-[#E8A83A] rounded-full animate-spin" />
+              <p className="text-sm font-bold text-[#6B6560]">Loading live traffic…</p>
+            </div>
+          )}
+
+          {mapError && (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex items-center gap-2 text-[#C0392B] text-sm bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] rounded-lg px-4 py-3">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {mapError}
+              </div>
+            </div>
+          )}
+
+          {(mapAircraft.length > 0 || selectedPreset) && !mapError && (
+            <MapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              style={{ height: "100%", width: "100%" }}
+              ref={mapRef}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapRecenter center={mapCenter} zoom={mapZoom} />
+              {mapAircraft.map((ac) => (
+                <Marker
+                  key={ac.icao24}
+                  position={[ac.latitude, ac.longitude]}
+                  icon={makeAircraftIcon(ac.listing?.ati_score, ac.true_track, ac.on_ground)}
+                >
+                  <Popup maxWidth={260}>
+                    <ATIMarkerPopup ac={ac} />
+                  </Popup>
+                </Marker>
+              ))}
+              {/* Single aircraft pin */}
+              {singleState?.latitude && singleState?.longitude && (
+                <Marker
+                  position={[singleState.latitude, singleState.longitude]}
+                  icon={makeAircraftIcon(null, singleState.true_track, singleState.on_ground)}
+                >
+                  <Popup>
+                    <div style={{ fontFamily: "Inter, sans-serif", minWidth: 180 }}>
+                      <p style={{ fontWeight: 900, fontSize: 14, color: "#0B2D5B" }}>{resolved?.reg || resolved?.hex}</p>
+                      <p style={{ fontSize: 11, color: "#6B6560" }}>
+                        {m2ft(singleState.baro_altitude)?.toLocaleString()} ft · {mps2kts(singleState.velocity)} kts
+                      </p>
+                      <p style={{ fontSize: 10, color: singleState.on_ground ? "#C0392B" : "#0F7A56", fontWeight: 800, marginTop: 4 }}>
+                        {singleState.on_ground ? "On Ground" : "Airborne"}
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+            </MapContainer>
+          )}
         </div>
 
-        {/* Resolution badge */}
-        {resolved && (
-          <div className="mt-3 flex items-center gap-2 text-[11px] text-[#6B6560]">
-            <span className="uppercase tracking-wider font-bold text-[#E8A83A]">
-              {resolved.source === "faa" ? "FAA match" : "Direct hex"}
-            </span>
-            {resolved.reg && <span className="font-mono font-bold text-[#1A1814]">{resolved.reg}</span>}
-            <span>→</span>
-            <span className="font-mono font-bold text-[#0B2D5B]">{resolved.hex}</span>
+        {/* ── Single aircraft lookup ── */}
+        <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
+          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Track Individual Aircraft</p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && lookupMutation.mutate()}
+                placeholder="N123AB, N67890, or 6-char hex (3c675a)"
+                className="w-full pl-9 pr-4 py-2.5 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-sm font-mono focus:outline-none focus:border-[#0B2D5B] transition-colors"
+              />
+            </div>
+            <button
+              onClick={() => lookupMutation.mutate()}
+              disabled={lookupMutation.isPending || !query.trim()}
+              className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black uppercase tracking-wider text-sm px-5 rounded-lg transition-colors"
+            >
+              <Radio className={`w-4 h-4 ${lookupMutation.isPending ? "animate-pulse" : ""}`} />
+              {lookupMutation.isPending ? "Pinging…" : "Track"}
+            </button>
           </div>
-        )}
 
-        {error && (
-          <div className="mt-4 flex items-start gap-2 bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-md px-4 py-2.5">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
+          {resolved && (
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-[#6B6560]">
+              <span className="uppercase tracking-wider font-bold text-[#E8A83A]">{resolved.source === "faa" ? "FAA match" : "Direct hex"}</span>
+              {resolved.reg && <span className="font-mono font-bold text-[#1A1814]">{resolved.reg}</span>}
+              <span>→</span>
+              <span className="font-mono font-bold text-[#0B2D5B]">{resolved.hex}</span>
+            </div>
+          )}
 
-        {/* Current State */}
-        {state !== null && (
-          <div className="mt-6">
-            <GoldLabel>Current State</GoldLabel>
-            {state ? (
-              <div className="mt-3">
-                <div className="bg-[#0B2D5B] text-white rounded-md p-4 mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#E8A83A] font-bold">Callsign</p>
-                    <p className="text-xl font-black font-mono">{state.callsign || "—"}</p>
+          {lookupError && (
+            <div className="mt-3 flex items-start gap-2 bg-[rgba(192,57,43,0.06)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-lg px-4 py-2.5">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{lookupError}</span>
+            </div>
+          )}
+
+          {/* Single aircraft state */}
+          {singleState && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: Gauge, label: "Altitude", value: `${m2ft(singleState.baro_altitude)?.toLocaleString() || "—"} ft` },
+                { icon: Navigation, label: "Speed", value: `${mps2kts(singleState.velocity) || "—"} kts` },
+                { icon: Navigation, label: "Heading", value: singleState.true_track != null ? `${Math.round(singleState.true_track)}°` : "—" },
+                { icon: MapPin, label: "Status", value: singleState.on_ground ? "On Ground" : "Airborne" },
+              ].map(s => (
+                <div key={s.label} className="bg-[#F7F4EF] rounded-xl p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <s.icon className="w-3 h-3 text-[#0B2D5B]" />
+                    <p className="text-[9px] uppercase tracking-wider font-semibold text-[#AAA49C]">{s.label}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#E8A83A] font-bold">Status</p>
-                    <p className="text-sm font-black uppercase">
-                      {state.on_ground ? "On Ground" : "Airborne"}
-                    </p>
-                  </div>
+                  <p className="text-sm font-black text-[#1A1814]">{s.value}</p>
                 </div>
+              ))}
+              <p className="col-span-2 md:col-span-4 text-[10px] text-[#AAA49C] uppercase tracking-wider">
+                Last contact: {formatTime(singleState.last_contact)} · {singleState.position_source === 0 ? "ADS-B" : "MLAT/FLARM"}
+              </p>
+            </div>
+          )}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <StatTile icon={Gauge} label="Altitude" value={m2ft(state.baro_altitude)?.toLocaleString() || "—"} sub="ft (baro)" />
-                  <StatTile icon={Navigation} label="Ground Speed" value={mps2kts(state.velocity) || "—"} sub="knots" />
-                  <StatTile icon={Navigation} label="Heading" value={state.true_track != null ? Math.round(state.true_track) + "°" : "—"} sub="true track" />
-                  <StatTile icon={MapPin} label="Position" value={state.latitude != null ? `${state.latitude.toFixed(3)}, ${state.longitude.toFixed(3)}` : "—"} sub={state.origin_country} />
+          {/* Flight history */}
+          {flights && flights.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560] mb-2">Last 7 Days</p>
+              <div className="bg-[#F7F4EF] rounded-xl overflow-hidden">
+                <div className="grid grid-cols-[1fr_1fr_1fr_70px] gap-2 px-4 py-2 text-[9px] uppercase tracking-wider font-bold text-[#AAA49C]">
+                  <div>Departure</div><div>Arrival</div><div>Callsign</div><div className="text-right">Duration</div>
                 </div>
-                
-                {/* Fuel & Endurance */}
-                {fuelData && enduranceData && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 bg-[rgba(232,168,58,0.06)] border border-[rgba(232,168,58,0.2)] rounded-md p-4">
-                    <StatTile icon={Fuel} label="Est. Fuel Burn" value={fuelData.estimated_gph} sub="gal/hr" />
-                    <StatTile icon={Zap} label="Fuel Burned (est.)" value={fuelData.estimated_fuel_burned_gal?.toLocaleString() || "—"} sub={`${fuelData.hours_airborne}h airborne`} />
-                    <StatTile icon={Gauge} label="Remaining Fuel" value={enduranceData.estimated_remaining_gal?.toLocaleString() || "—"} sub={`(~${enduranceData.typical_fuel_capacity_gal} gal cap)`} />
-                    <StatTile icon={Clock} label="Endurance" value={enduranceData.estimated_endurance_hours} sub="hours remaining" />
-                    <div className="col-span-2 md:col-span-1">
-                      <div className={`text-[10px] uppercase tracking-wider font-black px-2 py-1 rounded text-center ${
-                        enduranceData.fuel_reserve_status === "CRITICAL" ? "bg-[#C0392B] text-white" :
-                        enduranceData.fuel_reserve_status === "LOW" ? "bg-[#E8A83A] text-[#0B2D5B]" :
-                        "bg-[#0F7A56] text-white"
-                      }`}>
-                        {enduranceData.fuel_reserve_status}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <p className="text-[10px] text-[#AAA49C] mt-2 uppercase tracking-wider">
-                  Last contact: {formatTime(state.last_contact)} · {state.position_source === 0 ? "ADS-B" : "MLAT/FLARM"}
-                </p>
-              </div>
-            ) : (
-              <div className="mt-3 bg-white border border-black/[0.07] rounded-md p-6 text-center">
-                <Plane className="w-10 h-10 text-[#AAA49C] mx-auto mb-2 opacity-40" />
-                <p className="text-sm text-[#6B6560]">No current transmission — aircraft not airborne or out of receiver range.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Recent Flights */}
-        {flights !== null && (
-          <div className="mt-8">
-            <GoldLabel>Recent Flights · Last 7 Days</GoldLabel>
-            {flights.length === 0 ? (
-              <div className="mt-3 bg-white border border-black/[0.07] rounded-md p-6 text-center">
-                <Clock className="w-10 h-10 text-[#AAA49C] mx-auto mb-2 opacity-40" />
-                <p className="text-sm text-[#6B6560]">No flights recorded in the last 7 days.</p>
-              </div>
-            ) : (
-              <div className="mt-3 bg-white border border-black/[0.07] rounded-md overflow-hidden">
-                <div className="grid grid-cols-[1fr_1fr_1fr_80px] gap-2 px-4 py-2 border-b border-black/[0.06] bg-[#F7F4EF] text-[9px] uppercase tracking-wider font-bold text-[#AAA49C]">
-                  <div>Departure</div>
-                  <div>Arrival</div>
-                  <div>Callsign</div>
-                  <div className="text-right">Duration</div>
-                </div>
-                {flights.map((f, i) => {
-                  const dur = f.lastSeen && f.firstSeen
-                    ? Math.round((f.lastSeen - f.firstSeen) / 60) + "m"
-                    : "—";
+                {flights.slice(0, 8).map((f, i) => {
+                  const dur = f.lastSeen && f.firstSeen ? Math.round((f.lastSeen - f.firstSeen) / 60) + "m" : "—";
                   return (
-                    <div key={i} className="grid grid-cols-[1fr_1fr_1fr_80px] gap-2 px-4 py-3 border-b border-black/[0.05] last:border-0 text-[12px]">
+                    <div key={i} className="grid grid-cols-[1fr_1fr_1fr_70px] gap-2 px-4 py-2.5 border-t border-black/[0.04] text-[12px]">
                       <div>
                         <p className="font-bold text-[#1A1814] font-mono">{f.estDepartureAirport || "—"}</p>
                         <p className="text-[10px] text-[#AAA49C]">{formatTime(f.firstSeen)}</p>
@@ -241,30 +421,29 @@ export default function LiveTraffic() {
                         <p className="font-bold text-[#1A1814] font-mono">{f.estArrivalAirport || "—"}</p>
                         <p className="text-[10px] text-[#AAA49C]">{formatTime(f.lastSeen)}</p>
                       </div>
-                      <div className="font-mono text-[#6B6560]">{f.callsign?.trim() || "—"}</div>
+                      <div className="font-mono text-[#6B6560] text-[11px]">{f.callsign?.trim() || "—"}</div>
                       <div className="text-right font-bold text-[#0B2D5B]">{dur}</div>
                     </div>
                   );
                 })}
               </div>
-            )}
-            <p className="text-[10px] text-[#AAA49C] mt-2 uppercase tracking-wider">
-              Data: OpenSky Network · Community ADS-B feed
+            </div>
+          )}
+        </div>
+
+        {/* ── Pro upgrade note ── */}
+        {!isPro && (
+          <div className="flex items-center gap-3 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
+            <Zap className="w-4 h-4 text-[#E8A83A] shrink-0" />
+            <p className="text-[12px] text-[#6B6560]">
+              <span className="font-black text-[#0B2D5B]">Pro users</span> can view all traffic including heavy/commercial jets and get up to 500 aircraft per area.
             </p>
           </div>
         )}
 
-        {/* Empty state */}
-        {state === null && flights === null && !lookupMutation.isPending && !error && (
-          <div className="mt-8 bg-white border border-black/[0.07] rounded-md p-8 text-center">
-            <Radio className="w-12 h-12 text-[#E8A83A] mx-auto mb-3 opacity-60" />
-            <h3 className="text-lg font-black text-[#1A1814] uppercase tracking-tight">Track any aircraft live</h3>
-            <p className="text-sm text-[#6B6560] mt-2 max-w-md mx-auto leading-relaxed">
-              Enter an <b>N-number</b> (e.g. <span className="font-mono">N123AB</span>) — we'll look up the Mode-S hex from our FAA registry.
-              Or enter the <b>6-char hex</b> directly (e.g. <span className="font-mono">3c675a</span>).
-            </p>
-          </div>
-        )}
+        <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider text-center pb-4">
+          Data: OpenSky Network · Community ADS-B feed · Auto-refresh every 30s
+        </p>
       </div>
     </div>
   );

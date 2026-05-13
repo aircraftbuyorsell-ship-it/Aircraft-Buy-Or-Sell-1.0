@@ -349,14 +349,9 @@ export default function LiveTraffic() {
 
           {/* Overlays on top of map */}
           {!selectedPreset && mapAircraft.length === 0 && !mapLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-[1000] space-y-3">
-              <div className="w-16 h-16 rounded-full bg-[#F0EDE6] flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-[#AAA49C]" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-black text-[#6B6560]">Select an airshow or airport above</p>
-                <p className="text-[11px] mt-1 text-[#AAA49C]">to load live GA traffic with ATI scoring</p>
-              </div>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm border border-black/[0.08] rounded-xl px-5 py-3 flex items-center gap-3 shadow-lg">
+              <MapPin className="w-4 h-4 text-[#E8A83A] shrink-0" />
+              <p className="text-[12px] font-bold text-[#1A1814] whitespace-nowrap">Select an airshow or airport above to load live traffic</p>
             </div>
           )}
 

@@ -16,16 +16,6 @@ function GoldLabel({ children }) {
 
 const BUDGET_ORDER = ["<100k", "<200k", "<500k", "<1M", ">1M"];
 
-// localStorage key per user for unlocked lead IDs
-const storageKey = (email) => `lead_unlocks::${email || "anon"}`;
-
-function loadUnlocks(email) {
-  try { return new Set(JSON.parse(localStorage.getItem(storageKey(email)) || "[]")); }
-  catch { return new Set(); }
-}
-function saveUnlocks(email, set) {
-  localStorage.setItem(storageKey(email), JSON.stringify([...set]));
-}
 
 export default function Leads() {
   const queryClient = useQueryClient();
@@ -35,7 +25,7 @@ export default function Leads() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [budgetFilter, setBudgetFilter] = useState("");
-  const [unlocked, setUnlocked] = useState(() => loadUnlocks(userEmail));
+  const [unlocked, setUnlocked] = useState(() => new Set());
   const [gate, setGate] = useState(null); // { creditsNeeded }
   const [toast, setToast] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -81,7 +71,6 @@ export default function Leads() {
     const next = new Set(unlocked);
     next.add(lead.id);
     setUnlocked(next);
-    saveUnlocks(userEmail, next);
     setToast({ msg: `Contact unlocked — ${LEAD_UNLOCK_COST} credits used`, color: "#0F7A56" });
     setTimeout(() => setToast(null), 2500);
   };
@@ -100,7 +89,6 @@ export default function Leads() {
     const next = new Set(unlocked);
     locked.forEach(l => next.add(l.id));
     setUnlocked(next);
-    saveUnlocks(userEmail, next);
     setToast({
       msg: `${locked.length} contacts unlocked · ${pack.credits} credits used`,
       color: "#0F7A56",

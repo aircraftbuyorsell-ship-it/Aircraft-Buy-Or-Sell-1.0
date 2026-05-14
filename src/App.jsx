@@ -25,6 +25,12 @@ import MaxChat from "./pages/MaxChat";
 import PreBuyInspection from "./pages/PreBuyInspection";
 import AdminDataCleanup from "./pages/AdminDataCleanup";
 import IntraZone from "./pages/IntraZone";
+import GDPRConsentBanner from "./components/GDPRConsentBanner";
+import CookiePolicy from "./pages/CookiePolicy";
+import GDPRCompliance from "./pages/GDPRCompliance";
+import AffiliateAgreement from "./pages/AffiliateAgreement";
+import EscrowAgreement from "./pages/EscrowAgreement";
+import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,7 +69,12 @@ const AuthenticatedApp = () => {
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyComplete />} />
+        <Route path="/privacy" element={<PrivacyPolicyComplete />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/gdpr-compliance" element={<GDPRCompliance />} />
+        <Route path="/affiliate-agreement" element={<AffiliateAgreement />} />
+        <Route path="/escrow-agreement" element={<EscrowAgreement />} />
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
@@ -80,6 +91,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
+          <GDPRConsentBanner />
           <Toaster />
         </Router>
       </QueryClientProvider>

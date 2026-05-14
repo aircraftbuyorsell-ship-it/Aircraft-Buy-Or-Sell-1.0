@@ -17,12 +17,10 @@ function buildWsUrl() {
   // Fall back to same-origin if appBaseUrl not available
   const httpBase = (appBaseUrl || `${window.location.protocol}//${window.location.host}`).replace(/\/$/, "");
   const wsBase = httpBase.replace(/^https/, "wss").replace(/^http(?!s)/, "ws");
-  // Browser WS can't send custom headers — pass token as query param
-  const token = localStorage.getItem("base44_access_token") || localStorage.getItem("token") || appParams.token || "";
+  // Browser WS cannot send custom headers; use the platform-provided runtime token only.
+  const token = appParams.token || "";
   const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-  const url = `${wsBase}/api/apps/${appId}/functions/geminiLiveProxy${tokenParam}`;
-  console.log("[PreBuy] WS URL:", url.replace(/token=[^&]+/, "token=***"));
-  return url;
+  return `${wsBase}/api/apps/${appId}/functions/geminiLiveProxy${tokenParam}`;
 }
 
 // ─── Safe base64 encode for large typed arrays ────────────────────
@@ -219,10 +217,7 @@ function LiveSession({ onBack }) {
         setStatus("live");
         return;
       }
-      if (msg.error) {
-        console.error("[PreBuy] Gemini error:", msg.error);
-        return;
-      }
+      if (msg.error) return;
       const parts = msg?.serverContent?.modelTurn?.parts || [];
       for (const part of parts) {
         if (part.inlineData?.mimeType?.startsWith("audio/")) playAudioChunk(part.inlineData.data);
@@ -306,7 +301,6 @@ function LiveSession({ onBack }) {
     setErrorMsg("");
 
     const wsUrl = buildWsUrl();
-    console.log("[PreBuy] Connecting to:", wsUrl);
 
     let ws;
     try {
@@ -336,7 +330,6 @@ function LiveSession({ onBack }) {
     ws.onmessage = (e) => handleGeminiMessage(e.data);
 
     ws.onerror = () => {
-      console.error("[PreBuy] WS error");
       setStatus("ws_error");
       setErrorMsg("Gemini connection failed. Camera still active — tap Retry.");
       cleanupWS();

@@ -1,52 +1,46 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-/**
- * Category depreciation table for rare aircraft with < 3 comps.
- * Returns a depreciated base value using (base * (1 - rate)^age), floored at $10K.
- */
-function getCategoryBaseValue(make, model, age) {
-  const categories = {
-    // Single-engine piston
-    'cessna':       { base: 80000,   annualDepreciation: 0.03 },
-    'piper':        { base: 75000,   annualDepreciation: 0.03 },
-    'beechcraft':   { base: 120000,  annualDepreciation: 0.035 },
-    'cirrus':       { base: 350000,  annualDepreciation: 0.04 },
-    'mooney':       { base: 100000,  annualDepreciation: 0.03 },
-    'diamond':      { base: 200000,  annualDepreciation: 0.035 },
-    // Multi-engine piston
-    'baron':        { base: 250000,  annualDepreciation: 0.04 },
-    'seneca':       { base: 180000,  annualDepreciation: 0.04 },
-    'twin':         { base: 200000,  annualDepreciation: 0.04 },
-    // Turboprop
-    'king air':     { base: 800000,  annualDepreciation: 0.05 },
-    'pilatus':      { base: 2500000, annualDepreciation: 0.05 },
-    'tbm':          { base: 1800000, annualDepreciation: 0.05 },
-    'socata':       { base: 1500000, annualDepreciation: 0.05 },
-    // Light jet
-    'citation':     { base: 3000000, annualDepreciation: 0.06 },
-    'phenom':       { base: 2500000, annualDepreciation: 0.06 },
-    'eclipse':      { base: 1200000, annualDepreciation: 0.06 },
-    // Experimental / homebuilt
-    'experimental': { base: 60000,  annualDepreciation: 0.02 },
-    'homebuilt':    { base: 60000,  annualDepreciation: 0.02 },
-    'rv-':          { base: 80000,  annualDepreciation: 0.02 },
-    // Default
-    'default':      { base: 80000,  annualDepreciation: 0.03 },
-  };
+function median(values) {
+  const sorted = values.filter((v) => Number.isFinite(v) && v > 5000).sort((a, b) => a - b);
+  if (sorted.length === 0) return null;
+  return sorted[Math.floor(sorted.length / 2)];
+}
 
-  const makeLower = (make || '').toLowerCase();
-  const modelLower = (model || '').toLowerCase();
-  let category = categories['default'];
+async function getMarketFallbackValue(base44, listing, listingId) {
+  const make = (listing.make || '').toLowerCase().trim();
+  const model = (listing.model || '').toLowerCase().trim();
+  const year = Number(listing.year) || null;
 
-  for (const [key, value] of Object.entries(categories)) {
-    if (key !== 'default' && (makeLower.includes(key) || modelLower.includes(key))) {
-      category = value;
-      break;
-    }
+  const broadFilter = {};
+  if (listing.make) broadFilter.make = listing.make;
+
+  const marketRows = await base44.asServiceRole.entities.AircraftListing.filter(broadFilter, '-created_date', 500);
+  const comparableRows = marketRows.filter((row) => {
+    if (row.id === listingId || !row.asking_price || row.asking_price <= 5000) return false;
+    const rowMake = (row.make || '').toLowerCase();
+    const rowModel = (row.model || '').toLowerCase();
+    const makeMatch = make && rowMake.includes(make);
+    const modelMatch = model && (rowModel.includes(model) || model.includes(rowModel));
+    const yearMatch = !year || !row.year || Math.abs(Number(row.year) - year) <= 10;
+    return makeMatch && yearMatch && (modelMatch || !model);
+  });
+
+  const modelMedian = median(comparableRows.map((row) => row.asking_price));
+  if (modelMedian) {
+    return { value: modelMedian, confidence: comparableRows.length >= 5 ? 'MEDIUM' : 'LOW', sample: comparableRows.length, reason: 'market_comparable_median' };
   }
 
-  const depreciatedValue = category.base * Math.pow(1 - category.annualDepreciation, Math.max(0, age));
-  return Math.max(depreciatedValue, 10000);
+  const makeRows = marketRows.filter((row) => row.id !== listingId && row.asking_price > 5000);
+  const makeMedian = median(makeRows.map((row) => row.asking_price));
+  if (makeMedian) {
+    return { value: makeMedian, confidence: 'LOW', sample: makeRows.length, reason: 'make_average_market_price' };
+  }
+
+  if (listing.asking_price && listing.asking_price > 5000) {
+    return { value: listing.asking_price, confidence: 'LOW', sample: 0, reason: 'asking_price_reference' };
+  }
+
+  return { value: 10000, confidence: 'LOW', sample: 0, reason: 'minimum_floor_no_market_data' };
 }
 
 /**
@@ -153,22 +147,21 @@ Deno.serve(async (req) => {
     const avionicsList = (listing.avionics || '').split(',').map(a => a.trim()).filter(Boolean);
     const avionicsPremium = Math.min(avionicsList.length * 2500, 15000);
 
-    // 8) Base OMVM calculation — 3-tier fallback
-    let baseValue, confidence;
+    // 8) Base OMVM calculation — comps first, market fallback second
+    let baseValue, confidence, fallbackReason = null;
 
     if (valid.length >= 10) {
-      // HIGH: log-linear regression on comps
       baseValue = Math.exp(intercept + slope * age);
       confidence = 'HIGH';
     } else if (valid.length >= 3) {
-      // MEDIUM: median of available comps
       const prices = valid.map(l => l.asking_price).sort((a, b) => a - b);
       baseValue = prices[Math.floor(prices.length / 2)];
       confidence = 'MEDIUM';
     } else {
-      // LOW: category depreciation table (prevents $55K hardcoded nonsense)
-      baseValue = getCategoryBaseValue(listing.make, listing.model, age);
-      confidence = 'LOW';
+      const fallback = await getMarketFallbackValue(base44, listing, listingId);
+      baseValue = fallback.value;
+      confidence = fallback.confidence;
+      fallbackReason = fallback.reason;
     }
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
     const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
@@ -208,6 +201,7 @@ Deno.serve(async (req) => {
       deal_label: dealLabel,
       discount_pct: discountPct,
       confidence,
+      fallback_reason: fallbackReason,
       comp_sample: valid.length,
       engine_remaining_pct: Math.round(engineRemainingFrac * 100),
       expert_calibration: { avg_delta_pct: avgExpertDelta, multiplier: calibrationMultiplier, sample: deltas.length },

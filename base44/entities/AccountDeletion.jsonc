@@ -1,0 +1,90 @@
+{
+  "name": "AccountDeletion",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the user requesting deletion"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name at request time"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional user-provided deletion reason"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "scheduled",
+        "cancelled",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Deletion request lifecycle status"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When deletion was requested"
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Planned deletion date after grace period"
+    },
+    "data_export_json": {
+      "type": "string",
+      "description": "JSON export snapshot for GDPR portability"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "user_email",
+    "status",
+    "requested_at"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

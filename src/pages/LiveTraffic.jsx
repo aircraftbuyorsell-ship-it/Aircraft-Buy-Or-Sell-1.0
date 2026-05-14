@@ -182,7 +182,7 @@ export default function LiveTraffic() {
         lamax: bbox.lamax,
         lomax: bbox.lomax,
         allow_heavy: heavy ?? allowHeavy,
-        limit: isPro ? 300 : 100,
+        limit: isPro ? 1000 : 300,
       });
       setMapAircraft(res.data?.aircraft || []);
       setLastRefresh(new Date());
@@ -229,7 +229,7 @@ export default function LiveTraffic() {
         lamax: bbox.lamax,
         lomax: bbox.lomax,
         allow_heavy: allowHeavy,
-        limit: isPro ? 500 : 200,
+        limit: isPro ? 1000 : 300,
       });
       setMapAircraft(res.data?.aircraft || []);
       setLastRefresh(new Date(ts * 1000));
@@ -576,7 +576,7 @@ export default function LiveTraffic() {
           <div className="flex items-center gap-3 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
             <Zap className="w-4 h-4 text-[#E8A83A] shrink-0" />
             <p className="text-[12px] text-[#6B6560]">
-              <span className="font-black text-[#0B2D5B]">Pro users</span> can view all traffic including heavy/commercial jets and get up to 500 aircraft per area.
+              <span className="font-black text-[#0B2D5B]">Pro users</span> can view all traffic including heavy/commercial jets and get up to 1,000 aircraft per area.
             </p>
           </div>
         )}

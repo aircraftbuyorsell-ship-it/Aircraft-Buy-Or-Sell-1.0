@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -22,14 +24,18 @@ Deno.serve(async (req) => {
     const existing = await base44.asServiceRole.entities.TrafficSnapshot.filter({ region_key }, '-refreshed_at', 1);
     const cached = existing[0] || null;
 
-    if (cached && !force_refresh) {
+    const cacheAgeMs = cached?.refreshed_at ? Date.now() - new Date(cached.refreshed_at).getTime() : Infinity;
+    const cacheIsFresh = cacheAgeMs < CACHE_TTL_MS;
+
+    if (cached && !force_refresh && cacheIsFresh) {
       return Response.json({
         source: 'cache',
-        aircraft: JSON.parse(cached.aircraft_json || '[]'),
+        aircraft: JSON.parse(cached.aircraft_json || '[]').slice(0, limit),
         time: cached.opensky_time || null,
         total_raw: cached.total_raw || 0,
         refreshed_at: cached.refreshed_at,
         refreshed_by: cached.refreshed_by,
+        next_refresh_at: new Date(new Date(cached.refreshed_at).getTime() + CACHE_TTL_MS).toISOString(),
         region_key,
         region_label: cached.region_label || region_label,
       });

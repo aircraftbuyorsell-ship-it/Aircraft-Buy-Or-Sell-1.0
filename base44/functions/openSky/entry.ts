@@ -12,8 +12,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
-const FETCH_TIMEOUT_MS = 15000;
-const RETRY_DELAY_MS = 2084;
+const AUTH_TIMEOUT_MS = 5000;
+const FETCH_TIMEOUT_MS = 12000;
+const RETRY_DELAY_MS = 1500;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
@@ -31,7 +32,7 @@ async function getAccessToken() {
     client_secret: secret,
   });
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
   try {
     const res = await fetch(TOKEN_URL, {
       method: "POST",
@@ -58,7 +59,7 @@ async function getAccessToken() {
   }
 }
 
-async function openSkyFetch(path, retries = 2) {
+async function openSkyFetch(path, retries = 1) {
   const token = await getAccessToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const controller = new AbortController();

@@ -20,43 +20,9 @@ let cachedToken = null;
 let cachedTokenExpiry = 0;
 
 async function getAccessToken() {
-  const id = Deno.env.get("OPENSKY_CLIENT_ID");
-  const secret = Deno.env.get("OPENSKY_CLIENT_SECRET");
-  if (!id || !secret) return null; // anonymous
-
-  if (cachedToken && Date.now() < cachedTokenExpiry - 30_000) return cachedToken;
-
-  const body = new URLSearchParams({
-    grant_type: "client_credentials",
-    client_id: id,
-    client_secret: secret,
-  });
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), AUTH_TIMEOUT_MS);
-  try {
-    const res = await fetch(TOKEN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-      signal: controller.signal,
-    });
-    if (!res.ok) {
-      // Fall back to anonymous access if OAuth2 credentials are invalid/expired.
-      // Anonymous users get 400 credits/day and current-time-only data.
-      console.warn(`OpenSky OAuth2 failed (${res.status}) — falling back to anonymous access. Refresh credentials at opensky-network.org/account.`);
-      return null;
-    }
-    const data = await res.json();
-    cachedToken = data.access_token;
-    cachedTokenExpiry = Date.now() + (data.expires_in || 1800) * 1000;
-    return cachedToken;
-  } catch (e) {
-    // Any auth failure → fall back to anonymous mode rather than blocking the call.
-    console.warn(`OpenSky auth error (${e.name}: ${e.message}) — falling back to anonymous access.`);
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
+  // Anonymous access — OAuth2 auth server is unreliable and causes cascading timeouts.
+  // The historical /states/all?time= endpoint works fine without authentication.
+  return null;
 }
 
 async function openSkyFetch(path, retries = 1) {

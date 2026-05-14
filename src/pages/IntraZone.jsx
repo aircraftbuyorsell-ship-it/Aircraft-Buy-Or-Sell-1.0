@@ -11,7 +11,7 @@ const TABS = [
   { id: "pipeline",     label: "Deal Pipeline",    icon: TrendingUp,    status: "live" },
   { id: "intelligence", label: "Asset Intel",      icon: Shield,        status: "live" },
   { id: "matching",     label: "Match Engine",     icon: Target,        status: "live" },
-  { id: "negotiation",  label: "Nego Engine",      icon: MessageSquare, status: "live" },
+  { id: "negotiation",  label: "Negotiation Brief", icon: MessageSquare, status: "live" },
 ];
 
 export default function IntraZone() {

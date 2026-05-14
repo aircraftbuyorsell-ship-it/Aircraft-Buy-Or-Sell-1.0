@@ -95,6 +95,7 @@ export default function LiveTraffic() {
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [isHistorical, setIsHistorical] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [currentBbox, setCurrentBbox] = useState(null);
   const mapRef = useRef(null);
 
   // Primary filters
@@ -172,6 +173,17 @@ export default function LiveTraffic() {
     }
   }, [allowHeavy, isPro]);
 
+  // Auto-load on mount with a 1.5s delay using default USA bbox
+  useEffect(() => {
+    const defaultBbox = { lamin: 24, lomin: -125, lamax: 50, lomax: -66 };
+    const timer = setTimeout(() => {
+      setCurrentBbox(defaultBbox);
+      fetchMapTraffic(defaultBbox, false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Fetch historical snapshot at a specific unix timestamp
   const fetchHistoricalSnapshot = useCallback(async ({ ts, bbox }) => {
     setMapLoading(true);
@@ -200,20 +212,21 @@ export default function LiveTraffic() {
   // Load preset
   const loadPreset = (preset) => {
     setSelectedPreset(preset);
+    setCurrentBbox(preset.bbox);
     setMapCenter([preset.lat, preset.lng]);
     setMapZoom(preset.zoom);
     setShowPresets(false);
     fetchMapTraffic(preset.bbox, allowHeavy);
   };
 
-  // Auto-refresh every 30s when a preset is selected
+  // Auto-refresh every 30s whenever we have a bbox (with or without a preset)
   useEffect(() => {
-    if (!selectedPreset) return;
+    if (!currentBbox) return;
     const interval = setInterval(() => {
-      fetchMapTraffic(selectedPreset.bbox, allowHeavy);
+      fetchMapTraffic(currentBbox, allowHeavy);
     }, 30000);
     return () => clearInterval(interval);
-  }, [selectedPreset, allowHeavy, fetchMapTraffic]);
+  }, [currentBbox, allowHeavy, fetchMapTraffic]);
 
   // Single aircraft lookup
   const lookupMutation = useMutation({
@@ -343,13 +356,17 @@ export default function LiveTraffic() {
         {filteredAircraft.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
-                  {selectedPreset?.label} — {filteredAircraft.length} of {mapAircraft.length} aircraft
+                  {selectedPreset?.label || "USA Overview"} — {filteredAircraft.length} of {mapAircraft.length} aircraft
                 </p>
-                {isHistorical && (
+                {isHistorical ? (
                   <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(232,168,58,0.15)] text-[#A67C00] border border-[rgba(232,168,58,0.3)]">
                     <History className="w-2.5 h-2.5" /> Historical
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(15,122,86,0.12)] text-[#0F7A56] border border-[rgba(15,122,86,0.25)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F7A56] animate-pulse inline-block" /> Live
                   </span>
                 )}
               </div>
@@ -360,9 +377,9 @@ export default function LiveTraffic() {
                   </p>
                 )}
                 <button
-                  onClick={() => selectedPreset && fetchMapTraffic(selectedPreset.bbox, allowHeavy)}
-                  disabled={mapLoading}
-                  className="flex items-center gap-1.5 text-[11px] text-[#0B2D5B] font-bold hover:text-[#E8A83A] transition-colors"
+                  onClick={() => currentBbox && fetchMapTraffic(currentBbox, allowHeavy)}
+                  disabled={mapLoading || !currentBbox}
+                  className="flex items-center gap-1.5 text-[11px] text-[#0B2D5B] font-bold hover:text-[#E8A83A] transition-colors disabled:opacity-40"
                 >
                   <RefreshCw className={`w-3 h-3 ${mapLoading ? "animate-spin" : ""}`} />
                   Refresh
@@ -420,7 +437,7 @@ export default function LiveTraffic() {
           </MapContainer>
 
           {/* Overlays on top of map */}
-          {!selectedPreset && mapAircraft.length === 0 && !mapLoading && (
+          {!currentBbox && !mapLoading && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm border border-black/[0.08] rounded-xl px-5 py-3 flex items-center gap-3 shadow-lg">
               <MapPin className="w-4 h-4 text-[#E8A83A] shrink-0" />
               <p className="text-[12px] font-bold text-[#1A1814] whitespace-nowrap">Select an airshow or airport above to load live traffic</p>

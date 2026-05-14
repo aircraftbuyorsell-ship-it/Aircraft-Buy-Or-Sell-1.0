@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
       lamax = 60,
       lomax = 35,
       limit = 200,
-      allow_heavy = true,
+      allow_heavy = false,
     } = body;
 
     const existing = await base44.asServiceRole.entities.TrafficSnapshot.filter({ region_key }, '-refreshed_at', 1);
@@ -85,7 +85,17 @@ Deno.serve(async (req) => {
           region_label: cached.region_label || region_label,
         });
       }
-      throw liveError;
+      return Response.json({
+        source: 'unavailable',
+        warning: liveError.message,
+        aircraft: [],
+        time: null,
+        total_raw: 0,
+        refreshed_at: null,
+        refreshed_by: null,
+        region_key,
+        region_label,
+      });
     }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

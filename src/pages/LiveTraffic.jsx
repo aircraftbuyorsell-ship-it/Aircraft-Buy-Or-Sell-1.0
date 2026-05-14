@@ -77,7 +77,7 @@ export default function LiveTraffic() {
         region_label: r.label,
         force_refresh: forceRefresh,
         ...r.bbox,
-        allow_heavy: true,
+        allow_heavy: false,
         limit: 200,
       });
       const list = res.data?.aircraft || [];

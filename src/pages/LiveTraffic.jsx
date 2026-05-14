@@ -106,7 +106,10 @@ export default function LiveTraffic() {
   // Map view state
   const [mapCenter, setMapCenter] = useState([50, 10]); // Europe default
   const [mapZoom, setMapZoom] = useState(5);
-  const [mapAircraft, setMapAircraft] = useState([]);
+  const [mapAircraft, setMapAircraft] = useState([]);       // full dataset
+  const [visibleAircraft, setVisibleAircraft] = useState([]); // streamed subset shown on map
+  const [streamTotal, setStreamTotal] = useState(0);
+  const streamTimer = useRef(null);
   const [mapLoading, setMapLoading] = useState(false);
   const [mapError, setMapError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
@@ -128,8 +131,32 @@ export default function LiveTraffic() {
   const mps2kts = (v) => v != null ? Math.round(v * 1.94384) : null;
   const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
 
+  // Stream aircraft onto the map one-by-one in fast batches for a radar-sweep effect
+  const streamAircraftOntoMap = useCallback((allAircraft) => {
+    clearInterval(streamTimer.current);
+    setVisibleAircraft([]);
+    setStreamTotal(allAircraft.length);
+    if (!allAircraft.length) return;
+
+    const BATCH = 15;       // aircraft added per tick
+    const INTERVAL_MS = 25; // ms between ticks → ~600 aircraft/s
+
+    let idx = 0;
+    streamTimer.current = setInterval(() => {
+      idx += BATCH;
+      setVisibleAircraft(allAircraft.slice(0, idx));
+      if (idx >= allAircraft.length) {
+        clearInterval(streamTimer.current);
+        setStreamTotal(0); // done — hide progress
+      }
+    }, INTERVAL_MS);
+  }, []);
+
+  // Cleanup stream on unmount
+  useEffect(() => () => clearInterval(streamTimer.current), []);
+
   // Filtered aircraft (primary filters applied on frontend)
-  const filteredAircraft = mapAircraft.filter(ac => {
+  const filteredAircraft = visibleAircraft.filter(ac => {
     // N-number / ICAO24 filter
     if (nSearch) {
       const q = nSearch.trim().toUpperCase().replace(/[-\s]/g, "");
@@ -184,14 +211,16 @@ export default function LiveTraffic() {
         allow_heavy: heavy ?? allowHeavy,
         limit: isPro ? 1000 : 300,
       });
-      setMapAircraft(res.data?.aircraft || []);
+      const aircraft = res.data?.aircraft || [];
+      setMapAircraft(aircraft);
+      streamAircraftOntoMap(aircraft);
       setLastRefresh(new Date());
     } catch (e) {
       setMapError(e.response?.data?.error || e.message);
     } finally {
       setMapLoading(false);
     }
-  }, [allowHeavy, isPro]);
+  }, [allowHeavy, isPro, streamAircraftOntoMap]);
 
   // Auto-load on mount with a short delay using the default view bbox
   useEffect(() => {
@@ -231,14 +260,16 @@ export default function LiveTraffic() {
         allow_heavy: allowHeavy,
         limit: isPro ? 1000 : 300,
       });
-      setMapAircraft(res.data?.aircraft || []);
+      const aircraft = res.data?.aircraft || [];
+      setMapAircraft(aircraft);
+      streamAircraftOntoMap(aircraft);
       setLastRefresh(new Date(ts * 1000));
     } catch (e) {
       setMapError(e.response?.data?.error || e.message);
     } finally {
       setMapLoading(false);
     }
-  }, [allowHeavy, isPro]);
+  }, [allowHeavy, isPro, streamAircraftOntoMap]);
 
   // Load preset
   const loadPreset = (preset) => {
@@ -361,12 +392,16 @@ export default function LiveTraffic() {
         />
 
         {/* ── Stats row ── */}
-        {filteredAircraft.length > 0 && (
+        {(filteredAircraft.length > 0 || streamTotal > 0) && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
-                  {selectedPreset?.label || "Global Overview"} — {filteredAircraft.length} of {mapAircraft.length} aircraft
+                  {selectedPreset?.label || "Global Overview"} —{" "}
+                  {streamTotal > 0
+                    ? <span className="text-[#E8A83A]">Loading {visibleAircraft.length}/{streamTotal}…</span>
+                    : <>{filteredAircraft.length} of {mapAircraft.length} aircraft</>
+                  }
                 </p>
                 {isHistorical ? (
                   <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(232,168,58,0.15)] text-[#A67C00] border border-[rgba(232,168,58,0.3)]">

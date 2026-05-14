@@ -84,8 +84,8 @@ export default function LiveTraffic() {
   const isPro = tier !== "free_explorer";
 
   // Map view state
-  const [mapCenter, setMapCenter] = useState([39.5, -98.35]); // USA default
-  const [mapZoom, setMapZoom] = useState(5);
+  const [mapCenter, setMapCenter] = useState([20, 0]); // World default
+  const [mapZoom, setMapZoom] = useState(3);
   const [mapAircraft, setMapAircraft] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [mapError, setMapError] = useState(null);
@@ -173,12 +173,12 @@ export default function LiveTraffic() {
     }
   }, [allowHeavy, isPro]);
 
-  // Auto-load on mount with a 1.5s delay using default USA bbox
+  // Auto-load on mount with a 1.5s delay — global (no bbox restriction)
   useEffect(() => {
-    const defaultBbox = { lamin: 24, lomin: -125, lamax: 50, lomax: -66 };
+    const globalBbox = { lamin: -90, lomin: -180, lamax: 90, lomax: 180 };
     const timer = setTimeout(() => {
-      setCurrentBbox(defaultBbox);
-      fetchMapTraffic(defaultBbox, false);
+      setCurrentBbox(globalBbox);
+      fetchMapTraffic(globalBbox, false);
     }, 1500);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -335,7 +335,7 @@ export default function LiveTraffic() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#6B6560]">
-                  {selectedPreset?.label || "USA Overview"} — {filteredAircraft.length} of {mapAircraft.length} aircraft
+                  {selectedPreset?.label || "Global Overview"} — {filteredAircraft.length} of {mapAircraft.length} aircraft
                 </p>
                 {isHistorical ? (
                   <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(232,168,58,0.15)] text-[#A67C00] border border-[rgba(232,168,58,0.3)]">

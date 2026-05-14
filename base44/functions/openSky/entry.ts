@@ -4,15 +4,15 @@
 //   action="flights"     params: { icao24, days=7 }   → recent flights (history)
 //   action="track"       params: { icao24 }           → trajectory waypoints
 //   action="inflight"    params: { icao24 }           → current flight ops (fuel burn, endurance)
-//
-// icao24 MUST be a 6-char hex Mode-S code (lowercase). Registrations (N123AB, OK-LAD)
-// must be resolved to hex on the client via FAAAircraft.mode_s_hex before calling.
+//   action="map_states"  params: { lamin, lomin, lamax, lomax, allow_heavy, limit } → area sweep + enrichment
+//   action="history_states" params: { lamin, lomin, lamax, lomax, ts, allow_heavy, limit } → archived or live fallback
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
-const FETCH_TIMEOUT_MS = 20000;
+const FETCH_TIMEOUT = 20000;
+const RESERVE_MIN = 45;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
@@ -26,8 +26,8 @@ async function getAccessToken() {
   if (cachedToken && now < cachedTokenExpiry - 30000) return cachedToken;
 
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     const res = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -36,10 +36,13 @@ async function getAccessToken() {
         client_id: clientId,
         client_secret: clientSecret,
       }),
-      signal: controller.signal,
+      signal: ctrl.signal,
     });
     clearTimeout(timer);
-    if (!res.ok) { console.warn("OpenSky auth failed:", res.status); return null; }
+    if (!res.ok) {
+      console.warn("OpenSky auth failed:", res.status);
+      return null;
+    }
     const data = await res.json();
     cachedToken = data.access_token;
     cachedTokenExpiry = now + (data.expires_in || 3600) * 1000;
@@ -50,19 +53,24 @@ async function getAccessToken() {
   }
 }
 
-async function openSkyFetch(path, retries = 0) {
+async function openSkyFetch(path) {
   const token = await getAccessToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+
   try {
-    const res = await fetch(`${OPENSKY_BASE}${path}`, { headers, signal: controller.signal });
+    const res = await fetch(`${OPENSKY_BASE}${path}`, { headers, signal: ctrl.signal });
     if (res.status === 404) return null;
     if (res.status === 429) throw new Error("OpenSky rate limit — try again in a minute");
     if (!res.ok) throw new Error(`OpenSky ${res.status}`);
     const text = await res.text();
     if (!text) return null;
-    try { return JSON.parse(text); } catch { return null; }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   } catch (e) {
     if (e.name === "AbortError") throw new Error("OpenSky request timed out — try again shortly");
     throw e;
@@ -97,123 +105,399 @@ function parseState(arr) {
   };
 }
 
-// ── OEM FUEL SPECS LOOKUP TABLE ──
-// Source: POH/AFM data. key = lowercase ICAO/model token or mfr_mdl_code prefix.
-// Fields: gph_cruise, gph_climb, gph_descent, fuel_cap_gal, speed_ktas_cruise
 const FUEL_SPECS = {
-  // Cessna Singles
-  "c172":  { gph_cruise: 8.5,  gph_climb: 10.5, gph_descent: 5.0,  fuel_cap_gal: 56,   speed_ktas_cruise: 122 },
-  "c182":  { gph_cruise: 12.0, gph_climb: 14.0, gph_descent: 6.0,  fuel_cap_gal: 88,   speed_ktas_cruise: 145 },
-  "c206":  { gph_cruise: 15.0, gph_climb: 17.0, gph_descent: 7.0,  fuel_cap_gal: 92,   speed_ktas_cruise: 145 },
-  "c210":  { gph_cruise: 16.0, gph_climb: 18.5, gph_descent: 7.5,  fuel_cap_gal: 90,   speed_ktas_cruise: 174 },
-  "c152":  { gph_cruise: 6.0,  gph_climb: 7.5,  gph_descent: 4.0,  fuel_cap_gal: 26,   speed_ktas_cruise: 107 },
-  // Cessna Twins
-  "c310":  { gph_cruise: 22.0, gph_climb: 26.0, gph_descent: 10.0, fuel_cap_gal: 102,  speed_ktas_cruise: 195 },
-  "c340":  { gph_cruise: 28.0, gph_climb: 32.0, gph_descent: 12.0, fuel_cap_gal: 163,  speed_ktas_cruise: 200 },
-  "c414":  { gph_cruise: 30.0, gph_climb: 35.0, gph_descent: 13.0, fuel_cap_gal: 163,  speed_ktas_cruise: 205 },
-  "c421":  { gph_cruise: 32.0, gph_climb: 38.0, gph_descent: 14.0, fuel_cap_gal: 163,  speed_ktas_cruise: 220 },
-  // Piper
-  "pa28":  { gph_cruise: 9.0,  gph_climb: 11.0, gph_descent: 5.0,  fuel_cap_gal: 50,   speed_ktas_cruise: 125 },
-  "pa32":  { gph_cruise: 14.0, gph_climb: 16.0, gph_descent: 6.5,  fuel_cap_gal: 84,   speed_ktas_cruise: 148 },
-  "pa34":  { gph_cruise: 22.0, gph_climb: 26.0, gph_descent: 10.0, fuel_cap_gal: 107,  speed_ktas_cruise: 175 },
-  "pa44":  { gph_cruise: 20.0, gph_climb: 24.0, gph_descent: 9.0,  fuel_cap_gal: 110,  speed_ktas_cruise: 168 },
-  "pa46":  { gph_cruise: 26.0, gph_climb: 30.0, gph_descent: 11.0, fuel_cap_gal: 120,  speed_ktas_cruise: 213 },
-  // Mooney
-  "m20":   { gph_cruise: 10.0, gph_climb: 12.5, gph_descent: 5.5,  fuel_cap_gal: 64,   speed_ktas_cruise: 170 },
-  // Beechcraft
-  "be36":  { gph_cruise: 15.0, gph_climb: 18.0, gph_descent: 7.0,  fuel_cap_gal: 74,   speed_ktas_cruise: 174 },
-  "be58":  { gph_cruise: 26.0, gph_climb: 30.0, gph_descent: 11.0, fuel_cap_gal: 166,  speed_ktas_cruise: 200 },
-  "be60":  { gph_cruise: 30.0, gph_climb: 35.0, gph_descent: 13.0, fuel_cap_gal: 166,  speed_ktas_cruise: 210 },
-  "be76":  { gph_cruise: 18.0, gph_climb: 22.0, gph_descent: 9.0,  fuel_cap_gal: 100,  speed_ktas_cruise: 165 },
-  // Turboprops
-  "tbm":   { gph_cruise: 55.0, gph_climb: 75.0, gph_descent: 25.0, fuel_cap_gal: 282,  speed_ktas_cruise: 330 },
-  "pc12":  { gph_cruise: 65.0, gph_climb: 85.0, gph_descent: 30.0, fuel_cap_gal: 401,  speed_ktas_cruise: 270 },
-  "c208":  { gph_cruise: 60.0, gph_climb: 78.0, gph_descent: 28.0, fuel_cap_gal: 335,  speed_ktas_cruise: 175 },
-  "be90":  { gph_cruise: 70.0, gph_climb: 90.0, gph_descent: 32.0, fuel_cap_gal: 384,  speed_ktas_cruise: 250 },
-  "be200": { gph_cruise: 80.0, gph_climb: 105.0,gph_descent: 35.0, fuel_cap_gal: 544,  speed_ktas_cruise: 290 },
-  // Light Jets
-  "c525":  { gph_cruise: 120.0,gph_climb: 160.0,gph_descent: 55.0, fuel_cap_gal: 688,  speed_ktas_cruise: 340 },
-  "c510":  { gph_cruise: 80.0, gph_climb: 110.0,gph_descent: 40.0, fuel_cap_gal: 441,  speed_ktas_cruise: 320 },
-  "emb":   { gph_cruise: 100.0,gph_climb: 135.0,gph_descent: 48.0, fuel_cap_gal: 570,  speed_ktas_cruise: 310 },
-  "lear":  { gph_cruise: 180.0,gph_climb: 240.0,gph_descent: 80.0, fuel_cap_gal: 1260, speed_ktas_cruise: 450 },
-  "g5":    { gph_cruise: 350.0,gph_climb: 450.0,gph_descent:140.0, fuel_cap_gal: 6124, speed_ktas_cruise: 488 },
-  // Helicopters
-  "r22":   { gph_cruise: 8.0,  gph_climb: 10.0, gph_descent: 6.0,  fuel_cap_gal: 19,   speed_ktas_cruise: 95  },
-  "r44":   { gph_cruise: 14.0, gph_climb: 17.0, gph_descent: 9.0,  fuel_cap_gal: 39,   speed_ktas_cruise: 110 },
-  "b407":  { gph_cruise: 52.0, gph_climb: 65.0, gph_descent: 28.0, fuel_cap_gal: 218,  speed_ktas_cruise: 133 },
+  "cessna 152": { cruise_gph: 6.0, tank_gal: 26, ac_class: "GA-single" },
+  "cessna 172": { cruise_gph: 8.5, tank_gal: 53, ac_class: "GA-single" },
+  "cessna 182": { cruise_gph: 12.0, tank_gal: 65, ac_class: "GA-single" },
+  "cessna 206": { cruise_gph: 15.0, tank_gal: 92, ac_class: "GA-single" },
+  "cessna 210": { cruise_gph: 16.0, tank_gal: 90, ac_class: "GA-single" },
+  "cessna 208": { cruise_gph: 60.0, tank_gal: 335, ac_class: "turboprop-single" },
+  "cirrus sr20": { cruise_gph: 8.5, tank_gal: 56, ac_class: "GA-single" },
+  "cirrus sr22": { cruise_gph: 10.5, tank_gal: 92, ac_class: "GA-single" },
+  "cirrus sr": { cruise_gph: 9.5, tank_gal: 70, ac_class: "GA-single" },
+  "piper pa-28": { cruise_gph: 9.0, tank_gal: 50, ac_class: "GA-single" },
+  "piper pa-32": { cruise_gph: 14.0, tank_gal: 84, ac_class: "GA-single" },
+  "piper pa-46": { cruise_gph: 26.0, tank_gal: 120, ac_class: "GA-single" },
+  "diamond da40": { cruise_gph: 6.5, tank_gal: 40, ac_class: "GA-single" },
+  "diamond da20": { cruise_gph: 5.5, tank_gal: 24, ac_class: "GA-single" },
+  "mooney m20": { cruise_gph: 10.0, tank_gal: 64, ac_class: "GA-single" },
+  "beechcraft b36": { cruise_gph: 15.0, tank_gal: 74, ac_class: "GA-single" },
+  "beechcraft a36": { cruise_gph: 15.0, tank_gal: 74, ac_class: "GA-single" },
+  "socata tbm": { cruise_gph: 55.0, tank_gal: 282, ac_class: "turboprop-single" },
+  "tbm 700": { cruise_gph: 48.0, tank_gal: 282, ac_class: "turboprop-single" },
+  "tbm 850": { cruise_gph: 52.0, tank_gal: 282, ac_class: "turboprop-single" },
+  "tbm 900": { cruise_gph: 55.0, tank_gal: 282, ac_class: "turboprop-single" },
+  "tbm 930": { cruise_gph: 58.0, tank_gal: 282, ac_class: "turboprop-single" },
+  "pilatus pc-12": { cruise_gph: 65.0, tank_gal: 401, ac_class: "turboprop-single" },
+  "pilatus pc-6": { cruise_gph: 18.0, tank_gal: 130, ac_class: "turboprop-single" },
+  "cessna 310": { cruise_gph: 22.0, tank_gal: 102, ac_class: "GA-twin" },
+  "cessna 340": { cruise_gph: 28.0, tank_gal: 163, ac_class: "GA-twin" },
+  "cessna 414": { cruise_gph: 30.0, tank_gal: 163, ac_class: "GA-twin" },
+  "cessna 421": { cruise_gph: 32.0, tank_gal: 163, ac_class: "GA-twin" },
+  "piper pa-34": { cruise_gph: 22.0, tank_gal: 107, ac_class: "GA-twin" },
+  "piper pa-44": { cruise_gph: 20.0, tank_gal: 110, ac_class: "GA-twin" },
+  "piper pa-31": { cruise_gph: 29.0, tank_gal: 200, ac_class: "GA-twin" },
+  "piper pa-23": { cruise_gph: 18.0, tank_gal: 90, ac_class: "GA-twin" },
+  "beechcraft b55": { cruise_gph: 22.0, tank_gal: 112, ac_class: "GA-twin" },
+  "beechcraft b58": { cruise_gph: 26.0, tank_gal: 166, ac_class: "GA-twin" },
+  "beechcraft b60": { cruise_gph: 30.0, tank_gal: 166, ac_class: "GA-twin" },
+  "beechcraft b76": { cruise_gph: 18.0, tank_gal: 100, ac_class: "GA-twin" },
+  "diamond da42": { cruise_gph: 9.5, tank_gal: 53, ac_class: "GA-twin" },
+  "king air 90": { cruise_gph: 70.0, tank_gal: 384, ac_class: "turboprop-twin" },
+  "king air c90": { cruise_gph: 70.0, tank_gal: 384, ac_class: "turboprop-twin" },
+  "king air 200": { cruise_gph: 80.0, tank_gal: 544, ac_class: "turboprop-twin" },
+  "king air b200": { cruise_gph: 80.0, tank_gal: 544, ac_class: "turboprop-twin" },
+  "king air 350": { cruise_gph: 90.0, tank_gal: 544, ac_class: "turboprop-twin" },
+  "beechcraft 1900": { cruise_gph: 130.0, tank_gal: 665, ac_class: "turboprop-twin" },
+  "cessna conquest": { cruise_gph: 55.0, tank_gal: 290, ac_class: "turboprop-twin" },
+  "piper cheyenne": { cruise_gph: 50.0, tank_gal: 260, ac_class: "turboprop-twin" },
+  "mitsubishi mu-2": { cruise_gph: 75.0, tank_gal: 370, ac_class: "turboprop-twin" },
+  "cessna citation cj1": { cruise_gph: 75.0, tank_gal: 441, ac_class: "bizjet-light" },
+  "cessna citation cj2": { cruise_gph: 85.0, tank_gal: 551, ac_class: "bizjet-light" },
+  "cessna citation cj3": { cruise_gph: 100.0, tank_gal: 688, ac_class: "bizjet-light" },
+  "cessna citation cj4": { cruise_gph: 110.0, tank_gal: 690, ac_class: "bizjet-light" },
+  "cessna citation m2": { cruise_gph: 80.0, tank_gal: 441, ac_class: "bizjet-light" },
+  "cessna citation mustang": { cruise_gph: 60.0, tank_gal: 441, ac_class: "bizjet-vlight" },
+  "cessna citation encore": { cruise_gph: 95.0, tank_gal: 688, ac_class: "bizjet-light" },
+  "cessna citation excel": { cruise_gph: 130.0, tank_gal: 872, ac_class: "bizjet-mid" },
+  "cessna citation xls": { cruise_gph: 130.0, tank_gal: 872, ac_class: "bizjet-mid" },
+  "cessna citation x": { cruise_gph: 240.0, tank_gal: 6502, ac_class: "bizjet-super" },
+  "embraer phenom 100": { cruise_gph: 70.0, tank_gal: 570, ac_class: "bizjet-vlight" },
+  "embraer phenom 300": { cruise_gph: 100.0, tank_gal: 570, ac_class: "bizjet-light" },
+  "embraer legacy 450": { cruise_gph: 175.0, tank_gal: 2000, ac_class: "bizjet-mid" },
+  "embraer legacy 500": { cruise_gph: 190.0, tank_gal: 2200, ac_class: "bizjet-mid" },
+  "embraer legacy 600": { cruise_gph: 220.0, tank_gal: 3000, ac_class: "bizjet-large" },
+  "embraer lineage": { cruise_gph: 400.0, tank_gal: 7000, ac_class: "bizjet-large" },
+  "learjet 31": { cruise_gph: 100.0, tank_gal: 800, ac_class: "bizjet-light" },
+  "learjet 40": { cruise_gph: 110.0, tank_gal: 900, ac_class: "bizjet-light" },
+  "learjet 45": { cruise_gph: 120.0, tank_gal: 1100, ac_class: "bizjet-mid" },
+  "learjet 60": { cruise_gph: 165.0, tank_gal: 1260, ac_class: "bizjet-mid" },
+  "learjet 70": { cruise_gph: 125.0, tank_gal: 1000, ac_class: "bizjet-mid" },
+  "learjet 75": { cruise_gph: 140.0, tank_gal: 1260, ac_class: "bizjet-mid" },
+  "hawker 400": { cruise_gph: 100.0, tank_gal: 720, ac_class: "bizjet-light" },
+  "hawker 800": { cruise_gph: 165.0, tank_gal: 1407, ac_class: "bizjet-mid" },
+  "hawker 900": { cruise_gph: 165.0, tank_gal: 1407, ac_class: "bizjet-mid" },
+  "hawker 4000": { cruise_gph: 200.0, tank_gal: 2500, ac_class: "bizjet-super" },
+  "bombardier challenger 300": { cruise_gph: 190.0, tank_gal: 8600, ac_class: "bizjet-super" },
+  "bombardier challenger 350": { cruise_gph: 195.0, tank_gal: 8600, ac_class: "bizjet-super" },
+  "bombardier challenger 600": { cruise_gph: 220.0, tank_gal: 8600, ac_class: "bizjet-large" },
+  "bombardier global 5000": { cruise_gph: 260.0, tank_gal: 17800, ac_class: "bizjet-large" },
+  "bombardier global 6000": { cruise_gph: 275.0, tank_gal: 17800, ac_class: "bizjet-large" },
+  "bombardier global 7500": { cruise_gph: 300.0, tank_gal: 21500, ac_class: "bizjet-large" },
+  "gulfstream g150": { cruise_gph: 130.0, tank_gal: 1319, ac_class: "bizjet-mid" },
+  "gulfstream g200": { cruise_gph: 165.0, tank_gal: 2100, ac_class: "bizjet-super" },
+  "gulfstream g280": { cruise_gph: 175.0, tank_gal: 2300, ac_class: "bizjet-super" },
+  "gulfstream g350": { cruise_gph: 200.0, tank_gal: 13619, ac_class: "bizjet-large" },
+  "gulfstream g450": { cruise_gph: 230.0, tank_gal: 13619, ac_class: "bizjet-large" },
+  "gulfstream g500": { cruise_gph: 260.0, tank_gal: 16100, ac_class: "bizjet-large" },
+  "gulfstream g550": { cruise_gph: 290.0, tank_gal: 15500, ac_class: "bizjet-large" },
+  "gulfstream g600": { cruise_gph: 290.0, tank_gal: 16100, ac_class: "bizjet-large" },
+  "gulfstream g650": { cruise_gph: 310.0, tank_gal: 17700, ac_class: "bizjet-large" },
+  "gulfstream g700": { cruise_gph: 320.0, tank_gal: 20000, ac_class: "bizjet-large" },
+  "dassault falcon 2000": { cruise_gph: 210.0, tank_gal: 9000, ac_class: "bizjet-large" },
+  "dassault falcon 7x": { cruise_gph: 240.0, tank_gal: 14500, ac_class: "bizjet-large" },
+  "dassault falcon 8x": { cruise_gph: 240.0, tank_gal: 14500, ac_class: "bizjet-large" },
+  "dassault falcon 900": { cruise_gph: 250.0, tank_gal: 10800, ac_class: "bizjet-large" },
+  "airbus a318": { cruise_gph: 650.0, tank_gal: 26070, ac_class: "airliner-narrow" },
+  "airbus a319": { cruise_gph: 680.0, tank_gal: 26070, ac_class: "airliner-narrow" },
+  "airbus a320": { cruise_gph: 750.0, tank_gal: 27200, ac_class: "airliner-narrow" },
+  "airbus a321": { cruise_gph: 820.0, tank_gal: 27200, ac_class: "airliner-narrow" },
+  "airbus a330": { cruise_gph: 1100.0, tank_gal: 55200, ac_class: "airliner-wide" },
+  "airbus a340": { cruise_gph: 1300.0, tank_gal: 70000, ac_class: "airliner-wide" },
+  "airbus a350": { cruise_gph: 950.0, tank_gal: 59000, ac_class: "airliner-wide" },
+  "airbus a380": { cruise_gph: 1550.0, tank_gal: 85470, ac_class: "airliner-heavy" },
+  "boeing 717": { cruise_gph: 600.0, tank_gal: 4500, ac_class: "airliner-narrow" },
+  "boeing 737": { cruise_gph: 760.0, tank_gal: 6875, ac_class: "airliner-narrow" },
+  "boeing 747": { cruise_gph: 1650.0, tank_gal: 63705, ac_class: "airliner-heavy" },
+  "boeing 757": { cruise_gph: 950.0, tank_gal: 16700, ac_class: "airliner-narrow" },
+  "boeing 767": { cruise_gph: 1200.0, tank_gal: 24140, ac_class: "airliner-wide" },
+  "boeing 777": { cruise_gph: 900.0, tank_gal: 45220, ac_class: "airliner-wide" },
+  "boeing 787": { cruise_gph: 650.0, tank_gal: 33340, ac_class: "airliner-wide" },
+  "mcdonnell douglas md": { cruise_gph: 800.0, tank_gal: 20000, ac_class: "airliner-narrow" },
+  "bombardier q400": { cruise_gph: 120.0, tank_gal: 1765, ac_class: "regional-prop" },
+  "atr 42": { cruise_gph: 80.0, tank_gal: 1140, ac_class: "regional-prop" },
+  "atr 72": { cruise_gph: 100.0, tank_gal: 1500, ac_class: "regional-prop" },
+  "embraer erj 135": { cruise_gph: 230.0, tank_gal: 3800, ac_class: "regional-jet" },
+  "embraer erj 145": { cruise_gph: 280.0, tank_gal: 3800, ac_class: "regional-jet" },
+  "embraer e170": { cruise_gph: 360.0, tank_gal: 6960, ac_class: "airliner-narrow" },
+  "embraer e175": { cruise_gph: 370.0, tank_gal: 6960, ac_class: "airliner-narrow" },
+  "embraer e190": { cruise_gph: 400.0, tank_gal: 7000, ac_class: "airliner-narrow" },
+  "embraer e195": { cruise_gph: 420.0, tank_gal: 7000, ac_class: "airliner-narrow" },
+  "bombardier crj 200": { cruise_gph: 200.0, tank_gal: 2200, ac_class: "regional-jet" },
+  "bombardier crj 700": { cruise_gph: 300.0, tank_gal: 4500, ac_class: "regional-jet" },
+  "bombardier crj 900": { cruise_gph: 330.0, tank_gal: 5900, ac_class: "regional-jet" },
+  "douglas dc-3": { cruise_gph: 70.0, tank_gal: 804, ac_class: "cargo-legacy" },
+  "lockheed l-382": { cruise_gph: 600.0, tank_gal: 8600, ac_class: "cargo-heavy" },
+  "robinson r22": { cruise_gph: 8.0, tank_gal: 19, ac_class: "heli-light" },
+  "robinson r44": { cruise_gph: 14.0, tank_gal: 39, ac_class: "heli-light" },
+  "robinson r66": { cruise_gph: 8.5, tank_gal: 73, ac_class: "heli-light" },
+  "bell 206": { cruise_gph: 22.0, tank_gal: 91, ac_class: "heli-mid" },
+  "bell 407": { cruise_gph: 52.0, tank_gal: 218, ac_class: "heli-mid" },
+  "bell 429": { cruise_gph: 65.0, tank_gal: 230, ac_class: "heli-mid" },
+  "airbus h125": { cruise_gph: 22.0, tank_gal: 148, ac_class: "heli-mid" },
+  "airbus h130": { cruise_gph: 24.0, tank_gal: 148, ac_class: "heli-mid" },
+  "airbus h135": { cruise_gph: 30.0, tank_gal: 158, ac_class: "heli-mid" },
+  "airbus h145": { cruise_gph: 38.0, tank_gal: 200, ac_class: "heli-mid" },
+  "airbus h160": { cruise_gph: 70.0, tank_gal: 380, ac_class: "heli-heavy" },
+  "airbus h175": { cruise_gph: 120.0, tank_gal: 650, ac_class: "heli-heavy" },
+  "airbus h215": { cruise_gph: 180.0, tank_gal: 700, ac_class: "heli-heavy" },
+  "airbus h225": { cruise_gph: 200.0, tank_gal: 900, ac_class: "heli-heavy" },
+  "sikorsky s-76": { cruise_gph: 125.0, tank_gal: 534, ac_class: "heli-heavy" },
+  "sikorsky s-92": { cruise_gph: 220.0, tank_gal: 1398, ac_class: "heli-heavy" },
+  "leonardo aw109": { cruise_gph: 55.0, tank_gal: 240, ac_class: "heli-mid" },
+  "leonardo aw139": { cruise_gph: 140.0, tank_gal: 720, ac_class: "heli-heavy" },
 };
 
-// Resolve OEM spec from callsign, mfr_mdl_code, or OpenSky category
-function resolveOEMSpec(state, faaData) {
-  const cs = (state.callsign || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const mfr = (faaData?.mfr_mdl_code || "").toLowerCase();
+const CATEGORY_DEFAULTS = {
+  2: { cruise_gph: 9, tank_gal: 56, ac_class: "GA-single" },
+  3: { cruise_gph: 9, tank_gal: 56, ac_class: "GA-single" },
+  4: { cruise_gph: 50, tank_gal: 450, ac_class: "bizjet-light" },
+  5: { cruise_gph: 140, tank_gal: 1260, ac_class: "bizjet-mid" },
+  6: { cruise_gph: 140, tank_gal: 1260, ac_class: "bizjet-mid" },
+  30: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  31: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  32: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  33: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  34: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  35: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
+  36: { cruise_gph: 20, tank_gal: 80, ac_class: "heli-light" },
+  37: { cruise_gph: 20, tank_gal: 80, ac_class: "heli-light" },
+  38: { cruise_gph: 55, tank_gal: 250, ac_class: "heli-mid" },
+  39: { cruise_gph: 55, tank_gal: 250, ac_class: "heli-mid" },
+  40: { cruise_gph: 130, tank_gal: 600, ac_class: "heli-heavy" },
+  41: { cruise_gph: 130, tank_gal: 600, ac_class: "heli-heavy" },
+};
 
-  for (const [key, spec] of Object.entries(FUEL_SPECS)) {
-    if (cs.includes(key) || mfr.includes(key)) return { ...spec, source: "oem_lookup", key };
+function getFuelSpecs(typeAircraft) {
+  if (!typeAircraft) return null;
+  const lower = String(typeAircraft).toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim();
+  if (FUEL_SPECS[lower]) return { ...FUEL_SPECS[lower], match: "exact", key: lower };
+
+  const tokens = lower.split(/\s+/);
+  if (tokens.length >= 2) {
+    const prefix = `${tokens[0]} ${tokens[1]}`;
+    if (FUEL_SPECS[prefix]) return { ...FUEL_SPECS[prefix], match: "prefix", key: prefix };
   }
 
-  // Fallback: category-based defaults
-  const cat = state.category || 0;
-  if ([2, 3].includes(cat))          return { gph_cruise: 9,   gph_climb: 11,  gph_descent: 5,  fuel_cap_gal: 56,   speed_ktas_cruise: 130, source: "category_fallback" };
-  if ([4, 5, 6].includes(cat))       return { gph_cruise: 50,  gph_climb: 65,  gph_descent: 22, fuel_cap_gal: 450,  speed_ktas_cruise: 350, source: "category_fallback" };
-  if (cat >= 30 && cat <= 35)        return { gph_cruise: 800, gph_climb: 1100,gph_descent: 320,fuel_cap_gal: 40000,speed_ktas_cruise: 480, source: "category_fallback" };
-  if (cat >= 36 && cat <= 41)        return { gph_cruise: 20,  gph_climb: 26,  gph_descent: 14, fuel_cap_gal: 50,   speed_ktas_cruise: 110, source: "category_fallback" };
-  return { gph_cruise: 10, gph_climb: 12, gph_descent: 5, fuel_cap_gal: 56, speed_ktas_cruise: 125, source: "default_fallback" };
+  let best = null;
+  for (const [key, spec] of Object.entries(FUEL_SPECS)) {
+    if (lower.includes(key) && (!best || key.length > best.key.length)) best = { spec, key };
+  }
+  return best ? { ...best.spec, match: "substring", key: best.key } : null;
 }
 
-// Determine flight phase from vertical rate
-function getFlightPhase(vrate) {
-  if (vrate > 300)  return "climb";
-  if (vrate < -300) return "descent";
-  return "cruise";
-}
-
-// Estimate fuel consumption based on OEM data + flight phase
 function estimateFuelConsumption(state, faaData) {
   if (!state || state.on_ground) return null;
 
-  const alt    = state.baro_altitude || 0;
-  const speed  = state.velocity || 0;
-  const vrate  = state.vertical_rate || 0;
-  const phase  = getFlightPhase(vrate);
-  const spec   = resolveOEMSpec(state, faaData);
+  const alt = state.baro_altitude ?? 0;
+  const speed = state.velocity ?? 0;
+  const vrate = state.vertical_rate ?? 0;
+  const faaType = faaData?.type_aircraft || null;
 
-  const gphMap = { climb: spec.gph_climb, descent: spec.gph_descent, cruise: spec.gph_cruise };
-  let estimatedGPH = gphMap[phase];
+  let baseCruiseGPH = null;
+  let specSource = "default_fallback";
+  let oemKey = null;
+  let acClass = null;
 
-  // High-altitude cruise efficiency adjustment (above FL250 jets run leaner)
-  if (phase === "cruise" && alt > 7620 && speed > 200) estimatedGPH *= 0.90;
+  const spec = getFuelSpecs(faaType);
+  if (spec) {
+    baseCruiseGPH = spec.cruise_gph;
+    specSource = `oem_${spec.match}`;
+    oemKey = spec.key;
+    acClass = spec.ac_class;
+  }
 
+  if (baseCruiseGPH == null) {
+    const mfr = String(faaData?.mfr_mdl_code || "").toLowerCase();
+    const cs = String(state.callsign || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    let best = null;
+    for (const [key, item] of Object.entries(FUEL_SPECS)) {
+      const flat = key.replace(/[\s-]/g, "");
+      if ((cs.includes(flat) || mfr.includes(flat)) && (!best || key.length > best.key.length)) best = { spec: item, key };
+    }
+    if (best) {
+      baseCruiseGPH = best.spec.cruise_gph;
+      specSource = "oem_mfr_code";
+      oemKey = best.key;
+      acClass = best.spec.ac_class;
+    }
+  }
+
+  if (baseCruiseGPH == null) {
+    const catSpec = CATEGORY_DEFAULTS[state.category ?? 0];
+    baseCruiseGPH = catSpec?.cruise_gph ?? 10;
+    acClass = catSpec?.ac_class ?? "unknown";
+    specSource = catSpec ? "category_fallback" : "default_fallback";
+  }
+
+  let phaseMult = 1;
+  let phaseName = "cruise";
+  if (vrate > 2.54) {
+    phaseMult = 1.4;
+    phaseName = "climb";
+  } else if (vrate < -1.52) {
+    phaseMult = 0.7;
+    phaseName = "descent";
+  } else if (alt > 7620 && speed > 154) {
+    phaseMult = 0.8;
+    phaseName = "cruise_high";
+  } else if (alt < 610 && speed < 41) {
+    phaseMult = 1.1;
+    phaseName = "approach";
+  } else if (alt >= 2438 && alt <= 5486 && speed >= 100 && speed <= 206) {
+    phaseMult = 0.95;
+    phaseName = "cruise_optimal";
+  }
+
+  const estimatedGPH = baseCruiseGPH * phaseMult;
   const hoursFlown = (state.time_position && state.last_contact)
     ? Math.max(0, (state.last_contact - state.time_position) / 3600)
     : 0;
-  const fuelBurned = estimatedGPH * Math.min(hoursFlown, 24);
 
   return {
+    faa_type: faaType ?? "Unknown",
+    ac_class: acClass ?? "unknown",
     estimated_gph: Math.round(estimatedGPH * 10) / 10,
-    flight_phase: phase,
-    spec_source: spec.source,
-    oem_key: spec.key || null,
-    estimated_fuel_burned_gal: Math.round(fuelBurned),
+    flight_phase: phaseName,
+    phase_multiplier: Math.round(phaseMult * 100) / 100,
+    spec_source: specSource,
+    oem_key: oemKey,
+    estimated_fuel_burned_gal: Math.round(estimatedGPH * Math.min(hoursFlown, 24)),
     hours_airborne: Math.round(hoursFlown * 100) / 100,
+    confidence: specSource.startsWith("oem") ? "HIGH" : "LOW",
   };
 }
 
-// Estimate endurance using OEM fuel capacity
 function estimateEndurance(state, fuelEst, faaData) {
   if (!fuelEst || !state) return null;
 
-  const spec = resolveOEMSpec(state, faaData);
-  const availableFuel = Math.max(0, spec.fuel_cap_gal - fuelEst.estimated_fuel_burned_gal);
-  const enduranceHours = fuelEst.estimated_gph > 0 ? availableFuel / fuelEst.estimated_gph : 0;
+  const faaType = faaData?.type_aircraft || null;
+  const spec = getFuelSpecs(faaType);
+  const tankGal = spec?.tank_gal ?? CATEGORY_DEFAULTS[state.category ?? 0]?.tank_gal ?? 50;
+  const available = Math.max(0, tankGal - fuelEst.estimated_fuel_burned_gal);
+  const enduranceHours = fuelEst.estimated_gph > 0 ? available / fuelEst.estimated_gph : 0;
+  const flightableHours = Math.max(0, enduranceHours - (RESERVE_MIN / 60));
 
   return {
-    oem_fuel_capacity_gal: spec.fuel_cap_gal,
-    estimated_remaining_gal: Math.round(availableFuel),
+    aircraft_type: faaType ?? "Unknown",
+    oem_fuel_capacity_gal: tankGal,
+    estimated_fuel_burned_gal: fuelEst.estimated_fuel_burned_gal,
+    estimated_remaining_gal: Math.round(available),
     estimated_endurance_hours: Math.round(enduranceHours * 10) / 10,
-    fuel_reserve_status: enduranceHours < 0.75 ? "CRITICAL" : enduranceHours < 2 ? "LOW" : "ADEQUATE",
-    spec_source: spec.source,
+    flightable_hours_after_reserve: Math.round(flightableHours * 10) / 10,
+    fuel_reserve_status: flightableHours < 0.5 ? "CRITICAL" : flightableHours < 1 ? "LOW" : flightableHours < 2 ? "MODERATE" : "ADEQUATE",
+    reserve_minutes_applied: RESERVE_MIN,
+    spec_source: fuelEst.spec_source,
   };
+}
+
+function calculateDealReadiness(state, listing, endurance) {
+  if (!listing || !endurance || !state) return null;
+
+  const landingSoon = (endurance.flightable_hours_after_reserve ?? Infinity) < 1;
+  const createdAt = listing.created_date || listing.created_at || null;
+  const recentlyListed = createdAt ? Date.now() - new Date(createdAt).getTime() < 7 * 86400 * 1000 : false;
+  const dealLabel = listing.deal_label ?? "";
+  const motivated = dealLabel.toLowerCase().includes("motivated") || dealLabel.toLowerCase().includes("reduced");
+
+  return {
+    landing_soon: landingSoon,
+    recently_listed: recentlyListed,
+    motivated_seller: motivated,
+    is_live_opportunity: landingSoon && recentlyListed && motivated,
+    ati_score: listing.ati_score ?? null,
+    deal_label: dealLabel || null,
+    fuel_reserve_status: endurance.fuel_reserve_status,
+    flightable_hours: endurance.flightable_hours_after_reserve,
+  };
+}
+
+async function enrichStates(base44, states, includeDealReadiness = false) {
+  const hexList = states.map((s) => s.icao24).filter(Boolean);
+  let faaMap = {};
+
+  if (hexList.length > 0) {
+    try {
+      const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: { $in: hexList } }, "", 500);
+      recs.forEach((r) => {
+        if (r.mode_s_hex) faaMap[String(r.mode_s_hex).toLowerCase()] = r;
+      });
+    } catch (e) {
+      console.warn("FAA enrichment failed:", e.message);
+    }
+  }
+
+  const registrations = Object.values(faaMap).map((r) => r.n_number ? `N${r.n_number}` : null).filter(Boolean);
+  let atiMap = {};
+
+  if (registrations.length > 0) {
+    try {
+      const listings = await base44.asServiceRole.entities.AircraftListing.filter(
+        { registration: { $in: registrations }, status: "active" },
+        "-ati_score",
+        500
+      );
+      listings.forEach((l) => {
+        if (l.registration) atiMap[String(l.registration).toUpperCase()] = l;
+      });
+    } catch (e) {
+      console.warn("ATI enrichment failed:", e.message);
+    }
+  }
+
+  return states.map((s) => {
+    const faa = faaMap[s.icao24?.toLowerCase()] || null;
+    const reg = faa?.n_number ? `N${faa.n_number}` : null;
+    const listing = reg ? atiMap[String(reg).toUpperCase()] || null : null;
+    const fuelEst = estimateFuelConsumption(s, faa);
+    const endurance = fuelEst ? estimateEndurance(s, fuelEst, faa) : null;
+
+    return {
+      ...s,
+      faa: faa ? {
+        n_number: faa.n_number ? `N${faa.n_number}` : null,
+        name: faa.name,
+        type_aircraft: faa.type_aircraft,
+        mfr_mdl_code: faa.mfr_mdl_code,
+        eng_mfr_mdl: faa.eng_mfr_mdl,
+        year_mfr: faa.year_mfr,
+      } : null,
+      listing: listing ? {
+        id: listing.id,
+        make: listing.make,
+        model: listing.model,
+        year: listing.year,
+        ati_score: listing.ati_score,
+        deal_label: listing.deal_label,
+        asking_price: listing.asking_price,
+        deal_score: listing.deal_score,
+        created_date: listing.created_date,
+      } : null,
+      fuel_estimate: fuelEst,
+      endurance,
+      deal_readiness: includeDealReadiness ? calculateDealReadiness(s, listing, endurance) : null,
+    };
+  });
+}
+
+function filterAndLimitStates(data, allowHeavy, limit) {
+  let states = (data?.states || []).map(parseState).filter((s) => s && s.latitude && s.longitude);
+  if (!allowHeavy) {
+    states = states.filter((s) => {
+      const cat = s.category ?? 0;
+      return cat < 5 || (cat >= 8 && cat <= 17);
+    });
+  }
+  return states.slice(0, limit);
+}
+
+function buildBoundsQuery(body, includeTime = false) {
+  const params = new URLSearchParams();
+  ["lamin", "lomin", "lamax", "lomax"].forEach((key) => {
+    if (body[key] != null) params.set(key, body[key]);
+  });
+  if (includeTime && body.ts) params.set("time", body.ts);
+  return params.toString();
 }
 
 Deno.serve(async (req) => {
@@ -226,154 +510,36 @@ Deno.serve(async (req) => {
     const { action, icao24, days } = body;
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
 
-    // ── HISTORY STATES: area bounding box at a specific past unix timestamp ──
     if (action === "history_states") {
-      const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200, ts } = body;
+      const { allow_heavy, limit = 200, ts } = body;
       if (!ts) return Response.json({ error: "ts (unix timestamp) required" }, { status: 400 });
 
-      // Anonymous access: drop the time= param (requires auth). Return current live data instead.
-      const params = new URLSearchParams();
-      if (lamin != null) params.set("lamin", lamin);
-      if (lomin != null) params.set("lomin", lomin);
-      if (lamax != null) params.set("lamax", lamax);
-      if (lomax != null) params.set("lomax", lomax);
-      const path = `/states/all?${params.toString()}`;
-
-      const data = await openSkyFetch(path);
-      if (!data?.states) return Response.json({ aircraft: [], time: ts, historical: true });
-
-      let states = data.states.map(parseState).filter(s => s && s.latitude && s.longitude);
-
-      if (!allow_heavy) {
-        states = states.filter(s => {
-          const cat = s.category || 0;
-          return cat < 5 || (cat >= 8 && cat <= 17);
-        });
-      }
-      states = states.slice(0, limit);
-
-      const hexList = states.map(s => s.icao24).filter(Boolean);
-      let faaMap = {};
-      if (hexList.length > 0) {
-        try {
-          const faaRecords = await base44.asServiceRole.entities.FAAAircraft.filter(
-            { mode_s_hex: { $in: hexList } }, "", 500
-          );
-          faaRecords.forEach(r => { if (r.mode_s_hex) faaMap[r.mode_s_hex.toLowerCase()] = r; });
-        } catch (e) { console.warn("FAA enrichment failed:", e.message); }
+      let data = null;
+      let historical = true;
+      try {
+        data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, true)}`);
+      } catch (e) {
+        console.warn("Historical OpenSky fetch failed, falling back to live:", e.message);
       }
 
-      const registrations = Object.values(faaMap).map(r => r.n_number ? `N${r.n_number}` : null).filter(Boolean);
-      let atiMap = {};
-      if (registrations.length > 0) {
-        try {
-          const listings = await base44.asServiceRole.entities.AircraftListing.filter(
-            { registration: { $in: registrations }, status: "active" }, "-ati_score", 500
-          );
-          listings.forEach(l => { if (l.registration) atiMap[l.registration.toUpperCase()] = l; });
-        } catch (e) { console.warn("ATI enrichment failed:", e.message); }
+      if (!data?.states) {
+        historical = false;
+        data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, false)}`);
       }
 
-      const aircraft = states.map(s => {
-        const faa = faaMap[s.icao24?.toLowerCase()] || null;
-        const reg = faa?.n_number ? `N${faa.n_number}` : null;
-        const listing = reg ? atiMap[reg.toUpperCase()] || null : null;
-        return {
-          ...s,
-          faa: faa ? { n_number: faa.n_number ? `N${faa.n_number}` : null, name: faa.name, type_aircraft: faa.type_aircraft, mfr_mdl_code: faa.mfr_mdl_code, year_mfr: faa.year_mfr } : null,
-          listing: listing ? { id: listing.id, make: listing.make, model: listing.model, year: listing.year, ati_score: listing.ati_score, deal_label: listing.deal_label, asking_price: listing.asking_price, deal_score: listing.deal_score } : null,
-        };
-      });
-
-      return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical: true });
+      if (!data?.states) return Response.json({ aircraft: [], time: ts, historical, fallback_live: !historical });
+      const states = filterAndLimitStates(data, allow_heavy, limit);
+      const aircraft = await enrichStates(base44, states, false);
+      return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical, fallback_live: !historical });
     }
 
-    // ── MAP STATES: area bounding box — live anonymous endpoint (no time= param required) ──
     if (action === "map_states") {
-      const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200 } = body;
-
-      // Anonymous access only works on the live /states/all endpoint (no time= param).
-      // The historical time= endpoint requires authentication which times out.
-      const params = new URLSearchParams();
-      if (lamin != null) params.set("lamin", lamin);
-      if (lomin != null) params.set("lomin", lomin);
-      if (lamax != null) params.set("lamax", lamax);
-      if (lomax != null) params.set("lomax", lomax);
-      const path = `/states/all?${params.toString()}`;
-
-      const data = await openSkyFetch(path);
+      const { allow_heavy, limit = 200 } = body;
+      const data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, false)}`);
       if (!data?.states) return Response.json({ aircraft: [], time: null });
 
-      let states = data.states.map(parseState).filter(s => s && s.latitude && s.longitude);
-
-      if (!allow_heavy) {
-        states = states.filter(s => {
-          const cat = s.category || 0;
-          return cat < 5 || (cat >= 8 && cat <= 17);
-        });
-      }
-
-      states = states.slice(0, limit);
-
-      const hexList = states.map(s => s.icao24).filter(Boolean);
-      let faaMap = {};
-      if (hexList.length > 0) {
-        try {
-          const faaRecords = await base44.asServiceRole.entities.FAAAircraft.filter(
-            { mode_s_hex: { $in: hexList } }, "", 500
-          );
-          faaRecords.forEach(r => {
-            if (r.mode_s_hex) faaMap[r.mode_s_hex.toLowerCase()] = r;
-          });
-        } catch (e) {
-          console.warn("FAA enrichment failed:", e.message);
-        }
-      }
-
-      const registrations = Object.values(faaMap)
-        .map(r => r.n_number ? `N${r.n_number}` : null)
-        .filter(Boolean);
-      let atiMap = {};
-      if (registrations.length > 0) {
-        try {
-          const listings = await base44.asServiceRole.entities.AircraftListing.filter(
-            { registration: { $in: registrations }, status: "active" }, "-ati_score", 500
-          );
-          listings.forEach(l => {
-            if (l.registration) atiMap[l.registration.toUpperCase()] = l;
-          });
-        } catch (e) {
-          console.warn("ATI enrichment failed:", e.message);
-        }
-      }
-
-      const aircraft = states.map(s => {
-        const faa = faaMap[s.icao24?.toLowerCase()] || null;
-        const reg = faa?.n_number ? `N${faa.n_number}` : null;
-        const listing = reg ? atiMap[reg.toUpperCase()] || null : null;
-        return {
-          ...s,
-          faa: faa ? {
-            n_number: faa.n_number ? `N${faa.n_number}` : null,
-            name: faa.name,
-            type_aircraft: faa.type_aircraft,
-            mfr_mdl_code: faa.mfr_mdl_code,
-            eng_mfr_mdl: faa.eng_mfr_mdl,
-            year_mfr: faa.year_mfr,
-          } : null,
-          listing: listing ? {
-            id: listing.id,
-            make: listing.make,
-            model: listing.model,
-            year: listing.year,
-            ati_score: listing.ati_score,
-            deal_label: listing.deal_label,
-            asking_price: listing.asking_price,
-            deal_score: listing.deal_score,
-          } : null,
-        };
-      });
-
+      const states = filterAndLimitStates(data, allow_heavy, limit);
+      const aircraft = await enrichStates(base44, states, true);
       return Response.json({ aircraft, time: data.time, total_raw: data.states.length });
     }
 
@@ -387,12 +553,13 @@ Deno.serve(async (req) => {
     if (action === "state") {
       const data = await openSkyFetch(`/states/all?icao24=${hex}`);
       const state = data?.states?.[0] ? parseState(data.states[0]) : null;
-      // Enrich with FAA data for OEM spec resolution
       let faaData = null;
       try {
-        const faaRecords = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
-        faaData = faaRecords[0] || null;
-      } catch (e) { console.warn("FAA lookup failed:", e.message); }
+        const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
+        faaData = recs[0] || null;
+      } catch (e) {
+        console.warn("FAA lookup failed:", e.message);
+      }
       const fuelEst = state ? estimateFuelConsumption(state, faaData) : null;
       const endurance = fuelEst ? estimateEndurance(state, fuelEst, faaData) : null;
       return Response.json({ time: data?.time || null, state, faa: faaData, fuel_estimate: fuelEst, endurance });
@@ -401,30 +568,21 @@ Deno.serve(async (req) => {
     if (action === "inflight") {
       const data = await openSkyFetch(`/states/all?icao24=${hex}`);
       const state = data?.states?.[0] ? parseState(data.states[0]) : null;
+      if (!state || state.on_ground) return Response.json({ error: "Aircraft not airborne", state });
 
-      if (!state || state.on_ground) {
-        return Response.json({ error: "Aircraft not airborne", state });
-      }
-
-      // Enrich with FAA data for OEM spec resolution
       let faaData = null;
       try {
-        const faaRecords = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
-        faaData = faaRecords[0] || null;
-      } catch (e) { console.warn("FAA lookup failed:", e.message); }
+        const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
+        faaData = recs[0] || null;
+      } catch (e) {
+        console.warn("FAA lookup failed:", e.message);
+      }
 
       const fuelEst = estimateFuelConsumption(state, faaData);
-      const endurance = estimateEndurance(state, fuelEst, faaData);
-      const flightHistory = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${Math.floor(Date.now() / 1000) - 86400}&end=${Math.floor(Date.now() / 1000)}`);
-
-      return Response.json({
-        time: data?.time || null,
-        state,
-        faa: faaData,
-        fuel_estimate: fuelEst,
-        endurance,
-        recent_flights: flightHistory || [],
-      });
+      const endurance = fuelEst ? estimateEndurance(state, fuelEst, faaData) : null;
+      const end = Math.floor(Date.now() / 1000);
+      const flightHistory = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${end - 86400}&end=${end}`);
+      return Response.json({ time: data?.time || null, state, faa: faaData, fuel_estimate: fuelEst, endurance, recent_flights: flightHistory || [] });
     }
 
     if (action === "flights") {

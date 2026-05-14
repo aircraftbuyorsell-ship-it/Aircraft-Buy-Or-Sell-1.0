@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
@@ -66,26 +66,33 @@ export default function LiveTraffic() {
   const [flyTarget, setFlyTarget] = useState(null);
   const markerRefs = useRef({});
 
-  const fetchTraffic = useCallback(async (r) => {
+  const fetchTraffic = useCallback(async (r, forceRefresh = false) => {
     setLoading(true);
     setError(null);
     setFlyTarget(null);
     try {
-      const res = await base44.functions.invoke("openSky", {
-        action: "map_states",
+      const regionKey = r.label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const res = await base44.functions.invoke("cachedTraffic", {
+        region_key: regionKey,
+        region_label: r.label,
+        force_refresh: forceRefresh,
         ...r.bbox,
         allow_heavy: true,
-        limit: 500,
+        limit: 200,
       });
       const list = res.data?.aircraft || [];
       setAircraft(list);
-      setDataTime(res.data?.time ? new Date(res.data.time * 1000) : new Date());
+      setDataTime(res.data?.time ? new Date(res.data.time * 1000) : new Date(res.data?.refreshed_at || Date.now()));
     } catch (e) {
       setError(e.response?.data?.error || e.message || "Failed to load traffic");
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchTraffic(REGIONS[0]);
+  }, [fetchTraffic]);
 
   const handleRegionChange = (r) => {
     setRegion(r);
@@ -143,7 +150,7 @@ export default function LiveTraffic() {
             </h1>
           </div>
           <button
-            onClick={() => fetchTraffic(region)}
+            onClick={() => fetchTraffic(region, true)}
             disabled={loading}
             className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#D4A017] disabled:opacity-50 text-[#0B2D5B] font-black text-sm px-5 py-2.5 rounded-xl transition-colors"
           >
@@ -235,8 +242,8 @@ export default function LiveTraffic() {
           <div className="absolute inset-0 flex flex-col items-center justify-center z-[999] pointer-events-none">
             <div className="bg-white/90 backdrop-blur-sm border border-black/[0.08] rounded-2xl px-6 py-5 text-center shadow-lg pointer-events-auto">
               <Plane className="w-8 h-8 text-[#0B2D5B] mx-auto mb-2" />
-              <p className="text-sm font-bold text-[#1A1814] mb-1">Select a region to load traffic</p>
-              <p className="text-[11px] text-[#6B6560]">Live data from OpenSky Network</p>
+              <p className="text-sm font-bold text-[#1A1814] mb-1">Loading cached traffic</p>
+              <p className="text-[11px] text-[#6B6560]">Fast snapshots from OpenSky Network</p>
             </div>
           </div>
         )}

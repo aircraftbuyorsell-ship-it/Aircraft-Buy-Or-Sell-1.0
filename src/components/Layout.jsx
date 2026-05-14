@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu, X,
   Handshake, Calculator, Users, Bell, BarChart3,
-  ArrowLeft, ChevronLeft, Zap,
+  ArrowLeft, ChevronLeft, Zap, LogIn, LogOut,
 } from "lucide-react";
 
 const BACK_BUTTON_ROUTES = [
@@ -113,6 +113,23 @@ export default function Layout() {
           <div className="flex-1" />
 
           <nav className="flex items-center gap-1">
+            {currentUser ? (
+              <button
+                onClick={() => base44.auth.logout()}
+                className="flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[11px] font-black uppercase tracking-tight text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent transition-all"
+              >
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log Out</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => base44.auth.redirectToLogin()}
+                className="flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[11px] font-black uppercase tracking-tight text-[#E8A83A] hover:text-white hover:bg-[#E8A83A]/10 border border-[#E8A83A]/30 transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log In</span>
+              </button>
+            )}
             {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
               const active = pathname === path;
               return (

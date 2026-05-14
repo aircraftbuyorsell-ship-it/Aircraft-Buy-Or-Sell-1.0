@@ -244,17 +244,21 @@ Deno.serve(async (req) => {
       return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical: true });
     }
 
-    // ── MAP STATES: area bounding box — no icao24 needed ──
+    // ── MAP STATES: area bounding box — uses 15-min delayed snapshot for full traffic coverage ──
     if (action === "map_states") {
       const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200 } = body;
-      
+
+      // Use a 15-minute delay: OpenSky historical endpoint returns complete global traffic
+      // whereas the live endpoint is heavily rate-limited and capped.
+      const delayedTs = Math.floor(Date.now() / 1000) - 15 * 60;
+
       let path = "/states/all";
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({ time: String(delayedTs) });
       if (lamin != null) params.set("lamin", lamin);
       if (lomin != null) params.set("lomin", lomin);
       if (lamax != null) params.set("lamax", lamax);
       if (lomax != null) params.set("lomax", lomax);
-      if ([...params].length) path += `?${params.toString()}`;
+      path += `?${params.toString()}`;
 
       const data = await openSkyFetch(path);
       if (!data?.states) return Response.json({ aircraft: [], time: null });

@@ -300,7 +300,7 @@ export default function LiveTraffic() {
               Live ATI Traffic Map
             </h1>
             <p className="text-white/40 text-[12px] mt-2">
-              Real-time aircraft + ATI scoring · perfect for airshows & fly-ins
+              Full traffic coverage (~15 min delay) + ATI scoring · perfect for airshows & fly-ins
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -374,7 +374,7 @@ export default function LiveTraffic() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-[rgba(15,122,86,0.12)] text-[#0F7A56] border border-[rgba(15,122,86,0.25)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F7A56] animate-pulse inline-block" /> Live
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F7A56] animate-pulse inline-block" /> ~15 min delay
                   </span>
                 )}
               </div>
@@ -582,7 +582,7 @@ export default function LiveTraffic() {
         )}
 
         <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider text-center pb-4">
-          Data: OpenSky Network · Community ADS-B feed · Auto-refresh every 30s
+          Data: OpenSky Network · Community ADS-B feed · ~15 min delay · Auto-refresh every 30s
         </p>
       </div>
     </div>

@@ -303,30 +303,7 @@ export default function LiveTraffic() {
               Replay
             </button>
 
-            {/* Preset selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowPresets(v => !v)}
-                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-4 py-2 rounded-lg transition-colors"
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                {selectedPreset ? selectedPreset.label.split("(")[0].trim() : "Select Airshow / Airport"}
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {showPresets && (
-                <div className="absolute top-full mt-1 right-0 z-50 bg-white rounded-xl shadow-2xl border border-black/[0.08] min-w-[280px] overflow-hidden">
-                  {AIRPORT_PRESETS.map((p, i) => (
-                    <button
-                      key={i}
-                      onClick={() => loadPreset(p)}
-                      className={`w-full text-left px-4 py-3 text-[12px] font-semibold hover:bg-[#F7F4EF] border-b border-black/[0.04] last:border-0 transition-colors ${selectedPreset?.label === p.label ? "text-[#0B2D5B] font-black bg-[rgba(11,45,91,0.04)]" : "text-[#1A1814]"}`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+
           </div>
         </div>
       </div>

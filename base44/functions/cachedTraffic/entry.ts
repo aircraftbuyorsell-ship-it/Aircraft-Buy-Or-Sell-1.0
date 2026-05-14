@@ -27,9 +27,9 @@ Deno.serve(async (req) => {
     const cacheAgeMs = cached?.refreshed_at ? Date.now() - new Date(cached.refreshed_at).getTime() : Infinity;
     const cacheIsFresh = cacheAgeMs < CACHE_TTL_MS;
 
-    if (cached && !force_refresh && cacheIsFresh) {
+    if (cached && !force_refresh) {
       return Response.json({
-        source: 'cache',
+        source: cacheIsFresh ? 'cache' : 'stale_cache',
         aircraft: JSON.parse(cached.aircraft_json || '[]').slice(0, limit),
         time: cached.opensky_time || null,
         total_raw: cached.total_raw || 0,

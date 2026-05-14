@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Search, Filter, X, Weight } from "lucide-react";
+import { Search, Filter, X, Weight, Gauge, Navigation2 } from "lucide-react";
 
 // MTOW weight categories (ICAO/FAA)
 export const MTOW_CATEGORIES = [
@@ -33,14 +32,16 @@ export default function TrafficFilterBar({
   nSearch, setNSearch,
   airportSearch, setAirportSearch,
   mtowCategory, setMtowCategory,
+  altRange, setAltRange,
+  speedRange, setSpeedRange,
   onSearch,
   isPending,
   activeCount,
 }) {
-  const [showMTOW, setShowMTOW] = useState(false);
-
   const selectedCat = MTOW_CATEGORIES.find(c => c.key === mtowCategory) || MTOW_CATEGORIES[0];
-  const hasFilters = nSearch || airportSearch || mtowCategory !== "all";
+  const hasFilters = nSearch || airportSearch || mtowCategory !== "all"
+    || altRange[0] > 0 || altRange[1] < 50000
+    || speedRange[0] > 0 || speedRange[1] < 600;
 
   return (
     <div className="bg-white border border-black/[0.07] rounded-2xl p-4 space-y-3">
@@ -123,10 +124,64 @@ export default function TrafficFilterBar({
         </div>
       </div>
 
+      {/* Altitude & Speed sliders */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* Altitude */}
+        <div>
+          <p className="text-[9px] uppercase tracking-wider font-semibold text-[#AAA49C] mb-2 flex items-center gap-1">
+            <Gauge className="w-3 h-3" /> Altitude (ft)
+            <span className="ml-auto text-[#6B6560] normal-case font-normal">
+              {altRange[0].toLocaleString()} – {altRange[1] >= 50000 ? "50,000+" : altRange[1].toLocaleString()}
+            </span>
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="range" min={0} max={50000} step={500}
+              value={altRange[0]}
+              onChange={e => setAltRange([Math.min(+e.target.value, altRange[1] - 500), altRange[1]])}
+              className="flex-1 accent-[#0B2D5B] h-1.5 cursor-pointer"
+            />
+            <input
+              type="range" min={0} max={50000} step={500}
+              value={altRange[1]}
+              onChange={e => setAltRange([altRange[0], Math.max(+e.target.value, altRange[0] + 500)])}
+              className="flex-1 accent-[#0B2D5B] h-1.5 cursor-pointer"
+            />
+          </div>
+        </div>
+
+        {/* Speed */}
+        <div>
+          <p className="text-[9px] uppercase tracking-wider font-semibold text-[#AAA49C] mb-2 flex items-center gap-1">
+            <Navigation2 className="w-3 h-3" /> Speed (kts)
+            <span className="ml-auto text-[#6B6560] normal-case font-normal">
+              {speedRange[0]} – {speedRange[1] >= 600 ? "600+" : speedRange[1]}
+            </span>
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="range" min={0} max={600} step={10}
+              value={speedRange[0]}
+              onChange={e => setSpeedRange([Math.min(+e.target.value, speedRange[1] - 10), speedRange[1]])}
+              className="flex-1 accent-[#0B2D5B] h-1.5 cursor-pointer"
+            />
+            <input
+              type="range" min={0} max={600} step={10}
+              value={speedRange[1]}
+              onChange={e => setSpeedRange([speedRange[0], Math.max(+e.target.value, speedRange[0] + 10)])}
+              className="flex-1 accent-[#0B2D5B] h-1.5 cursor-pointer"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Clear all */}
       {hasFilters && (
         <button
-          onClick={() => { setNSearch(""); setAirportSearch(""); setMtowCategory("all"); }}
+          onClick={() => {
+            setNSearch(""); setAirportSearch(""); setMtowCategory("all");
+            setAltRange([0, 50000]); setSpeedRange([0, 600]);
+          }}
           className="text-[10px] text-[#C0392B] font-semibold hover:underline"
         >
           Clear all filters

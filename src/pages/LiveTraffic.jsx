@@ -77,8 +77,6 @@ function formatTime(unix) {
   if (!unix) return "—";
   return new Date(unix * 1000).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
-const mps2kts = (v) => v != null ? Math.round(v * 1.94384) : null;
-const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
 
 // ─── Main page ────────────────────────────────────────────────────
 export default function LiveTraffic() {
@@ -103,6 +101,11 @@ export default function LiveTraffic() {
   const [nSearch, setNSearch] = useState("");
   const [airportSearch, setAirportSearch] = useState("");
   const [mtowCategory, setMtowCategory] = useState("all");
+  const [altRange, setAltRange] = useState([0, 50000]);
+  const [speedRange, setSpeedRange] = useState([0, 600]);
+
+  const mps2kts = (v) => v != null ? Math.round(v * 1.94384) : null;
+  const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
 
   // Filtered aircraft (primary filters applied on frontend)
   const filteredAircraft = mapAircraft.filter(ac => {
@@ -114,17 +117,26 @@ export default function LiveTraffic() {
       const callsign = ac.callsign?.toUpperCase().trim() || "";
       if (!nNum.includes(q) && !icao.includes(q) && !callsign.includes(q)) return false;
     }
-    // Airport filter (match departure/arrival from recent flights — approximate via callsign prefix)
+    // Airport filter
     if (airportSearch) {
       const apt = airportSearch.trim().toUpperCase();
       const cs = ac.callsign?.toUpperCase().trim() || "";
-      // basic: callsign starts with ICAO airport prefix (KOSH → OSH flights, etc.)
       if (!cs.startsWith(apt.slice(1)) && !cs.includes(apt)) return false;
     }
     // MTOW category filter
     if (mtowCategory !== "all") {
       const bucket = mapCategoryToMTOW(ac.category);
       if (bucket !== mtowCategory) return false;
+    }
+    // Altitude filter (ft)
+    const altFt = m2ft(ac.baro_altitude);
+    if (altFt != null) {
+      if (altFt < altRange[0] || (altRange[1] < 50000 && altFt > altRange[1])) return false;
+    }
+    // Speed filter (kts)
+    const spdKts = mps2kts(ac.velocity);
+    if (spdKts != null) {
+      if (spdKts < speedRange[0] || (speedRange[1] < 600 && spdKts > speedRange[1])) return false;
     }
     return true;
   });
@@ -322,6 +334,8 @@ export default function LiveTraffic() {
           nSearch={nSearch} setNSearch={setNSearch}
           airportSearch={airportSearch} setAirportSearch={setAirportSearch}
           mtowCategory={mtowCategory} setMtowCategory={setMtowCategory}
+          altRange={altRange} setAltRange={setAltRange}
+          speedRange={speedRange} setSpeedRange={setSpeedRange}
           activeCount={mapAircraft.length > 0 ? filteredAircraft.length : null}
         />
 

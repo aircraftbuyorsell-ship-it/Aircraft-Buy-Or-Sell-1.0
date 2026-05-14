@@ -281,14 +281,7 @@ export default function LiveTraffic() {
     fetchMapTraffic(preset.bbox, allowHeavy);
   };
 
-  // Auto-refresh every 30s whenever we have a bbox (with or without a preset)
-  useEffect(() => {
-    if (!currentBbox) return;
-    const interval = setInterval(() => {
-      fetchMapTraffic(currentBbox, allowHeavy);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [currentBbox, allowHeavy, fetchMapTraffic]);
+  // Auto-refresh disabled
 
   // Single aircraft lookup
   const lookupMutation = useMutation({
@@ -617,7 +610,7 @@ export default function LiveTraffic() {
         )}
 
         <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider text-center pb-4">
-          Data: OpenSky Network · Community ADS-B feed · ~15 min delay · Auto-refresh every 30s
+          Data: OpenSky Network · Community ADS-B feed · ~15 min delay · Manual refresh
         </p>
       </div>
     </div>

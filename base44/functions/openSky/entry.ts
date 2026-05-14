@@ -154,8 +154,8 @@ Deno.serve(async (req) => {
       const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200, ts } = body;
       if (!ts) return Response.json({ error: "ts (unix timestamp) required" }, { status: 400 });
 
-      // OpenSky /states/all accepts &time= for historical snapshots (authenticated only)
-      const params = new URLSearchParams({ time: String(Math.floor(ts)) });
+      // Anonymous access: drop the time= param (requires auth). Return current live data instead.
+      const params = new URLSearchParams();
       if (lamin != null) params.set("lamin", lamin);
       if (lomin != null) params.set("lomin", lomin);
       if (lamax != null) params.set("lamax", lamax);
@@ -211,21 +211,18 @@ Deno.serve(async (req) => {
       return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical: true });
     }
 
-    // ── MAP STATES: area bounding box — uses 15-min delayed snapshot for full traffic coverage ──
+    // ── MAP STATES: area bounding box — live anonymous endpoint (no time= param required) ──
     if (action === "map_states") {
       const { lamin, lomin, lamax, lomax, allow_heavy, limit = 200 } = body;
 
-      // Use a 15-minute delay: OpenSky historical endpoint returns complete global traffic
-      // whereas the live endpoint is heavily rate-limited and capped.
-      const delayedTs = Math.floor(Date.now() / 1000) - 15 * 60;
-
-      let path = "/states/all";
-      const params = new URLSearchParams({ time: String(delayedTs) });
+      // Anonymous access only works on the live /states/all endpoint (no time= param).
+      // The historical time= endpoint requires authentication which times out.
+      const params = new URLSearchParams();
       if (lamin != null) params.set("lamin", lamin);
       if (lomin != null) params.set("lomin", lomin);
       if (lamax != null) params.set("lamax", lamax);
       if (lomax != null) params.set("lomax", lomax);
-      path += `?${params.toString()}`;
+      const path = `/states/all?${params.toString()}`;
 
       const data = await openSkyFetch(path);
       if (!data?.states) return Response.json({ aircraft: [], time: null });

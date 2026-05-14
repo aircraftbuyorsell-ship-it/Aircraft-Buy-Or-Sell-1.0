@@ -9,6 +9,7 @@ import {
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const BACK_BUTTON_ROUTES = [
   /^\/ati-passport\/[^/]+$/,
@@ -117,6 +118,7 @@ export default function Layout() {
           <div className="flex-1" />
 
           <nav className="flex items-center gap-1">
+            <ThemeToggle />
             {currentUser ? (
               <button
                 onClick={() => base44.auth.logout()}

@@ -6,6 +6,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     /* IntraZone Design Tokens */
     --gold: #D4A017;
     --gold-bright: #F5C842;
@@ -70,6 +71,27 @@
     --sidebar-border: 240 3% 14%;
     --sidebar-ring: 42 87% 46%;
   }
+
+  .dark {
+    color-scheme: dark;
+    --main-bg: #070A12;
+    --card-bg: #101522;
+    --text-primary: #F5F0E8;
+    --text-secondary: #B8AEA2;
+    --text-muted: #7E776E;
+    --background: 224 39% 5%;
+    --foreground: 36 32% 94%;
+    --card: 222 27% 10%;
+    --card-foreground: 36 32% 94%;
+    --popover: 222 27% 10%;
+    --popover-foreground: 36 32% 94%;
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 36 32% 94%;
+    --muted: 222 20% 14%;
+    --muted-foreground: 34 14% 68%;
+    --border: 220 18% 18%;
+    --input: 220 18% 18%;
+  }
 }
 
 @layer base {
@@ -86,6 +108,11 @@
     font-family: 'Inter', system-ui, sans-serif;
     /* Prevent text autosizing on iOS rotation */
     -webkit-text-size-adjust: 100%;
+  }
+
+  .dark body {
+    background: #070A12;
+    color: #F5F0E8;
   }
 
   /* Prevent accidental selection/callout on tappable UI */
@@ -115,6 +142,26 @@
     min-height: auto;
   }
 }
+
+/* Global dark mode overrides for existing hard-coded ABOS styling */
+.dark [class*="bg-white"] { background-color: #101522 !important; }
+.dark [class*="bg-[#F7F4EF]"] { background-color: #070A12 !important; }
+.dark [class*="bg-[#0B2D5B]"] { background-color: #0E2448 !important; }
+.dark [class*="text-[#1A1814]"] { color: #F5F0E8 !important; }
+.dark [class*="text-[#4A4845]"] { color: #C8BFB4 !important; }
+.dark [class*="text-[#6B6560]"] { color: #B8AEA2 !important; }
+.dark [class*="text-[#AAA49C]"] { color: #7E776E !important; }
+.dark [class*="border-black"] { border-color: rgba(255,255,255,0.10) !important; }
+.dark [class*="shadow"] { box-shadow: 0 18px 45px rgba(0,0,0,0.35) !important; }
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #101522 !important;
+  color: #F5F0E8 !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #7E776E !important; }
 
 /* iOS safe area helpers (notch / home indicator) */
 .safe-top   { padding-top:    env(safe-area-inset-top); }

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu,
-  Handshake, Calculator, Users, BarChart3,
+  Handshake, Calculator, Users, BarChart3, TrendingUp,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
@@ -37,6 +37,7 @@ const SIDEBAR_SECTIONS = [
     label: "Tools",
     items: [
       { path: "/intrazone", label: "IntraZone", icon: Zap },
+      { path: "/valuation", label: "Valuation", icon: TrendingUp },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
       { path: "/leads", label: "Leads", icon: Users },
     ],

@@ -54,6 +54,25 @@ function MapRecenter({ center, zoom }) {
   return null;
 }
 
+// ─── Map bounds tracker — fires fetch when user stops panning/zooming ──
+function MapBoundsTracker({ onBoundsChange }) {
+  const map = useMap();
+  useEffect(() => {
+    const fire = () => {
+      const b = map.getBounds();
+      onBoundsChange({
+        lamin: b.getSouth(),
+        lomin: b.getWest(),
+        lamax: b.getNorth(),
+        lomax: b.getEast(),
+      });
+    };
+    map.on("moveend", fire);
+    return () => map.off("moveend", fire);
+  }, [map, onBoundsChange]);
+  return null;
+}
+
 // ─── Single aircraft lookup (legacy N-number search) ─────────────
 const HEX_RE = /^[0-9a-f]{6}$/i;
 async function resolveToHex(query) {
@@ -84,8 +103,8 @@ export default function LiveTraffic() {
   const isPro = tier !== "free_explorer";
 
   // Map view state
-  const [mapCenter, setMapCenter] = useState([20, 0]); // World default
-  const [mapZoom, setMapZoom] = useState(3);
+  const [mapCenter, setMapCenter] = useState([50, 10]); // Europe default
+  const [mapZoom, setMapZoom] = useState(5);
   const [mapAircraft, setMapAircraft] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [mapError, setMapError] = useState(null);
@@ -162,7 +181,7 @@ export default function LiveTraffic() {
         lamax: bbox.lamax,
         lomax: bbox.lomax,
         allow_heavy: heavy ?? allowHeavy,
-        limit: isPro ? 500 : 200,
+        limit: isPro ? 300 : 100,
       });
       setMapAircraft(res.data?.aircraft || []);
       setLastRefresh(new Date());
@@ -173,16 +192,27 @@ export default function LiveTraffic() {
     }
   }, [allowHeavy, isPro]);
 
-  // Auto-load on mount with a 1.5s delay — global (no bbox restriction)
+  // Auto-load on mount with a short delay using the default view bbox
   useEffect(() => {
-    const globalBbox = { lamin: -90, lomin: -180, lamax: 90, lomax: 180 };
+    const defaultBbox = { lamin: 35, lomin: -15, lamax: 60, lomax: 40 }; // Europe
     const timer = setTimeout(() => {
-      setCurrentBbox(globalBbox);
-      fetchMapTraffic(globalBbox, false);
-    }, 1500);
+      setCurrentBbox(defaultBbox);
+      fetchMapTraffic(defaultBbox, false);
+    }, 800);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Debounced handler for map pan/zoom — fetch new bbox after user stops moving
+  const boundsDebounce = useRef(null);
+  const handleBoundsChange = useCallback((bbox) => {
+    if (isHistorical) return; // don't override historical view
+    clearTimeout(boundsDebounce.current);
+    boundsDebounce.current = setTimeout(() => {
+      setCurrentBbox(bbox);
+      fetchMapTraffic(bbox, allowHeavy);
+    }, 1200);
+  }, [isHistorical, allowHeavy, fetchMapTraffic]);
 
   // Fetch historical snapshot at a specific unix timestamp
   const fetchHistoricalSnapshot = useCallback(async ({ ts, bbox }) => {
@@ -381,6 +411,7 @@ export default function LiveTraffic() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <MapRecenter center={mapCenter} zoom={mapZoom} />
+            <MapBoundsTracker onBoundsChange={handleBoundsChange} />
             {filteredAircraft.map((ac) => (
               <Marker
                 key={ac.icao24}

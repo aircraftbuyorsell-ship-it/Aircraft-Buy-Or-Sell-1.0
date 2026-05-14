@@ -12,20 +12,45 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
-const AUTH_TIMEOUT_MS = 5000;
-const FETCH_TIMEOUT_MS = 12000;
-const RETRY_DELAY_MS = 1500;
+const FETCH_TIMEOUT_MS = 20000;
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
 
 async function getAccessToken() {
-  // Anonymous access — OAuth2 auth server is unreliable and causes cascading timeouts.
-  // The historical /states/all?time= endpoint works fine without authentication.
-  return null;
+  const clientId = Deno.env.get("OPENSKY_CLIENT_ID");
+  const clientSecret = Deno.env.get("OPENSKY_CLIENT_SECRET");
+  if (!clientId || !clientSecret) return null;
+
+  const now = Date.now();
+  if (cachedToken && now < cachedTokenExpiry - 30000) return cachedToken;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) { console.warn("OpenSky auth failed:", res.status); return null; }
+    const data = await res.json();
+    cachedToken = data.access_token;
+    cachedTokenExpiry = now + (data.expires_in || 3600) * 1000;
+    return cachedToken;
+  } catch (e) {
+    console.warn("OpenSky auth error:", e.message);
+    return null;
+  }
 }
 
-async function openSkyFetch(path, retries = 1) {
+async function openSkyFetch(path, retries = 0) {
   const token = await getAccessToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const controller = new AbortController();
@@ -39,11 +64,6 @@ async function openSkyFetch(path, retries = 1) {
     if (!text) return null;
     try { return JSON.parse(text); } catch { return null; }
   } catch (e) {
-    if (e.name === "AbortError" && retries > 0) {
-      console.warn(`OpenSky timeout, retrying in ${RETRY_DELAY_MS}ms...`);
-      await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
-      return openSkyFetch(path, retries - 1);
-    }
     if (e.name === "AbortError") throw new Error("OpenSky request timed out — try again shortly");
     throw e;
   } finally {

@@ -24,6 +24,7 @@ import ATICard from "./pages/ATICard";
 import MaxChat from "./pages/MaxChat";
 import PreBuyInspection from "./pages/PreBuyInspection";
 import AdminDataCleanup from "./pages/AdminDataCleanup";
+import IntraZone from "./pages/IntraZone";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
+        <Route path="/intrazone" element={<IntraZone />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

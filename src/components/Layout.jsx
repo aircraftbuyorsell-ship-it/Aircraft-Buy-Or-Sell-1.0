@@ -35,6 +35,7 @@ const SIDEBAR_SECTIONS = [
     n: "2",
     label: "Tools",
     items: [
+      { path: "/intrazone", label: "IntraZone", icon: Zap },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
       { path: "/leads", label: "Leads", icon: Users },
     ],

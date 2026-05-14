@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  LayoutDashboard, Plane, Radar, User, Menu, X,
-  Handshake, Calculator, Users, Bell, BarChart3,
+  LayoutDashboard, Plane, Radar, User, Menu,
+  Handshake, Calculator, Users, BarChart3,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut,
 } from "lucide-react";
+import SiteFooter from "@/components/SiteFooter";
 
 const BACK_BUTTON_ROUTES = [
   /^\/ati-passport\/[^/]+$/,
@@ -223,6 +224,8 @@ export default function Layout() {
       <main className="flex-1 overflow-auto pb-4">
         <Outlet />
       </main>
+
+      <SiteFooter />
 
       {/* Floating Max Chat button */}
       {pathname !== "/max-chat" && (

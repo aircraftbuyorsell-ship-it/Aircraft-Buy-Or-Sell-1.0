@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
 import {
@@ -412,17 +413,25 @@ export default function LiveTraffic() {
             />
             <MapRecenter center={mapCenter} zoom={mapZoom} />
             <MapBoundsTracker onBoundsChange={handleBoundsChange} />
-            {filteredAircraft.map((ac) => (
-              <Marker
-                key={ac.icao24}
-                position={[ac.latitude, ac.longitude]}
-                icon={makeAircraftIcon(ac.listing?.ati_score, ac.true_track, ac.on_ground)}
-              >
-                <Popup maxWidth={260}>
-                  <ATIMarkerPopup ac={ac} />
-                </Popup>
-              </Marker>
-            ))}
+            <MarkerClusterGroup
+              chunkedLoading
+              maxClusterRadius={60}
+              spiderfyOnMaxZoom={true}
+              showCoverageOnHover={false}
+              disableClusteringAtZoom={13}
+            >
+              {filteredAircraft.map((ac) => (
+                <Marker
+                  key={ac.icao24}
+                  position={[ac.latitude, ac.longitude]}
+                  icon={makeAircraftIcon(ac.listing?.ati_score, ac.true_track, ac.on_ground)}
+                >
+                  <Popup maxWidth={260}>
+                    <ATIMarkerPopup ac={ac} />
+                  </Popup>
+                </Marker>
+              ))}
+            </MarkerClusterGroup>
             {/* Single aircraft pin */}
             {singleState?.latitude && singleState?.longitude && (
               <Marker

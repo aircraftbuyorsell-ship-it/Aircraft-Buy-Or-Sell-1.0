@@ -2,6 +2,7 @@ import CommunityHero from "@/components/community/CommunityHero";
 import CommunityPostCard from "@/components/community/CommunityPostCard";
 import CommunitySidebar from "@/components/community/CommunitySidebar";
 import CommunityStats from "@/components/community/CommunityStats";
+import CommunityInsights from "@/components/community/CommunityInsights";
 
 const POSTS = [
   {
@@ -35,6 +36,7 @@ export default function Community() {
       <div className="relative z-10 mx-auto max-w-[1500px] space-y-5">
         <CommunityHero />
         <CommunityStats />
+        <CommunityInsights />
 
         <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
           <section className="grid gap-4 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">

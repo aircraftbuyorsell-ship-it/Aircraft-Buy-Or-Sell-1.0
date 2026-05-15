@@ -99,7 +99,7 @@ export default function Dashboard() {
 
         <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-12 md:pt-20 pb-16 md:pb-20 text-center">
           <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 border ${isDark ? "bg-white/10 border-white/20" : "bg-[#0B2D5B]/5 border-[#0B2D5B]/15"}`}>
-            <Lock className={`w-3.5 h-3.5 ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`} />
+            <Lock className={`w-3.5 h-3.5 text-[hsl(var(--popover-foreground))] ${isDark ? "text-[#E8A83A]" : ""}`} />
             <p className={`text-[11px] uppercase tracking-[0.15em] font-black ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`}>Private · Verified Dealers & Brokers Only</p>
           </div>
 

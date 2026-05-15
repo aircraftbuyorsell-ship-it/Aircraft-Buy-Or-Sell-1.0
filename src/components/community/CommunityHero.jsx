@@ -21,7 +21,7 @@ export default function CommunityHero() {
 
         <div className="max-w-3xl rounded-[2rem] border border-white/25 bg-white/[0.12] p-6 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.24em] text-[#E8A83A]">Aircraft Buy or Sell Network</p>
-          <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.06em] text-white md:text-6xl">Aircraft Market
+          <h1 className="text-4xl font-black leading-[0.95] tracking-[-0.06em] text-white md:text-6xl">Aircraft Marketplace
 
           </h1>
           <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-white/78 md:text-base">

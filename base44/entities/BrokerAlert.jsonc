@@ -115,7 +115,16 @@
       "data.owner_email": "{{user.email}}"
     },
     "read": {
-      "data.owner_email": "{{user.email}}"
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
       "$or": [

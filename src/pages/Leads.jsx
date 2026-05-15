@@ -112,11 +112,27 @@ export default function Leads() {
   }), [leads, unlocked]);
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
+    <div className="relative min-h-screen overflow-hidden bg-[#F7F4EF]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
+        <img
+          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/61cd83faf_Snmekobrazovky2026-05-15095426.png"
+          alt="Airport lounge window motif"
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.11] grayscale"
+        />
+        <img
+          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/aad075b19_624324958_2759110867807924_1126729800774297176_n.jpg"
+          alt="Aircraft runway motif"
+          className="absolute right-[-6%] top-12 w-[58%] max-w-3xl opacity-[0.13] mix-blend-multiply blur-[0.4px] hidden md:block"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-[#F7F4EF]/70 to-[#F7F4EF]" />
+        <div className="absolute inset-y-0 left-[18%] w-px bg-[#111113]/10" />
+        <div className="absolute inset-y-0 left-[48%] w-px bg-[#111113]/10" />
+        <div className="absolute inset-y-0 right-[19%] w-px bg-[#111113]/10" />
+      </div>
       {/* Header */}
-      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
+      <div className="relative z-10 px-4 md:px-8 pt-6 md:pt-8 pb-5">
         <GoldLabel>IntraZone · Private Marketplace</GoldLabel>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3 rounded-[2rem] border border-white/65 bg-white/45 backdrop-blur-xl px-5 py-5 shadow-[0_24px_70px_rgba(11,45,91,0.08)]">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight uppercase">Qualified Leads Marketplace</h1>
             <p className="text-[#6B6560] text-sm mt-0.5">
@@ -135,7 +151,7 @@ export default function Leads() {
         </div>
 
         {/* Private notice */}
-        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#0B2D5B] text-white rounded-xl px-4 py-3">
+        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#0B2D5B]/88 backdrop-blur-xl text-white rounded-2xl px-4 py-3 border border-white/15 shadow-[0_18px_55px_rgba(11,45,91,0.18)]">
           <div className="w-8 h-8 rounded-full bg-[#E8A83A] flex items-center justify-center shrink-0">
             <Lock className="w-4 h-4 text-[#0B2D5B]" strokeWidth={2.5} />
           </div>
@@ -148,7 +164,7 @@ export default function Leads() {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 pb-8 space-y-5">
+      <div className="relative z-10 px-4 md:px-8 pb-8 space-y-5">
         {/* Volume packages */}
         <LeadPackages onSelectPack={handleBuyPack} availableLeads={leads.length - stats.unlocked} />
 
@@ -160,7 +176,7 @@ export default function Leads() {
             { label: "Qualified", value: stats.qualified, color: "#E8A83A" },
             { label: "Closed", value: stats.closed, color: "#0B2D5B" },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-black/[0.07] rounded-xl px-4 py-3 text-center">
+            <div key={s.label} className="bg-white/58 backdrop-blur-xl border border-white/65 rounded-xl px-4 py-3 text-center shadow-sm">
               <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
               <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mt-0.5">{s.label}</p>
             </div>
@@ -173,7 +189,7 @@ export default function Leads() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search aircraft preference, budget…"
-              className="w-full pl-9 pr-4 py-2.5 bg-white border border-black/10 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors" />
+              className="w-full pl-9 pr-4 py-2.5 bg-white/62 backdrop-blur-xl border border-white/70 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors shadow-sm" />
             {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C]"><X className="w-3.5 h-3.5" /></button>}
           </div>
           <BottomSheetSelect
@@ -198,8 +214,8 @@ export default function Leads() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-          <div className="hidden md:flex items-center gap-4 px-6 py-3 border-b border-black/[0.06] bg-[#F7F4EF]">
+        <div className="bg-white/62 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden shadow-[0_24px_70px_rgba(11,45,91,0.08)]">
+          <div className="hidden md:flex items-center gap-4 px-6 py-3 border-b border-black/[0.06] bg-white/35 backdrop-blur-xl">
             <div className="w-9 shrink-0" />
             <div className="flex-1">
               <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">Lead</p>

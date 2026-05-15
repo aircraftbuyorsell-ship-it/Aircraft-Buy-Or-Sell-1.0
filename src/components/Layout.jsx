@@ -29,6 +29,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/", label: "Dashboard", icon: LayoutDashboard },
       { path: "/listings", label: "Listings", icon: Plane },
+      { path: "/community", label: "Community", icon: Users },
       { path: "/deal-radar", label: "Deal Radar", icon: Radar },
       { path: "/cached-traffic", label: "Cached Traffic", icon: Radar },
       { path: "/analytics", label: "Analytics", icon: BarChart3 },

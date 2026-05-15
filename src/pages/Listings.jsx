@@ -217,14 +217,22 @@ export default function Listings() {
       {/* ── Header ── */}
       <div className="relative overflow-hidden bg-[#0B2D5B] min-h-[320px] md:min-h-[380px]">
         <img
-          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/3f2a13c00_624324958_2759110867807924_1126729800774297176_n.jpg"
+          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/207a73d13_624324958_2759110867807924_1126729800774297176_n.jpg"
           alt="Aircraft viewed from an airport lounge window"
           className="absolute inset-0 w-full h-full object-cover opacity-85"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B2D5B]/88 via-[#0B2D5B]/46 to-[#0B2D5B]/12" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.13)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.10)_1px,transparent_1px)] bg-[size:25%_50%] opacity-45" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B2D5B]/78 via-[#0B2D5B]/30 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-7 bg-[#111113]/95 shadow-[0_18px_45px_rgba(0,0,0,0.45)]" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#111113]/85 via-[#111113]/30 to-transparent" />
+        <div className="absolute left-0 top-0 bottom-0 w-[9%] bg-gradient-to-r from-[#111113]/95 to-transparent" />
+        <div className="absolute left-[23%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/82 shadow-[0_0_35px_rgba(0,0,0,0.55)] rotate-[-2deg] origin-top" />
+        <div className="absolute left-[50%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/78 shadow-[0_0_35px_rgba(0,0,0,0.5)]" />
+        <div className="absolute right-[18%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/82 shadow-[0_0_35px_rgba(0,0,0,0.55)] rotate-[2deg] origin-top" />
+        <div className="absolute bottom-0 left-8 hidden md:block w-44 h-14 rounded-t-[2rem] bg-[#111113]/75 blur-[1px]" />
+        <div className="absolute bottom-0 right-10 hidden md:block w-56 h-16 rounded-t-[2rem] bg-[#111113]/70 blur-[1px]" />
+        <div className="absolute inset-0 bg-white/[0.04] backdrop-blur-[1px]" />
         <div className="relative px-4 md:px-8 pt-8 md:pt-12 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-[2rem] border border-white/25 bg-white/[0.14] backdrop-blur-xl shadow-2xl px-5 md:px-7 py-6 md:py-7">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-[2rem] border border-white/30 bg-white/[0.10] backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.38)] px-5 md:px-7 py-6 md:py-7 ring-1 ring-white/10">
             <div>
               <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.28em] font-bold mb-2 drop-shadow">Airport Lounge View · Aircraft Inventory</p>
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-[-0.05em] leading-none drop-shadow-lg">

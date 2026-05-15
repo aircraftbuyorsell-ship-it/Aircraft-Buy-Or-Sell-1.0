@@ -77,8 +77,8 @@
     --main-bg: #070A12;
     --card-bg: #101522;
     --text-primary: #F5F0E8;
-    --text-secondary: #B8AEA2;
-    --text-muted: #7E776E;
+    --text-secondary: #D8D0C6;
+    --text-muted: #AFA69B;
     --background: 224 39% 5%;
     --foreground: 36 32% 94%;
     --card: 222 27% 10%;
@@ -88,7 +88,7 @@
     --secondary: 222 20% 16%;
     --secondary-foreground: 36 32% 94%;
     --muted: 222 20% 14%;
-    --muted-foreground: 34 14% 68%;
+    --muted-foreground: 34 18% 78%;
     --border: 220 18% 18%;
     --input: 220 18% 18%;
   }
@@ -148,9 +148,9 @@
 .dark [class*="bg-[#F7F4EF]"] { background-color: #070A12 !important; }
 .dark [class*="bg-[#0B2D5B]"] { background-color: #0E2448 !important; }
 .dark [class*="text-[#1A1814]"] { color: #F5F0E8 !important; }
-.dark [class*="text-[#4A4845]"] { color: #C8BFB4 !important; }
-.dark [class*="text-[#6B6560]"] { color: #B8AEA2 !important; }
-.dark [class*="text-[#AAA49C]"] { color: #7E776E !important; }
+.dark [class*="text-[#4A4845]"] { color: #E0D8CE !important; }
+.dark [class*="text-[#6B6560]"] { color: #D8D0C6 !important; }
+.dark [class*="text-[#AAA49C]"] { color: #B8AEA2 !important; }
 .dark [class*="border-black"] { border-color: rgba(255,255,255,0.10) !important; }
 .dark [class*="shadow"] { box-shadow: 0 18px 45px rgba(0,0,0,0.35) !important; }
 .dark input,
@@ -161,7 +161,7 @@
   border-color: rgba(255,255,255,0.12) !important;
 }
 .dark input::placeholder,
-.dark textarea::placeholder { color: #7E776E !important; }
+.dark textarea::placeholder { color: #AFA69B !important; }
 
 /* iOS safe area helpers (notch / home indicator) */
 .safe-top   { padding-top:    env(safe-area-inset-top); }

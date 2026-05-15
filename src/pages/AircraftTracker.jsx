@@ -82,16 +82,20 @@ export default function AircraftTracker() {
   const [darkMode, setDarkMode] = useState(false);
   const markerRefs = useRef({});
 
-  const searchByIcao = useCallback(async (hex) => {
-    const cleaned = String(hex || "").toLowerCase().trim();
-    if (!/^[0-9a-f]{6}$/.test(cleaned)) {
-      setError("Enter a valid 6-character ICAO24 hex code (e.g. 3c675a)");
+  const searchByIcao = useCallback(async (query) => {
+    const raw = String(query || "").trim();
+    if (!raw) {
+      setError("Enter an ICAO24 hex (e.g. 3c675a) or N-number (e.g. N123AB)");
       return;
     }
+    // Send raw query — backend will accept hex OR resolve N-number via FAA registry.
+    const payload = /^[0-9a-fA-F]{6}$/.test(raw)
+      ? raw.toLowerCase()
+      : raw.toUpperCase();
     setLoading(true);
     setError(null);
     try {
-      const res = await base44.functions.invoke("openSky", { action: "state", icao24: cleaned });
+      const res = await base44.functions.invoke("openSky", { action: "state", icao24: payload });
       const s = res.data?.state;
       if (!s || s.latitude == null || s.longitude == null) {
         setError("Aircraft not currently visible on ADS-B network");
@@ -176,7 +180,7 @@ export default function AircraftTracker() {
               value={icaoInput}
               onChange={(e) => setIcaoInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && searchByIcao(icaoInput)}
-              placeholder="ICAO24 hex (e.g. 3c675a)"
+              placeholder="ICAO24 hex or N-number (N123AB)"
               className="flex-1 rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-3 py-2 text-sm font-mono outline-none focus:border-blue-500"
             />
             <button

@@ -83,6 +83,23 @@ function isValidHex(s) {
   return typeof s === "string" && /^[0-9a-f]{6}$/.test(s);
 }
 
+// Resolve an N-number (e.g. "N123AB" or "123AB") to ICAO24 hex via FAAAircraft entity.
+// Returns lowercase 6-char hex string or null.
+async function resolveNNumberToHex(base44, raw) {
+  if (!raw) return null;
+  const cleaned = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const nNum = cleaned.startsWith("N") ? cleaned.slice(1) : cleaned;
+  if (!nNum) return null;
+  try {
+    const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, "", 1);
+    const hex = recs[0]?.mode_s_hex;
+    if (hex && /^[0-9a-fA-F]{6}$/.test(hex)) return hex.toLowerCase();
+  } catch (e) {
+    console.warn("N-number resolve failed:", e.message);
+  }
+  return null;
+}
+
 function parseState(arr) {
   if (!Array.isArray(arr)) return null;
   return {
@@ -543,10 +560,17 @@ Deno.serve(async (req) => {
       return Response.json({ aircraft, time: data.time, total_raw: data.states.length });
     }
 
-    const hex = icao24 ? String(icao24).toLowerCase().trim() : null;
+    let hex = icao24 ? String(icao24).toLowerCase().trim() : null;
+
+    // If not valid hex but looks like an N-number / tail registration, try to resolve via FAA registry.
+    if (!isValidHex(hex) && body.icao24) {
+      const resolved = await resolveNNumberToHex(base44, body.icao24);
+      if (resolved) hex = resolved;
+    }
+
     if (!isValidHex(hex)) {
       return Response.json({
-        error: "Invalid Mode-S hex code. Expected 6 hex chars (e.g. 3c675a). For N-numbers or tail registrations, the client must resolve to hex first.",
+        error: "Aircraft not found. Provide a 6-character ICAO24 hex (e.g. 3c675a) or a US N-number registered in the FAA database (e.g. N123AB).",
       }, { status: 400 });
     }
 

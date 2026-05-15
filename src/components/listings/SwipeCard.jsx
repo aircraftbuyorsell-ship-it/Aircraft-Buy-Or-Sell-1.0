@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
-  CheckCircle2, ThumbsUp, ThumbsDown
+  CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck
 } from "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 
@@ -34,111 +34,175 @@ function dealStyle(label) {
 }
 
 function Card({ listing: l }) {
-  const enginePct = l.tbo && l.engine_hours != null
-    ? Math.max(0, Math.min(100, ((l.tbo - l.engine_hours) / l.tbo) * 100))
-    : null;
-  const engineColor = enginePct > 60 ? "#0F7A56" : enginePct > 30 ? "#D4A017" : "#C0392B";
+  const [flipped, setFlipped] = useState(false);
   const color = scoreColor(l.ati_score);
   const deal = dealStyle(l.deal_label);
   const isBelow = l.discount_pct != null && l.discount_pct >= 0;
+  const photo = l.photo_url || l.image_url || l.cover_image || l.images?.[0] || l.image_attachments?.[0];
+  const aircraftTitle = `${l.year || ""} ${l.make || ""} ${l.model || ""}`.trim() || "Aircraft";
+  const accessAllowed = l.confidential_access || l.is_owner || l.is_operator || l.has_loi;
+  const fmtMoney = (v) => v ? `$${Number(v).toLocaleString()}` : "On request";
+  const fmtHours = (v) => v ? `${Number(v).toLocaleString()} h` : "—";
+  const info = [
+    { label: "TT", value: fmtHours(l.total_time) },
+    { label: "TAF", value: fmtHours(l.taf || l.airframe_hours || l.total_airframe_time) },
+    { label: "Engine SMOH/TBO", value: `${fmtHours(l.engine_hours)} / ${fmtHours(l.tbo)}` },
+    { label: "Prop SMOH/TBO", value: `${fmtHours(l.propeller_smoh)} / ${fmtHours(l.propeller_tbo)}` },
+    { label: "Seats", value: l.seats || l.number_of_seats || "—" },
+    { label: "Useful load", value: l.useful_load ? `${l.useful_load} lb` : "—" },
+    { label: "Range", value: l.operating_range || l.range_nm ? `${l.operating_range || l.range_nm} nm` : "—" },
+    { label: "Max speed", value: l.max_speed ? `${l.max_speed} kt` : "—" },
+    { label: "Avg fuel", value: l.average_consumption || l.fuel_burn ? `${l.average_consumption || l.fuel_burn} gph` : "—" },
+    { label: "Fuel", value: l.fuel_type || "AVGAS" },
+    { label: "Avionics", value: l.avionics || "Standard classic flight instruments" },
+    { label: "Capability", value: l.ifr_capable ? "IFR" : l.vfr_capable ? "VFR" : "VFR / IFR to verify" },
+    { label: "Interior", value: l.interior_condition ? `${l.interior_condition}/10` : "—" },
+    { label: "Exterior", value: l.exterior_condition ? `${l.exterior_condition}/10` : "—" },
+    { label: "Wearables", value: l.gadgets || l.modern_upgrades || "USB / modern upgrades if installed" },
+  ];
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.08] shadow-lg overflow-hidden w-full pointer-events-none select-none">
-      {/* Navy header */}
-      <div className="bg-[#0B2D5B] px-5 pt-4 pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.2em] font-bold">ATI Score Card</p>
-            <h3 className="text-white font-black text-lg leading-tight mt-0.5 truncate">
-              {l.year} {l.make} {l.model}
-            </h3>
-            <p className="text-white/50 font-mono text-[11px] mt-0.5">{l.registration || "—"}</p>
-          </div>
-          <div className="shrink-0 flex flex-col items-center gap-1">
-            <div className="relative w-14 h-14">
-              <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
-                <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
-                <circle cx="28" cy="28" r="22" fill="none" stroke={color} strokeWidth="4"
-                  strokeDasharray={`${((l.ati_score || 0) / 120) * 138.2} 138.2`} strokeLinecap="round" />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-black text-base leading-none">{l.ati_score || "—"}</span>
+    <div className="w-full pointer-events-none select-none" style={{ aspectRatio: "2.5 / 3.5" }}>
+      <div className="relative w-full h-full" style={{ perspective: "1200px" }}>
+        <div
+          className="absolute inset-0 transition-transform duration-500"
+          style={{ transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+        >
+          {/* Front side */}
+          <div className="absolute inset-0 bg-white border border-black/[0.08] shadow-xl overflow-hidden flex flex-col" style={{ borderRadius: 15, backfaceVisibility: "hidden" }}>
+            <div className="relative h-[34%] bg-[#F7F4EF] border-b border-black/[0.06] overflow-hidden">
+              {photo ? (
+                <img src={photo} alt={aircraftTitle} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0B2D5B] to-[#111113]">
+                  <span className="text-[#E8A83A] text-[10px] uppercase tracking-[0.24em] font-black">Frontside Photo</span>
+                </div>
+              )}
+              <div className="absolute top-3 left-3 bg-white/92 backdrop-blur rounded-full px-2.5 py-1 border border-black/[0.08]">
+                <p className="text-[8px] uppercase tracking-[0.18em] font-black text-[#0B2D5B]">SEO Standard</p>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
+                className="pointer-events-auto absolute top-3 right-3 w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#0B2D5B] hover:text-[#E8A83A]"
+                title="Show confidential back"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-3 border-b border-black/[0.06]">
+              <div className="min-w-0">
+                <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.2em] font-black">ATI Score Card</p>
+                <h3 className="text-[#1A1814] font-black text-lg leading-tight truncate">{aircraftTitle}</h3>
+                <p className="text-[#6B6560] font-mono text-[10px] mt-0.5">{l.registration || "N-reg pending"}</p>
+                <p className="text-[#AAA49C] text-[9px] mt-1">ID {l.public_card_code || l.ati_card_code || l.id?.slice(-8) || "—"}</p>
+              </div>
+              <div className="shrink-0 text-center">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg" style={{ backgroundColor: color }}>
+                  {l.ati_score || "—"}
+                </div>
+                <p className="text-[8px] uppercase tracking-wide font-black mt-1" style={{ color }}>{scoreLabel(l.ati_score)}</p>
               </div>
             </div>
-            <span className="text-[8px] font-bold uppercase tracking-wide" style={{ color }}>{scoreLabel(l.ati_score)}</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Price */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06]">
-        <div>
-          <p className="text-[9px] text-[#AAA49C] uppercase tracking-wider font-semibold mb-0.5">Asking Price</p>
-          <p className="text-xl font-black text-[#1A1814]">
-            {l.asking_price ? `$${l.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-base font-semibold">On request</span>}
-          </p>
-        </div>
-        <div className="text-right">
-          {l.omvm_value && <p className="text-[9px] text-[#AAA49C] font-semibold">Est. ${l.omvm_value.toLocaleString()}</p>}
-          {l.discount_pct != null && (
-            <div className={`flex items-center justify-end gap-0.5 text-[10px] font-black mt-0.5 ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
-              {isBelow ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-              {Math.abs(l.discount_pct)}% {isBelow ? "below" : "above"} market
+            <div className="px-4 py-2 grid grid-cols-2 gap-2 border-b border-black/[0.06]">
+              <div>
+                <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">Price</p>
+                <p className="text-sm font-black text-[#1A1814]">{fmtMoney(l.asking_price)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">OMVM</p>
+                <p className="text-sm font-black text-[#0B2D5B]">{l.omvm_value ? fmtMoney(l.omvm_value) : "—"}</p>
+                {l.discount_pct != null && (
+                  <p className={`text-[9px] font-black ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
+                    {Math.abs(l.discount_pct)}% {isBelow ? "below" : "above"}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Specs grid */}
-      <div className="grid grid-cols-3 divide-x divide-black/[0.05] border-b border-black/[0.06]">
-        {[
-          { label: "Total Time", value: l.total_time ? `${l.total_time.toLocaleString()} h` : "—" },
-          { label: "Engine", value: l.engine_hours ? `${l.engine_hours.toLocaleString()} h` : "—" },
-          { label: "TBO", value: l.tbo ? `${l.tbo.toLocaleString()} h` : "—" },
-        ].map(s => (
-          <div key={s.label} className="px-3 py-2.5 text-center">
-            <p className="text-[9px] text-[#AAA49C] uppercase tracking-wider font-semibold">{s.label}</p>
-            <p className="text-[12px] font-black text-[#1A1814] mt-0.5">{s.value}</p>
-          </div>
-        ))}
-      </div>
+            <div className="flex-1 px-4 py-2 overflow-hidden">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                {info.slice(0, 12).map((item) => (
+                  <div key={item.label} className="min-w-0">
+                    <p className="text-[7px] text-[#AAA49C] uppercase tracking-wider font-bold leading-none">{item.label}</p>
+                    <p className="text-[10px] text-[#1A1814] font-bold truncate mt-0.5">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
+                {info.slice(12).map((item) => (
+                  <div key={item.label} className="bg-[#F7F4EF] rounded-lg px-2 py-1 border border-black/[0.04]">
+                    <p className="text-[7px] text-[#AAA49C] uppercase tracking-wider font-bold">{item.label}</p>
+                    <p className="text-[9px] text-[#1A1814] font-black truncate">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-      {/* Engine bar */}
-      {enginePct != null && (
-        <div className="px-5 py-2.5 border-b border-black/[0.06]">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-[#AAA49C] uppercase tracking-wider font-semibold">Engine Life</span>
-            <span className="text-[9px] font-black" style={{ color: engineColor }}>{Math.round(enginePct)}%</span>
+            <div className="px-4 py-2 flex items-center justify-between border-t border-black/[0.06]">
+              <div className="flex items-center gap-1.5 min-w-0">
+                {deal && <span className="text-[8px] uppercase tracking-wider font-black px-2 py-1 rounded-full border" style={{ background: deal.bg, color: deal.color, borderColor: deal.border }}>{l.deal_label}</span>}
+                {l.fresh_annual && <span className="text-[8px] font-black text-[#0F7A56]">Fresh annual</span>}
+              </div>
+              <Link to={`/ati-passport/${l.id}`} className="pointer-events-auto flex items-center gap-1 text-[9px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider" onClick={e => e.stopPropagation()}>
+                Report <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
-          <div className="h-2 bg-black/5 rounded-full overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
+
+          {/* Back side */}
+          <div className="absolute inset-0 bg-[#111113] border border-[#E8A83A]/25 shadow-xl overflow-hidden flex flex-col p-4" style={{ borderRadius: 15, backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setFlipped(false); }}
+              className="pointer-events-auto absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-[#E8A83A] hover:text-white"
+              title="Back to front"
+            >
+              <RotateCw className="w-4 h-4" />
+            </button>
+
+            <div className="pr-10">
+              <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.24em] font-black">Confidential Back Side</p>
+              <h3 className="text-white font-black text-lg leading-tight mt-1">Broker / LOI Data</h3>
+              <p className="text-white/40 text-[10px] mt-1">Owner, operator, A&P, CAMO or broker with LOI only.</p>
+            </div>
+
+            {!accessAllowed ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-5">
+                <div className="w-16 h-16 rounded-full bg-[#E8A83A]/10 border border-[#E8A83A]/30 flex items-center justify-center mb-4">
+                  <Lock className="w-7 h-7 text-[#E8A83A]" />
+                </div>
+                <p className="text-white font-black text-sm uppercase tracking-wide">Locked confidential layer</p>
+                <p className="text-white/50 text-[11px] leading-relaxed mt-2">
+                  Commission chain, Mash IDs, owner/operator details and LOI-sensitive data stay hidden until verified access is granted.
+                </p>
+              </div>
+            ) : (
+              <div className="flex-1 mt-5 space-y-3">
+                {[
+                  { label: "1st Level", value: l.broker_split || "Broker / seller split — private", id: l.broker_mash_id },
+                  { label: "2nd Level", value: l.finders_fee || "Finder fee — private", id: l.finder_mash_id },
+                  { label: "3rd Level", value: l.referral_fee || "Referral fee — private", id: l.referral_mash_id },
+                ].map(row => (
+                  <div key={row.label} className="rounded-xl bg-white/[0.06] border border-white/10 p-3">
+                    <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.18em] font-black">{row.label}</p>
+                    <p className="text-white text-[12px] font-bold mt-1">{row.value}</p>
+                    <p className="text-white/40 text-[10px] mt-0.5">Mash ID: {row.id || "Pending"}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-white/45 text-[9px] uppercase tracking-wider font-bold">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#E8A83A]" /> Restricted ATI data
+              </div>
+              <Link to={`/ati-passport/${l.id}`} className="pointer-events-auto text-[9px] text-[#E8A83A] font-black uppercase tracking-wider hover:text-white" onClick={e => e.stopPropagation()}>
+                Request LOI
+              </Link>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Footer row */}
-      <div className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {deal && (
-            <span className="text-[8px] uppercase tracking-wider font-black px-2.5 py-1 rounded-full border"
-              style={{ background: deal.bg, color: deal.color, borderColor: deal.border }}>
-              {deal.emoji} {l.deal_label}
-            </span>
-          )}
-          {l.fresh_annual && (
-            <span className="flex items-center gap-1 text-[8px] font-black text-[#0F7A56] bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] px-2.5 py-1 rounded-full">
-              <CheckCircle2 className="w-3 h-3" /> Fresh Annual
-            </span>
-          )}
-        </div>
-        {/* pointer-events restored just for this link */}
-        <Link
-          to={`/ati-passport/${l.id}`}
-          className="pointer-events-auto flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider transition-colors whitespace-nowrap"
-          onClick={e => e.stopPropagation()}
-        >
-          Full Report <ArrowUpRight className="w-3 h-3" />
-        </Link>
       </div>
     </div>
   );
@@ -250,7 +314,7 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
       <div
         className="relative w-full mx-auto overflow-hidden"
         style={{
-          height: "clamp(420px, 80vh, 620px)",
+          height: "clamp(560px, 82vh, 720px)",
           perspective: "1000px",
         }}
       >

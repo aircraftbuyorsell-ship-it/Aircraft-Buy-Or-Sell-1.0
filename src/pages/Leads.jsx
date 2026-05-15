@@ -117,14 +117,14 @@ export default function Leads() {
         <img
           src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/61cd83faf_Snmekobrazovky2026-05-15095426.png"
           alt="Airport lounge window motif"
-          className="absolute inset-0 w-full h-full object-cover opacity-[0.11] grayscale"
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.55] grayscale"
         />
         <img
           src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/aad075b19_624324958_2759110867807924_1126729800774297176_n.jpg"
           alt="Aircraft runway motif"
-          className="absolute right-[-6%] top-12 w-[58%] max-w-3xl opacity-[0.13] mix-blend-multiply blur-[0.4px] hidden md:block"
+          className="absolute right-[-6%] top-12 w-[58%] max-w-3xl opacity-[0.58] mix-blend-multiply blur-[0.4px] hidden md:block"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-[#F7F4EF]/70 to-[#F7F4EF]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-[#F7F4EF]/42 to-[#F7F4EF]/90" />
         <div className="absolute inset-y-0 left-[18%] w-px bg-[#111113]/10" />
         <div className="absolute inset-y-0 left-[48%] w-px bg-[#111113]/10" />
         <div className="absolute inset-y-0 right-[19%] w-px bg-[#111113]/10" />

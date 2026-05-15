@@ -25,6 +25,7 @@ function matchesModel(record, model) {
 
   if (model === 'C172') return /C172|172/.test(haystack) && !/152/.test(haystack);
   if (model === 'C152') return /C152|152/.test(haystack);
+  if (model === 'PA28') return /PA-?28|P28[A-Z]?/.test(haystack);
   return false;
 }
 
@@ -80,8 +81,8 @@ async function createForRecord(base44, user, record, model, sequence) {
   const data = record.data || record;
   const registration = normalizeNNumber(data.n_number);
   const year = Number(data.year_mfr) || null;
-  const make = 'Cessna';
-  const modelLabel = model === 'C172' ? '172' : '152';
+  const make = model === 'PA28' ? 'Piper' : 'Cessna';
+  const modelLabel = model === 'C172' ? '172' : model === 'C152' ? '152' : 'PA-28';
   const { dimensions, total } = scoreFromRecord(data, model);
   const scoreLabel = labelFromTotal(total);
   const aircraftLabel = `${year || ''} ${make} ${modelLabel} ${registration}`.trim();
@@ -151,28 +152,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
+    let payload = {};
+    if (req.method === 'POST') {
+      payload = await req.json().catch(() => ({}));
+    }
+
+    const requestedModels = Array.isArray(payload.models) && payload.models.length ? payload.models : ['C172', 'C152'];
+    const count = Number(payload.count) || 10;
+
     const existingCards = await base44.asServiceRole.entities.ATICard.list('-sequence_number', 1);
     let sequence = (existingCards[0]?.sequence_number || 0) + 1;
 
     const candidates = await loadCandidates(base44);
-    const c172 = shuffle(candidates.filter(record => matchesModel(record, 'C172'))).slice(0, 10);
-    const c152 = shuffle(candidates.filter(record => matchesModel(record, 'C152'))).slice(0, 10);
+    const selectedByModel = Object.fromEntries(
+      requestedModels.map(model => [model, shuffle(candidates.filter(record => matchesModel(record, model))).slice(0, count)])
+    );
 
-    if (c172.length < 10 || c152.length < 10) {
+    const insufficient = Object.entries(selectedByModel).filter(([, records]) => records.length < count);
+    if (insufficient.length) {
       return Response.json({
         error: 'Not enough FAAAircraft records found',
-        found: { C172: c172.length, C152: c152.length },
+        found: Object.fromEntries(Object.entries(selectedByModel).map(([model, records]) => [model, records.length])),
       }, { status: 400 });
     }
 
     const created = [];
-    for (const record of c172) {
-      created.push(await createForRecord(base44, user, record, 'C172', sequence));
-      sequence += 1;
-    }
-    for (const record of c152) {
-      created.push(await createForRecord(base44, user, record, 'C152', sequence));
-      sequence += 1;
+    for (const model of requestedModels) {
+      for (const record of selectedByModel[model]) {
+        created.push(await createForRecord(base44, user, record, model, sequence));
+        sequence += 1;
+      }
     }
 
     return Response.json({ ok: true, created_count: created.length, created });

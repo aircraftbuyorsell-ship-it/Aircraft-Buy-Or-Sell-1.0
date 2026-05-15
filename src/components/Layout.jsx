@@ -84,10 +84,10 @@ export default function Layout() {
   }, [pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7F4EF]">
+    <div className="flex flex-col min-h-screen bg-[#F7F4EF] font-sans tracking-[-0.01em]">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-[#111113] border-b border-white/5 safe-top">
-        <div className="flex items-center gap-2 px-3 sm:px-4 h-12">
+      <header className="sticky top-0 z-40 bg-[#111113]/95 backdrop-blur-xl border-b border-white/10 safe-top">
+        <div className="flex items-center gap-3 px-3 sm:px-5 h-14">
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
@@ -106,11 +106,11 @@ export default function Layout() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
-            <div className="w-6 h-6 rounded bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 min-w-0 rounded-full border border-white/10 bg-white/[0.04] pl-2 pr-3 py-1.5">
+            <div className="w-7 h-7 rounded-full bg-[#E8A83A]/20 border border-[#E8A83A]/50 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(232,168,58,0.18)]">
               <Plane className="w-3.5 h-3.5 text-[#E8A83A]" />
             </div>
-            <span className="text-[#F0EDE6] font-black text-sm tracking-tight truncate hidden sm:block">
+            <span className="text-[#F0EDE6] font-black text-sm tracking-[-0.03em] truncate hidden sm:block">
               ABOS
             </span>
           </Link>
@@ -143,12 +143,12 @@ export default function Layout() {
                   key={path}
                   to={path}
                   className={`
-                    flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[11px] font-black uppercase tracking-tight whitespace-nowrap transition-all
+                    flex items-center gap-1.5 px-3 h-9 rounded-full text-[11px] font-black uppercase tracking-[0.02em] whitespace-nowrap transition-colors
                     ${active
-                      ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40"
+                      ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/50 shadow-[0_0_24px_rgba(232,168,58,0.12)]"
                       : accent
                         ? "text-[#E8A83A] hover:text-white hover:bg-[#E8A83A]/10 border border-[#E8A83A]/30"
-                        : "text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent"}
+                        : "text-[#8A8780] hover:text-white hover:bg-white/[0.07] border border-white/5"}
                   `}
                 >
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
@@ -170,23 +170,26 @@ export default function Layout() {
         onMouseMove={() => sidebarOpen && resetIdle()}
         className={`
           fixed left-0 top-12 bottom-0 z-50
-          w-[240px] bg-[#111113] border-r border-white/5
-          flex flex-col transform transition-transform duration-300
+          w-[280px] bg-[#111113]/98 backdrop-blur-xl border-r border-white/10
+          flex flex-col transform transition-transform duration-300 shadow-2xl
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-          <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">Navigation</p>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+          <div>
+            <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.22em] font-bold">Workflow Navigation</p>
+            <p className="text-[#8A8780] text-[11px] mt-1">ABOS command graph</p>
+          </div>
           <button onClick={() => setSidebarOpen(false)} className="text-[#8A8780] hover:text-white touch-target-compact">
             <ChevronLeft className="w-4 h-4" />
           </button>
         </div>
 
-        <nav className="flex-1 px-2 py-3 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {SIDEBAR_SECTIONS.map((section, idx) => (
             <div key={section.n} className={idx > 0 ? "mt-5" : ""}>
-              <div className="flex items-center gap-2 px-3 pb-1.5">
-                <div className="w-4 h-4 rounded-sm bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center">
+              <div className="flex items-center gap-2 px-3 pb-2">
+                <div className="w-5 h-5 rounded-full bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center shadow-[0_0_18px_rgba(232,168,58,0.14)]">
                   <span className="text-[9px] font-black text-[#E8A83A] leading-none">{section.n}</span>
                 </div>
                 <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">{section.label}</p>
@@ -199,10 +202,10 @@ export default function Layout() {
                       key={path}
                       to={path}
                       className={`
-                        flex items-center gap-2.5 pl-7 pr-3 py-2 rounded-md text-[12px] font-bold uppercase tracking-tight transition-all
+                        relative flex items-center gap-3 pl-7 pr-3 py-2.5 rounded-2xl text-[12px] font-bold uppercase tracking-[0.01em] transition-colors
                         ${active
-                          ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/40"
-                          : "text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent"}
+                          ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/50 shadow-[0_0_24px_rgba(232,168,58,0.12)]"
+                          : "text-[#8A8780] hover:text-white hover:bg-white/[0.07] border border-white/5"}
                       `}
                     >
                       <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -225,8 +228,10 @@ export default function Layout() {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto pb-4">
-        <Outlet />
+      <main className="flex-1 overflow-auto pb-4 bg-[radial-gradient(circle_at_top_left,rgba(232,168,58,0.10),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.18),transparent_180px)]">
+        <div className="mx-auto w-full max-w-[1600px]">
+          <Outlet />
+        </div>
       </main>
 
       <SiteFooter />
@@ -235,7 +240,7 @@ export default function Layout() {
       {pathname !== "/max-chat" && (
         <Link
           to="/max-chat"
-          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white pl-2 pr-4 py-2 rounded-full shadow-xl border border-[#E8A83A]/30 transition-all hover:scale-105 active:scale-95"
+          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white pl-2 pr-4 py-2 rounded-full shadow-2xl border border-[#E8A83A]/40 transition-colors"
           title="Chat with Max"
         >
           <img

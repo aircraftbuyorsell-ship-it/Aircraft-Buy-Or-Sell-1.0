@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
         display: ['Playfair Display', 'serif'],
       },
       colors: {

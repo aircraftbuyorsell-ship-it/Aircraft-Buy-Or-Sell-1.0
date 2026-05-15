@@ -215,42 +215,49 @@ export default function Listings() {
       </div>
 
       {/* ── Header ── */}
-      <div className="bg-[#0B2D5B]">
-        <div className="px-4 md:px-8 pt-6 pb-5">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      <div className="relative overflow-hidden bg-[#0B2D5B] min-h-[320px] md:min-h-[380px]">
+        <img
+          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/3f2a13c00_624324958_2759110867807924_1126729800774297176_n.jpg"
+          alt="Aircraft viewed from an airport lounge window"
+          className="absolute inset-0 w-full h-full object-cover opacity-85"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B2D5B]/88 via-[#0B2D5B]/46 to-[#0B2D5B]/12" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.13)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.10)_1px,transparent_1px)] bg-[size:25%_50%] opacity-45" />
+        <div className="relative px-4 md:px-8 pt-8 md:pt-12 pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-[2rem] border border-white/25 bg-white/[0.14] backdrop-blur-xl shadow-2xl px-5 md:px-7 py-6 md:py-7">
             <div>
-              <p className="text-[#E8A83A]/70 text-[9px] uppercase tracking-[0.25em] font-bold mb-2">Market · Aircraft Inventory</p>
-              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none">
+              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.28em] font-bold mb-2 drop-shadow">Airport Lounge View · Aircraft Inventory</p>
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-[-0.05em] leading-none drop-shadow-lg">
                 Off-Market Aircraft
               </h1>
               {!isLoading && (
-                <p className="text-white/40 text-[12px] mt-2 font-medium">
+                <p className="text-white/75 text-[13px] mt-3 font-medium max-w-xl">
                   {filtered.length} aircraft · scored against real market data
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               {/* View mode toggle */}
-              <div className="flex bg-white/[0.07] rounded-lg p-0.5 border border-white/10">
+              <div className="flex bg-white/[0.16] backdrop-blur-md rounded-full p-1 border border-white/20 shadow-lg">
                 <button onClick={() => setViewMode("cards")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${viewMode === "cards" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/50 hover:text-white/80"}`}>
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold transition-colors ${viewMode === "cards" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/65 hover:text-white"}`}>
                   <CreditCard className="w-3 h-3" /> Cards
                 </button>
                 <button onClick={() => setViewMode("list")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${viewMode === "list" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/50 hover:text-white/80"}`}>
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold transition-colors ${viewMode === "list" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/65 hover:text-white"}`}>
                   <LayoutList className="w-3 h-3" /> List
                 </button>
               </div>
               <button
                 onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowImport(true))}
-                className="flex items-center gap-1.5 bg-white/[0.08] hover:bg-white/[0.13] border border-white/[0.12] text-white/80 text-[12px] font-bold px-3.5 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 bg-white/[0.14] hover:bg-white/[0.22] backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-4 py-2.5 rounded-full transition-colors shadow-lg"
               >
                 <FileArchive className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Import</span>
               </button>
               <button
                 onClick={() => setShowWizard(true)}
-                className="flex items-center gap-1.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-4 py-2 rounded-lg transition-colors shadow-sm"
+                className="flex items-center gap-1.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-5 py-2.5 rounded-full transition-colors shadow-xl"
               >
                 <Upload className="w-3.5 h-3.5" />
                 Add Aircraft
@@ -260,7 +267,7 @@ export default function Listings() {
 
           {/* Inline stats */}
           {!isLoading && listings.length > 0 && (
-            <div className="flex items-center gap-5 mt-5 pt-4 border-t border-white/[0.07]">
+            <div className="flex flex-wrap items-center gap-5 mt-5 rounded-[1.5rem] border border-white/20 bg-white/[0.12] backdrop-blur-xl px-5 py-4 shadow-xl">
               <StatPill value={listings.length} label="Total" color="#E8A83A" />
               <div className="w-px h-6 bg-white/10" />
               <StatPill value={scoredCount} label="ATI Scored" color="#6FA3E8" />

@@ -1,0 +1,169 @@
+{
+  "name": "ToolIntegration",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Display name of the tool"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "What the tool does"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "data",
+        "analytics",
+        "ai",
+        "compliance",
+        "valuation",
+        "communication",
+        "other"
+      ],
+      "default": "other",
+      "description": "Tool category"
+    },
+    "developer_id": {
+      "type": "string",
+      "description": "Email of the developer/owner who registered this tool"
+    },
+    "webhook_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "External endpoint ABOS will call when this tool is invoked"
+    },
+    "webhook_secret": {
+      "type": "string",
+      "description": "Secret used to sign outbound HMAC payloads to the developer webhook"
+    },
+    "openapi_spec_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional OpenAPI spec URL for documentation"
+    },
+    "token_cost": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 500,
+      "default": 5,
+      "description": "Tokens charged per invocation"
+    },
+    "revenue_share_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 80,
+      "default": 30,
+      "description": "Developer revenue share percentage (0-80%)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this tool is live and invokable (admin-approved)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "suspended",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Admin-managed lifecycle status"
+    },
+    "invocation_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Total successful invocations"
+    },
+    "total_revenue_tokens": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Cumulative tokens earned by this tool"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL of the tool logo image"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Searchable tags"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When admin approved this tool"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Admin email who approved"
+    }
+  },
+  "required": [
+    "name",
+    "developer_id",
+    "webhook_url",
+    "token_cost"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.developer_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_active": true
+        },
+        {
+          "data.developer_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.developer_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.developer_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

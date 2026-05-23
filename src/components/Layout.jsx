@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp,
-  ArrowLeft, ChevronLeft, Zap, LogIn, LogOut,
+  ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -51,6 +51,7 @@ const SIDEBAR_SECTIONS = [
     label: "Account",
     items: [
       { path: "/pricing", label: "Credits & Plans", icon: Zap },
+      { path: "/subscription", label: "Subscription", icon: CreditCard },
     ],
   },
 ];

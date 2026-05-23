@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Code2, Plus, Coins, TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import DeveloperOnboarding from "@/components/developers/DeveloperOnboarding";
 import DeveloperDashboard from "@/components/developers/DeveloperDashboard";
 import SubmitToolModal from "@/components/developers/SubmitToolModal";
@@ -68,12 +69,20 @@ export default function Developers() {
           </p>
         </div>
         {devAccount?.status === "active" && (
-          <button
-            onClick={() => setShowSubmitModal(true)}
-            className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide"
-          >
-            <Plus className="w-4 h-4" /> Submit Tool
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/developer-earnings"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl border border-[#E8A83A]/40 bg-[#E8A83A]/10 text-[#A67C00] text-xs font-black uppercase tracking-wide"
+            >
+              <Coins className="w-4 h-4" /> Earnings
+            </Link>
+            <button
+              onClick={() => setShowSubmitModal(true)}
+              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide"
+            >
+              <Plus className="w-4 h-4" /> Submit Tool
+            </button>
+          </div>
         )}
       </div>
 

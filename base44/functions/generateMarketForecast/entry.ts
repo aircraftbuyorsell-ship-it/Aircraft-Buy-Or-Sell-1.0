@@ -2,29 +2,46 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 /**
  * generateMarketForecast
- * Generates comprehensive market behavior forecast using Gemini 3.1 Pro with internet context
+ * Generates comprehensive market behavior forecast using Gemini 3.1 Pro with internet context.
+ * Respects AppConfig.freezeAbosDataInfluence — if true, ignores internal ABOS listing data.
  */
+
+async function getAppConfig(base44) {
+  const configs = await base44.asServiceRole.entities.AppConfig.filter({ key: "global" }, "-created_date", 1);
+  if (configs.length) return configs[0];
+  return { freezeAbosDataInfluence: true, abosDataFreezeMessage: "" };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    
-    // Allow only admins to trigger forecast generation
+
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Generate forecast using Gemini 3.1 Pro with internet context
-    const forecastData = await base44.integrations.Core.InvokeLLM({
-      prompt: `Jste expertní analytik trhu s letectvím. Analyzujte současné globální i regionální tržní trendy (se zaměřením na Evropu a USA), makroekonomické ukazatele a specifické zprávy o letectví, abyste vytvořili komplexní předpověď tržního chování pro různé typy letadel.
+    const appConfig = await getAppConfig(base44);
+    const freezeAbosData = appConfig.freezeAbosDataInfluence === true;
 
-Zahrňte následující body:
-1. Celkový sentiment trhu: Pozitivní, neutrální, negativní.
-2. Klíčové faktory ovlivňující trh: Ekonomické změny, regulace, ceny paliva, nové technologie, geopolitické vlivy, úrokové sazby.
-3. Trendové typy letadel: Které kategorie letadel (SEP, Turboprop, Light Jet, Very Light Jet) získávají nebo ztrácejí na popularitě a proč.
-4. Očekávané změny cen: Odhadněte průměrné procentuální změny cen pro klíčové kategorie letadel v následujících 6-12 měsících.
-5. Očekávaný čas prodeje: Odhadněte průměrný čas prodeje pro různé kategorie letadel a jeho předpokládané změny.
-6. Příležitosti a rizika: Identifikujte hlavní příležitosti a rizika.`,
+    const internalDataInstruction = freezeAbosData
+      ? `Do NOT use or reference any internal platform listing database or proprietary sales data. Base all forecasts exclusively on publicly available external data: macroeconomic indicators, aviation industry reports, regulatory announcements, geopolitical events, fuel price trends, and manufacturer production data.`
+      : `You may incorporate publicly available aviation market signals alongside general industry data.`;
+
+    const forecastData = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `You are an expert aviation market analyst. Analyze current global and regional market trends (with focus on Europe and USA), macroeconomic indicators, and specific aviation industry news to generate a comprehensive market behavior forecast for various aircraft types.
+
+${internalDataInstruction}
+
+Include the following:
+1. Overall market sentiment: Positive, neutral, or negative.
+2. Key market-driving factors: Economic changes, regulation, fuel prices, new technology, geopolitical influences, interest rates.
+3. Aircraft category trends: Which categories (SEP, Turboprop, Light Jet, Very Light Jet, Helicopter) are gaining or losing popularity and why.
+4. Expected price changes: Estimated average percentage price changes for key aircraft categories over the next 6–12 months.
+5. Expected time on market: Estimated average selling time for different aircraft categories and projected direction of change.
+6. Opportunities and risks: Identify major market opportunities and risks.
+
+Return strict JSON only.`,
       add_context_from_internet: true,
       model: 'gemini_3_1_pro',
       response_json_schema: {
@@ -32,13 +49,11 @@ Zahrňte následující body:
         properties: {
           overall_sentiment: {
             type: 'string',
-            enum: ['positive', 'neutral', 'negative'],
-            description: 'Celkový sentiment trhu'
+            enum: ['positive', 'neutral', 'negative']
           },
           key_factors: {
             type: 'array',
-            items: { type: 'string' },
-            description: 'Klíčové faktory ovlivňující trh'
+            items: { type: 'string' }
           },
           aircraft_trends: {
             type: 'array',
@@ -93,8 +108,7 @@ Zahrňte následující body:
       }
     });
 
-    // Save forecast to database
-    const forecast = await base44.entities.MarketForecast.create({
+    const forecast = await base44.asServiceRole.entities.MarketForecast.create({
       overall_sentiment: forecastData.overall_sentiment,
       key_factors: forecastData.key_factors,
       aircraft_trends: forecastData.aircraft_trends,
@@ -111,7 +125,8 @@ Zahrňte následující body:
       forecast_id: forecast.id,
       overall_sentiment: forecast.overall_sentiment,
       aircraft_trends_count: forecast.aircraft_trends.length,
-      message: 'Market forecast generated successfully'
+      abos_data_frozen: freezeAbosData,
+      message: `Market forecast generated successfully${freezeAbosData ? ' (external data only — ABOS internal data excluded)' : ''}`
     });
   } catch (error) {
     console.error('Market forecast generation failed:', error.message);

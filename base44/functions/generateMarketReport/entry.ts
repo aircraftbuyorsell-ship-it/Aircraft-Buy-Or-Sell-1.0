@@ -23,8 +23,13 @@ const ALL_REGIONS = [
   "China", "Russia & CIS", "Asia-Pacific", "Australia & Oceania"
 ];
 
+async function getAppConfig(base44) {
+  const configs = await base44.asServiceRole.entities.AppConfig.filter({ key: "global" }, "-created_date", 1);
+  if (configs.length) return configs[0];
+  return { freezeAbosDataInfluence: true, abosDataFreezeMessage: "" };
+}
+
 async function findFreshCachedReport(base44, scope, filters) {
-  // Personalized reports are never cached — always fresh
   if (filters && (filters.aircraft_category || filters.regions?.length || filters.focus_areas?.length)) {
     return null;
   }
@@ -69,7 +74,7 @@ async function gatherDataSnapshot(base44) {
   };
 }
 
-async function generateNarrative(base44, scope, snapshot, filters) {
+async function generateNarrative(base44, scope, snapshot, filters, freezeAbosData) {
   const scopeLabel = SCOPE_LABEL[scope];
   const regionList = filters?.regions?.length ? filters.regions : ALL_REGIONS;
   const categoryFocus = filters?.aircraft_category ? `Focus specifically on: ${filters.aircraft_category}` : "Cover all aircraft categories (SEP, MEP, Turboprop, Light Jet, Midsize Jet, Heavy Jet, Helicopter).";
@@ -78,6 +83,10 @@ async function generateNarrative(base44, scope, snapshot, filters) {
     : "";
   const customFocus = filters?.focus_areas?.length ? `User-specific focus areas: ${filters.focus_areas.join(", ")}.` : "";
   const horizonDays = scope === "hourly" ? 2 : scope === "daily" ? 7 : scope === "weekly" ? 30 : 90;
+
+  const internalDataSection = freezeAbosData
+    ? `INTERNAL PLATFORM DATA: Not available / excluded from this analysis. Do NOT reference or infer from any internal listing database. Base all conclusions exclusively on external macro-economic indicators, geopolitical events, regulatory changes, and publicly available aviation industry data.`
+    : `INTERNAL PLATFORM DATA (ABOS snapshot):\n${JSON.stringify(snapshot, null, 2)}`;
 
   const prompt = `You are a senior aviation market intelligence analyst. Generate a structured ${scopeLabel} for the pre-owned aircraft market.
 
@@ -93,8 +102,7 @@ ${categoryFocus}
 ${priceFocus}
 ${customFocus}
 
-INTERNAL PLATFORM DATA (ABOS snapshot):
-${JSON.stringify(snapshot, null, 2)}
+${internalDataSection}
 
 SCOPE: ${scope.toUpperCase()} — calibrate depth and horizon accordingly.
 Use real-time web context for ALL macro, political, and regional signals.
@@ -205,8 +213,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Insufficient tokens", required: cost, balance }, { status: 402 });
     }
 
-    const snapshot = await gatherDataSnapshot(base44);
-    const narrative = await generateNarrative(base44, scope, snapshot, filters);
+    const [appConfig, snapshot] = await Promise.all([
+      getAppConfig(base44),
+      gatherDataSnapshot(base44),
+    ]);
+
+    const freezeAbosData = appConfig.freezeAbosDataInfluence === true;
+    const narrative = await generateNarrative(base44, scope, snapshot, filters, freezeAbosData);
 
     const newBalance = balance - cost;
     await base44.asServiceRole.entities.TokenTransaction.create({
@@ -231,13 +244,20 @@ Deno.serve(async (req) => {
       opportunities: narrative.opportunities || [],
       risks: narrative.risks || [],
       personalization_filters: Object.keys(filters).length > 0 ? filters : null,
-      data_snapshot: snapshot,
+      data_snapshot: freezeAbosData ? { abos_data_frozen: true } : snapshot,
       token_cost: cost,
       model_version: "gemini_3_1_pro",
       generated_at: new Date().toISOString(),
     });
 
-    return Response.json({ report, balance: newBalance, cost, cached: false });
+    return Response.json({
+      report,
+      balance: newBalance,
+      cost,
+      cached: false,
+      abos_data_frozen: freezeAbosData,
+      freeze_message: freezeAbosData ? appConfig.abosDataFreezeMessage : null,
+    });
   } catch (error) {
     console.error("generateMarketReport error:", error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });

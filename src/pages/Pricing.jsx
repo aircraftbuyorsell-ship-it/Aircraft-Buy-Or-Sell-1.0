@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle, Zap, Sparkles, Crown, Shield, ArrowRight } from "lucide-react";
+import { CheckCircle, Zap, Sparkles, Crown, Shield, ArrowRight, ExternalLink } from "lucide-react";
 import { TIERS, TOKEN_PACKS, toCredits } from "@/lib/pricing";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import CreditUsageTable, { CreditPricingTable } from "@/components/pricing/CreditUsageTable";
@@ -20,53 +20,64 @@ export default function Pricing() {
   const discountPct = behavior?.active_offer?.code === discountCode ? behavior.active_offer.discount_pct : 0;
 
   const [processing, setProcessing] = useState(null);
+  const [stripeError, setStripeError] = useState(null);
 
-  // Simulated purchase (replace with Stripe later)
   const handlePurchase = async (packOrTier) => {
     if (!behavior?.id) return;
     setProcessing(packOrTier.id);
+    setStripeError(null);
     track("purchase_attempt", { id: packOrTier.id });
 
-    if (packOrTier.id === "free_explorer") {
-      // Verification: mark verified + grant sampler
-      const newTokens = (behavior.tokens_remaining || 0) + packOrTier.tokens_included;
+    const bonus = packOrTier.bonus_pct ? Math.round((packOrTier.tokens || 0) * packOrTier.bonus_pct / 100) : 0;
+    const totalTokens = (packOrTier.tokens || packOrTier.tokens_included || 0) + bonus;
+    const priceUsd = discountPct
+      ? (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100)
+      : (packOrTier.price_usd || packOrTier.price || 0);
+
+    // If no Stripe price ID configured, fall back to simulated (dev/test mode)
+    const priceId = packOrTier.stripe_price_id;
+    if (!priceId) {
+      // Simulated fallback for development — grants tokens immediately
+      const newTokens = (behavior.tokens_remaining || 0) + totalTokens;
       await base44.entities.UserBehavior.update(behavior.id, {
-        tier: "free_explorer",
+        tier: packOrTier.id === "free_explorer" ? "free_explorer" : "pro",
         verification_paid: true,
         tokens_remaining: newTokens,
-        tokens_purchased_total: (behavior.tokens_purchased_total || 0) + packOrTier.tokens_included,
-      });
-      await base44.entities.TokenTransaction.create({
-        user_email: behavior.user_email,
-        type: "purchase",
-        amount: packOrTier.tokens_included,
-        pack: "Free Explorer verification",
-        price_usd: packOrTier.price,
-        balance_after: newTokens,
-      });
-    } else if (packOrTier.tokens) {
-      // Token pack
-      const price = discountPct ? packOrTier.price_usd * (1 - discountPct / 100) : packOrTier.price_usd;
-      const bonus = packOrTier.bonus_pct ? Math.round(packOrTier.tokens * packOrTier.bonus_pct / 100) : 0;
-      const total = packOrTier.tokens + bonus;
-      const newTokens = (behavior.tokens_remaining || 0) + total;
-      await base44.entities.UserBehavior.update(behavior.id, {
-        tier: tier === "free_explorer" ? "pro" : tier,
-        tokens_remaining: newTokens,
-        tokens_purchased_total: (behavior.tokens_purchased_total || 0) + total,
+        tokens_purchased_total: (behavior.tokens_purchased_total || 0) + totalTokens,
         active_offer: null,
       });
       await base44.entities.TokenTransaction.create({
         user_email: behavior.user_email,
         type: "purchase",
-        amount: total,
-        pack: packOrTier.name,
-        price_usd: price,
+        amount: totalTokens,
+        pack: packOrTier.name || "Free Explorer verification",
+        price_usd: priceUsd,
         balance_after: newTokens,
       });
+      queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
+      setProcessing(null);
+      return;
     }
-    queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
-    setProcessing(null);
+
+    // Live Stripe Checkout
+    try {
+      const returnUrl = `${window.location.origin}/pricing?code=${discountCode || ''}`;
+      const res = await base44.functions.invoke('stripeCreateCheckout', {
+        priceId,
+        packName: packOrTier.name,
+        tokens: totalTokens,
+        priceUsd,
+        returnUrl,
+      });
+      if (res.data?.sessionUrl) {
+        window.location.href = res.data.sessionUrl;
+      } else {
+        throw new Error(res.data?.error || 'Failed to create checkout session');
+      }
+    } catch (err) {
+      setStripeError(err.message);
+      setProcessing(null);
+    }
   };
 
   return (
@@ -84,6 +95,11 @@ export default function Pricing() {
           <div className="mt-4 inline-flex items-center gap-2 bg-[rgba(212,160,23,0.12)] border border-[#D4A017]/30 text-[#A67C00] text-sm font-bold rounded-full px-4 py-1.5">
             <Sparkles className="w-4 h-4" />
             {discountPct}% discount active — code {discountCode}
+          </div>
+        )}
+        {stripeError && (
+          <div className="mt-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+            <span className="font-bold">Payment error:</span> {stripeError}
           </div>
         )}
       </div>

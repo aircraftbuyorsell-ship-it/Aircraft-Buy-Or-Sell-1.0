@@ -57,10 +57,11 @@ export const TIERS = {
 };
 
 // Token packs (raw tokens — display as `tokens * CREDIT_RATIO` credits)
+// stripe_price_id: create these in your Stripe dashboard as one-time prices, then paste the IDs here
 export const TOKEN_PACKS = [
-  { id: "starter", name: "Starter", tokens: 100, price_usd: 29, badge: null },
-  { id: "pro", name: "Pro", tokens: 500, price_usd: 99, badge: "Most popular", bonus_pct: 10 },
-  { id: "scale", name: "Scale", tokens: 2000, price_usd: 299, badge: "Best value", bonus_pct: 25 },
+  { id: "starter", name: "Starter", tokens: 100, price_usd: 29, badge: null, stripe_price_id: "" },
+  { id: "pro", name: "Pro", tokens: 500, price_usd: 99, badge: "Most popular", bonus_pct: 10, stripe_price_id: "" },
+  { id: "scale", name: "Scale", tokens: 2000, price_usd: 299, badge: "Best value", bonus_pct: 25, stripe_price_id: "" },
 ];
 
 // Token costs per action (raw tokens)

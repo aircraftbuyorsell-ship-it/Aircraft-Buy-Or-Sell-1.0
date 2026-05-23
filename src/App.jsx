@@ -32,6 +32,7 @@ import Community from "./pages/Community";
 import MarketReports from "./pages/MarketReports";
 import Marketplace from "./pages/Marketplace";
 import Developers from "./pages/Developers";
+import AdminMarketplace from "./pages/AdminMarketplace";
 import GDPRConsentBanner from "./components/GDPRConsentBanner";
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
@@ -93,6 +94,7 @@ const AuthenticatedApp = () => {
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/developers" element={<Developers />} />
+        <Route path="/admin/marketplace" element={<AdminMarketplace />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

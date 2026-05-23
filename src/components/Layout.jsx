@@ -87,44 +87,46 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 glass-dark safe-top" style={{borderBottom: "1px solid rgba(255,255,255,0.07)"}}>
-        <div className="flex items-center gap-3 px-4 sm:px-6 h-[56px]">
+      {/* Top bar — iOS Liquid Glass Navbar */}
+      <header className="sticky top-0 z-40 glass-navbar safe-top">
+        <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
-              className="text-[#8A8780] hover:text-[#F0EDE6] touch-target-compact p-1.5 shrink-0 flex items-center gap-1"
+              className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-[11px] font-semibold hidden sm:inline">Back</span>
             </button>
           ) : (
             <button
               onClick={() => setSidebarOpen(v => !v)}
-              className="text-[#8A8780] hover:text-[#F0EDE6] touch-target-compact p-1.5 shrink-0"
+              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
               aria-label="Open menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 min-w-0 rounded-full border border-white/12 bg-white/[0.06] pl-2 pr-3 py-1.5 backdrop-blur-sm transition-all hover:bg-white/10">
-            <div className="w-7 h-7 rounded-full bg-[#E8A83A]/20 border border-[#E8A83A]/50 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(232,168,58,0.18)]">
-              <Plane className="w-3.5 h-3.5 text-[#E8A83A]" />
+          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 glass-pill pl-1.5 pr-3 py-1 transition-all hover:scale-[1.02] active:scale-95">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 12px rgba(11,45,91,0.30)"}}>
+              <Plane className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-[#F0EDE6] font-black text-sm tracking-[-0.03em] truncate hidden sm:block">
+            <span className="font-black text-sm tracking-[-0.04em] text-[#0B2D5B] dark:text-white truncate hidden sm:block">
               ABOS
             </span>
           </Link>
 
           <div className="flex-1" />
 
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1.5">
             <ThemeToggle />
             {currentUser ? (
               <button
                 onClick={() => base44.auth.logout()}
-                className="flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[11px] font-black uppercase tracking-tight text-[#8A8780] hover:text-white hover:bg-white/5 border border-transparent transition-all"
+                className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95"
               >
                 <LogOut className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log Out</span>
@@ -132,7 +134,8 @@ export default function Layout() {
             ) : (
               <button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="flex items-center gap-1.5 px-2.5 h-8 rounded-md text-[11px] font-black uppercase tracking-tight text-[#E8A83A] hover:text-white hover:bg-[#E8A83A]/10 border border-[#E8A83A]/30 transition-all"
+                className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
+                style={{background:"linear-gradient(135deg,#E8A83A,#D4911A)", boxShadow:"0 2px 12px rgba(232,168,58,0.35)"}}
               >
                 <LogIn className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log In</span>
@@ -145,13 +148,14 @@ export default function Layout() {
                   key={path}
                   to={path}
                   className={`
-                    flex items-center gap-1.5 px-3 h-9 rounded-full text-[11px] font-black uppercase tracking-[0.02em] whitespace-nowrap transition-colors
+                    flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95
                     ${active
-                      ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/50 shadow-[0_0_24px_rgba(232,168,58,0.12)]"
+                      ? "text-white shadow-md"
                       : accent
-                        ? "text-[#E8A83A] hover:text-white hover:bg-[#E8A83A]/10 border border-[#E8A83A]/30"
-                        : "text-[#8A8780] hover:text-white hover:bg-white/[0.07] border border-white/5"}
+                        ? "glass-pill text-[#E8A83A] hover:text-[#D4911A]"
+                        : "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}
                   `}
+                  style={active ? {background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 14px rgba(11,45,91,0.30)"} : {}}
                 >
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
                   <span className="hidden sm:inline">{label}</span>
@@ -167,34 +171,38 @@ export default function Layout() {
         <div
           className="fixed inset-0 z-40"
           onClick={() => setSidebarOpen(false)}
-          style={{background:"rgba(0,0,0,0.35)", backdropFilter:"blur(2px)", WebkitBackdropFilter:"blur(2px)"}}
+          style={{background:"rgba(0,0,0,0.28)", backdropFilter:"blur(6px) saturate(120%)", WebkitBackdropFilter:"blur(6px) saturate(120%)"}}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — iOS Liquid Glass panel */}
       <aside
         onMouseMove={() => sidebarOpen && resetIdle()}
         className={`
           fixed left-0 top-0 bottom-0 z-50
-          w-[270px] flex flex-col
-          transform transition-transform duration-300 ease-out
+          w-[272px] flex flex-col
+          transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         style={{
-          background: "rgba(8, 10, 18, 0.88)",
-          backdropFilter: "blur(40px) saturate(180%)",
-          WebkitBackdropFilter: "blur(40px) saturate(180%)",
-          borderRight: "1px solid rgba(255,255,255,0.07)",
-          boxShadow: "4px 0 40px rgba(0,0,0,0.4)"
+          background: "rgba(6, 8, 18, 0.82)",
+          backdropFilter: "blur(48px) saturate(200%)",
+          WebkitBackdropFilter: "blur(48px) saturate(200%)",
+          borderRight: "1px solid rgba(255,255,255,0.09)",
+          boxShadow: "8px 0 48px rgba(0,0,0,0.38), 1px 0 0 rgba(255,255,255,0.05)"
         }}
       >
-        <div className="flex items-center justify-between px-5 pt-16 pb-4 border-b border-white/8">
+        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
           <div>
-            <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.22em] font-bold">Workflow Navigation</p>
-            <p className="text-[#8A8780] text-[11px] mt-1">ABOS command graph</p>
+            <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.22em] font-bold">Navigation</p>
+            <p className="text-white/40 text-[11px] mt-0.5">ABOS command graph</p>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="text-[#8A8780] hover:text-white touch-target-compact">
-            <ChevronLeft className="w-4 h-4" />
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90"
+            style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.10)"}}
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -208,26 +216,27 @@ export default function Layout() {
                 <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">{section.label}</p>
               </div>
               <div className="space-y-0.5">
-                {section.items.map(({ path, label, icon: Icon }) => {
+                {section.items.map(({ path, label, icon: NavIcon }) => {
                   const active = pathname === path;
                   return (
                     <Link
                       key={path}
                       to={path}
                       className={`
-                        relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl text-[12px] font-semibold tracking-[0.01em] transition-all duration-150
+                        relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold tracking-[0.005em] transition-all duration-150
                         ${active
                           ? "text-white"
-                          : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]"}
+                          : "text-white/45 hover:text-white/80 hover:bg-white/[0.05]"}
                       `}
                       style={active ? {
-                        background: "rgba(232,168,58,0.15)",
-                        border: "1px solid rgba(232,168,58,0.30)",
-                        boxShadow: "0 2px 12px rgba(232,168,58,0.12)"
+                        background: "linear-gradient(135deg, rgba(232,168,58,0.18), rgba(232,168,58,0.08))",
+                        border: "1px solid rgba(232,168,58,0.28)",
+                        boxShadow: "0 2px 14px rgba(232,168,58,0.10), inset 0 1px 0 rgba(255,255,255,0.08)"
                       } : {border: "1px solid transparent"}}
                     >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <NavIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>{label}</span>
+                      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#E8A83A]" />}
                     </Link>
                   );
                 })}
@@ -236,12 +245,17 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="px-4 py-3 border-t border-white/5">
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#E8A83A] animate-pulse" />
-            <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">ABOS v2.0</p>
+        <div className="px-4 py-4" style={{borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+          <div
+            className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
+            style={{background:"rgba(232,168,58,0.08)", border:"1px solid rgba(232,168,58,0.14)"}}
+          >
+            <div className="w-2 h-2 rounded-full bg-[#28C76F] animate-pulse shrink-0" style={{boxShadow:"0 0 8px rgba(40,199,111,0.6)"}} />
+            <div>
+              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">ABOS v2.0</p>
+              <p className="text-white/30 text-[9px] tracking-wider">Aviation IntraZone · Live</p>
+            </div>
           </div>
-          <p className="text-[#4A4845] text-[9px] uppercase tracking-wider">Aviation IntraZone</p>
         </div>
       </aside>
 

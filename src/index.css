@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=SF+Pro+Display:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,26 +8,33 @@
   :root {
     color-scheme: light;
 
-    /* Liquid Glass Tokens */
-    --glass-bg: rgba(255, 255, 255, 0.62);
-    --glass-bg-heavy: rgba(255, 255, 255, 0.82);
-    --glass-border: rgba(255, 255, 255, 0.55);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.10), 0 1.5px 4px rgba(0,0,0,0.06);
-    --glass-blur: blur(28px) saturate(180%);
+    /* ─── iOS Liquid Glass Tokens ──────────────────────────────── */
+    --glass-bg:        rgba(255, 255, 255, 0.55);
+    --glass-bg-heavy:  rgba(255, 255, 255, 0.80);
+    --glass-bg-subtle: rgba(255, 255, 255, 0.30);
+    --glass-border:    rgba(255, 255, 255, 0.70);
+    --glass-border-subtle: rgba(255, 255, 255, 0.38);
+    --glass-shadow:    0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+    --glass-shadow-lg: 0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    --glass-blur:      blur(32px) saturate(200%) brightness(1.05);
+    --glass-blur-sm:   blur(16px) saturate(160%);
 
-    /* Gold / Amber accent */
-    --gold: #D4A017;
-    --gold-bright: #F5C842;
-    --gold-deep: #A67C00;
+    /* Navbar */
+    --navbar-bg:     rgba(255,255,255,0.72);
+    --navbar-border: rgba(0,0,0,0.06);
 
-    /* Status */
-    --green: #28C76F;
-    --amber: #F4A623;
-    --red: #FF3B30;
-    --blue: #007AFF;
+    /* Gold / Amber */
+    --gold:       #D4A017;
+    --gold-bright:#F5C842;
+    --gold-deep:  #A67C00;
+
+    /* App background mesh */
+    --bg-mesh-1: rgba(232,168,58,0.09);
+    --bg-mesh-2: rgba(11,45,91,0.07);
+    --bg-mesh-3: rgba(99,186,255,0.07);
 
     /* Shadcn compat */
-    --background: 220 20% 96%;
+    --background: 214 28% 96%;
     --foreground: 222 20% 10%;
     --card: 0 0% 100%;
     --card-foreground: 222 20% 10%;
@@ -46,7 +53,7 @@
     --border: 220 14% 88%;
     --input: 220 14% 88%;
     --ring: 42 87% 46%;
-    --radius: 1rem;
+    --radius: 1.1rem;
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 60%;
     --sidebar-primary: 42 87% 46%;
@@ -59,10 +66,20 @@
 
   .dark {
     color-scheme: dark;
-    --glass-bg: rgba(30, 30, 40, 0.62);
-    --glass-bg-heavy: rgba(20, 20, 30, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.10);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), 0 1.5px 4px rgba(0,0,0,0.20);
+    --glass-bg:        rgba(28, 32, 48, 0.58);
+    --glass-bg-heavy:  rgba(18, 22, 36, 0.82);
+    --glass-bg-subtle: rgba(255,255,255,0.06);
+    --glass-border:    rgba(255,255,255,0.13);
+    --glass-border-subtle: rgba(255,255,255,0.07);
+    --glass-shadow:    0 4px 24px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.20);
+    --glass-shadow-lg: 0 16px 48px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25);
+
+    --navbar-bg:     rgba(14,18,30,0.80);
+    --navbar-border: rgba(255,255,255,0.07);
+
+    --bg-mesh-1: rgba(232,168,58,0.06);
+    --bg-mesh-2: rgba(11,45,91,0.15);
+    --bg-mesh-3: rgba(60,120,220,0.07);
 
     --background: 224 30% 8%;
     --foreground: 220 20% 94%;
@@ -92,9 +109,12 @@
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-text-size-adjust: 100%;
-    background-image: radial-gradient(ellipse at 20% 0%, rgba(232,168,58,0.08) 0%, transparent 50%),
-                      radial-gradient(ellipse at 80% 100%, rgba(11,45,91,0.06) 0%, transparent 50%);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 15% -10%, var(--bg-mesh-1) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 85% 110%, var(--bg-mesh-2) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 60% 40%, var(--bg-mesh-3) 0%, transparent 50%);
     background-attachment: fixed;
+    min-height: 100dvh;
   }
 
   .dark body {
@@ -156,7 +176,9 @@
 .safe-left  { padding-left:   env(safe-area-inset-left); }
 .safe-right { padding-right:  env(safe-area-inset-right); }
 
-/* ─── Liquid Glass Utilities ─────────────────────────────────── */
+/* ─── iOS Liquid Glass Utilities ────────────────────────────── */
+
+/* Base glass — light translucent panel */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -164,32 +186,78 @@
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
+
+/* Heavier frosted panel */
 .glass-heavy {
   background: var(--glass-bg-heavy);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  backdrop-filter: blur(48px) saturate(220%) brightness(1.04);
+  -webkit-backdrop-filter: blur(48px) saturate(220%) brightness(1.04);
   border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Subtle / tinted glass */
+.glass-subtle {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border-subtle);
   box-shadow: var(--glass-shadow);
 }
+
+/* Dark tinted (navbar / sidebar use) */
 .glass-dark {
-  background: rgba(10, 12, 20, 0.70);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  background: rgba(8, 10, 20, 0.72);
+  backdrop-filter: blur(36px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 6px 30px rgba(0,0,0,0.32);
 }
+
+/* Navbar glass (bright on light, dark on dark) */
+.glass-navbar {
+  background: var(--navbar-bg);
+  backdrop-filter: blur(36px) saturate(200%) brightness(1.03);
+  -webkit-backdrop-filter: blur(36px) saturate(200%) brightness(1.03);
+  border-bottom: 1px solid var(--navbar-border);
+  box-shadow: 0 1px 0 var(--navbar-border), 0 4px 20px rgba(0,0,0,0.06);
+}
+
+/* Card glass with hover lift */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.03);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.03);
   border: 1px solid var(--glass-border);
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow: var(--glass-shadow);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+  position: relative;
+  overflow: hidden;
+}
+/* Specular top-edge highlight */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(160deg, rgba(255,255,255,0.28) 0%, transparent 40%);
+  pointer-events: none;
 }
 .glass-card:hover {
-  box-shadow: 0 16px 48px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
-  transform: translateY(-1px);
+  box-shadow: var(--glass-shadow-lg);
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.82);
+}
+
+/* Pill / chip glass */
+.glass-pill {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 /* Scrollbar */

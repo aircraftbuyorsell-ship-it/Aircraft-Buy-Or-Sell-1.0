@@ -13,6 +13,7 @@ export default function MarketReports() {
   const queryClient = useQueryClient();
   const [activeReport, setActiveReport] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [cacheNotice, setCacheNotice] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ["auth-me"],
@@ -44,11 +45,15 @@ export default function MarketReports() {
   const generateMutation = useMutation({
     mutationFn: async (scope) => {
       setErrorMsg(null);
+      setCacheNotice(null);
       const res = await base44.functions.invoke("generateMarketReport", { scope });
       return res.data;
     },
     onSuccess: (data) => {
       setActiveReport(data.report);
+      if (data.cached) {
+        setCacheNotice(`Showing the latest ${data.report.scope} report from cache — no tokens charged.`);
+      }
       queryClient.invalidateQueries({ queryKey: ["market-reports"] });
       queryClient.invalidateQueries({ queryKey: ["token-balance"] });
     },
@@ -97,6 +102,14 @@ export default function MarketReports() {
         <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-red-700">{errorMsg}</p>
+        </div>
+      )}
+
+      {/* Cache hit notice */}
+      {cacheNotice && (
+        <div className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 flex items-start gap-2">
+          <Sparkles className="w-4 h-4 text-green-700 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-green-800">{cacheNotice}</p>
         </div>
       )}
 

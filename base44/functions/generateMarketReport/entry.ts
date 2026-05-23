@@ -19,6 +19,29 @@ const SCOPE_LABEL = {
   monthly: "Monthly Market Outlook",
 };
 
+// Freshness window per scope (ms). If a report of this scope was generated
+// inside this window by ANYONE, reuse it for free instead of charging tokens.
+const SCOPE_FRESHNESS_MS = {
+  hourly:  60 * 60 * 1000,            // 1 hour
+  daily:   24 * 60 * 60 * 1000,       // 24 hours
+  weekly:  7 * 24 * 60 * 60 * 1000,   // 7 days
+  monthly: 30 * 24 * 60 * 60 * 1000,  // 30 days
+};
+
+async function findFreshCachedReport(base44, scope) {
+  const recent = await base44.asServiceRole.entities.MarketReport.filter(
+    { scope },
+    "-created_date",
+    1,
+  );
+  if (recent.length === 0) return null;
+  const r = recent[0];
+  const ts = new Date(r.generated_at || r.created_date).getTime();
+  const age = Date.now() - ts;
+  if (age <= SCOPE_FRESHNESS_MS[scope]) return r;
+  return null;
+}
+
 async function getBalance(base44, email) {
   const txs = await base44.asServiceRole.entities.TokenTransaction.filter(
     { user_email: email },
@@ -149,6 +172,14 @@ Deno.serve(async (req) => {
     }
 
     const cost = SCOPE_COSTS[scope];
+
+    // 0. Cache hit — reuse a fresh report for free (no token deduction).
+    const cached = await findFreshCachedReport(base44, scope);
+    if (cached) {
+      const balanceNow = await getBalance(base44, user.email);
+      return Response.json({ report: cached, balance: balanceNow, cost: 0, cached: true });
+    }
+
     const balance = await getBalance(base44, user.email);
     if (balance < cost) {
       return Response.json({
@@ -193,7 +224,7 @@ Deno.serve(async (req) => {
       generated_at: new Date().toISOString(),
     });
 
-    return Response.json({ report, balance: newBalance, cost });
+    return Response.json({ report, balance: newBalance, cost, cached: false });
   } catch (error) {
     console.error("generateMarketReport error:", error.message, error.stack);
     return Response.json({ error: error.message }, { status: 500 });

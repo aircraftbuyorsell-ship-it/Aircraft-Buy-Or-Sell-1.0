@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import ScopeCard from "@/components/market-reports/ScopeCard";
 import ReportView from "@/components/market-reports/ReportView";
+import ReportVisualizations from "@/components/market-reports/ReportVisualizations";
 import PersonalizationPanel from "@/components/market-reports/PersonalizationPanel";
 
 const SCOPES = ["hourly", "daily", "weekly", "monthly"];
@@ -135,10 +136,11 @@ export default function MarketReports() {
       {/* Active report */}
       {activeReport && (
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-4 h-4 text-[#E8A83A]" />
             <h2 className="text-sm font-black uppercase tracking-wide text-[#1A1814]">Latest Generated</h2>
           </div>
+          <ReportVisualizations report={activeReport} />
           <ReportView report={activeReport} />
         </div>
       )}

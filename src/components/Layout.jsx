@@ -86,10 +86,10 @@ export default function Layout() {
   }, [pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F7F4EF] font-sans tracking-[-0.01em]">
+    <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-[#111113]/95 backdrop-blur-xl border-b border-white/10 safe-top">
-        <div className="flex items-center gap-3 px-3 sm:px-5 h-14">
+      <header className="sticky top-0 z-40 glass-dark safe-top" style={{borderBottom: "1px solid rgba(255,255,255,0.07)"}}>
+        <div className="flex items-center gap-3 px-4 sm:px-6 h-[56px]">
           {showBack ? (
             <button
               onClick={() => navigate(-1)}
@@ -108,7 +108,7 @@ export default function Layout() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 min-w-0 rounded-full border border-white/10 bg-white/[0.04] pl-2 pr-3 py-1.5">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 min-w-0 rounded-full border border-white/12 bg-white/[0.06] pl-2 pr-3 py-1.5 backdrop-blur-sm transition-all hover:bg-white/10">
             <div className="w-7 h-7 rounded-full bg-[#E8A83A]/20 border border-[#E8A83A]/50 flex items-center justify-center shrink-0 shadow-[0_0_24px_rgba(232,168,58,0.18)]">
               <Plane className="w-3.5 h-3.5 text-[#E8A83A]" />
             </div>
@@ -164,20 +164,31 @@ export default function Layout() {
 
       {/* Backdrop */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setSidebarOpen(false)}
+          style={{background:"rgba(0,0,0,0.35)", backdropFilter:"blur(2px)", WebkitBackdropFilter:"blur(2px)"}}
+        />
       )}
 
       {/* Sidebar */}
       <aside
         onMouseMove={() => sidebarOpen && resetIdle()}
         className={`
-          fixed left-0 top-12 bottom-0 z-50
-          w-[280px] bg-[#111113]/98 backdrop-blur-xl border-r border-white/10
-          flex flex-col transform transition-transform duration-300 shadow-2xl
+          fixed left-0 top-0 bottom-0 z-50
+          w-[270px] flex flex-col
+          transform transition-transform duration-300 ease-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
+        style={{
+          background: "rgba(8, 10, 18, 0.88)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          WebkitBackdropFilter: "blur(40px) saturate(180%)",
+          borderRight: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "4px 0 40px rgba(0,0,0,0.4)"
+        }}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-5 pt-16 pb-4 border-b border-white/8">
           <div>
             <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.22em] font-bold">Workflow Navigation</p>
             <p className="text-[#8A8780] text-[11px] mt-1">ABOS command graph</p>
@@ -204,11 +215,16 @@ export default function Layout() {
                       key={path}
                       to={path}
                       className={`
-                        relative flex items-center gap-3 pl-7 pr-3 py-2.5 rounded-2xl text-[12px] font-bold uppercase tracking-[0.01em] transition-colors
+                        relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl text-[12px] font-semibold tracking-[0.01em] transition-all duration-150
                         ${active
-                          ? "bg-[#0B2D5B] text-white border border-[#E8A83A]/50 shadow-[0_0_24px_rgba(232,168,58,0.12)]"
-                          : "text-[#8A8780] hover:text-white hover:bg-white/[0.07] border border-white/5"}
+                          ? "text-white"
+                          : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]"}
                       `}
+                      style={active ? {
+                        background: "rgba(232,168,58,0.15)",
+                        border: "1px solid rgba(232,168,58,0.30)",
+                        boxShadow: "0 2px 12px rgba(232,168,58,0.12)"
+                      } : {border: "1px solid transparent"}}
                     >
                       <Icon className="w-3.5 h-3.5 shrink-0" />
                       <span>{label}</span>
@@ -230,7 +246,7 @@ export default function Layout() {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto pb-4 bg-[radial-gradient(circle_at_top_left,rgba(232,168,58,0.10),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.18),transparent_180px)]">
+      <main className="flex-1 overflow-auto pb-4">
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>
@@ -242,8 +258,13 @@ export default function Layout() {
       {pathname !== "/max-chat" && (
         <Link
           to="/max-chat"
-          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white pl-2 pr-4 py-2 rounded-full shadow-2xl border border-[#E8A83A]/40 transition-colors"
+          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full transition-all active:scale-95"
           title="Chat with Max"
+          style={{
+            background:"linear-gradient(135deg,#0B2D5B,#143C75)",
+            boxShadow:"0 8px 32px rgba(11,45,91,0.45), 0 2px 8px rgba(0,0,0,0.20)",
+            border:"1px solid rgba(232,168,58,0.35)"
+          }}
         >
           <img
             src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png"

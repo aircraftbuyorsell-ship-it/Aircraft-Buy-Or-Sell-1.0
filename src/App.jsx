@@ -31,6 +31,7 @@ import IntraZone from "./pages/IntraZone";
 import Community from "./pages/Community";
 import MarketReports from "./pages/MarketReports";
 import Marketplace from "./pages/Marketplace";
+import Developers from "./pages/Developers";
 import GDPRConsentBanner from "./components/GDPRConsentBanner";
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
@@ -91,6 +92,7 @@ const AuthenticatedApp = () => {
         <Route path="/community" element={<Community />} />
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/developers" element={<Developers />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,69 +1,107 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import Stripe from 'npm:stripe@14.25.0';
 
+// Map Stripe price IDs → token grants + tier
+const PRICE_TOKEN_MAP = {
+  'price_1TaO0mAT7Be3WR6Jepz0eQQS': { tokens: 100, tier: 'starter', pack: 'ABOS Starter', price_usd: 29 },
+  'price_1TaO1rAT7Be3WR6JaWnMa7mx': { tokens: 500, tier: 'pro',     pack: 'ABOS Pro',     price_usd: 99 },
+  'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'pro',    pack: 'ABOS Enterprise', price_usd: 299 },
+};
+
+async function handleCheckoutCompleted(session, base44) {
+  console.log('✅ checkout.session.completed:', session.id);
+
+  const meta        = session.metadata || {};
+  const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
+  const packName    = meta.pack_name  || '';
+  const paymentId   = session.payment_intent || session.id;
+
+  // Resolve tokens from metadata (set by stripeCreateCheckout) or fall back to price map
+  let tokens  = parseInt(meta.tokens   || '0', 10);
+  let priceUsd = parseFloat(meta.price_usd || '0');
+  let tier    = meta.tier || 'pro';
+
+  // If metadata is sparse, look up via line items price
+  if (!tokens) {
+    const priceId = session.line_items?.data?.[0]?.price?.id;
+    const mapped  = PRICE_TOKEN_MAP[priceId];
+    if (mapped) { tokens = mapped.tokens; tier = mapped.tier; priceUsd = mapped.price_usd; }
+  }
+
+  if (!userEmail) { console.warn('No email found in session, skipping grant'); return; }
+  if (!tokens)    { console.warn('No tokens resolved, skipping grant'); return; }
+
+  const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
+  const behavior  = behaviors[0];
+  if (!behavior)  { console.warn(`UserBehavior not found for ${userEmail}`); return; }
+
+  const newBalance = (behavior.tokens_remaining || 0) + tokens;
+  await base44.asServiceRole.entities.UserBehavior.update(behavior.id, {
+    tier,
+    tokens_remaining:       newBalance,
+    tokens_purchased_total: (behavior.tokens_purchased_total || 0) + tokens,
+    active_offer:           null,
+  });
+
+  await base44.asServiceRole.entities.TokenTransaction.create({
+    user_email:        userEmail,
+    type:              'purchase',
+    amount:            tokens,
+    pack:              packName || tier,
+    price_usd:         priceUsd,
+    stripe_payment_id: paymentId,
+    balance_after:     newBalance,
+  });
+
+  console.log(`✓ Granted ${tokens} tokens to ${userEmail} (tier: ${tier}), balance: ${newBalance}`);
+}
+
+async function handleChargeSucceeded(charge) {
+  console.log(`💳 charge.succeeded: ${charge.id} — ${charge.receipt_email} — ${charge.amount / 100} ${charge.currency.toUpperCase()}`);
+  // Audit log — extend here to write to a Payments entity if needed
+}
+
+async function handleChargeFailed(charge) {
+  console.error(`❌ charge.failed: ${charge.id} — ${charge.receipt_email} — ${charge.failure_code}: ${charge.failure_message}`);
+  // Notify user or update status — extend here as needed
+}
+
 Deno.serve(async (req) => {
   try {
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+    const stripe        = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
-    const body = await req.text();
+    const body      = await req.text();
     const signature = req.headers.get('stripe-signature');
+
+    if (!signature) {
+      return Response.json({ error: 'Missing Stripe signature' }, { status: 400 });
+    }
 
     let event;
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
-      return new Response(JSON.stringify({ error: 'Invalid signature' }), { status: 400 });
+      return Response.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    // Use service role for webhook operations (no user session)
+    console.log(`📡 Webhook received: ${event.type} (${event.id})`);
+
     const base44 = createClientFromRequest(req);
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const meta = session.metadata || {};
-      const tokens = parseInt(meta.tokens || '0', 10);
-      const priceUsd = parseFloat(meta.price_usd || '0');
-      const userEmail = meta.user_email || session.customer_email;
-
-      if (!userEmail || !tokens) {
-        console.log('Missing metadata, skipping token grant', meta);
-        return Response.json({ received: true });
-      }
-
-      // Find the user's behavior record
-      const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
-      const behavior = behaviors[0];
-
-      if (behavior) {
-        const newBalance = (behavior.tokens_remaining || 0) + tokens;
-        await base44.asServiceRole.entities.UserBehavior.update(behavior.id, {
-          tier: 'pro',
-          tokens_remaining: newBalance,
-          tokens_purchased_total: (behavior.tokens_purchased_total || 0) + tokens,
-          active_offer: null,
-        });
-
-        await base44.asServiceRole.entities.TokenTransaction.create({
-          user_email: userEmail,
-          type: 'purchase',
-          amount: tokens,
-          pack: meta.pack_name || 'Stripe purchase',
-          price_usd: priceUsd,
-          stripe_payment_id: session.payment_intent || session.id,
-          balance_after: newBalance,
-        });
-
-        console.log(`✓ Granted ${tokens} tokens to ${userEmail}, new balance: ${newBalance}`);
-      } else {
-        console.warn(`UserBehavior not found for ${userEmail}`);
-      }
-    }
-
-    if (event.type === 'invoice.payment_failed') {
-      const invoice = event.data.object;
-      console.warn(`Payment failed for customer ${invoice.customer}, invoice ${invoice.id}`);
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutCompleted(event.data.object, base44);
+        break;
+      case 'charge.succeeded':
+        await handleChargeSucceeded(event.data.object);
+        break;
+      case 'charge.failed':
+        await handleChargeFailed(event.data.object);
+        break;
+      default:
+        console.log(`⏭️ Unhandled event type: ${event.type}`);
     }
 
     return Response.json({ received: true });

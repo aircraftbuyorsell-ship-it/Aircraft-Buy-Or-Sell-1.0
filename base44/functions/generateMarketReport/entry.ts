@@ -1,90 +1,61 @@
-// Generate a paid market forecast report.
-// Flow: auth -> check token balance -> gather data snapshot -> LLM synthesis ->
-//       atomically deduct tokens (TokenTransaction ledger) -> persist MarketReport.
-//
-// Token cost per scope (raw tokens):
-//   hourly  = 2   (cheapest, lighter pulse)
-//   daily   = 5
-//   weekly  = 10
-//   monthly = 20  (deepest synthesis)
+// Generate a paid market report with macro/political/regional depth + personalization + prediction tracking.
+// Token cost: hourly=2, daily=5, weekly=10, monthly=20
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const SCOPE_COSTS = { hourly: 2, daily: 5, weekly: 10, monthly: 20 };
-
 const SCOPE_LABEL = {
-  hourly: "Hourly Pulse",
-  daily: "Daily Market Brief",
-  weekly: "Weekly Market Report",
+  hourly:  "Hourly Pulse",
+  daily:   "Daily Market Brief",
+  weekly:  "Weekly Market Report",
   monthly: "Monthly Market Outlook",
 };
-
-// Freshness window per scope (ms). If a report of this scope was generated
-// inside this window by ANYONE, reuse it for free instead of charging tokens.
 const SCOPE_FRESHNESS_MS = {
-  hourly:  60 * 60 * 1000,            // 1 hour
-  daily:   24 * 60 * 60 * 1000,       // 24 hours
-  weekly:  7 * 24 * 60 * 60 * 1000,   // 7 days
-  monthly: 30 * 24 * 60 * 60 * 1000,  // 30 days
+  hourly:  60 * 60 * 1000,
+  daily:   24 * 60 * 60 * 1000,
+  weekly:  7 * 24 * 60 * 60 * 1000,
+  monthly: 30 * 24 * 60 * 60 * 1000,
 };
 
-async function findFreshCachedReport(base44, scope) {
-  const recent = await base44.asServiceRole.entities.MarketReport.filter(
-    { scope },
-    "-created_date",
-    1,
-  );
-  if (recent.length === 0) return null;
+const ALL_REGIONS = [
+  "USA", "Canada", "South America", "UK", "EU - Western Europe",
+  "EU - Eastern Europe", "Middle East", "Africa", "India",
+  "China", "Russia & CIS", "Asia-Pacific", "Australia & Oceania"
+];
+
+async function findFreshCachedReport(base44, scope, filters) {
+  // Personalized reports are never cached — always fresh
+  if (filters && (filters.aircraft_category || filters.regions?.length || filters.focus_areas?.length)) {
+    return null;
+  }
+  const recent = await base44.asServiceRole.entities.MarketReport.filter({ scope }, "-created_date", 1);
+  if (!recent.length) return null;
   const r = recent[0];
-  const ts = new Date(r.generated_at || r.created_date).getTime();
-  const age = Date.now() - ts;
-  if (age <= SCOPE_FRESHNESS_MS[scope]) return r;
-  return null;
+  const age = Date.now() - new Date(r.generated_at || r.created_date).getTime();
+  return age <= SCOPE_FRESHNESS_MS[scope] ? r : null;
 }
 
 async function getBalance(base44, email) {
-  const txs = await base44.asServiceRole.entities.TokenTransaction.filter(
-    { user_email: email },
-    "-created_date",
-    1,
-  );
-  if (txs.length === 0) return 0;
-  return Number(txs[0].balance_after) || 0;
+  const txs = await base44.asServiceRole.entities.TokenTransaction.filter({ user_email: email }, "-created_date", 1);
+  return txs.length ? Number(txs[0].balance_after) || 0 : 0;
 }
 
 async function gatherDataSnapshot(base44) {
-  // Pull recent internal signals to feed the LLM.
-  const [listings, deals, escrowsRecent] = await Promise.all([
+  const [listings, deals, escrows] = await Promise.all([
     base44.asServiceRole.entities.AircraftListing.filter({ status: "active" }, "-created_date", 200),
     base44.asServiceRole.entities.DealRadar.list("-created_date", 50),
     base44.asServiceRole.entities.EscrowTransaction.list("-created_date", 30),
   ]);
-
-  const prices = listings.map((l) => Number(l.asking_price)).filter((p) => p > 0);
+  const prices = listings.map(l => Number(l.asking_price)).filter(p => p > 0);
   const avgPrice = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-  const medianPrice = prices.length
-    ? [...prices].sort((a, b) => a - b)[Math.floor(prices.length / 2)]
-    : 0;
-
-  const atiScores = listings.map((l) => Number(l.ati_score)).filter((s) => s > 0);
+  const medianPrice = prices.length ? [...prices].sort((a, b) => a - b)[Math.floor(prices.length / 2)] : 0;
+  const atiScores = listings.map(l => Number(l.ati_score)).filter(s => s > 0);
   const avgAti = atiScores.length ? atiScores.reduce((a, b) => a + b, 0) / atiScores.length : 0;
-
   const makeCounts = {};
-  listings.forEach((l) => {
-    const k = (l.make || "Unknown").trim();
-    makeCounts[k] = (makeCounts[k] || 0) + 1;
-  });
-  const topMakes = Object.entries(makeCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([make, count]) => ({ make, count }));
-
+  listings.forEach(l => { const k = (l.make || "Unknown").trim(); makeCounts[k] = (makeCounts[k] || 0) + 1; });
+  const topMakes = Object.entries(makeCounts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([make, count]) => ({ make, count }));
   const dealLabelCounts = {};
-  deals.forEach((d) => {
-    const k = d.deal_label || "unlabeled";
-    dealLabelCounts[k] = (dealLabelCounts[k] || 0) + 1;
-  });
-
+  deals.forEach(d => { const k = d.deal_label || "unlabeled"; dealLabelCounts[k] = (dealLabelCounts[k] || 0) + 1; });
   return {
     active_listings: listings.length,
     avg_asking_price_usd: Math.round(avgPrice),
@@ -93,29 +64,44 @@ async function gatherDataSnapshot(base44) {
     top_makes: topMakes,
     deal_label_distribution: dealLabelCounts,
     recent_deal_count: deals.length,
-    recent_escrow_count: escrowsRecent.length,
+    recent_escrow_count: escrows.length,
     generated_at: new Date().toISOString(),
   };
 }
 
-async function generateNarrative(base44, scope, snapshot) {
+async function generateNarrative(base44, scope, snapshot, filters) {
   const scopeLabel = SCOPE_LABEL[scope];
-  const prompt = `You are a senior aviation market analyst. Generate a ${scopeLabel} for the pre-owned aircraft market.
+  const regionList = filters?.regions?.length ? filters.regions : ALL_REGIONS;
+  const categoryFocus = filters?.aircraft_category ? `Focus specifically on: ${filters.aircraft_category}` : "Cover all aircraft categories (SEP, MEP, Turboprop, Light Jet, Midsize Jet, Heavy Jet, Helicopter).";
+  const priceFocus = (filters?.price_range_min || filters?.price_range_max)
+    ? `Price range focus: ${filters.price_range_min || 0}–${filters.price_range_max || "unlimited"} USD.`
+    : "";
+  const customFocus = filters?.focus_areas?.length ? `User-specific focus areas: ${filters.focus_areas.join(", ")}.` : "";
+  const horizonDays = scope === "hourly" ? 2 : scope === "daily" ? 7 : scope === "weekly" ? 30 : 90;
 
-Use BOTH the internal ABOS platform snapshot below AND real-time external context (global economy, fuel prices, regulatory news, geopolitical events) from web search to assess how global and local environmental changes are influencing the market RIGHT NOW.
+  const prompt = `You are a senior aviation market intelligence analyst. Generate a structured ${scopeLabel} for the pre-owned aircraft market.
 
-Internal ABOS snapshot:
+ANALYSIS PRIORITIES (in order):
+1. MACROECONOMIC SIGNALS: Interest rates, inflation, USD/EUR/GBP exchange rates, fuel prices (Jet-A, AvGas), credit availability, global GDP outlook, supply chain disruptions.
+2. POLITICAL & REGULATORY SIGNALS: Analyze EACH regulator/body separately — EASA (Europe), FAA (USA), ICAO (global standards), IATA (airline industry impact on used aircraft supply), CAA (UK), DGCA (India), CAAC (China), Rosaviatsia (Russia), ANAC (Brazil), CAAS (Singapore/Pacific). Also cover: trade sanctions, tariffs on aircraft parts, airspace restrictions, tax treaty changes.
+3. REGIONAL ANALYSIS: For each of these regions provide a specific analysis: ${regionList.join(", ")}.
+4. OPPORTUNITIES & RISKS: Synthesized cross-regional findings.
+5. PREDICTIONS: Make ${scope === "hourly" ? 3 : scope === "daily" ? 4 : scope === "weekly" ? 5 : 6} specific, falsifiable predictions with measurable targets for the next ${horizonDays} days.
+
+PERSONALIZATION:
+${categoryFocus}
+${priceFocus}
+${customFocus}
+
+INTERNAL PLATFORM DATA (ABOS snapshot):
 ${JSON.stringify(snapshot, null, 2)}
 
-Scope: ${scope.toUpperCase()} — calibrate depth, lookback window, and forward-looking horizon accordingly:
-- hourly: sharp pulse, only the most recent 24h shifts
-- daily: 1-3 day window, near-term moves
-- weekly: 7-day window, emerging trends
-- monthly: 30-day window, structural outlook
+SCOPE: ${scope.toUpperCase()} — calibrate depth and horizon accordingly.
+Use real-time web context for ALL macro, political, and regional signals.
 
-Return strict JSON.`;
+Return strict JSON only.`;
 
-  const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+  return base44.asServiceRole.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: true,
     model: "gemini_3_1_pro",
@@ -126,38 +112,70 @@ Return strict JSON.`;
         overall_sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
         executive_summary: { type: "string" },
         key_findings: { type: "array", items: { type: "string" } },
-        global_signals: { type: "array", items: { type: "string" } },
-        local_signals: { type: "array", items: { type: "string" } },
-        opportunities: { type: "array", items: { type: "string" } },
-        risks: { type: "array", items: { type: "string" } },
-        category_breakdown: {
+        macro_economic_signals: {
           type: "array",
           items: {
             type: "object",
             properties: {
-              category: { type: "string" },
-              trend: { type: "string", enum: ["up", "flat", "down"] },
-              commentary: { type: "string" },
+              factor: { type: "string" },
+              impact: { type: "string", enum: ["high", "medium", "low"] },
+              direction: { type: "string", enum: ["positive", "neutral", "negative"] },
+              commentary: { type: "string" }
             },
-            required: ["category", "trend", "commentary"],
-          },
+            required: ["factor", "impact", "direction", "commentary"]
+          }
         },
+        political_regulatory_signals: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              source: { type: "string" },
+              signal: { type: "string" },
+              impact: { type: "string", enum: ["high", "medium", "low"] },
+              direction: { type: "string", enum: ["positive", "neutral", "negative"] }
+            },
+            required: ["source", "signal", "impact", "direction"]
+          }
+        },
+        regional_analysis: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              region: { type: "string" },
+              sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
+              demand_trend: { type: "string", enum: ["growing", "stable", "declining"] },
+              price_trend: { type: "string", enum: ["up", "flat", "down"] },
+              key_drivers: { type: "array", items: { type: "string" } },
+              risks: { type: "array", items: { type: "string" } }
+            },
+            required: ["region", "sentiment", "demand_trend", "price_trend", "key_drivers", "risks"]
+          }
+        },
+        predictions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              statement: { type: "string" },
+              metric: { type: "string" },
+              expected_direction: { type: "string", enum: ["up", "flat", "down"] },
+              expected_change_pct: { type: "number" },
+              horizon_days: { type: "number" },
+              confidence: { type: "string", enum: ["high", "medium", "low"] }
+            },
+            required: ["statement", "metric", "expected_direction", "horizon_days", "confidence"]
+          }
+        },
+        opportunities: { type: "array", items: { type: "string" } },
+        risks: { type: "array", items: { type: "string" } }
       },
-      required: [
-        "title",
-        "overall_sentiment",
-        "executive_summary",
-        "key_findings",
-        "global_signals",
-        "local_signals",
-        "opportunities",
-        "risks",
-        "category_breakdown",
-      ],
-    },
+      required: ["title", "overall_sentiment", "executive_summary", "key_findings",
+        "macro_economic_signals", "political_regulatory_signals", "regional_analysis",
+        "predictions", "opportunities", "risks"]
+    }
   });
-
-  return result;
 }
 
 Deno.serve(async (req) => {
@@ -166,15 +184,17 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { scope = "daily" } = await req.json();
+    const body = await req.json();
+    const { scope = "daily", filters = {} } = body;
+
     if (!SCOPE_COSTS[scope]) {
       return Response.json({ error: "Invalid scope. Use hourly|daily|weekly|monthly." }, { status: 400 });
     }
 
     const cost = SCOPE_COSTS[scope];
 
-    // 0. Cache hit — reuse a fresh report for free (no token deduction).
-    const cached = await findFreshCachedReport(base44, scope);
+    // Cache check (skipped for personalized reports)
+    const cached = await findFreshCachedReport(base44, scope, filters);
     if (cached) {
       const balanceNow = await getBalance(base44, user.email);
       return Response.json({ report: cached, balance: balanceNow, cost: 0, cached: true });
@@ -182,20 +202,12 @@ Deno.serve(async (req) => {
 
     const balance = await getBalance(base44, user.email);
     if (balance < cost) {
-      return Response.json({
-        error: "Insufficient tokens",
-        required: cost,
-        balance,
-      }, { status: 402 });
+      return Response.json({ error: "Insufficient tokens", required: cost, balance }, { status: 402 });
     }
 
-    // 1. Gather data
     const snapshot = await gatherDataSnapshot(base44);
+    const narrative = await generateNarrative(base44, scope, snapshot, filters);
 
-    // 2. Generate narrative (LLM)
-    const narrative = await generateNarrative(base44, scope, snapshot);
-
-    // 3. Deduct tokens (ledger entry)
     const newBalance = balance - cost;
     await base44.asServiceRole.entities.TokenTransaction.create({
       user_email: user.email,
@@ -205,7 +217,6 @@ Deno.serve(async (req) => {
       balance_after: newBalance,
     });
 
-    // 4. Persist report
     const report = await base44.asServiceRole.entities.MarketReport.create({
       user_email: user.email,
       scope,
@@ -213,11 +224,13 @@ Deno.serve(async (req) => {
       overall_sentiment: narrative.overall_sentiment,
       executive_summary: narrative.executive_summary,
       key_findings: narrative.key_findings || [],
-      global_signals: narrative.global_signals || [],
-      local_signals: narrative.local_signals || [],
+      macro_economic_signals: narrative.macro_economic_signals || [],
+      political_regulatory_signals: narrative.political_regulatory_signals || [],
+      regional_analysis: narrative.regional_analysis || [],
+      predictions: narrative.predictions || [],
       opportunities: narrative.opportunities || [],
       risks: narrative.risks || [],
-      category_breakdown: narrative.category_breakdown || [],
+      personalization_filters: Object.keys(filters).length > 0 ? filters : null,
       data_snapshot: snapshot,
       token_cost: cost,
       model_version: "gemini_3_1_pro",

@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import ScopeCard from "@/components/market-reports/ScopeCard";
 import ReportView from "@/components/market-reports/ReportView";
+import PersonalizationPanel from "@/components/market-reports/PersonalizationPanel";
 
 const SCOPES = ["hourly", "daily", "weekly", "monthly"];
 
@@ -14,6 +15,7 @@ export default function MarketReports() {
   const [activeReport, setActiveReport] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [cacheNotice, setCacheNotice] = useState(null);
+  const [filters, setFilters] = useState({});
 
   const { data: user } = useQuery({
     queryKey: ["auth-me"],
@@ -46,7 +48,7 @@ export default function MarketReports() {
     mutationFn: async (scope) => {
       setErrorMsg(null);
       setCacheNotice(null);
-      const res = await base44.functions.invoke("generateMarketReport", { scope });
+      const res = await base44.functions.invoke("generateMarketReport", { scope, filters });
       return res.data;
     },
     onSuccess: (data) => {
@@ -112,6 +114,9 @@ export default function MarketReports() {
           <p className="text-sm text-green-800">{cacheNotice}</p>
         </div>
       )}
+
+      {/* Personalization */}
+      <PersonalizationPanel filters={filters} onChange={setFilters} />
 
       {/* Scope cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">

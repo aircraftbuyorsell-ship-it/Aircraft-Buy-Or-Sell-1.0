@@ -107,26 +107,26 @@ export default function Dashboard() {
           >
             <Lock className={`w-3.5 h-3.5 ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`} />
             <p className={`text-[11px] uppercase tracking-[0.15em] font-bold ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`}>
-              Private · Verified Dealers & Brokers Only
+              Exclusive · Verified Aviation Professionals Only
             </p>
           </div>
 
           <h1 className={`text-3xl md:text-5xl lg:text-6xl font-black leading-[1.12] uppercase tracking-tight max-w-5xl mx-auto ${isDark ? "text-white" : "text-[#1A1814]"}`}>
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Reports</span>
+            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Intelligence</span>
             {" · "}
-            <span className="text-[#E8A83A]">Live Tracking</span>
+            <span className="text-[#E8A83A]">ADS-B Surveillance</span>
             {" · "}
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Pre-Buy</span>
+            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Pre-Buy Analysis</span>
             {" · "}
-            <span className="text-[#E8A83A]">ESCROW</span>
+            <span className="text-[#E8A83A]">Secure Escrow</span>
           </h1>
 
           <p className={`text-sm md:text-base mt-5 max-w-3xl mx-auto leading-relaxed ${isDark ? "text-white/75" : "text-[#4A4845]"}`}>
-            The professional aviation platform for verified dealers and brokers. Generate{" "}
-            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI intelligence reports</b>, track any aircraft{" "}
-            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>live via ADS-B</b>, run an{" "}
-            <b className="text-[#E8A83A]">AI-powered pre-buy with Max</b>, and close deals through{" "}
-            <b className="text-[#E8A83A]">protected escrow</b>.
+            The private intelligence network for verified aviation dealers and brokers. Issue{" "}
+            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI transaction intelligence reports</b>, surveil any aircraft{" "}
+            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>in real time via ADS-B</b>, conduct{" "}
+            <b className="text-[#E8A83A]">AI-assisted pre-buy inspections with Max</b>, and execute transactions through{" "}
+            <b className="text-[#E8A83A]">protected escrow with full commission management</b>.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-3 justify-center items-center">
@@ -136,7 +136,7 @@ export default function Dashboard() {
               style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 20px rgba(11,45,91,0.35)"}}
             >
               <ShieldCheck className="w-4.5 h-4.5" />
-              ATI Report
+              Generate ATI Report
             </Link>
             <Link
               to="/pre-buy-inspection"
@@ -144,7 +144,7 @@ export default function Dashboard() {
               style={{background:"linear-gradient(135deg,#E8A83A,#F5C842)", boxShadow:"0 4px 20px rgba(232,168,58,0.35)"}}
             >
               <Plane className="w-4.5 h-4.5" />
-              Live Pre-Buy with Max
+              AI Pre-Buy Inspection
             </Link>
             <Link
               to="/live-traffic"
@@ -179,7 +179,7 @@ export default function Dashboard() {
           </div>
 
           <p className={`text-[11px] uppercase tracking-wider mt-6 font-medium ${isDark ? "text-white/50" : "text-[#6B6560]"}`}>
-            <Link to="/rewards" className="text-[#E8A83A] hover:underline">🎁 Earn rewards</Link> — refer professionals and unlock benefits.
+            <Link to="/rewards" className="text-[#E8A83A] hover:underline">Referral Program</Link> — introduce qualified professionals and earn revenue share.
           </p>
         </div>
       </section>
@@ -189,15 +189,15 @@ export default function Dashboard() {
 
       {/* ———————— PILLARS ———————— */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Why Choose ABOS</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Platform Capabilities</p>
         <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight mt-2 max-w-3xl mx-auto leading-tight">
-          Professional-Grade Intelligence, Transparency & Results
+          Institutional-Grade Transaction Intelligence for Aviation Professionals
         </h2>
         <div className="grid md:grid-cols-4 gap-4 mt-12">
-          <PillarCard icon={ShieldCheck} title="ATI Report" body="Full aircraft intelligence scoring across 8 dimensions — documentation, engine, avionics, usage risk, and more." />
-          <PillarCard icon={Radar} title="Live ADS-B Tracking" body="Track any aircraft in real time by N-number or Mode-S hex. Live position, altitude, speed, and 7-day history." />
-          <PillarCard icon={TrendingUp} title="AI Pre-Buy Inspection" body="Point your phone at the aircraft and Max AI analyses the live feed — calling out corrosion, wear, and issues by voice." />
-          <PillarCard icon={Handshake} title="Secure Escrow" body="Protected buyer-seller escrow with transparent commission management, finder's fees, and payout tracking." />
+          <PillarCard icon={ShieldCheck} title="ATI Transaction Report" body="Comprehensive aircraft intelligence scoring across 8 risk dimensions — documentation integrity, engine condition, avionics fit, operational history, and transaction readiness." />
+          <PillarCard icon={Radar} title="ADS-B Surveillance" body="Real-time aircraft surveillance by N-number or Mode-S hex. Live position, altitude, ground speed, and 7-day operational history." />
+          <PillarCard icon={TrendingUp} title="AI Pre-Buy Inspection" body="On-site AI inspection with Max — live visual analysis of airframe, corrosion, interior condition, and maintenance discrepancies delivered by voice." />
+          <PillarCard icon={Handshake} title="Escrow & Commission Management" body="Protected buyer-seller escrow with automated commission splits, finder's fee allocation, and full payout audit trail." />
         </div>
       </section>
 
@@ -214,15 +214,15 @@ export default function Dashboard() {
               boxShadow: "0 8px 40px rgba(11,45,91,0.08)"
             }}
           >
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[#E8A83A] font-bold text-center">Platform Overview</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-[#E8A83A] font-bold text-center">Live Platform Metrics</p>
             <h3 className="text-xl md:text-2xl font-black text-[#0B2D5B] text-center mt-1 uppercase tracking-tight">
-              Active Inventory & Intelligence
+              Active Inventory & Transaction Intelligence
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
-              <StatPill value={total_listings} label="Aircraft Listed" />
-              <StatPill value={evaluated} label="Reports Generated" />
-              <StatPill value={hot_deals} label="Featured Deals" />
-              <StatPill value={avg_ati || "—"} label="Avg Report Score" />
+              <StatPill value={total_listings} label="Aircraft On Market" />
+              <StatPill value={evaluated} label="ATI Reports Issued" />
+              <StatPill value={hot_deals} label="High-Value Opportunities" />
+              <StatPill value={avg_ati || "—"} label="Avg ATI Score" />
             </div>
           </div>
         </div>
@@ -230,16 +230,16 @@ export default function Dashboard() {
 
       {/* ———————— HOW IT WORKS ———————— */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">How It Works</p>
+        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Transaction Workflow</p>
         <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight mt-2">
-          Simple Process, Professional Results
+          From Intelligence to Close — Four Professional Steps
         </h2>
         <div className="grid md:grid-cols-4 gap-5 mt-12">
           {[
-            { n: "01", title: "Generate ATI Report", body: "Add an aircraft and instantly generate a professional ATI intelligence report scoring 8 dimensions." },
-            { n: "02", title: "Live Pre-Buy with Max", body: "On-site inspection? Point your camera at the aircraft and Max AI analyses the live feed by voice." },
-            { n: "03", title: "Track it Live", body: "Verify the aircraft is active. Track it by N-number via ADS-B — real-time position and 7-day history." },
-            { n: "04", title: "Close via Escrow", body: "Execute through protected escrow. Commission splits, finder's fees, and payouts all managed on-platform." }
+            { n: "01", title: "Issue ATI Intelligence Report", body: "Add an aircraft registration and instantly generate a verified ATI transaction report scoring 8 risk dimensions — documentation, engine, avionics, and market readiness." },
+            { n: "02", title: "Conduct AI Pre-Buy Inspection", body: "On-site with the aircraft? Engage Max AI for a live visual inspection — airframe condition, corrosion indicators, and maintenance status assessed in real time." },
+            { n: "03", title: "Verify & Surveil via ADS-B", body: "Confirm operational status. Surveil the aircraft by N-number or Mode-S hex — live position, altitude, speed, and 7-day flight history." },
+            { n: "04", title: "Execute via Secure Escrow", body: "Structured deal execution through protected escrow. Commission splits, finder's fees, buyer-seller funds flow, and payout audit managed on-platform." }
           ].map((s) => (
             <div key={s.n} className="glass-card p-6">
               <p className="text-4xl font-black text-[#E8A83A] leading-none">{s.n}</p>
@@ -254,7 +254,7 @@ export default function Dashboard() {
             className="inline-flex items-center gap-2 text-white uppercase font-bold text-sm px-8 py-4 rounded-2xl tracking-wider transition-all active:scale-95"
             style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 24px rgba(11,45,91,0.30)"}}
           >
-            Start Using ABOS <ArrowRight className="w-4 h-4" />
+            Access the Platform <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
@@ -263,15 +263,15 @@ export default function Dashboard() {
       <section className="py-16 md:py-20"
         style={{background:"linear-gradient(135deg,#0B2D5B 0%,#0d3566 50%,#0B2D5B 100%)"}}>
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">For Aviation Professionals</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Who We Serve</p>
           <h2 className="text-2xl md:text-3xl font-black text-white text-center uppercase tracking-tight mt-2">
-            Built For Dealers, Brokers & Operators
+            Purpose-Built for Dealers, Brokers & Operators
           </h2>
           <div className="grid md:grid-cols-3 gap-4 mt-12">
             {[
-              { icon: Users, title: "Aircraft Dealers", body: "Manage your inventory with verified intelligence reports. Showcase aircraft professionally and attract qualified buyers." },
-              { icon: Handshake, title: "Brokers", body: "Close deals faster with secure escrow and transparent commission management. Professional tools for every transaction." },
-              { icon: TrendingUp, title: "Operators", body: "Find quality aircraft, verify ownership and condition, and execute transactions securely with professional support." }
+              { icon: Users, title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to qualified institutional buyers and accelerate your sales cycle." },
+              { icon: Handshake, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline tools for every transaction stage." },
+              { icon: TrendingUp, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured, transparent transaction process." }
             ].map((x) => (
               <div
                 key={x.title}
@@ -292,7 +292,7 @@ export default function Dashboard() {
             ))}
           </div>
           <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3">
-            {["Verified aircraft reports","Secure escrow services","Commission management","Professional network","Real-time tracking","Transparent pricing"].map((x) => (
+            {["ATI Transaction Reports","Secure Escrow Execution","Commission & Fee Management","Verified Professional Network","Real-Time ADS-B Surveillance","Transparent Deal Pricing"].map((x) => (
               <div key={x} className="flex items-center gap-2 text-sm text-white/80">
                 <CheckCircle2 className="w-4 h-4 text-[#E8A83A]" />
                 {x}
@@ -311,8 +311,8 @@ export default function Dashboard() {
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
         <div className="flex items-end justify-between mb-8 flex-wrap gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Featured</p>
-            <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight mt-1">Aircraft Reports</h2>
+            <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Active Listings</p>
+            <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight mt-1">ATI-Evaluated Aircraft</h2>
           </div>
           <Link to="/listings" className="text-sm font-bold text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition-colors flex items-center gap-1">
             View All <ArrowRight className="w-4 h-4" />
@@ -364,18 +364,18 @@ export default function Dashboard() {
       <section className="py-16 text-center">
         <div className="max-w-2xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight">
-            One Platform. <span className="text-[#0B2D5B]">Professional Standards.</span>{" "}
-            <span className="text-[#E8A83A]">Results That Matter.</span>
+            One Platform. <span className="text-[#0B2D5B]">Institutional Standards.</span>{" "}
+            <span className="text-[#E8A83A]">Verified Results.</span>
           </h2>
           <p className="text-[#4A4845] text-sm md:text-base mt-3">
-            ABOS is the trusted platform for aviation professionals who demand transparency, efficiency, and results.
+            ABOS is the private intelligence network trusted by aviation dealers and brokers who require rigorous transaction due diligence, secure deal execution, and auditable outcomes.
           </p>
           <Link
             to="/listings"
             className="inline-flex items-center gap-2 text-white uppercase font-bold text-sm px-8 py-4 rounded-2xl tracking-wider transition-all active:scale-95 mt-8"
             style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 24px rgba(11,45,91,0.28)"}}
           >
-            Get Started <ArrowRight className="w-4 h-4" />
+            Enter the Platform <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>

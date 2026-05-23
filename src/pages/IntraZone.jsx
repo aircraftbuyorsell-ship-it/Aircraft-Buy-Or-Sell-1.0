@@ -45,11 +45,11 @@ export default function IntraZone() {
             <Zap className="w-4 h-4 text-[#0B2D5B]" />
           </div>
           <div>
-            <p className="text-[#E8A83A]/70 text-[9px] uppercase tracking-[0.25em] font-bold">Sales Acceleration Platform</p>
+            <p className="text-[#E8A83A]/70 text-[9px] uppercase tracking-[0.25em] font-bold">Deal Origination & Execution</p>
             <h1 className="text-2xl font-black text-white tracking-tight uppercase leading-none">IntraZone</h1>
           </div>
         </div>
-        <p className="text-white/40 text-xs mt-1.5 ml-11 mb-4">Sell more. Sell faster. Negotiate with data.</p>
+        <p className="text-white/40 text-xs mt-1.5 ml-11 mb-4">Qualify leads faster. Structure better deals. Close with data-driven confidence.</p>
 
         {/* Grouped Tabs */}
         <div className="flex flex-wrap gap-x-5 gap-y-2">

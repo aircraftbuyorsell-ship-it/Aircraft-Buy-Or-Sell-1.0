@@ -213,7 +213,7 @@ export default function Layout() {
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
               fontSize:"9px", fontWeight:900, letterSpacing:"0.22em", textTransform:"uppercase"
             }}>Navigation</p>
-            <p className="text-white/30 text-[11px] mt-0.5">ABOS command graph</p>
+            <p className="text-white/30 text-[11px] mt-0.5">Aviation Intelligence Platform</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -303,7 +303,7 @@ export default function Layout() {
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
                 fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
               }}>ABOS v2.0</p>
-              <p className="text-white/25 text-[9px] tracking-wider">Aviation IntraZone · Live</p>
+              <p className="text-white/25 text-[9px] tracking-wider">Private Dealer Intelligence · Live</p>
             </div>
           </div>
         </div>

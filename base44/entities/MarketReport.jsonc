@@ -1,0 +1,154 @@
+{
+  "name": "MarketReport",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the user who generated (and paid for) this report"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "daily",
+      "description": "Report timeframe scope"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable report title"
+    },
+    "overall_sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative"
+      ],
+      "description": "Overall market sentiment for the period"
+    },
+    "executive_summary": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "AI-generated executive summary narrative"
+    },
+    "key_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Top bullet findings"
+    },
+    "global_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Global environment signals affecting the market"
+    },
+    "local_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Local / regional signals affecting the market"
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "category_breakdown": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "up",
+              "flat",
+              "down"
+            ]
+          },
+          "commentary": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Per-category market trend rows"
+    },
+    "data_snapshot": {
+      "type": "object",
+      "description": "Snapshot of metrics used to generate this report (listings count, avg price, deal scores, etc.)"
+    },
+    "token_cost": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Tokens deducted to generate this report"
+    },
+    "model_version": {
+      "type": "string",
+      "default": "gemini_3_1_pro"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_email",
+    "scope"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -29,6 +29,7 @@ import PreBuyInspection from "./pages/PreBuyInspection";
 import AdminDataCleanup from "./pages/AdminDataCleanup";
 import IntraZone from "./pages/IntraZone";
 import Community from "./pages/Community";
+import MarketReports from "./pages/MarketReports";
 import GDPRConsentBanner from "./components/GDPRConsentBanner";
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
@@ -87,6 +88,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
         <Route path="/intrazone" element={<IntraZone />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/market-reports" element={<MarketReports />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

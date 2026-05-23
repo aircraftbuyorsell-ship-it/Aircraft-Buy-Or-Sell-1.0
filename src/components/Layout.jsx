@@ -33,6 +33,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/deal-radar", label: "Deal Radar", icon: Radar },
       { path: "/cached-traffic", label: "Cached Traffic", icon: Radar },
       { path: "/analytics", label: "Analytics", icon: BarChart3 },
+      { path: "/market-reports", label: "Market Reports", icon: TrendingUp },
     ],
   },
   {

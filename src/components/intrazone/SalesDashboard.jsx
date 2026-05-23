@@ -35,9 +35,24 @@ const STAGE_COLOR = {
 // ── KPI Card ─────────────────────────────────────────────────────
 function KPICard({ icon: Icon, label, value, sub, color = "#0B2D5B", trend }) {
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}18` }}>
+    <div className="rounded-2xl p-5 relative overflow-hidden"
+      style={{
+        background: "linear-gradient(145deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.44) 100%)",
+        backdropFilter: "blur(28px) saturate(180%) brightness(1.06)",
+        WebkitBackdropFilter: "blur(28px) saturate(180%) brightness(1.06)",
+        border: "1px solid rgba(255,255,255,0.75)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.95)"
+      }}>
+      {/* specular highlight */}
+      <div style={{position:"absolute",top:0,left:0,right:0,height:"40%",background:"linear-gradient(180deg,rgba(255,255,255,0.35) 0%,transparent 100%)",borderRadius:"inherit",pointerEvents:"none"}} />
+      <div className="flex items-start justify-between mb-3 relative">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{
+            background:`linear-gradient(135deg,${color}22,${color}0a)`,
+            border:`1px solid ${color}30`,
+            backdropFilter:"blur(8px)",
+            boxShadow:`0 2px 10px ${color}18`
+          }}>
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
         {trend !== undefined && (
@@ -47,18 +62,30 @@ function KPICard({ icon: Icon, label, value, sub, color = "#0B2D5B", trend }) {
           </span>
         )}
       </div>
-      <p className="text-2xl font-black text-[#1A1814] leading-none">{value}</p>
-      <p className="text-[10px] font-bold text-[#AAA49C] uppercase tracking-wider mt-1">{label}</p>
-      {sub && <p className="text-[11px] text-[#6B6560] mt-0.5">{sub}</p>}
+      <p className="text-2xl font-black text-[#1A1814] leading-none relative">{value}</p>
+      <p className="text-[10px] font-bold text-[#AAA49C] uppercase tracking-wider mt-1 relative">{label}</p>
+      {sub && <p className="text-[11px] text-[#6B6560] mt-0.5 relative">{sub}</p>}
     </div>
   );
 }
 
 function SectionTitle({ children }) {
   return (
-    <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#E8A83A] mb-3">{children}</p>
+    <p className="text-[10px] uppercase tracking-[0.18em] font-black mb-3"
+      style={{
+        background:"linear-gradient(90deg,#D4A017,#E8A83A)",
+        WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
+      }}>{children}</p>
   );
 }
+
+const glassCard = {
+  background: "linear-gradient(145deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 100%)",
+  backdropFilter: "blur(28px) saturate(180%) brightness(1.05)",
+  WebkitBackdropFilter: "blur(28px) saturate(180%) brightness(1.05)",
+  border: "1px solid rgba(255,255,255,0.72)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.92)"
+};
 
 // ── Funnel Stage Chart ────────────────────────────────────────────
 function FunnelStageChart({ leads }) {
@@ -70,7 +97,7 @@ function FunnelStageChart({ leads }) {
   })).filter(d => d.value > 0);
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
+    <div className="rounded-2xl p-5" style={glassCard}>
       <SectionTitle>Pipeline Funnel</SectionTitle>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
@@ -105,7 +132,7 @@ function SourceConversionChart({ leads }) {
   })).sort((a, b) => b.total - a.total);
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
+    <div className="rounded-2xl p-5" style={glassCard}>
       <SectionTitle>Leads by Source</SectionTitle>
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
@@ -146,7 +173,7 @@ function SalesCycleTrend({ leads, escrows }) {
   });
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5 lg:col-span-2">
+    <div className="rounded-2xl p-5 lg:col-span-2" style={glassCard}>
       <SectionTitle>6-Month Sales Activity Trend</SectionTitle>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
@@ -178,7 +205,7 @@ function ScoreDistributionChart({ leads }) {
   }));
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
+    <div className="rounded-2xl p-5" style={glassCard}>
       <SectionTitle>Lead Quality Distribution</SectionTitle>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={data} margin={{ top: 4, right: 10, left: 0, bottom: 0 }}>
@@ -205,7 +232,7 @@ function EscrowStatusChart({ escrows }) {
   const COLORS = ["#94A3B8","#60A5FA","#818CF8","#FBBF24","#34D399","#10B981","#28C76F","#059669","#F87171"];
 
   return (
-    <div className="bg-white rounded-2xl border border-black/[0.07] p-5">
+    <div className="rounded-2xl p-5" style={glassCard}>
       <SectionTitle>Escrow Transaction Stages</SectionTitle>
       {data.length === 0 ? (
         <p className="text-sm text-[#AAA49C] text-center py-8">No escrow data yet</p>
@@ -215,7 +242,7 @@ function EscrowStatusChart({ escrows }) {
             <div key={d.name} className="flex items-center gap-2 text-[11px]">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
               <span className="text-[#6B6560] capitalize flex-1">{d.name}</span>
-              <div className="flex-1 bg-[#F7F4EF] rounded-full h-1.5 overflow-hidden">
+              <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{background:"rgba(0,0,0,0.06)"}}>
                 <div className="h-full rounded-full" style={{ width: `${Math.round((d.value / escrows.length) * 100)}%`, background: COLORS[i % COLORS.length] }} />
               </div>
               <span className="font-black text-[#1A1814] w-4 text-right">{d.value}</span>
@@ -303,11 +330,17 @@ export default function SalesDashboard() {
 
       {/* Quick insight callouts */}
       {leads.length > 0 && (
-        <div className="rounded-2xl border border-[#E8A83A]/30 bg-[#E8A83A]/06 p-5">
+        <div className="rounded-2xl p-5" style={{
+            background:"linear-gradient(145deg,rgba(232,168,58,0.10),rgba(232,168,58,0.03))",
+            backdropFilter:"blur(20px) saturate(160%)",
+            WebkitBackdropFilter:"blur(20px) saturate(160%)",
+            border:"1px solid rgba(232,168,58,0.22)",
+            boxShadow:"0 4px 20px rgba(232,168,58,0.06), inset 0 1px 0 rgba(255,255,255,0.60)"
+          }}>
           <SectionTitle>Insights & Next Actions</SectionTitle>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {kpis.convRate < 15 && (
-              <div className="flex gap-2.5 p-3 rounded-xl bg-white border border-black/[0.07]">
+              <div className="flex gap-2.5 p-3 rounded-xl" style={glassCard}>
                 <ArrowRight className="w-4 h-4 text-[#E8A83A] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] font-black text-[#1A1814]">Conversion below 15%</p>
@@ -316,7 +349,7 @@ export default function SalesDashboard() {
               </div>
             )}
             {kpis.hotLeads > 0 && (
-              <div className="flex gap-2.5 p-3 rounded-xl bg-white border border-black/[0.07]">
+              <div className="flex gap-2.5 p-3 rounded-xl" style={glassCard}>
                 <ArrowRight className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] font-black text-[#1A1814]">{kpis.hotLeads} Hot Lead{kpis.hotLeads > 1 ? "s" : ""} ready</p>
@@ -325,7 +358,7 @@ export default function SalesDashboard() {
               </div>
             )}
             {kpis.avgDays !== null && kpis.avgDays > 30 && (
-              <div className="flex gap-2.5 p-3 rounded-xl bg-white border border-black/[0.07]">
+              <div className="flex gap-2.5 p-3 rounded-xl" style={glassCard}>
                 <ArrowRight className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] font-black text-[#1A1814]">Cycle {kpis.avgDays}d — above target</p>
@@ -334,7 +367,7 @@ export default function SalesDashboard() {
               </div>
             )}
             {listings.length > 0 && (
-              <div className="flex gap-2.5 p-3 rounded-xl bg-white border border-black/[0.07]">
+              <div className="flex gap-2.5 p-3 rounded-xl" style={glassCard}>
                 <ArrowRight className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] font-black text-[#1A1814]">{listings.length} Active Listings</p>

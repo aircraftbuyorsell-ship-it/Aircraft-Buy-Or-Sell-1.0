@@ -109,12 +109,23 @@ export default function Layout() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 glass-pill pl-1.5 pr-3 py-1 transition-all hover:scale-[1.02] active:scale-95">
+          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:scale-[1.02] active:scale-95 pl-1.5 pr-3 py-1 rounded-full"
+            style={{
+              background:"rgba(255,255,255,0.48)",
+              backdropFilter:"blur(20px) saturate(180%)",
+              WebkitBackdropFilter:"blur(20px) saturate(180%)",
+              border:"1px solid rgba(255,255,255,0.65)",
+              boxShadow:"0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.90)"
+            }}>
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-              style={{background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 12px rgba(11,45,91,0.30)"}}>
+              style={{background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 12px rgba(11,45,91,0.35)"}}>
               <Plane className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-black text-sm tracking-[-0.04em] text-[#0B2D5B] dark:text-white truncate hidden sm:block">
+            <span className="font-black text-sm tracking-[-0.04em] hidden sm:block"
+              style={{
+                background:"linear-gradient(135deg,#0B2D5B 0%,#1A4A8A 100%)",
+                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
+              }}>
               ABOS
             </span>
           </Link>
@@ -175,7 +186,7 @@ export default function Layout() {
         />
       )}
 
-      {/* Sidebar — iOS Liquid Glass panel */}
+      {/* Sidebar — Deep Liquid Glass panel */}
       <aside
         onMouseMove={() => sidebarOpen && resetIdle()}
         className={`
@@ -185,22 +196,33 @@ export default function Layout() {
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         style={{
-          background: "rgba(6, 8, 18, 0.82)",
-          backdropFilter: "blur(48px) saturate(200%)",
-          WebkitBackdropFilter: "blur(48px) saturate(200%)",
-          borderRight: "1px solid rgba(255,255,255,0.09)",
-          boxShadow: "8px 0 48px rgba(0,0,0,0.38), 1px 0 0 rgba(255,255,255,0.05)"
+          background: "linear-gradient(160deg, rgba(8,12,28,0.92) 0%, rgba(4,8,20,0.96) 100%)",
+          backdropFilter: "blur(64px) saturate(240%) brightness(0.88)",
+          WebkitBackdropFilter: "blur(64px) saturate(240%) brightness(0.88)",
+          borderRight: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "12px 0 60px rgba(0,0,0,0.55), 1px 0 0 rgba(255,255,255,0.04), inset -1px 0 0 rgba(255,255,255,0.03)"
         }}
       >
-        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        {/* Top specular line */}
+        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 40%, rgba(232,168,58,0.18) 60%, transparent 100%)"}} />
+
+        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
           <div>
-            <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.22em] font-bold">Navigation</p>
-            <p className="text-white/40 text-[11px] mt-0.5">ABOS command graph</p>
+            <p style={{
+              background:"linear-gradient(90deg,#F5C842,#E8A83A)",
+              WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+              fontSize:"9px", fontWeight:900, letterSpacing:"0.22em", textTransform:"uppercase"
+            }}>Navigation</p>
+            <p className="text-white/30 text-[11px] mt-0.5">ABOS command graph</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90"
-            style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.10)"}}
+            style={{
+              background:"rgba(255,255,255,0.06)",
+              border:"1px solid rgba(255,255,255,0.10)",
+              backdropFilter:"blur(8px)"
+            }}
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
@@ -208,12 +230,21 @@ export default function Layout() {
 
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {SIDEBAR_SECTIONS.map((section, idx) => (
-            <div key={section.n} className={idx > 0 ? "mt-5" : ""}>
+            <div key={section.n} className={idx > 0 ? "mt-6" : ""}>
               <div className="flex items-center gap-2 px-3 pb-2">
-                <div className="w-5 h-5 rounded-full bg-[#E8A83A]/20 border border-[#E8A83A]/40 flex items-center justify-center shadow-[0_0_18px_rgba(232,168,58,0.14)]">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{
+                    background:"linear-gradient(135deg,rgba(232,168,58,0.25),rgba(232,168,58,0.08))",
+                    border:"1px solid rgba(232,168,58,0.35)",
+                    boxShadow:"0 0 18px rgba(232,168,58,0.18), inset 0 1px 0 rgba(255,255,255,0.12)"
+                  }}>
                   <span className="text-[9px] font-black text-[#E8A83A] leading-none">{section.n}</span>
                 </div>
-                <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">{section.label}</p>
+                <p style={{
+                  background:"linear-gradient(90deg,rgba(245,200,66,0.9),rgba(232,168,58,0.6))",
+                  WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+                  fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
+                }}>{section.label}</p>
               </div>
               <div className="space-y-0.5">
                 {section.items.map(({ path, label, icon: NavIcon }) => {
@@ -224,19 +255,28 @@ export default function Layout() {
                       to={path}
                       className={`
                         relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold tracking-[0.005em] transition-all duration-150
-                        ${active
-                          ? "text-white"
-                          : "text-white/45 hover:text-white/80 hover:bg-white/[0.05]"}
+                        ${active ? "text-white" : "text-white/38 hover:text-white/75"}
                       `}
                       style={active ? {
-                        background: "linear-gradient(135deg, rgba(232,168,58,0.18), rgba(232,168,58,0.08))",
-                        border: "1px solid rgba(232,168,58,0.28)",
-                        boxShadow: "0 2px 14px rgba(232,168,58,0.10), inset 0 1px 0 rgba(255,255,255,0.08)"
-                      } : {border: "1px solid transparent"}}
+                        background: "linear-gradient(135deg, rgba(232,168,58,0.20) 0%, rgba(232,168,58,0.06) 100%)",
+                        border: "1px solid rgba(232,168,58,0.30)",
+                        boxShadow: "0 4px 20px rgba(232,168,58,0.12), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(232,168,58,0.08)",
+                        backdropFilter:"blur(12px)"
+                      } : {
+                        border: "1px solid transparent",
+                        background: "transparent"
+                      }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
                     >
-                      <NavIcon className="w-3.5 h-3.5 shrink-0" />
+                      <NavIcon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#E8A83A]" : ""}`} />
                       <span>{label}</span>
-                      {active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#E8A83A]" />}
+                      {active && (
+                        <div className="ml-auto flex items-center gap-1.5">
+                          <div className="w-1 h-1 rounded-full bg-[#E8A83A]/60" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#E8A83A]" style={{boxShadow:"0 0 6px rgba(232,168,58,0.8)"}} />
+                        </div>
+                      )}
                     </Link>
                   );
                 })}
@@ -245,15 +285,24 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="px-4 py-4" style={{borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+        <div className="px-4 py-4" style={{borderTop:"1px solid rgba(255,255,255,0.05)"}}>
           <div
             className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-            style={{background:"rgba(232,168,58,0.08)", border:"1px solid rgba(232,168,58,0.14)"}}
+            style={{
+              background:"linear-gradient(135deg,rgba(232,168,58,0.10),rgba(232,168,58,0.03))",
+              border:"1px solid rgba(232,168,58,0.16)",
+              backdropFilter:"blur(16px)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)"
+            }}
           >
-            <div className="w-2 h-2 rounded-full bg-[#28C76F] animate-pulse shrink-0" style={{boxShadow:"0 0 8px rgba(40,199,111,0.6)"}} />
+            <div className="w-2 h-2 rounded-full bg-[#28C76F] animate-pulse shrink-0" style={{boxShadow:"0 0 10px rgba(40,199,111,0.7)"}} />
             <div>
-              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold">ABOS v2.0</p>
-              <p className="text-white/30 text-[9px] tracking-wider">Aviation IntraZone · Live</p>
+              <p style={{
+                background:"linear-gradient(90deg,#F5C842,#E8A83A)",
+                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
+                fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
+              }}>ABOS v2.0</p>
+              <p className="text-white/25 text-[9px] tracking-wider">Aviation IntraZone · Live</p>
             </div>
           </div>
         </div>

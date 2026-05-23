@@ -88,7 +88,7 @@ export default function Layout() {
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
       {/* Top bar — iOS Liquid Glass Navbar */}
-      <header className="sticky top-0 z-40 glass-navbar safe-top">
+      <header className="sticky top-0 z-40 glass-navbar safe-top" style={{WebkitBackdropFilter:"blur(44px) saturate(220%) brightness(1.04)"}}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
           {showBack ? (
             <button
@@ -254,20 +254,21 @@ export default function Layout() {
                       key={path}
                       to={path}
                       className={`
-                        relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold tracking-[0.005em] transition-all duration-150
-                        ${active ? "text-white" : "text-white/38 hover:text-white/75"}
-                      `}
-                      style={active ? {
-                        background: "linear-gradient(135deg, rgba(232,168,58,0.20) 0%, rgba(232,168,58,0.06) 100%)",
-                        border: "1px solid rgba(232,168,58,0.30)",
-                        boxShadow: "0 4px 20px rgba(232,168,58,0.12), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(232,168,58,0.08)",
-                        backdropFilter:"blur(12px)"
-                      } : {
-                        border: "1px solid transparent",
-                        background: "transparent"
-                      }}
-                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                            relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold tracking-[0.005em] transition-all duration-150
+                            ${active ? "text-white" : "text-white/40 hover:text-white/80"}
+                          `}
+                              style={active ? {
+                                background: "linear-gradient(135deg, rgba(232,168,58,0.26) 0%, rgba(232,168,58,0.10) 100%)",
+                                border: "1px solid rgba(232,168,58,0.40)",
+                                boxShadow: "0 4px 20px rgba(232,168,58,0.18), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 12px rgba(232,168,58,0.08)",
+                                backdropFilter:"blur(20px) saturate(200%)",
+                                WebkitBackdropFilter:"blur(20px) saturate(200%)"
+                              } : {
+                                border: "1px solid transparent",
+                                background: "transparent"
+                              }}
+                              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)"; }}}
+                              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.border = "1px solid transparent"; }}}
                     >
                       <NavIcon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#E8A83A]" : ""}`} />
                       <span>{label}</span>

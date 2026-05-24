@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
+import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
@@ -158,6 +159,9 @@ export default function AdminSettings() {
           {saveMutation.isPending ? "Saving..." : saved ? "✓ Saved" : "Save Settings"}
         </Button>
       </div>
+
+      {/* Auto ATI Scoring */}
+      <AutoScoringPanel />
 
       {/* Webhooks */}
       <WebhooksConfig />

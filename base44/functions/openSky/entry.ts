@@ -1,18 +1,127 @@
-// OpenSky Network API proxy — anonymous or OAuth2 client-credentials.
+// Aircraft live tracking proxy — primary: adsb.lol (free, no key), fallback: OpenSky OAuth2
 // Actions:
 //   action="state"       params: { icao24 }           → live position/altitude/velocity + fuel/ops estimates
 //   action="flights"     params: { icao24, days=7 }   → recent flights (history)
 //   action="track"       params: { icao24 }           → trajectory waypoints
-//   action="inflight"    params: { icao24 }           → current flight ops (fuel burn, endurance)
+//   action="inflight"    params: { icao24 }            → current flight ops (fuel burn, endurance)
 //   action="map_states"  params: { lamin, lomin, lamax, lomax, allow_heavy, limit } → area sweep + enrichment
 //   action="history_states" params: { lamin, lomin, lamax, lomax, ts, allow_heavy, limit } → archived or live fallback
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const ADSBIOL_BASE = "https://api.adsb.lol/v2";
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
 const FETCH_TIMEOUT = 12000;
 const RESERVE_MIN = 45;
+
+// ─── ADSB.lol helpers ────────────────────────────────────────────────────────
+
+async function adsbFetch(path) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+  try {
+    const res = await fetch(`${ADSBIOL_BASE}${path}`, {
+      headers: { "User-Agent": "ABOS-Aviation-Platform/2.0" },
+      signal: ctrl.signal,
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`adsb.lol ${res.status}`);
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("ADS-B request timed out — try again shortly");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Convert adsb.lol aircraft object → OpenSky-compatible state object
+function parseAdsbAc(ac) {
+  if (!ac || !ac.hex) return null;
+  const lat = ac.lat ?? null;
+  const lon = ac.lon ?? null;
+  if (lat == null || lon == null) return null;
+
+  // alt_baro is in feet for adsb.lol; convert to metres
+  const altFt = typeof ac.alt_baro === "number" ? ac.alt_baro : null;
+  const altM = altFt != null ? altFt * 0.3048 : null;
+
+  // gs in knots → m/s
+  const speedKt = typeof ac.gs === "number" ? ac.gs : null;
+  const speedMs = speedKt != null ? speedKt * 0.514444 : null;
+
+  // baro_rate in ft/min → m/s
+  const vrateFtMin = typeof ac.baro_rate === "number" ? ac.baro_rate : null;
+  const vrateMs = vrateFtMin != null ? vrateFtMin * 0.00508 : null;
+
+  // category: adsb.lol uses strings like "A1"–"A7", "B1"–"B4", "C1"–"C7"
+  let category = 0;
+  if (ac.category) {
+    const c = String(ac.category);
+    if (c.startsWith("A")) category = parseInt(c[1]) || 0;
+    else if (c.startsWith("B")) category = 8; // rotorcraft-ish
+    else if (c.startsWith("C")) category = 9; // glider-ish
+  }
+
+  return {
+    icao24: ac.hex.toLowerCase(),
+    callsign: (ac.flight || ac.r || "").trim() || null,
+    origin_country: ac.ownOp || null,
+    time_position: ac.seen_pos != null ? Math.floor(Date.now() / 1000) - ac.seen_pos : null,
+    last_contact: ac.seen != null ? Math.floor(Date.now() / 1000) - ac.seen : null,
+    longitude: lon,
+    latitude: lat,
+    baro_altitude: altM,
+    on_ground: ac.alt_baro === "ground" || altFt === 0,
+    velocity: speedMs,
+    true_track: typeof ac.track === "number" ? ac.track : null,
+    vertical_rate: vrateMs,
+    geo_altitude: typeof ac.alt_geom === "number" ? ac.alt_geom * 0.3048 : altM,
+    squawk: ac.squawk || null,
+    position_source: 0,
+    category,
+    // extra adsb.lol fields
+    registration: ac.r || null,
+    aircraft_type: ac.t || null,
+  };
+}
+
+// Fetch aircraft in a bounding box from adsb.lol using lat/lon/radius point query
+// adsb.lol doesn't support raw bbox, but supports point+radius and returns all aircraft
+async function adsbFetchBbox(lamin, lamax, lomin, lomax, limit = 200) {
+  // Compute centre + radius from bbox
+  const clat = (lamin + lamax) / 2;
+  const clon = (lomin + lomax) / 2;
+  // Rough radius in nm: half diagonal of bbox
+  const dLat = Math.abs(lamax - lamin) * 60; // nm
+  const dLon = Math.abs(lomax - lomin) * 60 * Math.cos(clat * Math.PI / 180);
+  const radius = Math.min(Math.ceil(Math.sqrt(dLat * dLat + dLon * dLon) / 2) + 10, 250);
+
+  const data = await adsbFetch(`/lat/${clat.toFixed(4)}/lon/${clon.toFixed(4)}/dist/${radius}`);
+  if (!data?.ac) return [];
+
+  return data.ac
+    .map(parseAdsbAc)
+    .filter((s) => {
+      if (!s) return false;
+      // Filter to bbox
+      return s.latitude >= lamin && s.latitude <= lamax &&
+             s.longitude >= lomin && s.longitude <= lomax;
+    })
+    .slice(0, limit);
+}
+
+// Fetch single aircraft by ICAO24 hex from adsb.lol
+async function adsbFetchHex(hex) {
+  const data = await adsbFetch(`/hex/${hex}`);
+  if (!data?.ac?.length) return null;
+  return parseAdsbAc(data.ac[0]);
+}
+
+// ─── OpenSky fallback (OAuth2) ────────────────────────────────────────────────
 
 let cachedToken = null;
 let cachedTokenExpiry = 0;
@@ -27,7 +136,7 @@ async function getAccessToken() {
 
   try {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const timer = setTimeout(() => ctrl.abort(), 15000);
     const res = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -45,7 +154,7 @@ async function getAccessToken() {
     }
     const data = await res.json();
     cachedToken = data.access_token;
-    cachedTokenExpiry = now + (data.expires_in || 3600) * 1000;
+    cachedTokenExpiry = now + (data.expires_in || 1800) * 1000;
     return cachedToken;
   } catch (e) {
     console.warn("OpenSky auth error:", e.message);
@@ -58,7 +167,6 @@ async function openSkyFetch(path) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
-
   try {
     const res = await fetch(`${OPENSKY_BASE}${path}`, { headers, signal: ctrl.signal });
     if (res.status === 404) return null;
@@ -66,41 +174,16 @@ async function openSkyFetch(path) {
     if (!res.ok) throw new Error(`OpenSky ${res.status}`);
     const text = await res.text();
     if (!text) return null;
-    try {
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
+    return JSON.parse(text);
   } catch (e) {
-    if (e.name === "AbortError") throw new Error("OpenSky request timed out — try again shortly");
+    if (e.name === "AbortError") throw new Error("OpenSky request timed out");
     throw e;
   } finally {
     clearTimeout(timer);
   }
 }
 
-function isValidHex(s) {
-  return typeof s === "string" && /^[0-9a-f]{6}$/.test(s);
-}
-
-// Resolve an N-number (e.g. "N123AB" or "123AB") to ICAO24 hex via FAAAircraft entity.
-// Returns lowercase 6-char hex string or null.
-async function resolveNNumberToHex(base44, raw) {
-  if (!raw) return null;
-  const cleaned = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const nNum = cleaned.startsWith("N") ? cleaned.slice(1) : cleaned;
-  if (!nNum) return null;
-  try {
-    const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, "", 1);
-    const hex = recs[0]?.mode_s_hex;
-    if (hex && /^[0-9a-fA-F]{6}$/.test(hex)) return hex.toLowerCase();
-  } catch (e) {
-    console.warn("N-number resolve failed:", e.message);
-  }
-  return null;
-}
-
-function parseState(arr) {
+function parseOpenSkyState(arr) {
   if (!Array.isArray(arr)) return null;
   return {
     icao24: arr[0],
@@ -121,6 +204,29 @@ function parseState(arr) {
     category: arr[17],
   };
 }
+
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function isValidHex(s) {
+  return typeof s === "string" && /^[0-9a-f]{6}$/.test(s);
+}
+
+async function resolveNNumberToHex(base44, raw) {
+  if (!raw) return null;
+  const cleaned = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const nNum = cleaned.startsWith("N") ? cleaned.slice(1) : cleaned;
+  if (!nNum) return null;
+  try {
+    const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, "", 1);
+    const hex = recs[0]?.mode_s_hex;
+    if (hex && /^[0-9a-fA-F]{6}$/.test(hex)) return hex.toLowerCase();
+  } catch (e) {
+    console.warn("N-number resolve failed:", e.message);
+  }
+  return null;
+}
+
+// ─── Fuel / endurance estimates ───────────────────────────────────────────────
 
 const FUEL_SPECS = {
   "cessna 152": { cruise_gph: 6.0, tank_gal: 26, ac_class: "GA-single" },
@@ -272,17 +378,10 @@ const CATEGORY_DEFAULTS = {
   5: { cruise_gph: 140, tank_gal: 1260, ac_class: "bizjet-mid" },
   6: { cruise_gph: 140, tank_gal: 1260, ac_class: "bizjet-mid" },
   30: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
-  31: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
-  32: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
-  33: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
-  34: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
-  35: { cruise_gph: 800, tank_gal: 30000, ac_class: "airliner-wide" },
   36: { cruise_gph: 20, tank_gal: 80, ac_class: "heli-light" },
   37: { cruise_gph: 20, tank_gal: 80, ac_class: "heli-light" },
   38: { cruise_gph: 55, tank_gal: 250, ac_class: "heli-mid" },
-  39: { cruise_gph: 55, tank_gal: 250, ac_class: "heli-mid" },
   40: { cruise_gph: 130, tank_gal: 600, ac_class: "heli-heavy" },
-  41: { cruise_gph: 130, tank_gal: 600, ac_class: "heli-heavy" },
 };
 
 function getFuelSpecs(typeAircraft) {
@@ -309,7 +408,7 @@ function estimateFuelConsumption(state, faaData) {
   const alt = state.baro_altitude ?? 0;
   const speed = state.velocity ?? 0;
   const vrate = state.vertical_rate ?? 0;
-  const faaType = faaData?.type_aircraft || null;
+  const faaType = faaData?.type_aircraft || state.aircraft_type || null;
 
   let baseCruiseGPH = null;
   let specSource = "default_fallback";
@@ -349,27 +448,15 @@ function estimateFuelConsumption(state, faaData) {
 
   let phaseMult = 1;
   let phaseName = "cruise";
-  if (vrate > 2.54) {
-    phaseMult = 1.4;
-    phaseName = "climb";
-  } else if (vrate < -1.52) {
-    phaseMult = 0.7;
-    phaseName = "descent";
-  } else if (alt > 7620 && speed > 154) {
-    phaseMult = 0.8;
-    phaseName = "cruise_high";
-  } else if (alt < 610 && speed < 41) {
-    phaseMult = 1.1;
-    phaseName = "approach";
-  } else if (alt >= 2438 && alt <= 5486 && speed >= 100 && speed <= 206) {
-    phaseMult = 0.95;
-    phaseName = "cruise_optimal";
-  }
+  if (vrate > 2.54) { phaseMult = 1.4; phaseName = "climb"; }
+  else if (vrate < -1.52) { phaseMult = 0.7; phaseName = "descent"; }
+  else if (alt > 7620 && speed > 154) { phaseMult = 0.8; phaseName = "cruise_high"; }
+  else if (alt < 610 && speed < 41) { phaseMult = 1.1; phaseName = "approach"; }
+  else if (alt >= 2438 && alt <= 5486 && speed >= 100 && speed <= 206) { phaseMult = 0.95; phaseName = "cruise_optimal"; }
 
   const estimatedGPH = baseCruiseGPH * phaseMult;
   const hoursFlown = (state.time_position && state.last_contact)
-    ? Math.max(0, (state.last_contact - state.time_position) / 3600)
-    : 0;
+    ? Math.max(0, (state.last_contact - state.time_position) / 3600) : 0;
 
   return {
     faa_type: faaType ?? "Unknown",
@@ -388,7 +475,7 @@ function estimateFuelConsumption(state, faaData) {
 function estimateEndurance(state, fuelEst, faaData) {
   if (!fuelEst || !state) return null;
 
-  const faaType = faaData?.type_aircraft || null;
+  const faaType = faaData?.type_aircraft || state.aircraft_type || null;
   const spec = getFuelSpecs(faaType);
   const tankGal = spec?.tank_gal ?? CATEGORY_DEFAULTS[state.category ?? 0]?.tank_gal ?? 50;
   const available = Math.max(0, tankGal - fuelEst.estimated_fuel_burned_gal);
@@ -450,9 +537,7 @@ async function enrichStates(base44, states, includeDealReadiness = false) {
   if (registrations.length > 0) {
     try {
       const listings = await base44.asServiceRole.entities.AircraftListing.filter(
-        { registration: { $in: registrations }, status: "active" },
-        "-ati_score",
-        500
+        { registration: { $in: registrations }, status: "active" }, "-ati_score", 500
       );
       listings.forEach((l) => {
         if (l.registration) atiMap[String(l.registration).toUpperCase()] = l;
@@ -464,7 +549,7 @@ async function enrichStates(base44, states, includeDealReadiness = false) {
 
   return states.map((s) => {
     const faa = faaMap[s.icao24?.toLowerCase()] || null;
-    const reg = faa?.n_number ? `N${faa.n_number}` : null;
+    const reg = faa?.n_number ? `N${faa.n_number}` : (s.registration || null);
     const listing = reg ? atiMap[String(reg).toUpperCase()] || null : null;
     const fuelEst = estimateFuelConsumption(s, faa);
     const endurance = fuelEst ? estimateEndurance(s, fuelEst, faa) : null;
@@ -497,25 +582,15 @@ async function enrichStates(base44, states, includeDealReadiness = false) {
   });
 }
 
-function filterAndLimitStates(data, allowHeavy, limit) {
-  let states = (data?.states || []).map(parseState).filter((s) => s && s.latitude && s.longitude);
-  if (!allowHeavy) {
-    states = states.filter((s) => {
-      const cat = s.category ?? 0;
-      return cat < 5 || (cat >= 8 && cat <= 17);
-    });
-  }
-  return states.slice(0, limit);
+function filterHeavy(states, allowHeavy) {
+  if (allowHeavy) return states;
+  return states.filter((s) => {
+    const cat = s.category ?? 0;
+    return cat < 5 || (cat >= 8 && cat <= 17);
+  });
 }
 
-function buildBoundsQuery(body, includeTime = false) {
-  const params = new URLSearchParams();
-  ["lamin", "lomin", "lamax", "lomax"].forEach((key) => {
-    if (body[key] != null) params.set(key, body[key]);
-  });
-  if (includeTime && body.ts) params.set("time", body.ts);
-  return params.toString();
-}
+// ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   try {
@@ -527,47 +602,31 @@ Deno.serve(async (req) => {
     const { action, icao24, days } = body;
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
 
-    if (action === "history_states") {
-      const { allow_heavy, limit = 200, ts } = body;
-      if (!ts) return Response.json({ error: "ts (unix timestamp) required" }, { status: 400 });
-
-      let data = null;
-      let historical = true;
-      try {
-        data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, true)}`);
-      } catch (e) {
-        console.warn("Historical OpenSky fetch failed, falling back to live:", e.message);
-      }
-
-      if (!data?.states) {
-        historical = false;
-        data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, false)}`);
-      }
-
-      if (!data?.states) return Response.json({ aircraft: [], time: ts, historical, fallback_live: !historical });
-      const states = filterAndLimitStates(data, allow_heavy, limit);
-      const aircraft = await enrichStates(base44, states, false);
-      return Response.json({ aircraft, time: data.time || ts, total_raw: data.states.length, historical, fallback_live: !historical });
-    }
-
+    // ── map_states: bounding box sweep ──
     if (action === "map_states") {
-      const { allow_heavy, limit = 200 } = body;
-      const data = await openSkyFetch(`/states/all?${buildBoundsQuery(body, false)}`);
-      if (!data?.states) return Response.json({ aircraft: [], time: null });
-
-      const states = filterAndLimitStates(data, allow_heavy, limit);
+      const { allow_heavy = false, limit = 200, lamin, lamax, lomin, lomax } = body;
+      let states = await adsbFetchBbox(lamin, lamax, lomin, lomax, 500);
+      states = filterHeavy(states, allow_heavy).slice(0, limit);
       const aircraft = await enrichStates(base44, states, true);
-      return Response.json({ aircraft, time: data.time, total_raw: data.states.length });
+      return Response.json({ aircraft, time: Math.floor(Date.now() / 1000), total_raw: states.length, source: "adsb.lol" });
     }
 
-    let hex = icao24 ? String(icao24).toLowerCase().trim() : null;
+    // ── history_states: use adsb.lol live (no history support) ──
+    if (action === "history_states") {
+      const { allow_heavy = false, limit = 200, lamin, lamax, lomin, lomax, ts } = body;
+      if (!ts) return Response.json({ error: "ts (unix timestamp) required" }, { status: 400 });
+      let states = await adsbFetchBbox(lamin, lamax, lomin, lomax, 500);
+      states = filterHeavy(states, allow_heavy).slice(0, limit);
+      const aircraft = await enrichStates(base44, states, false);
+      return Response.json({ aircraft, time: Math.floor(Date.now() / 1000), total_raw: states.length, historical: false, fallback_live: true, source: "adsb.lol" });
+    }
 
-    // If not valid hex but looks like an N-number / tail registration, try to resolve via FAA registry.
+    // ── Resolve ICAO24 hex (or N-number) ──
+    let hex = icao24 ? String(icao24).toLowerCase().trim() : null;
     if (!isValidHex(hex) && body.icao24) {
       const resolved = await resolveNNumberToHex(base44, body.icao24);
       if (resolved) hex = resolved;
     }
-
     if (!isValidHex(hex)) {
       return Response.json({
         error: "Aircraft not found. Provide a 6-character ICAO24 hex (e.g. 3c675a) or a US N-number registered in the FAA database (e.g. N123AB).",
@@ -575,8 +634,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "state") {
-      const data = await openSkyFetch(`/states/all?icao24=${hex}`);
-      const state = data?.states?.[0] ? parseState(data.states[0]) : null;
+      const state = await adsbFetchHex(hex);
       let faaData = null;
       try {
         const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
@@ -586,12 +644,11 @@ Deno.serve(async (req) => {
       }
       const fuelEst = state ? estimateFuelConsumption(state, faaData) : null;
       const endurance = fuelEst ? estimateEndurance(state, fuelEst, faaData) : null;
-      return Response.json({ time: data?.time || null, state, faa: faaData, fuel_estimate: fuelEst, endurance });
+      return Response.json({ time: Math.floor(Date.now() / 1000), state, faa: faaData, fuel_estimate: fuelEst, endurance, source: "adsb.lol" });
     }
 
     if (action === "inflight") {
-      const data = await openSkyFetch(`/states/all?icao24=${hex}`);
-      const state = data?.states?.[0] ? parseState(data.states[0]) : null;
+      const state = await adsbFetchHex(hex);
       if (!state || state.on_ground) return Response.json({ error: "Aircraft not airborne", state });
 
       let faaData = null;
@@ -604,22 +661,41 @@ Deno.serve(async (req) => {
 
       const fuelEst = estimateFuelConsumption(state, faaData);
       const endurance = fuelEst ? estimateEndurance(state, fuelEst, faaData) : null;
-      const end = Math.floor(Date.now() / 1000);
-      const flightHistory = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${end - 86400}&end=${end}`);
-      return Response.json({ time: data?.time || null, state, faa: faaData, fuel_estimate: fuelEst, endurance, recent_flights: flightHistory || [] });
+
+      // Try OpenSky for flight history (adsb.lol doesn't have historical flights)
+      let recentFlights = [];
+      try {
+        const end = Math.floor(Date.now() / 1000);
+        const data = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${end - 86400}&end=${end}`);
+        recentFlights = data || [];
+      } catch (e) {
+        console.warn("Flight history unavailable:", e.message);
+      }
+
+      return Response.json({ time: Math.floor(Date.now() / 1000), state, faa: faaData, fuel_estimate: fuelEst, endurance, recent_flights: recentFlights, source: "adsb.lol" });
     }
 
     if (action === "flights") {
-      const end = Math.floor(Date.now() / 1000);
-      const span = Math.min(Math.max(Number(days) || 7, 1), 30);
-      const begin = end - span * 86400;
-      const data = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${begin}&end=${end}`);
-      return Response.json({ flights: data || [] });
+      // OpenSky only for historical flight data
+      try {
+        const end = Math.floor(Date.now() / 1000);
+        const span = Math.min(Math.max(Number(days) || 7, 1), 30);
+        const begin = end - span * 86400;
+        const data = await openSkyFetch(`/flights/aircraft?icao24=${hex}&begin=${begin}&end=${end}`);
+        return Response.json({ flights: data || [], source: "opensky" });
+      } catch (e) {
+        return Response.json({ flights: [], error: e.message, source: "unavailable" });
+      }
     }
 
     if (action === "track") {
-      const data = await openSkyFetch(`/tracks/all?icao24=${hex}&time=0`);
-      return Response.json({ track: data });
+      // OpenSky only for track data
+      try {
+        const data = await openSkyFetch(`/tracks/all?icao24=${hex}&time=0`);
+        return Response.json({ track: data, source: "opensky" });
+      } catch (e) {
+        return Response.json({ track: null, error: e.message, source: "unavailable" });
+      }
     }
 
     return Response.json({ error: "unknown action" }, { status: 400 });

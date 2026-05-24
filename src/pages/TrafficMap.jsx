@@ -102,19 +102,19 @@ export default function TrafficMap() {
     setError(null);
     setFlyTarget(null);
     try {
+      // Always force_refresh=true on initial load so we get live data even with no cache
       const res = await base44.functions.invoke("cachedTraffic", {
         region_key: WORLD.key,
         region_label: WORLD.label,
-        force_refresh: force,
+        force_refresh: true,
         limit: 1000,
         allow_heavy: true,
-        lamin: WORLD.lamin, lamax: WORLD.lamax,
-        lomin: WORLD.lomin, lomax: WORLD.lomax,
       });
-      setAircraft(res.data?.aircraft || []);
+      const ac = res.data?.aircraft || [];
+      setAircraft(ac);
       setDataTime(res.data?.refreshed_at ? new Date(res.data.refreshed_at) : new Date());
       setDataSource(res.data?.source || null);
-      if (force) await loadSnapshots();
+      await loadSnapshots();
     } catch (e) {
       setError(e?.response?.data?.error || e.message || "Failed to load traffic");
     } finally {

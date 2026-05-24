@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
+import WebhooksConfig from "@/components/settings/WebhooksConfig";
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
@@ -157,6 +158,9 @@ export default function AdminSettings() {
           {saveMutation.isPending ? "Saving..." : saved ? "✓ Saved" : "Save Settings"}
         </Button>
       </div>
+
+      {/* Webhooks */}
+      <WebhooksConfig />
 
       {/* Smart Contracts — Coming Soon */}
       <div className="glass-card p-7 opacity-70">

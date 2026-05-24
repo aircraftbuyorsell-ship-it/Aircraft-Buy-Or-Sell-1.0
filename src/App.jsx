@@ -14,9 +14,7 @@ import DealRadar from "./pages/DealRadar";
 import MyAccount from "./pages/MyAccount";
 import Leads from "./pages/Leads";
 import Escrow from "./pages/Escrow";
-import LiveTraffic from "./pages/LiveTraffic";
-import CachedTraffic from "./pages/CachedTraffic";
-import AircraftTracker from "./pages/AircraftTracker";
+import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
 import Valuation from "./pages/Valuation";
@@ -75,9 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />
         <Route path="/escrow" element={<Escrow />} />
-        <Route path="/live-traffic" element={<LiveTraffic />} />
-        <Route path="/cached-traffic" element={<CachedTraffic />} />
-        <Route path="/aircraft-tracker" element={<AircraftTracker />} />
+        <Route path="/traffic" element={<TrafficMap />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/valuation" element={<Valuation />} />

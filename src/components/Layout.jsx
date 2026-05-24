@@ -17,7 +17,7 @@ const BACK_BUTTON_ROUTES = [
 const TOP_LEVEL = new Set(["/", "/listings", "/deal-radar", "/my-account", "/live-traffic", "/escrow"]);
 
 const TOP_ITEMS = [
-  { path: "/live-traffic", label: "Live Traffic", icon: Radar, accent: true },
+  { path: "/traffic", label: "Live Traffic", icon: Radar, accent: true },
   { path: "/escrow", label: "Escrow", icon: Handshake },
   { path: "/my-account", label: "Account", icon: User },
 ];
@@ -31,7 +31,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/listings", label: "Listings", icon: Plane },
       { path: "/community", label: "Community", icon: Users },
       { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-      { path: "/cached-traffic", label: "Cached Traffic", icon: Radar },
+      { path: "/traffic", label: "Live Traffic", icon: Radar },
       { path: "/analytics", label: "Analytics", icon: BarChart3 },
       { path: "/market-reports", label: "Market Reports", icon: TrendingUp },
     ],

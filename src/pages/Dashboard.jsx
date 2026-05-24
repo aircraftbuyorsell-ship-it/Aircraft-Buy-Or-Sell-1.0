@@ -147,7 +147,7 @@ export default function Dashboard() {
               AI Pre-Buy Inspection
             </Link>
             <Link
-              to="/live-traffic"
+              to="/traffic"
               className="inline-flex items-center gap-2.5 uppercase font-bold text-sm px-6 py-3.5 rounded-2xl tracking-wide transition-all active:scale-95"
               style={{
                 background: "rgba(255,255,255,0.60)",

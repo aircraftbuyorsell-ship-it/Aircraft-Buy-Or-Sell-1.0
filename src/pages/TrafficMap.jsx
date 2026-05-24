@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
-import { Radar, RefreshCw, Loader2, Search, X, Plane, Info } from "lucide-react";
+import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -12,16 +12,10 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const REGIONS = [
-  { key: "central-europe", label: "Central Europe", center: [49.8, 15.5], zoom: 6, lamin: 45, lamax: 56, lomin: 5, lomax: 25 },
-  { key: "europe",         label: "Europe",         center: [51, 10],      zoom: 5, lamin: 35, lamax: 62, lomin: -12, lomax: 35 },
-  { key: "usa-east",       label: "USA East",       center: [38, -78],     zoom: 5, lamin: 25, lamax: 48, lomin: -90, lomax: -65 },
-  { key: "usa-west",       label: "USA West",       center: [38, -115],    zoom: 5, lamin: 25, lamax: 50, lomin: -130, lomax: -100 },
-  { key: "middle-east",    label: "Middle East",    center: [25, 45],      zoom: 5, lamin: 15, lamax: 38, lomin: 30, lomax: 65 },
-];
-
-const ftFromM = (m) => m == null ? "—" : `${Math.round(m * 3.28084).toLocaleString()} ft`;
-const ktFromMs = (ms) => ms == null ? "—" : `${Math.round(ms * 1.94384)} kt`;
+// Global bounds — as wide as adsb.lol reasonably supports in one call
+const WORLD = { key: "world", label: "Global", lamin: -60, lamax: 72, lomin: -130, lomax: 50 };
+const WORLD_CENTER = [30, -30];
+const WORLD_ZOOM = 3;
 
 function altColor(altM) {
   if (altM == null) return "#999";
@@ -34,7 +28,7 @@ function altColor(altM) {
 
 function makeIcon(altM, heading = 0, highlight = false) {
   const color = highlight ? "#E8A83A" : altColor(altM);
-  const size = highlight ? 34 : 26;
+  const size = highlight ? 34 : 22;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" style="transform:rotate(${heading}deg)">
     <path d="M12 2 L7 20 L12 17 L17 20 Z" fill="${color}" stroke="white" stroke-width="1.5"/>
   </svg>`;
@@ -47,49 +41,102 @@ function FlyTo({ target }) {
   return null;
 }
 
-function ResetView({ region }) {
-  const map = useMap();
-  useEffect(() => { map.setView(region.center, region.zoom); }, [region]);
-  return null;
+function HistoryPanel({ snapshots, onLoad }) {
+  const [open, setOpen] = useState(false);
+  if (!snapshots.length) return null;
+  return (
+    <div className="max-w-7xl mx-auto mt-4">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 text-sm font-black text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition"
+      >
+        <History className="w-4 h-4" />
+        Historical Snapshots ({snapshots.length})
+        {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      </button>
+      {open && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {snapshots.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => { onLoad(s); setOpen(false); }}
+              className="text-left rounded-2xl border border-black/[0.07] bg-white px-4 py-3 hover:border-[#E8A83A] hover:shadow-md transition"
+            >
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#E8A83A]">{s.region_label || s.region_key}</p>
+              <p className="text-sm font-bold text-[#1A1814] mt-0.5">{s.total_raw ?? "?"} aircraft</p>
+              <div className="flex items-center gap-1 mt-1 text-[11px] text-[#6B6560]">
+                <Clock className="w-3 h-3" />
+                {s.refreshed_at ? new Date(s.refreshed_at).toLocaleString() : "Unknown time"}
+              </div>
+              {s.refreshed_by && <p className="text-[10px] text-[#AAA49C] mt-0.5">{s.refreshed_by}</p>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function TrafficMap() {
-  const [region, setRegion] = useState(REGIONS[0]);
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [dataTime, setDataTime] = useState(null);
+  const [dataSource, setDataSource] = useState(null);
   const [search, setSearch] = useState("");
   const [searchError, setSearchError] = useState(null);
   const [flyTarget, setFlyTarget] = useState(null);
+  const [snapshots, setSnapshots] = useState([]);
   const markerRefs = useRef({});
 
-  const fetchTraffic = useCallback(async (reg, force = false) => {
+  const loadSnapshots = useCallback(async () => {
+    try {
+      const recs = await base44.entities.TrafficSnapshot.list("-refreshed_at", 50);
+      setSnapshots(recs || []);
+    } catch (_) {}
+  }, []);
+
+  const fetchTraffic = useCallback(async (force = false) => {
     force ? setRefreshing(true) : setLoading(true);
     setError(null);
     setFlyTarget(null);
     try {
       const res = await base44.functions.invoke("cachedTraffic", {
-        region_key: reg.key,
-        region_label: reg.label,
+        region_key: WORLD.key,
+        region_label: WORLD.label,
         force_refresh: force,
-        limit: 300,
+        limit: 1000,
         allow_heavy: true,
-        lamin: reg.lamin, lamax: reg.lamax,
-        lomin: reg.lomin, lomax: reg.lomax,
+        lamin: WORLD.lamin, lamax: WORLD.lamax,
+        lomin: WORLD.lomin, lomax: WORLD.lomax,
       });
       setAircraft(res.data?.aircraft || []);
       setDataTime(res.data?.refreshed_at ? new Date(res.data.refreshed_at) : new Date());
+      setDataSource(res.data?.source || null);
+      if (force) await loadSnapshots();
     } catch (e) {
       setError(e?.response?.data?.error || e.message || "Failed to load traffic");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
+  }, [loadSnapshots]);
+
+  useEffect(() => {
+    fetchTraffic(false);
+    loadSnapshots();
   }, []);
 
-  useEffect(() => { fetchTraffic(region); }, [region.key]);
+  const loadSnapshot = (snap) => {
+    try {
+      const ac = JSON.parse(snap.aircraft_json || "[]");
+      setAircraft(ac);
+      setDataTime(snap.refreshed_at ? new Date(snap.refreshed_at) : null);
+      setDataSource(`snapshot:${snap.region_label || snap.region_key}`);
+      setFlyTarget(null);
+    } catch (_) {}
+  };
 
   const handleSearch = () => {
     setSearchError(null);
@@ -111,6 +158,8 @@ export default function TrafficMap() {
   const airborne = aircraft.filter((a) => !a.on_ground);
   const withListing = aircraft.filter((a) => a.listing).length;
 
+  const sourceLabel = dataSource === "live" ? "🟢 Live" : dataSource === "cache" ? "🔵 Cache" : dataSource?.startsWith("snapshot:") ? `📁 ${dataSource.replace("snapshot:", "")}` : dataSource || "—";
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F4EF]">
       {/* Header */}
@@ -123,20 +172,11 @@ export default function TrafficMap() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8A83A]">ADS-B Live · adsb.lol</p>
-                <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Live Traffic Map</h1>
+                <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight">Global Live Traffic</h1>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 items-center">
-              {/* Region selector */}
-              <select
-                value={region.key}
-                onChange={(e) => setRegion(REGIONS.find((r) => r.key === e.target.value))}
-                className="rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-bold text-[#1A1814] outline-none"
-              >
-                {REGIONS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
-              </select>
-
               {/* Search */}
               <div className="flex gap-1">
                 <div className="relative">
@@ -160,7 +200,7 @@ export default function TrafficMap() {
 
               {/* Refresh */}
               <button
-                onClick={() => fetchTraffic(region, true)}
+                onClick={() => fetchTraffic(true)}
                 disabled={refreshing}
                 className="flex items-center gap-2 rounded-xl bg-[#E8A83A] px-4 py-2 text-sm font-black text-[#0B2D5B] hover:bg-[#F5C842] transition disabled:opacity-50"
               >
@@ -170,12 +210,13 @@ export default function TrafficMap() {
             </div>
           </div>
 
-          {/* Stats row */}
+          {/* Stats */}
           <div className="mt-4 flex flex-wrap gap-3">
             {[
               { label: "Airborne", value: airborne.length },
               { label: "Total visible", value: aircraft.length },
               { label: "ABOS listings matched", value: withListing },
+              { label: "Source", value: sourceLabel },
               { label: "Last updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
             ].map((s) => (
               <div key={s.label} className="glass-pill px-4 py-2">
@@ -197,20 +238,19 @@ export default function TrafficMap() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 px-4 md:px-8 pb-8">
+      <div className="flex-1 px-4 md:px-8 pb-4">
         <div className="max-w-7xl mx-auto h-[70vh] rounded-3xl overflow-hidden border border-black/[0.07] shadow-sm relative">
           {loading && (
             <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#E8A83A]" />
-                <p className="text-sm font-bold text-[#1A1814]">Loading live traffic…</p>
+                <p className="text-sm font-bold text-[#1A1814]">Loading global traffic…</p>
               </div>
             </div>
           )}
-          <MapContainer center={region.center} zoom={region.zoom} style={{ height: "100%", width: "100%" }} scrollWheelZoom zoomControl>
+          <MapContainer center={WORLD_CENTER} zoom={WORLD_ZOOM} style={{ height: "100%", width: "100%" }} scrollWheelZoom zoomControl worldCopyJump>
             <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <ResetView region={region} key={region.key} />
-            {flyTarget && <FlyTo target={flyTarget} key={flyTarget.icao24 + Date.now()} />}
+            {flyTarget && <FlyTo target={flyTarget} key={flyTarget.icao24 + "-fly"} />}
             {aircraft.map((ac) => {
               if (!ac.latitude || !ac.longitude) return null;
               const isHighlight = flyTarget?.icao24 === ac.icao24;
@@ -268,6 +308,9 @@ export default function TrafficMap() {
           ))}
           <span className="ml-auto text-[10px] text-[#AAA49C]">Data: adsb.lol · Cached snapshots via ABOS</span>
         </div>
+
+        {/* Historical snapshots */}
+        <HistoryPanel snapshots={snapshots} onLoad={loadSnapshot} />
       </div>
     </div>
   );

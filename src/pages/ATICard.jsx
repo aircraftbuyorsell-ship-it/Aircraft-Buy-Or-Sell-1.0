@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Share2, Download, Eye, Star } from "lucide-react";
+import { ArrowLeft, Share2, Copy, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 
 function scoreColor(score) {
@@ -46,6 +47,17 @@ function ScoreRing({ score, maxScore = 120 }) {
 
 export default function ATICard() {
   const { cardCode } = useParams();
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }).catch(() => {
+      if (navigator.share) navigator.share({ title: `ATI Card ${cardCode}`, url });
+    });
+  };
 
   const { data: card, isLoading: loadingCard } = useQuery({
     queryKey: ["ati-card", cardCode],
@@ -112,9 +124,12 @@ export default function ATICard() {
               </h1>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors border border-white/20">
-                <Share2 className="w-4 h-4" />
-                Share
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors border border-white/20"
+              >
+                {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Copied!" : "Copy Link"}
               </button>
             </div>
           </div>

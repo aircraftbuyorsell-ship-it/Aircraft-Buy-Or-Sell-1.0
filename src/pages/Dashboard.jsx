@@ -8,6 +8,7 @@ import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketPulse from "@/components/dashboard/MarketPulse";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
+import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 
 function NavyIcon({ icon: Icon, size = "md" }) {
   const s = size === "lg" ? "w-16 h-16" : "w-14 h-14";
@@ -178,9 +179,12 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          <p className={`text-[11px] uppercase tracking-wider mt-6 font-medium ${isDark ? "text-white/50" : "text-[#6B6560]"}`}>
-            <Link to="/rewards" className="text-[#E8A83A] hover:underline">Referral Program</Link> — introduce qualified professionals and earn revenue share.
-          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3 items-center">
+            <LiveTrafficBadge />
+            <p className={`text-[11px] uppercase tracking-wider font-medium ${isDark ? "text-white/50" : "text-[#6B6560]"}`}>
+              <Link to="/rewards" className="text-[#E8A83A] hover:underline">Referral Program</Link> — introduce qualified professionals and earn revenue share.
+            </p>
+          </div>
         </div>
       </section>
 

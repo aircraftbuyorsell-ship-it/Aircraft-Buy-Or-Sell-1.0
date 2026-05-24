@@ -63,6 +63,8 @@ export default function Layout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const idleTimer = useRef(null);
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
 
   const showBack = !TOP_LEVEL.has(pathname) && BACK_BUTTON_ROUTES.some(re => re.test(pathname));
 
@@ -85,6 +87,28 @@ export default function Layout() {
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
+
+  // Swipe right from left edge to open sidebar
+  useEffect(() => {
+    const onTouchStart = (e) => {
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      if (x < 20) { touchStartX.current = x; touchStartY.current = y; }
+    };
+    const onTouchEnd = (e) => {
+      if (touchStartX.current == null || touchStartX.current >= 20) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+      if (dx > 60 && dy < 80) setSidebarOpen(true);
+      touchStartX.current = null;
+    };
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
@@ -190,6 +214,19 @@ export default function Layout() {
       {/* Sidebar — Deep Liquid Glass panel */}
       <aside
         onMouseMove={() => sidebarOpen && resetIdle()}
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches[0].clientX;
+          touchStartY.current = e.touches[0].clientY;
+        }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current == null) return;
+          const dx = e.changedTouches[0].clientX - touchStartX.current;
+          const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+          // Swipe left to close (dx < -50 and mostly horizontal)
+          if (dx < -50 && dy < 60) setSidebarOpen(false);
+          touchStartX.current = null;
+          touchStartY.current = null;
+        }}
         className={`
           fixed left-0 top-0 bottom-0 z-50
           w-[272px] flex flex-col

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
-import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -77,6 +77,15 @@ function HistoryPanel({ snapshots, onLoad }) {
   );
 }
 
+const CATEGORY_FILTERS = [
+  { key: "all",       label: "All",        test: () => true },
+  { key: "ga",        label: "GA",         test: (a) => a.category >= 1 && a.category <= 3 },
+  { key: "turboprop", label: "Turboprop",  test: (a) => a.category === 4 },
+  { key: "jet",       label: "Jet",        test: (a) => a.category === 5 || a.category === 6 },
+  { key: "heli",      label: "Helicopter", test: (a) => a.category === 8 || a.category === 9 },
+  { key: "other",     label: "Other",      test: (a) => a.category === 0 || a.category >= 10 },
+];
+
 export default function TrafficMap() {
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -88,6 +97,7 @@ export default function TrafficMap() {
   const [searchError, setSearchError] = useState(null);
   const [flyTarget, setFlyTarget] = useState(null);
   const [snapshots, setSnapshots] = useState([]);
+  const [catFilter, setCatFilter] = useState("all");
   const markerRefs = useRef({});
 
   const loadSnapshots = useCallback(async () => {
@@ -155,8 +165,10 @@ export default function TrafficMap() {
 
   const clearSearch = () => { setSearch(""); setSearchError(null); setFlyTarget(null); };
 
-  const airborne = aircraft.filter((a) => !a.on_ground);
-  const withListing = aircraft.filter((a) => a.listing).length;
+  const catDef = CATEGORY_FILTERS.find(f => f.key === catFilter) || CATEGORY_FILTERS[0];
+  const visibleAircraft = aircraft.filter(catDef.test);
+  const airborne = visibleAircraft.filter((a) => !a.on_ground);
+  const withListing = visibleAircraft.filter((a) => a.listing).length;
 
   const sourceLabel = dataSource === "live" ? "🟢 Live" : dataSource === "cache" ? "🔵 Cache" : dataSource?.startsWith("snapshot:") ? `📁 ${dataSource.replace("snapshot:", "")}` : dataSource || "—";
 
@@ -198,6 +210,18 @@ export default function TrafficMap() {
                 </button>
               </div>
 
+              {/* Category Filter */}
+              <div className="flex items-center gap-1 bg-white border border-black/10 rounded-xl px-2 py-1">
+                <Filter className="w-3.5 h-3.5 text-[#AAA49C] shrink-0" />
+                {CATEGORY_FILTERS.map(f => (
+                  <button
+                    key={f.key}
+                    onClick={() => setCatFilter(f.key)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${catFilter === f.key ? "bg-[#0B2D5B] text-white" : "text-[#6B6560] hover:text-[#0B2D5B]"}`}
+                  >{f.label}</button>
+                ))}
+              </div>
+
               {/* Refresh */}
               <button
                 onClick={() => fetchTraffic(true)}
@@ -214,8 +238,9 @@ export default function TrafficMap() {
           <div className="mt-4 flex flex-wrap gap-3">
             {[
               { label: "Airborne", value: airborne.length },
-              { label: "Total visible", value: aircraft.length },
-              { label: "ABOS listings matched", value: withListing },
+              { label: "Visible", value: visibleAircraft.length },
+              { label: "Total loaded", value: aircraft.length },
+              { label: "ABOS matched", value: withListing },
               { label: "Source", value: sourceLabel },
               { label: "Last updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
             ].map((s) => (
@@ -251,11 +276,15 @@ export default function TrafficMap() {
           <MapContainer center={WORLD_CENTER} zoom={WORLD_ZOOM} style={{ height: "100%", width: "100%" }} scrollWheelZoom zoomControl worldCopyJump>
             <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {flyTarget && <FlyTo target={flyTarget} key={flyTarget.icao24 + "-fly"} />}
-            {aircraft.map((ac) => {
+            {visibleAircraft.map((ac) => {
               if (!ac.latitude || !ac.longitude) return null;
               const isHighlight = flyTarget?.icao24 === ac.icao24;
               const altFt = ac.baro_altitude != null ? Math.round(ac.baro_altitude * 3.28084) : null;
               const speedKt = ac.velocity != null ? Math.round(ac.velocity * 1.94384) : null;
+              const reg = ac.faa?.n_number || ac.registration || null;
+              const vrateStr = ac.vertical_rate != null
+                ? (ac.vertical_rate > 0.5 ? `▲ ${Math.round(ac.vertical_rate * 196.85)} fpm` : ac.vertical_rate < -0.5 ? `▼ ${Math.round(Math.abs(ac.vertical_rate) * 196.85)} fpm` : "Level")
+                : "—";
               return (
                 <Marker
                   key={ac.icao24}
@@ -264,23 +293,41 @@ export default function TrafficMap() {
                   ref={(r) => { if (r) markerRefs.current[ac.icao24] = r; }}
                   zIndexOffset={isHighlight ? 1000 : 0}
                 >
-                  <Popup maxWidth={260}>
-                    <div className="space-y-1 text-sm" style={{ minWidth: 220 }}>
-                      <p className="font-black text-[#0B2D5B] text-base">
-                        {ac.callsign?.trim() || ac.faa?.n_number || ac.registration || ac.icao24}
-                      </p>
-                      <p className="text-[11px] font-mono text-[#6B6560]">ICAO: {ac.icao24}</p>
-                      {ac.faa?.n_number && <p><strong>Reg:</strong> {ac.faa.n_number}</p>}
-                      <p><strong>Alt:</strong> {altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</p>
-                      <p><strong>Speed:</strong> {speedKt != null ? `${speedKt} kt` : "—"}</p>
-                      <p><strong>Heading:</strong> {ac.true_track != null ? `${Math.round(ac.true_track)}°` : "—"}</p>
-                      <p><strong>Status:</strong> {ac.on_ground ? "On ground" : "Airborne"}</p>
+                  <Popup maxWidth={280}>
+                    <div style={{ minWidth: 240, fontFamily: "system-ui, sans-serif" }}>
+                      {/* Title */}
+                      <div style={{ borderBottom: "1px solid #f0ede6", paddingBottom: 8, marginBottom: 8 }}>
+                        <p style={{ fontWeight: 900, color: "#0B2D5B", fontSize: 15, margin: 0 }}>
+                          {ac.callsign?.trim() || reg || ac.icao24}
+                        </p>
+                        {reg && ac.callsign?.trim() && <p style={{ fontSize: 11, color: "#6B6560", margin: "2px 0 0", fontFamily: "monospace" }}>{reg}</p>}
+                        <p style={{ fontSize: 10, color: "#AAA49C", margin: "2px 0 0", fontFamily: "monospace" }}>ICAO: {ac.icao24} {ac.squawk ? `· SQWK ${ac.squawk}` : ""}</p>
+                      </div>
+                      {/* Aircraft type */}
+                      {(ac.aircraft_type || ac.faa?.type_aircraft) && (
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "#E8A83A", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {ac.aircraft_type || ac.faa?.type_aircraft}
+                        </p>
+                      )}
+                      {/* Stats grid */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 12px", fontSize: 12, marginBottom: 6 }}>
+                        <div><span style={{ color: "#AAA49C" }}>Alt: </span><strong>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
+                        <div><span style={{ color: "#AAA49C" }}>Speed: </span><strong>{speedKt != null ? `${speedKt} kt` : "—"}</strong></div>
+                        <div><span style={{ color: "#AAA49C" }}>Hdg: </span><strong>{ac.true_track != null ? `${Math.round(ac.true_track)}°` : "—"}</strong></div>
+                        <div><span style={{ color: "#AAA49C" }}>V/S: </span><strong>{vrateStr}</strong></div>
+                        <div><span style={{ color: "#AAA49C" }}>Status: </span><strong style={{ color: ac.on_ground ? "#ef4444" : "#22c55e" }}>{ac.on_ground ? "Ground" : "Airborne"}</strong></div>
+                        {ac.squawk && <div><span style={{ color: "#AAA49C" }}>Squawk: </span><strong>{ac.squawk}</strong></div>}
+                      </div>
+                      {/* ABOS listing badge */}
                       {ac.listing && (
-                        <div className="mt-2 rounded-lg bg-[#0B2D5B]/5 p-2 border border-[#0B2D5B]/10">
-                          <p className="font-black text-[10px] uppercase tracking-wider text-[#E8A83A]">ABOS Listing</p>
-                          <p className="font-bold text-[#0B2D5B]">{ac.listing.year} {ac.listing.make} {ac.listing.model}</p>
-                          {ac.listing.ati_score && <p className="text-xs">ATI Score: <strong>{ac.listing.ati_score}</strong></p>}
-                          {ac.listing.asking_price && <p className="text-xs">Price: <strong>${ac.listing.asking_price?.toLocaleString()}</strong></p>}
+                        <div style={{ marginTop: 8, borderRadius: 8, background: "rgba(11,45,91,0.06)", border: "1px solid rgba(11,45,91,0.12)", padding: "8px 10px" }}>
+                          <p style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#E8A83A", margin: "0 0 4px" }}>ABOS Listing</p>
+                          <p style={{ fontWeight: 700, color: "#0B2D5B", fontSize: 12, margin: 0 }}>{ac.listing.year} {ac.listing.make} {ac.listing.model}</p>
+                          <div style={{ display: "flex", gap: 12, marginTop: 4, fontSize: 11 }}>
+                            {ac.listing.ati_score && <span>ATI: <strong>{ac.listing.ati_score}</strong></span>}
+                            {ac.listing.asking_price && <span>Price: <strong>${ac.listing.asking_price?.toLocaleString()}</strong></span>}
+                            {ac.listing.deal_label && <span style={{ color: ac.listing.deal_label === "hot deal" ? "#22c55e" : undefined }}><strong>{ac.listing.deal_label}</strong></span>}
+                          </div>
                         </div>
                       )}
                     </div>

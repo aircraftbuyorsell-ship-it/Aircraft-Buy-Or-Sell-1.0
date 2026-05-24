@@ -196,7 +196,7 @@ export default function Dashboard() {
         <div className="grid md:grid-cols-4 gap-4 mt-12">
           <PillarCard icon={ShieldCheck} title="ATI Transaction Report" body="Comprehensive aircraft intelligence scoring across 8 risk dimensions — documentation integrity, engine condition, avionics fit, operational history, and transaction readiness." />
           <PillarCard icon={Radar} title="ADS-B Surveillance" body="Real-time aircraft surveillance by N-number or Mode-S hex. Live position, altitude, ground speed, and 7-day operational history." />
-          <PillarCard icon={TrendingUp} title="AI Pre-Buy Inspection" body="On-site AI inspection with Max — live visual analysis of airframe, corrosion, interior condition, and maintenance discrepancies delivered by voice." />
+          <PillarCard icon={TrendingUp} title="On-Site Pre-Buy Inspection" body="On-site inspection with Max — live visual analysis of airframe, corrosion, interior condition, and maintenance discrepancies delivered by voice." />
           <PillarCard icon={Handshake} title="Escrow & Commission Management" body="Protected buyer-seller escrow with automated commission splits, finder's fee allocation, and full payout audit trail." />
         </div>
       </section>

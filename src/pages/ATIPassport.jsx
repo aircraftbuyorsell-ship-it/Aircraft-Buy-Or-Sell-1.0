@@ -612,7 +612,15 @@ Return ONLY raw JSON:
               <p className="text-[11px] text-[#AAA49C]">
                 Scored on {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2
               </p>
-              <div className="flex gap-4">
+              <div className="flex gap-4 items-center flex-wrap">
+                <button
+                  onClick={handleExportPDF}
+                  disabled={exporting}
+                  className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black text-[12px] px-4 py-2 rounded-xl transition-colors"
+                >
+                  <Download className={`w-3.5 h-3.5 ${exporting ? "animate-pulse" : ""}`} />
+                  {exporting ? "Exporting…" : "Export PDF"}
+                </button>
                 <button onClick={() => setWizardOpen(true)} disabled={generating}
                   className="flex items-center gap-2 text-[11px] text-[#6B6560] hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold">
                   <Wand2 className="w-3.5 h-3.5" />

@@ -234,15 +234,15 @@ export default function Layout() {
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         style={{
-          background: "linear-gradient(160deg, rgba(8,12,28,0.92) 0%, rgba(4,8,20,0.96) 100%)",
-          backdropFilter: "blur(64px) saturate(240%) brightness(0.88)",
-          WebkitBackdropFilter: "blur(64px) saturate(240%) brightness(0.88)",
-          borderRight: "1px solid rgba(255,255,255,0.07)",
-          boxShadow: "12px 0 60px rgba(0,0,0,0.55), 1px 0 0 rgba(255,255,255,0.04), inset -1px 0 0 rgba(255,255,255,0.03)"
+          background: "linear-gradient(160deg, rgba(13,15,43,0.94) 0%, rgba(8,8,24,0.98) 100%)",
+          backdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
+          WebkitBackdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
+          borderRight: "1px solid rgba(0,245,255,0.08)",
+          boxShadow: "12px 0 80px rgba(0,0,0,0.7), 1px 0 0 rgba(0,245,255,0.05), inset -1px 0 0 rgba(122,0,255,0.06)"
         }}
       >
-        {/* Top specular line */}
-        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 40%, rgba(232,168,58,0.18) 60%, transparent 100%)"}} />
+        {/* Top specular line — Liquid Horizon */}
+        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)"}} />
 
         <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
           <div>

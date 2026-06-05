@@ -105,13 +105,13 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
       const isDark = themeRef.current === "dark";
       // Color palettes per theme
       const C = isDark ? {
-        sphere: "rgba(232,168,58,0.05)",
-        ocean: "rgba(180,200,230,0.10)",
-        land: (depth) => `rgba(210,225,245,${0.35 + depth * 0.45})`,
-        marker: "rgba(232,168,58,0.55)",
-        rim: "rgba(232,168,58,0.22)",
-        atmIn: "rgba(232,168,58,0.14)",
-        atmOut: "rgba(232,168,58,0)",
+        sphere: "rgba(0,245,255,0.03)",
+        ocean: "rgba(0,245,255,0.06)",
+        land: (depth) => `rgba(0,245,255,${0.18 + depth * 0.50})`,
+        marker: "rgba(0,245,255,0.70)",
+        rim: "rgba(0,245,255,0.18)",
+        atmIn: "rgba(122,0,255,0.12)",
+        atmOut: "rgba(0,245,255,0)",
       } : {
         sphere: "rgba(11,45,91,0.06)",
         ocean: "rgba(11,45,91,0.12)",
@@ -142,7 +142,9 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
         ctx.fillStyle = C.land(p.depth); ctx.fill();
       }
 
-      // Active marker — Amber (both themes)
+      // Active marker — cyan in dark, amber in light
+      const markerColor = isDark ? "0,245,255" : "232,168,58";
+      const markerHex = isDark ? "#00f5ff" : "#E8A83A";
       const hm = MARKERS[hlIdx % MARKERS.length];
       const hp = project(hm.lon, hm.lat);
       if (hp.vis) {
@@ -150,11 +152,11 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
         for (let ring = 3; ring >= 0; ring--) {
           ctx.beginPath();
           ctx.arc(hp.sx, hp.sy, (8 + ring * 4 + pulse * 4) * DPR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(232,168,58,${(0.06 + pulse * 0.06) * (4 - ring) / 4})`;
+          ctx.strokeStyle = `rgba(${markerColor},${(0.07 + pulse * 0.07) * (4 - ring) / 4})`;
           ctx.lineWidth = DPR; ctx.stroke();
         }
         ctx.beginPath(); ctx.arc(hp.sx, hp.sy, 3.2 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = "#E8A83A"; ctx.fill();
+        ctx.fillStyle = markerHex; ctx.fill();
       }
 
       // Market dots

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
-  ArrowRight, CheckCircle2, Users, Activity, Zap, Globe,
+  ArrowRight, CheckCircle2, Users,
   ChevronUp, ChevronDown, Lock
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -11,6 +11,7 @@ import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
+import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 
 // ─── Animated neon line SVG ─────────────────────────────────────
 function FlowRibbon({ className = "" }) {
@@ -167,131 +168,137 @@ export default function Dashboard() {
     <div className="min-h-screen" style={{ background: "transparent" }}>
 
       {/* ══════════════════════════════════════════════
-          HERO — HUD COMMAND CENTER
+          HERO — GLOBE + FLOATING HUD PANELS
       ══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden px-4 md:px-8 pt-8 pb-10">
-        {/* Ambient glow orbs */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(0,245,255,0.08) 0%, transparent 70%)", filter: "blur(40px)" }} />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(ellipse, rgba(122,0,255,0.10) 0%, transparent 70%)", filter: "blur(40px)" }} />
+      <section className="relative overflow-hidden" style={{ minHeight: "540px" }}>
+        {/* Full-bleed rotating globe */}
+        <div className="absolute inset-0 pointer-events-none">
+          <RotatingGlobe theme="dark" className="absolute inset-0 w-full h-full" />
+        </div>
 
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.3em] text-[#00f5ff] font-black">ABOS · Aviation Intelligence Platform</p>
-            <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-tight mt-0.5"
-              style={{ textShadow: "0 0 40px rgba(0,245,255,0.25)" }}>
-              Integrated Dashboard
-            </h1>
+        {/* Deep gradient overlay — stronger on left/bottom, transparent on right where globe shines */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "linear-gradient(120deg, rgba(10,8,30,0.92) 0%, rgba(10,8,30,0.70) 40%, rgba(10,8,30,0.35) 65%, rgba(10,8,30,0.15) 100%)"
+        }} />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{
+          background: "linear-gradient(to bottom, transparent, rgba(10,8,30,0.95))"
+        }} />
+
+        {/* Ambient cyan/violet orbs */}
+        <div className="absolute top-8 left-1/3 w-96 h-48 pointer-events-none rounded-full"
+          style={{ background: "radial-gradient(ellipse, rgba(0,245,255,0.07) 0%, transparent 70%)", filter: "blur(50px)" }} />
+
+        <div className="relative px-4 md:px-8 pt-8 pb-14">
+          {/* Top status bar */}
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-[#00f5ff] font-black">ABOS · Aviation Intelligence Platform</p>
+              <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight mt-0.5"
+                style={{ textShadow: "0 0 40px rgba(0,245,255,0.30)" }}>
+                Integrated Dashboard
+              </h1>
+            </div>
+            <SystemStatus />
           </div>
-          <SystemStatus />
-        </div>
 
-        {/* Flow ribbon divider */}
-        <div className="h-14 my-2 opacity-70">
-          <FlowRibbon />
-        </div>
+          {/* Flow ribbon */}
+          <div className="h-12 mb-6 opacity-60">
+            <FlowRibbon />
+          </div>
 
-        {/* 4-module HUD grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-          {/* 1. Listings */}
-          <Link to="/listings">
-            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full" accent>
-              <p className="text-[8px] uppercase tracking-[0.2em] text-[#00f5ff] font-black mb-2">1. Listings</p>
-              <div className="flex items-end justify-between gap-2 mb-2">
-                <MetricWidget label="Active Aircraft" value={total_listings} sub="On market" delta="+Live" deltaUp />
-                <Plane className="w-8 h-8 text-[#00f5ff] opacity-30" />
-              </div>
-              <Sparkline color="#00f5ff" up />
-              <p className="text-[9px] text-[#00f5ff] font-semibold mt-1 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-[#00f5ff] animate-pulse inline-block" />
-                Live inc
-              </p>
-            </HudPanel>
-          </Link>
+          {/* 4-module HUD grid — glass panels floating over globe */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* 1. Listings */}
+            <Link to="/listings">
+              <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full" accent>
+                <p className="text-[8px] uppercase tracking-[0.2em] text-[#00f5ff] font-black mb-2">1. Listings</p>
+                <div className="flex items-end justify-between gap-2 mb-2">
+                  <MetricWidget label="Active Aircraft" value={total_listings} sub="On market" delta="+Live" deltaUp />
+                  <Plane className="w-7 h-7 text-[#00f5ff] opacity-25" />
+                </div>
+                <Sparkline color="#00f5ff" up />
+                <p className="text-[9px] text-[#00f5ff] font-semibold mt-1 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-[#00f5ff] animate-pulse inline-block" />Live inc
+                </p>
+              </HudPanel>
+            </Link>
 
-          {/* 2. ATI Intelligence */}
-          <Link to="/listings">
-            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
-              <p className="text-[8px] uppercase tracking-[0.2em] text-[#7a00ff] font-black mb-2">2. ATI Intelligence</p>
-              <div className="flex items-end justify-between gap-2 mb-2">
-                <MetricWidget label="Reports Issued" value={evaluated} sub="Evaluated" delta={avg_ati ? `Avg ${avg_ati}` : "—"} deltaUp />
-                <ShieldCheck className="w-8 h-8 text-[#7a00ff] opacity-30" />
-              </div>
-              <Sparkline color="#7a00ff" up />
-              <p className="text-[9px] text-[#7a00ff] font-semibold mt-1 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-[#7a00ff] animate-pulse inline-block" />
-                Live inc
-              </p>
-            </HudPanel>
-          </Link>
+            {/* 2. ATI Intelligence */}
+            <Link to="/listings">
+              <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full">
+                <p className="text-[8px] uppercase tracking-[0.2em] text-[#7a00ff] font-black mb-2">2. ATI Intelligence</p>
+                <div className="flex items-end justify-between gap-2 mb-2">
+                  <MetricWidget label="Reports Issued" value={evaluated} sub="Evaluated" delta={avg_ati ? `Avg ${avg_ati}` : "—"} deltaUp />
+                  <ShieldCheck className="w-7 h-7 text-[#7a00ff] opacity-25" />
+                </div>
+                <Sparkline color="#7a00ff" up />
+                <p className="text-[9px] text-[#7a00ff] font-semibold mt-1 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-[#7a00ff] animate-pulse inline-block" />Live inc
+                </p>
+              </HudPanel>
+            </Link>
 
-          {/* 3. Live Traffic */}
-          <Link to="/traffic">
-            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
-              <p className="text-[8px] uppercase tracking-[0.2em] text-[#E8A83A] font-black mb-2">3. ADS-B Radar</p>
-              <div className="flex items-end justify-between gap-2 mb-2">
-                <MetricWidget label="Surveillance" value="Live" sub="ADS-B feed" />
-                <Radar className="w-8 h-8 text-[#E8A83A] opacity-30" />
-              </div>
-              <Sparkline color="#E8A83A" up={false} />
-              <p className="text-[9px] text-[#E8A83A] font-semibold mt-1 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-[#E8A83A] animate-pulse inline-block" />
-                Live inc
-              </p>
-            </HudPanel>
-          </Link>
+            {/* 3. ADS-B Radar */}
+            <Link to="/traffic">
+              <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full">
+                <p className="text-[8px] uppercase tracking-[0.2em] text-[#E8A83A] font-black mb-2">3. ADS-B Radar</p>
+                <div className="flex items-end justify-between gap-2 mb-2">
+                  <MetricWidget label="Surveillance" value="Live" sub="ADS-B feed" />
+                  <Radar className="w-7 h-7 text-[#E8A83A] opacity-25" />
+                </div>
+                <Sparkline color="#E8A83A" up={false} />
+                <p className="text-[9px] text-[#E8A83A] font-semibold mt-1 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-[#E8A83A] animate-pulse inline-block" />Live inc
+                </p>
+              </HudPanel>
+            </Link>
 
-          {/* 4. Deal Radar */}
-          <Link to="/deal-radar">
-            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
-              <p className="text-[8px] uppercase tracking-[0.2em] text-[#ff4d6d] font-black mb-2">4. Deal Radar</p>
-              <div className="flex items-end justify-between gap-2 mb-2">
-                <MetricWidget label="Hot Opportunities" value={hot_deals} sub="Score ≥ 8.5" delta="+Scanning" deltaUp />
-                <TrendingUp className="w-8 h-8 text-[#ff4d6d] opacity-30" />
-              </div>
-              <Sparkline color="#ff4d6d" up />
-              <p className="text-[9px] text-[#ff4d6d] font-semibold mt-1 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-[#ff4d6d] animate-pulse inline-block" />
-                Live inc
-              </p>
-            </HudPanel>
-          </Link>
-        </div>
+            {/* 4. Deal Radar */}
+            <Link to="/deal-radar">
+              <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full">
+                <p className="text-[8px] uppercase tracking-[0.2em] text-[#ff4d6d] font-black mb-2">4. Deal Radar</p>
+                <div className="flex items-end justify-between gap-2 mb-2">
+                  <MetricWidget label="Hot Opportunities" value={hot_deals} sub="Score ≥ 8.5" delta="+Scanning" deltaUp />
+                  <TrendingUp className="w-7 h-7 text-[#ff4d6d] opacity-25" />
+                </div>
+                <Sparkline color="#ff4d6d" up />
+                <p className="text-[9px] text-[#ff4d6d] font-semibold mt-1 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-[#ff4d6d] animate-pulse inline-block" />Live inc
+                </p>
+              </HudPanel>
+            </Link>
+          </div>
 
-        {/* Flow ribbon divider 2 */}
-        <div className="h-12 my-3 opacity-50">
-          <FlowRibbon />
-        </div>
+          {/* Flow ribbon 2 */}
+          <div className="h-10 my-4 opacity-40">
+            <FlowRibbon />
+          </div>
 
-        {/* CTA row */}
-        <div className="flex flex-wrap gap-3 items-center justify-center mt-2">
-          <Link to="/listings"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05))", border: "1px solid rgba(0,245,255,0.35)", color: "#00f5ff", boxShadow: "0 0 20px rgba(0,245,255,0.12)" }}>
-            <ShieldCheck className="w-4 h-4" />
-            ATI Report
-          </Link>
-          <Link to="/pre-buy-inspection"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg,rgba(232,168,58,0.20),rgba(232,168,58,0.08))", border: "1px solid rgba(232,168,58,0.40)", color: "#E8A83A", boxShadow: "0 0 20px rgba(232,168,58,0.10)" }}>
-            <Plane className="w-4 h-4" />
-            Pre-Buy AI
-          </Link>
-          <Link to="/traffic"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}>
-            <Radar className="w-4 h-4" />
-            Live Tracking
-          </Link>
-          <Link to="/escrow"
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}>
-            <Handshake className="w-4 h-4" />
-            Secure Escrow
-          </Link>
-          <LiveTrafficBadge />
+          {/* CTA row */}
+          <div className="flex flex-wrap gap-3 items-center justify-center">
+            <Link to="/listings"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg,rgba(0,245,255,0.18),rgba(0,245,255,0.06))", border: "1px solid rgba(0,245,255,0.40)", color: "#00f5ff", boxShadow: "0 0 24px rgba(0,245,255,0.15)", backdropFilter: "blur(16px)" }}>
+              <ShieldCheck className="w-4 h-4" /> ATI Report
+            </Link>
+            <Link to="/pre-buy-inspection"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg,rgba(232,168,58,0.22),rgba(232,168,58,0.08))", border: "1px solid rgba(232,168,58,0.45)", color: "#E8A83A", boxShadow: "0 0 20px rgba(232,168,58,0.12)", backdropFilter: "blur(16px)" }}>
+              <Plane className="w-4 h-4" /> Pre-Buy AI
+            </Link>
+            <Link to="/traffic"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.75)", backdropFilter: "blur(16px)" }}>
+              <Radar className="w-4 h-4" /> Live Tracking
+            </Link>
+            <Link to="/escrow"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.75)", backdropFilter: "blur(16px)" }}>
+              <Handshake className="w-4 h-4" /> Secure Escrow
+            </Link>
+            <LiveTrafficBadge />
+          </div>
         </div>
       </section>
 

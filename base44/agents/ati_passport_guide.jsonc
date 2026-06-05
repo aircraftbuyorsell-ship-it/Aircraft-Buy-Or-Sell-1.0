@@ -23,7 +23,9 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
-  "selected_workspace_skill_ids": [],
+  "selected_workspace_skill_ids": [
+    "69c813d5de35f4fb879160b3"
+  ],
   "model": "automatic",
   "whatsapp_greeting": null,
   "telegram_greeting": null,

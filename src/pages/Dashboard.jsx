@@ -1,48 +1,151 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, Fingerprint, Percent, Users, Lock, TrendingUp, ArrowRight, CheckCircle2, Plane, Radar, Handshake, Sun, Moon } from "lucide-react";
+import {
+  ShieldCheck, Plane, Radar, Handshake, TrendingUp,
+  ArrowRight, CheckCircle2, Users, Activity, Zap, Globe,
+  ChevronUp, ChevronDown, Lock
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
-import MarketPulse from "@/components/dashboard/MarketPulse";
-import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
+import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 
-function NavyIcon({ icon: Icon, size = "md" }) {
-  const s = size === "lg" ? "w-16 h-16" : "w-14 h-14";
-  const i = size === "lg" ? "w-7 h-7" : "w-6 h-6";
+// ─── Animated neon line SVG ─────────────────────────────────────
+function FlowRibbon({ className = "" }) {
   return (
-    <div className={`${s} rounded-2xl bg-[#0B2D5B]/90 flex items-center justify-center mx-auto`} style={{boxShadow:"0 4px 20px rgba(11,45,91,0.25)"}}>
-      <Icon className={`${i} text-white`} strokeWidth={1.8} />
+    <svg viewBox="0 0 600 120" className={`w-full ${className}`} preserveAspectRatio="none" style={{ filter: "drop-shadow(0 0 8px rgba(0,245,255,0.5))" }}>
+      <defs>
+        <linearGradient id="ribGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="rgba(0,245,255,0)" />
+          <stop offset="30%" stopColor="rgba(0,245,255,0.7)" />
+          <stop offset="70%" stopColor="rgba(122,0,255,0.7)" />
+          <stop offset="100%" stopColor="rgba(0,245,255,0)" />
+        </linearGradient>
+        <linearGradient id="ribGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="rgba(0,245,255,0)" />
+          <stop offset="40%" stopColor="rgba(0,245,255,0.4)" />
+          <stop offset="60%" stopColor="rgba(122,0,255,0.5)" />
+          <stop offset="100%" stopColor="rgba(0,245,255,0)" />
+        </linearGradient>
+      </defs>
+      <path d="M0,60 C100,20 200,100 300,60 C400,20 500,80 600,60" stroke="url(#ribGrad)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M0,70 C120,40 220,90 300,65 C380,40 480,90 600,70" stroke="url(#ribGrad2)" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M0,50 C80,70 180,30 300,55 C420,80 520,35 600,50" stroke="url(#ribGrad2)" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.4" />
+    </svg>
+  );
+}
+
+// ─── System Status Badge ─────────────────────────────────────────
+function SystemStatus({ label = "OPTIMAL" }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[9px] uppercase tracking-[0.2em] text-white/40 font-semibold">System Status</span>
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.25)" }}>
+        <span className="w-1.5 h-1.5 rounded-full bg-[#00f5ff] animate-pulse" style={{ boxShadow: "0 0 6px rgba(0,245,255,0.9)" }} />
+        <span className="text-[9px] uppercase tracking-[0.15em] text-[#00f5ff] font-black">{label}</span>
+      </div>
     </div>
   );
 }
 
-function PillarCard({ icon, title, body }) {
+// ─── HUD Panel (glassmorphism card with cyan border) ────────────
+function HudPanel({ children, className = "", accent = false, style = {} }) {
   return (
-    <div className="glass-card p-6 md:p-8 text-center">
-      <NavyIcon icon={icon} />
-      <h3 className="text-[#0B2D5B] mt-5 text-base font-bold text-center uppercase tracking-tight">{title}</h3>
-      <p className="text-sm text-[#4A4845] leading-relaxed mt-3">{body}</p>
+    <div
+      className={`relative rounded-2xl overflow-hidden ${className}`}
+      style={{
+        background: accent
+          ? "linear-gradient(135deg, rgba(0,245,255,0.08) 0%, rgba(122,0,255,0.06) 100%)"
+          : "rgba(13,20,50,0.70)",
+        backdropFilter: "blur(32px) saturate(180%)",
+        WebkitBackdropFilter: "blur(32px) saturate(180%)",
+        border: `1px solid ${accent ? "rgba(0,245,255,0.30)" : "rgba(0,245,255,0.12)"}`,
+        boxShadow: accent
+          ? "0 0 40px rgba(0,245,255,0.08), inset 0 1px 0 rgba(0,245,255,0.15)"
+          : "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,245,255,0.08)",
+        ...style
+      }}
+    >
+      {/* Top specular line */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, rgba(0,245,255,0.4), transparent)", pointerEvents: "none" }} />
+      {children}
     </div>
   );
 }
 
-function StatPill({ value, label }) {
+// ─── Metric widget ───────────────────────────────────────────────
+function MetricWidget({ label, value, sub, delta, deltaUp }) {
   return (
-    <div className="text-center">
-      <p className="text-3xl md:text-4xl font-black text-[#0B2D5B] leading-none">{value}</p>
-      <p className="text-[10px] md:text-[11px] text-[#6B6560] uppercase tracking-[0.15em] font-semibold mt-1.5">{label}</p>
+    <div className="flex flex-col gap-1">
+      <p className="text-[9px] uppercase tracking-[0.2em] text-white/40 font-semibold">{label}</p>
+      <p className="text-2xl font-black text-white leading-none" style={{ textShadow: "0 0 20px rgba(0,245,255,0.3)" }}>{value}</p>
+      {sub && <p className="text-[10px] text-white/40">{sub}</p>}
+      {delta != null && (
+        <div className={`flex items-center gap-0.5 text-[10px] font-bold ${deltaUp ? "text-[#00f5ff]" : "text-[#ff4d6d]"}`}>
+          {deltaUp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          {delta}
+        </div>
+      )}
     </div>
   );
 }
 
+// ─── Mini sparkline (pure CSS/SVG) ──────────────────────────────
+function Sparkline({ color = "#00f5ff", up = true }) {
+  const pts = up
+    ? "0,28 15,22 30,24 45,16 60,18 75,10 90,12 105,4 120,6"
+    : "0,6 15,12 30,8 45,18 60,16 75,22 90,20 105,26 120,28";
+  return (
+    <svg viewBox="0 0 120 32" className="w-full h-8" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={`spk${up}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 3px ${color})` }} />
+    </svg>
+  );
+}
+
+// ─── ATI Score Ring ──────────────────────────────────────────────
+function ATIRing({ score, size = 56 }) {
+  if (!score) return null;
+  const color = score >= 90 ? "#00f5ff" : score >= 72 ? "#7a00ff" : score >= 54 ? "#E8A83A" : "#ff4d6d";
+  const pct = (score / 120) * 113.1;
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 44 44" className="w-full h-full -rotate-90">
+        <circle cx="22" cy="22" r="18" fill="none" stroke={`${color}25`} strokeWidth="3" />
+        <circle cx="22" cy="22" r="18" fill="none" stroke={color} strokeWidth="3"
+          strokeDasharray={`${pct} 113.1`} strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-[9px] font-black" style={{ color }}>{score}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Section header ──────────────────────────────────────────────
+function SectionHeader({ overline, title }) {
+  return (
+    <div className="mb-6">
+      <p className="text-[9px] uppercase tracking-[0.3em] font-black text-[#00f5ff] mb-1">{overline}</p>
+      <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-tight"
+        style={{ textShadow: "0 0 30px rgba(0,245,255,0.2)" }}>
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+// ─── Main Dashboard ──────────────────────────────────────────────
 export default function Dashboard() {
-  const [globeTheme, setGlobeTheme] = useState("light");
   const [wizardOpen, setWizardOpen] = useState(false);
-  const isDark = globeTheme === "dark";
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -61,327 +164,352 @@ export default function Dashboard() {
   const evaluated = listings.filter((l) => l.ati_score).length;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: "transparent" }}>
 
-      {/* ———————— HERO ———————— */}
-      <section
-        className="relative overflow-hidden"
-        style={{ backgroundColor: isDark ? "#060D1A" : "#EEF2F8" }}
-      >
-        <RotatingGlobe theme={globeTheme} className="absolute inset-0 w-full h-full pointer-events-none opacity-90" />
+      {/* ══════════════════════════════════════════════
+          HERO — HUD COMMAND CENTER
+      ══════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden px-4 md:px-8 pt-8 pb-10">
+        {/* Ambient glow orbs */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(0,245,255,0.08) 0%, transparent 70%)", filter: "blur(40px)" }} />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(ellipse, rgba(122,0,255,0.10) 0%, transparent 70%)", filter: "blur(40px)" }} />
 
-        {/* Gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: isDark
-              ? "linear-gradient(90deg,rgba(6,13,26,0.94) 0%,rgba(6,13,26,0.72) 40%,rgba(6,13,26,0.18) 70%,transparent 100%)"
-              : "linear-gradient(90deg,rgba(238,242,248,0.96) 0%,rgba(238,242,248,0.78) 40%,rgba(238,242,248,0.22) 70%,transparent 100%)"
-          }}
-        />
-
-        {/* Globe theme toggle */}
-        <button
-          onClick={() => setGlobeTheme((t) => t === "light" ? "dark" : "light")}
-          className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all"
-          style={{
-            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.70)",
-            border: isDark ? "1px solid rgba(255,255,255,0.14)" : "1px solid rgba(0,0,0,0.08)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            color: isDark ? "#E8A83A" : "#0B2D5B"
-          }}
-        >
-          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-          {isDark ? "Light Globe" : "Dark Globe"}
-        </button>
-
-        <div className="relative max-w-6xl mx-auto px-4 md:px-8 pt-14 md:pt-24 pb-18 md:pb-24 text-center">
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6"
-            style={{
-              background: isDark ? "rgba(232,168,58,0.12)" : "rgba(11,45,91,0.06)",
-              border: isDark ? "1px solid rgba(232,168,58,0.28)" : "1px solid rgba(11,45,91,0.12)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)"
-            }}
-          >
-            <Lock className={`w-3.5 h-3.5 ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`} />
-            <p className={`text-[11px] uppercase tracking-[0.15em] font-bold ${isDark ? "text-[#E8A83A]" : "text-[#0B2D5B]"}`}>
-              Exclusive · Verified Aviation Professionals Only
-            </p>
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <p className="text-[9px] uppercase tracking-[0.3em] text-[#00f5ff] font-black">ABOS · Aviation Intelligence Platform</p>
+            <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-tight mt-0.5"
+              style={{ textShadow: "0 0 40px rgba(0,245,255,0.25)" }}>
+              Integrated Dashboard
+            </h1>
           </div>
+          <SystemStatus />
+        </div>
 
-          <h1 className={`text-3xl md:text-5xl lg:text-6xl font-black leading-[1.12] uppercase tracking-tight max-w-5xl mx-auto ${isDark ? "text-white" : "text-[#1A1814]"}`}>
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI Intelligence</span>
-            {" · "}
-            <span className="text-[#E8A83A]">ADS-B Surveillance</span>
-            {" · "}
-            <span className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>Pre-Buy Analysis</span>
-            {" · "}
-            <span className="text-[#E8A83A]">Secure Escrow</span>
-          </h1>
+        {/* Flow ribbon divider */}
+        <div className="h-14 my-2 opacity-70">
+          <FlowRibbon />
+        </div>
 
-          <p className={`text-sm md:text-base mt-5 max-w-3xl mx-auto leading-relaxed ${isDark ? "text-white/75" : "text-[#4A4845]"}`}>
-            The private intelligence network for verified aviation dealers and brokers. Issue{" "}
-            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>ATI transaction intelligence reports</b>, surveil any aircraft{" "}
-            <b className={isDark ? "text-[#6FA3E8]" : "text-[#0B2D5B]"}>in real time via ADS-B</b>, conduct{" "}
-            <b className="text-[#E8A83A]">AI-assisted pre-buy inspections with Max</b>, and execute transactions through{" "}
-            <b className="text-[#E8A83A]">protected escrow with full commission management</b>.
-          </p>
+        {/* 4-module HUD grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          {/* 1. Listings */}
+          <Link to="/listings">
+            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full" accent>
+              <p className="text-[8px] uppercase tracking-[0.2em] text-[#00f5ff] font-black mb-2">1. Listings</p>
+              <div className="flex items-end justify-between gap-2 mb-2">
+                <MetricWidget label="Active Aircraft" value={total_listings} sub="On market" delta="+Live" deltaUp />
+                <Plane className="w-8 h-8 text-[#00f5ff] opacity-30" />
+              </div>
+              <Sparkline color="#00f5ff" up />
+              <p className="text-[9px] text-[#00f5ff] font-semibold mt-1 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#00f5ff] animate-pulse inline-block" />
+                Live inc
+              </p>
+            </HudPanel>
+          </Link>
 
-          <div className="mt-10 flex flex-wrap gap-3 justify-center items-center">
-            <Link
-              to="/listings"
-              className="inline-flex items-center gap-2.5 text-white uppercase font-bold text-sm px-6 py-3.5 rounded-2xl tracking-wide transition-all active:scale-95"
-              style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 20px rgba(11,45,91,0.35)"}}
-            >
-              <ShieldCheck className="w-4.5 h-4.5" />
-              Generate ATI Report
-            </Link>
-            <Link
-              to="/pre-buy-inspection"
-              className="inline-flex items-center gap-2.5 text-[#0B2D5B] uppercase font-bold text-sm px-6 py-3.5 rounded-2xl tracking-wide transition-all active:scale-95"
-              style={{background:"linear-gradient(135deg,#E8A83A,#F5C842)", boxShadow:"0 4px 20px rgba(232,168,58,0.35)"}}
-            >
-              <Plane className="w-4.5 h-4.5" />
-              AI Pre-Buy Inspection
-            </Link>
-            <Link
-              to="/traffic"
-              className="inline-flex items-center gap-2.5 uppercase font-bold text-sm px-6 py-3.5 rounded-2xl tracking-wide transition-all active:scale-95"
-              style={{
-                background: "rgba(255,255,255,0.60)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(11,45,91,0.20)",
-                color: "#0B2D5B",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.10)"
-              }}
-            >
-              <Radar className="w-4.5 h-4.5" />
-              Live Tracking
-            </Link>
-            <Link
-              to="/escrow"
-              className="inline-flex items-center gap-2.5 uppercase font-bold text-sm px-6 py-3.5 rounded-2xl tracking-wide transition-all active:scale-95"
-              style={{
-                background: "rgba(255,255,255,0.60)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(232,168,58,0.35)",
-                color: "#0B2D5B",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.10)"
-              }}
-            >
-              <Handshake className="w-4.5 h-4.5" />
-              Secure Escrow
-            </Link>
-          </div>
+          {/* 2. ATI Intelligence */}
+          <Link to="/listings">
+            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
+              <p className="text-[8px] uppercase tracking-[0.2em] text-[#7a00ff] font-black mb-2">2. ATI Intelligence</p>
+              <div className="flex items-end justify-between gap-2 mb-2">
+                <MetricWidget label="Reports Issued" value={evaluated} sub="Evaluated" delta={avg_ati ? `Avg ${avg_ati}` : "—"} deltaUp />
+                <ShieldCheck className="w-8 h-8 text-[#7a00ff] opacity-30" />
+              </div>
+              <Sparkline color="#7a00ff" up />
+              <p className="text-[9px] text-[#7a00ff] font-semibold mt-1 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#7a00ff] animate-pulse inline-block" />
+                Live inc
+              </p>
+            </HudPanel>
+          </Link>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-3 items-center">
-            <LiveTrafficBadge />
-            <p className={`text-[11px] uppercase tracking-wider font-medium ${isDark ? "text-white/50" : "text-[#6B6560]"}`}>
-              <Link to="/rewards" className="text-[#E8A83A] hover:underline">Referral Program</Link> — introduce qualified professionals and earn revenue share.
-            </p>
-          </div>
+          {/* 3. Live Traffic */}
+          <Link to="/traffic">
+            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
+              <p className="text-[8px] uppercase tracking-[0.2em] text-[#E8A83A] font-black mb-2">3. ADS-B Radar</p>
+              <div className="flex items-end justify-between gap-2 mb-2">
+                <MetricWidget label="Surveillance" value="Live" sub="ADS-B feed" />
+                <Radar className="w-8 h-8 text-[#E8A83A] opacity-30" />
+              </div>
+              <Sparkline color="#E8A83A" up={false} />
+              <p className="text-[9px] text-[#E8A83A] font-semibold mt-1 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#E8A83A] animate-pulse inline-block" />
+                Live inc
+              </p>
+            </HudPanel>
+          </Link>
+
+          {/* 4. Deal Radar */}
+          <Link to="/deal-radar">
+            <HudPanel className="p-4 hover:scale-[1.01] transition-transform cursor-pointer h-full">
+              <p className="text-[8px] uppercase tracking-[0.2em] text-[#ff4d6d] font-black mb-2">4. Deal Radar</p>
+              <div className="flex items-end justify-between gap-2 mb-2">
+                <MetricWidget label="Hot Opportunities" value={hot_deals} sub="Score ≥ 8.5" delta="+Scanning" deltaUp />
+                <TrendingUp className="w-8 h-8 text-[#ff4d6d] opacity-30" />
+              </div>
+              <Sparkline color="#ff4d6d" up />
+              <p className="text-[9px] text-[#ff4d6d] font-semibold mt-1 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#ff4d6d] animate-pulse inline-block" />
+                Live inc
+              </p>
+            </HudPanel>
+          </Link>
+        </div>
+
+        {/* Flow ribbon divider 2 */}
+        <div className="h-12 my-3 opacity-50">
+          <FlowRibbon />
+        </div>
+
+        {/* CTA row */}
+        <div className="flex flex-wrap gap-3 items-center justify-center mt-2">
+          <Link to="/listings"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05))", border: "1px solid rgba(0,245,255,0.35)", color: "#00f5ff", boxShadow: "0 0 20px rgba(0,245,255,0.12)" }}>
+            <ShieldCheck className="w-4 h-4" />
+            ATI Report
+          </Link>
+          <Link to="/pre-buy-inspection"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg,rgba(232,168,58,0.20),rgba(232,168,58,0.08))", border: "1px solid rgba(232,168,58,0.40)", color: "#E8A83A", boxShadow: "0 0 20px rgba(232,168,58,0.10)" }}>
+            <Plane className="w-4 h-4" />
+            Pre-Buy AI
+          </Link>
+          <Link to="/traffic"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}>
+            <Radar className="w-4 h-4" />
+            Live Tracking
+          </Link>
+          <Link to="/escrow"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.75)" }}>
+            <Handshake className="w-4 h-4" />
+            Secure Escrow
+          </Link>
+          <LiveTrafficBadge />
         </div>
       </section>
 
-      {/* ———————— MARKET PULSE ———————— */}
-      <MarketPulse />
-
-      {/* ———————— PILLARS ———————— */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Platform Capabilities</p>
-        <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight mt-2 max-w-3xl mx-auto leading-tight">
-          Institutional-Grade Transaction Intelligence for Aviation Professionals
-        </h2>
-        <div className="grid md:grid-cols-4 gap-4 mt-12">
-          <PillarCard icon={ShieldCheck} title="ATI Transaction Report" body="Comprehensive aircraft intelligence scoring across 8 risk dimensions — documentation integrity, engine condition, avionics fit, operational history, and transaction readiness." />
-          <PillarCard icon={Radar} title="ADS-B Surveillance" body="Real-time aircraft surveillance by N-number or Mode-S hex. Live position, altitude, ground speed, and 7-day operational history." />
-          <PillarCard icon={TrendingUp} title="On-Site Pre-Buy Inspection" body="On-site inspection with Max — live visual analysis of airframe, corrosion, interior condition, and maintenance discrepancies delivered by voice." />
-          <PillarCard icon={Handshake} title="Escrow & Commission Management" body="Protected buyer-seller escrow with automated commission splits, finder's fee allocation, and full payout audit trail." />
-        </div>
-      </section>
-
-      {/* ———————— STATS ———————— */}
-      <section className="py-10 md:py-14">
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div
-            className="rounded-3xl px-6 md:px-12 py-10"
-            style={{
-              background: "rgba(255,255,255,0.55)",
-              backdropFilter: "blur(24px) saturate(160%)",
-              WebkitBackdropFilter: "blur(24px) saturate(160%)",
-              border: "1px solid rgba(255,255,255,0.60)",
-              boxShadow: "0 8px 40px rgba(11,45,91,0.08)"
-            }}
-          >
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[#E8A83A] font-bold text-center">Live Platform Metrics</p>
-            <h3 className="text-xl md:text-2xl font-black text-[#0B2D5B] text-center mt-1 uppercase tracking-tight">
-              Active Inventory & Transaction Intelligence
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
-              <StatPill value={total_listings} label="Aircraft On Market" />
-              <StatPill value={evaluated} label="ATI Reports Issued" />
-              <StatPill value={hot_deals} label="High-Value Opportunities" />
-              <StatPill value={avg_ati || "—"} label="Avg ATI Score" />
+      {/* ══════════════════════════════════════════════
+          GLOBAL LIQUIDITY CORE — KPI STRIP
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-6">
+        <HudPanel className="p-5 md:p-7" accent>
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="flex-1 min-w-[200px]">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                  <p className="text-[9px] uppercase tracking-[0.25em] text-[#00f5ff] font-black">Aviation Intelligence Core</p>
+                  <h3 className="text-lg font-black text-white mt-0.5">Global Market Overview</h3>
+                </div>
+                <SystemStatus label="LIVE" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                <MetricWidget label="Total Listings" value={total_listings.toLocaleString()} sub="Active aircraft" delta="+Live" deltaUp />
+                <MetricWidget label="ATI Evaluated" value={`${evaluated}`} sub="Reports issued" delta={`${evaluated > 0 ? Math.round((evaluated/Math.max(total_listings,1))*100) : 0}%`} deltaUp />
+                <MetricWidget label="Hot Deals" value={hot_deals} sub="Score ≥ 8.5" delta={hot_deals > 0 ? "Active" : "—"} deltaUp />
+                <MetricWidget label="Avg ATI Score" value={avg_ati || "—"} sub="Platform average" delta={avg_ati >= 80 ? "Strong" : avg_ati > 0 ? "Fair" : "—"} deltaUp={avg_ati >= 80} />
+              </div>
+            </div>
+            <div className="w-full md:w-64 h-24">
+              <p className="text-[8px] uppercase tracking-[0.2em] text-white/30 mb-1">Market Activity</p>
+              <div className="h-16">
+                <Sparkline color="#00f5ff" up />
+              </div>
             </div>
           </div>
-        </div>
+        </HudPanel>
       </section>
 
-      {/* ———————— HOW IT WORKS ———————— */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Transaction Workflow</p>
-        <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] text-center uppercase tracking-tight mt-2">
-          From Intelligence to Close — Four Professional Steps
-        </h2>
-        <div className="grid md:grid-cols-4 gap-5 mt-12">
+      {/* ══════════════════════════════════════════════
+          4-CAPABILITY MODULES
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <SectionHeader overline="Platform Capabilities" title="Integrated Intelligence Modules" />
+          <SystemStatus label="OPTIMAL" />
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { n: "01", title: "Issue ATI Intelligence Report", body: "Add an aircraft registration and instantly generate a verified ATI transaction report scoring 8 risk dimensions — documentation, engine, avionics, and market readiness." },
-            { n: "02", title: "Conduct AI Pre-Buy Inspection", body: "On-site with the aircraft? Engage Max AI for a live visual inspection — airframe condition, corrosion indicators, and maintenance status assessed in real time." },
-            { n: "03", title: "Verify & Surveil via ADS-B", body: "Confirm operational status. Surveil the aircraft by N-number or Mode-S hex — live position, altitude, speed, and 7-day flight history." },
-            { n: "04", title: "Execute via Secure Escrow", body: "Structured deal execution through protected escrow. Commission splits, finder's fees, buyer-seller funds flow, and payout audit managed on-platform." }
-          ].map((s) => (
-            <div key={s.n} className="glass-card p-6">
-              <p className="text-4xl font-black text-[#E8A83A] leading-none">{s.n}</p>
-              <h4 className="text-sm font-black text-[#0B2D5B] uppercase mt-3 tracking-tight">{s.title}</h4>
-              <p className="text-sm text-[#4A4845] mt-2 leading-relaxed">{s.body}</p>
-            </div>
+            {
+              n: "01", color: "#00f5ff", icon: ShieldCheck,
+              title: "ATI Transaction Report",
+              body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.",
+              link: "/listings"
+            },
+            {
+              n: "02", color: "#7a00ff", icon: Radar,
+              title: "ADS-B Surveillance",
+              body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and 7-day operational history.",
+              link: "/traffic"
+            },
+            {
+              n: "03", color: "#E8A83A", icon: Plane,
+              title: "AI Pre-Buy Inspection",
+              body: "On-site with Max AI — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.",
+              link: "/pre-buy-inspection"
+            },
+            {
+              n: "04", color: "#ff4d6d", icon: Handshake,
+              title: "Escrow & Commission",
+              body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.",
+              link: "/escrow"
+            }
+          ].map((m) => (
+            <Link key={m.n} to={m.link}>
+              <HudPanel className="p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer"
+                style={{ borderColor: `${m.color}22` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}35`, boxShadow: `0 0 12px ${m.color}20` }}>
+                    <m.icon className="w-4 h-4" style={{ color: m.color }} />
+                  </div>
+                  <span className="text-4xl font-black leading-none" style={{ color: `${m.color}30` }}>{m.n}</span>
+                </div>
+                <h4 className="text-[11px] font-black uppercase tracking-tight text-white mb-2">{m.title}</h4>
+                <p className="text-[11px] text-white/45 leading-relaxed">{m.body}</p>
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-bold"
+                  style={{ borderColor: `${m.color}15`, color: m.color }}>
+                  Access Module <ArrowRight className="w-3 h-3" />
+                </div>
+              </HudPanel>
+            </Link>
           ))}
         </div>
-        <div className="text-center mt-12">
-          <Link
-            to="/listings"
-            className="inline-flex items-center gap-2 text-white uppercase font-bold text-sm px-8 py-4 rounded-2xl tracking-wider transition-all active:scale-95"
-            style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 24px rgba(11,45,91,0.30)"}}
-          >
-            Access the Platform <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
       </section>
 
-      {/* ———————— WHO IT'S FOR ———————— */}
-      <section className="py-16 md:py-20"
-        style={{background:"linear-gradient(135deg,#0B2D5B 0%,#0d3566 50%,#0B2D5B 100%)"}}>
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A] text-center">Who We Serve</p>
-          <h2 className="text-2xl md:text-3xl font-black text-white text-center uppercase tracking-tight mt-2">
-            Purpose-Built for Dealers, Brokers & Operators
-          </h2>
-          <div className="grid md:grid-cols-3 gap-4 mt-12">
-            {[
-              { icon: Users, title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to qualified institutional buyers and accelerate your sales cycle." },
-              { icon: Handshake, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline tools for every transaction stage." },
-              { icon: TrendingUp, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured, transparent transaction process." }
-            ].map((x) => (
-              <div
-                key={x.title}
-                className="p-6 rounded-2xl"
-                style={{
-                  background: "rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
-                  border: "1px solid rgba(255,255,255,0.12)"
-                }}
-              >
-                <div className="w-12 h-12 rounded-2xl bg-[#E8A83A] flex items-center justify-center" style={{boxShadow:"0 4px 16px rgba(232,168,58,0.35)"}}>
-                  <x.icon className="w-5 h-5 text-[#0B2D5B]" strokeWidth={2} />
-                </div>
-                <h4 className="text-lg font-black uppercase tracking-tight text-white mt-4">{x.title}</h4>
-                <p className="text-sm text-white/65 mt-2 leading-relaxed">{x.body}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3">
-            {["ATI Transaction Reports","Secure Escrow Execution","Commission & Fee Management","Verified Professional Network","Real-Time ADS-B Surveillance","Transparent Deal Pricing"].map((x) => (
-              <div key={x} className="flex items-center gap-2 text-sm text-white/80">
-                <CheckCircle2 className="w-4 h-4 text-[#E8A83A]" />
-                {x}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ———————— MARKET FORECAST ———————— */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-10">
-        <MarketForecastCharts />
-      </section>
-
-      {/* ———————— AIRCRAFT REPORTS + AI INSIGHTS ———————— */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-        <div className="flex items-end justify-between mb-8 flex-wrap gap-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Active Listings</p>
-            <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight mt-1">ATI-Evaluated Aircraft</h2>
-          </div>
-          <Link to="/listings" className="text-sm font-bold text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition-colors flex items-center gap-1">
-            View All <ArrowRight className="w-4 h-4" />
+      {/* ══════════════════════════════════════════════
+          AIRCRAFT LISTINGS + AI INSIGHTS
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-6">
+        <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
+          <SectionHeader overline="Active Listings" title="ATI-Evaluated Aircraft" />
+          <Link to="/listings" className="flex items-center gap-1 text-[10px] text-[#00f5ff] font-black uppercase tracking-wider hover:opacity-80 transition-opacity">
+            View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_340px] gap-6">
-          <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {listings.slice(0, 6).map((l) => {
               const score = l.ati_score || 0;
-              const color = score >= 85 ? "#28C76F" : score >= 65 ? "#E8A83A" : score > 0 ? "#FF3B30" : "#AAA49C";
+              const color = score >= 90 ? "#00f5ff" : score >= 72 ? "#7a00ff" : score >= 54 ? "#E8A83A" : score > 0 ? "#ff4d6d" : "#ffffff30";
               return (
-                <Link
-                  key={l.id}
-                  to={`/ati-passport/${l.id}`}
-                  className="glass-card p-5 block"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider text-[#E8A83A] font-bold">ATI ID</p>
-                      <p className="text-xs uppercase tracking-wider text-[#6B6560] font-medium font-mono mt-0.5">{l.registration || "—"}</p>
-                      <p className="text-lg font-black text-[#1A1814] mt-1 truncate">{l.year} {l.make} {l.model}</p>
+                <Link key={l.id} to={`/ati-passport/${l.id}`}>
+                  <HudPanel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer"
+                    style={{ borderColor: score > 0 ? `${color}25` : undefined }}>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="min-w-0">
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-[#00f5ff] font-black">ATI Report</p>
+                        <p className="text-[10px] text-white/40 font-mono mt-0.5">{l.registration || "—"}</p>
+                        <p className="text-sm font-black text-white mt-1 truncate leading-tight">
+                          {l.year} {l.make} {l.model}
+                        </p>
+                      </div>
+                      <ATIRing score={score || null} />
                     </div>
-                    <div className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-white font-black text-xs" style={{background:color, boxShadow:`0 4px 12px ${color}55`}}>
-                      {score || "—"}
+                    <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: "rgba(0,245,255,0.08)" }}>
+                      <p className="text-[9px] text-white/30 uppercase tracking-wider">
+                        {l.asking_price ? `$${l.asking_price.toLocaleString()}` : "On request"}
+                      </p>
+                      <p className="text-[9px] font-black" style={{ color: score >= 80 ? "#00f5ff" : score >= 60 ? "#E8A83A" : "#ff4d6d" }}>
+                        {score >= 90 ? "EXCEPTIONAL" : score >= 75 ? "STRONG BUY" : score >= 60 ? "FAIR" : score > 0 ? "CAUTION" : "UNSCORED"}
+                      </p>
                     </div>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-black/[0.05] flex items-center justify-between">
-                    <p className="text-[11px] uppercase tracking-wider text-[#6B6560] font-medium">Finder's Fee</p>
-                    <p className="text-base font-black text-[#0B2D5B]">%</p>
-                  </div>
+                  </HudPanel>
                 </Link>
               );
             })}
             {listings.length === 0 && (
-              <div className="sm:col-span-2 text-center py-16 text-[#AAA49C]">
-                <Plane className="w-10 h-10 mx-auto opacity-30 mb-3" />
+              <div className="sm:col-span-2 xl:col-span-3 py-16 text-center text-white/20">
+                <Plane className="w-10 h-10 mx-auto mb-3 opacity-30" />
                 <p className="text-sm">No aircraft reports available yet.</p>
               </div>
             )}
           </div>
+
           <div className="lg:sticky lg:top-20 lg:self-start">
             <AIInsightsPanel />
           </div>
         </div>
       </section>
 
-      {/* ———————— FOOTER CTA ———————— */}
-      <section className="py-16 text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight">
-            One Platform. <span className="text-[#0B2D5B]">Institutional Standards.</span>{" "}
-            <span className="text-[#E8A83A]">Verified Results.</span>
+      {/* ══════════════════════════════════════════════
+          MARKET FORECAST
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-6">
+        <SectionHeader overline="Market Intelligence" title="Aviation Market Forecast" />
+        <MarketForecastCharts />
+      </section>
+
+      {/* ══════════════════════════════════════════════
+          WHO WE SERVE — CORRELATION PANEL
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <SectionHeader overline="Who We Serve" title="Purpose-Built for Aviation Professionals" />
+          <SystemStatus label="OPTIMAL" />
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-3 mb-6">
+          {[
+            { icon: Users, color: "#00f5ff", title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to institutional buyers." },
+            { icon: Handshake, color: "#7a00ff", title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline." },
+            { icon: TrendingUp, color: "#E8A83A", title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process." }
+          ].map((x) => (
+            <HudPanel key={x.title} className="p-5" style={{ borderColor: `${x.color}20` }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
+                style={{ background: `${x.color}12`, border: `1px solid ${x.color}30`, boxShadow: `0 0 16px ${x.color}15` }}>
+                <x.icon className="w-5 h-5" style={{ color: x.color }} />
+              </div>
+              <h4 className="text-sm font-black uppercase tracking-tight text-white mb-2">{x.title}</h4>
+              <p className="text-[11px] text-white/45 leading-relaxed">{x.body}</p>
+            </HudPanel>
+          ))}
+        </div>
+
+        {/* Feature checklist */}
+        <HudPanel className="p-5">
+          <div className="flex flex-wrap gap-x-8 gap-y-3">
+            {["ATI Transaction Reports", "Secure Escrow Execution", "Commission & Fee Management", "Verified Professional Network", "Real-Time ADS-B Surveillance", "Transparent Deal Pricing"].map((x) => (
+              <div key={x} className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#00f5ff]" style={{ filter: "drop-shadow(0 0 4px rgba(0,245,255,0.6))" }} />
+                <span className="text-[11px] text-white/60 font-medium">{x}</span>
+              </div>
+            ))}
+          </div>
+        </HudPanel>
+      </section>
+
+      {/* ══════════════════════════════════════════════
+          FOOTER CTA
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 py-10 text-center">
+        <div className="h-12 mb-6 opacity-40">
+          <FlowRibbon />
+        </div>
+        <HudPanel className="max-w-2xl mx-auto p-8 md:p-10" accent>
+          <Lock className="w-8 h-8 text-[#00f5ff] mx-auto mb-4" style={{ filter: "drop-shadow(0 0 8px rgba(0,245,255,0.5))" }} />
+          <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight mb-3"
+            style={{ textShadow: "0 0 30px rgba(0,245,255,0.2)" }}>
+            One Platform. <span style={{ color: "#00f5ff" }}>Institutional Standards.</span>{" "}
+            <span style={{ color: "#E8A83A" }}>Verified Results.</span>
           </h2>
-          <p className="text-[#4A4845] text-sm md:text-base mt-3">
+          <p className="text-[12px] text-white/45 mb-6 max-w-lg mx-auto leading-relaxed">
             ABOS is the private intelligence network trusted by aviation dealers and brokers who require rigorous transaction due diligence, secure deal execution, and auditable outcomes.
           </p>
-          <Link
-            to="/listings"
-            className="inline-flex items-center gap-2 text-white uppercase font-bold text-sm px-8 py-4 rounded-2xl tracking-wider transition-all active:scale-95 mt-8"
-            style={{background:"linear-gradient(135deg,#0B2D5B,#143C75)", boxShadow:"0 4px 24px rgba(11,45,91,0.28)"}}
-          >
+          <Link to="/listings"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg, rgba(0,245,255,0.20), rgba(0,245,255,0.08))", border: "1px solid rgba(0,245,255,0.40)", color: "#00f5ff", boxShadow: "0 0 30px rgba(0,245,255,0.15)" }}>
             Enter the Platform <ArrowRight className="w-4 h-4" />
           </Link>
-        </div>
+        </HudPanel>
       </section>
 
       <AircraftWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />

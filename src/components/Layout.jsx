@@ -40,6 +40,7 @@ const SIDEBAR_SECTIONS = [
     n: "2",
     label: "Tools",
     items: [
+      { path: "/marketplace", label: "ABOS MarketSpace", icon: Zap },
       { path: "/intrazone", label: "IntraZone", icon: Zap },
       { path: "/valuation", label: "Valuation", icon: TrendingUp },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
@@ -148,10 +149,10 @@ export default function Layout() {
             </div>
             <span className="font-black text-sm tracking-[-0.04em] hidden sm:block"
               style={{
-                background:"linear-gradient(135deg,#0B2D5B 0%,#1A4A8A 100%)",
+                background:"linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
               }}>
-              ABOS
+              ABOS MarketSpace
             </span>
           </Link>
 
@@ -251,7 +252,7 @@ export default function Layout() {
               WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
               fontSize:"9px", fontWeight:900, letterSpacing:"0.22em", textTransform:"uppercase"
             }}>Navigation</p>
-            <p className="text-white/30 text-[11px] mt-0.5">Aviation Intelligence Platform</p>
+            <p className="text-white/30 text-[11px] mt-0.5">The Global Aircraft Identity & Sales Network</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -340,8 +341,8 @@ export default function Layout() {
                 background:"linear-gradient(90deg,#F5C842,#E8A83A)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
                 fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
-              }}>ABOS v2.0</p>
-              <p className="text-white/25 text-[9px] tracking-wider">Private Dealer Intelligence · Live</p>
+              }}>ABOS MarketSpace</p>
+              <p className="text-white/25 text-[9px] tracking-wider">Powered by IntraZone Intelligence · Live</p>
             </div>
           </div>
         </div>

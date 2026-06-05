@@ -193,11 +193,15 @@ export default function Dashboard() {
           {/* Top status bar */}
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <div>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-[#00f5ff] font-black">ABOS · Aviation Intelligence Platform</p>
-              <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight mt-0.5"
+              <p className="text-[9px] uppercase tracking-[0.3em] text-[#00f5ff] font-black">ABOS MarketSpace · Aviation Intelligence</p>
+              <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-none mt-0.5"
                 style={{ textShadow: "0 0 40px rgba(0,245,255,0.30)" }}>
-                Integrated Dashboard
+                ABOS<br />
+                <span style={{ background: "linear-gradient(90deg,#00f5ff,#7a00ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  MarketSpace
+                </span>
               </h1>
+              <p className="text-[11px] text-white/45 mt-1.5 font-medium tracking-wide">Buy. Sell. Verify.</p>
             </div>
             <SystemStatus />
           </div>

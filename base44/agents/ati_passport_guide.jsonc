@@ -23,7 +23,7 @@
   "model": "automatic",
   "memory_config": {
     "enabled": true,
-    "scope": "conversation",
+    "scope": "user",
     "instructions": null
   },
   "name": "ati_passport_guide"

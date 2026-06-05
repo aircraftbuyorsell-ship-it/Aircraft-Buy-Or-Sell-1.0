@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
-import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp, Filter, Table2 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,18 +43,85 @@ function FlyTo({ target }) {
 
 function HistoryPanel({ snapshots, onLoad }) {
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState("table"); // "table" | "cards"
   if (!snapshots.length) return null;
+
   return (
     <div className="max-w-7xl mx-auto mt-4">
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 text-sm font-black text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition"
-      >
-        <History className="w-4 h-4" />
-        Historical Snapshots ({snapshots.length})
-        {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-      {open && (
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="flex items-center gap-2 text-sm font-black text-[#0B2D5B] uppercase tracking-wider hover:text-[#E8A83A] transition"
+        >
+          <History className="w-4 h-4" />
+          Historical Snapshots ({snapshots.length})
+          {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+        {open && (
+          <div className="flex items-center gap-1 bg-white border border-black/10 rounded-xl px-1.5 py-1">
+            <button onClick={() => setView("table")}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${view === "table" ? "bg-[#0B2D5B] text-white" : "text-[#6B6560] hover:text-[#0B2D5B]"}`}>
+              <Table2 className="w-3 h-3" /> Table
+            </button>
+            <button onClick={() => setView("cards")}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition ${view === "cards" ? "bg-[#0B2D5B] text-white" : "text-[#6B6560] hover:text-[#0B2D5B]"}`}>
+              <Clock className="w-3 h-3" /> Cards
+            </button>
+          </div>
+        )}
+      </div>
+
+      {open && view === "table" && (
+        <div className="mt-3 bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#F7F4EF] border-b border-black/[0.06]">
+                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#6B6560]">Region</th>
+                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#6B6560]">Aircraft Count</th>
+                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#6B6560]">Captured At</th>
+                <th className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#6B6560]">Refreshed By</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {snapshots.map((s, i) => (
+                <tr key={s.id}
+                  className={`border-b border-black/[0.04] last:border-0 hover:bg-[#FFF9EE] transition-colors ${i % 2 === 0 ? "bg-white" : "bg-[#FAFAF8]"}`}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#E8A83A]" />
+                      <span className="font-bold text-[#1A1814]">{s.region_label || s.region_key}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="font-black text-[#0B2D5B]">{s.total_raw ?? "?"}</span>
+                    <span className="text-[#AAA49C] text-xs ml-1">aircraft</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 text-[#6B6560]">
+                      <Clock className="w-3.5 h-3.5 text-[#AAA49C]" />
+                      <span className="text-[12px]">
+                        {s.refreshed_at ? new Date(s.refreshed_at).toLocaleString("cs-CZ", { dateStyle: "short", timeStyle: "short" }) : "—"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-[11px] text-[#AAA49C] font-mono">{s.refreshed_by || "—"}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => onLoad(s)}
+                      className="flex items-center gap-1.5 ml-auto text-[11px] font-bold text-[#0B2D5B] bg-[#F0EDE6] hover:bg-[#E8A83A] hover:text-white px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Radar className="w-3 h-3" /> Load
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {open && view === "cards" && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {snapshots.map((s) => (
             <button

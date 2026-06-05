@@ -56,6 +56,15 @@ const SIDEBAR_SECTIONS = [
       { path: "/subscription", label: "Subscription", icon: CreditCard },
     ],
   },
+  {
+    n: "4",
+    label: "Admin",
+    items: [
+      { path: "/admin/listings", label: "Admin: All Listings", icon: ShieldCheck },
+      { path: "/admin/marketplace", label: "Admin: Marketplace", icon: Zap },
+      { path: "/admin/settings", label: "Admin: Settings", icon: ShieldCheck },
+    ],
+  },
 ];
 
 const IDLE_MS = 7000;

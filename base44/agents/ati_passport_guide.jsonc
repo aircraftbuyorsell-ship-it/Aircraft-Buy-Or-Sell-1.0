@@ -24,12 +24,13 @@
   "app_user_connector_configs": [],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [
-    "69c813d5de35f4fb879160b3"
+    "69c813d5de35f4fb879160b3",
+    "69d5cce47c5dd44d5a8e5248"
   ],
   "model": "automatic",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "user",

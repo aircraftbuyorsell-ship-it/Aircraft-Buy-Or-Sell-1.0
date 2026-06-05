@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp,
-  ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard,
+  ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -29,6 +29,7 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/", label: "Dashboard", icon: LayoutDashboard },
       { path: "/listings", label: "Listings", icon: Plane },
+      { path: "/compare", label: "Compare Aircraft", icon: ShieldCheck },
       { path: "/community", label: "Community", icon: Users },
       { path: "/deal-radar", label: "Deal Radar", icon: Radar },
       { path: "/traffic", label: "Live Traffic", icon: Radar },

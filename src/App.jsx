@@ -40,6 +40,7 @@ import GDPRCompliance from "./pages/GDPRCompliance";
 import AffiliateAgreement from "./pages/AffiliateAgreement";
 import EscrowAgreement from "./pages/EscrowAgreement";
 import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
+import Compare from "./pages/Compare";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -97,6 +98,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/developer-earnings" element={<DeveloperEarnings />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
+        <Route path="/compare" element={<Compare />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

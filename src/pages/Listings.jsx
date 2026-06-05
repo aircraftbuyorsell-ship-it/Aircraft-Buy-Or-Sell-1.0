@@ -4,8 +4,9 @@ import { useState, useMemo } from "react";
 import {
   Plane, Search, SlidersHorizontal, X, ArrowUpRight,
   Upload, FileArchive, RefreshCw, TrendingDown, TrendingUp,
-  ShieldCheck, LayoutList, CreditCard, ThumbsUp, ThumbsDown
+  ShieldCheck, LayoutList, CreditCard, ThumbsUp, ThumbsDown, CheckSquare, Square
 } from "lucide-react";
+import BulkActionsBar from "@/components/listings/BulkActionsBar";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
 import ImportAndEditFlow from "@/components/listings/ImportAndEditFlow";
@@ -61,7 +62,7 @@ function DealBadge({ label }) {
 }
 
 // ─── Listing Row ─────────────────────────────────────────────────
-function ListingRow({ listing, onClick }) {
+function ListingRow({ listing, onClick, selected, onToggle }) {
   const enginePct = listing.tbo
     ? Math.max(0, Math.min(100, ((listing.tbo - (listing.engine_hours || 0)) / listing.tbo) * 100))
     : null;
@@ -71,14 +72,24 @@ function ListingRow({ listing, onClick }) {
 
   return (
     <div
-      onClick={() => onClick(listing)}
-      className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 px-5 md:px-6 py-4 hover:bg-[#FAFAF8] transition-all cursor-pointer border-b border-black/[0.04] last:border-0"
+      className={`group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 px-5 md:px-6 py-4 transition-all border-b border-black/[0.04] last:border-0 ${selected ? "bg-[#EBF2FF]" : "hover:bg-[#FAFAF8] cursor-pointer"}`}
     >
+      {/* Checkbox */}
+      <button
+        onClick={e => { e.stopPropagation(); onToggle(listing.id); }}
+        className="shrink-0 text-[#0B2D5B] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+        style={{ opacity: selected ? 1 : undefined }}
+      >
+        {selected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-[#AAA49C]" />}
+      </button>
+
       {/* ATI Ring */}
+      <div onClick={() => !selected && onClick(listing)}>
       <ATIBadge score={listing.ati_score} />
+      </div>
 
       {/* Main info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0" onClick={() => !selected && onClick(listing)}>
         <div className="flex flex-wrap items-center gap-2 mb-1.5">
           <p className="text-[13px] font-black text-[#1A1814] tracking-tight">
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
@@ -117,7 +128,7 @@ function ListingRow({ listing, onClick }) {
       </div>
 
       {/* Price + link */}
-      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0">
+      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0" onClick={() => !selected && onClick(listing)}>
         <div className="text-right">
           <p className="text-[15px] font-black text-[#1A1814] tracking-tight">
             {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-sm font-normal">On request</span>}
@@ -138,6 +149,21 @@ function ListingRow({ listing, onClick }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+function SelectAllCheckbox({ filtered, selectedIds, onSelectAll, onClear }) {
+  const allSelected = selectedIds.length === filtered.length && filtered.length > 0;
+  return (
+    <button
+      onClick={allSelected ? onClear : onSelectAll}
+      className="flex items-center gap-1.5 text-[#0B2D5B] hover:text-[#E8A83A] transition-colors"
+      title={allSelected ? "Deselect all" : "Select all"}
+    >
+      {allSelected
+        ? <CheckSquare className="w-4 h-4" />
+        : <Square className="w-4 h-4 text-[#AAA49C]" />}
+    </button>
   );
 }
 
@@ -165,6 +191,11 @@ export default function Listings() {
   const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const clearSelection = () => setSelectedIds([]);
+  const selectAll = () => setSelectedIds(filtered.map(l => l.id));
 
   useAutoTrack("listings");
   const { tokens, tier, isVerified, track } = useBehavior();
@@ -552,13 +583,32 @@ export default function Listings() {
           </div>
         ) : (
           /* ── LIST VIEW ── */
-          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm">
-            <div className="hidden sm:flex items-center gap-5 px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
-              <div className="w-11 shrink-0" />
-              <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Aircraft</div>
-              <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Price</div>
+          <div>
+            {selectedIds.length > 0 && (
+              <BulkActionsBar
+                selectedIds={selectedIds}
+                allIds={filtered.map(l => l.id)}
+                onClear={clearSelection}
+                onSelectAll={selectAll}
+              />
+            )}
+            <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm">
+              <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
+                <SelectAllCheckbox filtered={filtered} selectedIds={selectedIds} onSelectAll={selectAll} onClear={clearSelection} />
+                <div className="w-11 shrink-0 hidden sm:block" />
+                <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Aircraft</div>
+                <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold hidden sm:block">Price</div>
+              </div>
+              {filtered.map(l => (
+                <ListingRow
+                  key={l.id}
+                  listing={l}
+                  onClick={setSelected}
+                  selected={selectedIds.includes(l.id)}
+                  onToggle={toggleSelect}
+                />
+              ))}
             </div>
-            {filtered.map(l => <ListingRow key={l.id} listing={l} onClick={setSelected} />)}
           </div>
         )}
 

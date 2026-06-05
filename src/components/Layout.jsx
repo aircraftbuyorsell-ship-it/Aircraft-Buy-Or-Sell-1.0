@@ -113,7 +113,7 @@ export default function Layout() {
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
       {/* Top bar — iOS Liquid Glass Navbar */}
-      <header className="sticky top-0 z-40 glass-navbar safe-top" style={{WebkitBackdropFilter:"blur(44px) saturate(220%) brightness(1.04)"}}>
+      <header className="sticky top-0 z-40 glass-navbar safe-top" style={{WebkitBackdropFilter:"blur(24px) saturate(180%)"}}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
           {showBack ? (
             <button
@@ -136,11 +136,11 @@ export default function Layout() {
 
           <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:scale-[1.02] active:scale-95 pl-1.5 pr-3 py-1 rounded-full"
             style={{
-              background:"rgba(255,255,255,0.48)",
-              backdropFilter:"blur(20px) saturate(180%)",
-              WebkitBackdropFilter:"blur(20px) saturate(180%)",
-              border:"1px solid rgba(255,255,255,0.65)",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.90)"
+              background:"rgba(255,255,255,0.06)",
+              backdropFilter:"blur(16px) saturate(160%)",
+              WebkitBackdropFilter:"blur(16px) saturate(160%)",
+              border:"1px solid rgba(255,255,255,0.12)",
+              boxShadow:"0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)"
             }}>
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
               style={{background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 12px rgba(11,45,91,0.35)"}}>
@@ -207,7 +207,7 @@ export default function Layout() {
         <div
           className="fixed inset-0 z-40"
           onClick={() => setSidebarOpen(false)}
-          style={{background:"rgba(0,0,0,0.28)", backdropFilter:"blur(6px) saturate(120%)", WebkitBackdropFilter:"blur(6px) saturate(120%)"}}
+          style={{background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px) saturate(140%)", WebkitBackdropFilter:"blur(8px) saturate(140%)"}}
         />
       )}
 
@@ -363,9 +363,11 @@ export default function Layout() {
           className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full transition-all active:scale-95"
           title="Chat with Max"
           style={{
-            background:"linear-gradient(135deg,#0B2D5B,#143C75)",
-            boxShadow:"0 8px 32px rgba(11,45,91,0.45), 0 2px 8px rgba(0,0,0,0.20)",
-            border:"1px solid rgba(232,168,58,0.35)"
+            background:"rgba(255,255,255,0.08)",
+            backdropFilter:"blur(20px) saturate(180%)",
+            WebkitBackdropFilter:"blur(20px) saturate(180%)",
+            boxShadow:"0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(0,245,255,0.12)",
+            border:"1px solid rgba(0,245,255,0.25)"
           }}
         >
           <img

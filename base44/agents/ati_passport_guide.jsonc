@@ -17,14 +17,25 @@
     },
     {
       "function_name": "orchestrateATIScoring",
-      "description": "Runs the full ATI scoring analysis for a listing \u2014 call this when the user has provided sufficient data across all 8 dimensions"
+      "description": "Runs full ATI scoring for a listing"
     }
   ],
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
   "model": "automatic",
+  "whatsapp_greeting": null,
+  "telegram_greeting": null,
+  "line_greeting": null,
   "memory_config": {
     "enabled": true,
     "scope": "user",
+    "include_other_conversation_context": false,
     "instructions": null
+  },
+  "voice_config": {
+    "voice_id": null
   },
   "name": "ati_passport_guide"
 }

@@ -1,0 +1,136 @@
+{
+  "properties": {
+    "appeal_deadline": {
+      "description": "Deadline for user to appeal suspension",
+      "format": "date-time",
+      "type": "string"
+    },
+    "appeal_submitted_at": {
+      "description": "When user submitted an appeal",
+      "format": "date-time",
+      "type": "string"
+    },
+    "appeal_text": {
+      "description": "User's appeal message (max 1000 chars)",
+      "maxLength": 1000,
+      "type": "string"
+    },
+    "automatic_reactivation": {
+      "description": "Whether account auto-reactivates after period (e.g., 30 days)",
+      "type": "boolean"
+    },
+    "decision_timestamp": {
+      "description": "When decision was made (on appeal)",
+      "format": "date-time",
+      "type": "string"
+    },
+    "is_permanent": {
+      "description": "Whether suspension is permanent (no auto-reactivation)",
+      "type": "boolean"
+    },
+    "notes": {
+      "description": "Admin notes about the suspension",
+      "maxLength": 500,
+      "type": "string"
+    },
+    "reactivated_by_email": {
+      "description": "Email of admin who reactivated account",
+      "type": "string"
+    },
+    "reactivation_reason": {
+      "description": "Reason for reactivation (appeal_approved, compliance_cleared, etc.)",
+      "type": "string"
+    },
+    "reactivation_timestamp": {
+      "description": "When account was reactivated",
+      "format": "date-time",
+      "type": "string"
+    },
+    "scheduled_reactivation": {
+      "description": "Date account will auto-reactivate (if automatic_reactivation=true)",
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "description": "Current suspension status",
+      "enum": [
+        "active",
+        "appealed",
+        "appeal_approved",
+        "appeal_rejected",
+        "reactivated",
+        "expired"
+      ],
+      "type": "string"
+    },
+    "suspended_by_email": {
+      "description": "Email of admin who suspended account",
+      "type": "string"
+    },
+    "suspended_reason": {
+      "description": "Reason for suspension",
+      "enum": [
+        "terms_violation",
+        "payment_failure",
+        "fraud_suspected",
+        "manual_admin",
+        "compliance_hold",
+        "appeal_process"
+      ],
+      "type": "string"
+    },
+    "suspension_timestamp": {
+      "description": "When account was suspended",
+      "format": "date-time",
+      "type": "string"
+    },
+    "user_email": {
+      "description": "Email of suspended user",
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "suspended_by_email",
+    "suspended_reason",
+    "suspension_timestamp",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": [
+              "admin",
+              "super_admin"
+            ]
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "super_admin"
+        ]
+      }
+    }
+  },
+  "type": "object",
+  "name": "SuspensionEvent"
+}

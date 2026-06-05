@@ -1,0 +1,112 @@
+{
+  "properties": {
+    "active_widgets": {
+      "default": [
+        "user_management",
+        "permission_audit",
+        "tier_management"
+      ],
+      "description": "List of active dashboard widgets",
+      "items": {
+        "enum": [
+          "user_management",
+          "permission_audit",
+          "tier_management",
+          "suspension_log",
+          "api_analytics",
+          "escrow_settlement",
+          "market_reports",
+          "ati_quality",
+          "feature_toggles",
+          "system_health"
+        ],
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "admin_email": {
+      "description": "Email of the admin who owns this dashboard view",
+      "type": "string"
+    },
+    "created_at": {
+      "description": "When dashboard was created",
+      "format": "date-time",
+      "type": "string"
+    },
+    "dashboard_name": {
+      "description": "Human-readable name for this dashboard config",
+      "maxLength": 100,
+      "type": "string"
+    },
+    "feature_flags": {
+      "default": {},
+      "description": "Beta features enabled for this admin",
+      "type": "object"
+    },
+    "last_accessed": {
+      "description": "Last time this dashboard was viewed",
+      "format": "date-time",
+      "type": "string"
+    },
+    "layout_preference": {
+      "default": "default",
+      "description": "Dashboard layout style",
+      "enum": [
+        "default",
+        "compact",
+        "detailed",
+        "custom"
+      ],
+      "type": "string"
+    },
+    "refresh_interval_seconds": {
+      "default": 60,
+      "description": "How often dashboard auto-refreshes (0 = manual)",
+      "minimum": 0,
+      "type": "number"
+    },
+    "theme": {
+      "default": "light",
+      "description": "UI theme preference",
+      "enum": [
+        "light",
+        "dark",
+        "auto"
+      ],
+      "type": "string"
+    },
+    "widget_config": {
+      "default": {},
+      "description": "Per-widget configuration (filters, sort order, limits)",
+      "type": "object"
+    }
+  },
+  "required": [
+    "admin_email",
+    "dashboard_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object",
+  "name": "AdminDashboard"
+}

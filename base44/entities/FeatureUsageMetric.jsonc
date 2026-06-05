@@ -1,0 +1,113 @@
+{
+  "properties": {
+    "ab_variant": {
+      "description": "A/B test variant (control, variant_a, variant_b, etc.)",
+      "enum": [
+        "control",
+        "variant_a",
+        "variant_b",
+        "variant_c"
+      ],
+      "type": "string"
+    },
+    "conversion_count": {
+      "default": 0,
+      "description": "Number of conversions (goal achieved)",
+      "type": "number"
+    },
+    "feature_name": {
+      "description": "Feature being measured",
+      "type": "string"
+    },
+    "interaction_count": {
+      "default": 0,
+      "description": "Number of user interactions with feature",
+      "type": "number"
+    },
+    "measured_at": {
+      "description": "When this metric was recorded",
+      "format": "date-time",
+      "type": "string"
+    },
+    "metric_type": {
+      "description": "Type of metric being tracked",
+      "enum": [
+        "adoption_rate",
+        "engagement",
+        "conversion",
+        "error_rate",
+        "performance",
+        "user_satisfaction"
+      ],
+      "type": "string"
+    },
+    "metric_value": {
+      "description": "Measured value (percentage, count, seconds, score)",
+      "type": "number"
+    },
+    "sample_size": {
+      "default": 0,
+      "description": "Number of users sampled for this metric",
+      "type": "number"
+    },
+    "statistical_significance": {
+      "default": 0,
+      "description": "P-value (0.0-1.0) for A/B test significance",
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "tier": {
+      "description": "Tier being measured",
+      "enum": [
+        "free_explorer",
+        "pro",
+        "enterprise",
+        "all"
+      ],
+      "type": "string"
+    },
+    "user_segment": {
+      "description": "User segment being measured (new, active, churned, all)",
+      "enum": [
+        "new_users",
+        "active_users",
+        "churned_users",
+        "all_users"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "feature_name",
+    "metric_type",
+    "measured_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "super_admin"
+        ]
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  },
+  "type": "object",
+  "name": "FeatureUsageMetric"
+}

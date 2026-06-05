@@ -24,6 +24,7 @@ import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
+import ATIGuideChat from "@/components/ati/ATIGuideChat";
 
 // ─── Helpers ────────────────────────────────────────────────────
 function parseList(str) {
@@ -657,6 +658,8 @@ Return ONLY raw JSON:
         onClose={() => setWizardOpen(false)}
         listing={listing}
       />
+
+      {listing && <ATIGuideChat listing={listing} />}
     </div>
   );
 }

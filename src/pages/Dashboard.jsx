@@ -173,7 +173,7 @@ export default function Dashboard() {
       <section className="relative overflow-hidden" style={{ minHeight: "540px" }}>
         {/* Full-bleed rotating globe */}
         <div className="absolute inset-0 pointer-events-none">
-          <RotatingGlobe theme="dark" className="absolute inset-0 w-full h-full" />
+          <RotatingGlobe theme="dark" className="absolute inset-0 w-full h-full" listings={listings} />
         </div>
 
         {/* Deep gradient overlay — stronger on left/bottom, transparent on right where globe shines */}

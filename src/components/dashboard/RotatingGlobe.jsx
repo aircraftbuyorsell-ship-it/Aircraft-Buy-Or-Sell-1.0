@@ -76,19 +76,19 @@ function listingToCoords(listing, index, total) {
   return { lat: base.lat + jitter.lat, lon: base.lon + jitter.lon };
 }
 
-function atiColor(score) {
-  if (!score) return "#ffffff";
-  if (score >= 90) return "#00f5ff";
-  if (score >= 72) return "#7a00ff";
+function atiColor(score, isDark) {
+  if (!score) return isDark ? "#ffffff" : "#0B2D5B";
+  if (score >= 90) return isDark ? "#00f5ff" : "#0B2D5B";
+  if (score >= 72) return isDark ? "#7a00ff" : "#2563eb";
   if (score >= 54) return "#E8A83A";
-  return "#ff4d6d";
+  return isDark ? "#ff4d6d" : "#dc2626";
 }
 
 // ─── Listing Popup overlay (HTML, not canvas) ───────────────────
 function ListingPopup({ listing, pos, onClose, onOpen }) {
   if (!listing || !pos) return null;
   const score = listing.ati_score;
-  const color = atiColor(score);
+  const color = atiColor(score, false); // popups always dark bg
   const pct = score ? (score / 120) * 113.1 : 0;
 
   return (
@@ -279,11 +279,12 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
         atmIn: "rgba(122,0,255,0.25)",
         atmOut: "rgba(0,245,255,0)",
       } : {
-        sphere: "rgba(11,45,91,0.18)",
-        ocean: "rgba(11,45,91,0.35)",
-        land: (depth) => `rgba(11,45,91,${0.65 + depth * 0.30})`,
-        rim: "rgba(11,45,91,0.55)",
-        atmIn: "rgba(232,168,58,0.28)",
+        // Light mode — bold, high-contrast navy + gold accents
+        sphere: "rgba(11,45,91,0.22)",
+        ocean: "rgba(11,45,91,0.48)",
+        land: (depth) => `rgba(11,45,91,${0.78 + depth * 0.22})`,
+        rim: "rgba(11,45,91,0.70)",
+        atmIn: "rgba(232,168,58,0.35)",
         atmOut: "rgba(232,168,58,0)",
       };
 
@@ -292,7 +293,7 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.fillStyle = C.sphere; ctx.fill();
 
-      const dotScale = isDark ? 1 : 1.4;
+      const dotScale = isDark ? 1 : 1.6;
       ctx.fillStyle = C.ocean;
       for (const [lon, lat] of oceanDots) {
         const p = project(lon, lat); if (!p.vis) continue;
@@ -314,7 +315,7 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
         if (!p.vis) return;
 
         const score = listing.ati_score;
-        const color = atiColor(score);
+        const color = atiColor(score, isDark);
         const pulse = 0.5 + 0.5 * Math.sin(fr * 0.06 + i * 1.3);
         const isActive = (i === hlIdx % Math.max(lm.length, 1));
 
@@ -350,8 +351,8 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
         const hp = project(hi.lon, hi.lat);
         if (hp.vis) {
           const pulse = 0.5 + 0.5 * Math.sin(fr * 0.07);
-          const color = isDark ? "#00f5ff" : "#0B2D5B";
-          const glowColor = isDark ? "rgba(0,245,255," : "rgba(11,45,91,";
+          const color = isDark ? "#00f5ff" : "#E8A83A";
+          const glowColor = isDark ? "rgba(0,245,255," : "rgba(232,168,58,";
           for (let ring = 4; ring >= 0; ring--) {
             ctx.beginPath(); ctx.arc(hp.sx, hp.sy, (8 + ring * 5 + pulse * 5) * DPR, 0, Math.PI * 2);
             const alpha = (0.09 + pulse * 0.08) * (5 - ring) / 5;
@@ -368,8 +369,8 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
           if (i === hlIdx % dm.length) return;
           const p = project(m.lon, m.lat); if (!p.vis) return;
           ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.4 * DPR, 0, Math.PI * 2);
-          ctx.fillStyle = isDark ? "rgba(0,245,255,0.70)" : "rgba(11,45,91,0.65)";
-          ctx.shadowColor = isDark ? "rgba(0,245,255,0.25)" : "rgba(11,45,91,0.20)";
+          ctx.fillStyle = isDark ? "rgba(0,245,255,0.70)" : "rgba(11,45,91,0.80)";
+          ctx.shadowColor = isDark ? "rgba(0,245,255,0.25)" : "rgba(11,45,91,0.35)";
           ctx.shadowBlur = 3 * DPR; ctx.fill();
           ctx.shadowBlur = 0;
         });

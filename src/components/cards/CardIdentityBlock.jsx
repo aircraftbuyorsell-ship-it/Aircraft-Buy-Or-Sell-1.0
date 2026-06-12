@@ -60,13 +60,12 @@ export default function CardIdentityBlock({ card }) {
         </div>
       </div>
 
-      {/* Ownership / distribution roles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5 border-t border-black/[0.06]">
+      {/* Card role badges */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5 pt-5 border-t border-black/[0.06]">
         {[
           { label: "Issuer", value: card.issuer_entity || "ABOS" },
           { label: "Card Owner", value: card.card_owner_email || "—" },
           { label: "Distribution", value: card.distribution_owner_email || "—" },
-          { label: "Subject Owner", value: card.subject_owner_email || "—" },
         ].map(r => (
           <div key={r.label}>
             <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">{r.label}</p>

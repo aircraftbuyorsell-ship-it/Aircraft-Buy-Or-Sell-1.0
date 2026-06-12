@@ -133,8 +133,15 @@ Deno.serve(async (req) => {
         // Create new listing from traffic + FAA data
         await base44.asServiceRole.entities.AircraftListing.create({
           registration: reg,
-          make: faaRecord?.name?.split(' ').slice(0, 2).join(' ') || ac.aircraft_type || 'Unknown',
-          model: ac.aircraft_type || faaRecord?.mfr_mdl_code || 'Unknown',
+          make: (() => {
+            const code = faaRecord?.mfr_mdl_code;
+            if (code) {
+              const stripped = code.replace(/[0-9-]/g, '').trim();
+              if (stripped) return stripped;
+            }
+            return 'Unknown';
+          })(),
+          model: faaRecord?.mfr_mdl_code || ac.aircraft_type || 'Unknown',
           year: faaRecord?.year_mfr || null,
           ati_score: atiScore,
           omvm_value: omvmValue,

@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
       const listingData = {
         registration: nNumber,
-        make: faa.name ? faa.name.split(' ').slice(0, 2).join(' ') : 'Unknown',
+        make: faa.mfr_mdl_code ? faa.mfr_mdl_code.replace(/[0-9-]/g, '').trim() || 'Unknown' : 'Unknown',
         model: faa.mfr_mdl_code || 'Unknown',
         year: faa.year_mfr || null,
         ati_score: atiScore,

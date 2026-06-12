@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Upload, FileText, RefreshCw, Zap, CheckCircle, FileCheck2, ExternalLink } from "lucide-react";
+import { X, Upload, FileText, RefreshCw, Zap, CheckCircle, FileCheck2, ExternalLink, Calendar } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { ESCROW_STATUS, STATUS_FLOW, formatMoney } from "@/lib/escrow";
 import EscrowStatusBadge from "./EscrowStatusBadge";
@@ -22,6 +22,10 @@ export default function EscrowDrawer({ tx, onClose }) {
   const [showContract, setShowContract] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [creatingExternal, setCreatingExternal] = useState(false);
+  const [calendarSyncing, setCalendarSyncing] = useState(false);
+  const [calendarMsg, setCalendarMsg] = useState(null);
+  const [inspectionDate, setInspectionDate] = useState(tx.inspection_date || "");
+  const [closingDeadline, setClosingDeadline] = useState(tx.closing_deadline || "");
   const [err, setErr] = useState(null);
   const fileInput = useRef(null);
 
@@ -74,6 +78,31 @@ export default function EscrowDrawer({ tx, onClose }) {
       qc.invalidateQueries({ queryKey: ["escrow-transactions"] });
     } catch (e) { setErr(e.message); }
     setSyncing(false);
+  };
+
+  const handleSaveDates = async () => {
+    setErr(null);
+    try {
+      await updateMutation.mutateAsync({ inspection_date: inspectionDate || null, closing_deadline: closingDeadline || null });
+      qc.invalidateQueries({ queryKey: ["escrow-transactions"] });
+    } catch (e) { setErr(e.message); }
+  };
+
+  const handleSyncToCalendar = async () => {
+    setCalendarSyncing(true);
+    setCalendarMsg(null);
+    setErr(null);
+    try {
+      // Save dates first if changed
+      if (inspectionDate !== (tx.inspection_date || "") || closingDeadline !== (tx.closing_deadline || "")) {
+        await updateMutation.mutateAsync({ inspection_date: inspectionDate || null, closing_deadline: closingDeadline || null });
+      }
+      const res = await base44.functions.invoke("syncEscrowToCalendar", { transaction_id: tx.id });
+      if (res?.data?.error) throw new Error(res.data.error);
+      setCalendarMsg(res.data.message || "Synced to Google Calendar");
+      qc.invalidateQueries({ queryKey: ["escrow-transactions"] });
+    } catch (e) { setErr(e.message); }
+    setCalendarSyncing(false);
   };
 
   return (
@@ -159,7 +188,63 @@ export default function EscrowDrawer({ tx, onClose }) {
             <Row label="Buyer" value={tx.buyer_name && `${tx.buyer_name} · ${tx.buyer_email || ""}`} />
             <Row label="Seller" value={tx.seller_name && `${tx.seller_name} · ${tx.seller_email || ""}`} />
             <Row label="Broker / Finder" value={tx.broker_name && `${tx.broker_name} · ${tx.broker_email || ""}`} />
-            <Row label="Inspection" value={`${tx.inspection_period_days || 3} days`} />
+            <Row label="Inspection Period" value={`${tx.inspection_period_days || 3} days`} />
+          </div>
+
+          {/* Calendar Sync */}
+          <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="w-4 h-4 text-[#E8A83A]" />
+              <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">Google Calendar Sync</p>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Inspection Date</label>
+                <input
+                  type="date"
+                  value={inspectionDate}
+                  onChange={e => setInspectionDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#E8A83A] transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Closing Deadline</label>
+                <input
+                  type="date"
+                  value={closingDeadline}
+                  onChange={e => setClosingDeadline(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#E8A83A] transition-colors"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveDates}
+                  disabled={updateMutation.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 bg-white border border-black/10 hover:border-[#0B2D5B] text-[#0B2D5B] disabled:opacity-50 font-bold text-sm px-4 py-2.5 rounded-xl transition-colors"
+                >
+                  {updateMutation.isPending ? "Saving…" : "Save Dates"}
+                </button>
+                <button
+                  onClick={handleSyncToCalendar}
+                  disabled={calendarSyncing || (!inspectionDate && !closingDeadline)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#E8A83A] hover:bg-[#D4911A] disabled:opacity-50 text-white font-bold text-sm px-4 py-2.5 rounded-xl transition-colors"
+                >
+                  <Calendar className={`w-4 h-4 ${calendarSyncing ? "animate-pulse" : ""}`} />
+                  {calendarSyncing ? "Syncing…" : "Sync to Calendar"}
+                </button>
+              </div>
+              {calendarMsg && (
+                <div className="bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.2)] rounded-lg px-3 py-2 flex items-center gap-2">
+                  <CheckCircle className="w-3.5 h-3.5 text-[#0F7A56] shrink-0" />
+                  <span className="text-[11px] font-semibold text-[#0F7A56]">{calendarMsg}</span>
+                </div>
+              )}
+              {tx.google_calendar_event_id && (
+                <p className="text-[9px] text-[#AAA49C] text-center">
+                  Events already on your calendar — syncing again will update them.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Proof of funds */}

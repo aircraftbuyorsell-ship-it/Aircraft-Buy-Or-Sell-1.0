@@ -90,6 +90,20 @@
       "type": "string",
       "description": "Escrow.com transaction ID"
     },
+    "inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled pre-buy inspection date"
+    },
+    "closing_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Transaction closing deadline"
+    },
+    "google_calendar_event_id": {
+      "type": "string",
+      "description": "Google Calendar event ID for inspection + closing events (comma-separated)"
+    },
     "notes": {
       "type": "string",
       "description": "Internal notes"

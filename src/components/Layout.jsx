@@ -8,10 +8,12 @@ import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
-  MessageCircle,
+  MessageCircle, HelpCircle,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import ABOSTour from "@/components/onboarding/ABOSTour";
 
 const BACK_BUTTON_ROUTES = [
   /^\/ati-passport\/[^/]+$/,
@@ -29,43 +31,43 @@ const SIDEBAR_SECTIONS = [
     n: "1",
     label: "Market",
     items: [
-      { path: "/", label: "Dashboard", icon: LayoutDashboard },
-      { path: "/listings", label: "Listings", icon: Plane },
-      { path: "/compare", label: "Compare Aircraft", icon: ShieldCheck },
-      { path: "/community", label: "Community", icon: Users },
-      { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-      { path: "/traffic", label: "Live Traffic", icon: Radar },
-      { path: "/analytics", label: "Analytics", icon: BarChart3 },
-      { path: "/market-reports", label: "Market Reports", icon: TrendingUp },
+      { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Overview of platform activity, ATI scores, and market pulse" },
+      { path: "/listings", label: "Listings", icon: Plane, desc: "Browse all active aircraft listings with ATI transparency scores" },
+      { path: "/compare", label: "Compare Aircraft", icon: ShieldCheck, desc: "Compare up to 3 aircraft side-by-side on specs, pricing, and ATI scores" },
+      { path: "/community", label: "Community", icon: Users, desc: "Connect with aviation dealers, brokers, and buyers" },
+      { path: "/deal-radar", label: "Deal Radar", icon: Radar, desc: "Spot aircraft priced below market — hot deals with high ATI scores" },
+      { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B aircraft tracking with N-number search and ABOS listing matching" },
+      { path: "/analytics", label: "Analytics", icon: BarChart3, desc: "Market trend charts, price movements, and time-on-market data" },
+      { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence reports with macro signals" },
     ],
   },
   {
     n: "2",
     label: "Tools",
     items: [
-      { path: "/marketplace", label: "ABOS MarketSpace", icon: Zap },
-      { path: "/intrazone", label: "IntraZone", icon: Zap },
-      { path: "/valuation", label: "Valuation", icon: TrendingUp },
-      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
-      { path: "/leads", label: "Leads", icon: Users },
-      { path: "/max-chat", label: "Ask Max (AI)", icon: MessageCircle },
+      { path: "/marketplace", label: "ABOS MarketSpace", icon: Zap, desc: "Third-party aviation tools and integrations marketplace" },
+      { path: "/intrazone", label: "IntraZone", icon: Zap, desc: "Sales intelligence: lead scoring, deal pipeline, and matching engine" },
+      { path: "/valuation", label: "Valuation", icon: TrendingUp, desc: "Expert aircraft valuation with OMVM market-model estimates" },
+      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "Calculate true annual ownership costs before buying" },
+      { path: "/leads", label: "Leads", icon: Users, desc: "Manage buyer leads, track pipeline stages, and score lead quality" },
+      { path: "/max-chat", label: "Ask Max (AI)", icon: MessageCircle, desc: "AI aviation assistant for pre-buy inspections, valuations, and market advice" },
     ],
   },
   {
     n: "3",
     label: "Account",
     items: [
-      { path: "/pricing", label: "Credits & Plans", icon: Zap },
-      { path: "/subscription", label: "Subscription", icon: CreditCard },
+      { path: "/pricing", label: "Credits & Plans", icon: Zap, desc: "Purchase token packs and manage your credit balance" },
+      { path: "/subscription", label: "Subscription", icon: CreditCard, desc: "Manage your subscription plan and billing details" },
     ],
   },
   {
     n: "4",
     label: "Admin",
     items: [
-      { path: "/admin/listings", label: "Admin: All Listings", icon: ShieldCheck },
-      { path: "/admin/marketplace", label: "Admin: Marketplace", icon: Zap },
-      { path: "/admin/settings", label: "Admin: Settings", icon: ShieldCheck },
+      { path: "/admin/listings", label: "Admin: All Listings", icon: ShieldCheck, desc: "Full listing oversight with bulk actions, scoring, and status management" },
+      { path: "/admin/marketplace", label: "Admin: Marketplace", icon: Zap, desc: "Approve and manage third-party developer tools and integrations" },
+      { path: "/admin/settings", label: "Admin: Settings", icon: ShieldCheck, desc: "Platform configuration, webhooks, auto-scoring, and feature toggles" },
     ],
   },
 ];
@@ -184,6 +186,17 @@ export default function Layout() {
 
           <nav className="flex items-center gap-1.5">
             <ThemeToggle />
+            <button
+              onClick={() => {
+                localStorage.removeItem("abos_tour_completed_v3");
+                window.dispatchEvent(new Event("abos-tour-open"));
+              }}
+              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              aria-label="Open guided tour"
+              title="Platform tour"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </button>
             {currentUser ? (
               <button
                 onClick={() => base44.auth.logout()}
@@ -291,7 +304,8 @@ export default function Layout() {
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <TooltipProvider delayDuration={600}>
+          <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {SIDEBAR_SECTIONS.map((section, idx) => (
             <div key={section.n} className={idx > 0 ? "mt-6" : ""}>
               <div className="flex items-center gap-2 px-3 pb-2">
@@ -302,15 +316,16 @@ export default function Layout() {
                 <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{color: "#D4A017"}}>{section.label}</p>
               </div>
               <div className="space-y-0.5">
-                {section.items.map(({ path, label, icon: NavIcon }) => {
+                {section.items.map(({ path, label, icon: NavIcon, desc }) => {
                   const active = pathname === path;
                   const inactiveColor = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
                   const hoverColor = isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.75)";
                   const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
                   return (
-                    <Link
-                      key={path}
-                      to={path}
+                    <Tooltip key={path}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          to={path}
                       className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
                       style={{
                         color: active ? "#1e293b" : inactiveColor,
@@ -328,13 +343,21 @@ export default function Layout() {
                           <div className="w-1.5 h-1.5 rounded-full bg-[#D4A017]" />
                         </div>
                       )}
-                    </Link>
+                        </Link>
+                      </TooltipTrigger>
+                      {desc && (
+                        <TooltipContent side="right" className="max-w-[220px]">
+                          <p className="text-[11px] leading-snug">{desc}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
                   );
                 })}
               </div>
             </div>
           ))}
         </nav>
+        </TooltipProvider>
 
         <div className="px-4 py-4" style={{borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)"}}>
           <div className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
@@ -357,6 +380,7 @@ export default function Layout() {
 
       <SiteFooter />
 
+      <ABOSTour />
 
     </div>
   );

@@ -272,18 +272,18 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
     const draw = () => {
       const isDark = themeRef.current === "dark";
       const C = isDark ? {
-        sphere: "rgba(0,245,255,0.08)",
-        ocean: "rgba(0,245,255,0.20)",
-        land: (depth) => `rgba(0,245,255,${0.45 + depth * 0.55})`,
-        rim: "rgba(0,245,255,0.50)",
-        atmIn: "rgba(122,0,255,0.22)",
+        sphere: "rgba(0,245,255,0.10)",
+        ocean: "rgba(0,245,255,0.24)",
+        land: (depth) => `rgba(0,245,255,${0.50 + depth * 0.50})`,
+        rim: "rgba(0,245,255,0.55)",
+        atmIn: "rgba(122,0,255,0.25)",
         atmOut: "rgba(0,245,255,0)",
       } : {
-        sphere: "rgba(11,45,91,0.12)",
-        ocean: "rgba(11,45,91,0.25)",
-        land: (depth) => `rgba(11,45,91,${0.55 + depth * 0.35})`,
-        rim: "rgba(11,45,91,0.40)",
-        atmIn: "rgba(232,168,58,0.16)",
+        sphere: "rgba(11,45,91,0.18)",
+        ocean: "rgba(11,45,91,0.35)",
+        land: (depth) => `rgba(11,45,91,${0.65 + depth * 0.30})`,
+        rim: "rgba(11,45,91,0.55)",
+        atmIn: "rgba(232,168,58,0.28)",
         atmOut: "rgba(232,168,58,0)",
       };
 
@@ -292,14 +292,15 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.fillStyle = C.sphere; ctx.fill();
 
+      const dotScale = isDark ? 1 : 1.4;
       ctx.fillStyle = C.ocean;
       for (const [lon, lat] of oceanDots) {
         const p = project(lon, lat); if (!p.vis) continue;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 0.7 * DPR, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, 0.7 * DPR * dotScale, 0, Math.PI * 2); ctx.fill();
       }
       for (const [lon, lat] of landDots) {
         const p = project(lon, lat); if (!p.vis) continue;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 1.15 * DPR, 0, Math.PI * 2);
+        ctx.beginPath(); ctx.arc(p.sx, p.sy, 1.15 * DPR * dotScale, 0, Math.PI * 2);
         ctx.fillStyle = C.land(p.depth); ctx.fill();
       }
 
@@ -319,21 +320,24 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
 
         if (isActive) {
           // Pulsing rings for active listing
-          for (let ring = 2; ring >= 0; ring--) {
+          for (let ring = 3; ring >= 0; ring--) {
             ctx.beginPath();
-            ctx.arc(p.sx, p.sy, (7 + ring * 4 + pulse * 3) * DPR, 0, Math.PI * 2);
-            const alpha = (0.08 + pulse * 0.08) * (3 - ring) / 3;
+            ctx.arc(p.sx, p.sy, (8 + ring * 5 + pulse * 4) * DPR, 0, Math.PI * 2);
+            const alpha = (0.10 + pulse * 0.10) * (4 - ring) / 4;
             ctx.strokeStyle = color + Math.round(alpha * 255).toString(16).padStart(2, "0");
-            ctx.lineWidth = DPR; ctx.stroke();
+            ctx.lineWidth = DPR * 1.2; ctx.stroke();
           }
-          ctx.beginPath(); ctx.arc(p.sx, p.sy, 3.5 * DPR, 0, Math.PI * 2);
-          ctx.fillStyle = color; ctx.fill();
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 4.2 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 6 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
         } else {
-          // Static dot with subtle glow
-          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.2 * DPR, 0, Math.PI * 2);
+          // Static dot with glow
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.8 * DPR, 0, Math.PI * 2);
           ctx.fillStyle = color + "cc";
           ctx.shadowColor = color;
-          ctx.shadowBlur = 4 * DPR;
+          ctx.shadowBlur = 5 * DPR;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
@@ -346,20 +350,28 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
         const hp = project(hi.lon, hi.lat);
         if (hp.vis) {
           const pulse = 0.5 + 0.5 * Math.sin(fr * 0.07);
-          const color = isDark ? "#00f5ff" : "#E8A83A";
-          for (let ring = 3; ring >= 0; ring--) {
-            ctx.beginPath(); ctx.arc(hp.sx, hp.sy, (8 + ring * 4 + pulse * 4) * DPR, 0, Math.PI * 2);
-            ctx.strokeStyle = color + Math.round(((0.07 + pulse * 0.07) * (4 - ring) / 4) * 255).toString(16).padStart(2, "0");
-            ctx.lineWidth = DPR; ctx.stroke();
+          const color = isDark ? "#00f5ff" : "#0B2D5B";
+          const glowColor = isDark ? "rgba(0,245,255," : "rgba(11,45,91,";
+          for (let ring = 4; ring >= 0; ring--) {
+            ctx.beginPath(); ctx.arc(hp.sx, hp.sy, (8 + ring * 5 + pulse * 5) * DPR, 0, Math.PI * 2);
+            const alpha = (0.09 + pulse * 0.08) * (5 - ring) / 5;
+            ctx.strokeStyle = glowColor + alpha.toFixed(2) + ")";
+            ctx.lineWidth = DPR * 1.2; ctx.stroke();
           }
-          ctx.beginPath(); ctx.arc(hp.sx, hp.sy, 3.2 * DPR, 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(hp.sx, hp.sy, 3.8 * DPR, 0, Math.PI * 2);
           ctx.fillStyle = color; ctx.fill();
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 8 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
         }
         dm.forEach((m, i) => {
           if (i === hlIdx % dm.length) return;
           const p = project(m.lon, m.lat); if (!p.vis) return;
-          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2 * DPR, 0, Math.PI * 2);
-          ctx.fillStyle = isDark ? "rgba(0,245,255,0.70)" : "rgba(11,45,91,0.5)"; ctx.fill();
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.4 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? "rgba(0,245,255,0.70)" : "rgba(11,45,91,0.65)";
+          ctx.shadowColor = isDark ? "rgba(0,245,255,0.25)" : "rgba(11,45,91,0.20)";
+          ctx.shadowBlur = 3 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
         });
       }
 

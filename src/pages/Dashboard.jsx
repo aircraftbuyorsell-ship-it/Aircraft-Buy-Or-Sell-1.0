@@ -180,19 +180,19 @@ export default function Dashboard() {
           HERO — GLOBE + FLOATING HUD PANELS
       ══════════════════════════════════════════════ */}
       <section className="relative overflow-hidden" style={{ minHeight: "540px", background: isDark ? "#0A081E" : "#f0f4ff" }}>
-        {isDark && (
-          <>
-            <div className="absolute inset-0 pointer-events-none">
-              <RotatingGlobe theme="dark" className="absolute inset-0 w-full h-full" listings={listings} />
-            </div>
-            <div className="absolute inset-0 pointer-events-none" style={{
-              background: "linear-gradient(120deg, rgba(10,8,30,0.92) 0%, rgba(10,8,30,0.70) 40%, rgba(10,8,30,0.35) 65%, rgba(10,8,30,0.15) 100%)"
-            }} />
-            <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{
-              background: "linear-gradient(to bottom, transparent, rgba(10,8,30,0.95))"
-            }} />
-          </>
-        )}
+        <div className="absolute inset-0 pointer-events-none">
+          <RotatingGlobe theme={isDark ? "dark" : "light"} className="absolute inset-0 w-full h-full" listings={listings} />
+        </div>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: isDark
+            ? "linear-gradient(120deg, rgba(10,8,30,0.92) 0%, rgba(10,8,30,0.70) 40%, rgba(10,8,30,0.35) 65%, rgba(10,8,30,0.15) 100%)"
+            : "linear-gradient(120deg, rgba(240,244,255,0.92) 0%, rgba(240,244,255,0.75) 40%, rgba(240,244,255,0.45) 65%, rgba(240,244,255,0.20) 100%)"
+        }} />
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{
+          background: isDark
+            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.95))"
+            : "linear-gradient(to bottom, transparent, rgba(240,244,255,0.95))"
+        }} />
 
         <div className="relative px-4 md:px-8 pt-8 pb-14">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">

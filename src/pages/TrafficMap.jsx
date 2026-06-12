@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
-import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp, Filter, Table2, Sparkles } from "lucide-react";
+import { Radar, RefreshCw, Loader2, Search, X, Info, History, Clock, ChevronDown, ChevronUp, Filter, Table2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
 import "leaflet/dist/leaflet.css";
 
@@ -168,6 +168,7 @@ export default function TrafficMap() {
   const [snapshots, setSnapshots] = useState([]);
   const [catFilter, setCatFilter] = useState("all");
   const markerRefs = useRef({});
+  const [scoringMap, setScoringMap] = useState({}); // { [icao24]: "loading"|"success"|"error"|errorMsg }
 
   const loadSnapshots = useCallback(async () => {
     try {
@@ -233,6 +234,27 @@ export default function TrafficMap() {
   };
 
   const clearSearch = () => { setSearch(""); setSearchError(null); setFlyTarget(null); };
+
+  const handleScoreAircraft = async (ac) => {
+    const reg = ac.registration || (ac.faa?.n_number || "").replace(/^N/, "").trim();
+    if (!reg) return;
+    setScoringMap(prev => ({ ...prev, [ac.icao24]: "loading" }));
+    try {
+      const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: reg.replace(/^N/i, "").trim() });
+      if (res.data?.listingId) {
+        setScoringMap(prev => ({ ...prev, [ac.icao24]: "success" }));
+        // Update aircraft data with the new listing
+        setAircraft(prev => prev.map(a => a.icao24 === ac.icao24 ? {
+          ...a,
+          listing: { id: res.data.listingId, ati_score: res.data.atiScore, card_code: res.data.cardCode }
+        } : a));
+      } else {
+        setScoringMap(prev => ({ ...prev, [ac.icao24]: res.data?.error || "No data found" }));
+      }
+    } catch (e) {
+      setScoringMap(prev => ({ ...prev, [ac.icao24]: e?.response?.data?.error || e.message || "Scoring failed" }));
+    }
+  };
 
   const catDef = CATEGORY_FILTERS.find(f => f.key === catFilter) || CATEGORY_FILTERS[0];
   const visibleAircraft = aircraft.filter(catDef.test);
@@ -408,15 +430,51 @@ export default function TrafficMap() {
                       {ac.listing && (
                         <div style={{ marginTop: 8, borderRadius: 8, background: cardBg, border: `1px solid ${borderColor}`, padding: "8px 10px" }}>
                           <p style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#E8A83A", margin: "0 0 4px" }}>ABOS Listing</p>
-                          <p style={{ fontWeight: 700, color: textColor, fontSize: 12, margin: 0 }}>{ac.listing.year} {ac.listing.make} {ac.listing.model}</p>
-                          <div style={{ display: "flex", gap: 12, marginTop: 4, fontSize: 11 }}>
+                          {(ac.listing.year || ac.listing.make) ? (
+                            <p style={{ fontWeight: 700, color: textColor, fontSize: 12, margin: 0 }}>{ac.listing.year || ""} {ac.listing.make || ""} {ac.listing.model || ""}</p>
+                          ) : (
+                            <p style={{ fontWeight: 700, color: textColor, fontSize: 12, margin: 0 }}>{nReg}</p>
+                          )}
+                          <div style={{ display: "flex", gap: 12, marginTop: 4, fontSize: 11, flexWrap: "wrap" }}>
                             {ac.listing.ati_score && <span style={{ color: mutedColor }}>ATI: <strong style={{ color: textColor }}>{ac.listing.ati_score}</strong></span>}
                             {ac.listing.asking_price && <span style={{ color: mutedColor }}>Price: <strong style={{ color: textColor }}>${ac.listing.asking_price?.toLocaleString()}</strong></span>}
                             {ac.listing.deal_label && <span style={{ color: ac.listing.deal_label === "hot deal" ? "#22c55e" : undefined }}><strong>{ac.listing.deal_label}</strong></span>}
+                            {ac.listing.card_code && <span style={{ color: mutedColor, fontSize: 10, fontFamily: "monospace" }}>{ac.listing.card_code}</span>}
                           </div>
                         </div>
                       )}
-                    </div>
+
+                      {/* Score N-reg aircraft without existing listing */}
+                      {!ac.listing && nReg && /^N/i.test(nReg || "") && !scoringMap[ac.icao24] && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleScoreAircraft(ac); }}
+                          style={{
+                            marginTop: 8, width: "100%", border: "none", borderRadius: 8,
+                            background: "linear-gradient(135deg, #0B2D5B, #1A4A8A)", cursor: "pointer",
+                            padding: "7px 10px", fontSize: 11, fontWeight: 700, color: "#fff",
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                            boxShadow: "0 2px 12px rgba(11,45,91,0.30)",
+                          }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" /> Look up FAA &amp; Create ATI Card
+                        </button>
+                      )}
+                      {scoringMap[ac.icao24] === "loading" && (
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: mutedColor }}>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#E8A83A]" /> Looking up FAA &amp; scoring…
+                        </div>
+                      )}
+                      {scoringMap[ac.icao24] === "success" && (
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#22c55e", fontWeight: 600 }}>
+                          <CheckCircle2 className="w-3.5 h-3.5" /> ATI Card created!
+                        </div>
+                      )}
+                      {scoringMap[ac.icao24] && scoringMap[ac.icao24] !== "loading" && scoringMap[ac.icao24] !== "success" && (
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#ef4444", fontWeight: 600 }}>
+                          <AlertCircle className="w-3.5 h-3.5" /> {scoringMap[ac.icao24]}
+                        </div>
+                      )}
+                      </div>
                   </Popup>
                 </Marker>
               );

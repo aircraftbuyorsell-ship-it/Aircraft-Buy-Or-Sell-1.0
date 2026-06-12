@@ -86,9 +86,16 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.expert_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -105,7 +112,7 @@
     "update": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.expert_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -192,16 +192,16 @@ export default function Dashboard() {
         </div>
         <div className="absolute inset-0 pointer-events-none" style={{
           background: isDark
-            ? "linear-gradient(120deg, rgba(10,8,30,0.92) 0%, rgba(10,8,30,0.70) 40%, rgba(10,8,30,0.35) 65%, rgba(10,8,30,0.15) 100%)"
-            : "linear-gradient(120deg, rgba(232,236,244,0.88) 0%, rgba(232,236,244,0.60) 40%, rgba(232,236,244,0.30) 65%, rgba(232,236,244,0.08) 100%)"
+            ? "linear-gradient(120deg, rgba(10,8,30,0.85) 0%, rgba(10,8,30,0.50) 35%, rgba(10,8,30,0.20) 55%, rgba(10,8,30,0.05) 100%)"
+            : "linear-gradient(120deg, rgba(232,236,244,0.80) 0%, rgba(232,236,244,0.45) 35%, rgba(232,236,244,0.18) 55%, rgba(232,236,244,0.04) 100%)"
         }} />
-        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{
+        <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none" style={{
           background: isDark
-            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.95))"
-            : "linear-gradient(to bottom, transparent, rgba(232,236,244,0.95))"
+            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.85))"
+            : "linear-gradient(to bottom, transparent, rgba(232,236,244,0.85))"
         }} />
 
-        <div className="relative px-4 md:px-8 pt-8 pb-14">
+        <div className="relative px-4 md:px-8 pt-8 pb-8">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <div>
               <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
@@ -220,34 +220,40 @@ export default function Dashboard() {
             <FlowRibbon isDark={isDark} />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             {[
               { n: "1", label: "Listings", color: accentCyan, icon: Plane, metric: total_listings, sub: "On market", link: "/listings" },
-              { n: "2", label: "ATI Intelligence", color: accentViolet, icon: ShieldCheck, metric: evaluated, sub: "Evaluated", delta: avg_ati ? `Avg ${avg_ati}` : "—", link: "/listings" },
-              { n: "3", label: "ADS-B Radar", color: accentGold, icon: Radar, metric: "Live", sub: "ADS-B feed", link: "/traffic" },
-              { n: "4", label: "Deal Radar", color: accentRed, icon: TrendingUp, metric: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" },
+              { n: "2", label: "ATI Intel", color: accentViolet, icon: ShieldCheck, metric: evaluated, sub: "Evaluated", delta: avg_ati ? `Avg ${avg_ati}` : "—", link: "/listings" },
+              { n: "3", label: "ADS-B", color: accentGold, icon: Radar, metric: "Live", sub: "Feed", link: "/traffic" },
+              { n: "4", label: "Deals", color: accentRed, icon: TrendingUp, metric: hot_deals, sub: "≥ 8.5", link: "/deal-radar" },
             ].map((m) => (
               <Link key={m.n} to={m.link}>
-                <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full" accent={m.n === "1"} isDark={isDark}>
-                  <p className="text-[8px] uppercase tracking-[0.2em] font-black mb-2" style={{ color: m.color }}>{m.n}. {m.label}</p>
-                  <div className="flex items-end justify-between gap-2 mb-2">
-                    <MetricWidget label={m.label} value={m.metric} sub={m.sub} delta={m.delta} deltaUp isDark={isDark} />
-                    <m.icon className="w-7 h-7 opacity-25" style={{ color: m.color }} />
-                  </div>
-                  <Sparkline color={m.color} up={m.n !== "3"} />
-                  <p className="text-[9px] font-semibold mt-1 flex items-center gap-1" style={{ color: m.color }}>
+                <div
+                  className="p-2.5 rounded-xl hover:scale-[1.03] transition-transform cursor-pointer h-full flex flex-col items-center gap-1 text-center"
+                  style={{
+                    background: isDark ? "rgba(13,20,50,0.45)" : "rgba(255,255,255,0.40)",
+                    backdropFilter: "blur(12px) saturate(140%)",
+                    WebkitBackdropFilter: "blur(12px) saturate(140%)",
+                    border: isDark ? `1px solid ${m.color}25` : `1px solid ${m.color}18`,
+                  }}
+                >
+                  <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: m.color }}>{m.label}</span>
+                  <span className="text-xl font-black leading-none" style={{ color: textColor }}>{m.metric}</span>
+                  <span className="text-[9px] leading-tight" style={{ color: mutedColor }}>{m.sub}</span>
+                  <span className="w-full h-0.5 rounded-full mt-0.5" style={{ background: `${m.color}40` }} />
+                  <span className="text-[8px] font-semibold flex items-center gap-1 justify-center" style={{ color: m.color }}>
                     <span className="w-1 h-1 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} />Live
-                  </p>
-                </HudPanel>
+                  </span>
+                </div>
               </Link>
             ))}
           </div>
 
-          <div className="h-10 my-4 opacity-40">
+          <div className="h-6 my-2 opacity-25">
             <FlowRibbon isDark={isDark} />
           </div>
 
-          <div className="flex flex-wrap gap-3 items-center justify-center">
+          <div className="flex flex-wrap gap-2 items-center justify-center">
             {[
               { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
               { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },

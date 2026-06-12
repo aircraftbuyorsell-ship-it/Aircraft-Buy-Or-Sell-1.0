@@ -14,10 +14,15 @@ export default function GDPRConsentBanner() {
 
   const saveConsent = (status) => {
     localStorage.setItem(CONSENT_KEY, JSON.stringify({ status, date: new Date().toISOString() }));
-    window.gtag?.("consent", "update", {
-      analytics_storage: status === "accepted" ? "granted" : "denied",
-      ad_storage: status === "accepted" ? "granted" : "denied",
-    });
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag("consent", "update", {
+        analytics_storage: status === "accepted" || status === "functional" ? "granted" : "denied",
+        ad_storage: status === "accepted" ? "granted" : "denied",
+        functionality_storage: status !== "essential" ? "granted" : "granted",
+        personalization_storage: status === "accepted" ? "granted" : "denied",
+        security_storage: "granted",
+      });
+    }
     setShow(false);
   };
 
@@ -52,7 +57,8 @@ export default function GDPRConsentBanner() {
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button onClick={() => saveConsent("accepted")} className="rounded-xl bg-[#0B2D5B] px-4 py-2 text-sm font-black text-white hover:bg-[#143C75]">Accept all</button>
-          <button onClick={() => saveConsent("declined")} className="rounded-xl border border-black/10 px-4 py-2 text-sm font-bold text-[#4A4845] hover:bg-[#F7F4EF]">Decline all</button>
+          <button onClick={() => saveConsent("functional")} className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-bold text-[#0B2D5B] hover:bg-[#F7F4EF]">Functional only</button>
+          <button onClick={() => saveConsent("essential")} className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-bold text-[#4A4845] hover:bg-[#F7F4EF]">Essential only</button>
         </div>
       </div>
     </div>

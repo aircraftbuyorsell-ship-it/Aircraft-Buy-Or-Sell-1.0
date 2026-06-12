@@ -28,6 +28,11 @@ function aircraftMatchesAlert(ac, alert) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Authenticate — this runs via entity automation and must validate the caller
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await req.json().catch(() => ({}));
     const snapshotId = body?.event?.entity_id || body?.snapshot_id;
 

@@ -218,6 +218,6 @@ Deno.serve(async (req) => {
         : null,
     });
   } catch (error) {
-    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });

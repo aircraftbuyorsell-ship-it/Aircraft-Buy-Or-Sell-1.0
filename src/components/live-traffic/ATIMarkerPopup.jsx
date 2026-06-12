@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { Sparkles, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
+import { m2ft, mps2kts } from "./liveTrafficConfig";
 
 function scoreColor(s) {
   if (!s) return "#AAA49C";
@@ -24,40 +27,79 @@ const dealStyles = {
   "overpriced": { bg: "rgba(192,57,43,0.08)",  color: "#C0392B", border: "rgba(192,57,43,0.2)" },
 };
 
-const mps2kts = (v) => v != null ? Math.round(v * 1.94384) : null;
-const m2ft = (m) => m != null ? Math.round(m * 3.28084) : null;
-
 export default function ATIMarkerPopup({ ac }) {
-  const { faa, listing, callsign, baro_altitude, velocity, true_track, on_ground, origin_country } = ac;
+  const { faa, listing, callsign, baro_altitude, velocity, true_track, on_ground, origin_country, icao24, registration, aircraft_type } = ac;
+  const [scoring, setScoring] = useState(false);
+  const [scored, setScored] = useState(null);
+  const [scoreError, setScoreError] = useState(null);
+
+  const nReg = faa?.n_number || registration || null;
+  // Show score button for N-numbered aircraft with no existing listing
+  const isNReg = nReg && /^N\d/i.test(nReg);
+  const hasFaaNoListing = (faa || isNReg) && !listing;
+
+  const handleScore = async () => {
+    setScoring(true);
+    setScoreError(null);
+    try {
+      const res = await base44.functions.invoke("syncFaaToAtiCard", {
+        n_number: nReg,
+        icao24,
+        registration: nReg,
+        aircraft_type: faa?.type_aircraft || aircraft_type,
+        callsign,
+      });
+      setScored(res.data);
+      if (res.data?.ok) {
+        // Refresh the page after short delay so the new listing shows up on next load
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    } catch (e) {
+      setScoreError(e.response?.data?.error || e.message || "Scoring failed");
+    } finally {
+      setScoring(false);
+    }
+  };
+
   const ati = listing?.ati_score;
   const color = scoreColor(ati);
   const deal = listing?.deal_label ? dealStyles[listing.deal_label.toLowerCase()] : null;
+  const altFt = m2ft(baro_altitude);
+  const speedKt = mps2kts(velocity);
 
   return (
-    <div style={{ minWidth: 220, fontFamily: "Inter, sans-serif" }}>
+    <div style={{ minWidth: 240, fontFamily: "Inter, sans-serif" }}>
       {/* Header */}
       <div style={{ background: "#0B2D5B", borderRadius: "8px 8px 0 0", padding: "10px 12px", margin: "-8px -12px 8px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <p style={{ color: "#E8A83A", fontSize: 9, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 2 }}>
-              {faa?.n_number || callsign || ac.icao24}
+            {/* N-Reg first */}
+            <p style={{ color: "#E8A83A", fontSize: 10, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 1 }}>
+              {nReg || callsign || icao24}
             </p>
+            {/* ICAO second */}
+            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 8, fontWeight: 700, fontFamily: "monospace", marginBottom: 3 }}>
+              ICAO: {icao24 || "—"}
+            </p>
+            {/* Aircraft type third */}
             <p style={{ color: "white", fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>
-              {faa?.type_aircraft || listing ? `${listing?.year || ""} ${listing?.make || ""} ${listing?.model || ""}`.trim() : (callsign || ac.icao24)}
+              {faa?.type_aircraft || aircraft_type || listing
+                ? `${listing?.year || faa?.year_mfr || ""} ${listing?.make || faa?.name?.split(' ').slice(0, 2).join(' ') || ""} ${listing?.model || faa?.mfr_mdl_code || ""}`.trim().replace(/\s+/g, ' ') || (callsign || "—")
+                : (callsign || "—")}
             </p>
             {faa?.name && <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 2 }}>{faa.name}</p>}
           </div>
           {/* ATI Ring */}
           {ati && (
             <div style={{ textAlign: "center" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", border: `2px solid ${color}` }}>
-                <span style={{ color, fontWeight: 900, fontSize: 11 }}>{ati}</span>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", border: `2.5px solid ${color}` }}>
+                <span style={{ color, fontWeight: 900, fontSize: 12 }}>{ati}</span>
               </div>
               <p style={{ color, fontSize: 7, fontWeight: 800, textTransform: "uppercase", marginTop: 2, letterSpacing: "0.1em" }}>{scoreLabel(ati)}</p>
             </div>
           )}
           {!ati && (
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 900, fontSize: 9 }}>—</span>
             </div>
           )}
@@ -68,11 +110,11 @@ export default function ATIMarkerPopup({ ac }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
         <div style={{ background: "#F7F4EF", borderRadius: 6, padding: "6px 8px" }}>
           <p style={{ fontSize: 8, color: "#AAA49C", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Altitude</p>
-          <p style={{ fontSize: 12, fontWeight: 900, color: "#1A1814" }}>{m2ft(baro_altitude)?.toLocaleString() || "—"} <span style={{ fontSize: 9, fontWeight: 500 }}>ft</span></p>
+          <p style={{ fontSize: 12, fontWeight: 900, color: "#1A1814" }}>{altFt?.toLocaleString() || "—"} <span style={{ fontSize: 9, fontWeight: 500 }}>ft</span></p>
         </div>
         <div style={{ background: "#F7F4EF", borderRadius: 6, padding: "6px 8px" }}>
           <p style={{ fontSize: 8, color: "#AAA49C", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Speed</p>
-          <p style={{ fontSize: 12, fontWeight: 900, color: "#1A1814" }}>{mps2kts(velocity) || "—"} <span style={{ fontSize: 9, fontWeight: 500 }}>kts</span></p>
+          <p style={{ fontSize: 12, fontWeight: 900, color: "#1A1814" }}>{speedKt || "—"} <span style={{ fontSize: 9, fontWeight: 500 }}>kts</span></p>
         </div>
         <div style={{ background: "#F7F4EF", borderRadius: 6, padding: "6px 8px" }}>
           <p style={{ fontSize: 8, color: "#AAA49C", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Heading</p>
@@ -108,14 +150,58 @@ export default function ATIMarkerPopup({ ac }) {
         </div>
       )}
 
-      {!listing && faa && (
+      {/* FAA found but no listing — offer to score */}
+      {hasFaaNoListing && !scored && !scoring && (
+        <div style={{ marginTop: 6, background: "rgba(232,168,58,0.08)", border: "1px solid rgba(232,168,58,0.25)", borderRadius: 8, padding: "8px 10px" }}>
+          <p style={{ fontSize: 9, fontWeight: 700, color: "#A67C00", marginBottom: 6 }}>
+            FAA record found — no ATI card yet
+          </p>
+          <button
+            onClick={handleScore}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg, #E8A83A, #D4911A)", color: "#0B2D5B", border: "none" }}
+          >
+            <Sparkles className="w-3 h-3" /> Create ATI Card
+          </button>
+        </div>
+      )}
+
+      {/* Scoring in progress */}
+      {scoring && (
+        <div style={{ marginTop: 6, background: "rgba(232,168,58,0.12)", border: "1px solid rgba(232,168,58,0.30)", borderRadius: 8, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+          <Loader2 className="w-4 h-4 animate-spin" style={{ color: "#E8A83A" }} />
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#A67C00" }}>Scoring aircraft…</span>
+        </div>
+      )}
+
+      {/* Score result */}
+      {scored?.ok && (
+        <div style={{ marginTop: 6, background: "rgba(15,122,86,0.10)", border: "1px solid rgba(15,122,86,0.25)", borderRadius: 8, padding: "8px 10px" }}>
+          <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
+            <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#0F7A56" }} />
+            <span style={{ fontSize: 10, fontWeight: 800, color: "#0F7A56" }}>ATI Card created!</span>
+          </div>
+          <p style={{ fontSize: 9, color: "#185FA5", fontWeight: 700 }}>
+            Score: {scored.atiScore}/120 · {scored.scoreLabel}
+          </p>
+          <p style={{ fontSize: 8, color: "#AAA49C", marginTop: 2 }}>Reloading map…</p>
+        </div>
+      )}
+
+      {scoreError && (
+        <div style={{ marginTop: 6, background: "rgba(192,57,43,0.08)", border: "1px solid rgba(192,57,43,0.20)", borderRadius: 8, padding: "6px 10px", fontSize: 9, color: "#C0392B" }}>
+          {scoreError}
+        </div>
+      )}
+
+      {!listing && !faa && !isNReg && (
         <div style={{ background: "rgba(11,45,91,0.05)", borderRadius: 6, padding: "6px 10px", fontSize: 10, color: "#6B6560" }}>
-          No ATI Score Card — not yet in marketplace
+          No registration data — not scorable from live traffic
         </div>
       )}
 
       <p style={{ fontSize: 8, color: "#AAA49C", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-        {origin_country} · icao24: {ac.icao24}
+        {origin_country} · icao24: {icao24}
       </p>
     </div>
   );

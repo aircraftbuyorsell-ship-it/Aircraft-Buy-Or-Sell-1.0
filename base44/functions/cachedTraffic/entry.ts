@@ -118,14 +118,50 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Enrich with existing ABOS listings ────────────────────────────
+    // Collect unique registrations from adsb.lol data
+    const allRegs = [...new Set(allAircraft.map(ac => ac.registration).filter(Boolean))];
+    if (allRegs.length > 0) {
+      const listingMap = {};
+      // Batch lookup in groups of 50 to avoid rate limits
+      for (let i = 0; i < allRegs.length; i += 50) {
+        const batch = allRegs.slice(i, i + 50);
+        const results = await Promise.allSettled(
+          batch.map(reg => base44.asServiceRole.entities.AircraftListing.filter(
+            { registration: reg, status: 'active' }, '-created_date', 1
+          ))
+        );
+        results.forEach((r, idx) => {
+          if (r.status === 'fulfilled' && r.value[0]) {
+            listingMap[batch[idx]] = r.value[0];
+          }
+        });
+      }
+      
+      // Attach listing data to aircraft
+      for (const ac of allAircraft) {
+        if (ac.registration && listingMap[ac.registration]) {
+          ac.listing = {
+            id: listingMap[ac.registration].id,
+            year: listingMap[ac.registration].year,
+            make: listingMap[ac.registration].make,
+            model: listingMap[ac.registration].model,
+            ati_score: listingMap[ac.registration].ati_score,
+            asking_price: listingMap[ac.registration].asking_price,
+            deal_label: listingMap[ac.registration].deal_label,
+          };
+        }
+      }
+    }
+
     const refreshedAt = new Date().toISOString();
 
-    // Persist a trimmed snapshot (first 200 aircraft) to avoid entity size limit
+    // Persist a trimmed snapshot (first 100 enriched aircraft) to avoid entity size limit
     const snapshotPayload = {
       region_key,
       region_label,
       bounds: {},
-      aircraft_json: JSON.stringify(allAircraft.slice(0, 200)),
+      aircraft_json: JSON.stringify(allAircraft.slice(0, 100)),
       opensky_time: Math.floor(Date.now() / 1000),
       total_raw: allAircraft.length,
       refreshed_by: user.email,

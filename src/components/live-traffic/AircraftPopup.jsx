@@ -12,17 +12,30 @@ function StatBox({ label, value, status }) {
 
 export default function AircraftPopup({ aircraft }) {
   const listing = aircraft.listing;
+  const nReg = aircraft.faa?.n_number || aircraft.registration || null;
+  const typeDisplay = aircraft.faa?.type_aircraft || aircraft.aircraft_type || null;
   const title = listing
     ? `${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim()
-    : aircraft.callsign?.trim() || aircraft.icao24;
+    : (aircraft.callsign?.trim() || aircraft.icao24);
 
   return (
-    <div style={{ fontFamily: "Space Grotesk, Inter, sans-serif", minWidth: 235, background: PALETTE.void, color: PALETTE.cream }}>
+    <div style={{ fontFamily: "Space Grotesk, Inter, sans-serif", minWidth: 240, background: PALETTE.void, color: PALETTE.cream }}>
       <div style={{ background: PALETTE.panel, margin: "-8px -12px 10px", padding: "11px 12px", borderRadius: "6px 6px 0 0", borderBottom: `1px solid ${PALETTE.muted}55` }}>
-        <p style={{ color: PALETTE.cognac, fontSize: 10, fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase", margin: 0 }}>
-          {aircraft.faa?.n_number || aircraft.callsign || aircraft.icao24}
+        {/* 1. N-Reg (primary) */}
+        <p style={{ color: PALETTE.cognac, fontSize: 11, fontWeight: 900, letterSpacing: "0.10em", textTransform: "uppercase", margin: 0 }}>
+          {nReg || aircraft.callsign || aircraft.icao24}
         </p>
-        <p style={{ color: PALETTE.cream, fontWeight: 900, fontSize: 14, margin: "4px 0 0" }}>{title}</p>
+        {/* 2. ICAO */}
+        <p style={{ color: PALETTE.muted, fontSize: 8, fontFamily: "monospace", margin: "3px 0 0" }}>
+          ICAO: {aircraft.icao24}
+        </p>
+        {/* 3. Aircraft Type */}
+        {typeDisplay && (
+          <p style={{ color: PALETTE.gold, fontSize: 10, fontWeight: 800, margin: "3px 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            {typeDisplay}
+          </p>
+        )}
+        <p style={{ color: PALETTE.cream, fontWeight: 900, fontSize: 14, margin: "5px 0 0" }}>{title}</p>
         {aircraft.origin_country && <p style={{ color: PALETTE.muted, fontSize: 10, margin: "3px 0 0" }}>{aircraft.origin_country}</p>}
       </div>
 

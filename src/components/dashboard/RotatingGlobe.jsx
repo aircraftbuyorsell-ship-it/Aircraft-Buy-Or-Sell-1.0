@@ -29,6 +29,87 @@ const COUNTRY_COORDS = {
   "MX": { lat: 23, lon: -102 }, "AR": { lat: -34, lon: -64 },
   "JP": { lat: 36, lon: 138 }, "CN": { lat: 35, lon: 105 },
   "SG": { lat: 1, lon: 104 }, "NZ": { lat: -41, lon: 174 },
+  "RU": { lat: 60, lon: 100 }, "TR": { lat: 39, lon: 35 },
+  "IE": { lat: 53, lon: -8 }, "BE": { lat: 51, lon: 4 },
+  "PT": { lat: 39, lon: -8 }, "GR": { lat: 39, lon: 22 },
+  "FI": { lat: 61, lon: 26 }, "DK": { lat: 56, lon: 10 },
+  "SK": { lat: 49, lon: 20 }, "HU": { lat: 47, lon: 19 },
+  "RO": { lat: 46, lon: 25 }, "BG": { lat: 43, lon: 25 },
+  "HR": { lat: 45, lon: 16 }, "UA": { lat: 49, lon: 31 },
+  "IL": { lat: 31, lon: 35 }, "SA": { lat: 24, lon: 45 },
+  "KR": { lat: 36, lon: 128 }, "TW": { lat: 24, lon: 121 },
+  "TH": { lat: 15, lon: 101 }, "ID": { lat: -6, lon: 107 },
+  "MY": { lat: 4, lon: 102 }, "PH": { lat: 13, lon: 122 },
+  "VN": { lat: 14, lon: 108 }, "CO": { lat: 4, lon: -72 },
+  "CL": { lat: -33, lon: -71 }, "PE": { lat: -10, lon: -76 },
+  "EG": { lat: 27, lon: 30 }, "NG": { lat: 9, lon: 8 },
+  "KE": { lat: -1, lon: 37 },
+};
+
+// Registration prefix → country (first char(s) of tail number)
+const REG_PREFIX_MAP = {
+  "N": "US",   // USA
+  "C": "CA", "CF": "CA", "CG": "CA", // Canada
+  "G": "GB",   // UK
+  "D": "DE", "HB": "DE", // Germany
+  "F": "FR",   // France
+  "I": "IT",   // Italy
+  "EC": "ES",  // Spain
+  "PH": "NL",  // Netherlands
+  "OE": "AT",  // Austria
+  "HB": "CH",  // Switzerland (HB-) — override DE for full prefix
+  "SP": "PL",  // Poland
+  "OK": "CZ",  // Czech Republic
+  "OM": "SK",  // Slovakia
+  "HA": "HU",  // Hungary
+  "YR": "RO",  // Romania
+  "LZ": "BG",  // Bulgaria
+  "9A": "HR",  // Croatia
+  "SX": "GR",  // Greece
+  "SE": "SE",  // Sweden
+  "LN": "NO",  // Norway
+  "OH": "FI",  // Finland
+  "OY": "DK",  // Denmark
+  "OO": "BE",  // Belgium
+  "LX": "LU",  // Luxembourg
+  "CS": "PT",  // Portugal
+  "EI": "IE",  // Ireland
+  "UR": "UA",  // Ukraine
+  "RA": "RU",  // Russia
+  "VH": "AU",  // Australia
+  "ZK": "NZ",  // New Zealand
+  "JA": "JP",  // Japan
+  "B": "CN",   // China
+  "VT": "IN",  // India
+  "HL": "KR",  // South Korea
+  "9V": "SG",  // Singapore
+  "HS": "TH",  // Thailand
+  "PK": "ID",  // Indonesia
+  "9M": "MY",  // Malaysia
+  "RP": "PH",  // Philippines
+  "XA": "MX",  // Mexico
+  "XB": "MX",  // Mexico
+  "XC": "MX",  // Mexico
+  "PP": "BR",  // Brazil
+  "PT": "BR",  // Brazil
+  "PR": "BR",  // Brazil
+  "LV": "AR",  // Argentina
+  "LQ": "AR",  // Argentina
+  "CC": "CL",  // Chile
+  "HK": "CO",  // Colombia
+  "OB": "PE",  // Peru
+  "ZS": "ZA",  // South Africa
+  "ZT": "ZA",  // South Africa
+  "ZU": "ZA",  // South Africa
+  "A6": "AE",  // UAE
+  "SU": "EG",  // Egypt
+  "5N": "NG",  // Nigeria
+  "5Y": "KE",  // Kenya
+  "4X": "IL",  // Israel
+  "HZ": "SA",  // Saudi Arabia
+  "TC": "TR",  // Turkey
+  "B": "TW",   // Taiwan
+  "VN": "VN",  // Vietnam
 };
 
 // Fallback markers when no listings
@@ -62,18 +143,31 @@ for (let lat = -90; lat <= 90; lat += STEP) {
   }
 }
 
-// Map listing to lat/lon — distribute listings evenly across known coords
+// Map listing to lat/lon using registration prefix for real geographic placement
 function listingToCoords(listing, index, total) {
-  // Try to find coords from registration prefix or state code
   if (listing.registration) {
-    const prefix = listing.registration.substring(0, 2).toUpperCase();
-    if (COUNTRY_COORDS[prefix]) return COUNTRY_COORDS[prefix];
+    const reg = listing.registration.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    // Try 2-char prefix first, then 1-char
+    for (const len of [2, 1]) {
+      const prefix = reg.substring(0, len);
+      const country = REG_PREFIX_MAP[prefix];
+      if (country && COUNTRY_COORDS[country]) {
+        const base = COUNTRY_COORDS[country];
+        // Slight jitter so multiple aircraft in same country don't overlap
+        return {
+          lat: base.lat + Math.sin(index * 4.7) * 2.5,
+          lon: base.lon + Math.cos(index * 3.9) * 3.5,
+        };
+      }
+    }
   }
-  // Scatter across a fixed set of world positions with jitter
+  // Fallback: scatter across known world positions
   const bases = Object.values(COUNTRY_COORDS);
   const base = bases[index % bases.length];
-  const jitter = { lat: (Math.sin(index * 7.3) * 4), lon: (Math.cos(index * 5.1) * 6) };
-  return { lat: base.lat + jitter.lat, lon: base.lon + jitter.lon };
+  return {
+    lat: base.lat + Math.sin(index * 7.3) * 4,
+    lon: base.lon + Math.cos(index * 5.1) * 6,
+  };
 }
 
 function atiColor(score, isDark) {

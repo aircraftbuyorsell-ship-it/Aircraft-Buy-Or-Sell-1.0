@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
   LayoutDashboard, Plane, Radar, User, Menu,
-  Handshake, Calculator, Users, BarChart3, TrendingUp,
+  Handshake, Calculator, Users, BarChart3, TrendingUp, Lightbulb,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
   MessageCircle, HelpCircle,
 } from "lucide-react";
@@ -36,6 +36,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/listings", label: "Listings", icon: Plane, desc: "Browse all active aircraft listings with ATI transparency scores" },
       { path: "/compare", label: "Compare Aircraft", icon: ShieldCheck, desc: "Compare up to 3 aircraft side-by-side on specs, pricing, and ATI scores" },
       { path: "/community", label: "Community", icon: Users, desc: "Connect with aviation dealers, brokers, and buyers" },
+      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new features for the platform" },
       { path: "/deal-radar", label: "Deal Radar", icon: Radar, desc: "Spot aircraft priced below market — hot deals with high ATI scores" },
       { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B aircraft tracking with N-number search and ABOS listing matching" },
       { path: "/analytics", label: "Analytics", icon: BarChart3, desc: "Market trend charts, price movements, and time-on-market data" },

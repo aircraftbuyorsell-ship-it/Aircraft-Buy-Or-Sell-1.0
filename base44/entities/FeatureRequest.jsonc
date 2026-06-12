@@ -1,0 +1,86 @@
+{
+  "name": "FeatureRequest",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Short title of the feature request"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Detailed description of the requested feature"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "listings",
+        "analytics",
+        "tools",
+        "escrow",
+        "community",
+        "traffic",
+        "other"
+      ],
+      "default": "other",
+      "description": "Feature category"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "under_review",
+        "planned",
+        "in_progress",
+        "released",
+        "declined"
+      ],
+      "default": "under_review",
+      "description": "Current status in the roadmap"
+    },
+    "vote_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of votes"
+    },
+    "submitter_email": {
+      "type": "string",
+      "description": "Email of the person who submitted"
+    },
+    "admin_notes": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Admin response or notes"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

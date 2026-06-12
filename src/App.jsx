@@ -42,6 +42,7 @@ import EscrowAgreement from "./pages/EscrowAgreement";
 import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
 import Compare from "./pages/Compare";
 import AdminListings from "./pages/AdminListings";
+import FeatureRequests from "./pages/FeatureRequests";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -101,6 +102,7 @@ const AuthenticatedApp = () => {
         <Route path="/subscription" element={<SubscriptionManagement />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/admin/listings" element={<AdminListings />} />
+        <Route path="/feature-requests" element={<FeatureRequests />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -329,7 +329,10 @@ Return ONLY raw JSON:
       queryClient.invalidateQueries({ queryKey: ["listing", listingId] });
       queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
     } catch (e) {
-      setError(e.message || "Scoring failed. Please try again.");
+      const msg = e.message || "";
+      setError(msg.includes("credit") || msg.includes("Integration")
+        ? "Scoring engine temporarily unavailable. Your listing data is saved — you can generate the report when the service resumes."
+        : (msg || "Scoring unavailable at the moment. Please try again shortly."));
     } finally {
       setGenerating(false);
     }

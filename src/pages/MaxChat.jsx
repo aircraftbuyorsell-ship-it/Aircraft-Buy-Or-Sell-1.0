@@ -209,7 +209,7 @@ export default function MaxChat() {
         speak(result);
       }
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Sorry, turbulence pocket! Try again. ✈️" }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "I'm currently in offline mode — the live assistant is temporarily unavailable. You can still explore the platform directly:\n\n• **Listings** — browse active aircraft with ATI scores\n• **Deal Radar** — spot below-market opportunities\n• **Traffic Map** — track aircraft in real-time\n\nType 'reset' or use the Reset button to start fresh when ready." }]);
     } finally {
       setLoading(false);
     }

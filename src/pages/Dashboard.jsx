@@ -243,7 +243,7 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-3 items-center justify-center">
             {[
               { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
-              { label: "Pre-Buy AI", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
+              { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
               { label: "Live Tracking", icon: Radar, link: "/traffic", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
               { label: "Secure Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
             ].map((cta) => (
@@ -295,7 +295,7 @@ export default function Dashboard() {
           {[
             { n: "01", color: accentCyan, icon: ShieldCheck, title: "ATI Transaction Report", body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.", link: "/listings" },
             { n: "02", color: accentViolet, icon: Radar, title: "ADS-B Surveillance", body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and 7-day operational history.", link: "/traffic" },
-            { n: "03", color: accentGold, icon: Plane, title: "AI Pre-Buy Inspection", body: "On-site with Max AI — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
+            { n: "03", color: accentGold, icon: Plane, title: "Pre-Buy Inspection", body: "On-site with Max — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
             { n: "04", color: accentRed, icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" },
           ].map((m) => (
             <Link key={m.n} to={m.link}>

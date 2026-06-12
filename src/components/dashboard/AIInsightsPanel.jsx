@@ -66,7 +66,7 @@ export default function AIInsightsPanel() {
             <Sparkles className="w-4 h-4 text-[#0B2D5B]" strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[0.15em] font-black text-[#E8A83A]">AI Market Intelligence</p>
+            <p className="text-[9px] uppercase tracking-[0.15em] font-black text-[#E8A83A]">Market Intelligence</p>
             <p className="text-[12px] font-black uppercase tracking-tight truncate">Live Insights</p>
           </div>
         </div>

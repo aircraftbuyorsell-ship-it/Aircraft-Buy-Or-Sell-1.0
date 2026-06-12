@@ -318,7 +318,7 @@ export default function MaxChat() {
 
       {/* ── Title ── */}
       <div className="text-center mb-6">
-        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Cockpit · AI Assistant</p>
+        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Cockpit · Aviation Assistant</p>
         <h1 className="text-white text-2xl font-black tracking-tight">Max</h1>
         <p className="text-white/40 text-[11px] mt-0.5">{statusText}</p>
       </div>
@@ -494,7 +494,7 @@ export default function MaxChat() {
       </div>
 
       <p className="mt-6 text-[9px] text-white/20 uppercase tracking-wider text-center">
-        Powered by Gemini 3.1 Pro · ABOS Aviation Intelligence
+        Powered by Gemini · ABOS Aviation Intelligence
       </p>
     </div>
   );

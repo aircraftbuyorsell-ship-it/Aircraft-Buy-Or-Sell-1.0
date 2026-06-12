@@ -12,10 +12,10 @@ export default function ATIInsights({ passport }) {
 
   return (
     <div className="space-y-5">
-      {/* AI Summary */}
+      {/* Intelligence Summary */}
       {passport.ai_summary && (
         <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-sky-400 mb-3">AI Summary</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-sky-400 mb-3">Intelligence Summary</p>
           <p className="text-slate-200 text-sm leading-relaxed">{passport.ai_summary}</p>
         </div>
       )}

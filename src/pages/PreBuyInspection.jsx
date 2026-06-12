@@ -99,13 +99,13 @@ function LandingPage({ onStart }) {
 
           <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
             Live Pre-Buy Inspection<br />
-            <span className="text-[#E8A83A]">with Max AI</span>
+            <span className="text-[#E8A83A]">with Max</span>
           </h1>
           <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-lg mx-auto mb-2">
             Point your phone camera at any aircraft during a pre-buy inspection. Max watches the live feed and instantly flags issues, concerns, and highlights — spoken aloud in real time.
           </p>
           <p className="text-[11px] text-white/30 mb-8">
-            Powered by Gemini 2.0 Flash Live Vision · Not a substitute for a certified IA or A&P inspection
+            Powered by Gemini Live Vision · Not a substitute for a certified IA or A&P inspection
           </p>
 
           <button

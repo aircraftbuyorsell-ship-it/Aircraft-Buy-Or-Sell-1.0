@@ -82,7 +82,7 @@ export default function MarketReports() {
             <h1 className="text-2xl font-black text-[#1A1814] tracking-tight">Market Reports</h1>
           </div>
           <p className="text-sm text-[#6B6560] max-w-2xl">
-            On-demand AI-synthesized aviation market intelligence. Each report consumes tokens and pulls fresh global + local context.
+            On-demand synthesized aviation market intelligence. Each report consumes tokens and pulls fresh global + local context.
           </p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8A83A]/30 bg-[#E8A83A]/10">

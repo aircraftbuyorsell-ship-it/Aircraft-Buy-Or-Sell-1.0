@@ -52,7 +52,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/valuation", label: "Valuation", icon: TrendingUp, desc: "Expert aircraft valuation with OMVM market-model estimates" },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "Calculate true annual ownership costs before buying" },
       { path: "/leads", label: "Leads", icon: Users, desc: "Manage buyer leads, track pipeline stages, and score lead quality" },
-      { path: "/max-chat", label: "Ask Max (AI)", icon: MessageCircle, desc: "AI aviation assistant for pre-buy inspections, valuations, and market advice" },
+      { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation assistant for pre-buy inspections, valuations, and market advice" },
     ],
   },
   {

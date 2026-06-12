@@ -1,0 +1,108 @@
+{
+  "name": "TrafficAppearance",
+  "type": "object",
+  "properties": {
+    "icao24": {
+      "type": "string",
+      "description": "ICAO 24-bit address (hex)"
+    },
+    "callsign": {
+      "type": "string",
+      "description": "Callsign/flight number at time of sighting"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (N-number or other)"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type code from ADS-B"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "GPS latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "GPS longitude"
+    },
+    "altitude_ft": {
+      "type": "number",
+      "description": "Barometric altitude in feet"
+    },
+    "speed_kt": {
+      "type": "number",
+      "description": "Ground speed in knots"
+    },
+    "heading": {
+      "type": "number",
+      "description": "True track heading in degrees"
+    },
+    "vertical_rate_fpm": {
+      "type": "number",
+      "description": "Vertical rate in feet per minute"
+    },
+    "on_ground": {
+      "type": "boolean",
+      "description": "Whether aircraft was on ground"
+    },
+    "squawk": {
+      "type": "string",
+      "description": "Squawk code"
+    },
+    "category": {
+      "type": "number",
+      "description": "Aircraft category code (1-3 GA, 4 turboprop, 5-6 jet, 8-9 heli)"
+    },
+    "snapshot_id": {
+      "type": "string",
+      "description": "Parent TrafficSnapshot ID"
+    },
+    "region_key": {
+      "type": "string",
+      "description": "Region key from the snapshot"
+    },
+    "has_listing": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this aircraft has an ABOS listing"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this appearance was captured"
+    }
+  },
+  "required": [
+    "icao24",
+    "latitude",
+    "longitude",
+    "captured_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

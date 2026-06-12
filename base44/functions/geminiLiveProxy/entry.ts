@@ -30,6 +30,8 @@ RESPONSE STYLE:
 
 Always frame findings in terms of how they affect the ATI score and transaction confidence.`;
 
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+
 Deno.serve(async (req) => {
   const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
   if (!GOOGLE_API_KEY) {
@@ -42,16 +44,25 @@ Deno.serve(async (req) => {
     return Response.json({ error: "WebSocket upgrade required" }, { status: 426 });
   }
 
-  // Upgrade immediately — auth headers are unreliable on WS connections
+  // Authenticate user BEFORE upgrading to WebSocket
+  const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me();
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Only now upgrade to WebSocket
   const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
 
   // Connect to Gemini right away (don't wait for onopen)
   const geminiUrl = `${GEMINI_WS_URL}?key=${GOOGLE_API_KEY}`;
   const geminiSocket = new WebSocket(geminiUrl);
 
-  // Queue messages from client until Gemini is ready
+  // Queue messages from client until Gemini is ready (cap at 20 to prevent memory abuse)
   const pendingMessages = [];
+  const MAX_PENDING = 20;
   let geminiReady = false;
+  let clientClosed = false;
 
   geminiSocket.onopen = () => {
     geminiReady = true;
@@ -75,9 +86,11 @@ Deno.serve(async (req) => {
     };
     geminiSocket.send(JSON.stringify(setup));
 
-    // Flush any queued messages
-    for (const msg of pendingMessages) {
-      geminiSocket.send(msg);
+    // Flush any queued messages (if client still connected)
+    if (!clientClosed) {
+      for (const msg of pendingMessages) {
+        geminiSocket.send(msg);
+      }
     }
     pendingMessages.length = 0;
   };
@@ -106,22 +119,27 @@ Deno.serve(async (req) => {
   clientSocket.onmessage = (event) => {
     if (geminiReady && geminiSocket.readyState === WebSocket.OPEN) {
       geminiSocket.send(event.data);
-    } else {
-      // Buffer until Gemini is ready
+    } else if (!geminiReady && pendingMessages.length < MAX_PENDING) {
+      // Buffer until Gemini is ready (capped)
       pendingMessages.push(event.data);
     }
+    // Silently drop messages beyond the cap
   };
 
   clientSocket.onclose = () => {
-    if (geminiSocket.readyState === WebSocket.OPEN) {
+    clientClosed = true;
+    if (geminiSocket.readyState === WebSocket.OPEN || geminiSocket.readyState === WebSocket.CONNECTING) {
       geminiSocket.close();
     }
+    pendingMessages.length = 0;
   };
 
   clientSocket.onerror = () => {
-    if (geminiSocket.readyState === WebSocket.OPEN) {
+    clientClosed = true;
+    if (geminiSocket.readyState === WebSocket.OPEN || geminiSocket.readyState === WebSocket.CONNECTING) {
       geminiSocket.close();
     }
+    pendingMessages.length = 0;
   };
 
   return response;

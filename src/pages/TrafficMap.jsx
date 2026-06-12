@@ -163,7 +163,7 @@ export default function TrafficMap() {
   const sourceLabel = dataSource === "live" ? "🟢 Live" : dataSource === "cache" ? "🔵 Cache" : dataSource?.startsWith("snapshot:") ? `📁 ${dataSource.replace("snapshot:", "")}` : dataSource || "—";
 
   return (
-    <div className="flex flex-col min-h-screen bg-background dark:bg-[#0D0F2B]" style={{ background: isDark ? "#0D0F2B" : "#F7F4EF" }}>
+    <div className="flex flex-col min-h-screen" style={{ background: isDark ? "#0a0a0f" : "#1a1d2e" }}>
       {/* Header */}
       <div className="px-4 md:px-8 pt-8 pb-4">
         <div className="max-w-7xl mx-auto">
@@ -174,7 +174,7 @@ export default function TrafficMap() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8A83A]">ADS-B Live · adsb.lol</p>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: isDark ? "#ffffff" : "#1A1814" }}>Global Live Traffic</h1>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">Global Live Traffic</h1>
               </div>
             </div>
 
@@ -187,7 +187,8 @@ export default function TrafficMap() {
                     onChange={(e) => { setSearch(e.target.value); setSearchError(null); }}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     placeholder="N-number, ICAO, callsign…"
-                    className="rounded-xl border pl-3 pr-8 py-2 text-sm font-mono w-52 outline-none focus:border-[#E8A83A] dark:bg-white/5 dark:text-white dark:border-white/15 dark:placeholder-white/25 bg-white border-black/10"
+                    className="rounded-xl border pl-3 pr-8 py-2 text-sm font-mono w-52 outline-none focus:border-[#E8A83A] transition-colors"
+                    style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.10)", borderColor: isDark ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.20)", color: "#fff" }}
                   />
                   {search && (
                     <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#AAA49C] hover:text-[#1A1814]">
@@ -201,18 +202,19 @@ export default function TrafficMap() {
               </div>
 
               {/* Category Filter */}
-              <div className="flex items-center gap-1 bg-white border border-black/10 rounded-xl px-2 py-1">
-                <Filter className="w-3.5 h-3.5 text-[#AAA49C] shrink-0" />
+              <div className="flex items-center gap-1 rounded-xl px-2 py-1"
+                style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.15)" }}>
+                <Filter className="w-3.5 h-3.5 text-white/40 shrink-0" />
                 {CATEGORY_FILTERS.map(f => (
                   <button
                     key={f.key}
                     onClick={() => setCatFilter(f.key)}
                     style={catFilter === f.key
-                      ? { background: isDark ? "#E8A83A" : "#0B2D5B", color: isDark ? "#0B2D5B" : "#fff" }
-                      : { color: isDark ? "rgba(255,255,255,0.45)" : "#6B6560" }}
+                      ? { background: isDark ? "#E8A83A" : "#E8A83A", color: isDark ? "#0B2D5B" : "#fff" }
+                      : { color: "rgba(255,255,255,0.45)" }}
                     className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
-                    onMouseEnter={e => { if (catFilter !== f.key) e.currentTarget.style.color = isDark ? "#fff" : "#0B2D5B"; }}
-                    onMouseLeave={e => { if (catFilter !== f.key) e.currentTarget.style.color = isDark ? "rgba(255,255,255,0.45)" : "#6B6560"; }}
+                    onMouseEnter={e => { if (catFilter !== f.key) e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={e => { if (catFilter !== f.key) e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}
                   >{f.label}</button>
                 ))}
               </div>
@@ -239,32 +241,36 @@ export default function TrafficMap() {
               { label: "Source", value: sourceLabel },
               { label: "Last updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
             ].map((s) => (
-              <div key={s.label} className="glass-pill px-4 py-2">
-                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.45)" : "#6B6560" }}>{s.label}: </span>
-                <span className="text-sm font-black" style={{ color: isDark ? "#ffffff" : "#0B2D5B" }}>{s.value}</span>
+              <div key={s.label} className="glass-pill px-4 py-2"
+                style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.12)", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.18)", backdropFilter: "blur(12px)" }}>
+                <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.70)" }}>{s.label}: </span>
+                <span className="text-sm font-black" style={{ color: isDark ? "#ffffff" : "#ffffff" }}>{s.value}</span>
               </div>
             ))}
           </div>
 
           {searchError && (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+            <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm"
+              style={{ background: "rgba(232,168,58,0.12)", border: "1px solid rgba(232,168,58,0.25)", color: "#E8A83A" }}>
               <Info className="w-4 h-4 shrink-0" /> {searchError}
             </div>
           )}
           {error && (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-800">{error}</div>
+            <div className="mt-3 rounded-xl px-4 py-2.5 text-sm"
+              style={{ background: "rgba(255,77,109,0.10)", border: "1px solid rgba(255,77,109,0.20)", color: "#ff4d6d" }}>{error}</div>
           )}
         </div>
       </div>
 
       {/* Map */}
       <div className="flex-1 px-4 md:px-8 pb-4">
-        <div className="max-w-7xl mx-auto h-[70vh] rounded-3xl overflow-hidden border border-black/[0.07] shadow-sm relative">
+        <div className="max-w-7xl mx-auto h-[70vh] rounded-3xl overflow-hidden shadow-xl relative"
+          style={{ border: isDark ? "2px solid rgba(255,255,255,0.15)" : "2px solid rgba(255,255,255,0.10)" }}>
           {loading && (
-            <div className="absolute inset-0 z-[999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+            <div className="absolute inset-0 z-[999] flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(10,10,20,0.85)" }}>
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#E8A83A]" />
-                <p className="text-sm font-bold text-[#1A1814]">Loading global traffic…</p>
+                <p className="text-sm font-bold text-white/80">Loading global traffic…</p>
               </div>
             </div>
           )}
@@ -284,8 +290,8 @@ export default function TrafficMap() {
               const textColor = isDark ? "#ffffff" : "#0B2D5B";
               const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "#6B6560";
               const subColor = isDark ? "rgba(255,255,255,0.30)" : "#AAA49C";
-              const borderColor = isDark ? "rgba(255,255,255,0.10)" : "#f0ede6";
-              const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(11,45,91,0.05)";
+              const borderColor = isDark ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.18)";
+              const cardBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.08)";
               return (
                 <Marker
                   key={ac.icao24}
@@ -383,7 +389,7 @@ export default function TrafficMap() {
 
         {/* Legend */}
         <div className="max-w-7xl mx-auto mt-3 flex flex-wrap gap-3 items-center">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#6B6560]">Altitude:</span>
+          <span className="text-[10px] font-black uppercase tracking-wider text-white/60">Altitude:</span>
           {[
             { color: "#ef4444", label: "0–5k ft" },
             { color: "#f59e0b", label: "5–15k ft" },
@@ -393,10 +399,10 @@ export default function TrafficMap() {
           ].map((l) => (
             <div key={l.label} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ background: l.color }} />
-              <span className="text-xs text-[#6B6560]">{l.label}</span>
+              <span className="text-xs text-white/55">{l.label}</span>
             </div>
           ))}
-          <span className="ml-auto text-[10px] text-[#AAA49C]">Data: adsb.lol · Cached snapshots via ABOS</span>
+          <span className="ml-auto text-[10px] text-white/35">Data: adsb.lol · Cached snapshots via ABOS</span>
         </div>
 
         {/* Aircraft Flight History */}

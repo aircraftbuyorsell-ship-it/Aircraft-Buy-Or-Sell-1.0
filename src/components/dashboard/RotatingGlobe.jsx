@@ -272,18 +272,18 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
     const draw = () => {
       const isDark = themeRef.current === "dark";
       const C = isDark ? {
-        sphere: "rgba(0,245,255,0.03)",
-        ocean: "rgba(0,245,255,0.06)",
-        land: (depth) => `rgba(0,245,255,${0.18 + depth * 0.50})`,
-        rim: "rgba(0,245,255,0.18)",
-        atmIn: "rgba(122,0,255,0.12)",
+        sphere: "rgba(0,245,255,0.08)",
+        ocean: "rgba(0,245,255,0.20)",
+        land: (depth) => `rgba(0,245,255,${0.45 + depth * 0.55})`,
+        rim: "rgba(0,245,255,0.50)",
+        atmIn: "rgba(122,0,255,0.22)",
         atmOut: "rgba(0,245,255,0)",
       } : {
-        sphere: "rgba(11,45,91,0.06)",
-        ocean: "rgba(11,45,91,0.12)",
-        land: (depth) => `rgba(11,45,91,${0.28 + depth * 0.5})`,
-        rim: "rgba(11,45,91,0.18)",
-        atmIn: "rgba(232,168,58,0.09)",
+        sphere: "rgba(11,45,91,0.12)",
+        ocean: "rgba(11,45,91,0.25)",
+        land: (depth) => `rgba(11,45,91,${0.55 + depth * 0.35})`,
+        rim: "rgba(11,45,91,0.40)",
+        atmIn: "rgba(232,168,58,0.16)",
         atmOut: "rgba(232,168,58,0)",
       };
 

@@ -139,14 +139,13 @@
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-text-size-adjust: 100%;
-    background: #f0f2fa;
+    background: #f8f9fc;
     background-image:
-      radial-gradient(ellipse 70% 55% at 20% 15%, rgba(100,60,220,0.12) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at 80% 85%, rgba(0,160,200,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 55% 50%, rgba(0,68,255,0.06) 0%, transparent 50%);
+      radial-gradient(ellipse 60% 45% at 15% 10%, rgba(59,130,246,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 85% 90%, rgba(99,102,241,0.05) 0%, transparent 50%);
     background-attachment: fixed;
     min-height: 100dvh;
-    color: #0f1020;
+    color: #1e293b;
   }
 
   /* ── DARK body ── */
@@ -214,11 +213,11 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
 
 /* Base glass */
 .glass {
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.70);
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.80);
   position: relative;
 }
 .dark .glass {
@@ -233,7 +232,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(160deg, rgba(255,255,255,0.40) 0%, transparent 60%);
+  background: linear-gradient(160deg, rgba(255,255,255,0.30) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -332,12 +331,12 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
 
 /* Card glass */
 .glass-card {
-  background: rgba(255,255,255,0.70);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(0,0,0,0.06);
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.90);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.90);
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
   position: relative;
   overflow: hidden;
@@ -354,7 +353,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.90) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.60) 50%, transparent 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -366,7 +365,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 45%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.30) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.20) 0%, transparent 100%);
   border-radius: inherit;
   pointer-events: none;
   z-index: 0;
@@ -375,9 +374,9 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
   background: linear-gradient(180deg, rgba(0,245,255,0.06) 0%, transparent 100%);
 }
 .glass-card:hover {
-  box-shadow: 0 8px 40px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.95);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.95);
   transform: translateY(-2px);
-  border-color: rgba(0,0,0,0.12);
+  border-color: rgba(0,0,0,0.10);
 }
 .dark .glass-card:hover {
   box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 40px rgba(0,245,255,0.10), 0 0 20px rgba(122,0,255,0.12), inset 0 1px 0 rgba(0,245,255,0.25);
@@ -386,12 +385,12 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
 
 /* Pill / chip glass */
 .glass-pill {
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.78);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(0,0,0,0.07);
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.80);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.80);
   position: relative;
 }
 .dark .glass-pill {

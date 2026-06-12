@@ -5,10 +5,12 @@ import { Store, Coins, Search, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ToolCard from "@/components/marketplace/ToolCard";
 import ToolInvokeModal from "@/components/marketplace/ToolInvokeModal";
+import { useTheme } from "@/lib/useTheme";
 
 const CATEGORIES = ["all", "data", "analytics", "ai", "compliance", "valuation", "communication", "other"];
 
 export default function Marketplace() {
+  const isDark = useTheme();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -65,6 +67,13 @@ export default function Marketplace() {
     return matchCat && matchSearch;
   });
 
+  const textPrimary = isDark ? "#ffffff" : "#1A1814";
+  const textMuted = isDark ? "rgba(255,255,255,0.45)" : "#6B6560";
+  const panelBg = isDark ? "rgba(255,255,255,0.05)" : "#ffffff";
+  const panelBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "#ffffff";
+  const inputBorder = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)";
+
   return (
     <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
       {/* Header */}
@@ -72,11 +81,11 @@ export default function Marketplace() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-9 h-9 rounded-xl bg-[#E8A83A]/15 border border-[#E8A83A]/30 flex items-center justify-center">
-              <Store className="w-4.5 h-4.5 text-[#A67C00]" />
+              <Store className="w-5 h-5 text-[#A67C00]" />
             </div>
-            <h1 className="text-2xl font-black text-[#1A1814] tracking-tight">Developer Marketplace</h1>
+            <h1 className="text-2xl font-black tracking-tight" style={{ color: textPrimary }}>Developer Marketplace</h1>
           </div>
-          <p className="text-sm text-[#6B6560] max-w-2xl">
+          <p className="text-sm max-w-2xl" style={{ color: textMuted }}>
             Third-party tools built by aviation developers. Pay-per-use with tokens — no subscriptions.
           </p>
         </div>
@@ -85,11 +94,9 @@ export default function Marketplace() {
             <Coins className="w-4 h-4 text-[#A67C00]" />
             <div>
               <p className="text-[10px] uppercase tracking-wider text-[#A67C00] font-bold">Balance</p>
-              <p className="text-lg font-black text-[#1A1814] leading-tight">{balance} <span className="text-xs font-bold text-[#6B6560]">tokens</span></p>
+              <p className="text-lg font-black leading-tight" style={{ color: textPrimary }}>{balance} <span className="text-xs font-bold" style={{ color: textMuted }}>tokens</span></p>
             </div>
-            <Link to="/pricing" className="ml-2 text-[11px] font-black uppercase tracking-wide text-[#0B2D5B] hover:text-[#143C75] underline underline-offset-2">
-              Buy
-            </Link>
+            <Link to="/pricing" className="ml-2 text-[11px] font-black uppercase tracking-wide text-[#0B2D5B] dark:text-[#00f5ff] hover:opacity-80 underline underline-offset-2">Buy</Link>
           </div>
           <Link to="/developers" className="h-10 px-4 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide flex items-center">
             Submit a Tool
@@ -99,30 +106,30 @@ export default function Marketplace() {
 
       {/* Feedback */}
       {resultMsg && (
-        <div className={`mb-5 rounded-xl border px-4 py-3 flex items-start gap-2 ${
-          resultMsg.type === "success"
-            ? "bg-green-50 border-green-200"
-            : "bg-red-50 border-red-200"
-        }`}>
+        <div className="mb-5 rounded-xl border px-4 py-3 flex items-start gap-2"
+          style={resultMsg.type === "success"
+            ? { background: isDark ? "rgba(34,197,94,0.12)" : "#f0fdf4", borderColor: isDark ? "rgba(34,197,94,0.30)" : "#bbf7d0" }
+            : { background: isDark ? "rgba(239,68,68,0.12)" : "#fff1f2", borderColor: isDark ? "rgba(239,68,68,0.30)" : "#fecdd3" }}>
           {resultMsg.type === "success"
-            ? <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-            : <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
-          <p className={`text-sm ${resultMsg.type === "success" ? "text-green-800" : "text-red-700"}`}>
+            ? <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+            : <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />}
+          <p className="text-sm" style={{ color: resultMsg.type === "success" ? (isDark ? "#4ade80" : "#166534") : (isDark ? "#f87171" : "#991b1b") }}>
             {resultMsg.text}
           </p>
-          <button onClick={() => setResultMsg(null)} className="ml-auto text-xs text-[#6B6560] hover:text-[#1A1814]">✕</button>
+          <button onClick={() => setResultMsg(null)} className="ml-auto text-xs" style={{ color: textMuted }}>✕</button>
         </div>
       )}
 
       {/* Search + filter */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? "rgba(255,255,255,0.30)" : "#AAA49C" }} />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tools…"
-            className="w-full pl-9 pr-4 h-10 rounded-xl border border-black/10 bg-white text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:ring-2 focus:ring-[#E8A83A]/40"
+            className="w-full pl-9 pr-4 h-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A83A]/40"
+            style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }}
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -130,11 +137,10 @@ export default function Marketplace() {
             <button
               key={c}
               onClick={() => setCategory(c)}
-              className={`h-10 px-3 rounded-xl text-xs font-bold capitalize transition-colors ${
-                category === c
-                  ? "bg-[#0B2D5B] text-white"
-                  : "bg-white border border-black/10 text-[#6B6560] hover:border-[#0B2D5B]/30"
-              }`}
+              className="h-10 px-3 rounded-xl text-xs font-bold capitalize transition-colors"
+              style={category === c
+                ? { background: "#0B2D5B", color: "#ffffff" }
+                : { background: panelBg, border: `1px solid ${panelBorder}`, color: textMuted }}
             >
               {c}
             </button>
@@ -146,28 +152,21 @@ export default function Marketplace() {
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl border border-black/8 bg-white p-5 h-48 animate-pulse" />
+            <div key={i} className="rounded-2xl p-5 h-48 animate-pulse border" style={{ background: panelBg, borderColor: panelBorder }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-white p-12 text-center">
-          <Store className="w-8 h-8 text-[#AAA49C] mx-auto mb-3" />
-          <p className="font-black text-[#1A1814] mb-1">No tools found</p>
-          <p className="text-sm text-[#6B6560]">
-            {tools.length === 0
-              ? "No tools have been published yet. Be the first to submit one."
-              : "Try adjusting your search or category filter."}
+        <div className="rounded-2xl border border-dashed p-12 text-center" style={{ background: panelBg, borderColor: panelBorder }}>
+          <Store className="w-8 h-8 mx-auto mb-3" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "#AAA49C" }} />
+          <p className="font-black mb-1" style={{ color: textPrimary }}>No tools found</p>
+          <p className="text-sm" style={{ color: textMuted }}>
+            {tools.length === 0 ? "No tools have been published yet. Be the first to submit one." : "Try adjusting your search or category filter."}
           </p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              tool={tool}
-              balance={balance}
-              onInvoke={() => setSelectedTool(tool)}
-            />
+            <ToolCard key={tool.id} tool={tool} balance={balance} onInvoke={() => setSelectedTool(tool)} isDark={isDark} />
           ))}
         </div>
       )}

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/lib/useTheme";
 
 const STATUS_OPTIONS = ["active", "sold", "draft"];
 const ATI_PRESETS = [
@@ -38,6 +39,7 @@ function ATIBadge({ score }) {
 }
 
 export default function AdminListings() {
+  const isDark = useTheme();
   const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState([]);
   const [search, setSearch] = useState("");
@@ -112,17 +114,32 @@ export default function AdminListings() {
     );
   }
 
+  const textPrimary = isDark ? "#ffffff" : "#1A1814";
+  const textMuted = isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.45)";
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.90)";
+  const inputBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.12)";
+  const filterBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.80)";
+  const filterBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)";
+  const tableBg = isDark ? "rgba(13,20,50,0.70)" : "rgba(255,255,255,0.85)";
+  const tableBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
+  const rowDivider = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
+  const rowAlt = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.015)";
+  const headerText = isDark ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.40)";
+
   return (
     <div className="min-h-screen p-4 md:p-8">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#E8A83A] font-black">Admin Panel</p>
-          <h1 className="text-2xl font-black text-white tracking-tight">All Aircraft Listings</h1>
-          {!isLoading && <p className="text-white/40 text-sm mt-0.5">{listings.length} total · {filtered.length} shown</p>}
+          <h1 className="text-2xl font-black tracking-tight" style={{ color: textPrimary }}>All Aircraft Listings</h1>
+          {!isLoading && <p className="text-sm mt-0.5" style={{ color: textMuted }}>{listings.length} total · {filtered.length} shown</p>}
         </div>
         <button onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-white border border-white/10 hover:border-white/25 transition-colors">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors border"
+          style={{ color: textMuted, borderColor: filterBorder, background: filterBg }}
+          onMouseEnter={e => e.currentTarget.style.color = textPrimary}
+          onMouseLeave={e => e.currentTarget.style.color = textMuted}>
           <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </button>
@@ -131,27 +148,31 @@ export default function AdminListings() {
       {/* Search & Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: textMuted }} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Make, model, registration…"
-            className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm text-white placeholder-white/25 focus:outline-none border border-white/10 focus:border-[#E8A83A]/50"
-            style={{ background: "rgba(255,255,255,0.06)" }}
+            className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A83A]/40"
+            style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }}
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70">
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+              style={{ color: textMuted }}>
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl px-2 py-1 border border-white/10" style={{ background: "rgba(255,255,255,0.04)" }}>
-          <SlidersHorizontal className="w-3.5 h-3.5 text-white/30" />
+        <div className="flex items-center gap-1 rounded-xl px-2 py-1 border" style={{ background: filterBg, borderColor: filterBorder }}>
+          <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: textMuted }} />
           {["all", ...STATUS_OPTIONS].map(s => (
             <button key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${statusFilter === s ? "bg-[#E8A83A] text-[#0B2D5B]" : "text-white/50 hover:text-white"}`}>
+              className="px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors"
+              style={statusFilter === s
+                ? { background: "#E8A83A", color: "#0B2D5B" }
+                : { color: textMuted }}>
               {s}
             </button>
           ))}
@@ -160,29 +181,41 @@ export default function AdminListings() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-xl"
-          style={{ background: "rgba(11,45,91,0.85)", border: "1px solid rgba(0,245,255,0.20)" }}>
+        <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-xl border"
+          style={isDark
+            ? { background: "rgba(11,45,91,0.85)", borderColor: "rgba(0,245,255,0.20)" }
+            : { background: "rgba(255,255,255,0.95)", borderColor: "rgba(0,0,0,0.10)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
           <button onClick={toggleAll}
-            className="flex items-center gap-1.5 text-white/70 hover:text-white text-[11px] font-semibold transition-colors">
+            className="flex items-center gap-1.5 text-[11px] font-semibold transition-colors"
+            style={{ color: isDark ? "rgba(255,255,255,0.70)" : "rgba(0,0,0,0.55)" }}>
             <CheckSquare className="w-4 h-4" />
             {allSelected ? "Deselect all" : `Select all (${filtered.length})`}
           </button>
-          <div className="w-px h-4 bg-white/20" />
-          <span className="text-[#E8A83A] text-[12px] font-black">{selectedIds.length} selected</span>
+          <div className="w-px h-4" style={{ background: isDark ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.12)" }} />
+          <span className="text-[12px] font-black" style={{ color: isDark ? "#E8A83A" : "#D4911A" }}>{selectedIds.length} selected</span>
           <div className="flex-1" />
 
           {/* Set Status */}
           <div className="relative">
             <button onClick={() => { setShowStatus(v => !v); setShowATI(false); }}
               disabled={bulkLoading}
-              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg border border-white/20 transition-colors">
+              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-colors"
+              style={isDark
+                ? { background: "rgba(255,255,255,0.10)", borderColor: "rgba(255,255,255,0.20)", color: "#ffffff" }
+                : { background: "rgba(0,0,0,0.05)", borderColor: "rgba(0,0,0,0.15)", color: "rgba(0,0,0,0.70)" }}
+              onMouseEnter={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.09)"}
+              onMouseLeave={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.05)"}>
               <Tag className="w-3.5 h-3.5" /> Set Status <ChevronDown className="w-3 h-3" />
             </button>
             {showStatus && (
-              <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-black/[0.08] rounded-xl shadow-xl overflow-hidden min-w-[140px]">
+              <div className="absolute right-0 top-full mt-1 z-50 rounded-xl shadow-xl overflow-hidden min-w-[140px]"
+                style={isDark ? { background: "#1a2040", border: "1px solid rgba(255,255,255,0.12)" } : { background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}>
                 {STATUS_OPTIONS.map(s => (
                   <button key={s} onClick={() => bulkUpdate("status", s)}
-                    className="w-full text-left px-4 py-2.5 text-[12px] font-semibold text-[#1A1814] hover:bg-[#F7F4EF] capitalize transition-colors">
+                    className="w-full text-left px-4 py-2.5 text-[12px] font-semibold capitalize transition-colors"
+                    style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#1A1814" }}
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.08)" : "#F7F4EF"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     {s}
                   </button>
                 ))}
@@ -194,14 +227,21 @@ export default function AdminListings() {
           <div className="relative">
             <button onClick={() => { setShowATI(v => !v); setShowStatus(false); }}
               disabled={bulkLoading}
-              className="flex items-center gap-1.5 bg-[#E8A83A]/20 hover:bg-[#E8A83A]/30 text-[#E8A83A] text-[11px] font-bold px-3 py-1.5 rounded-lg border border-[#E8A83A]/40 transition-colors">
+              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-colors"
+              style={{ background: "rgba(232,168,58,0.20)", borderColor: "rgba(232,168,58,0.40)", color: isDark ? "#E8A83A" : "#A67C00" }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(232,168,58,0.30)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(232,168,58,0.20)"}>
               <ShieldCheck className="w-3.5 h-3.5" /> Set ATI Score <ChevronDown className="w-3 h-3" />
             </button>
             {showATI && (
-              <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-black/[0.08] rounded-xl shadow-xl overflow-hidden min-w-[180px]">
+              <div className="absolute right-0 top-full mt-1 z-50 rounded-xl shadow-xl overflow-hidden min-w-[180px]"
+                style={isDark ? { background: "#1a2040", border: "1px solid rgba(255,255,255,0.12)" } : { background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}>
                 {ATI_PRESETS.map(p => (
                   <button key={p.label} onClick={() => bulkUpdate("ati_score", p.value)}
-                    className="w-full text-left px-4 py-2.5 text-[12px] font-semibold text-[#1A1814] hover:bg-[#F7F4EF] transition-colors">
+                    className="w-full text-left px-4 py-2.5 text-[12px] font-semibold transition-colors"
+                    style={{ color: isDark ? "rgba(255,255,255,0.85)" : "#1A1814" }}
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.08)" : "#F7F4EF"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                     {p.label}
                   </button>
                 ))}
@@ -211,32 +251,37 @@ export default function AdminListings() {
 
           {/* Delete */}
           <button onClick={bulkDelete} disabled={bulkLoading}
-            className="flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-red-500/30 transition-colors">
+            className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-colors"
+            style={{ background: "rgba(239,68,68,0.15)", borderColor: "rgba(239,68,68,0.30)", color: isDark ? "#f87171" : "#dc2626" }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.25)"}
+            onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.15)"}>
             <Trash2 className="w-3.5 h-3.5" /> Delete
           </button>
 
-          {bulkLoading && <Loader2 className="w-4 h-4 text-white animate-spin" />}
+          {bulkLoading && <Loader2 className="w-4 h-4 animate-spin" style={{ color: isDark ? "rgba(255,255,255,0.70)" : "rgba(0,0,0,0.50)" }} />}
 
           <button onClick={clearSel}
-            className="flex items-center gap-1 text-white/40 hover:text-white text-[11px] transition-colors ml-1">
+            className="flex items-center gap-1 text-[11px] transition-colors ml-1"
+            style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.35)" }}
+            onMouseEnter={e => e.currentTarget.style.color = isDark ? "rgba(255,255,255,0.80)" : "rgba(0,0,0,0.70)"}
+            onMouseLeave={e => e.currentTarget.style.color = isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.35)"}>
             <X className="w-3.5 h-3.5" /> Clear
           </button>
         </div>
       )}
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden border border-white/10"
-        style={{ background: "rgba(13,20,50,0.70)", backdropFilter: "blur(24px)" }}>
+      <div className="rounded-2xl overflow-hidden border"
+        style={{ background: tableBg, borderColor: tableBorder, backdropFilter: isDark ? "blur(24px)" : "none" }}>
         {/* Header row */}
-        <div className="grid items-center gap-3 px-4 py-3 border-b border-white/[0.06]"
-          style={{ gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px" }}>
-          <button onClick={toggleAll} className="flex items-center justify-center text-white/40 hover:text-white transition-colors">
-            {allSelected
-              ? <CheckSquare className="w-4 h-4 text-[#E8A83A]" />
-              : <Square className="w-4 h-4" />}
+        <div className="grid items-center gap-3 px-4 py-3 border-b"
+          style={{ gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px", borderColor: rowDivider }}>
+          <button onClick={toggleAll} className="flex items-center justify-center transition-colors"
+            style={{ color: headerText }}>
+            {allSelected ? <CheckSquare className="w-4 h-4 text-[#E8A83A]" /> : <Square className="w-4 h-4" />}
           </button>
           {["ATI", "Aircraft", "Reg.", "Status", "Price", "TT (h)", "Actions"].map(h => (
-            <p key={h} className="text-[9px] uppercase tracking-[0.15em] text-white/30 font-black">{h}</p>
+            <p key={h} className="text-[9px] uppercase tracking-[0.15em] font-black" style={{ color: headerText }}>{h}</p>
           ))}
         </div>
 
@@ -245,7 +290,7 @@ export default function AdminListings() {
             <Loader2 className="w-7 h-7 animate-spin text-[#E8A83A]" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-white/25">
+          <div className="py-16 text-center" style={{ color: textMuted }}>
             <Plane className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p className="text-sm">No listings match your filters.</p>
           </div>
@@ -255,15 +300,17 @@ export default function AdminListings() {
             return (
               <div
                 key={l.id}
-                className={`grid items-center gap-3 px-4 py-3 border-b border-white/[0.04] last:border-0 transition-colors cursor-pointer ${sel ? "bg-[#E8A83A]/08" : i % 2 === 0 ? "" : "bg-white/[0.02]"}`}
-                style={{ gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px", background: sel ? "rgba(232,168,58,0.08)" : undefined }}
+                className="grid items-center gap-3 px-4 py-3 last:border-0 transition-colors cursor-pointer"
+                style={{
+                  gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px",
+                  borderTop: `1px solid ${rowDivider}`,
+                  background: sel ? "rgba(232,168,58,0.08)" : i % 2 !== 0 ? rowAlt : undefined
+                }}
                 onClick={() => toggleOne(l.id)}
               >
                 {/* Checkbox */}
                 <div className="flex items-center justify-center" onClick={e => { e.stopPropagation(); toggleOne(l.id); }}>
-                  {sel
-                    ? <CheckSquare className="w-4 h-4 text-[#E8A83A]" />
-                    : <Square className="w-4 h-4 text-white/25 group-hover:text-white/50" />}
+                  {sel ? <CheckSquare className="w-4 h-4 text-[#E8A83A]" /> : <Square className="w-4 h-4" style={{ color: headerText }} />}
                 </div>
 
                 {/* ATI */}
@@ -273,7 +320,7 @@ export default function AdminListings() {
 
                 {/* Aircraft */}
                 <div className="min-w-0">
-                  <p className="text-[13px] font-black text-white truncate leading-tight">
+                  <p className="text-[13px] font-black truncate leading-tight" style={{ color: textPrimary }}>
                     {l.year ? `${l.year} ` : ""}{l.make} {l.model}
                   </p>
                   {l.deal_label && (
@@ -282,25 +329,26 @@ export default function AdminListings() {
                 </div>
 
                 {/* Reg */}
-                <p className="text-[11px] font-mono text-white/50 truncate">{l.registration ?? "—"}</p>
+                <p className="text-[11px] font-mono truncate" style={{ color: textMuted }}>{l.registration ?? "—"}</p>
 
                 {/* Status */}
                 <div><StatusBadge status={l.status} /></div>
 
                 {/* Price */}
-                <p className="text-[12px] font-bold text-white/80">
-                  {l.asking_price ? `$${l.asking_price.toLocaleString()}` : <span className="text-white/25">—</span>}
+                <p className="text-[12px] font-bold" style={{ color: isDark ? "rgba(255,255,255,0.80)" : "#1A1814" }}>
+                  {l.asking_price ? `$${l.asking_price.toLocaleString()}` : <span style={{ color: textMuted }}>—</span>}
                 </p>
 
                 {/* TT */}
-                <p className="text-[12px] text-white/50">
-                  {l.total_time ? l.total_time.toLocaleString() : <span className="text-white/20">—</span>}
+                <p className="text-[12px]" style={{ color: textMuted }}>
+                  {l.total_time ? l.total_time.toLocaleString() : "—"}
                 </p>
 
                 {/* Actions */}
                 <div onClick={e => e.stopPropagation()}>
                   <Link to={`/ati-passport/${l.id}`}
-                    className="text-[10px] font-bold text-[#00f5ff] hover:text-white transition-colors">
+                    className="text-[10px] font-bold transition-colors"
+                    style={{ color: isDark ? "#00f5ff" : "#0B2D5B" }}>
                     ATI →
                   </Link>
                 </div>
@@ -312,7 +360,7 @@ export default function AdminListings() {
 
       {/* Footer count */}
       {!isLoading && filtered.length > 0 && (
-        <p className="text-center text-white/20 text-xs mt-4">
+        <p className="text-center text-xs mt-4" style={{ color: textMuted }}>
           Showing {filtered.length} of {listings.length} listings
         </p>
       )}

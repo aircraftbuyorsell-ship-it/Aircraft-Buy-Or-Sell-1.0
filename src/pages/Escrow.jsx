@@ -6,6 +6,7 @@ import NewEscrowModal from "@/components/escrow/NewEscrowModal";
 import EscrowDrawer from "@/components/escrow/EscrowDrawer";
 import EscrowStatusBadge from "@/components/escrow/EscrowStatusBadge";
 import EscrowPartnerBadge, { EscrowPartnerBadgeInline } from "@/components/escrow/EscrowPartnerBadge";
+import DealCalculator from "@/components/escrow/DealCalculator";
 import { formatMoney, ESCROW_STATUS } from "@/lib/escrow";
 
 function GoldLabel({ children }) {
@@ -123,6 +124,9 @@ export default function Escrow() {
           <StatBox icon={CircleDollarSign} label="In Escrow" value={formatMoney(stats.inEscrow)} color="#1A1814" />
           <StatBox icon={TrendingUp} label="Fees Earned" value={formatMoney(stats.totalFees)} color="#E8A83A" />
         </div>
+
+        {/* Deal Calculator */}
+        <DealCalculator />
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2">

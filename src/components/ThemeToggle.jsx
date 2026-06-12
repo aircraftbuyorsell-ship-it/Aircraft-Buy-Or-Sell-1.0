@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 const STORAGE_KEY = "abos-theme";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEY) || "light");
+  const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEY) || "dark");
   const isDark = theme === "dark";
 
   useEffect(() => {

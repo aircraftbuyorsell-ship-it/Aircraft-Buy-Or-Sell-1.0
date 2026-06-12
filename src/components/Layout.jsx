@@ -173,7 +173,7 @@ export default function Layout() {
             </div>
             <span className="font-black text-sm tracking-[-0.04em] hidden sm:block"
               style={{
-                background:"linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)",
+                background: isDark ? "linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)" : "linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
               }}>
               ABOS MarketSpace
@@ -236,7 +236,7 @@ export default function Layout() {
         />
       )}
 
-      {/* Sidebar — Deep Liquid Glass panel */}
+      {/* Sidebar — theme-aware glass panel */}
       <aside
         onMouseMove={() => sidebarOpen && resetIdle()}
         onTouchStart={(e) => {
@@ -247,7 +247,6 @@ export default function Layout() {
           if (touchStartX.current == null) return;
           const dx = e.changedTouches[0].clientX - touchStartX.current;
           const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-          // Swipe left to close (dx < -50 and mostly horizontal)
           if (dx < -50 && dy < 60) setSidebarOpen(false);
           touchStartX.current = null;
           touchStartY.current = null;
@@ -258,33 +257,34 @@ export default function Layout() {
           transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
-        style={{
+        style={isDark ? {
           background: "linear-gradient(160deg, rgba(13,15,43,0.94) 0%, rgba(8,8,24,0.98) 100%)",
           backdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
           WebkitBackdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
           borderRight: "1px solid rgba(0,245,255,0.08)",
           boxShadow: "12px 0 80px rgba(0,0,0,0.7), 1px 0 0 rgba(0,245,255,0.05), inset -1px 0 0 rgba(122,0,255,0.06)"
+        } : {
+          background: "linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(248,250,255,0.98) 100%)",
+          backdropFilter: "blur(48px) saturate(160%)",
+          WebkitBackdropFilter: "blur(48px) saturate(160%)",
+          borderRight: "1px solid rgba(0,0,0,0.06)",
+          boxShadow: "8px 0 40px rgba(0,0,0,0.06), inset -1px 0 0 rgba(0,0,0,0.03)"
         }}
       >
-        {/* Top specular line — Liquid Horizon */}
-        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background:"linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)"}} />
+        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background: isDark ? "linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.25) 30%, rgba(99,102,241,0.30) 65%, transparent 100%)"}} />
 
-        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)"}}>
           <div>
-            <p style={{
-              background:"linear-gradient(90deg,#F5C842,#E8A83A)",
-              WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-              fontSize:"9px", fontWeight:900, letterSpacing:"0.22em", textTransform:"uppercase"
-            }}>Navigation</p>
-            <p className="text-white/30 text-[11px] mt-0.5">The Global Aircraft Identity & Sales Network</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{color: "#D4A017"}}>Navigation</p>
+            <p className="text-[11px] mt-0.5" style={{color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)"}}>The Global Aircraft Identity & Sales Network</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90"
+            className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90"
             style={{
-              background:"rgba(255,255,255,0.06)",
-              border:"1px solid rgba(255,255,255,0.10)",
-              backdropFilter:"blur(8px)"
+              color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)",
+              background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+              border: isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)",
             }}
           >
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -296,49 +296,36 @@ export default function Layout() {
             <div key={section.n} className={idx > 0 ? "mt-6" : ""}>
               <div className="flex items-center gap-2 px-3 pb-2">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{
-                    background:"linear-gradient(135deg,rgba(232,168,58,0.25),rgba(232,168,58,0.08))",
-                    border:"1px solid rgba(232,168,58,0.35)",
-                    boxShadow:"0 0 18px rgba(232,168,58,0.18), inset 0 1px 0 rgba(255,255,255,0.12)"
-                  }}>
-                  <span className="text-[9px] font-black text-[#E8A83A] leading-none">{section.n}</span>
+                  style={{ background: "rgba(212,160,23,0.15)", border: "1px solid rgba(212,160,23,0.30)" }}>
+                  <span className="text-[9px] font-black text-[#D4A017] leading-none">{section.n}</span>
                 </div>
-                <p style={{
-                  background:"linear-gradient(90deg,rgba(245,200,66,0.9),rgba(232,168,58,0.6))",
-                  WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-                  fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
-                }}>{section.label}</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{color: "#D4A017"}}>{section.label}</p>
               </div>
               <div className="space-y-0.5">
                 {section.items.map(({ path, label, icon: NavIcon }) => {
                   const active = pathname === path;
+                  const inactiveColor = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
+                  const hoverColor = isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.75)";
+                  const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
                   return (
                     <Link
                       key={path}
                       to={path}
-                      className={`
-                            relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold tracking-[0.005em] transition-all duration-150
-                            ${active ? "text-white" : "text-white/40 hover:text-white/80"}
-                          `}
-                              style={active ? {
-                                background: "linear-gradient(135deg, rgba(232,168,58,0.26) 0%, rgba(232,168,58,0.10) 100%)",
-                                border: "1px solid rgba(232,168,58,0.40)",
-                                boxShadow: "0 4px 20px rgba(232,168,58,0.18), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 12px rgba(232,168,58,0.08)",
-                                backdropFilter:"blur(20px) saturate(200%)",
-                                WebkitBackdropFilter:"blur(20px) saturate(200%)"
-                              } : {
-                                border: "1px solid transparent",
-                                background: "transparent"
-                              }}
-                              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.border = "1px solid rgba(255,255,255,0.10)"; }}}
-                              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.border = "1px solid transparent"; }}}
+                      className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
+                      style={{
+                        color: active ? "#1e293b" : inactiveColor,
+                        background: active ? "rgba(212,160,23,0.14)" : "transparent",
+                        border: active ? "1px solid rgba(212,160,23,0.35)" : "1px solid transparent",
+                      }}
+                      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = hoverColor; e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)"; }}}
+                      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = inactiveColor; e.currentTarget.style.border = "1px solid transparent"; }}}
                     >
-                      <NavIcon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-[#E8A83A]" : ""}`} />
+                      <NavIcon className="w-3.5 h-3.5 shrink-0" style={{color: active ? "#D4A017" : undefined}} />
                       <span>{label}</span>
                       {active && (
                         <div className="ml-auto flex items-center gap-1.5">
-                          <div className="w-1 h-1 rounded-full bg-[#E8A83A]/60" />
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#E8A83A]" style={{boxShadow:"0 0 6px rgba(232,168,58,0.8)"}} />
+                          <div className="w-1 h-1 rounded-full bg-[#D4A017]/50" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#D4A017]" />
                         </div>
                       )}
                     </Link>
@@ -349,24 +336,13 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="px-4 py-4" style={{borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-          <div
-            className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-            style={{
-              background:"linear-gradient(135deg,rgba(232,168,58,0.10),rgba(232,168,58,0.03))",
-              border:"1px solid rgba(232,168,58,0.16)",
-              backdropFilter:"blur(16px)",
-              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)"
-            }}
-          >
-            <div className="w-2 h-2 rounded-full bg-[#28C76F] animate-pulse shrink-0" style={{boxShadow:"0 0 10px rgba(40,199,111,0.7)"}} />
+        <div className="px-4 py-4" style={{borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)"}}>
+          <div className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
+            style={{ background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.16)" }}>
+            <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
             <div>
-              <p style={{
-                background:"linear-gradient(90deg,#F5C842,#E8A83A)",
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-                fontSize:"9px", fontWeight:900, letterSpacing:"0.2em", textTransform:"uppercase"
-              }}>ABOS MarketSpace</p>
-              <p className="text-white/25 text-[9px] tracking-wider">Powered by IntraZone Intelligence · Live</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{color: "#D4A017"}}>ABOS MarketSpace</p>
+              <p className="text-[9px] tracking-wider" style={{color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.30)"}}>Powered by IntraZone Intelligence · Live</p>
             </div>
           </div>
         </div>

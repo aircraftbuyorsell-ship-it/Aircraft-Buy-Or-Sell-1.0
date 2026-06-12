@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
+  MessageCircle,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -47,6 +48,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/valuation", label: "Valuation", icon: TrendingUp },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
       { path: "/leads", label: "Leads", icon: Users },
+      { path: "/max-chat", label: "Ask Max (AI)", icon: MessageCircle },
     ],
   },
   {
@@ -125,6 +127,10 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-sans tracking-[-0.015em]">
+      {/* Skip to content — accessibility */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#0B2D5B] focus:text-white focus:rounded-xl focus:text-sm focus:font-bold focus:outline-none focus:ring-2 focus:ring-[#E8A83A]">
+        Skip to content
+      </a>
       {/* Top bar — iOS Liquid Glass Navbar */}
       <header className="sticky top-0 z-40 glass-navbar safe-top" style={{WebkitBackdropFilter:"blur(24px) saturate(180%)"}}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
@@ -367,7 +373,7 @@ export default function Layout() {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto pb-4">
+      <main id="main-content" className="flex-1 overflow-auto pb-4">
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>
@@ -375,30 +381,7 @@ export default function Layout() {
 
       <SiteFooter />
 
-      {/* Floating Max Chat button */}
-      {pathname !== "/max-chat" && (
-        <Link
-          to="/max-chat"
-          className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-full transition-all active:scale-95"
-          title="Chat with Max"
-          style={{
-            background:"rgba(255,255,255,0.08)",
-            backdropFilter:"blur(20px) saturate(180%)",
-            WebkitBackdropFilter:"blur(20px) saturate(180%)",
-            boxShadow:"0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(0,245,255,0.12)",
-            border:"1px solid rgba(0,245,255,0.25)"
-          }}
-        >
-          <img
-            src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png"
-            alt="Max"
-            className="w-8 h-8 rounded-full object-cover border border-[#E8A83A]/60"
-            style={{ mixBlendMode: "multiply", background: "#4A90D9" }}
-          />
-          <span className="text-[12px] font-black uppercase tracking-wide">Ask Max</span>
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0B2D5B]" />
-        </Link>
-      )}
+
     </div>
   );
 }

@@ -11,6 +11,7 @@ const EMPTY = {
   sale_amount: "", finders_fee_pct: 5,
   inspection_period_days: 3,
   currency: "USD",
+  escrow_provider: "internal",
 };
 
 export default function NewEscrowModal({ onClose, onCreated }) {
@@ -30,7 +31,7 @@ export default function NewEscrowModal({ onClose, onCreated }) {
       seller_net: net,
       inspection_period_days: Number(form.inspection_period_days) || 3,
       status: "draft",
-      escrow_provider: "internal",
+      escrow_provider: form.escrow_provider || "internal",
     };
     const created = await base44.entities.EscrowTransaction.create(payload);
     setSaving(false);
@@ -47,6 +48,7 @@ export default function NewEscrowModal({ onClose, onCreated }) {
     { k: "broker_email", label: "Broker email", type: "email" },
     { k: "sale_amount", label: "Sale amount (USD)", type: "number" },
     { k: "finders_fee_pct", label: "Finder's fee %", type: "number" },
+    { k: "escrow_provider", label: "Escrow Provider", type: "select", options: [{ value: "internal", label: "ABOS Internal Escrow" }, { value: "escrow_com", label: "Escrow.com (Licensed & Regulated)" }] },
     { k: "inspection_period_days", label: "Inspection period (days)", type: "number" },
   ];
 
@@ -71,13 +73,25 @@ export default function NewEscrowModal({ onClose, onCreated }) {
             {fields.map(f => (
               <div key={f.k} className={f.full ? "md:col-span-2" : ""}>
                 <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">{f.label}</label>
-                <input
-                  type={f.type || "text"}
-                  value={form[f.k]}
-                  onChange={e => upd(f.k, e.target.value)}
-                  placeholder={f.placeholder || "—"}
-                  className="w-full px-3 py-2 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors"
-                />
+                {f.type === "select" ? (
+                  <select
+                    value={form[f.k]}
+                    onChange={e => upd(f.k, e.target.value)}
+                    className="w-full px-3 py-2 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm text-[#1A1814] focus:outline-none focus:border-[#0B2D5B] transition-colors"
+                  >
+                    {(f.options || []).map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={f.type || "text"}
+                    value={form[f.k]}
+                    onChange={e => upd(f.k, e.target.value)}
+                    placeholder={f.placeholder || "—"}
+                    className="w-full px-3 py-2 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors"
+                  />
+                )}
               </div>
             ))}
           </div>

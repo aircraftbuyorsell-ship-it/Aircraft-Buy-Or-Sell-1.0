@@ -28,30 +28,22 @@ export default function Pricing() {
     setStripeError(null);
     track("purchase_attempt", { id: packOrTier.id });
 
-    const bonus = packOrTier.bonus_pct ? Math.round((packOrTier.tokens || 0) * packOrTier.bonus_pct / 100) : 0;
-    const totalTokens = (packOrTier.tokens || packOrTier.tokens_included || 0) + bonus;
-    const priceUsd = discountPct
-      ? (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100)
-      : (packOrTier.price_usd || packOrTier.price || 0);
-
-    // If no Stripe price ID configured, fall back to simulated (dev/test mode)
-    const priceId = packOrTier.stripe_price_id;
-    if (!priceId) {
-      // Simulated fallback for development — grants tokens immediately
+    // Free Explorer — activate immediately, no payment needed
+    if (packOrTier.id === "free_explorer") {
+      const totalTokens = packOrTier.tokens_included || 20;
       const newTokens = (behavior.tokens_remaining || 0) + totalTokens;
       await base44.entities.UserBehavior.update(behavior.id, {
-        tier: packOrTier.id === "free_explorer" ? "free_explorer" : "pro",
-        verification_paid: true,
+        tier: "free_explorer",
         tokens_remaining: newTokens,
         tokens_purchased_total: (behavior.tokens_purchased_total || 0) + totalTokens,
         active_offer: null,
       });
       await base44.entities.TokenTransaction.create({
         user_email: behavior.user_email,
-        type: "purchase",
+        type: "bonus",
         amount: totalTokens,
-        pack: packOrTier.name || "Free Explorer verification",
-        price_usd: priceUsd,
+        pack: "Free Explorer activation",
+        price_usd: 0,
         balance_after: newTokens,
       });
       queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
@@ -59,7 +51,20 @@ export default function Pricing() {
       return;
     }
 
+    const bonus = packOrTier.bonus_pct ? Math.round((packOrTier.tokens || 0) * packOrTier.bonus_pct / 100) : 0;
+    const totalTokens = (packOrTier.tokens || packOrTier.tokens_included || 0) + bonus;
+    const priceUsd = discountPct
+      ? (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100)
+      : (packOrTier.price_usd || packOrTier.price || 0);
+
     // Live Stripe Checkout
+    const priceId = packOrTier.stripe_price_id;
+    if (!priceId) {
+      setStripeError("No Stripe price configured for this pack");
+      setProcessing(null);
+      return;
+    }
+
     try {
       const returnUrl = `${window.location.origin}/pricing?code=${discountCode || ''}`;
       const res = await base44.functions.invoke('stripeCreateCheckout', {
@@ -88,7 +93,7 @@ export default function Pricing() {
           Pay for what you use. Never overpay.
         </h1>
         <p className="text-[#6B6560] text-sm mt-2 max-w-2xl">
-          Start with a $9 verification, then buy credits as you need them. 1 credit = 1 small action (like a preview). Heavy features like full ATI Passport use ~25 credits.
+          Start free, then buy credits as you need them. 1 credit = 1 small action (like a preview). Heavy features like full ATI Passport use ~25 credits.
         </p>
 
         {discountPct > 0 && (
@@ -112,7 +117,7 @@ export default function Pricing() {
             tier={TIERS.free_explorer}
             icon={Shield}
             accent="#185FA5"
-            isCurrent={tier === "free_explorer" && behavior?.verification_paid}
+            isCurrent={tier === "free_explorer"}
             processing={processing === "free_explorer"}
             onBuy={() => handlePurchase({ ...TIERS.free_explorer })}
           />

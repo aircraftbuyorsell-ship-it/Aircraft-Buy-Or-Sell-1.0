@@ -56,17 +56,17 @@ export const TIERS = {
   free_explorer: {
     id: "free_explorer",
     name: "Free Explorer",
-    price: 9,
-    price_label: "$9 one-time",
-    tagline: "Verify & explore",
+    price: 0,
+    price_label: "Free",
+    tagline: "Explore the platform",
     tokens_included: 20,
     features: [
-      "Verified member badge",
       "Browse all public listings",
       "20 ATI preview credits",
       "Basic market insights",
+      "Live traffic map access",
     ],
-    cta: "Start exploring",
+    cta: "Start free",
   },
   pro: {
     id: "pro",

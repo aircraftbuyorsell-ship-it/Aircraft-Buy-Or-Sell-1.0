@@ -72,7 +72,7 @@ export function useBehavior() {
     tier: isAdmin ? "enterprise" : (behavior?.tier || "free_explorer"),
     tokens: isAdmin ? 999999 : (behavior?.tokens_remaining || 0),
     engagement: behavior?.engagement_score || 0,
-    isVerified: isAdmin ? true : !!behavior?.verification_paid,
+    isVerified: true, // All users are verified (free access)
     isAdmin,
     track: (type, payload) => trackMutation.mutate({ type, payload }),
   };

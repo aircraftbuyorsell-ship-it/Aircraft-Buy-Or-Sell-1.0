@@ -120,29 +120,6 @@ const DEFAULT_MARKERS = [
   { lat: 50, lon: 15 }, { lat: 42, lon: 12 }, { lat: 20, lon: 78 },
 ];
 
-function pip(lon, lat, polygon) {
-  let inside = false;
-  for (const ring of polygon) {
-    const n = ring.length;
-    for (let i = 0, j = n - 1; i < n; j = i++) {
-      const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
-      if (((yi > lat) !== (yj > lat)) && (lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)) inside = !inside;
-    }
-  }
-  return inside;
-}
-const isLand = (lon, lat) => POLYGONS.some(p => pip(lon, lat, p));
-
-const STEP = 2.8;
-const landDots = [];
-const oceanDots = [];
-for (let lat = -90; lat <= 90; lat += STEP) {
-  for (let lon = -180; lon <= 180; lon += STEP) {
-    if (isLand(lon, lat)) landDots.push([lon, lat]);
-    else if ((Math.round(lat / STEP) + Math.round(lon / STEP)) % 4 === 0) oceanDots.push([lon, lat]);
-  }
-}
-
 // Map listing to lat/lon using registration prefix for real geographic placement
 function listingToCoords(listing, index, total) {
   if (listing.registration) {
@@ -365,77 +342,62 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
 
     const draw = () => {
       const isDark = themeRef.current === "dark";
-      const C = isDark ? {
-        sphere: "rgba(0,245,255,0.10)",
-        ocean: "rgba(0,155,200,0.18)",
-        landFill: (depth) => `rgba(0,245,255,${0.38 + depth * 0.42})`,
-        landBorder: (depth) => `rgba(0,245,255,${0.55 + depth * 0.35})`,
-        rim: "rgba(0,245,255,0.55)",
-        atmIn: "rgba(122,0,255,0.25)",
-        atmOut: "rgba(0,245,255,0)",
-      } : {
-        sphere: "rgba(11,45,91,0.22)",
-        ocean: "rgba(30,80,150,0.25)",
-        landFill: (depth) => `rgba(11,45,91,${0.65 + depth * 0.25})`,
-        landBorder: (depth) => `rgba(11,45,91,${0.80 + depth * 0.18})`,
-        rim: "rgba(11,45,91,0.70)",
-        atmIn: "rgba(232,168,58,0.35)",
-        atmOut: "rgba(232,168,58,0)",
-      };
+      // 2‑color globe: water + land border only (wireframe continents)
+      const waterColor = isDark ? "rgba(13,18,40,0.92)" : "rgba(210,222,240,0.88)";
+      const gridColor = isDark ? "rgba(0,245,255,0.05)" : "rgba(11,45,91,0.06)";
+      const rimColor = isDark ? "rgba(0,245,255,0.40)" : "rgba(11,45,91,0.45)";
 
       ctx.clearRect(0, 0, W, H);
 
-      // ── Sphere base ──────────────────────────────────────────────
+      // ── Ocean sphere ─────────────────────────────────────────────
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.fillStyle = C.sphere; ctx.fill();
+      ctx.fillStyle = waterColor; ctx.fill();
 
-      // ── Ocean dots (sparse grid for water texture) ──────────────
-      ctx.fillStyle = C.ocean;
-      for (const [lon, lat] of oceanDots) {
-        const p = project(lon, lat); if (!p.vis) continue;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 0.7 * DPR, 0, Math.PI * 2); ctx.fill();
+      // ── Lat/Lon grid lines for 3D depth effect ───────────────────
+      ctx.save();
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
+      for (let la = -60; la <= 60; la += 30) {
+        ctx.beginPath();
+        for (let lo = -180; lo <= 180; lo += 1) {
+          const p = project(lo, la);
+          if (!p.vis) { ctx.moveTo(0, 0); continue; }
+          lo === -180 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5 * DPR; ctx.stroke();
       }
+      for (let lo = -180; lo < 180; lo += 30) {
+        ctx.beginPath();
+        for (let la = -90; la <= 90; la += 1) {
+          const p = project(lo, la);
+          if (!p.vis) { ctx.moveTo(0, 0); continue; }
+          la === -90 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5 * DPR; ctx.stroke();
+      }
+      ctx.restore();
 
-      // ── Continent polygons (filled + bordered) ──────────────────
+      // ── Continent outlines only (no fill) ────────────────────────
       for (const poly of POLYGONS) {
         for (const ring of poly) {
           const n = ring.length;
-          let started = false;
-          // Process each segment, splitting when crossing the visible edge
           for (let i = 0; i < n; i++) {
             const [lonA, latA] = ring[i];
             const [lonB, latB] = ring[(i + 1) % n];
             const pA = project(lonA, latA);
             const pB = project(lonB, latB);
-
-            // Skip invisible segments entirely
             if (!pA.vis && !pB.vis) continue;
-
-            // Approximate average depth for color
             const avgDepth = (pA.depth + pB.depth) / 2;
-
+            const alpha = isDark
+              ? (0.35 + avgDepth * 0.40)
+              : (0.50 + avgDepth * 0.30);
             ctx.beginPath();
             ctx.moveTo(pA.sx, pA.sy);
             ctx.lineTo(pB.sx, pB.sy);
-            ctx.strokeStyle = C.landBorder(avgDepth);
-            ctx.lineWidth = 0.7 * DPR;
+            ctx.strokeStyle = isDark
+              ? `rgba(0,245,255,${Math.min(alpha, 0.95).toFixed(2)})`
+              : `rgba(11,45,91,${Math.min(alpha, 0.95).toFixed(2)})`;
+            ctx.lineWidth = 1.0 * DPR;
             ctx.stroke();
-          }
-
-          // Fill the polygon (clip to sphere)
-          const visible = ring.filter(([lon, lat]) => project(lon, lat).vis);
-          if (visible.length >= 3) {
-            const avgDepth = visible.reduce((s, [lon, lat]) => s + project(lon, lat).depth, 0) / visible.length;
-            ctx.beginPath();
-            const first = project(visible[0][0], visible[0][1]);
-            ctx.moveTo(first.sx, first.sy);
-            for (let i = 1; i < visible.length; i++) {
-              const pt = project(visible[i][0], visible[i][1]);
-              ctx.lineTo(pt.sx, pt.sy);
-            }
-            ctx.closePath();
-            ctx.fillStyle = C.landFill(avgDepth);
-            ctx.fill();
           }
         }
       }
@@ -515,11 +477,12 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       projectedRef.current = projected;
 
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.strokeStyle = C.rim; ctx.lineWidth = 1 * DPR; ctx.stroke();
+      ctx.strokeStyle = rimColor; ctx.lineWidth = 1.2 * DPR; ctx.stroke();
 
-      const atm = ctx.createRadialGradient(CX, CY, R * 0.95, CX, CY, R * 1.1);
-      atm.addColorStop(0, C.atmIn); atm.addColorStop(1, C.atmOut);
-      ctx.beginPath(); ctx.arc(CX, CY, R * 1.1, 0, Math.PI * 2); ctx.fillStyle = atm; ctx.fill();
+      const atm = ctx.createRadialGradient(CX, CY, R * 0.95, CX, CY, R * 1.08);
+      atm.addColorStop(0, isDark ? "rgba(0,245,255,0.10)" : "rgba(11,45,91,0.08)");
+      atm.addColorStop(1, "transparent");
+      ctx.beginPath(); ctx.arc(CX, CY, R * 1.08, 0, Math.PI * 2); ctx.fillStyle = atm; ctx.fill();
     };
 
     const ci = setInterval(() => {

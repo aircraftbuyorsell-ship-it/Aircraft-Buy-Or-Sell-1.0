@@ -14,6 +14,7 @@ import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import ABOSTour from "@/components/onboarding/ABOSTour";
+import GlobalSearch from "@/components/search/GlobalSearch";
 
 const BACK_BUTTON_ROUTES = [
   /^\/ati-passport\/[^/]+$/,
@@ -182,6 +183,7 @@ export default function Layout() {
             </span>
           </Link>
 
+          <GlobalSearch />
           <div className="flex-1" />
 
           <nav className="flex items-center gap-1.5">

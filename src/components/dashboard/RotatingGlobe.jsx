@@ -353,6 +353,27 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.fillStyle = waterColor; ctx.fill();
 
+      // ── Dot texture (uniform stipple across the sphere) ──────────
+      ctx.save();
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
+      const dotColor = isDark ? "rgba(0,245,255,0.10)" : "rgba(11,45,91,0.08)";
+      ctx.fillStyle = dotColor;
+      const dotStep = 12; // degrees between dot rows
+      for (let la = -90; la <= 90; la += dotStep) {
+        for (let lo = -180; lo <= 180; lo += dotStep) {
+          const p = project(lo, la);
+          if (!p.vis) continue;
+          // Stagger even-odd rows for better coverage
+          const ox = Math.abs(la / dotStep) % 2 === 0 ? 0 : dotStep / 2;
+          const p2 = project(lo + ox, la);
+          if (!p2.vis) continue;
+          ctx.beginPath();
+          ctx.arc(p2.sx, p2.sy, 0.9 * DPR, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+
       // ── Lat/Lon grid lines for 3D depth effect ───────────────────
       ctx.save();
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();

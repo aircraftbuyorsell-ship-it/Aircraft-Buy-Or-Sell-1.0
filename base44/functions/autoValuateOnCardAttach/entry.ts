@@ -34,12 +34,13 @@ Deno.serve(async (req) => {
 
     console.log(`🔢 Running OMVM valuation for listing ${listingId}: ${listing.year} ${listing.make} ${listing.model}`);
 
-    // Invoke omvmV5Score as service role
-    const result = await base44.asServiceRole.functions.invoke('omvmV5Score', { listingId });
+    // Invoke omvmV5Score as service role — functions.invoke returns an Axios response, unwrap .data
+    const response = await base44.asServiceRole.functions.invoke('omvmV5Score', { listingId });
+    const result = response?.data ?? response;
 
     if (!result?.omvm_value) {
-      console.warn('omvmV5Score returned no value', result);
-      return Response.json({ ok: false, reason: 'omvm_no_result', raw: result });
+      console.warn('omvmV5Score returned no value', JSON.stringify({ status: response?.status, data: result }));
+      return Response.json({ ok: false, reason: 'omvm_no_result' });
     }
 
     console.log(`✅ Valuation complete for ${listingId}: OMVM=$${result.omvm_value}, deal=${result.deal_label}, score=${result.deal_score}`);

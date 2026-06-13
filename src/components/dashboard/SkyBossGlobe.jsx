@@ -121,6 +121,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const listingsRef = useRef(listings);
 
   const [trafficCount, setTrafficCount] = useState(0);
+  const [trafficStatus, setTrafficStatus] = useState("idle"); // idle | loading | live | error
   const [detail, setDetail] = useState(null);
 
   useEffect(() => { listingsRef.current = listings; }, [listings]);
@@ -128,6 +129,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const fetchStates = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
+    setTrafficStatus("loading");
     try {
       const cid = "aircraftbuyorsell@gmail.com-api-client";
       const csec = "IEP2aVXNWl5znURwv52525Vz9SxpA7ea";
@@ -143,11 +145,15 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       let url = STATES_URL + "&lamin=34&lomin=-25&lamax=72&lomax=45"; // Europe default
       const opt = tokenRef.current ? { headers: { Authorization: `Bearer ${tokenRef.current}` } } : {};
       const res = await fetch(url, opt);
-      if (res.status === 429) throw 0;
-      if (!res.ok) throw 0;
+      if (res.status === 429) { setTrafficStatus("error"); console.warn("SkyBoss: OpenSky rate limited"); return; }
+      if (!res.ok) { setTrafficStatus("error"); console.warn("SkyBoss: OpenSky fetch failed", res.status); return; }
       const data = await res.json();
       renderToGlobe(data?.states || []);
-    } catch { /* silent */ }
+      setTrafficStatus("live");
+    } catch (e) {
+      setTrafficStatus("error");
+      console.warn("SkyBoss: OpenSky unreachable", e);
+    }
     finally { loadingRef.current = false; }
   }, []);
 
@@ -310,7 +316,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const acGeo = new THREE.BufferGeometry();
     acGeoRef.current = acGeo;
     const acMat = new THREE.PointsMaterial({
-      size: 0.045,
+      size: 0.08,
       map: dotTexture(),
       vertexColors: true,
       transparent: true,
@@ -326,7 +332,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const lGeo = new THREE.BufferGeometry();
     lGeoRef.current = lGeo;
     const lMat = new THREE.PointsMaterial({
-      size: 0.06,
+      size: 0.11,
       map: dotTexture(),
       vertexColors: true,
       transparent: true,
@@ -415,12 +421,21 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab" />
-      {/* Traffic count badge */}
+      {/* Traffic status badge */}
       <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
         style={{ color: isDark ? "#00f5ff" : "#0B2D5B" }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
-          style={{ background: isDark ? "#00f5ff" : "#0B2D5B", boxShadow: `0 0 6px ${isDark ? "#00f5ff" : "#0B2D5B"}` }} />
-        {trafficCount.toLocaleString()} airborne
+          style={{
+            background: trafficStatus === "live" ? (isDark ? "#00f5ff" : "#2563eb") :
+                        trafficStatus === "loading" ? "#E8A83A" :
+                        trafficStatus === "error" ? "#ff4d6d" : (isDark ? "#888" : "#666"),
+            boxShadow: trafficStatus === "live" ? `0 0 6px ${isDark ? "#00f5ff" : "#2563eb"}` :
+                       trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
+          }} />
+        {trafficStatus === "loading" ? "Fetching traffic…" :
+         trafficStatus === "error" ? "Traffic unavailable" :
+         trafficStatus === "live" ? `${trafficCount.toLocaleString()} airborne` :
+         "Connecting…"}
       </div>
       {/* Listing count badge */}
       <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"

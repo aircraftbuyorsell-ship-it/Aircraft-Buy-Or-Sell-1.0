@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
+import { detectRegType, getRegTypeColor } from "@/lib/regUtils";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
@@ -199,6 +200,8 @@ export default function Dashboard() {
     : 0;
   const hot_deals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
   const evaluated = listings.filter((l) => l.ati_score).length;
+  const faaCount = listings.filter((l) => detectRegType(l.registration) === "faa").length;
+  const easaCount = listings.filter((l) => detectRegType(l.registration) === "easa").length;
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
@@ -326,7 +329,7 @@ export default function Dashboard() {
                 <SystemStatus label="LIVE" isDark={isDark} />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                <MetricWidget label="Total Listings" value={total_listings.toLocaleString()} sub="Active aircraft" delta="+Live" deltaUp isDark={isDark} />
+                <MetricWidget label="Total Listings" value={total_listings.toLocaleString()} sub={`FAA ${faaCount} · EASA ${easaCount}`} delta="+Live" deltaUp isDark={isDark} />
                 <MetricWidget label="ATI Evaluated" value={`${evaluated}`} sub="Reports issued" delta={`${evaluated > 0 ? Math.round((evaluated/Math.max(total_listings,1))*100) : 0}%`} deltaUp isDark={isDark} />
                 <MetricWidget label="Hot Deals" value={hot_deals} sub="Score ≥ 8.5" delta={hot_deals > 0 ? "Active" : "—"} deltaUp isDark={isDark} />
                 <MetricWidget label="Avg ATI Score" value={avg_ati || "—"} sub="Platform average" delta={avg_ati >= 80 ? "Strong" : avg_ati > 0 ? "Fair" : "—"} deltaUp={avg_ati >= 80} isDark={isDark} />
@@ -426,13 +429,23 @@ export default function Dashboard() {
             {listings.slice(0, 6).map((l) => {
               const score = l.ati_score || 0;
               const sc = score >= 90 ? accentCyan : score >= 72 ? accentViolet : score >= 54 ? accentGold : score > 0 ? accentRed : subtleColor;
+              const regType = detectRegType(l.registration);
+              const regColor = getRegTypeColor(regType, isDark);
               return (
                 <Link key={l.id} to={`/ati-passport/${l.id}`}>
                   <HudPanel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="min-w-0">
                         <p className="text-[8px] uppercase tracking-[0.2em] font-black" style={{ color: accentCyan }}>ATI Report</p>
-                        <p className="text-[10px] font-mono mt-0.5" style={{ color: mutedColor }}>{l.registration || "—"}</p>
+                        <p className="text-[10px] font-mono mt-0.5 flex items-center gap-1.5" style={{ color: mutedColor }}>
+                          {l.registration || "—"}
+                          {regType && (
+                            <span className="text-[7px] font-black px-1 py-0.5 rounded"
+                              style={{ color: regColor, background: `${regColor}15`, border: `1px solid ${regColor}30` }}>
+                              {regType === "faa" ? "N-Reg" : regType === "easa" ? "EASA" : ""}
+                            </span>
+                          )}
+                        </p>
                         <p className="text-sm font-black mt-1 truncate leading-tight" style={{ color: textColor }}>{l.year} {l.make} {l.model}</p>
                       </div>
                       <ATIRing score={score || null} />

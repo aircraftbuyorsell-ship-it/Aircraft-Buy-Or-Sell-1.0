@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, packName, tokens, priceUsd, returnUrl } = await req.json();
+    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl } = await req.json();
 
     if (!priceId) return Response.json({ error: 'Missing priceId' }, { status: 400 });
 
@@ -21,11 +21,13 @@ Deno.serve(async (req) => {
       success_url: `${returnUrl}&stripe_session={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${returnUrl}&canceled=true`,
       metadata: {
-        user_id: user.id,
+        user_id:    user.id,
         user_email: user.email,
-        pack_name: packName || '',
-        tokens: String(tokens || 0),
-        price_usd: String(priceUsd || 0),
+        pack_name:  packName || '',
+        tokens:     String(tokens  || 0),
+        price_usd:  String(priceUsd || 0),
+        tier:       tier     || '',
+        sub_tier:   subTier  || '',
       },
     });
 

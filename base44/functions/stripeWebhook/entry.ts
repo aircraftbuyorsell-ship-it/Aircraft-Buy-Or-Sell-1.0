@@ -145,6 +145,59 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   }
 }
 
+// Invoice paid — handles recurring subscription renewals (re-grants tokens + keeps tier active)
+async function handleInvoicePaid(invoice, stripe, base44) {
+  console.log(`🧾 invoice.payment_succeeded: ${invoice.id}`);
+  // Only process subscription invoices (not one-off)
+  if (!invoice.subscription) return;
+
+  const userEmail = invoice.customer_email || await resolveEmailFromCustomer(stripe, invoice.customer);
+  if (!userEmail) { console.warn('No email on invoice, skipping'); return; }
+
+  const priceId = invoice.lines?.data?.[0]?.price?.id;
+  const mapped  = PRICE_TOKEN_MAP[priceId];
+  if (!mapped) { console.log(`No token map for price ${priceId}, skipping token grant`); return; }
+
+  const { tokens, tier, sub_tier: subTier, price_usd: priceUsd, pack } = mapped;
+
+  // Grant tokens
+  const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
+  if (behaviors[0]) {
+    const newBalance = (behaviors[0].tokens_remaining || 0) + tokens;
+    await base44.asServiceRole.entities.UserBehavior.update(behaviors[0].id, {
+      tier,
+      tokens_remaining:       newBalance,
+      tokens_purchased_total: (behaviors[0].tokens_purchased_total || 0) + tokens,
+    });
+    await base44.asServiceRole.entities.TokenTransaction.create({
+      user_email:        userEmail,
+      type:              'purchase',
+      amount:            tokens,
+      pack:              pack,
+      price_usd:         priceUsd,
+      stripe_payment_id: invoice.payment_intent || invoice.id,
+      balance_after:     newBalance,
+    });
+    console.log(`✓ Renewal: granted ${tokens} tokens to ${userEmail}`);
+  }
+
+  // Keep profile tier active
+  await syncUserProfileTier(base44, userEmail, tier, subTier);
+}
+
+// Invoice payment failed — flag the user but don't downgrade immediately (Stripe retries)
+async function handleInvoicePaymentFailed(invoice, stripe, base44) {
+  console.warn(`⚠️ invoice.payment_failed: ${invoice.id}`);
+  const userEmail = invoice.customer_email || await resolveEmailFromCustomer(stripe, invoice.customer);
+  if (!userEmail) return;
+
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
+  if (profiles[0]) {
+    await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, { status: 'suspended' });
+    console.warn(`⚠️ UserProfile status set to suspended for ${userEmail} due to payment failure`);
+  }
+}
+
 // Subscription deleted/cancelled
 async function handleSubscriptionDeleted(subscription, stripe, base44) {
   console.log(`🗑️ subscription.deleted: ${subscription.id}`);
@@ -191,11 +244,18 @@ Deno.serve(async (req) => {
       case 'charge.failed':
         await handleChargeFailed(event.data.object);
         break;
+      case 'customer.subscription.created':
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object, stripe, base44);
         break;
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object, stripe, base44);
+        break;
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaid(event.data.object, stripe, base44);
+        break;
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object, stripe, base44);
         break;
       default:
         console.log(`⏭️ Unhandled event type: ${event.type}`);

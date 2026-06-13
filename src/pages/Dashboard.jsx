@@ -213,148 +213,102 @@ export default function Dashboard() {
       <NotificationCenter />
 
       {/* ══════════════════════════════════════════════
-          HERO — GLOBE + FLOATING HUD PANELS
+          HEADER BAR
       ══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ minHeight: "540px", background: isDark ? "#0A081E" : "#e8ecf4" }}>
-        {/* Light mode: subtle spotlight behind the globe */}
-        {!isDark && (
-          <div className="absolute pointer-events-none" style={{
-            top: "5%", left: "35%", width: "55%", height: "85%",
-            background: "radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(232,236,244,0) 70%)",
-          }} />
-        )}
-        <div className="absolute inset-0">
-          <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
-          <GlobeTrafficControls
-            onSearch={(q) => setTrafficSearch(q)}
-            onRefresh={() => setTrafficRefreshKey(k => k + 1)}
-            listingCount={listings.length}
-          />
-        </div>
-
-        <div className="relative px-4 md:px-8 pt-8 pb-8">
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
-            <div>
-              <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
-              <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tight leading-none mt-0.5" style={{ color: textColor }}>
-                ABOS<br />
-                <span style={{ background: `linear-gradient(90deg,${accentCyan},${accentViolet})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  MarketSpace
-                </span>
-              </h1>
-              <p className="text-[11px] mt-1.5 font-medium tracking-wide" style={{ color: mutedColor }}>Buy. Sell. Verify.</p>
-            </div>
-            <SystemStatus isDark={isDark} />
+      <section className="px-4 md:px-8 pt-6 pb-2">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
+            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-none mt-0.5" style={{ color: textColor }}>
+              <span style={{ background: `linear-gradient(90deg,${accentCyan},${accentViolet})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                MarketSpace
+              </span>
+            </h1>
           </div>
-
-          <div className="h-12 mb-6 opacity-60">
-            <FlowRibbon isDark={isDark} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 max-w-[480px]">
-            {[
-              {
-                color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(),
-                sub: "On market", detail: `${evaluated} with ATI reports`, link: "/listings"
-              },
-              {
-                color: accentViolet, icon: ShieldCheck, label: "ATI Intelligence", value: evaluated,
-                sub: "Evaluated aircraft", detail: avg_ati ? `Platform avg score: ${avg_ati}` : "No scores yet", link: "/listings"
-              },
-              {
-                color: accentGold, icon: Radar, label: "Live ADS-B Feed", value: "Live",
-                sub: "Real-time tracking", detail: "N-reg & Mode-S surveillance", link: "/traffic"
-              },
-              {
-                color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals,
-                sub: "Score ≥ 8.5", detail: hot_deals > 0 ? `${hot_deals} high-value opportunities` : "Scanning market...", link: "/deal-radar"
-              },
-            ].map((m) => (
-              <Link key={m.label} to={m.link}>
-                <HudPanel className="p-4 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
-                      <m.icon className="w-3.5 h-3.5" style={{ color: m.color }} />
-                    </div>
-                    <div>
-                      <p className="text-[8px] uppercase tracking-[0.2em] font-black" style={{ color: mutedColor }}>{m.label}</p>
-                      <p className="text-lg font-black leading-none" style={{ color: textColor }}>{m.value}</p>
-                    </div>
-                  </div>
-                  <p className="text-[10px] font-medium" style={{ color: textColor }}>{m.sub}</p>
-                  <p className="text-[9px] mt-1 leading-tight" style={{ color: mutedColor }}>{m.detail}</p>
-                  <div className="mt-3 pt-2.5 border-t flex items-center gap-1 text-[9px] font-bold"
-                    style={{ borderColor: `${m.color}18`, color: m.color }}>
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} /> Live · View <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
-                  </div>
-                </HudPanel>
-              </Link>
-            ))}
-          </div>
-
-          <div className="h-6 my-2 opacity-25">
-            <FlowRibbon isDark={isDark} />
-          </div>
-
-          <div className="flex flex-wrap gap-2 items-center justify-center">
-            {[
-              { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
-              { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
-              { label: "Live Tracking", icon: Radar, link: "/traffic", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
-              { label: "SkyBoss 3D", icon: Globe, link: "/skyboss", color: isDark ? "#00f5ff" : "#0B2D5B" },
-              { label: "Secure Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
-            ].map((cta) => (
-              <Link key={cta.label} to={cta.link}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black uppercase tracking-wide transition-all active:scale-95 glass-pill"
-                style={{ color: cta.color }}>
-                <cta.icon className="w-4 h-4" /> {cta.label}
-              </Link>
-            ))}
-            <LiveTrafficBadge />
-          </div>
+          <SystemStatus isDark={isDark} />
         </div>
       </section>
 
-      {/* KPI STRIP */}
-      <section className="px-4 md:px-8 py-6">
-        <HudPanel className="p-5 md:p-7" accent isDark={isDark}>
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="flex-1 min-w-[200px]">
-              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <div>
-                  <p className="text-[9px] uppercase tracking-[0.25em] font-black" style={{ color: accentCyan }}>Aviation Intelligence Core</p>
-                  <h3 className="text-lg font-black mt-0.5" style={{ color: textColor }}>Global Market Overview</h3>
-                </div>
-                <SystemStatus label="LIVE" isDark={isDark} />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                <MetricWidget label="Total Listings" value={total_listings.toLocaleString()} sub={`FAA ${faaCount} · EASA ${easaCount}`} delta="+Live" deltaUp isDark={isDark} />
-                <MetricWidget label="ATI Evaluated" value={`${evaluated}`} sub="Reports issued" delta={`${evaluated > 0 ? Math.round((evaluated/Math.max(total_listings,1))*100) : 0}%`} deltaUp isDark={isDark} />
-                <MetricWidget label="Hot Deals" value={hot_deals} sub="Score ≥ 8.5" delta={hot_deals > 0 ? "Active" : "—"} deltaUp isDark={isDark} />
-                <MetricWidget label="Avg ATI Score" value={avg_ati || "—"} sub="Platform average" delta={avg_ati >= 80 ? "Strong" : avg_ati > 0 ? "Fair" : "—"} deltaUp={avg_ati >= 80} isDark={isDark} />
-              </div>
+      {/* ══════════════════════════════════════════════
+          MAIN GRID — Traffic Map (left) + Globe Sidebar (right)
+      ══════════════════════════════════════════════ */}
+      <section className="px-4 md:px-8 pb-4">
+        <div className="grid lg:grid-cols-[1fr_380px] gap-4">
+          
+          {/* LEFT — Traffic Map (primary) */}
+          <div className="min-h-0">
+            <TrafficMapSection
+              key={trafficRefreshKey}
+              globalSearch={trafficSearch}
+              onClearSearch={() => setTrafficSearch("")}
+            />
+          </div>
+
+          {/* RIGHT — Globe sidebar + metric stack */}
+          <div className="flex flex-col gap-3">
+            {/* Globe panel */}
+            <div className="relative rounded-2xl overflow-hidden" 
+              style={{ 
+                height: "340px", 
+                background: isDark ? "#0A081E" : "#e8ecf4",
+                border: isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(0,0,0,0.08)",
+                boxShadow: isDark ? "0 12px 40px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.06)"
+              }}>
+              <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+              <GlobeTrafficControls
+                onSearch={(q) => setTrafficSearch(q)}
+                onRefresh={() => setTrafficRefreshKey(k => k + 1)}
+                listingCount={listings.length}
+              />
             </div>
-            <div className="w-full md:w-64 h-24">
-              <p className="text-[8px] uppercase tracking-[0.2em] mb-1" style={{ color: mutedColor }}>Market Activity</p>
-              <div className="h-16"><Sparkline color={accentCyan} up /></div>
+
+            {/* Quick-link pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
+                { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
+                { label: "SkyBoss 3D", icon: Globe, link: "/skyboss", color: isDark ? "#00f5ff" : "#0B2D5B" },
+                { label: "Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
+              ].map((cta) => (
+                <Link key={cta.label} to={cta.link}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-95 glass-pill"
+                  style={{ color: cta.color }}>
+                  <cta.icon className="w-3 h-3" /> {cta.label}
+                </Link>
+              ))}
+              <LiveTrafficBadge />
+            </div>
+
+            {/* Metric cards stack */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(), sub: `${evaluated} evaluated`, link: "/listings" },
+                { color: accentViolet, icon: ShieldCheck, label: "ATI Intel", value: evaluated, sub: avg_ati ? `Avg score: ${avg_ati}` : "No scores", link: "/listings" },
+                { color: accentGold, icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
+                { color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" },
+              ].map((m) => (
+                <Link key={m.label} to={m.link}>
+                  <HudPanel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+                        style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
+                        <m.icon className="w-3 h-3" style={{ color: m.color }} />
+                      </div>
+                      <p className="text-[8px] uppercase tracking-[0.15em] font-black" style={{ color: mutedColor }}>{m.label}</p>
+                    </div>
+                    <p className="text-base font-black leading-none" style={{ color: textColor }}>{m.value}</p>
+                    <p className="text-[9px] mt-0.5 leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
+                  </HudPanel>
+                </Link>
+              ))}
             </div>
           </div>
-        </HudPanel>
+        </div>
       </section>
 
       {/* SUBSCRIPTION STATUS */}
       <section className="px-4 md:px-8 pt-2 pb-4">
         <SubscriptionBadge />
-      </section>
-
-      {/* GLOBAL TRAFFIC MAP */}
-      <section className="px-4 md:px-8 py-4">
-        <TrafficMapSection
-          key={trafficRefreshKey}
-          globalSearch={trafficSearch}
-          onClearSearch={() => setTrafficSearch("")}
-        />
       </section>
 
       {/* ATI TOOLS */}

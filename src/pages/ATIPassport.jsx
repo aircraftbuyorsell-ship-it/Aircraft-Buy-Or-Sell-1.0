@@ -25,6 +25,7 @@ import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
 import ATIGuideChat from "@/components/ati/ATIGuideChat";
+import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 // ─── Helpers ────────────────────────────────────────────────────
 function parseList(str) {
@@ -348,229 +349,277 @@ Return ONLY raw JSON:
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#F7F4EF]">
-      {/* ── Page Header ─────────────────────────── */}
-      <div className="bg-[#0B2D5B] border-b border-white/5">
-        <div className="px-4 md:px-8 py-5 max-w-5xl">
-          <Link to="/listings" className="inline-flex items-center gap-1.5 text-[11px] text-white/40 hover:text-[#E8A83A] mb-4 transition-colors">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Listings
-          </Link>
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.2em] font-bold mb-1">ATI Score Card · v2</p>
-              {isLoading ? (
-                <div className="h-8 w-64 bg-white/10 rounded animate-pulse" />
-              ) : (
-                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-                  {listing?.year} {listing?.make} {listing?.model}
-                  {listing?.registration && (
-                    <span className="text-white/40 font-mono text-lg ml-3">{listing.registration}</span>
-                  )}
-                </h1>
-              )}
-              <p className="text-white/50 text-sm mt-1">
-                Independent aircraft valuation & risk assessment for qualified buyers and brokers
-              </p>
-            </div>
+  const safeMake = listing ? cleanAircraftMake(listing.make) : "";
 
-            {passport && (
-              <button
-                onClick={() => setPaymentGateOpen(true)}
-                className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-black text-sm px-5 py-2.5 rounded-xl transition-colors shrink-0"
-              >
-                <Lock className="w-4 h-4" />
-                Unlock Full Report
+  return (
+    <div className="min-h-screen bg-[#F2F0EB]">
+
+      {/* ── Sticky nav bar ──────────────────────────── */}
+      <div className="bg-white border-b border-black/[0.07] sticky top-0 z-10">
+        <div className="px-4 md:px-8 py-3 max-w-5xl mx-auto flex items-center justify-between">
+          <Link to="/listings" className="inline-flex items-center gap-1.5 text-[12px] text-[#6B6560] hover:text-[#0B2D5B] transition-colors font-medium">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Listings
+          </Link>
+          {passport && (
+            <div className="flex items-center gap-3">
+              <button onClick={handleExportPDF} disabled={exporting}
+                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B6560] hover:text-[#0B2D5B] transition-colors disabled:opacity-40">
+                <Download className={`w-3.5 h-3.5 ${exporting ? "animate-pulse" : ""}`} />
+                {exporting ? "Exporting…" : "PDF"}
               </button>
-            )}
-          </div>
+              <button onClick={() => setPaymentGateOpen(true)}
+                className="inline-flex items-center gap-1.5 text-[12px] font-black text-[#0B2D5B] bg-[#E8A83A] hover:bg-[#f5bb4e] px-3 py-1.5 rounded-lg transition-colors">
+                <Lock className="w-3 h-3" />
+                Unlock Full
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-6 max-w-5xl space-y-5">
+      <div className="px-4 md:px-8 py-8 max-w-5xl mx-auto space-y-5">
+
         {isLoading ? (
           <div className="space-y-4">
-            <div className="bg-white border border-black/[0.07] rounded-2xl h-56 animate-pulse" />
-            <div className="bg-white border border-black/[0.07] rounded-2xl h-56 animate-pulse" />
+            <div className="h-48 bg-white rounded-2xl border border-black/[0.07] animate-pulse" />
+            <div className="h-64 bg-white rounded-2xl border border-black/[0.07] animate-pulse" />
           </div>
+
         ) : !passport ? (
-          /* ── Empty state ── */
-          <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-          
-            {/* Top banner */}
-            <div className="bg-gradient-to-r from-[#0B2D5B] to-[#143C75] px-8 py-8 text-white text-center">
-              <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-4">
-                <ShieldCheck className="w-8 h-8 text-[#E8A83A]" />
+          /* ── Empty / Generate state ─────────────────── */
+          <div className="bg-white rounded-2xl border border-black/[0.07] overflow-hidden shadow-sm">
+            <div className="bg-[#0B2D5B] px-8 py-10 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center mx-auto mb-4">
+                <ShieldCheck className="w-7 h-7 text-[#E8A83A]" />
               </div>
-              <h2 className="text-2xl font-black mb-2">Get Your Aircraft Intelligence Report</h2>
-              <p className="text-white/70 text-sm max-w-md mx-auto leading-relaxed">
-                Comprehensive evaluation of aircraft condition, value, and deal potential. Professional-grade transparency for confident buying decisions.
+              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.25em] font-black mb-2">ATI Score Card · ABOS</p>
+              <h2 className="text-white text-xl font-black mb-2">
+                {listing?.year} {safeMake} {listing?.model}
+              </h2>
+              {listing?.registration && <p className="text-white/40 font-mono text-sm mb-4">{listing.registration}</p>}
+              <p className="text-white/60 text-sm max-w-sm mx-auto leading-relaxed">
+                Generate a comprehensive ATI report — 8 dimensions of aircraft condition, market value, and deal quality.
               </p>
             </div>
-
             <div className="p-8">
-              {/* What you get */}
               <div className="grid sm:grid-cols-3 gap-4 mb-8">
                 {[
-                  { icon: ShieldCheck, title: "Complete Condition Analysis", body: "Documentation quality, maintenance history, engine condition, avionics package, and operational readiness — all assessed professionally." },
-                  { icon: TrendingDown, title: "Market Valuation", body: "Verified comparable sales data for your aircraft type. Know the true market value and identify genuine opportunities." },
-                  { icon: FileText, title: "Professional PDF Report", body: "Polished, shareable report for banks, partners, and advisors. Includes detailed findings and recommendations." },
+                  { icon: ShieldCheck, title: "8-Dimension Analysis", body: "Documentation, engine condition, avionics, history, storage and transaction readiness." },
+                  { icon: TrendingDown, title: "Market Valuation", body: "OMVM v5 comparable pricing for your exact make/model/year. Know fair market value." },
+                  { icon: FileText, title: "Exportable Report", body: "Professional PDF for banks, co-investors and advisors." },
                 ].map(({ icon: Icon, title, body }) => (
-                  <div key={title} className="bg-[#F7F4EF] rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-full bg-[#0B2D5B] flex items-center justify-center mx-auto mb-3">
-                      <Icon className="w-5 h-5 text-[#E8A83A]" />
+                  <div key={title} className="bg-[#F7F4EF] rounded-xl p-4">
+                    <div className="w-8 h-8 rounded-lg bg-[#0B2D5B] flex items-center justify-center mb-3">
+                      <Icon className="w-4 h-4 text-[#E8A83A]" />
                     </div>
                     <p className="text-[12px] font-black text-[#1A1814] mb-1">{title}</p>
                     <p className="text-[11px] text-[#6B6560] leading-relaxed">{body}</p>
                   </div>
                 ))}
               </div>
-
               {error && (
-                <div className="bg-[rgba(192,57,43,0.08)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-xl px-4 py-3 mb-5">
+                <div className="bg-[rgba(192,57,43,0.07)] border border-[rgba(192,57,43,0.2)] text-[#C0392B] text-sm rounded-xl px-4 py-3 mb-5">
                   {error}
                 </div>
               )}
-
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => setWizardOpen(true)}
-                  disabled={generating}
-                  className="flex items-center justify-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black px-7 py-3.5 rounded-xl transition-colors"
-                >
-                  <Wand2 className="w-5 h-5" />
-                  Detailed Assessment
+                <button onClick={() => setWizardOpen(true)} disabled={generating}
+                  className="flex items-center justify-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black px-7 py-3 rounded-xl transition-colors text-sm">
+                  <Wand2 className="w-4 h-4" />
+                  Guided Assessment
                 </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="flex items-center justify-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black px-7 py-3.5 rounded-xl transition-colors"
-                >
-                  <Zap className={`w-5 h-5 ${generating ? "animate-pulse" : ""}`} />
-                  {generating ? "Generating report…" : "Generate Report"}
+                <button onClick={handleGenerate} disabled={generating}
+                  className="flex items-center justify-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-50 text-[#0B2D5B] font-black px-7 py-3 rounded-xl transition-colors text-sm">
+                  <Zap className={`w-4 h-4 ${generating ? "animate-pulse" : ""}`} />
+                  {generating ? "Generating…" : "Quick Generate"}
                 </button>
               </div>
-              <p className="text-[10px] text-[#AAA49C] text-center mt-3">
-                Detailed = comprehensive step-by-step assessment · Quick = instant analysis from listing information
-              </p>
             </div>
           </div>
+
         ) : (
           <>
-            {/* Payment gate before full report */}
             {paymentGateOpen && (
-              <ATIPaymentGate
-                listing={listing}
-                onClose={() => setPaymentGateOpen(false)}
-                onUnlock={handleGenerate}
-              />
+              <ATIPaymentGate listing={listing} onClose={() => setPaymentGateOpen(false)} onUnlock={handleGenerate} />
             )}
 
-            {/* ── Card Identity ── */}
-            {card && <CardIdentityBlock card={card} />}
-            {card && <CardInlineEditor card={card} />}
-            {card && <CardImageGallery card={card} />}
-
-            {/* ── Score Hero ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left: Score ring + badges */}
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center gap-4">
-                <ScoreRing score={passport.ati_total} maxScore={120} label={passport.score_label} />
-
-                <div className="text-center">
-                  <p className="text-[11px] text-[#AAA49C]">{listing?.year} {listing?.make} {listing?.model}</p>
-                  {listing?.registration && <p className="text-[10px] text-[#AAA49C] font-mono">{listing.registration}</p>}
+            {/* ── Certificate header ────────────────────── */}
+            <div className="bg-white rounded-2xl border border-black/[0.07] overflow-hidden shadow-sm">
+              <div className="bg-[#0B2D5B] px-6 pt-6 pb-8">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div>
+                    <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.25em] font-black mb-1.5">ATI Score Card · ABOS v2</p>
+                    <h1 className="text-white font-black text-xl md:text-2xl leading-tight">
+                      {listing?.year} {safeMake} {listing?.model}
+                    </h1>
+                    {listing?.registration && (
+                      <p className="text-white/50 font-mono text-[13px] mt-1">{listing.registration}</p>
+                    )}
+                    {listing?.asking_price && (
+                      <p className="text-white/40 text-[12px] mt-1.5">${listing.asking_price.toLocaleString()}</p>
+                    )}
+                  </div>
+                  {/* Score badge */}
+                  <div className="shrink-0 flex flex-col items-center gap-1.5 ml-2">
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center border-2"
+                      style={{ borderColor: scoreColor(passport.ati_total), background: `${scoreColor(passport.ati_total)}18` }}>
+                      <span className="text-3xl font-black" style={{ color: scoreColor(passport.ati_total) }}>{passport.ati_total}</span>
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: scoreColor(passport.ati_total) }}>
+                      {passport.score_label || (passport.ati_total >= 108 ? "Exceptional" : passport.ati_total >= 90 ? "Strong Buy" : passport.ati_total >= 72 ? "Fair" : passport.ati_total >= 54 ? "Caution" : "Red Flags")}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Alert / opportunity badges */}
-                <div className="flex flex-wrap gap-2 justify-center">
+                {/* Progress */}
+                <div>
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-white/40 text-[10px]">ATI Score</span>
+                    <span className="text-white/40 text-[10px]">{passport.ati_total} / 120</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2.5">
+                    <div className="h-full rounded-full" style={{ width: `${(passport.ati_total / 120) * 100}%`, backgroundColor: scoreColor(passport.ati_total) }} />
+                  </div>
+                  {/* Mini dimension bars */}
+                  <div className="grid grid-cols-8 gap-1">
+                    {DIMS.map(d => {
+                      const v = passport[d.key] || 0;
+                      const dc = v >= 13 ? "#0F7A56" : v >= 9 ? "#185FA5" : v >= 6 ? "#D4A017" : "#C0392B";
+                      return (
+                        <div key={d.key} title={`${d.label}: ${v}/15`} className="flex flex-col items-center gap-0.5">
+                          <div className="w-full h-7 bg-white/5 rounded-sm overflow-hidden flex items-end">
+                            <div className="w-full" style={{ height: `${(v / 15) * 100}%`, backgroundColor: dc, opacity: 0.8 }} />
+                          </div>
+                          <span className="text-[7px] text-white/25">{v}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="grid grid-cols-8 gap-1 mt-0.5">
+                    {DIMS.map(d => (
+                      <span key={d.key} className="text-[6px] text-white/20 text-center truncate">{d.label.split(" ")[0]}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Badges row */}
+              {(passport.deal_radar_eligible || passport.co_ownership_viable) && (
+                <div className="px-6 py-3 border-b border-black/[0.06] flex flex-wrap gap-2">
                   {passport.deal_radar_eligible && (
-                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full border bg-[rgba(212,160,23,0.12)] text-[#A67C00] border-[rgba(212,160,23,0.3)]">
+                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full bg-[rgba(212,160,23,0.10)] text-[#A67C00] border border-[rgba(212,160,23,0.25)]">
                       ⚡ Deal Radar — Below Market
                     </span>
                   )}
                   {passport.co_ownership_viable && (
-                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full border bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]">
-                      🤝 Co-Ownership Ready
+                    <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full bg-[rgba(24,95,165,0.08)] text-[#185FA5] border border-[rgba(24,95,165,0.2)]">
+                      🤝 Co-Ownership Viable
                     </span>
                   )}
                 </div>
+              )}
 
-                {/* Title chain */}
-                <div className="w-full pt-4 border-t border-black/[0.06] flex flex-col items-center gap-1">
-                  <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="md" />
-                  <p className="text-[10px] text-[#AAA49C] text-center max-w-[160px] leading-tight">
-                    {verifiedOwnershipCount > 0
-                      ? `${verifiedOwnershipCount} verified ownership document${verifiedOwnershipCount > 1 ? "s" : ""} on file`
-                      : "No ownership documents verified yet"}
-                  </p>
+              {/* Ownership stamp */}
+              <div className="px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+                <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="sm" />
+                <p className="text-[10px] text-[#AAA49C]">
+                  {verifiedOwnershipCount > 0
+                    ? `${verifiedOwnershipCount} verified ownership record${verifiedOwnershipCount > 1 ? "s" : ""}`
+                    : "No ownership records verified"}
+                </p>
+              </div>
+            </div>
+
+            {/* ── Specs + Valuation ─────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-4">Specifications</p>
+                <div className="space-y-0">
+                  {[
+                    { label: "Airframe TT", value: listing?.total_time ? `${listing.total_time.toLocaleString()} hrs` : "—" },
+                    { label: "Engine SMOH", value: listing?.engine_hours ? `${listing.engine_hours.toLocaleString()} hrs` : "—" },
+                    { label: "TBO", value: listing?.tbo ? `${listing.tbo.toLocaleString()} hrs` : "—" },
+                    { label: "Last Annual", value: listing?.last_annual ? new Date(listing.last_annual).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "—" },
+                    { label: "Avionics", value: listing?.avionics || "—" },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-baseline justify-between py-2.5 border-b border-black/[0.05] last:border-0">
+                      <span className="text-[12px] text-[#6B6560]">{label}</span>
+                      <span className="text-[13px] font-semibold text-[#1A1814] text-right max-w-[55%] leading-tight">{value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Right: Dimension bars */}
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017]">Score Breakdown</p>
-                  <span className="text-[9px] text-[#AAA49C] font-semibold uppercase tracking-wider bg-black/5 px-2 py-0.5 rounded-full">8 modules × 15 pts</span>
-                </div>
-                <div className="space-y-3.5">
-                  {DIMS.map(d => (
-                    <DimBar key={d.key} label={d.label} value={passport[d.key]} max={d.max} desc={d.desc} />
+              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-4">Market Valuation</p>
+                <div className="space-y-0">
+                  {[
+                    { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request", color: null },
+                    { label: "Market Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: null },
+                    {
+                      label: "vs. Market",
+                      value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼ " : "▲ "}${Math.abs(passport.discount_pct)}%` : "—",
+                      color: passport.discount_pct >= 0 ? "#0F7A56" : "#C0392B",
+                    },
+                    {
+                      label: "Deal Rating",
+                      value: passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—",
+                      color: passport.deal_score >= 8.5 ? "#0F7A56" : passport.deal_score >= 6.5 ? "#185FA5" : passport.deal_score >= 5 ? "#D4A017" : "#C0392B",
+                    },
+                    { label: "ATI Score", value: `${passport.ati_total} / 120`, color: scoreColor(passport.ati_total) },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="flex items-baseline justify-between py-2.5 border-b border-black/[0.05] last:border-0">
+                      <span className="text-[12px] text-[#6B6560]">{label}</span>
+                      <span className="text-[13px] font-semibold" style={{ color: color || "#1A1814" }}>{value}</span>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* ── Valuation Panel ── */}
-            <div className="bg-white border border-[rgba(212,160,23,0.3)] rounded-2xl overflow-hidden">
-              <div className="bg-gradient-to-r from-[rgba(212,160,23,0.06)] to-transparent px-6 py-4 border-b border-[rgba(212,160,23,0.15)]">
-                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017]">Market Valuation Analysis</p>
-                <p className="text-[11px] text-[#6B6560] mt-0.5">Compared against verified market transactions for this make/model/year</p>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-black/[0.05]">
-                {[
-                  { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "—", sub: "Seller's listed price" },
-                  { label: "Market Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", sub: "Based on comparable sales" },
-                  {
-                    label: "Price vs Market",
-                    value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼ " : "▲ "}${Math.abs(passport.discount_pct)}%` : "—",
-                    sub: passport.discount_pct >= 0 ? "Below market — potential upside" : "Above market — negotiate down",
-                    color: passport.discount_pct >= 0 ? "#0F7A56" : "#C0392B"
-                  },
-                  {
-                    label: "Deal Rating",
-                    value: passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—",
-                    sub: "Based on price vs condition",
-                    color: passport.deal_score >= 8.5 ? "#0F7A56" : passport.deal_score >= 6.5 ? "#185FA5" : passport.deal_score >= 5 ? "#D4A017" : "#C0392B"
-                  },
-                ].map(item => (
-                  <div key={item.label} className="px-5 py-4">
-                    <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mb-1">{item.label}</p>
-                    <p className="text-lg font-black leading-none" style={{ color: item.color || "#1A1814" }}>{item.value}</p>
-                    {item.sub && <p className="text-[10px] text-[#AAA49C] mt-1 leading-tight">{item.sub}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── Score Breakdown (detailed readiness) ── */}
-            <ATIScoreBreakdown passport={passport} missing_data={passport.missing_data} />
-
-            {/* ── Executive Summary ── */}
+            {/* ── Executive Summary ─────────────────────── */}
             {passport.ai_summary && (
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
-                <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Assessment Overview</p>
-                <p className="text-sm text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
+              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-3">Assessment Overview</p>
+                <p className="text-[13px] text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
               </div>
             )}
 
-            {/* ── Missing Data Warning ── */}
+            {/* ── Strengths / Risks / Actions ───────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { title: "Strengths", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", border: "rgba(15,122,86,0.18)" },
+                { title: "Risks", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", border: "rgba(192,57,43,0.18)" },
+                { title: "Buyer Actions", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", border: "rgba(212,160,23,0.25)" },
+              ].map(section => (
+                <div key={section.title} className="bg-white rounded-2xl border px-6 py-5 shadow-sm" style={{ borderColor: section.border }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <section.icon className="w-3.5 h-3.5" style={{ color: section.color }} />
+                    <p className="text-[10px] uppercase tracking-[0.18em] font-black" style={{ color: section.color }}>{section.title}</p>
+                  </div>
+                  {section.data.length === 0 ? (
+                    <p className="text-[11px] text-[#AAA49C]">—</p>
+                  ) : (
+                    <ul className="space-y-2.5">
+                      {section.data.map((item, i) => (
+                        <li key={i} className="flex gap-2.5 text-[12px] text-[#4A4845] leading-relaxed">
+                          <span className="shrink-0 w-1 h-1 rounded-full mt-2" style={{ backgroundColor: section.color }} />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* ── Missing data ───────────────────────────── */}
             {parseList(passport.missing_data).length > 0 && (
-              <div className="bg-[rgba(192,57,43,0.04)] border border-[rgba(192,57,43,0.18)] rounded-2xl p-5">
+              <div className="bg-[rgba(192,57,43,0.04)] border border-[rgba(192,57,43,0.15)] rounded-2xl px-6 py-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-4 h-4 text-[#C0392B]" />
-                  <p className="text-[10px] uppercase tracking-wider font-black text-[#C0392B]">Data Gaps — Request Before Making an Offer</p>
+                  <AlertTriangle className="w-3.5 h-3.5 text-[#C0392B]" />
+                  <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#C0392B]">Data Gaps — Request Before Offering</p>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-1.5">
                   {parseList(passport.missing_data).map((item, i) => (
@@ -583,62 +632,31 @@ Return ONLY raw JSON:
               </div>
             )}
 
-            {/* ── Strengths / Risks / Actions ── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { title: "What Works in Your Favour", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", bg: "rgba(15,122,86,0.05)", border: "rgba(15,122,86,0.15)" },
-                { title: "Risks to Price or Walk Away", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", bg: "rgba(192,57,43,0.05)", border: "rgba(192,57,43,0.15)" },
-                { title: "Buyer Action Items", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", bg: "rgba(212,160,23,0.05)", border: "rgba(212,160,23,0.2)" },
-              ].map(section => (
-                <div key={section.title} className="rounded-2xl p-5 border" style={{ backgroundColor: section.bg, borderColor: section.border }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <section.icon className="w-4 h-4" style={{ color: section.color }} />
-                    <p className="text-[10px] uppercase tracking-wider font-black" style={{ color: section.color }}>{section.title}</p>
-                  </div>
-                  {section.data.length === 0 ? (
-                    <p className="text-[11px] text-[#AAA49C]">—</p>
-                  ) : (
-                    <ul className="space-y-2.5">
-                      {section.data.map((item, i) => (
-                        <li key={i} className="flex gap-2 text-[12px] text-[#4A4845] leading-relaxed">
-                          <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-1.5" style={{ backgroundColor: section.color }} />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
+            {/* ── Detailed dimension breakdown ───────────── */}
+            <ATIScoreBreakdown passport={passport} missing_data={passport.missing_data} />
 
-            {/* ── Re-score actions ── */}
-            <div className="flex items-center justify-between flex-wrap gap-3 py-2">
-              <p className="text-[11px] text-[#AAA49C]">
-                Scored on {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2
-              </p>
+            {/* ── Card identity & tools ──────────────────── */}
+            {card && <CardIdentityBlock card={card} />}
+            {card && <CardInlineEditor card={card} />}
+
+            {/* ── Re-score / actions ─────────────────────── */}
+            <div className="flex items-center justify-between flex-wrap gap-3 py-2 text-[11px] text-[#AAA49C]">
+              <span>Scored {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2</span>
               <div className="flex gap-4 items-center flex-wrap">
-                <button
-                  onClick={handleExportPDF}
-                  disabled={exporting}
-                  className="flex items-center gap-2 bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-50 text-white font-black text-[12px] px-4 py-2 rounded-xl transition-colors"
-                >
-                  <Download className={`w-3.5 h-3.5 ${exporting ? "animate-pulse" : ""}`} />
-                  {exporting ? "Exporting…" : "Export PDF"}
-                </button>
                 <button onClick={() => setWizardOpen(true)} disabled={generating}
-                  className="flex items-center gap-2 text-[11px] text-[#6B6560] hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold">
+                  className="flex items-center gap-1.5 hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold">
                   <Wand2 className="w-3.5 h-3.5" />
-                  Re-score with Guided Assessment
+                  Re-score
                 </button>
                 <button onClick={handleGenerate} disabled={generating}
-                  className="flex items-center gap-2 text-[11px] text-[#6B6560] hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold">
+                  className="flex items-center gap-1.5 hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold">
                   <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
-                  {generating ? "Updating…" : "Quick Refresh"}
+                  {generating ? "Updating…" : "Refresh"}
                 </button>
               </div>
             </div>
 
-            {/* ── Reviews / Affiliate / Timeline / Ownership ── */}
+            {/* ── Timeline, Reviews, Ownership ───────────── */}
             {card && <ReviewsPanel card={card} />}
             {card && <AffiliateLinksPanel card={card} />}
             {card && <EventTimeline card={card} />}
@@ -647,21 +665,9 @@ Return ONLY raw JSON:
         )}
       </div>
 
-      <UpgradeGate
-        open={showGate}
-        onClose={() => setShowGate(false)}
-        feature="ati_passport_full"
-        requiredTokens={TOKEN_COSTS.ati_passport_full}
-        userTokens={tokens}
-        isVerified={isVerified}
-      />
-
-      <ATIWizard
-        open={wizardOpen}
-        onClose={() => setWizardOpen(false)}
-        listing={listing}
-      />
-
+      <UpgradeGate open={showGate} onClose={() => setShowGate(false)} feature="ati_passport_full"
+        requiredTokens={TOKEN_COSTS.ati_passport_full} userTokens={tokens} isVerified={isVerified} />
+      <ATIWizard open={wizardOpen} onClose={() => setWizardOpen(false)} listing={listing} />
       {listing && <ATIGuideChat listing={listing} />}
     </div>
   );

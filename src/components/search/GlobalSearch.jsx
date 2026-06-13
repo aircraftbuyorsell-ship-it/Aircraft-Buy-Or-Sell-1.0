@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Search, Plane, X, Loader2 } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
+import { detectRegType, getRegTypeColor } from "@/lib/regUtils";
 
 export default function GlobalSearch() {
   const isDark = useTheme();
@@ -96,7 +97,7 @@ export default function GlobalSearch() {
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="N-number, make, model..."
+                placeholder="N-number, EASA reg, make, model..."
                 className="flex-1 bg-transparent text-[12px] outline-none"
                 style={{ color: textColor }}
                 autoFocus
@@ -114,7 +115,10 @@ export default function GlobalSearch() {
                   <Loader2 className="w-4 h-4 animate-spin" style={{ color: mutedColor }} />
                 </div>
               ) : filtered.length > 0 ? (
-                filtered.map((l) => (
+                filtered.map((l) => {
+                  const regType = detectRegType(l.registration);
+                  const regColor = getRegTypeColor(regType, isDark);
+                  return (
                   <button
                     key={l.id}
                     onClick={() => selectAircraft(l)}
@@ -128,8 +132,16 @@ export default function GlobalSearch() {
                       <p className="text-[12px] font-semibold truncate" style={{ color: textColor }}>
                         {[l.year, l.make, l.model].filter(Boolean).join(" ")}
                       </p>
-                      <p className="text-[10px] truncate" style={{ color: mutedColor }}>
-                        {l.registration || "No registration"} • {l.asking_price ? `$${l.asking_price.toLocaleString()}` : "On request"}
+                      <p className="text-[10px] truncate flex items-center gap-1.5" style={{ color: mutedColor }}>
+                        {l.registration || "No registration"}
+                        {regType && (
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+                            style={{ color: regColor, background: `${regColor}15`, border: `1px solid ${regColor}30` }}>
+                            {regType === "faa" ? "N-Reg" : regType === "easa" ? "EASA" : ""}
+                          </span>
+                        )}
+                        {l.asking_price && <span>• ${l.asking_price.toLocaleString()}</span>}
+                        {!l.asking_price && <span>• On request</span>}
                       </p>
                     </div>
                     {l.ati_score && (
@@ -141,7 +153,7 @@ export default function GlobalSearch() {
                       </span>
                     )}
                   </button>
-                ))
+                )})
               ) : query.trim().length >= 2 ? (
                 <div className="py-8 text-center text-[11px]" style={{ color: mutedColor }}>
                   No aircraft found for "{query}"

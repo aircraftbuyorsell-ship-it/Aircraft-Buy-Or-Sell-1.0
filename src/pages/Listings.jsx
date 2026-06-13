@@ -17,6 +17,7 @@ import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
 import SwipeDeck from "@/components/listings/SwipeCard";
+import { detectRegType } from "@/lib/regUtils";
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -190,6 +191,7 @@ export default function Listings() {
   const [showFilters, setShowFilters] = useState(false);
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
+  const [regRegion, setRegRegion] = useState("all"); // "all" | "faa" | "easa"
   const [showImport, setShowImport] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [gate, setGate] = useState(null);
@@ -230,8 +232,12 @@ export default function Listings() {
     if (q && !`${l.make} ${l.model} ${l.registration}`.toLowerCase().includes(q)) return false;
     if (makeFilter && l.make !== makeFilter) return false;
     if ((l.ati_score || 0) < minATI) return false;
+    if (regRegion !== "all") {
+      const rt = detectRegType(l.registration);
+      if (rt !== regRegion) return false;
+    }
     return true;
-  }), [listings, search, makeFilter, minATI]);
+  }), [listings, search, makeFilter, minATI, regRegion]);
 
   // Stats
   const scoredCount = listings.filter(l => l.ati_score).length;
@@ -329,7 +335,7 @@ export default function Listings() {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Make, model or tail number…"
+              placeholder="Make, model or registration…"
               className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors"
             />
             {search && (
@@ -344,12 +350,24 @@ export default function Listings() {
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
-            {(makeFilter || minATI > 0) && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+            {(makeFilter || minATI > 0 || regRegion !== "all") && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
           </button>
         </div>
 
         {showFilters && (
           <div className="mt-2.5 bg-[#F7F4EF] border border-black/[0.06] rounded-xl p-4 flex flex-wrap gap-5 items-end">
+            <div className="min-w-[160px]">
+              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Registration</label>
+              <select
+                value={regRegion}
+                onChange={e => setRegRegion(e.target.value)}
+                className="w-full bg-white border border-black/[0.08] rounded-lg text-[13px] text-[#1A1814] h-9 px-3 focus:outline-none focus:border-[#D4A017]"
+              >
+                <option value="all">All registrations</option>
+                <option value="faa">🇺🇸 FAA (N-Reg)</option>
+                <option value="easa">🇪🇺 EASA (EU)</option>
+              </select>
+            </div>
             <div className="min-w-[180px]">
               <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Manufacturer</label>
               <BottomSheetSelect
@@ -369,8 +387,8 @@ export default function Listings() {
                 onChange={e => setMinATI(+e.target.value)}
                 className="w-36 accent-[#D4A017] touch-target-compact" />
             </div>
-            {(makeFilter || minATI > 0) && (
-              <button onClick={() => { setMakeFilter(""); setMinATI(0); }}
+            {(makeFilter || minATI > 0 || regRegion !== "all") && (
+              <button onClick={() => { setMakeFilter(""); setMinATI(0); setRegRegion("all"); }}
                 className="text-[11px] text-[#C0392B] font-semibold hover:underline pb-1 touch-target-compact">
                 Clear filters
               </button>
@@ -379,8 +397,13 @@ export default function Listings() {
         )}
 
         {/* Active filter pills */}
-        {(makeFilter || minATI > 0) && !showFilters && (
+        {(makeFilter || minATI > 0 || regRegion !== "all") && !showFilters && (
           <div className="flex gap-1.5 mt-2 flex-wrap">
+            {regRegion !== "all" && (
+              <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
+                {regRegion === "faa" ? "🇺🇸 FAA" : "🇪🇺 EASA"} <button onClick={() => setRegRegion("all")}><X className="w-2.5 h-2.5" /></button>
+              </span>
+            )}
             {makeFilter && (
               <span className="flex items-center gap-1 text-[10px] bg-[#0B2D5B] text-white px-2.5 py-1 rounded-full font-bold">
                 {makeFilter} <button onClick={() => setMakeFilter("")}><X className="w-2.5 h-2.5" /></button>

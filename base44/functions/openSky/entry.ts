@@ -1,13 +1,16 @@
-// Aircraft live tracking — powered by adsb.lol (free, no API key required)
+// Aircraft live tracking — dual-source: adsb.lol (free) + OpenSky Network (auth, higher limits)
 // Actions:
-//   action="state"       params: { icao24 }                                    → live position + fuel estimates
-//   action="inflight"    params: { icao24 }                                    → current flight ops
-//   action="map_states"  params: { lamin, lamax, lomin, lomax, allow_heavy, limit } → area sweep
-//   action="history_states" params: { lamin, lamax, lomin, lomax, allow_heavy, limit } → same as map_states (live only)
+//   action="state"       params: { icao24, source? }                           → live position + fuel estimates
+//   action="inflight"    params: { icao24, source? }                           → current flight ops
+//   action="map_states"  params: { lamin, lamax, lomin, lomax, allow_heavy, limit, source? } → area sweep
+//   action="history_states" params: { lamin, lamax, lomin, lomax, allow_heavy, limit } → same as map_states (adsb.lol only)
+//   source: "adsblol" (default, anonymous) | "opensky" (authenticated, 4,000 credits/day, 5s resolution)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const ADSBIOL_BASE = "https://api.adsb.lol/v2";
+const OPENSKY_BASE = "https://opensky-network.org/api";
+const OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
 const FETCH_TIMEOUT = 12000;
 const RESERVE_MIN = 45;
 
@@ -324,6 +327,105 @@ function estimateEndurance(state, fuelEst, faaData) {
   };
 }
 
+// ─── OpenSky Network API (authenticated, higher limits) ────────────────────────
+
+let _openskyToken = null, _openskyTokenExp = 0;
+
+async function getOpenSkyToken() {
+  if (_openskyToken && Date.now() < _openskyTokenExp) return _openskyToken;
+  const cid = Deno.env.get("OPENSKY_CLIENT_ID");
+  const csec = Deno.env.get("OPENSKY_CLIENT_SECRET");
+  if (!cid || !csec) return null;
+
+  const body = new URLSearchParams({ grant_type: "client_credentials", client_id: cid, client_secret: csec });
+  const res = await fetch(OPENSKY_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  _openskyToken = data.access_token;
+  _openskyTokenExp = Date.now() + (data.expires_in - 30) * 1000;
+  return _openskyToken;
+}
+
+function parseOpenSkyAc(ac) {
+  // OpenSky state array: [icao24, callsign, origin_country, time_position, last_contact,
+  //   longitude, latitude, baro_altitude, on_ground, velocity, true_track, vertical_rate,
+  //   sensors, geo_altitude, squawk, spi, position_source, category]
+  if (!ac || !ac[0]) return null;
+  const lat = ac[6], lon = ac[5];
+  if (lat == null || lon == null) return null;
+  return {
+    icao24:         String(ac[0]).toLowerCase(),
+    callsign:       (ac[1] || "").trim() || null,
+    origin_country:  ac[2] || null,
+    time_position:   ac[3] || null,
+    last_contact:    ac[4] || null,
+    longitude:       lon,
+    latitude:        lat,
+    baro_altitude:   ac[7] ?? null,
+    on_ground:       !!ac[8],
+    velocity:        ac[9] ?? null,
+    true_track:      ac[10] ?? null,
+    vertical_rate:   ac[11] ?? null,
+    geo_altitude:    ac[13] ?? null,
+    squawk:          ac[14] || null,
+    position_source: ac[16] ?? 0,
+    category:        ac[17] ?? 0,
+  };
+}
+
+async function openskyFetchBbox(lamin, lamax, lomin, lomax, limit = 200) {
+  const token = await getOpenSkyToken();
+  const url = `${OPENSKY_BASE}/states/all?extended=1&lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+  const headers = { "User-Agent": "ABOS-Aviation-Platform/2.0" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const timeout = 25000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    const res = await fetch(url, { headers, signal: ctrl.signal });
+    if (!res.ok) throw new Error(`OpenSky ${res.status}`);
+    const data = await res.json();
+    if (!data?.states) return { states: [], time: data.time || Math.floor(Date.now() / 1000), credits: null };
+    const credits = res.headers.get("X-Rate-Limit-Remaining");
+    const states = data.states.map(parseOpenSkyAc).filter(Boolean).slice(0, limit);
+    return { states, time: data.time || Math.floor(Date.now() / 1000), credits: credits ? parseInt(credits) : null };
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("OpenSky request timed out — try adsb.lol source instead or check network");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function openskyFetchHex(hex) {
+  const token = await getOpenSkyToken();
+  const url = `${OPENSKY_BASE}/states/all?extended=1&icao24=${hex}`;
+  const headers = { "User-Agent": "ABOS-Aviation-Platform/2.0" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const timeout = 25000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    const res = await fetch(url, { headers, signal: ctrl.signal });
+    if (!res.ok) throw new Error(`OpenSky ${res.status}`);
+    const data = await res.json();
+    if (!data?.states?.length) return null;
+    return parseOpenSkyAc(data.states[0]);
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("OpenSky request timed out — try adsb.lol source instead");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function enrichStates(base44, states, includeDealReadiness = false) {
   const hexList = states.map((s) => s.icao24).filter(Boolean);
   let faaMap = {};
@@ -375,11 +477,24 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { action, icao24 } = body;
+    const { action, icao24, source = "adsblol" } = body;
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
+
+    const useOpenSky = source === "opensky";
 
     if (action === "map_states" || action === "history_states") {
       const { allow_heavy = false, limit = 200, lamin, lamax, lomin, lomax } = body;
+
+      if (useOpenSky) {
+        const result = await openskyFetchBbox(lamin, lamax, lomin, lomax, 500);
+        let states = filterHeavy(result.states, allow_heavy).slice(0, limit);
+        const aircraft = await enrichStates(base44, states, true);
+        return Response.json({
+          aircraft, time: result.time, total_raw: result.states.length,
+          source: "opensky-network", credits_remaining: result.credits,
+        });
+      }
+
       let states = await adsbFetchBbox(lamin, lamax, lomin, lomax, 500);
       states = filterHeavy(states, allow_heavy).slice(0, limit);
       const aircraft = await enrichStates(base44, states, true);
@@ -396,7 +511,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === "state" || action === "inflight") {
-      const state = await adsbFetchHex(hex);
+      let state;
+      if (useOpenSky) {
+        state = await openskyFetchHex(hex);
+      } else {
+        state = await adsbFetchHex(hex);
+      }
+
       let faaData = null;
       try {
         const recs = await base44.asServiceRole.entities.FAAAircraft.filter({ mode_s_hex: hex }, "", 1);
@@ -409,7 +530,11 @@ Deno.serve(async (req) => {
 
       const fuelEst = state ? estimateFuelConsumption(state, faaData) : null;
       const endurance = fuelEst ? estimateEndurance(state, fuelEst, faaData) : null;
-      return Response.json({ time: Math.floor(Date.now() / 1000), state, faa: faaData, fuel_estimate: fuelEst, endurance, source: "adsb.lol" });
+      return Response.json({
+        time: Math.floor(Date.now() / 1000), state, faa: faaData,
+        fuel_estimate: fuelEst, endurance,
+        source: useOpenSky ? "opensky-network" : "adsb.lol",
+      });
     }
 
     return Response.json({ error: "unknown action" }, { status: 400 });

@@ -8,8 +8,8 @@ import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp, Lightbulb,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
-  MessageCircle, HelpCircle, FileText, Globe, Layers,
-} from "lucide-react";
+  MessageCircle, HelpCircle, FileText, Globe, Layers } from
+"lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -17,74 +17,74 @@ import ABOSTour from "@/components/onboarding/ABOSTour";
 import GlobalSearch from "@/components/search/GlobalSearch";
 
 const BACK_BUTTON_ROUTES = [
-  /^\/ati-passport\/[^/]+$/,
-];
+/^\/ati-passport\/[^/]+$/];
+
 const TOP_LEVEL = new Set(["/", "/listings", "/deal-radar", "/my-account", "/live-traffic", "/escrow"]);
 
 const TOP_ITEMS = [
-  { path: "/traffic", label: "Live Traffic", icon: Radar, accent: true },
-  { path: "/escrow", label: "Escrow", icon: Handshake },
-  { path: "/my-account", label: "Account", icon: User },
-];
+{ path: "/traffic", label: "Live Traffic", icon: Radar, accent: true },
+{ path: "/escrow", label: "Escrow", icon: Handshake },
+{ path: "/my-account", label: "Account", icon: User }];
+
 
 const SIDEBAR_SECTIONS = [
-  {
-    n: "1",
-    label: "MarketSpace",
-    sublabel: "Public Aircraft Intelligence",
-    color: "#00c2ff",
-    items: [
-      { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Platform overview — active listings, ATI scores, market pulse and live globe" },
-      { path: "/listings", label: "Aircraft Listings", icon: Plane, desc: "Browse all public aircraft listings with ATI scores, deal ratings and swipe deck" },
-      { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, desc: "Instant 8-dimension ATI scorecard from any listing text or N-number — free" },
-      { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
-      { path: "/compare", label: "Compare Aircraft", icon: Layers, desc: "Compare up to 3 aircraft side-by-side on specs, pricing and ATI scores" },
-      { path: "/deal-radar", label: "Deal Radar", icon: TrendingUp, desc: "Hot deals priced below market with high ATI scores — updated in real time" },
-      { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
-      { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
-      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" },
-    ],
-  },
-  {
-    n: "2",
-    label: "IntraZone",
-    sublabel: "User Workspace & Analytics",
-    color: "#D4A017",
-    items: [
-      { path: "/intrazone", label: "IntraZone Hub", icon: LayoutDashboard, desc: "Your private workspace — deals, leads, matching engine and negotiation tools" },
-      { path: "/analytics", label: "Market Analytics", icon: BarChart3, desc: "Price trends, days-on-market, top models and inventory liquidity charts" },
-      { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence with macro signals and regional forecasts" },
-      { path: "/valuation", label: "Valuation (OMVM)", icon: TrendingUp, desc: "Off-market valuation model — market-calibrated price estimates" },
-      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "True annual ownership cost calculator — 100h to 999h/year flight time scenarios" },
-      { path: "/escrow", label: "Escrow & Deals", icon: Handshake, desc: "Secure buyer-seller escrow with automated commission splits and payout audit trail" },
-      { path: "/leads", label: "Leads (CRM)", icon: Users, desc: "Buyer lead pipeline — stage tracking, auto-scoring and deal management" },
-      { path: "/pre-buy-inspection", label: "Pre-Buy Inspection", icon: ShieldCheck, desc: "On-site with Max — live visual analysis of airframe, engine and avionics" },
-      { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation intelligence assistant — appraisals, inspections and market advice" },
-    ],
-  },
-  {
-    n: "3",
-    label: "Account",
-    sublabel: "Plans & Billing",
-    color: "#6366f1",
-    items: [
-      { path: "/pricing", label: "Credits & Plans", icon: Zap, desc: "Purchase token packs and manage your credit balance" },
-      { path: "/subscription", label: "Subscription", icon: CreditCard, desc: "Manage your subscription plan and billing details" },
-      { path: "/my-account", label: "My Account", icon: User, desc: "Profile settings, preferences and account details" },
-    ],
-  },
-  {
-    n: "4",
-    label: "Admin",
-    sublabel: "Platform Management",
-    color: "#ef4444",
-    items: [
-      { path: "/admin/listings", label: "All Listings", icon: ShieldCheck, desc: "Full listing oversight with bulk actions, scoring and status management" },
-      { path: "/admin/marketplace", label: "Marketplace", icon: Globe, desc: "Approve and manage third-party developer tools and integrations" },
-      { path: "/admin/settings", label: "Settings", icon: Zap, desc: "Platform configuration, webhooks, auto-scoring and feature toggles" },
-    ],
-  },
-];
+{
+  n: "1",
+  label: "MarketSpace",
+  sublabel: "Public Aircraft Intelligence",
+  color: "#00c2ff",
+  items: [
+  { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Platform overview — active listings, ATI scores, market pulse and live globe" },
+  { path: "/listings", label: "Aircraft Listings", icon: Plane, desc: "Browse all public aircraft listings with ATI scores, deal ratings and swipe deck" },
+  { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, desc: "Instant 8-dimension ATI scorecard from any listing text or N-number — free" },
+  { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
+  { path: "/compare", label: "Compare Aircraft", icon: Layers, desc: "Compare up to 3 aircraft side-by-side on specs, pricing and ATI scores" },
+  { path: "/deal-radar", label: "Deal Radar", icon: TrendingUp, desc: "Hot deals priced below market with high ATI scores — updated in real time" },
+  { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
+  { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
+  { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" }]
+
+},
+{
+  n: "2",
+  label: "IntraZone",
+  sublabel: "User Workspace & Analytics",
+  color: "#D4A017",
+  items: [
+  { path: "/intrazone", label: "IntraZone Hub", icon: LayoutDashboard, desc: "Your private workspace — deals, leads, matching engine and negotiation tools" },
+  { path: "/analytics", label: "Market Analytics", icon: BarChart3, desc: "Price trends, days-on-market, top models and inventory liquidity charts" },
+  { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence with macro signals and regional forecasts" },
+  { path: "/valuation", label: "Valuation (OMVM)", icon: TrendingUp, desc: "Off-market valuation model — market-calibrated price estimates" },
+  { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "True annual ownership cost calculator — 100h to 999h/year flight time scenarios" },
+  { path: "/escrow", label: "Escrow & Deals", icon: Handshake, desc: "Secure buyer-seller escrow with automated commission splits and payout audit trail" },
+  { path: "/leads", label: "Leads (CRM)", icon: Users, desc: "Buyer lead pipeline — stage tracking, auto-scoring and deal management" },
+  { path: "/pre-buy-inspection", label: "Pre-Buy Inspection", icon: ShieldCheck, desc: "On-site with Max — live visual analysis of airframe, engine and avionics" },
+  { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation intelligence assistant — appraisals, inspections and market advice" }]
+
+},
+{
+  n: "3",
+  label: "Account",
+  sublabel: "Plans & Billing",
+  color: "#6366f1",
+  items: [
+  { path: "/pricing", label: "Credits & Plans", icon: Zap, desc: "Purchase token packs and manage your credit balance" },
+  { path: "/subscription", label: "Subscription", icon: CreditCard, desc: "Manage your subscription plan and billing details" },
+  { path: "/my-account", label: "My Account", icon: User, desc: "Profile settings, preferences and account details" }]
+
+},
+{
+  n: "4",
+  label: "Admin",
+  sublabel: "Platform Management",
+  color: "#ef4444",
+  items: [
+  { path: "/admin/listings", label: "All Listings", icon: ShieldCheck, desc: "Full listing oversight with bulk actions, scoring and status management" },
+  { path: "/admin/marketplace", label: "Marketplace", icon: Globe, desc: "Approve and manage third-party developer tools and integrations" },
+  { path: "/admin/settings", label: "Settings", icon: Zap, desc: "Platform configuration, webhooks, auto-scoring and feature toggles" }]
+
+}];
+
 
 const IDLE_MS = 7000;
 
@@ -97,12 +97,12 @@ export default function Layout() {
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
 
-  const showBack = !TOP_LEVEL.has(pathname) && BACK_BUTTON_ROUTES.some(re => re.test(pathname));
+  const showBack = !TOP_LEVEL.has(pathname) && BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
     queryFn: () => base44.auth.me(),
-    retry: false,
+    retry: false
   });
 
   const resetIdle = () => {
@@ -124,7 +124,7 @@ export default function Layout() {
     const onTouchStart = (e) => {
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
-      if (x < 20) { touchStartX.current = x; touchStartY.current = y; }
+      if (x < 20) {touchStartX.current = x;touchStartY.current = y;}
     };
     const onTouchEnd = (e) => {
       if (touchStartX.current == null || touchStartX.current >= 20) return;
@@ -148,50 +148,50 @@ export default function Layout() {
         Skip to content
       </a>
       {/* Top bar — iOS Liquid Glass Navbar */}
-      <header className="sticky top-0 z-40 glass-navbar safe-top" style={{WebkitBackdropFilter:"blur(24px) saturate(180%)"}}>
+      <header className="sticky top-0 z-40 glass-navbar safe-top" style={{ WebkitBackdropFilter: "blur(24px) saturate(180%)" }}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
-          {showBack ? (
-            <button
-              onClick={() => navigate(-1)}
-              className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
-              aria-label="Go back"
-            >
+          {showBack ?
+          <button
+            onClick={() => navigate(-1)}
+            className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+            aria-label="Go back">
+            
               <ArrowLeft className="w-4 h-4" />
               <span className="text-[11px] font-semibold hidden sm:inline">Back</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setSidebarOpen(v => !v)}
-              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
-              aria-label="Open menu"
-            >
+            </button> :
+
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+            aria-label="Open menu">
+            
               <Menu className="w-4 h-4" />
             </button>
-          )}
+          }
 
           <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:scale-[1.02] active:scale-95 pl-1.5 pr-3 py-1 rounded-full"
-            style={isDark ? {
-              background:"rgba(255,255,255,0.06)",
-              backdropFilter:"blur(16px) saturate(160%)",
-              WebkitBackdropFilter:"blur(16px) saturate(160%)",
-              border:"1px solid rgba(255,255,255,0.12)",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)"
-            } : {
-              background:"rgba(255,255,255,0.75)",
-              backdropFilter:"blur(16px) saturate(160%)",
-              WebkitBackdropFilter:"blur(16px) saturate(160%)",
-              border:"1px solid rgba(0,0,0,0.08)",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.90)"
-            }}>
+          style={isDark ? {
+            background: "rgba(255,255,255,0.06)",
+            backdropFilter: "blur(16px) saturate(160%)",
+            WebkitBackdropFilter: "blur(16px) saturate(160%)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)"
+          } : {
+            background: "rgba(255,255,255,0.75)",
+            backdropFilter: "blur(16px) saturate(160%)",
+            WebkitBackdropFilter: "blur(16px) saturate(160%)",
+            border: "1px solid rgba(0,0,0,0.08)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.90)"
+          }}>
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-              style={{background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 12px rgba(11,45,91,0.35)"}}>
+            style={{ background: "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: "0 2px 12px rgba(11,45,91,0.35)" }}>
               <Plane className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="font-black text-sm tracking-[-0.04em] hidden sm:block"
-              style={{
-                background: isDark ? "linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)" : "linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)",
-                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent"
-              }}>
+            style={{
+              background: isDark ? "linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)" : "linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+            }}>
               ABOS MarketSpace
             </span>
           </Link>
@@ -208,28 +208,28 @@ export default function Layout() {
               }}
               className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
               aria-label="Open guided tour"
-              title="Platform tour"
-            >
+              title="Platform tour">
+              
               <HelpCircle className="w-4 h-4" />
             </button>
-            {currentUser ? (
-              <button
-                onClick={() => base44.auth.logout()}
-                className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95"
-              >
+            {currentUser ?
+            <button
+              onClick={() => base44.auth.logout()}
+              className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95 [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">
+              
                 <LogOut className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log Out</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => base44.auth.redirectToLogin()}
-                className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
-                style={{background:"linear-gradient(135deg,#E8A83A,#D4911A)", boxShadow:"0 2px 12px rgba(232,168,58,0.35)"}}
-              >
+              </button> :
+
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg,#E8A83A,#D4911A)", boxShadow: "0 2px 12px rgba(232,168,58,0.35)" }}>
+              
                 <LogIn className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log In</span>
               </button>
-            )}
+            }
             {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
               const active = pathname === path;
               return (
@@ -238,31 +238,31 @@ export default function Layout() {
                   to={path}
                   className={`
                     flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95
-                    ${active
-                      ? "text-white shadow-md"
-                      : accent
-                        ? "glass-pill text-[#E8A83A] hover:text-[#D4911A]"
-                        : "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}
+                    ${active ?
+                  "text-white shadow-md" :
+                  accent ?
+                  "glass-pill text-[#E8A83A] hover:text-[#D4911A]" :
+                  "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}
                   `}
-                  style={active ? {background:"linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow:"0 2px 14px rgba(11,45,91,0.30)"} : {}}
-                >
+                  style={active ? { background: "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: "0 2px 14px rgba(11,45,91,0.30)" } : {}}>
+                  
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
                   <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
+                </Link>);
+
             })}
           </nav>
         </div>
       </header>
 
       {/* Backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setSidebarOpen(false)}
-          style={{background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px) saturate(140%)", WebkitBackdropFilter:"blur(8px) saturate(140%)"}}
-        />
-      )}
+      {sidebarOpen &&
+      <div
+        className="fixed inset-0 z-40"
+        onClick={() => setSidebarOpen(false)}
+        style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px) saturate(140%)", WebkitBackdropFilter: "blur(8px) saturate(140%)" }} />
+
+      }
 
       {/* Sidebar — theme-aware glass panel */}
       <aside
@@ -297,14 +297,14 @@ export default function Layout() {
           WebkitBackdropFilter: "blur(48px) saturate(160%)",
           borderRight: "1px solid rgba(0,0,0,0.06)",
           boxShadow: "8px 0 40px rgba(0,0,0,0.06), inset -1px 0 0 rgba(0,0,0,0.03)"
-        }}
-      >
-        <div style={{position:"absolute", top:0, left:0, right:0, height:"1px", background: isDark ? "linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.25) 30%, rgba(99,102,241,0.30) 65%, transparent 100%)"}} />
+        }}>
+        
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: isDark ? "linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.25) 30%, rgba(99,102,241,0.30) 65%, transparent 100%)" }} />
 
-        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)"}}>
+        <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{ borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{color: "#D4A017"}}>Navigation</p>
-            <p className="text-[11px] mt-0.5" style={{color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)"}}>The Global Aircraft Identity & Sales Network</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: "#D4A017" }}>Navigation</p>
+            <p className="text-[11px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)" }}>The Global Aircraft Identity & Sales Network</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -312,20 +312,20 @@ export default function Layout() {
             style={{
               color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)",
               background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-              border: isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)",
-            }}
-          >
+              border: isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)"
+            }}>
+            
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <TooltipProvider delayDuration={600}>
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          {SIDEBAR_SECTIONS.map((section, idx) => (
+          {SIDEBAR_SECTIONS.map((section, idx) =>
             <div key={section.n} className={idx > 0 ? "mt-5" : ""}>
               <div className="flex items-center gap-2 px-3 pb-1.5">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: `${section.color}18`, border: `1px solid ${section.color}40` }}>
+                style={{ background: `${section.color}18`, border: `1px solid ${section.color}40` }}>
                   <span className="text-[9px] font-black leading-none" style={{ color: section.color }}>{section.n}</span>
                 </div>
                 <div>
@@ -345,46 +345,46 @@ export default function Layout() {
                       <TooltipTrigger asChild>
                         <Link
                           to={path}
-                      className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
-                      style={{
-                        color: active ? (isDark ? "#fff" : "#1e293b") : inactiveColor,
-                        background: active ? `${sc}14` : "transparent",
-                        border: active ? `1px solid ${sc}38` : "1px solid transparent",
-                      }}
-                      onMouseEnter={e => { if (!active) { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = hoverColor; e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)"; }}}
-                      onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = inactiveColor; e.currentTarget.style.border = "1px solid transparent"; }}}
-                    >
-                      <NavIcon className="w-3.5 h-3.5 shrink-0" style={{color: active ? sc : undefined}} />
+                          className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
+                          style={{
+                            color: active ? isDark ? "#fff" : "#1e293b" : inactiveColor,
+                            background: active ? `${sc}14` : "transparent",
+                            border: active ? `1px solid ${sc}38` : "1px solid transparent"
+                          }}
+                          onMouseEnter={(e) => {if (!active) {e.currentTarget.style.background = hoverBg;e.currentTarget.style.color = hoverColor;e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)";}}}
+                          onMouseLeave={(e) => {if (!active) {e.currentTarget.style.background = "transparent";e.currentTarget.style.color = inactiveColor;e.currentTarget.style.border = "1px solid transparent";}}}>
+                          
+                      <NavIcon className="w-3.5 h-3.5 shrink-0" style={{ color: active ? sc : undefined }} />
                       <span>{label}</span>
-                      {active && (
-                        <div className="ml-auto flex items-center gap-1.5">
+                      {active &&
+                          <div className="ml-auto flex items-center gap-1.5">
                           <div className="w-1 h-1 rounded-full" style={{ background: `${sc}60` }} />
                           <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc }} />
                         </div>
-                      )}
+                          }
                         </Link>
                       </TooltipTrigger>
-                      {desc && (
-                        <TooltipContent side="right" className="max-w-[220px]">
+                      {desc &&
+                      <TooltipContent side="right" className="max-w-[220px]">
                           <p className="text-[11px] leading-snug">{desc}</p>
                         </TooltipContent>
-                      )}
-                    </Tooltip>
-                  );
+                      }
+                    </Tooltip>);
+
                 })}
               </div>
             </div>
-          ))}
+            )}
         </nav>
         </TooltipProvider>
 
-        <div className="px-4 py-4" style={{borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)"}}>
+        <div className="px-4 py-4" style={{ borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
           <div className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-            style={{ background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.16)" }}>
+          style={{ background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.16)" }}>
             <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{color: "#D4A017"}}>ABOS MarketSpace</p>
-              <p className="text-[9px] tracking-wider" style={{color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.30)"}}>Powered by IntraZone Intelligence · Live</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: "#D4A017" }}>ABOS MarketSpace</p>
+              <p className="text-[9px] tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.30)" }}>Powered by IntraZone Intelligence · Live</p>
             </div>
           </div>
         </div>
@@ -401,6 +401,6 @@ export default function Layout() {
 
       <ABOSTour />
 
-    </div>
-  );
+    </div>);
+
 }

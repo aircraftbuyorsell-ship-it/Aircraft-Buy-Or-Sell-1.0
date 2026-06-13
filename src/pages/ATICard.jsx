@@ -13,7 +13,7 @@ function scoreColor(score) {
   return "#C0392B";
 }
 
-function ScoreRing({ score, maxScore = 120 }) {
+function ScoreRing({ score, maxScore = 120, dark = false }) {
   if (score == null) return null;
   const pct = score / maxScore;
   const r = 60;
@@ -24,22 +24,23 @@ function ScoreRing({ score, maxScore = 120 }) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative w-40 h-40">
+      <div className="relative w-44 h-44">
         <svg viewBox="0 0 136 136" className="w-full h-full -rotate-90">
-          <circle cx="68" cy="68" r={r} fill="none" stroke="#F0EDE6" strokeWidth="9" />
+          <circle cx="68" cy="68" r={r} fill="none" stroke={dark ? "rgba(255,255,255,0.10)" : "#F0EDE6"} strokeWidth="9" />
           <circle cx="68" cy="68" r={r} fill="none" stroke={color} strokeWidth="9"
-            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" />
+            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+            style={{ filter: `drop-shadow(0 0 8px ${color}60)` }} />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-black text-[#1A1814] leading-none">{score}</span>
-          <span className="text-[9px] uppercase tracking-[0.18em] text-[#AAA49C] font-bold mt-0.5">/ 120</span>
+          <span className={`text-5xl font-black leading-none ${dark ? "text-white" : "text-[#1A1814]"}`}>{score}</span>
+          <span className={`text-[9px] uppercase tracking-[0.18em] font-bold mt-1 ${dark ? "text-white/40" : "text-[#AAA49C]"}`}>/ 120 points</span>
         </div>
       </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-sm font-black uppercase tracking-wider px-3 py-1 rounded-full border" style={{ color, backgroundColor: `${color}15`, borderColor: `${color}40` }}>
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="text-sm font-black uppercase tracking-wider px-4 py-1.5 rounded-full border" style={{ color: dark ? "#fff" : color, backgroundColor: `${color}${dark ? "30" : "15"}`, borderColor: `${color}${dark ? "60" : "40"}` }}>
           {label}
         </span>
-        <span className="text-[10px] text-[#AAA49C]">Aircraft Transparency Index</span>
+        <span className={`text-[10px] ${dark ? "text-white/35" : "text-[#AAA49C]"}`}>Aircraft Transparency Index</span>
       </div>
     </div>
   );
@@ -137,18 +138,31 @@ export default function ATICard() {
       </div>
 
       <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-5">
-        {/* Score hero */}
+        {/* Score hero — premium certificate card */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col items-center justify-center">
-            <ScoreRing score={passport.ati_total} maxScore={120} />
-            <div className="text-center mt-4 w-full border-t border-black/[0.06] pt-4">
-              <p className="text-[10px] text-[#AAA49C] font-semibold">Card Code</p>
-              <p className="text-[12px] font-mono font-bold text-[#1A1814] mt-1">{card.public_card_code}</p>
+          <div className="relative overflow-hidden rounded-2xl p-6 flex flex-col items-center justify-center"
+            style={{
+              background: "linear-gradient(155deg, #122F5E 0%, #0B2D5B 45%, #081D3D 100%)",
+              border: "1px solid rgba(232,168,58,0.30)",
+              boxShadow: "0 20px 50px rgba(11,45,91,0.30), inset 0 1px 0 rgba(255,255,255,0.15)",
+            }}>
+            {/* Gold top accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{ background: "linear-gradient(90deg, transparent 5%, #E8A83A 50%, transparent 95%)" }} />
+            {/* Glass sheen */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "linear-gradient(115deg, rgba(255,255,255,0.10) 0%, transparent 40%)" }} />
+            {/* Watermark */}
+            <p className="absolute top-4 right-5 text-[9px] uppercase tracking-[0.25em] font-black text-[#E8A83A]/70">Certified · ABOS</p>
+            <ScoreRing score={passport.ati_total} maxScore={120} dark />
+            <div className="text-center mt-5 w-full border-t border-white/10 pt-4">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-white/35 font-bold">Card Code</p>
+              <p className="text-[13px] font-mono font-bold text-[#E8A83A] mt-1 tracking-wide">{card.public_card_code}</p>
             </div>
           </div>
 
           {/* Quick stats */}
-          <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-4">
+          <div className="bg-white border border-black/[0.07] rounded-2xl p-6 space-y-4 shadow-sm">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">Aircraft Details</p>
               <div className="space-y-1.5 text-sm">

@@ -143,7 +143,7 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
         <Link
           to={`/ati-passport/${listing.id}`}
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#A67C00] font-bold transition-colors whitespace-nowrap opacity-0 group-hover:opacity-100"
+          className="flex items-center gap-1 text-[10px] text-[#D4A017] hover:text-[#A67C00] font-bold transition-all whitespace-nowrap bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.2)] px-2.5 py-1 rounded-full sm:opacity-0 sm:group-hover:opacity-100"
         >
           Score Card <ArrowUpRight className="w-3 h-3" />
         </Link>
@@ -167,12 +167,17 @@ function SelectAllCheckbox({ filtered, selectedIds, onSelectAll, onClear }) {
   );
 }
 
-// ─── Stat Pill ───────────────────────────────────────────────────
+// ─── Stat Pill — glass chip ──────────────────────────────────────
 function StatPill({ value, label, color = "#E8A83A" }) {
   return (
-    <div>
-      <p className="text-lg font-black leading-none" style={{ color }}>{value}</p>
-      <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-semibold mt-1">{label}</p>
+    <div className="relative overflow-hidden rounded-xl px-4 py-2.5"
+      style={{
+        background: "linear-gradient(150deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 60%)",
+        border: `1px solid ${color}40`,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)",
+      }}>
+      <p className="text-xl font-black leading-none" style={{ color }}>{value}</p>
+      <p className="text-[9px] uppercase tracking-[0.15em] text-white/50 font-semibold mt-1">{label}</p>
     </div>
   );
 }
@@ -306,16 +311,11 @@ export default function Listings() {
 
           {/* Inline stats */}
           {!isLoading && listings.length > 0 && (
-            <div className="flex flex-wrap items-center gap-5 mt-5 rounded-[1.5rem] border border-white/20 bg-white/[0.12] backdrop-blur-xl px-5 py-4 shadow-xl">
+            <div className="flex flex-wrap items-center gap-3 mt-5 rounded-[1.5rem] border border-white/20 bg-white/[0.12] backdrop-blur-xl px-4 py-3.5 shadow-xl">
               <StatPill value={listings.length} label="Total" color="#E8A83A" />
-              <div className="w-px h-6 bg-white/10" />
               <StatPill value={scoredCount} label="ATI Scored" color="#6FA3E8" />
-              <div className="w-px h-6 bg-white/10" />
               <StatPill value={hotDeals} label="Hot Deals" color="#F5C842" />
-              {avgATI && <>
-                <div className="w-px h-6 bg-white/10" />
-                <StatPill value={avgATI} label="Avg ATI" color="#A8D5BE" />
-              </>}
+              {avgATI && <StatPill value={avgATI} label="Avg ATI" color="#A8D5BE" />}
             </div>
           )}
         </div>
@@ -592,7 +592,9 @@ export default function Listings() {
                 onSelectAll={selectAll}
               />
             )}
-            <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-sm">
+            <div className="relative bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-md">
+              <div className="absolute top-0 left-0 right-0 h-[2px] z-10"
+                style={{ background: "linear-gradient(90deg, transparent 5%, #0B2D5B 50%, transparent 95%)" }} />
               <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
                 <SelectAllCheckbox filtered={filtered} selectedIds={selectedIds} onSelectAll={selectAll} onClear={clearSelection} />
                 <div className="w-11 shrink-0 hidden sm:block" />

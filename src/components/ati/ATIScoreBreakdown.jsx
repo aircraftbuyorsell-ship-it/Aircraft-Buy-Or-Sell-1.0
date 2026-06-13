@@ -65,8 +65,10 @@ function ReadinessCard({ dimension, scores, missingFields }) {
   const isComplete = score >= 13;
   const isPartial = score >= 7;
 
+  const edgeColor = isComplete ? "#0F7A56" : isPartial ? "#D4A017" : "#C0392B";
   return (
-    <div className="bg-white border border-black/[0.07] rounded-xl p-4">
+    <div className="bg-white border border-black/[0.07] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+      style={{ borderLeft: `3px solid ${edgeColor}` }}>
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
@@ -169,22 +171,30 @@ export default function ATIScoreBreakdown({ passport, missing_data }) {
   return (
     <div className="space-y-4">
       {/* Overall progress */}
-      <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
+      <div className="relative overflow-hidden bg-white border border-black/[0.07] rounded-2xl p-5 shadow-sm">
+        <div className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{ background: "linear-gradient(90deg, transparent 5%, #0B2D5B 50%, transparent 95%)" }} />
+        <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-[11px] uppercase tracking-[0.15em] font-black text-[#0B2D5B] mb-1">Report Completeness</p>
             <p className="text-sm text-[#6B6560]">How much data has been provided or verified</p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-black text-[#0B2D5B]">{Math.round(completeness)}%</p>
-            <p className="text-[10px] text-[#AAA49C]">{totalScore} / 120 points</p>
+            <p className="text-4xl font-black text-[#0B2D5B] leading-none">{Math.round(completeness)}%</p>
+            <p className="text-[10px] text-[#AAA49C] mt-1">{totalScore} / 120 points</p>
           </div>
         </div>
         <div className="h-3 bg-black/5 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#D4A017] to-[#0F7A56] rounded-full transition-all"
-            style={{ width: `${completeness}%` }}
+            className="h-full bg-gradient-to-r from-[#D4A017] via-[#185FA5] to-[#0F7A56] rounded-full transition-all"
+            style={{ width: `${completeness}%`, boxShadow: "0 0 8px rgba(24,95,165,0.4)" }}
           />
+        </div>
+        {/* Tick markers */}
+        <div className="flex justify-between mt-1.5 px-0.5">
+          {["0", "30", "60", "90", "120"].map(t => (
+            <span key={t} className="text-[8px] text-[#AAA49C] font-semibold">{t}</span>
+          ))}
         </div>
       </div>
 

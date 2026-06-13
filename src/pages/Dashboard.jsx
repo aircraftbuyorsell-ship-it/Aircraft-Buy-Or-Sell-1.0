@@ -272,16 +272,16 @@ export default function Dashboard() {
                   }}
                 >
                   <div style={{
-                    position: "absolute", inset: 0, pointerEvents: "none",
+                    position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
                     background: isDark
                       ? "linear-gradient(115deg, rgba(210,240,250,0.12) 0%, transparent 40%)"
                       : "linear-gradient(115deg, rgba(255,255,255,0.85) 0%, transparent 40%)",
                   }} />
-                  <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: m.color }}>{m.label}</span>
-                  <span className="text-xl font-black leading-none" style={{ color: textColor }}>{m.metric}</span>
-                  <span className="text-[9px] leading-tight" style={{ color: mutedColor }}>{m.sub}</span>
-                  <span className="w-full h-0.5 rounded-full mt-0.5" style={{ background: `${m.color}40` }} />
-                  <span className="text-[8px] font-semibold flex items-center gap-1 justify-center" style={{ color: m.color }}>
+                  <span className="text-[9px] font-black uppercase tracking-wider relative z-10" style={{ color: m.color }}>{m.label}</span>
+                  <span className="text-xl font-black leading-none relative z-10" style={{ color: textColor }}>{m.metric}</span>
+                  <span className="text-[9px] leading-tight relative z-10" style={{ color: mutedColor }}>{m.sub}</span>
+                  <span className="w-full h-0.5 rounded-full mt-0.5 relative z-10" style={{ background: `${m.color}40` }} />
+                  <span className="text-[8px] font-semibold flex items-center gap-1 justify-center relative z-10" style={{ color: m.color }}>
                     <span className="w-1 h-1 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} />Live
                   </span>
                 </div>

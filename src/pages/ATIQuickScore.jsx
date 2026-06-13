@@ -181,7 +181,7 @@ Return ONLY valid JSON matching this schema exactly:
   return (
     <div className="min-h-screen" style={{ background: "#0A081E" }}>
       {/* Header */}
-      <div className="px-4 md:px-8 pt-8 pb-6 border-b border-white/[0.07] opacity-45">
+      <div className="px-4 md:px-8 pt-8 pb-6 border-b border-white/[0.07] opacity-100">
         <p className="text-[9px] uppercase tracking-[0.3em] font-black mb-1" style={{ color: "#00f5ff" }}>
           ATI Tool 1 · Free
         </p>

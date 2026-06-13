@@ -219,19 +219,9 @@ export default function Dashboard() {
             background: "radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(232,236,244,0) 70%)",
           }} />
         )}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0">
           <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
         </div>
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: isDark
-            ? "linear-gradient(120deg, rgba(10,8,30,0.85) 0%, rgba(10,8,30,0.50) 35%, rgba(10,8,30,0.20) 55%, rgba(10,8,30,0.05) 100%)"
-            : "linear-gradient(120deg, rgba(232,236,244,0.80) 0%, rgba(232,236,244,0.45) 35%, rgba(232,236,244,0.18) 55%, rgba(232,236,244,0.04) 100%)"
-        }} />
-        <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none" style={{
-          background: isDark
-            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.85))"
-            : "linear-gradient(to bottom, transparent, rgba(232,236,244,0.85))"
-        }} />
 
         <div className="relative px-4 md:px-8 pt-8 pb-8">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">

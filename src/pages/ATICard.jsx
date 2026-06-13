@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Share2, Copy, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
+import AircraftPhotoBlock from "@/components/aircraft/AircraftPhotoBlock";
 
 function scoreColor(score) {
   if (score >= 108) return "#0F7A56";
@@ -138,6 +139,15 @@ export default function ATICard() {
       </div>
 
       <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-5">
+        {/* Aircraft photos — uploaded, external DB lookup, or standard placeholder */}
+        <AircraftPhotoBlock
+          registration={listing.registration}
+          make={listing.make}
+          model={listing.model}
+          year={listing.year}
+          photos={card.image_attachments || []}
+        />
+
         {/* Score hero — premium certificate card */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative overflow-hidden rounded-2xl p-6 flex flex-col items-center justify-center"

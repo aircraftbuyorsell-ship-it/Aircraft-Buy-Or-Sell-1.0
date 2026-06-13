@@ -397,30 +397,9 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       }
       ctx.restore();
 
-      // ── Filled continents with border ─────────────────────────────
-      ctx.save();
-      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
+      // ── Continent outlines only (wireframe, no fill) ───────────────
       for (const poly of POLYGONS) {
         for (const ring of poly) {
-          // Draw filled continent
-          ctx.beginPath();
-          let first = true;
-          for (let i = 0; i < ring.length; i++) {
-            const [lon, lat] = ring[i];
-            const p = project(lon, lat);
-            if (!p.vis) { ctx.moveTo(0, 0); first = true; continue; }
-            if (first) { ctx.moveTo(p.sx, p.sy); first = false; }
-            else ctx.lineTo(p.sx, p.sy);
-          }
-          if (first) continue; // nothing visible
-          ctx.closePath();
-          const landAlpha = isDark ? 0.18 : 0.22;
-          ctx.fillStyle = isDark
-            ? `rgba(0,200,230,${landAlpha})`
-            : `rgba(80,160,90,${landAlpha})`;
-          ctx.fill();
-
-          // Draw border on top
           const n = ring.length;
           for (let i = 0; i < n; i++) {
             const [lonA, latA] = ring[i];
@@ -430,20 +409,19 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
             if (!pA.vis && !pB.vis) continue;
             const avgDepth = (pA.depth + pB.depth) / 2;
             const alpha = isDark
-              ? (0.25 + avgDepth * 0.30)
-              : (0.35 + avgDepth * 0.25);
+              ? (0.35 + avgDepth * 0.40)
+              : (0.50 + avgDepth * 0.30);
             ctx.beginPath();
             ctx.moveTo(pA.sx, pA.sy);
             ctx.lineTo(pB.sx, pB.sy);
             ctx.strokeStyle = isDark
-              ? `rgba(30,220,245,${Math.min(alpha, 0.85).toFixed(2)})`
-              : `rgba(180,210,140,${Math.min(alpha, 0.85).toFixed(2)})`;
-            ctx.lineWidth = 0.8 * DPR;
+              ? `rgba(0,245,255,${Math.min(alpha, 0.95).toFixed(2)})`
+              : `rgba(11,45,91,${Math.min(alpha, 0.95).toFixed(2)})`;
+            ctx.lineWidth = 1.0 * DPR;
             ctx.stroke();
           }
         }
       }
-      ctx.restore();
 
       // ── Listing markers ──────────────────────────────────────────
       const lm = listingsRef.current;

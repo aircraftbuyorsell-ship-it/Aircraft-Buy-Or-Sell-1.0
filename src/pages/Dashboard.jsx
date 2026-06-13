@@ -13,6 +13,7 @@ import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
+import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 
 // ─── Animated neon line SVG ─────────────────────────────────────
 function FlowRibbon({ className = "", isDark = true }) {
@@ -331,6 +332,11 @@ export default function Dashboard() {
             </div>
           </div>
         </HudPanel>
+      </section>
+
+      {/* SUBSCRIPTION STATUS */}
+      <section className="px-4 md:px-8 pt-2 pb-4">
+        <SubscriptionBadge />
       </section>
 
       {/* ATI TOOLS */}

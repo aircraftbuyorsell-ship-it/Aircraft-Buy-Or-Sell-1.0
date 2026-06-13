@@ -29,9 +29,9 @@
     "69c813e095fa20392ebb9fb2"
   ],
   "model": "automatic",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "user",

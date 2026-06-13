@@ -55,24 +55,48 @@ function SystemStatus({ label = "OPTIMAL", isDark = true }) {
   );
 }
 
-// ─── HUD Panel ───────────────────────────────────────────────────
+// ─── HUD Panel — frosted glass with specular rim (ref: glass HUD style) ───
 function HudPanel({ children, className = "", accent = false, style = {}, isDark = true }) {
   const bg = isDark
-    ? (accent ? "linear-gradient(135deg, rgba(0,245,255,0.08), rgba(122,0,255,0.06))" : "rgba(13,20,50,0.70)")
-    : (accent ? "linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.04))" : "rgba(255,255,255,0.85)");
+    ? (accent
+        ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(40,70,100,0.10) 40%, rgba(0,245,255,0.05) 100%)"
+        : "linear-gradient(150deg, rgba(110,140,175,0.12) 0%, rgba(25,45,75,0.55) 45%, rgba(15,30,55,0.65) 100%)")
+    : (accent
+        ? "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,235,248,0.70) 55%, rgba(210,228,245,0.60) 100%)"
+        : "linear-gradient(150deg, rgba(255,255,255,0.90) 0%, rgba(238,244,252,0.78) 60%, rgba(228,238,250,0.70) 100%)");
   const border = isDark
-    ? `1px solid ${accent ? "rgba(0,245,255,0.30)" : "rgba(0,245,255,0.12)"}`
-    : `1px solid ${accent ? "rgba(37,99,235,0.20)" : "rgba(0,0,0,0.06)"}`;
+    ? `1px solid ${accent ? "rgba(140,230,245,0.40)" : "rgba(150,200,225,0.22)"}`
+    : `1px solid ${accent ? "rgba(120,170,220,0.45)" : "rgba(140,170,205,0.30)"}`;
   const shadow = isDark
-    ? (accent ? "0 0 40px rgba(0,245,255,0.08), inset 0 1px 0 rgba(0,245,255,0.15)" : "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,245,255,0.08)")
-    : (accent ? "0 4px 20px rgba(37,99,235,0.06), inset 0 1px 0 rgba(255,255,255,0.90)" : "0 2px 12px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.90)");
+    ? (accent
+        ? "0 0 44px rgba(0,245,255,0.10), 0 24px 60px rgba(0,0,0,0.55), inset 0 1px 1px rgba(220,250,255,0.35), inset 0 -1px 1px rgba(0,245,255,0.08)"
+        : "0 24px 60px rgba(0,0,0,0.50), inset 0 1px 1px rgba(200,235,250,0.25), inset 0 -1px 1px rgba(120,180,210,0.06)")
+    : (accent
+        ? "0 8px 32px rgba(70,110,160,0.14), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.25)"
+        : "0 6px 24px rgba(70,110,160,0.10), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.20)");
   const topLine = isDark
-    ? "linear-gradient(90deg, transparent, rgba(0,245,255,0.4), transparent)"
-    : "linear-gradient(90deg, transparent, rgba(37,99,235,0.15), transparent)";
+    ? "linear-gradient(90deg, transparent 5%, rgba(230,252,255,0.65) 30%, rgba(0,245,255,0.50) 60%, transparent 95%)"
+    : "linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 30%, rgba(160,200,240,0.60) 60%, transparent 95%)";
   return (
     <div className={`relative rounded-2xl overflow-hidden ${className}`}
-      style={{ background: bg, backdropFilter: "blur(24px) saturate(160%)", WebkitBackdropFilter: "blur(24px) saturate(160%)", border, boxShadow: shadow, ...style }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: topLine, pointerEvents: "none" }} />
+      style={{ background: bg, backdropFilter: "blur(28px) saturate(170%)", WebkitBackdropFilter: "blur(28px) saturate(170%)", border, boxShadow: shadow, ...style }}>
+      {/* Specular top rim */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1.5px", background: topLine, pointerEvents: "none", zIndex: 1 }} />
+      {/* Diagonal glass sheen */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: isDark
+          ? "linear-gradient(115deg, rgba(210,240,250,0.10) 0%, rgba(210,240,250,0.03) 25%, transparent 45%)"
+          : "linear-gradient(115deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.25) 25%, transparent 45%)",
+      }} />
+      {/* Corner glint */}
+      <div style={{
+        position: "absolute", top: "-20px", left: "8%", width: "90px", height: "40px", pointerEvents: "none",
+        background: isDark
+          ? "radial-gradient(ellipse at center, rgba(230,252,255,0.22) 0%, transparent 70%)"
+          : "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, transparent 70%)",
+        filter: "blur(4px)",
+      }} />
       {children}
     </div>
   );
@@ -229,14 +253,25 @@ export default function Dashboard() {
             ].map((m) => (
               <Link key={m.n} to={m.link}>
                 <div
-                  className="p-2.5 rounded-xl hover:scale-[1.03] transition-transform cursor-pointer h-full flex flex-col items-center gap-1 text-center"
+                  className="relative overflow-hidden p-2.5 rounded-xl hover:scale-[1.03] transition-transform cursor-pointer h-full flex flex-col items-center gap-1 text-center"
                   style={{
-                    background: isDark ? "rgba(13,20,50,0.45)" : "rgba(255,255,255,0.40)",
-                    backdropFilter: "blur(12px) saturate(140%)",
-                    WebkitBackdropFilter: "blur(12px) saturate(140%)",
-                    border: isDark ? `1px solid ${m.color}25` : `1px solid ${m.color}18`,
+                    background: isDark
+                      ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(20,40,70,0.50) 60%)"
+                      : "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,238,250,0.60) 60%)",
+                    backdropFilter: "blur(16px) saturate(160%)",
+                    WebkitBackdropFilter: "blur(16px) saturate(160%)",
+                    border: isDark ? `1px solid ${m.color}35` : `1px solid ${m.color}28`,
+                    boxShadow: isDark
+                      ? `inset 0 1px 1px rgba(220,250,255,0.30), 0 8px 24px rgba(0,0,0,0.35)`
+                      : `inset 0 1.5px 1px rgba(255,255,255,1), 0 4px 16px rgba(70,110,160,0.10)`,
                   }}
                 >
+                  <div style={{
+                    position: "absolute", inset: 0, pointerEvents: "none",
+                    background: isDark
+                      ? "linear-gradient(115deg, rgba(210,240,250,0.12) 0%, transparent 40%)"
+                      : "linear-gradient(115deg, rgba(255,255,255,0.85) 0%, transparent 40%)",
+                  }} />
                   <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: m.color }}>{m.label}</span>
                   <span className="text-xl font-black leading-none" style={{ color: textColor }}>{m.metric}</span>
                   <span className="text-[9px] leading-tight" style={{ color: mutedColor }}>{m.sub}</span>

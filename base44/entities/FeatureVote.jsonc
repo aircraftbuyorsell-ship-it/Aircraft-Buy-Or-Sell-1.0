@@ -27,7 +27,18 @@
         }
       }
     },
-    "update": {},
+    "update": {
+      "$or": [
+        {
+          "data.voter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "delete": {
       "data.voter_email": "{{user.email}}"
     }

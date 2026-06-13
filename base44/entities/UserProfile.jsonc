@@ -145,9 +145,6 @@
           "data.user_email": "{{user.email}}"
         },
         {
-          "data.status": "active"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }

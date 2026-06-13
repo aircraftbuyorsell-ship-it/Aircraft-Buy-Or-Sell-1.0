@@ -68,7 +68,7 @@
           "data.status": "approved"
         },
         {
-          "created_by": "{{user.email}}"
+          "data.reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -80,7 +80,7 @@
     "update": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -92,7 +92,7 @@
     "delete": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {

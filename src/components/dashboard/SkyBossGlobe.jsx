@@ -31,6 +31,26 @@ const REG_PREFIX_MAP = {
   "VN": [14, 108], "HB": [47, 8],
 };
 
+// Commercial airliner types to exclude from live traffic visualization
+const COMMERCIAL_AIRLINER_TYPES = new Set([
+  // Boeing
+  "B731","B732","B733","B734","B735","B736","B737","B738","B739",
+  "B73H","B73G","B73W","B74D","B741","B742","B743","B744","B748",
+  "B752","B753","B762","B763","B764","B772","B773","B77L","B77W",
+  "B788","B789","B78X",
+  // Airbus
+  "A318","A319","A320","A321","A32N","A32Q",
+  "A332","A333","A338","A339","A342","A343","A345","A346",
+  "A359","A35K","A388",
+  // Regional / commercial turboprops & jets
+  "E170","E175","E190","E195","E290","E295",
+  "CRJ1","CRJ2","CRJ7","CRJ9","CRJX",
+  "DH8A","DH8B","DH8C","DH8D","AT43","AT44","AT45","AT46","AT72","AT73","AT75","AT76",
+  "MD11","MD80","MD81","MD82","MD83","MD87","MD88","MD90",
+  "DC10","DC85","DC86","DC87","DC93","DC94","DC95",
+  "F100","F70","RJ85","RJ1H","BA46",
+]);
+
 function listingToLatLon(listing, index) {
   if (listing.registration) {
     const reg = listing.registration.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -192,6 +212,8 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const pos = [], meta = [];
     for (const ac of aircraft) {
       if (ac.latitude == null || ac.longitude == null) continue;
+      // Filter out commercial airliners
+      if (ac.aircraft_type && COMMERCIAL_AIRLINER_TYPES.has(ac.aircraft_type.toUpperCase())) continue;
       const altM = ac.baro_altitude || 0;
       const v = latLonToVec3(ac.latitude, ac.longitude, 1.012 + Math.min(altM, 14000) / 6371000 * 22);
       pos.push(v.x, v.y, v.z);

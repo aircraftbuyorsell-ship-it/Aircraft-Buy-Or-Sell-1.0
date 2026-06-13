@@ -181,7 +181,7 @@ export default function Dashboard() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [trafficSearch, setTrafficSearch] = useState("");
   const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
-  const [trafficView, setTrafficView] = useState("2d"); // "2d" | "3d"
+  const [trafficView, setTrafficView] = useState("3d"); // "2d" | "3d"
   const textColor = isDark ? "#ffffff" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
   const subtleColor = isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)";
@@ -282,13 +282,13 @@ export default function Dashboard() {
 
             {/* View content — 2D map or 3D globe */}
             <div className="flex-1 relative rounded-2xl overflow-hidden" style={{ 
-              minHeight: "520px",
+              minHeight: "560px",
               background: trafficView === "3d" ? (isDark ? "#0A081E" : "#e8ecf4") : "transparent",
               border: trafficView === "3d" 
-                ? (isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(0,0,0,0.08)") 
+                ? (isDark ? "1px solid rgba(0,245,255,0.12)" : "1px solid rgba(0,0,0,0.06)") 
                 : "none",
               boxShadow: trafficView === "3d"
-                ? (isDark ? "0 12px 40px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.06)")
+                ? (isDark ? "0 24px 80px rgba(0,0,0,0.5), 0 0 60px rgba(0,245,255,0.06)" : "0 8px 40px rgba(0,0,0,0.08)")
                 : "none"
             }}>
               {trafficView === "2d" ? (

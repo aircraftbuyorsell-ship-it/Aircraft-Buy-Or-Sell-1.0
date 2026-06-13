@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
   CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck
@@ -40,8 +39,7 @@ function Card({ listing: l }) {
   const deal = dealStyle(l.deal_label);
   const isBelow = l.discount_pct != null && l.discount_pct >= 0;
   const photo = l.photo_url || l.image_url || l.cover_image || l.images?.[0] || l.image_attachments?.[0];
-  const safeMake = cleanAircraftMake(l.make);
-  const aircraftTitle = `${l.year || ""} ${safeMake} ${l.model || ""}`.trim() || "Aircraft";
+  const aircraftTitle = `${l.year || ""} ${l.make || ""} ${l.model || ""}`.trim() || "Aircraft";
   const accessAllowed = l.confidential_access || l.is_owner || l.is_operator || l.has_loi;
   const fmtMoney = (v) => v ? `$${Number(v).toLocaleString()}` : "On request";
   const fmtHours = (v) => v ? `${Number(v).toLocaleString()} h` : "—";

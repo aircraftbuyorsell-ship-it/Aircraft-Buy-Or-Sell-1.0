@@ -186,7 +186,7 @@ export default function Dashboard() {
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
-    queryFn: () => base44.entities.AircraftListing.filter({ status: "active" })
+    queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 1000)
   });
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],

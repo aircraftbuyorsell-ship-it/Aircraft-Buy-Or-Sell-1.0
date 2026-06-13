@@ -218,7 +218,7 @@ export default function Listings() {
 
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ["listings-public"],
-    queryFn: () => base44.entities.AircraftListing.filter({ status: "active", visibility: "public" }, "-ati_score", 100),
+    queryFn: () => base44.entities.AircraftListing.filter({ status: "active", visibility: "public" }, "-ati_score", 1000),
   });
 
   const { distance, pulling, refreshing } = usePullToRefresh({ onRefresh: () => refetch() });

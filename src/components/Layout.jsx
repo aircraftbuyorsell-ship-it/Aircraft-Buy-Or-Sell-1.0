@@ -187,7 +187,7 @@ export default function Layout() {
             style={{ background: "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: "0 2px 12px rgba(11,45,91,0.35)" }}>
               <Plane className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-black text-sm tracking-[-0.04em] hidden sm:block"
+            <span className="font-black text-sm tracking-[-0.04em] hidden sm:block bg-[hsl(var(--background))] [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif] text-[hsl(var(--foreground))] opacity-45"
             style={{
               background: isDark ? "linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)" : "linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"

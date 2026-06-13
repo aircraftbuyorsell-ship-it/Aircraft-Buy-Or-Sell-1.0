@@ -1,4 +1,5 @@
 import { X, ExternalLink, CheckCircle2, ArrowUpRight, UserPlus, TrendingDown, TrendingUp, Zap } from "lucide-react";
+import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddLeadModal from "@/components/leads/AddLeadModal";
@@ -69,7 +70,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 <div className="min-w-0 flex-1">
                   <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.2em] font-bold">ATI Score Card</p>
                   <h2 className="text-white font-black text-xl leading-tight mt-0.5 truncate">
-                    {l.year} {l.make} {l.model}
+                    {l.year} {cleanAircraftMake(l.make)} {l.model}
                   </h2>
                   <p className="text-white/50 font-mono text-[11px] mt-0.5">{l.registration || "—"}</p>
                 </div>

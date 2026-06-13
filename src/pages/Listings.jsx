@@ -17,6 +17,7 @@ import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
 import SwipeDeck from "@/components/listings/SwipeCard";
+import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -92,7 +93,7 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
       <div className="flex-1 min-w-0" onClick={() => !selected && onClick(listing)}>
         <div className="flex flex-wrap items-center gap-2 mb-1.5">
           <p className="text-[13px] font-black text-[#1A1814] tracking-tight">
-            {listing.year && `${listing.year} `}{listing.make} {listing.model}
+            {listing.year && `${listing.year} `}{cleanAircraftMake(listing.make)} {listing.model}
           </p>
           {listing.registration && (
             <span className="text-[10px] text-[#6B6560] font-mono bg-[#F0EDE6] px-2 py-0.5 rounded-md border border-black/[0.05]">

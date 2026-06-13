@@ -221,16 +221,7 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.issuer_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "data.issuer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
@@ -248,6 +239,15 @@
         },
         {
           "data.distribution_owner_email": "{{user.email}}"
+        },
+        {
+          "data.status": {
+            "$in": [
+              "issued",
+              "active",
+              "shared"
+            ]
+          }
         },
         {
           "user_condition": {

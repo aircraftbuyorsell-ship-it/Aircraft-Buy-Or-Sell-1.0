@@ -82,9 +82,7 @@
   "rls": {
     "create": {
       "user_condition": {
-        "id": {
-          "$exists": true
-        }
+        "role": "admin"
       }
     },
     "read": {

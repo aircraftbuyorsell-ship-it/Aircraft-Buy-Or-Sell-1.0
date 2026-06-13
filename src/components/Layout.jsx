@@ -169,31 +169,19 @@ export default function Layout() {
             </button>
           }
 
-          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:scale-[1.02] active:scale-95 pl-1.5 pr-3 py-1 rounded-full"
-          style={isDark ? {
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(16px) saturate(160%)",
-            WebkitBackdropFilter: "blur(16px) saturate(160%)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)"
-          } : {
-            background: "rgba(255,255,255,0.75)",
-            backdropFilter: "blur(16px) saturate(160%)",
-            WebkitBackdropFilter: "blur(16px) saturate(160%)",
-            border: "1px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.90)"
-          }}>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: "0 2px 12px rgba(11,45,91,0.35)" }}>
-              <Plane className="w-3.5 h-3.5 text-white" />
+          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 px-1 group">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
+            style={{ background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(11,45,91,0.30)", border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(37,99,235,0.20)" }}>
+              <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
             </div>
-            <span className="font-black text-sm tracking-[-0.04em] hidden sm:block bg-[hsl(var(--background))] [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif] text-[hsl(var(--foreground))] opacity-45"
-            style={{
-              background: isDark ? "linear-gradient(135deg,#00f5ff 0%,#7a00ff 100%)" : "linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-            }}>
-              ABOS MarketSpace
-            </span>
+            <div className="hidden sm:flex flex-col leading-none">
+              <span className="font-black text-[13px] tracking-[-0.03em]"
+              style={{
+                background: isDark ? "linear-gradient(135deg,#00f5ff 20%,#7a00ff 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+              }}>ABOS</span>
+              <span className="text-[9px] font-semibold tracking-[0.12em] uppercase" style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.40)" }}>MarketSpace</span>
+            </div>
           </Link>
 
           <GlobalSearch />

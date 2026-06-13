@@ -13,7 +13,7 @@ const REGIONS = [
   { key: "global", label: "Global", lamin: -60, lomin: -130, lamax: 72, lomax: 50 },
 ];
 
-export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount, listingCount, isLoading }) {
+export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount, listingCount, isLoading, compact }) {
   const isDark = useTheme();
   const [region, setRegion] = useState("eu");
   const [search, setSearch] = useState("");
@@ -38,6 +38,38 @@ export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount
     if (onSearch) onSearch("");
   };
 
+  // ─── Compact inline mode (used in toggle bar) ───
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1.5 pointer-events-auto">
+        <div className="relative">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search N-number, ICAO…"
+            className="w-[160px] text-[10px] px-2 py-1 rounded-full bg-white/5 border border-white/10 outline-none font-mono"
+            style={{ color: isDark ? "#fff" : "#1e293b" }}
+          />
+          {search && (
+            <button onClick={clearSearch} className="absolute right-2 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <button
+          onClick={onRefresh}
+          disabled={isLoading}
+          className="p-1 rounded-full text-white/70 hover:text-white transition-colors"
+          style={{ background: `${accentCyan}10`, border: `1px solid ${accentCyan}20` }}
+        >
+          {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" style={{ color: accentCyan }} />}
+        </button>
+      </div>
+    );
+  }
+
+  // ─── Full overlay mode (default) ───
   return (
     <div className="absolute top-3 left-3 z-10 flex flex-col gap-2 pointer-events-auto" style={{ maxWidth: 260 }}>
       {/* Main control panel */}

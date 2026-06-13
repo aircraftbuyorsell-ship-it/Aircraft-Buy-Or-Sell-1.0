@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
   ArrowRight, CheckCircle2, Users,
-  ChevronUp, ChevronDown, Lock, Zap, FileText, Globe
+  ChevronUp, ChevronDown, Lock, Zap, FileText, Globe, Map
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -181,6 +181,7 @@ export default function Dashboard() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [trafficSearch, setTrafficSearch] = useState("");
   const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
+  const [trafficView, setTrafficView] = useState("2d"); // "2d" | "3d"
   const textColor = isDark ? "#ffffff" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
   const subtleColor = isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)";
@@ -230,44 +231,85 @@ export default function Dashboard() {
       </section>
 
       {/* ══════════════════════════════════════════════
-          MAIN GRID — Traffic Map (left) + Globe Sidebar (right)
+          MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar
       ══════════════════════════════════════════════ */}
       <section className="px-4 md:px-8 pb-4">
         <div className="grid lg:grid-cols-[1fr_380px] gap-4">
           
-          {/* LEFT — Traffic Map (primary) */}
-          <div className="min-h-0">
-            <TrafficMapSection
-              key={trafficRefreshKey}
-              globalSearch={trafficSearch}
-              onClearSearch={() => setTrafficSearch("")}
-            />
-          </div>
-
-          {/* RIGHT — Globe sidebar + metric stack */}
-          <div className="flex flex-col gap-3">
-            {/* Globe panel */}
-            <div className="relative rounded-2xl overflow-hidden" 
-              style={{ 
-                height: "340px", 
-                background: isDark ? "#0A081E" : "#e8ecf4",
-                border: isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(0,0,0,0.08)",
-                boxShadow: isDark ? "0 12px 40px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.06)"
+          {/* LEFT — Unified Traffic Panel with 2D/3D toggle */}
+          <div className="min-h-0 flex flex-col">
+            {/* View toggle bar */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="glass-pill flex items-center p-0.5 gap-0.5" style={{
+                background: isDark ? "rgba(122,0,255,0.06)" : "rgba(0,0,0,0.04)",
+                border: isDark ? "1px solid rgba(0,245,255,0.12)" : "1px solid rgba(0,0,0,0.08)"
               }}>
-              <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+                <button
+                  onClick={() => setTrafficView("2d")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all"
+                  style={{
+                    background: trafficView === "2d" 
+                      ? (isDark ? "rgba(0,245,255,0.15)" : "rgba(37,99,235,0.12)")
+                      : "transparent",
+                    color: trafficView === "2d" 
+                      ? (isDark ? "#00f5ff" : "#2563eb")
+                      : (isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)")
+                  }}>
+                  <Map className="w-3 h-3" /> 2D Map
+                </button>
+                <button
+                  onClick={() => setTrafficView("3d")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all"
+                  style={{
+                    background: trafficView === "3d"
+                      ? (isDark ? "rgba(0,245,255,0.15)" : "rgba(37,99,235,0.12)")
+                      : "transparent",
+                    color: trafficView === "3d"
+                      ? (isDark ? "#00f5ff" : "#2563eb")
+                      : (isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)")
+                  }}>
+                  <Globe className="w-3 h-3" /> 3D Globe
+                </button>
+              </div>
+              <div className="flex-1" />
               <GlobeTrafficControls
                 onSearch={(q) => setTrafficSearch(q)}
                 onRefresh={() => setTrafficRefreshKey(k => k + 1)}
                 listingCount={listings.length}
+                compact
               />
             </div>
 
+            {/* View content — 2D map or 3D globe */}
+            <div className="flex-1 relative rounded-2xl overflow-hidden" style={{ 
+              minHeight: "520px",
+              background: trafficView === "3d" ? (isDark ? "#0A081E" : "#e8ecf4") : "transparent",
+              border: trafficView === "3d" 
+                ? (isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(0,0,0,0.08)") 
+                : "none",
+              boxShadow: trafficView === "3d"
+                ? (isDark ? "0 12px 40px rgba(0,0,0,0.4)" : "0 4px 20px rgba(0,0,0,0.06)")
+                : "none"
+            }}>
+              {trafficView === "2d" ? (
+                <TrafficMapSection
+                  key={trafficRefreshKey}
+                  globalSearch={trafficSearch}
+                  onClearSearch={() => setTrafficSearch("")}
+                />
+              ) : (
+                <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT — Metric sidebar */}
+          <div className="flex flex-col gap-3">
             {/* Quick-link pills */}
             <div className="flex flex-wrap gap-1.5">
               {[
                 { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
                 { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
-                { label: "SkyBoss 3D", icon: Globe, link: "/skyboss", color: isDark ? "#00f5ff" : "#0B2D5B" },
                 { label: "Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
               ].map((cta) => (
                 <Link key={cta.label} to={cta.link}

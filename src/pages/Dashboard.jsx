@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
@@ -14,6 +14,8 @@ import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
+import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
+import TrafficMapSection from "@/components/dashboard/TrafficMapSection";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -177,6 +179,8 @@ function SectionHeader({ overline, title, isDark = true }) {
 export default function Dashboard() {
   const isDark = useTheme();
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [trafficSearch, setTrafficSearch] = useState("");
+  const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
   const textColor = isDark ? "#ffffff" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
   const subtleColor = isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)";
@@ -221,6 +225,11 @@ export default function Dashboard() {
         )}
         <div className="absolute inset-0">
           <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+          <GlobeTrafficControls
+            onSearch={(q) => setTrafficSearch(q)}
+            onRefresh={() => setTrafficRefreshKey(k => k + 1)}
+            listingCount={listings.length}
+          />
         </div>
 
         <div className="relative px-4 md:px-8 pt-8 pb-8">
@@ -337,6 +346,15 @@ export default function Dashboard() {
       {/* SUBSCRIPTION STATUS */}
       <section className="px-4 md:px-8 pt-2 pb-4">
         <SubscriptionBadge />
+      </section>
+
+      {/* GLOBAL TRAFFIC MAP */}
+      <section className="px-4 md:px-8 py-4">
+        <TrafficMapSection
+          key={trafficRefreshKey}
+          globalSearch={trafficSearch}
+          onClearSearch={() => setTrafficSearch("")}
+        />
       </section>
 
       {/* ATI TOOLS */}

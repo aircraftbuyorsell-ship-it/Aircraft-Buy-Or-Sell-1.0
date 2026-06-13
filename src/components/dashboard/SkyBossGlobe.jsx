@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
+import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
+import {
+  Loader2, Sparkles, CheckCircle2, AlertCircle, X
+} from "lucide-react";
 
 const EARTH_DARK = "https://unpkg.com/three-globe/example/img/earth-dark.jpg";
 const EARTH_BLUE = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
-
-const TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
-const STATES_URL = "https://opensky-network.org/api/states/all?extended=1";
-
-const POS_SRC = { 0: "ADS-B", 1: "ASTERIX", 2: "MLAT", 3: "FLARM" };
 
 // Registration prefix → country → coordinates
 const REG_PREFIX_MAP = {
@@ -54,9 +53,13 @@ function atiColor(score) {
   return [1.0, 0.3, 0.43];
 }
 
-function altColor(altM) {
-  const t = Math.max(0, Math.min(1, (altM || 0) / 12000));
-  return [0.83 + (0.0 - 0.83) * t, 0.63 + (0.96 - 0.63) * t, 0.09 + (1.0 - 0.09) * t];
+function altColorM(altM) {
+  if (altM == null) return "#999";
+  const ft = altM * 3.28084;
+  if (ft < 5000) return "#ef4444";
+  if (ft < 15000) return "#f59e0b";
+  if (ft < 30000) return "#22c55e";
+  return "#3b82f6";
 }
 
 function latLonToVec3(lat, lon, r) {
@@ -80,13 +83,10 @@ function dotTexture() {
   return new THREE.CanvasTexture(cv);
 }
 
-// ─── Neon-blue aircraft silhouette texture (top-down view) ───
 function aircraftSilhouetteTexture() {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 96;
   const ctx = cv.getContext("2d");
-
-  // Outer glow ring — neon cyan bloom
   const glow = ctx.createRadialGradient(48, 48, 4, 48, 48, 42);
   glow.addColorStop(0, "rgba(0, 220, 255, 0.95)");
   glow.addColorStop(0.25, "rgba(0, 180, 255, 0.55)");
@@ -96,56 +96,23 @@ function aircraftSilhouetteTexture() {
   ctx.beginPath();
   ctx.arc(48, 48, 42, 0, Math.PI * 2);
   ctx.fill();
-
-  // Bright white core — fuselage + wings (aircraft pointing UP)
   ctx.fillStyle = "#ffffff";
-  // Fuselage (nose at top, tail at bottom)
   ctx.fillRect(45, 10, 6, 66);
-  // Swept wings
   ctx.beginPath();
-  ctx.moveTo(48, 26);
-  ctx.lineTo(18, 44);
-  ctx.lineTo(20, 48);
-  ctx.lineTo(48, 32);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(48, 26); ctx.lineTo(18, 44); ctx.lineTo(20, 48); ctx.lineTo(48, 32); ctx.closePath(); ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 26);
-  ctx.lineTo(78, 44);
-  ctx.lineTo(76, 48);
-  ctx.lineTo(48, 32);
-  ctx.closePath();
-  ctx.fill();
-  // Horizontal stabilizer
+  ctx.moveTo(48, 26); ctx.lineTo(78, 44); ctx.lineTo(76, 48); ctx.lineTo(48, 32); ctx.closePath(); ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 56);
-  ctx.lineTo(26, 68);
-  ctx.lineTo(28, 72);
-  ctx.lineTo(48, 62);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(48, 56); ctx.lineTo(26, 68); ctx.lineTo(28, 72); ctx.lineTo(48, 62); ctx.closePath(); ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 56);
-  ctx.lineTo(70, 68);
-  ctx.lineTo(68, 72);
-  ctx.lineTo(48, 62);
-  ctx.closePath();
-  ctx.fill();
-
-  // Neon cyan edge highlight
+  ctx.moveTo(48, 56); ctx.lineTo(70, 68); ctx.lineTo(68, 72); ctx.lineTo(48, 62); ctx.closePath(); ctx.fill();
   ctx.strokeStyle = "rgba(0, 220, 255, 0.8)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(48, 10);
-  ctx.lineTo(48, 76);
-  ctx.moveTo(18, 44);
-  ctx.lineTo(48, 28);
-  ctx.lineTo(78, 44);
-  ctx.moveTo(26, 68);
-  ctx.lineTo(48, 58);
-  ctx.lineTo(70, 68);
+  ctx.moveTo(48, 10); ctx.lineTo(48, 76);
+  ctx.moveTo(18, 44); ctx.lineTo(48, 28); ctx.lineTo(78, 44);
+  ctx.moveTo(26, 68); ctx.lineTo(48, 58); ctx.lineTo(70, 68);
   ctx.stroke();
-
   return new THREE.CanvasTexture(cv);
 }
 
@@ -185,58 +152,50 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const rafRef = useRef(null);
   const timerRef = useRef(null);
   const loadingRef = useRef(false);
-  const tokenRef = useRef(null);
-  const tokenExpRef = useRef(0);
   const listingsRef = useRef(listings);
 
   const [trafficCount, setTrafficCount] = useState(0);
-  const [trafficStatus, setTrafficStatus] = useState("idle"); // idle | loading | live | error
+  const [trafficStatus, setTrafficStatus] = useState("idle");
   const [detail, setDetail] = useState(null);
+  const [scoringMap, setScoringMap] = useState({});
 
   useEffect(() => { listingsRef.current = listings; }, [listings]);
 
-  const fetchStates = useCallback(async () => {
+  // ─── Fetch traffic from cachedTraffic (adsb.lol) ───
+  const fetchTraffic = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
     setTrafficStatus("loading");
     try {
-      const cid = "aircraftbuyorsell@gmail.com-api-client";
-      const csec = "IEP2aVXNWl5znURwv52525Vz9SxpA7ea";
-      if ((!tokenRef.current || Date.now() >= tokenExpRef.current) && cid && csec) {
-        const body = new URLSearchParams({ grant_type: "client_credentials", client_id: cid, client_secret: csec });
-        const res = await fetch(TOKEN_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() });
-        if (res.ok) {
-          const d = await res.json();
-          tokenRef.current = d.access_token;
-          tokenExpRef.current = Date.now() + (d.expires_in - 30) * 1000;
-        }
-      }
-      let url = STATES_URL + "&lamin=34&lomin=-25&lamax=72&lomax=45"; // Europe default
-      const opt = tokenRef.current ? { headers: { Authorization: `Bearer ${tokenRef.current}` } } : {};
-      const res = await fetch(url, opt);
-      if (res.status === 429) { setTrafficStatus("error"); console.warn("SkyBoss: OpenSky rate limited"); return; }
-      if (!res.ok) { setTrafficStatus("error"); console.warn("SkyBoss: OpenSky fetch failed", res.status); return; }
-      const data = await res.json();
-      renderToGlobe(data?.states || []);
+      const res = await base44.functions.invoke("cachedTraffic", {
+        region_key: "world",
+        region_label: "Global",
+        force_refresh: true,
+        limit: 1000,
+        allow_heavy: true,
+      });
+      const ac = res.data?.aircraft || [];
+      renderToGlobe(ac);
       setTrafficStatus("live");
     } catch (e) {
       setTrafficStatus("error");
-      console.warn("SkyBoss: OpenSky unreachable", e);
+      console.warn("SkyBoss: cachedTraffic fetch failed", e);
+    } finally {
+      loadingRef.current = false;
     }
-    finally { loadingRef.current = false; }
   }, []);
 
-  const renderToGlobe = useCallback((states) => {
+  // ─── Render traffic aircraft data to globe point cloud ───
+  const renderToGlobe = useCallback((aircraft) => {
     const acGeo = acGeoRef.current;
     if (!acGeo) return;
     const pos = [], meta = [];
-    for (let i = 0; i < states.length; i++) {
-      const s = states[i], lon = s[5], lat = s[6];
-      if (lat == null || lon == null) continue;
-      const altM = (s[13] != null ? s[13] : s[7]) || 0;
-      const v = latLonToVec3(lat, lon, 1.012 + Math.min(altM, 14000) / 6371000 * 22);
+    for (const ac of aircraft) {
+      if (ac.latitude == null || ac.longitude == null) continue;
+      const altM = ac.baro_altitude || 0;
+      const v = latLonToVec3(ac.latitude, ac.longitude, 1.012 + Math.min(altM, 14000) / 6371000 * 22);
       pos.push(v.x, v.y, v.z);
-      meta.push(s);
+      meta.push(ac);
     }
     acGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
     acGeo.attributes.position.needsUpdate = true;
@@ -244,7 +203,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     setTrafficCount(meta.length);
   }, []);
 
-  // Render ABOS listings onto globe
+  // ─── Render ABOS listings onto globe ───
   const renderListings = useCallback((listingsData) => {
     const lGeo = lGeoRef.current;
     if (!lGeo) return;
@@ -270,6 +229,33 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     renderListings(listings);
   }, [listings, renderListings]);
 
+  // ─── Handle scoring for N-registered aircraft ───
+  const handleScoreAircraft = useCallback(async (ac) => {
+    const reg = ac.registration || "";
+    const nNumber = reg.replace(/^N/i, "").trim();
+    if (!nNumber) return;
+    setScoringMap(prev => ({ ...prev, [ac.icao24]: "loading" }));
+    try {
+      const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: nNumber });
+      if (res.data?.listingId) {
+        setScoringMap(prev => ({
+          ...prev,
+          [ac.icao24]: {
+            status: "success",
+            listingId: res.data.listingId,
+            atiScore: res.data.atiScore,
+            cardCode: res.data.cardCode,
+          }
+        }));
+      } else {
+        setScoringMap(prev => ({ ...prev, [ac.icao24]: { status: "error", message: res.data?.error || "No data found" } }));
+      }
+    } catch (e) {
+      setScoringMap(prev => ({ ...prev, [ac.icao24]: { status: "error", message: e?.response?.data?.error || e.message || "Scoring failed" } }));
+    }
+  }, []);
+
+  // ─── Raycasting click ───
   const pick = useCallback((e) => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -306,7 +292,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     setDetail(null);
   }, [onSelectListing]);
 
-  // Setup Three.js
+  // ─── Three.js setup ───
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -358,8 +344,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     globe.add(atmo);
 
     // Lights
-    const ambBright = isDark ? 0.85 : 1.2;
-    scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0x8899bb, ambBright));
+    scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0x8899bb, isDark ? 0.85 : 1.2));
     const sun = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xffffff, isDark ? 0.9 : 1.2);
     sun.position.set(3, 1.5, 2.5);
     scene.add(sun);
@@ -420,7 +405,6 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     };
     loop();
 
-    // Resize
     const onResize = () => {
       const w = container.clientWidth, h = container.clientHeight;
       renderer.setSize(w, h, false);
@@ -429,7 +413,6 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     };
     window.addEventListener("resize", onResize);
 
-    // Pointer
     const onDown = (e) => {
       dragRef.current.active = true;
       dragRef.current.px = e.clientX;
@@ -479,60 +462,139 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
   // Auto-refresh traffic every 30s
   useEffect(() => {
-    fetchStates();
-    timerRef.current = setInterval(fetchStates, 30000);
+    fetchTraffic();
+    timerRef.current = setInterval(fetchTraffic, 30000);
     return () => clearInterval(timerRef.current);
-  }, [fetchStates]);
+  }, [fetchTraffic]);
+
+  const accentCyan = isDark ? "#00f5ff" : "#2563eb";
+  const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
+  const textColor = isDark ? "#fff" : "#1e293b";
 
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab" />
+
       {/* Traffic status badge */}
-      <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
-        style={{ color: isDark ? "#00f5ff" : "#0B2D5B" }}>
+      <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
+        style={{ color: accentCyan }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
           style={{
-            background: trafficStatus === "live" ? (isDark ? "#00f5ff" : "#2563eb") :
+            background: trafficStatus === "live" ? accentCyan :
                         trafficStatus === "loading" ? "#E8A83A" :
-                        trafficStatus === "error" ? "#ff4d6d" : (isDark ? "#888" : "#666"),
-            boxShadow: trafficStatus === "live" ? `0 0 6px ${isDark ? "#00f5ff" : "#2563eb"}` :
+                        trafficStatus === "error" ? "#ff4d6d" : "#888",
+            boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
                        trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
           }} />
-        {trafficStatus === "loading" ? "Fetching traffic…" :
-         trafficStatus === "error" ? "Traffic unavailable" :
+        {trafficStatus === "loading" ? "Fetching…" :
+         trafficStatus === "error" ? "Unavailable" :
          trafficStatus === "live" ? `${trafficCount.toLocaleString()} airborne` :
          "Connecting…"}
       </div>
+
       {/* Listing count badge */}
-      <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+      <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
         style={{ color: "#E8A83A" }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
-          style={{ background: "#E8A83A", boxShadow: `0 0 6px #E8A83A` }} />
+          style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
         {listings.length.toLocaleString()} listings
       </div>
-      {/* Detail popup */}
+
+      {/* ─── Detail popup (enhanced — matches 2D map popup) ─── */}
       {detail && (
-        <div className="absolute top-2 right-2 w-[240px] glass-card p-3 z-20">
-          <button onClick={() => setDetail(null)} className="absolute top-2 right-2 text-xs opacity-50 hover:opacity-100">✕</button>
-          {detail.type === "traffic" && (
-            <>
-              <h3 className="text-[11px] font-bold text-[#D4A017] tracking-wide">
-                {(detail.data[1] || "").trim() || "(no callsign)"}
-              </h3>
-              <table className="w-full mt-2 text-[10px]">
-                <tbody>
-                  {[
-                    ["ICAO24", (detail.data[0] || "—").toUpperCase()],
-                    ["Altitude", detail.data[13] != null ? `${Math.round(detail.data[13] * 3.281).toLocaleString()} ft` : detail.data[8] ? "on ground" : "—"],
-                    ["Speed", detail.data[9] != null ? `${Math.round(detail.data[9] * 1.944)} kts` : "—"],
-                    ["Heading", detail.data[10] != null ? `${Math.round(detail.data[10])}°` : "—"],
-                  ].map(([k, v]) => (
-                    <tr key={k}><td className="py-0.5 opacity-40">{k}</td><td className="py-0.5 text-right tabular-nums font-medium">{v}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
+        <div className="absolute top-3 right-3 z-20 glass-card p-4" style={{ width: 260, maxWidth: "calc(100% - 24px)" }}>
+          <button onClick={() => setDetail(null)} className="absolute top-2 right-2 opacity-40 hover:opacity-100 transition-opacity">
+            <X className="w-3.5 h-3.5" />
+          </button>
+
+          {detail.type === "traffic" && (() => {
+            const ac = detail.data;
+            const nReg = ac.registration || null;
+            const altFt = ac.baro_altitude != null ? Math.round(ac.baro_altitude * 3.28084) : null;
+            const speedKt = ac.velocity != null ? Math.round(ac.velocity * 1.94384) : null;
+            const vrateStr = ac.vertical_rate != null
+              ? (ac.vertical_rate > 0.5 ? `▲ ${Math.round(ac.vertical_rate * 196.85)} fpm` : ac.vertical_rate < -0.5 ? `▼ ${Math.round(Math.abs(ac.vertical_rate) * 196.85)} fpm` : "Level")
+              : "—";
+            const typeDisplay = ac.aircraft_type || null;
+            const onGround = ac.on_ground;
+
+            return (
+              <>
+                {/* Header */}
+                <div className="mb-3 pb-2.5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }}>
+                  <p className="text-[11px] font-black text-[#E8A83A] uppercase tracking-wide">
+                    {nReg || ac.callsign?.trim() || ac.icao24}
+                  </p>
+                  <p className="text-[8px] font-mono mt-0.5" style={{ color: mutedColor }}>
+                    ICAO: {ac.icao24} {ac.squawk ? `· SQWK ${ac.squawk}` : ""}
+                  </p>
+                  {typeDisplay && (
+                    <p className="text-[10px] font-black uppercase tracking-wide mt-1" style={{ color: accentCyan }}>
+                      {typeDisplay}
+                    </p>
+                  )}
+                  {onGround && (
+                    <span className="inline-block text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded mt-1"
+                      style={{ background: "rgba(255,77,109,0.12)", color: "#ff4d6d" }}>On Ground</span>
+                  )}
+                </div>
+
+                {/* Flight data grid */}
+                <div className="grid grid-cols-2 gap-1.5 mb-3 text-[10px]">
+                  <div><span style={{ color: mutedColor }}>Alt: </span><strong style={{ color: textColor }}>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>Speed: </span><strong style={{ color: textColor }}>{speedKt != null ? `${speedKt} kt` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>Hdg: </span><strong style={{ color: textColor }}>{ac.true_track != null ? `${Math.round(ac.true_track)}°` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>V/S: </span><strong style={{ color: textColor }}>{vrateStr}</strong></div>
+                </div>
+
+                {/* ABOS Listing match */}
+                {ac.listing && (
+                  <div className="rounded-lg p-2.5 mb-3" style={{
+                    background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.04)",
+                    border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.2)"}`
+                  }}>
+                    <p className="text-[7px] font-black uppercase tracking-[0.15em] text-[#D4A017] mb-1.5">ABOS Listing Match</p>
+                    <p className="text-[10px] font-black" style={{ color: textColor }}>
+                      {ac.listing.year || ""} {ac.listing.make || ""} {ac.listing.model || ""}
+                    </p>
+                    <div className="flex gap-3 mt-1.5 text-[9px]">
+                      {ac.listing.ati_score && <span style={{ color: mutedColor }}>ATI: <strong style={{ color: textColor }}>{ac.listing.ati_score}</strong></span>}
+                      {ac.listing.asking_price && <span style={{ color: mutedColor }}>$<strong style={{ color: textColor }}>{ac.listing.asking_price?.toLocaleString()}</strong></span>}
+                    </div>
+                  </div>
+                )}
+
+                {/* FAA Lookup button (N-registered, no listing) */}
+                {!ac.listing && nReg && /^N/i.test(nReg) && !scoringMap[ac.icao24] && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleScoreAircraft(ac); }}
+                    className="w-full rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-[10px] font-black text-white transition-all active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #0B2D5B, #1A4A8A)" }}
+                  >
+                    <Sparkles className="w-3 h-3" /> Look up FAA & Create ATI Card
+                  </button>
+                )}
+
+                {/* Scoring states */}
+                {scoringMap[ac.icao24]?.status === "loading" && (
+                  <div className="flex items-center gap-2 text-[10px] mt-2" style={{ color: mutedColor }}>
+                    <Loader2 className="w-3 h-3 animate-spin text-[#E8A83A]" /> Scoring…
+                  </div>
+                )}
+                {scoringMap[ac.icao24]?.status === "success" && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#22c55e] mt-2">
+                    <CheckCircle2 className="w-3 h-3" /> ATI Card created! Score: {scoringMap[ac.icao24].atiScore}
+                  </div>
+                )}
+                {scoringMap[ac.icao24]?.status === "error" && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#ff4d6d] mt-2">
+                    <AlertCircle className="w-3 h-3" /> {scoringMap[ac.icao24].message}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
           {detail.type === "listing" && (
             <>
               <h3 className="text-[11px] font-bold text-[#00f5ff] tracking-wide">

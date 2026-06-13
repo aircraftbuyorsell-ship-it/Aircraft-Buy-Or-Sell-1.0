@@ -14,6 +14,8 @@ import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
+import NotificationStack from "@/components/notifications/NotificationStack";
+import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
 // ─── Animated neon line SVG ─────────────────────────────────────
 function FlowRibbon({ className = "", isDark = true }) {
@@ -200,6 +202,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
+      <NotificationStack />
+      <NotificationCenter />
 
       {/* ══════════════════════════════════════════════
           HERO — GLOBE + FLOATING HUD PANELS

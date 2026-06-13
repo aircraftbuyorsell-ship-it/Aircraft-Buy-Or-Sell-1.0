@@ -80,6 +80,75 @@ function dotTexture() {
   return new THREE.CanvasTexture(cv);
 }
 
+// ─── Neon-blue aircraft silhouette texture (top-down view) ───
+function aircraftSilhouetteTexture() {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 96;
+  const ctx = cv.getContext("2d");
+
+  // Outer glow ring — neon cyan bloom
+  const glow = ctx.createRadialGradient(48, 48, 4, 48, 48, 42);
+  glow.addColorStop(0, "rgba(0, 220, 255, 0.95)");
+  glow.addColorStop(0.25, "rgba(0, 180, 255, 0.55)");
+  glow.addColorStop(0.55, "rgba(0, 100, 255, 0.18)");
+  glow.addColorStop(1, "rgba(0, 40, 200, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(48, 48, 42, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright white core — fuselage + wings (aircraft pointing UP)
+  ctx.fillStyle = "#ffffff";
+  // Fuselage (nose at top, tail at bottom)
+  ctx.fillRect(45, 10, 6, 66);
+  // Swept wings
+  ctx.beginPath();
+  ctx.moveTo(48, 26);
+  ctx.lineTo(18, 44);
+  ctx.lineTo(20, 48);
+  ctx.lineTo(48, 32);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(48, 26);
+  ctx.lineTo(78, 44);
+  ctx.lineTo(76, 48);
+  ctx.lineTo(48, 32);
+  ctx.closePath();
+  ctx.fill();
+  // Horizontal stabilizer
+  ctx.beginPath();
+  ctx.moveTo(48, 56);
+  ctx.lineTo(26, 68);
+  ctx.lineTo(28, 72);
+  ctx.lineTo(48, 62);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(48, 56);
+  ctx.lineTo(70, 68);
+  ctx.lineTo(68, 72);
+  ctx.lineTo(48, 62);
+  ctx.closePath();
+  ctx.fill();
+
+  // Neon cyan edge highlight
+  ctx.strokeStyle = "rgba(0, 220, 255, 0.8)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(48, 10);
+  ctx.lineTo(48, 76);
+  ctx.moveTo(18, 44);
+  ctx.lineTo(48, 28);
+  ctx.lineTo(78, 44);
+  ctx.moveTo(26, 68);
+  ctx.lineTo(48, 58);
+  ctx.lineTo(70, 68);
+  ctx.stroke();
+
+  return new THREE.CanvasTexture(cv);
+}
+
 function listingDotTexture(color) {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 64;
@@ -160,21 +229,17 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderToGlobe = useCallback((states) => {
     const acGeo = acGeoRef.current;
     if (!acGeo) return;
-    const pos = [], col = [], meta = [];
+    const pos = [], meta = [];
     for (let i = 0; i < states.length; i++) {
       const s = states[i], lon = s[5], lat = s[6];
       if (lat == null || lon == null) continue;
       const altM = (s[13] != null ? s[13] : s[7]) || 0;
       const v = latLonToVec3(lat, lon, 1.012 + Math.min(altM, 14000) / 6371000 * 22);
       pos.push(v.x, v.y, v.z);
-      const c = altColor(altM);
-      col.push(c[0], c[1], c[2]);
       meta.push(s);
     }
     acGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    acGeo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
     acGeo.attributes.position.needsUpdate = true;
-    acGeo.attributes.color.needsUpdate = true;
     metaRef.current = meta;
     setTrafficCount(meta.length);
   }, []);
@@ -316,9 +381,10 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const acGeo = new THREE.BufferGeometry();
     acGeoRef.current = acGeo;
     const acMat = new THREE.PointsMaterial({
-      size: 0.08,
-      map: dotTexture(),
-      vertexColors: true,
+      size: 0.12,
+      map: aircraftSilhouetteTexture(),
+      vertexColors: false,
+      color: 0x00d4ff,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,

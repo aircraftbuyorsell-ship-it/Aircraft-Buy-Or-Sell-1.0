@@ -274,25 +274,23 @@ export default function Layout() {
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         style={isDark ? {
-          background: "linear-gradient(160deg, rgba(13,15,43,0.94) 0%, rgba(8,8,24,0.98) 100%)",
-          backdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
-          WebkitBackdropFilter: "blur(64px) saturate(240%) brightness(0.85)",
-          borderRight: "1px solid rgba(0,245,255,0.08)",
-          boxShadow: "12px 0 80px rgba(0,0,0,0.7), 1px 0 0 rgba(0,245,255,0.05), inset -1px 0 0 rgba(122,0,255,0.06)"
+          background: "rgba(14,14,24,0.96)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
         } : {
-          background: "linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(248,250,255,0.98) 100%)",
-          backdropFilter: "blur(48px) saturate(160%)",
-          WebkitBackdropFilter: "blur(48px) saturate(160%)",
+          background: "rgba(255,255,255,0.96)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           borderRight: "1px solid rgba(0,0,0,0.06)",
-          boxShadow: "8px 0 40px rgba(0,0,0,0.06), inset -1px 0 0 rgba(0,0,0,0.03)"
         }}>
         
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: isDark ? "linear-gradient(90deg, transparent 0%, rgba(122,0,255,0.55) 30%, rgba(0,245,255,0.70) 65%, transparent 100%)" : "linear-gradient(90deg, transparent 0%, rgba(37,99,235,0.25) 30%, rgba(99,102,241,0.30) 65%, transparent 100%)" }} />
+        
 
         <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{ borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: "#D4A017" }}>Navigation</p>
-            <p className="text-[11px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)" }}>The Global Aircraft Identity & Sales Network</p>
+            <p className="text-[10px] font-semibold tracking-wide" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>Navigation</p>
+            <p className="text-[10px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(100,116,139,0.8)" }}>Global Aircraft Intelligence Network</p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -367,12 +365,12 @@ export default function Layout() {
         </TooltipProvider>
 
         <div className="px-4 py-4" style={{ borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
-          <div className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-          style={{ background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.16)" }}>
-            <div className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse shrink-0" />
+          <div className="flex items-center gap-2.5 rounded-lg px-3 py-2.5"
+          style={{ background: isDark ? "rgba(59,130,246,0.06)" : "rgba(37,99,235,0.04)", border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.1)"}` }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e] shrink-0" />
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: "#D4A017" }}>ABOS MarketSpace</p>
-              <p className="text-[9px] tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.30)" }}>Powered by IntraZone Intelligence · Live</p>
+              <p className="text-[10px] font-semibold" style={{ color: isDark ? "#f1f5f9" : "#1e293b" }}>ABOS MarketSpace</p>
+              <p className="text-[9px]" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(100,116,139,0.8)" }}>Live · All systems operational</p>
             </div>
           </div>
         </div>

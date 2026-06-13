@@ -20,89 +20,15 @@ import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
-// ─── Animated neon line SVG ─────────────────────────────────────
-function FlowRibbon({ className = "", isDark = true }) {
-  const c1 = isDark ? "rgba(0,245,255," : "rgba(37,99,235,";
-  const c2 = isDark ? "rgba(122,0,255," : "rgba(99,102,241,";
-  return (
-    <svg viewBox="0 0 600 120" className={`w-full ${className}`} preserveAspectRatio="none" style={{ filter: isDark ? "drop-shadow(0 0 8px rgba(0,245,255,0.5))" : "none" }}>
-      <defs>
-        <linearGradient id="ribGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={`${c1}0)`} />
-          <stop offset="30%" stopColor={`${c1}0.7)`} />
-          <stop offset="70%" stopColor={`${c2}0.7)`} />
-          <stop offset="100%" stopColor={`${c1}0)`} />
-        </linearGradient>
-        <linearGradient id="ribGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={`${c1}0)`} />
-          <stop offset="40%" stopColor={`${c1}0.4)`} />
-          <stop offset="60%" stopColor={`${c2}0.5)`} />
-          <stop offset="100%" stopColor={`${c1}0)`} />
-        </linearGradient>
-      </defs>
-      <path d="M0,60 C100,20 200,100 300,60 C400,20 500,80 600,60" stroke="url(#ribGrad)" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M0,70 C120,40 220,90 300,65 C380,40 480,90 600,70" stroke="url(#ribGrad2)" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6" />
-      <path d="M0,50 C80,70 180,30 300,55 C420,80 520,35 600,50" stroke="url(#ribGrad2)" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.4" />
-    </svg>
-  );
-}
-
-// ─── System Status Badge ─────────────────────────────────────────
-function SystemStatus({ label = "OPTIMAL", isDark = true }) {
-  const accentColor = isDark ? "#00f5ff" : "#2563eb";
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-[9px] uppercase tracking-[0.2em] font-semibold" style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>System Status</span>
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}30` }}>
-        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: accentColor, boxShadow: `0 0 6px ${accentColor}90` }} />
-        <span className="text-[9px] uppercase tracking-[0.15em] font-black" style={{ color: accentColor }}>{label}</span>
-      </div>
-    </div>
-  );
-}
-
-// ─── HUD Panel — frosted glass with specular rim (ref: glass HUD style) ───
-function HudPanel({ children, className = "", accent = false, style = {}, isDark = true }) {
-  const bg = isDark
-    ? (accent
-        ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(40,70,100,0.10) 40%, rgba(0,245,255,0.05) 100%)"
-        : "linear-gradient(150deg, rgba(110,140,175,0.12) 0%, rgba(25,45,75,0.55) 45%, rgba(15,30,55,0.65) 100%)")
-    : (accent
-        ? "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,235,248,0.70) 55%, rgba(210,228,245,0.60) 100%)"
-        : "linear-gradient(150deg, rgba(255,255,255,0.90) 0%, rgba(238,244,252,0.78) 60%, rgba(228,238,250,0.70) 100%)");
+// ─── Clean panel — minimal card with subtle border ────────────────
+function Panel({ children, className = "", accent = false, style = {}, isDark = true }) {
+  const bg = isDark ? "rgba(22,22,38,0.85)" : "#ffffff";
   const border = isDark
-    ? `1px solid ${accent ? "rgba(140,230,245,0.40)" : "rgba(150,200,225,0.22)"}`
-    : `1px solid ${accent ? "rgba(120,170,220,0.45)" : "rgba(140,170,205,0.30)"}`;
-  const shadow = isDark
-    ? (accent
-        ? "0 0 44px rgba(0,245,255,0.10), 0 24px 60px rgba(0,0,0,0.55), inset 0 1px 1px rgba(220,250,255,0.35), inset 0 -1px 1px rgba(0,245,255,0.08)"
-        : "0 24px 60px rgba(0,0,0,0.50), inset 0 1px 1px rgba(200,235,250,0.25), inset 0 -1px 1px rgba(120,180,210,0.06)")
-    : (accent
-        ? "0 8px 32px rgba(70,110,160,0.14), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.25)"
-        : "0 6px 24px rgba(70,110,160,0.10), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.20)");
-  const topLine = isDark
-    ? "linear-gradient(90deg, transparent 5%, rgba(230,252,255,0.65) 30%, rgba(0,245,255,0.50) 60%, transparent 95%)"
-    : "linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 30%, rgba(160,200,240,0.60) 60%, transparent 95%)";
+    ? `1px solid ${accent ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}`
+    : `1px solid ${accent ? "rgba(37,99,235,0.15)" : "rgba(0,0,0,0.06)"}`;
   return (
-    <div className={`relative rounded-2xl overflow-hidden ${className}`}
-      style={{ background: bg, backdropFilter: "blur(28px) saturate(170%)", WebkitBackdropFilter: "blur(28px) saturate(170%)", border, boxShadow: shadow, ...style }}>
-      {/* Specular top rim */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1.5px", background: topLine, pointerEvents: "none", zIndex: 1 }} />
-      {/* Diagonal glass sheen */}
-      <div style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        background: isDark
-          ? "linear-gradient(115deg, rgba(210,240,250,0.10) 0%, rgba(210,240,250,0.03) 25%, transparent 45%)"
-          : "linear-gradient(115deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.25) 25%, transparent 45%)",
-      }} />
-      {/* Corner glint */}
-      <div style={{
-        position: "absolute", top: "-20px", left: "8%", width: "90px", height: "40px", pointerEvents: "none",
-        background: isDark
-          ? "radial-gradient(ellipse at center, rgba(230,252,255,0.22) 0%, transparent 70%)"
-          : "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, transparent 70%)",
-        filter: "blur(4px)",
-      }} />
+    <div className={`rounded-xl ${className}`}
+      style={{ background: bg, border, boxShadow: isDark ? "0 1px 3px rgba(0,0,0,0.2)" : "0 1px 2px rgba(0,0,0,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -110,17 +36,17 @@ function HudPanel({ children, className = "", accent = false, style = {}, isDark
 
 // ─── Metric widget ───────────────────────────────────────────────
 function MetricWidget({ label, value, sub, delta, deltaUp, isDark = true }) {
-  const textColor = isDark ? "#ffffff" : "#1e293b";
-  const muted = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
-  const upColor = isDark ? "#00f5ff" : "#2563eb";
-  const downColor = isDark ? "#ff4d6d" : "#dc2626";
+  const textColor = isDark ? "#f1f5f9" : "#1e293b";
+  const muted = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
+  const upColor = isDark ? "#60a5fa" : "#3b82f6";
+  const downColor = isDark ? "#f87171" : "#dc2626";
   return (
-    <div className="flex flex-col gap-1">
-      <p className="text-[9px] uppercase tracking-[0.2em] font-semibold" style={{ color: muted }}>{label}</p>
-      <p className="text-2xl font-black leading-none" style={{ color: textColor }}>{value}</p>
+    <div className="flex flex-col gap-0.5">
+      <p className="text-[10px] tracking-wide font-medium" style={{ color: muted }}>{label}</p>
+      <p className="text-xl font-semibold leading-none" style={{ color: textColor }}>{value}</p>
       {sub && <p className="text-[10px]" style={{ color: muted }}>{sub}</p>}
       {delta != null && (
-        <div className="flex items-center gap-0.5 text-[10px] font-bold" style={{ color: deltaUp ? upColor : downColor }}>
+        <div className="flex items-center gap-0.5 text-[10px] font-medium" style={{ color: deltaUp ? upColor : downColor }}>
           {deltaUp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           {delta}
         </div>
@@ -165,10 +91,11 @@ function ATIRing({ score, size = 56 }) {
 
 // ─── Section header ──────────────────────────────────────────────
 function SectionHeader({ overline, title, isDark = true }) {
+  const accentColor = isDark ? "#60a5fa" : "#3b82f6";
   return (
-    <div className="mb-6">
-      <p className="text-[9px] uppercase tracking-[0.3em] font-black mb-1" style={{ color: isDark ? "#00f5ff" : "#2563eb" }}>{overline}</p>
-      <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-tight" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>
+    <div className="mb-5">
+      <p className="text-[10px] tracking-[0.15em] font-semibold mb-1" style={{ color: accentColor }}>{overline}</p>
+      <h2 className="text-lg md:text-xl font-semibold tracking-tight" style={{ color: isDark ? "#f1f5f9" : "#1e293b" }}>
         {title}
       </h2>
     </div>
@@ -182,13 +109,13 @@ export default function Dashboard() {
   const [trafficSearch, setTrafficSearch] = useState("");
   const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
   const [trafficView, setTrafficView] = useState("3d"); // "2d" | "3d"
-  const textColor = isDark ? "#ffffff" : "#1e293b";
-  const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
-  const subtleColor = isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)";
-  const accentCyan = isDark ? "#00f5ff" : "#2563eb";
-  const accentViolet = isDark ? "#7a00ff" : "#7c3aed";
-  const accentGold = "#E8A83A";
-  const accentRed = isDark ? "#ff4d6d" : "#dc2626";
+  const textColor = isDark ? "#f1f5f9" : "#1e293b";
+  const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(100,116,139,0.9)";
+  const subtleColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)";
+  const accentCyan = isDark ? "#60a5fa" : "#3b82f6";
+  const accentViolet = isDark ? "#a78bfa" : "#7c3aed";
+  const accentGold = "#ca8a04";
+  const accentRed = isDark ? "#f87171" : "#dc2626";
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -213,23 +140,14 @@ export default function Dashboard() {
       <NotificationStack />
       <NotificationCenter />
 
-      {/* ══════════════════════════════════════════════
-          HEADER BAR
-      ══════════════════════════════════════════════ */}
       <section className="px-4 md:px-8 pt-6 pb-2">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
-            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-none mt-0.5" style={{ color: textColor }}>
-              <span style={{
-                background: `linear-gradient(90deg,${accentCyan},${accentViolet})`,
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
-              }}>Aircraft</span>
-              {" "}
-              <span style={{ color: isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)" }}>Buy Or Sell</span>
+            <p className="text-xs tracking-wide font-medium" style={{ color: mutedColor }}>ABOS MarketSpace · Aviation Intelligence</p>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
+              Aircraft <span style={{ color: mutedColor }}>Buy Or Sell</span>
             </h1>
           </div>
-          <SystemStatus isDark={isDark} />
         </div>
       </section>
 
@@ -243,35 +161,35 @@ export default function Dashboard() {
           <div className="min-h-0 flex flex-col">
             {/* View toggle bar */}
             <div className="flex items-center gap-2 mb-3">
-              <div className="glass-pill flex items-center p-0.5 gap-0.5" style={{
-                background: isDark ? "rgba(122,0,255,0.06)" : "rgba(0,0,0,0.04)",
-                border: isDark ? "1px solid rgba(0,245,255,0.12)" : "1px solid rgba(0,0,0,0.08)"
+              <div className="flex items-center rounded-lg overflow-hidden" style={{
+                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.08)"
               }}>
                 <button
                   onClick={() => setTrafficView("2d")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                   style={{
                     background: trafficView === "2d" 
-                      ? (isDark ? "rgba(0,245,255,0.15)" : "rgba(37,99,235,0.12)")
+                      ? (isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.1)")
                       : "transparent",
                     color: trafficView === "2d" 
-                      ? (isDark ? "#00f5ff" : "#2563eb")
-                      : (isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)")
+                      ? (isDark ? "#60a5fa" : "#3b82f6")
+                      : mutedColor
                   }}>
-                  <Map className="w-3 h-3" /> 2D Map
+                  <Map className="w-3 h-3" /> Map
                 </button>
                 <button
                   onClick={() => setTrafficView("3d")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                   style={{
                     background: trafficView === "3d"
-                      ? (isDark ? "rgba(0,245,255,0.15)" : "rgba(37,99,235,0.12)")
+                      ? (isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.1)")
                       : "transparent",
                     color: trafficView === "3d"
-                      ? (isDark ? "#00f5ff" : "#2563eb")
-                      : (isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.35)")
+                      ? (isDark ? "#60a5fa" : "#3b82f6")
+                      : mutedColor
                   }}>
-                  <Globe className="w-3 h-3" /> 3D Globe
+                  <Globe className="w-3 h-3" /> Globe
                 </button>
               </div>
               <div className="flex-1" />
@@ -284,14 +202,14 @@ export default function Dashboard() {
             </div>
 
             {/* View content — 2D map or 3D globe */}
-            <div className="flex-1 relative rounded-2xl overflow-hidden" style={{ 
+            <div className="flex-1 relative rounded-xl overflow-hidden" style={{ 
               minHeight: "560px",
-              background: trafficView === "3d" ? (isDark ? "#0A081E" : "#e8ecf4") : "transparent",
+              background: trafficView === "3d" ? (isDark ? "#111120" : "#f1f5f9") : "transparent",
               border: trafficView === "3d" 
-                ? (isDark ? "1px solid rgba(0,245,255,0.12)" : "1px solid rgba(0,0,0,0.06)") 
+                ? (isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)") 
                 : "none",
               boxShadow: trafficView === "3d"
-                ? (isDark ? "0 24px 80px rgba(0,0,0,0.5), 0 0 60px rgba(0,245,255,0.06)" : "0 8px 40px rgba(0,0,0,0.08)")
+                ? (isDark ? "0 4px 16px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.06)")
                 : "none"
             }}>
               {trafficView === "2d" ? (
@@ -333,7 +251,7 @@ export default function Dashboard() {
                 { color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" },
               ].map((m) => (
                 <Link key={m.label} to={m.link}>
-                  <HudPanel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
+                  <Panel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
                     <div className="flex items-center gap-2 mb-1.5">
                       <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
                         style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
@@ -343,7 +261,7 @@ export default function Dashboard() {
                     </div>
                     <p className="text-base font-black leading-none" style={{ color: textColor }}>{m.value}</p>
                     <p className="text-[9px] mt-0.5 leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
-                  </HudPanel>
+                  </Panel>
                 </Link>
               ))}
             </div>
@@ -363,28 +281,26 @@ export default function Dashboard() {
         </div>
         <div className="grid md:grid-cols-2 gap-3 mb-3">
           {[
-            { n: "FREE", color: accentCyan, icon: Zap, title: "ATI Quick Score", body: "Paste any listing text or N-number. Get an instant 8-dimension scorecard, OMVM range, deal score and a single buyer alert — no document output.", link: "/ati-quick-score", badge: "Free · Instant" },
-            { n: "PRO", color: accentGold, icon: FileText, title: "ATI Full Report", body: "Professional aircraft appraisal: 8-dimension scoring, executive summary, strengths, risks, recommendations, identity table and branded .docx export.", link: "/ati-full-report", badge: "Pro · Export" },
+            { icon: Zap, title: "ATI Quick Score", body: "Paste any listing text or N-number. Get an instant 8-dimension scorecard, OMVM range, deal score and a buyer alert — no document output.", link: "/ati-quick-score", badge: "Free · Instant" },
+            { icon: FileText, title: "ATI Full Report", body: "Professional aircraft appraisal: 8-dimension scoring, executive summary, strengths, risks, recommendations, identity table and branded .docx export.", link: "/ati-full-report", badge: "Pro · Export" },
           ].map((m) => (
-            <Link key={m.n} to={m.link}>
-              <HudPanel className="p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: `${m.color}35` }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}35` }}>
-                    <m.icon className="w-4 h-4" style={{ color: m.color }} />
+            <Link key={m.title} to={m.link}>
+              <Panel className="p-5 h-full hover:bg-opacity-90 transition-colors cursor-pointer" isDark={isDark}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
+                    <m.icon className="w-4 h-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
                   </div>
-                  <div>
-                    <span className="text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
-                      style={{ background: `${m.color}15`, color: m.color }}>{m.badge}</span>
-                  </div>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full font-medium"
+                    style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", color: isDark ? "#60a5fa" : "#3b82f6" }}>{m.badge}</span>
                 </div>
-                <h4 className="text-[11px] font-black uppercase tracking-tight mb-2" style={{ color: textColor }}>{m.title}</h4>
+                <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
                 <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
-                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-bold"
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-medium"
                   style={{ borderColor: `${m.color}20`, color: m.color }}>
                   Launch Tool <ArrowRight className="w-3 h-3" />
                 </div>
-              </HudPanel>
+              </Panel>
             </Link>
           ))}
         </div>
@@ -394,31 +310,29 @@ export default function Dashboard() {
       <section className="px-4 md:px-8 py-6">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <SectionHeader overline="Platform Capabilities" title="Integrated Intelligence Modules" isDark={isDark} />
-          <SystemStatus label="OPTIMAL" isDark={isDark} />
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { n: "01", color: accentCyan, icon: ShieldCheck, title: "ATI Transaction Report", body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.", link: "/listings" },
-            { n: "02", color: accentViolet, icon: Radar, title: "ADS-B Surveillance", body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and 7-day operational history.", link: "/traffic" },
-            { n: "03", color: accentGold, icon: Plane, title: "Pre-Buy Inspection", body: "On-site with Max — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
-            { n: "04", color: accentRed, icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" },
+            { icon: ShieldCheck, title: "ATI Transaction Report", body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.", link: "/listings" },
+            { icon: Radar, title: "ADS-B Surveillance", body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and historical flight path.", link: "/traffic" },
+            { icon: Plane, title: "Pre-Buy Inspection", body: "On-site with Max — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
+            { icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" },
           ].map((m) => (
-            <Link key={m.n} to={m.link}>
-              <HudPanel className="p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: `${m.color}30` }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}35` }}>
-                    <m.icon className="w-4 h-4" style={{ color: m.color }} />
+            <Link key={m.title} to={m.link}>
+              <Panel className="p-5 h-full hover:bg-opacity-90 transition-colors cursor-pointer" isDark={isDark}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
+                    <m.icon className="w-4 h-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
                   </div>
-                  <span className="text-4xl font-black leading-none" style={{ color: `${m.color}35` }}>{m.n}</span>
                 </div>
-                <h4 className="text-[11px] font-black uppercase tracking-tight mb-2" style={{ color: textColor }}>{m.title}</h4>
+                <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
                 <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
-                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-bold"
-                  style={{ borderColor: `${m.color}20`, color: m.color }}>
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-medium"
+                  style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#60a5fa" : "#3b82f6" }}>
                   Access Module <ArrowRight className="w-3 h-3" />
                 </div>
-              </HudPanel>
+              </Panel>
             </Link>
           ))}
         </div>
@@ -428,7 +342,7 @@ export default function Dashboard() {
       <section className="px-4 md:px-8 py-6">
         <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
           <SectionHeader overline="Active Listings" title="ATI-Evaluated Aircraft" isDark={isDark} />
-          <Link to="/listings" className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider hover:opacity-80 transition-opacity" style={{ color: accentCyan }}>
+          <Link to="/listings" className="flex items-center gap-1 text-[11px] font-medium hover:opacity-70 transition-opacity" style={{ color: accentCyan }}>
             View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -441,32 +355,32 @@ export default function Dashboard() {
               const regColor = getRegTypeColor(regType, isDark);
               return (
                 <Link key={l.id} to={`/ati-passport/${l.id}`}>
-                  <HudPanel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
+                  <Panel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="min-w-0">
-                        <p className="text-[8px] uppercase tracking-[0.2em] font-black" style={{ color: accentCyan }}>ATI Report</p>
+                        <p className="text-[9px] tracking-wider font-medium" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>ATI Report</p>
                         <p className="text-[10px] font-mono mt-0.5 flex items-center gap-1.5" style={{ color: mutedColor }}>
                           {l.registration || "—"}
                           {regType && (
-                            <span className="text-[7px] font-black px-1 py-0.5 rounded"
+                            <span className="text-[7px] font-medium px-1 py-0.5 rounded"
                               style={{ color: regColor, background: `${regColor}15`, border: `1px solid ${regColor}30` }}>
                               {regType === "faa" ? "N-Reg" : regType === "easa" ? "EASA" : ""}
                             </span>
                           )}
                         </p>
-                        <p className="text-sm font-black mt-1 truncate leading-tight" style={{ color: textColor }}>{l.year} {l.make} {l.model}</p>
+                        <p className="text-sm font-semibold mt-1 truncate leading-tight" style={{ color: textColor }}>{l.year} {l.make} {l.model}</p>
                       </div>
                       <ATIRing score={score || null} />
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }}>
-                      <p className="text-[9px] uppercase tracking-wider" style={{ color: mutedColor }}>
+                      <p className="text-[10px] font-medium" style={{ color: mutedColor }}>
                         {l.asking_price ? `$${l.asking_price.toLocaleString()}` : "On request"}
                       </p>
-                      <p className="text-[9px] font-black" style={{ color: sc }}>
-                        {score >= 90 ? "EXCEPTIONAL" : score >= 75 ? "STRONG BUY" : score >= 60 ? "FAIR" : score > 0 ? "CAUTION" : "UNSCORED"}
-                      </p>
+                      <span className="text-[10px] font-semibold" style={{ color: sc }}>
+                        {score >= 90 ? "Exceptional" : score >= 75 ? "Strong Buy" : score >= 60 ? "Fair" : score > 0 ? "Caution" : "Unscored"}
+                      </span>
                     </div>
-                  </HudPanel>
+                  </Panel>
                 </Link>
               );
             })}
@@ -492,57 +406,53 @@ export default function Dashboard() {
       {/* WHO WE SERVE */}
       <section className="px-4 md:px-8 py-6">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <SectionHeader overline="Who We Serve" title="Purpose-Built for Aviation Professionals" isDark={isDark} />
-          <SystemStatus label="OPTIMAL" isDark={isDark} />
+          <SectionHeader overline="Who We Serve" title="Built for Aviation Professionals" isDark={isDark} />
         </div>
         <div className="grid md:grid-cols-3 gap-3 mb-6">
           {[
-            { icon: Users, color: accentCyan, title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to institutional buyers." },
-            { icon: Handshake, color: accentViolet, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline." },
-            { icon: TrendingUp, color: accentGold, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process." }
+            { icon: Users, title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to institutional buyers." },
+            { icon: Handshake, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline." },
+            { icon: TrendingUp, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process." }
           ].map((x) => (
-            <HudPanel key={x.title} className="p-5" isDark={isDark} style={{ borderColor: `${x.color}25` }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: `${x.color}12`, border: `1px solid ${x.color}30` }}>
-                <x.icon className="w-5 h-5" style={{ color: x.color }} />
+            <Panel key={x.title} className="p-5" isDark={isDark}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
+                style={{ background: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.06)", border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.12)"}` }}>
+                <x.icon className="w-4.5 h-4.5" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
               </div>
-              <h4 className="text-sm font-black uppercase tracking-tight mb-2" style={{ color: textColor }}>{x.title}</h4>
+              <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{x.title}</h4>
               <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{x.body}</p>
-            </HudPanel>
+            </Panel>
           ))}
         </div>
-        <HudPanel className="p-5" isDark={isDark}>
+        <Panel className="p-5" isDark={isDark}>
           <div className="flex flex-wrap gap-x-8 gap-y-3">
             {["ATI Transaction Reports", "Secure Escrow Execution", "Commission & Fee Management", "Verified Professional Network", "Real-Time ADS-B Surveillance", "Transparent Deal Pricing"].map((x) => (
               <div key={x} className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: accentCyan }} />
+                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: isDark ? "#60a5fa" : "#3b82f6", opacity: 0.6 }} />
                 <span className="text-[11px] font-medium" style={{ color: mutedColor }}>{x}</span>
               </div>
             ))}
           </div>
-        </HudPanel>
+        </Panel>
       </section>
 
       {/* FOOTER CTA */}
       <section className="px-4 md:px-8 py-10 text-center">
-        <div className="h-12 mb-6 opacity-40">
-          <FlowRibbon isDark={isDark} />
-        </div>
-        <HudPanel className="max-w-2xl mx-auto p-8 md:p-10" accent isDark={isDark}>
-          <Lock className="w-8 h-8 mx-auto mb-4" style={{ color: accentCyan }} />
-          <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight mb-3" style={{ color: textColor }}>
-            One Platform. <span style={{ color: accentCyan }}>Institutional Standards.</span>{" "}
-            <span style={{ color: accentGold }}>Verified Results.</span>
+        <Panel className="max-w-2xl mx-auto p-8 md:p-10" isDark={isDark}>
+          <Lock className="w-6 h-6 mx-auto mb-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
+          <h2 className="text-lg md:text-xl font-semibold tracking-tight mb-3" style={{ color: textColor }}>
+            One Platform. <span style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>Institutional Standards.</span>{" "}
+            Verified Results.
           </h2>
-          <p className="text-[12px] mb-6 max-w-lg mx-auto leading-relaxed" style={{ color: mutedColor }}>
-            ABOS is the private intelligence network trusted by aviation dealers and brokers who require rigorous transaction due diligence, secure deal execution, and auditable outcomes.
+          <p className="text-sm mb-6 max-w-lg mx-auto leading-relaxed" style={{ color: mutedColor }}>
+            ABOS is the private intelligence network trusted by aviation dealers and brokers for rigorous transaction due diligence, secure deal execution, and auditable outcomes.
           </p>
           <Link to="/listings"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all active:scale-95"
-            style={{ background: `${accentCyan}15`, border: `1px solid ${accentCyan}40`, color: accentCyan }}>
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-colors"
+            style={{ background: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "rgba(37,99,235,0.18)"}`, color: isDark ? "#60a5fa" : "#3b82f6" }}>
             Enter the Platform <ArrowRight className="w-4 h-4" />
           </Link>
-        </HudPanel>
+        </Panel>
       </section>
 
       <AircraftWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />

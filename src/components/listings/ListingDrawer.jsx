@@ -1,4 +1,4 @@
-import { X, ExternalLink, CheckCircle2, ArrowUpRight, UserPlus, TrendingDown, TrendingUp, Zap } from "lucide-react";
+import { X, ExternalLink, CheckCircle2, ArrowUpRight, UserPlus, TrendingDown, TrendingUp, Zap, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddLeadModal from "@/components/leads/AddLeadModal";
@@ -198,6 +198,22 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 {l.ati_score ? "View Full ATI Score Card" : "Issue ATI Score Card"}
                 <ArrowUpRight className="w-4 h-4" />
               </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { onClose(); navigate(`/ati-quick-score?listing=${l.id}`); }}
+                  className="flex items-center justify-center gap-1.5 bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#0B2D5B] font-bold text-xs py-2.5 rounded-xl transition-colors border border-black/[0.07]"
+                >
+                  <Zap className="w-3.5 h-3.5 text-[#00b5cc]" />
+                  Quick Score
+                </button>
+                <button
+                  onClick={() => { onClose(); navigate(`/ati-full-report?listing=${l.id}`); }}
+                  className="flex items-center justify-center gap-1.5 bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#0B2D5B] font-bold text-xs py-2.5 rounded-xl transition-colors border border-black/[0.07]"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#D4A017]" />
+                  Full Report
+                </button>
+              </div>
               <button
                 onClick={() => setAddLeadOpen(true)}
                 className="w-full bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#1A1814] font-bold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-black/[0.07]"

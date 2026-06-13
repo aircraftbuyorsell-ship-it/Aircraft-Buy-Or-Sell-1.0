@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
   ArrowRight, CheckCircle2, Users,
-  ChevronUp, ChevronDown, Lock
+  ChevronUp, ChevronDown, Lock, Zap, FileText
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -331,6 +331,40 @@ export default function Dashboard() {
             </div>
           </div>
         </HudPanel>
+      </section>
+
+      {/* ATI TOOLS */}
+      <section className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <SectionHeader overline="ATI Scoring Tools" title="Instant Aircraft Intelligence" isDark={isDark} />
+        </div>
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          {[
+            { n: "FREE", color: accentCyan, icon: Zap, title: "ATI Quick Score", body: "Paste any listing text or N-number. Get an instant 8-dimension scorecard, OMVM range, deal score and a single buyer alert — no document output.", link: "/ati-quick-score", badge: "Free · Instant" },
+            { n: "PRO", color: accentGold, icon: FileText, title: "ATI Full Report", body: "Professional aircraft appraisal: 8-dimension scoring, executive summary, strengths, risks, recommendations, identity table and branded .docx export.", link: "/ati-full-report", badge: "Pro · Export" },
+          ].map((m) => (
+            <Link key={m.n} to={m.link}>
+              <HudPanel className="p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: `${m.color}35` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}35` }}>
+                    <m.icon className="w-4 h-4" style={{ color: m.color }} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
+                      style={{ background: `${m.color}15`, color: m.color }}>{m.badge}</span>
+                  </div>
+                </div>
+                <h4 className="text-[11px] font-black uppercase tracking-tight mb-2" style={{ color: textColor }}>{m.title}</h4>
+                <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-bold"
+                  style={{ borderColor: `${m.color}20`, color: m.color }}>
+                  Launch Tool <ArrowRight className="w-3 h-3" />
+                </div>
+              </HudPanel>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* 4-CAPABILITY MODULES */}

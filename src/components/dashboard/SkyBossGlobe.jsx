@@ -290,7 +290,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     ray.params.Points.threshold = 0.025;
 
     // Check listings first (larger dots)
-    if (lPointsRef.current) {
+    if (lPointsRef.current && lPointsRef.current.geometry.attributes.position) {
       ray.setFromCamera(mouse, cameraRef.current);
       const lHits = ray.intersectObject(lPointsRef.current);
       if (lHits.length > 0) {
@@ -302,7 +302,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     }
 
     // Check traffic
-    if (acPointsRef.current) {
+    if (acPointsRef.current && acPointsRef.current.geometry.attributes.position) {
       ray.setFromCamera(mouse, cameraRef.current);
       const hits = ray.intersectObject(acPointsRef.current);
       if (hits.length > 0) {

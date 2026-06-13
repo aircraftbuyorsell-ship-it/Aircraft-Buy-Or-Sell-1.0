@@ -182,12 +182,12 @@ export default function EscrowDrawer({ tx, onClose }) {
             </div>
           </div>
 
-          {/* Parties */}
+          {/* Parties — names masked, role only */}
           <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
             <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A] mb-2">Parties</p>
-            <Row label="Buyer" value={tx.buyer_name && `${tx.buyer_name} · ${tx.buyer_email || ""}`} />
-            <Row label="Seller" value={tx.seller_name && `${tx.seller_name} · ${tx.seller_email || ""}`} />
-            <Row label="Broker / Finder" value={tx.broker_name && `${tx.broker_name} · ${tx.broker_email || ""}`} />
+            <Row label="Buyer" value={tx.buyer_name ? "●●●●● (verified)" : "—"} />
+            <Row label="Seller" value={tx.seller_name ? "●●●●● (verified)" : "—"} />
+            <Row label="Broker / Finder" value={tx.broker_name ? "●●●●● (verified)" : "—"} />
             <Row label="Inspection Period" value={`${tx.inspection_period_days || 3} days`} />
           </div>
 

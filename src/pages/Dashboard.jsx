@@ -221,9 +221,12 @@ export default function Dashboard() {
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
             <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight leading-none mt-0.5" style={{ color: textColor }}>
-              <span style={{ background: `linear-gradient(90deg,${accentCyan},${accentViolet})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                MarketSpace
-              </span>
+              <span style={{
+                background: `linear-gradient(90deg,${accentCyan},${accentViolet})`,
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+              }}>Aircraft</span>
+              {" "}
+              <span style={{ color: isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)" }}>Buy Or Sell</span>
             </h1>
           </div>
           <SystemStatus isDark={isDark} />

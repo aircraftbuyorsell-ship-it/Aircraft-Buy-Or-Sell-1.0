@@ -28,7 +28,7 @@ function Panel({ children, className = "", accent = false, style = {}, isDark = 
   `1px solid ${accent ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}` :
   `1px solid ${accent ? "rgba(37,99,235,0.15)" : "rgba(0,0,0,0.06)"}`;
   return (
-    <div className={`rounded-xl ${className}`}
+    <div className={`rounded-xl hidden ${className}`}
     style={{ background: bg, border, boxShadow: isDark ? "0 1px 3px rgba(0,0,0,0.2)" : "0 1px 2px rgba(0,0,0,0.04)", ...style }}>
       {children}
     </div>);
@@ -156,8 +156,8 @@ export default function Dashboard() {
       <AviationNewsTicker />
 
       {/* ══════════════════════════════════════════════
-           MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar
-        ══════════════════════════════════════════════ */}
+            MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar
+         ══════════════════════════════════════════════ */}
       <section className="px-4 md:px-8 pb-4">
         <div className="grid lg:grid-cols-[1fr_380px] gap-4">
           
@@ -229,9 +229,9 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT — Metric sidebar */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 hidden">
             {/* Quick-link pills */}
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 hidden">
               {[
               { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
               { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },

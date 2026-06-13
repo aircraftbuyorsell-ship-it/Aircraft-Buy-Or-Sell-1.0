@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Search, History, Clock, MapPin, ArrowUp, ArrowDown, Minus, Loader2, X, ChevronRight, Plane, Gauge } from "lucide-react";
 import { format } from "date-fns";
+import FlightPathMap from "./FlightPathMap";
 
 export default function AircraftHistoryPanel({ isDark = false }) {
   const [search, setSearch] = useState("");
@@ -22,11 +23,19 @@ export default function AircraftHistoryPanel({ isDark = false }) {
     setLoading(true);
     setError(null);
     try {
-      const results = await base44.entities.TrafficAppearance.filter(
+      // Try by registration first, then by ICAO24
+      let results = await base44.entities.TrafficAppearance.filter(
         { registration: q },
         "-captured_at",
         50
       );
+      if (!results?.length) {
+        results = await base44.entities.TrafficAppearance.filter(
+          { icao24: q.toLowerCase() },
+          "-captured_at",
+          50
+        );
+      }
       setAppearances(results || []);
       setLoadedFor(q);
       if (!results?.length) setError(`No history found for "${search.trim()}"`);
@@ -69,7 +78,7 @@ export default function AircraftHistoryPanel({ isDark = false }) {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setError(null); }}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="N-number (e.g. N123AB)..."
+              placeholder="N-number or ICAO24 (e.g. N123AB)..."
               className="w-full rounded-xl border px-3 py-2.5 text-sm font-mono outline-none transition-colors"
               style={{
                 background: bgColor,
@@ -110,6 +119,9 @@ export default function AircraftHistoryPanel({ isDark = false }) {
             <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: mutedColor }}>
               {appearances.length} appearances for <span style={{ color: "#E8A83A" }}>{loadedFor}</span>
             </p>
+          </div>
+          <div className="px-5 pb-4">
+            <FlightPathMap appearances={appearances} isDark={isDark} />
           </div>
           <div className="px-3 pb-3 space-y-1 max-h-[420px] overflow-y-auto">
             {appearances.map((a, i) => {
@@ -189,7 +201,7 @@ export default function AircraftHistoryPanel({ isDark = false }) {
       {!appearances.length && !loading && !error && (
         <div className="px-5 pb-6 pt-2 text-center">
           <Plane className="w-8 h-8 mx-auto mb-2" style={{ color: subColor }} />
-          <p className="text-[11px]" style={{ color: subColor }}>Search an N-number to see its flight history</p>
+          <p className="text-[11px]" style={{ color: subColor }}>Search an N-number or ICAO24 hex to see its flight history</p>
         </div>
       )}
     </div>

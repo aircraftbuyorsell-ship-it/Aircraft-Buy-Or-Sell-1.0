@@ -68,8 +68,8 @@ export default function SkyBoss() {
   const [updated, setUpdated] = useState("—");
   const [credits, setCredits] = useState("—");
   const [showAuth, setShowAuth] = useState(false);
-  const [cid, setCid] = useState("");
-  const [csec, setCsec] = useState("");
+  const [cid, setCid] = useState("aircraftbuyorsell@gmail.com-api-client");
+  const [csec, setCsec] = useState("IEP2aVXNWl5znURwv52525Vz9SxpA7ea");
   const [btok, setBtok] = useState("");
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState(null);

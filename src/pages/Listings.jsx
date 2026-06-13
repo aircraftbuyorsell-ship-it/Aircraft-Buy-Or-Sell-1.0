@@ -276,12 +276,12 @@ export default function Listings() {
         <div className="relative px-4 md:px-8 pt-8 md:pt-12 pb-8">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-[2rem] border border-white/30 bg-white/[0.10] backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.38)] px-5 md:px-7 py-6 md:py-7 ring-1 ring-white/10 opacity-70">
             <div>
-              <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.28em] font-bold mb-2 drop-shadow bg-[hsl(var(--input))]">AIRPORT LOUNGE VIEW · AIRCRAFT INVENTORY</p>
+              <p className="text-[#E8A83A] uppercase tracking-[0.28em] font-bold mb-2 drop-shadow text-xs bg-[hsl(var(--background))]">AIRPORT LOUNGE VIEW · AIRCRAFT INVENTORY</p>
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-[-0.05em] leading-none drop-shadow-lg">
                 Off-Market Aircraft
               </h1>
               {!isLoading &&
-              <p className="text-white/75 text-[13px] mt-3 font-medium max-w-xl">
+              <p className="text-[13px] mt-3 font-medium max-w-xl bg-[hsl(var(--muted-foreground))] text-[hsl(var(--popover-foreground))]">
                   {filtered.length} aircraft · scored against real market data
                 </p>
               }

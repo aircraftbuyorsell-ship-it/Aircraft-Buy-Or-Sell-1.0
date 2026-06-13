@@ -249,42 +249,44 @@ export default function Dashboard() {
             <FlowRibbon isDark={isDark} />
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-3 max-w-[480px]">
             {[
-              { n: "1", label: "Listings", color: accentCyan, icon: Plane, metric: total_listings, sub: "On market", link: "/listings" },
-              { n: "2", label: "ATI Intel", color: accentViolet, icon: ShieldCheck, metric: evaluated, sub: "Evaluated", delta: avg_ati ? `Avg ${avg_ati}` : "—", link: "/listings" },
-              { n: "3", label: "ADS-B", color: accentGold, icon: Radar, metric: "Live", sub: "Feed", link: "/traffic" },
-              { n: "4", label: "Deals", color: accentRed, icon: TrendingUp, metric: hot_deals, sub: "≥ 8.5", link: "/deal-radar" },
+              {
+                color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(),
+                sub: "On market", detail: `${evaluated} with ATI reports`, link: "/listings"
+              },
+              {
+                color: accentViolet, icon: ShieldCheck, label: "ATI Intelligence", value: evaluated,
+                sub: "Evaluated aircraft", detail: avg_ati ? `Platform avg score: ${avg_ati}` : "No scores yet", link: "/listings"
+              },
+              {
+                color: accentGold, icon: Radar, label: "Live ADS-B Feed", value: "Live",
+                sub: "Real-time tracking", detail: "N-reg & Mode-S surveillance", link: "/traffic"
+              },
+              {
+                color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals,
+                sub: "Score ≥ 8.5", detail: hot_deals > 0 ? `${hot_deals} high-value opportunities` : "Scanning market...", link: "/deal-radar"
+              },
             ].map((m) => (
-              <Link key={m.n} to={m.link}>
-                <div
-                  className="relative overflow-hidden p-2.5 rounded-xl hover:scale-[1.03] transition-transform cursor-pointer h-full flex flex-col items-center gap-1 text-center"
-                  style={{
-                    background: isDark
-                      ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(20,40,70,0.50) 60%)"
-                      : "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,238,250,0.60) 60%)",
-                    backdropFilter: "blur(16px) saturate(160%)",
-                    WebkitBackdropFilter: "blur(16px) saturate(160%)",
-                    border: isDark ? `1px solid ${m.color}35` : `1px solid ${m.color}28`,
-                    boxShadow: isDark
-                      ? `inset 0 1px 1px rgba(220,250,255,0.30), 0 8px 24px rgba(0,0,0,0.35)`
-                      : `inset 0 1.5px 1px rgba(255,255,255,1), 0 4px 16px rgba(70,110,160,0.10)`,
-                  }}
-                >
-                  <div style={{
-                    position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
-                    background: isDark
-                      ? "linear-gradient(115deg, rgba(210,240,250,0.12) 0%, transparent 40%)"
-                      : "linear-gradient(115deg, rgba(255,255,255,0.85) 0%, transparent 40%)",
-                  }} />
-                  <span className="text-[9px] font-black uppercase tracking-wider relative z-10" style={{ color: m.color }}>{m.label}</span>
-                  <span className="text-xl font-black leading-none relative z-10" style={{ color: textColor }}>{m.metric}</span>
-                  <span className="text-[9px] leading-tight relative z-10" style={{ color: mutedColor }}>{m.sub}</span>
-                  <span className="w-full h-0.5 rounded-full mt-0.5 relative z-10" style={{ background: `${m.color}40` }} />
-                  <span className="text-[8px] font-semibold flex items-center gap-1 justify-center relative z-10" style={{ color: m.color }}>
-                    <span className="w-1 h-1 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} />Live
-                  </span>
-                </div>
+              <Link key={m.label} to={m.link}>
+                <HudPanel className="p-4 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
+                      <m.icon className="w-3.5 h-3.5" style={{ color: m.color }} />
+                    </div>
+                    <div>
+                      <p className="text-[8px] uppercase tracking-[0.2em] font-black" style={{ color: mutedColor }}>{m.label}</p>
+                      <p className="text-lg font-black leading-none" style={{ color: textColor }}>{m.value}</p>
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-medium" style={{ color: textColor }}>{m.sub}</p>
+                  <p className="text-[9px] mt-1 leading-tight" style={{ color: mutedColor }}>{m.detail}</p>
+                  <div className="mt-3 pt-2.5 border-t flex items-center gap-1 text-[9px] font-bold"
+                    style={{ borderColor: `${m.color}18`, color: m.color }}>
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} /> Live · View <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
+                  </div>
+                </HudPanel>
               </Link>
             ))}
           </div>

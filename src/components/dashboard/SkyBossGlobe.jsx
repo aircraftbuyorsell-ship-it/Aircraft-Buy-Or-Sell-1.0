@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Loader2, Sparkles, CheckCircle2, AlertCircle, X
-} from "lucide-react";
+  Loader2, Sparkles, CheckCircle2, AlertCircle, X } from
+"lucide-react";
 
 const EARTH_DARK = "https://unpkg.com/three-globe/example/img/earth-dark.jpg";
 const EARTH_BLUE = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
@@ -28,28 +28,28 @@ const REG_PREFIX_MAP = {
   "ZT": [-29, 25], "ZU": [-29, 25], "A6": [24, 54],
   "SU": [27, 30], "5N": [9, 8], "5Y": [-1, 37],
   "4X": [31, 35], "HZ": [24, 45], "TC": [39, 35],
-  "VN": [14, 108], "HB": [47, 8],
+  "VN": [14, 108], "HB": [47, 8]
 };
 
 // Commercial airliner types to exclude from live traffic visualization
 const COMMERCIAL_AIRLINER_TYPES = new Set([
-  // Boeing
-  "B731","B732","B733","B734","B735","B736","B737","B738","B739",
-  "B73H","B73G","B73W","B74D","B741","B742","B743","B744","B748",
-  "B752","B753","B762","B763","B764","B772","B773","B77L","B77W",
-  "B788","B789","B78X",
-  // Airbus
-  "A318","A319","A320","A321","A32N","A32Q",
-  "A332","A333","A338","A339","A342","A343","A345","A346",
-  "A359","A35K","A388",
-  // Regional / commercial turboprops & jets
-  "E170","E175","E190","E195","E290","E295",
-  "CRJ1","CRJ2","CRJ7","CRJ9","CRJX",
-  "DH8A","DH8B","DH8C","DH8D","AT43","AT44","AT45","AT46","AT72","AT73","AT75","AT76",
-  "MD11","MD80","MD81","MD82","MD83","MD87","MD88","MD90",
-  "DC10","DC85","DC86","DC87","DC93","DC94","DC95",
-  "F100","F70","RJ85","RJ1H","BA46",
-]);
+// Boeing
+"B731", "B732", "B733", "B734", "B735", "B736", "B737", "B738", "B739",
+"B73H", "B73G", "B73W", "B74D", "B741", "B742", "B743", "B744", "B748",
+"B752", "B753", "B762", "B763", "B764", "B772", "B773", "B77L", "B77W",
+"B788", "B789", "B78X",
+// Airbus
+"A318", "A319", "A320", "A321", "A32N", "A32Q",
+"A332", "A333", "A338", "A339", "A342", "A343", "A345", "A346",
+"A359", "A35K", "A388",
+// Regional / commercial turboprops & jets
+"E170", "E175", "E190", "E195", "E290", "E295",
+"CRJ1", "CRJ2", "CRJ7", "CRJ9", "CRJX",
+"DH8A", "DH8B", "DH8C", "DH8D", "AT43", "AT44", "AT45", "AT46", "AT72", "AT73", "AT75", "AT76",
+"MD11", "MD80", "MD81", "MD82", "MD83", "MD87", "MD88", "MD90",
+"DC10", "DC85", "DC86", "DC87", "DC93", "DC94", "DC95",
+"F100", "F70", "RJ85", "RJ1H", "BA46"]
+);
 
 function listingToLatLon(listing, index) {
   if (listing.registration) {
@@ -83,8 +83,8 @@ function altColorM(altM) {
 }
 
 function latLonToVec3(lat, lon, r) {
-  const phi = ((90 - lat) * Math.PI) / 180;
-  const theta = ((lon + 180) * Math.PI) / 180;
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lon + 180) * Math.PI / 180;
   return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
 }
 
@@ -119,19 +119,19 @@ function aircraftSilhouetteTexture() {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(45, 10, 6, 66);
   ctx.beginPath();
-  ctx.moveTo(48, 26); ctx.lineTo(18, 44); ctx.lineTo(20, 48); ctx.lineTo(48, 32); ctx.closePath(); ctx.fill();
+  ctx.moveTo(48, 26);ctx.lineTo(18, 44);ctx.lineTo(20, 48);ctx.lineTo(48, 32);ctx.closePath();ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 26); ctx.lineTo(78, 44); ctx.lineTo(76, 48); ctx.lineTo(48, 32); ctx.closePath(); ctx.fill();
+  ctx.moveTo(48, 26);ctx.lineTo(78, 44);ctx.lineTo(76, 48);ctx.lineTo(48, 32);ctx.closePath();ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 56); ctx.lineTo(26, 68); ctx.lineTo(28, 72); ctx.lineTo(48, 62); ctx.closePath(); ctx.fill();
+  ctx.moveTo(48, 56);ctx.lineTo(26, 68);ctx.lineTo(28, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(48, 56); ctx.lineTo(70, 68); ctx.lineTo(68, 72); ctx.lineTo(48, 62); ctx.closePath(); ctx.fill();
+  ctx.moveTo(48, 56);ctx.lineTo(70, 68);ctx.lineTo(68, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
   ctx.strokeStyle = "rgba(0, 220, 255, 0.8)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(48, 10); ctx.lineTo(48, 76);
-  ctx.moveTo(18, 44); ctx.lineTo(48, 28); ctx.lineTo(78, 44);
-  ctx.moveTo(26, 68); ctx.lineTo(48, 58); ctx.lineTo(70, 68);
+  ctx.moveTo(48, 10);ctx.lineTo(48, 76);
+  ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);
+  ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);
   ctx.stroke();
   return new THREE.CanvasTexture(cv);
 }
@@ -179,7 +179,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const [detail, setDetail] = useState(null);
   const [scoringMap, setScoringMap] = useState({});
 
-  useEffect(() => { listingsRef.current = listings; }, [listings]);
+  useEffect(() => {listingsRef.current = listings;}, [listings]);
 
   // ─── Fetch traffic from cachedTraffic (adsb.lol) ───
   const fetchTraffic = useCallback(async () => {
@@ -192,7 +192,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
         region_label: "Global",
         force_refresh: true,
         limit: 1000,
-        allow_heavy: true,
+        allow_heavy: true
       });
       const ac = res.data?.aircraft || [];
       renderToGlobe(ac);
@@ -209,7 +209,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderToGlobe = useCallback((aircraft) => {
     const acGeo = acGeoRef.current;
     if (!acGeo) return;
-    const pos = [], meta = [];
+    const pos = [],meta = [];
     for (const ac of aircraft) {
       if (ac.latitude == null || ac.longitude == null) continue;
       // Filter out commercial airliners
@@ -229,7 +229,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderListings = useCallback((listingsData) => {
     const lGeo = lGeoRef.current;
     if (!lGeo) return;
-    const pos = [], col = [], meta = [];
+    const pos = [],col = [],meta = [];
     listingsData.forEach((l, i) => {
       const coords = listingToLatLon(l, i);
       if (!coords) return;
@@ -256,24 +256,24 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const reg = ac.registration || "";
     const nNumber = reg.replace(/^N/i, "").trim();
     if (!nNumber) return;
-    setScoringMap(prev => ({ ...prev, [ac.icao24]: "loading" }));
+    setScoringMap((prev) => ({ ...prev, [ac.icao24]: "loading" }));
     try {
       const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: nNumber });
       if (res.data?.listingId) {
-        setScoringMap(prev => ({
+        setScoringMap((prev) => ({
           ...prev,
           [ac.icao24]: {
             status: "success",
             listingId: res.data.listingId,
             atiScore: res.data.atiScore,
-            cardCode: res.data.cardCode,
+            cardCode: res.data.cardCode
           }
         }));
       } else {
-        setScoringMap(prev => ({ ...prev, [ac.icao24]: { status: "error", message: res.data?.error || "No data found" } }));
+        setScoringMap((prev) => ({ ...prev, [ac.icao24]: { status: "error", message: res.data?.error || "No data found" } }));
       }
     } catch (e) {
-      setScoringMap(prev => ({ ...prev, [ac.icao24]: { status: "error", message: e?.response?.data?.error || e.message || "Scoring failed" } }));
+      setScoringMap((prev) => ({ ...prev, [ac.icao24]: { status: "error", message: e?.response?.data?.error || e.message || "Scoring failed" } }));
     }
   }, []);
 
@@ -283,7 +283,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     if (!cv) return;
     const r = cv.getBoundingClientRect();
     const mouse = new THREE.Vector2(
-      ((e.clientX - r.left) / r.width) * 2 - 1,
+      (e.clientX - r.left) / r.width * 2 - 1,
       -((e.clientY - r.top) / r.height) * 2 + 1
     );
     const ray = new THREE.Raycaster();
@@ -295,8 +295,8 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       const lHits = ray.intersectObject(lPointsRef.current);
       if (lHits.length > 0) {
         const listing = lMetaRef.current[lHits[0].index];
-        if (onSelectListing) onSelectListing(listing);
-        else setDetail({ type: "listing", data: listing });
+        if (onSelectListing) onSelectListing(listing);else
+        setDetail({ type: "listing", data: listing });
         return;
       }
     }
@@ -341,12 +341,12 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
     // Earth core
     const coreMat = new THREE.MeshPhongMaterial({
-      color: 0x16213f, emissive: 0x05091c, shininess: 6, specular: 0x102844,
+      color: 0x16213f, emissive: 0x05091c, shininess: 6, specular: 0x102844
     });
     const core = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 72), coreMat);
     globe.add(core);
     new THREE.TextureLoader().load(EARTH_BLUE, (t) => {
-      coreMat.map = t; coreMat.color.set(isDark ? 0x8899bb : 0xffffff); coreMat.needsUpdate = true;
+      coreMat.map = t;coreMat.color.set(isDark ? 0x8899bb : 0xffffff);coreMat.needsUpdate = true;
     });
 
     // Grid
@@ -375,8 +375,8 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const sg = new THREE.BufferGeometry();
     const sp = [];
     for (let i = 0; i < 800; i++) {
-      const v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
-        .normalize().multiplyScalar(22 + Math.random() * 22);
+      const v = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).
+      normalize().multiplyScalar(22 + Math.random() * 22);
       sp.push(v.x, v.y, v.z);
     }
     sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
@@ -395,7 +395,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      sizeAttenuation: true,
+      sizeAttenuation: true
     });
     const acPoints = new THREE.Points(acGeo, acMat);
     acPointsRef.current = acPoints;
@@ -411,7 +411,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      sizeAttenuation: true,
+      sizeAttenuation: true
     });
     const lPoints = new THREE.Points(lGeo, lMat);
     lPointsRef.current = lPoints;
@@ -428,7 +428,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     loop();
 
     const onResize = () => {
-      const w = container.clientWidth, h = container.clientHeight;
+      const w = container.clientWidth,h = container.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -495,53 +495,53 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
-      <canvas ref={canvasRef} className="block w-full h-full cursor-grab" />
+      <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100 rounded" />
 
       {/* Traffic status badge */}
       <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
-        style={{ color: accentCyan }}>
+      style={{ color: accentCyan }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
-          style={{
-            background: trafficStatus === "live" ? accentCyan :
-                        trafficStatus === "loading" ? "#E8A83A" :
-                        trafficStatus === "error" ? "#ff4d6d" : "#888",
-            boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
-                       trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
-          }} />
+        style={{
+          background: trafficStatus === "live" ? accentCyan :
+          trafficStatus === "loading" ? "#E8A83A" :
+          trafficStatus === "error" ? "#ff4d6d" : "#888",
+          boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
+          trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
+        }} />
         {trafficStatus === "loading" ? "Fetching…" :
-         trafficStatus === "error" ? "Unavailable" :
-         trafficStatus === "live" ? `${trafficCount.toLocaleString()} airborne` :
-         "Connecting…"}
+        trafficStatus === "error" ? "Unavailable" :
+        trafficStatus === "live" ? `${trafficCount.toLocaleString()} airborne` :
+        "Connecting…"}
       </div>
 
       {/* Listing count badge */}
       <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
-        style={{ color: "#E8A83A" }}>
+      style={{ color: "#E8A83A" }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
-          style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
+        style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
         {listings.length.toLocaleString()} listings
       </div>
 
       {/* ─── Detail popup (enhanced — matches 2D map popup) ─── */}
-      {detail && (
-        <div className="absolute top-3 right-3 z-20 glass-card p-4" style={{ width: 260, maxWidth: "calc(100% - 24px)" }}>
+      {detail &&
+      <div className="absolute top-3 right-3 z-20 glass-card p-4" style={{ width: 260, maxWidth: "calc(100% - 24px)" }}>
           <button onClick={() => setDetail(null)} className="absolute top-2 right-2 opacity-40 hover:opacity-100 transition-opacity">
             <X className="w-3.5 h-3.5" />
           </button>
 
           {detail.type === "traffic" && (() => {
-            const ac = detail.data;
-            const nReg = ac.registration || null;
-            const altFt = ac.baro_altitude != null ? Math.round(ac.baro_altitude * 3.28084) : null;
-            const speedKt = ac.velocity != null ? Math.round(ac.velocity * 1.94384) : null;
-            const vrateStr = ac.vertical_rate != null
-              ? (ac.vertical_rate > 0.5 ? `▲ ${Math.round(ac.vertical_rate * 196.85)} fpm` : ac.vertical_rate < -0.5 ? `▼ ${Math.round(Math.abs(ac.vertical_rate) * 196.85)} fpm` : "Level")
-              : "—";
-            const typeDisplay = ac.aircraft_type || null;
-            const onGround = ac.on_ground;
+          const ac = detail.data;
+          const nReg = ac.registration || null;
+          const altFt = ac.baro_altitude != null ? Math.round(ac.baro_altitude * 3.28084) : null;
+          const speedKt = ac.velocity != null ? Math.round(ac.velocity * 1.94384) : null;
+          const vrateStr = ac.vertical_rate != null ?
+          ac.vertical_rate > 0.5 ? `▲ ${Math.round(ac.vertical_rate * 196.85)} fpm` : ac.vertical_rate < -0.5 ? `▼ ${Math.round(Math.abs(ac.vertical_rate) * 196.85)} fpm` : "Level" :
+          "—";
+          const typeDisplay = ac.aircraft_type || null;
+          const onGround = ac.on_ground;
 
-            return (
-              <>
+          return (
+            <>
                 {/* Header */}
                 <div className="mb-3 pb-2.5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }}>
                   <p className="text-[11px] font-black text-[#E8A83A] uppercase tracking-wide">
@@ -550,15 +550,15 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
                   <p className="text-[8px] font-mono mt-0.5" style={{ color: mutedColor }}>
                     ICAO: {ac.icao24} {ac.squawk ? `· SQWK ${ac.squawk}` : ""}
                   </p>
-                  {typeDisplay && (
-                    <p className="text-[10px] font-black uppercase tracking-wide mt-1" style={{ color: accentCyan }}>
+                  {typeDisplay &&
+                <p className="text-[10px] font-black uppercase tracking-wide mt-1" style={{ color: accentCyan }}>
                       {typeDisplay}
                     </p>
-                  )}
-                  {onGround && (
-                    <span className="inline-block text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded mt-1"
-                      style={{ background: "rgba(255,77,109,0.12)", color: "#ff4d6d" }}>On Ground</span>
-                  )}
+                }
+                  {onGround &&
+                <span className="inline-block text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded mt-1"
+                style={{ background: "rgba(255,77,109,0.12)", color: "#ff4d6d" }}>On Ground</span>
+                }
                 </div>
 
                 {/* Flight data grid */}
@@ -570,11 +570,11 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
                 </div>
 
                 {/* ABOS Listing match */}
-                {ac.listing && (
-                  <div className="rounded-lg p-2.5 mb-3" style={{
-                    background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.04)",
-                    border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.2)"}`
-                  }}>
+                {ac.listing &&
+              <div className="rounded-lg p-2.5 mb-3" style={{
+                background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.04)",
+                border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.2)"}`
+              }}>
                     <p className="text-[7px] font-black uppercase tracking-[0.15em] text-[#D4A017] mb-1.5">ABOS Listing Match</p>
                     <p className="text-[10px] font-black" style={{ color: textColor }}>
                       {ac.listing.year || ""} {ac.listing.make || ""} {ac.listing.model || ""}
@@ -584,60 +584,60 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
                       {ac.listing.asking_price && <span style={{ color: mutedColor }}>$<strong style={{ color: textColor }}>{ac.listing.asking_price?.toLocaleString()}</strong></span>}
                     </div>
                   </div>
-                )}
+              }
 
                 {/* FAA Lookup button (N-registered, no listing) */}
-                {!ac.listing && nReg && /^N/i.test(nReg) && !scoringMap[ac.icao24] && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleScoreAircraft(ac); }}
-                    className="w-full rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-[10px] font-black text-white transition-all active:scale-95"
-                    style={{ background: "linear-gradient(135deg, #0B2D5B, #1A4A8A)" }}
-                  >
+                {!ac.listing && nReg && /^N/i.test(nReg) && !scoringMap[ac.icao24] &&
+              <button
+                onClick={(e) => {e.stopPropagation();handleScoreAircraft(ac);}}
+                className="w-full rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-[10px] font-black text-white transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg, #0B2D5B, #1A4A8A)" }}>
+                
                     <Sparkles className="w-3 h-3" /> Look up FAA & Create ATI Card
                   </button>
-                )}
+              }
 
                 {/* Scoring states */}
-                {scoringMap[ac.icao24]?.status === "loading" && (
-                  <div className="flex items-center gap-2 text-[10px] mt-2" style={{ color: mutedColor }}>
+                {scoringMap[ac.icao24]?.status === "loading" &&
+              <div className="flex items-center gap-2 text-[10px] mt-2" style={{ color: mutedColor }}>
                     <Loader2 className="w-3 h-3 animate-spin text-[#E8A83A]" /> Scoring…
                   </div>
-                )}
-                {scoringMap[ac.icao24]?.status === "success" && (
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#22c55e] mt-2">
+              }
+                {scoringMap[ac.icao24]?.status === "success" &&
+              <div className="flex items-center gap-2 text-[10px] font-bold text-[#22c55e] mt-2">
                     <CheckCircle2 className="w-3 h-3" /> ATI Card created! Score: {scoringMap[ac.icao24].atiScore}
                   </div>
-                )}
-                {scoringMap[ac.icao24]?.status === "error" && (
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-[#ff4d6d] mt-2">
+              }
+                {scoringMap[ac.icao24]?.status === "error" &&
+              <div className="flex items-center gap-2 text-[10px] font-bold text-[#ff4d6d] mt-2">
                     <AlertCircle className="w-3 h-3" /> {scoringMap[ac.icao24].message}
                   </div>
-                )}
-              </>
-            );
-          })()}
+              }
+              </>);
 
-          {detail.type === "listing" && (
-            <>
+        })()}
+
+          {detail.type === "listing" &&
+        <>
               <h3 className="text-[11px] font-bold text-[#00f5ff] tracking-wide">
                 {detail.data.year} {detail.data.make} {detail.data.model}
               </h3>
               <table className="w-full mt-2 text-[10px]">
                 <tbody>
                   {[
-                    ["Registration", detail.data.registration || "—"],
-                    ["ATI Score", detail.data.ati_score || "—"],
-                    ["Price", detail.data.asking_price ? `$${detail.data.asking_price.toLocaleString()}` : "—"],
-                    ["Status", detail.data.status || "—"],
-                  ].map(([k, v]) => (
-                    <tr key={k}><td className="py-0.5 opacity-40">{k}</td><td className="py-0.5 text-right tabular-nums font-medium">{v}</td></tr>
-                  ))}
+              ["Registration", detail.data.registration || "—"],
+              ["ATI Score", detail.data.ati_score || "—"],
+              ["Price", detail.data.asking_price ? `$${detail.data.asking_price.toLocaleString()}` : "—"],
+              ["Status", detail.data.status || "—"]].
+              map(([k, v]) =>
+              <tr key={k}><td className="py-0.5 opacity-40">{k}</td><td className="py-0.5 text-right tabular-nums font-medium">{v}</td></tr>
+              )}
                 </tbody>
               </table>
             </>
-          )}
+        }
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }

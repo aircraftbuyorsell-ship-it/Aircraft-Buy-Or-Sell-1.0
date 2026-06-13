@@ -49,6 +49,14 @@
       "allowed_operations": [
         "read"
       ]
+    },
+    {
+      "function_name": "omvmV5Score",
+      "description": ""
+    },
+    {
+      "function_name": "syncFaaToAtiCard",
+      "description": ""
     }
   ],
   "selected_skill_names": [],
@@ -63,9 +71,13 @@
   "memory_config": {
     "enabled": true,
     "scope": "both",
+    "include_other_conversation_context": false,
     "instructions": null
   },
   "whatsapp_greeting": "",
   "telegram_greeting": "",
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "line_greeting": "",
   "name": "valuation_analyst"
 }

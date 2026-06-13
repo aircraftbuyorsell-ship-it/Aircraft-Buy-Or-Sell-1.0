@@ -12,6 +12,7 @@ import { detectRegType, getRegTypeColor } from "@/lib/regUtils";
 import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
+import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
 import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
@@ -150,6 +151,9 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
+
+      {/* News Ticker */}
+      <AviationNewsTicker />
 
       {/* ══════════════════════════════════════════════
           MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar

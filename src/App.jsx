@@ -45,6 +45,7 @@ import AdminListings from "./pages/AdminListings";
 import FeatureRequests from "./pages/FeatureRequests";
 import ATIQuickScore from "./pages/ATIQuickScore";
 import ATIFullReport from "./pages/ATIFullReport";
+import SkyBoss from "./pages/SkyBoss";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
         <Route path="/feature-requests" element={<FeatureRequests />} />
         <Route path="/ati-quick-score" element={<ATIQuickScore />} />
         <Route path="/ati-full-report" element={<ATIFullReport />} />
+        <Route path="/skyboss" element={<SkyBoss />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

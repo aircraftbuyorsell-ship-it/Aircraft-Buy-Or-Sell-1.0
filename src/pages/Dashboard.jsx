@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
   ArrowRight, CheckCircle2, Users,
-  ChevronUp, ChevronDown, Lock, Zap, FileText
+  ChevronUp, ChevronDown, Lock, Zap, FileText, Globe
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -303,6 +303,7 @@ export default function Dashboard() {
               { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
               { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
               { label: "Live Tracking", icon: Radar, link: "/traffic", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
+              { label: "SkyBoss 3D", icon: Globe, link: "/skyboss", color: isDark ? "#00f5ff" : "#0B2D5B" },
               { label: "Secure Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
             ].map((cta) => (
               <Link key={cta.label} to={cta.link}

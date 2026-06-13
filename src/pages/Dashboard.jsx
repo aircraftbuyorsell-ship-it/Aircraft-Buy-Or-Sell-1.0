@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
   ArrowRight, CheckCircle2, Users,
-  ChevronUp, ChevronDown, Lock
+  ChevronUp, ChevronDown, Lock, Zap, FileText
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -13,6 +13,7 @@ import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
+import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
@@ -57,24 +58,48 @@ function SystemStatus({ label = "OPTIMAL", isDark = true }) {
   );
 }
 
-// ─── HUD Panel ───────────────────────────────────────────────────
+// ─── HUD Panel — frosted glass with specular rim (ref: glass HUD style) ───
 function HudPanel({ children, className = "", accent = false, style = {}, isDark = true }) {
   const bg = isDark
-    ? (accent ? "linear-gradient(135deg, rgba(0,245,255,0.08), rgba(122,0,255,0.06))" : "rgba(13,20,50,0.70)")
-    : (accent ? "linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.04))" : "rgba(255,255,255,0.85)");
+    ? (accent
+        ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(40,70,100,0.10) 40%, rgba(0,245,255,0.05) 100%)"
+        : "linear-gradient(150deg, rgba(110,140,175,0.12) 0%, rgba(25,45,75,0.55) 45%, rgba(15,30,55,0.65) 100%)")
+    : (accent
+        ? "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,235,248,0.70) 55%, rgba(210,228,245,0.60) 100%)"
+        : "linear-gradient(150deg, rgba(255,255,255,0.90) 0%, rgba(238,244,252,0.78) 60%, rgba(228,238,250,0.70) 100%)");
   const border = isDark
-    ? `1px solid ${accent ? "rgba(0,245,255,0.30)" : "rgba(0,245,255,0.12)"}`
-    : `1px solid ${accent ? "rgba(37,99,235,0.20)" : "rgba(0,0,0,0.06)"}`;
+    ? `1px solid ${accent ? "rgba(140,230,245,0.40)" : "rgba(150,200,225,0.22)"}`
+    : `1px solid ${accent ? "rgba(120,170,220,0.45)" : "rgba(140,170,205,0.30)"}`;
   const shadow = isDark
-    ? (accent ? "0 0 40px rgba(0,245,255,0.08), inset 0 1px 0 rgba(0,245,255,0.15)" : "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,245,255,0.08)")
-    : (accent ? "0 4px 20px rgba(37,99,235,0.06), inset 0 1px 0 rgba(255,255,255,0.90)" : "0 2px 12px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.90)");
+    ? (accent
+        ? "0 0 44px rgba(0,245,255,0.10), 0 24px 60px rgba(0,0,0,0.55), inset 0 1px 1px rgba(220,250,255,0.35), inset 0 -1px 1px rgba(0,245,255,0.08)"
+        : "0 24px 60px rgba(0,0,0,0.50), inset 0 1px 1px rgba(200,235,250,0.25), inset 0 -1px 1px rgba(120,180,210,0.06)")
+    : (accent
+        ? "0 8px 32px rgba(70,110,160,0.14), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.25)"
+        : "0 6px 24px rgba(70,110,160,0.10), inset 0 1.5px 1px rgba(255,255,255,1), inset 0 -1px 1px rgba(150,185,220,0.20)");
   const topLine = isDark
-    ? "linear-gradient(90deg, transparent, rgba(0,245,255,0.4), transparent)"
-    : "linear-gradient(90deg, transparent, rgba(37,99,235,0.15), transparent)";
+    ? "linear-gradient(90deg, transparent 5%, rgba(230,252,255,0.65) 30%, rgba(0,245,255,0.50) 60%, transparent 95%)"
+    : "linear-gradient(90deg, transparent 5%, rgba(255,255,255,0.95) 30%, rgba(160,200,240,0.60) 60%, transparent 95%)";
   return (
     <div className={`relative rounded-2xl overflow-hidden ${className}`}
-      style={{ background: bg, backdropFilter: "blur(24px) saturate(160%)", WebkitBackdropFilter: "blur(24px) saturate(160%)", border, boxShadow: shadow, ...style }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: topLine, pointerEvents: "none" }} />
+      style={{ background: bg, backdropFilter: "blur(28px) saturate(170%)", WebkitBackdropFilter: "blur(28px) saturate(170%)", border, boxShadow: shadow, ...style }}>
+      {/* Specular top rim */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1.5px", background: topLine, pointerEvents: "none", zIndex: 1 }} />
+      {/* Diagonal glass sheen */}
+      <div style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: isDark
+          ? "linear-gradient(115deg, rgba(210,240,250,0.10) 0%, rgba(210,240,250,0.03) 25%, transparent 45%)"
+          : "linear-gradient(115deg, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.25) 25%, transparent 45%)",
+      }} />
+      {/* Corner glint */}
+      <div style={{
+        position: "absolute", top: "-20px", left: "8%", width: "90px", height: "40px", pointerEvents: "none",
+        background: isDark
+          ? "radial-gradient(ellipse at center, rgba(230,252,255,0.22) 0%, transparent 70%)"
+          : "radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, transparent 70%)",
+        filter: "blur(4px)",
+      }} />
       {children}
     </div>
   );
@@ -183,22 +208,29 @@ export default function Dashboard() {
       {/* ══════════════════════════════════════════════
           HERO — GLOBE + FLOATING HUD PANELS
       ══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ minHeight: "540px", background: isDark ? "#0A081E" : "#f0f4ff" }}>
+      <section className="relative overflow-hidden" style={{ minHeight: "540px", background: isDark ? "#0A081E" : "#e8ecf4" }}>
+        {/* Light mode: subtle spotlight behind the globe */}
+        {!isDark && (
+          <div className="absolute pointer-events-none" style={{
+            top: "5%", left: "35%", width: "55%", height: "85%",
+            background: "radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(232,236,244,0) 70%)",
+          }} />
+        )}
         <div className="absolute inset-0 pointer-events-none">
           <RotatingGlobe theme={isDark ? "dark" : "light"} className="absolute inset-0 w-full h-full" listings={listings} />
         </div>
         <div className="absolute inset-0 pointer-events-none" style={{
           background: isDark
-            ? "linear-gradient(120deg, rgba(10,8,30,0.92) 0%, rgba(10,8,30,0.70) 40%, rgba(10,8,30,0.35) 65%, rgba(10,8,30,0.15) 100%)"
-            : "linear-gradient(120deg, rgba(240,244,255,0.92) 0%, rgba(240,244,255,0.75) 40%, rgba(240,244,255,0.45) 65%, rgba(240,244,255,0.20) 100%)"
+            ? "linear-gradient(120deg, rgba(10,8,30,0.85) 0%, rgba(10,8,30,0.50) 35%, rgba(10,8,30,0.20) 55%, rgba(10,8,30,0.05) 100%)"
+            : "linear-gradient(120deg, rgba(232,236,244,0.80) 0%, rgba(232,236,244,0.45) 35%, rgba(232,236,244,0.18) 55%, rgba(232,236,244,0.04) 100%)"
         }} />
-        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none" style={{
+        <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none" style={{
           background: isDark
-            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.95))"
-            : "linear-gradient(to bottom, transparent, rgba(240,244,255,0.95))"
+            ? "linear-gradient(to bottom, transparent, rgba(10,8,30,0.85))"
+            : "linear-gradient(to bottom, transparent, rgba(232,236,244,0.85))"
         }} />
 
-        <div className="relative px-4 md:px-8 pt-8 pb-14">
+        <div className="relative px-4 md:px-8 pt-8 pb-8">
           <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <div>
               <p className="text-[9px] uppercase tracking-[0.3em] font-black" style={{ color: accentCyan }}>ABOS MarketSpace · Aviation Intelligence</p>
@@ -217,37 +249,54 @@ export default function Dashboard() {
             <FlowRibbon isDark={isDark} />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             {[
               { n: "1", label: "Listings", color: accentCyan, icon: Plane, metric: total_listings, sub: "On market", link: "/listings" },
-              { n: "2", label: "ATI Intelligence", color: accentViolet, icon: ShieldCheck, metric: evaluated, sub: "Evaluated", delta: avg_ati ? `Avg ${avg_ati}` : "—", link: "/listings" },
-              { n: "3", label: "ADS-B Radar", color: accentGold, icon: Radar, metric: "Live", sub: "ADS-B feed", link: "/traffic" },
-              { n: "4", label: "Deal Radar", color: accentRed, icon: TrendingUp, metric: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" },
+              { n: "2", label: "ATI Intel", color: accentViolet, icon: ShieldCheck, metric: evaluated, sub: "Evaluated", delta: avg_ati ? `Avg ${avg_ati}` : "—", link: "/listings" },
+              { n: "3", label: "ADS-B", color: accentGold, icon: Radar, metric: "Live", sub: "Feed", link: "/traffic" },
+              { n: "4", label: "Deals", color: accentRed, icon: TrendingUp, metric: hot_deals, sub: "≥ 8.5", link: "/deal-radar" },
             ].map((m) => (
               <Link key={m.n} to={m.link}>
-                <HudPanel className="p-4 hover:scale-[1.02] transition-transform cursor-pointer h-full" accent={m.n === "1"} isDark={isDark}>
-                  <p className="text-[8px] uppercase tracking-[0.2em] font-black mb-2" style={{ color: m.color }}>{m.n}. {m.label}</p>
-                  <div className="flex items-end justify-between gap-2 mb-2">
-                    <MetricWidget label={m.label} value={m.metric} sub={m.sub} delta={m.delta} deltaUp isDark={isDark} />
-                    <m.icon className="w-7 h-7 opacity-25" style={{ color: m.color }} />
-                  </div>
-                  <Sparkline color={m.color} up={m.n !== "3"} />
-                  <p className="text-[9px] font-semibold mt-1 flex items-center gap-1" style={{ color: m.color }}>
+                <div
+                  className="relative overflow-hidden p-2.5 rounded-xl hover:scale-[1.03] transition-transform cursor-pointer h-full flex flex-col items-center gap-1 text-center"
+                  style={{
+                    background: isDark
+                      ? "linear-gradient(150deg, rgba(120,160,190,0.14) 0%, rgba(20,40,70,0.50) 60%)"
+                      : "linear-gradient(150deg, rgba(255,255,255,0.85) 0%, rgba(225,238,250,0.60) 60%)",
+                    backdropFilter: "blur(16px) saturate(160%)",
+                    WebkitBackdropFilter: "blur(16px) saturate(160%)",
+                    border: isDark ? `1px solid ${m.color}35` : `1px solid ${m.color}28`,
+                    boxShadow: isDark
+                      ? `inset 0 1px 1px rgba(220,250,255,0.30), 0 8px 24px rgba(0,0,0,0.35)`
+                      : `inset 0 1.5px 1px rgba(255,255,255,1), 0 4px 16px rgba(70,110,160,0.10)`,
+                  }}
+                >
+                  <div style={{
+                    position: "absolute", inset: 0, pointerEvents: "none",
+                    background: isDark
+                      ? "linear-gradient(115deg, rgba(210,240,250,0.12) 0%, transparent 40%)"
+                      : "linear-gradient(115deg, rgba(255,255,255,0.85) 0%, transparent 40%)",
+                  }} />
+                  <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: m.color }}>{m.label}</span>
+                  <span className="text-xl font-black leading-none" style={{ color: textColor }}>{m.metric}</span>
+                  <span className="text-[9px] leading-tight" style={{ color: mutedColor }}>{m.sub}</span>
+                  <span className="w-full h-0.5 rounded-full mt-0.5" style={{ background: `${m.color}40` }} />
+                  <span className="text-[8px] font-semibold flex items-center gap-1 justify-center" style={{ color: m.color }}>
                     <span className="w-1 h-1 rounded-full animate-pulse inline-block" style={{ backgroundColor: m.color }} />Live
-                  </p>
-                </HudPanel>
+                  </span>
+                </div>
               </Link>
             ))}
           </div>
 
-          <div className="h-10 my-4 opacity-40">
+          <div className="h-6 my-2 opacity-25">
             <FlowRibbon isDark={isDark} />
           </div>
 
-          <div className="flex flex-wrap gap-3 items-center justify-center">
+          <div className="flex flex-wrap gap-2 items-center justify-center">
             {[
               { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
-              { label: "Pre-Buy AI", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
+              { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
               { label: "Live Tracking", icon: Radar, link: "/traffic", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
               { label: "Secure Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" },
             ].map((cta) => (
@@ -289,6 +338,45 @@ export default function Dashboard() {
         </HudPanel>
       </section>
 
+      {/* SUBSCRIPTION STATUS */}
+      <section className="px-4 md:px-8 pt-2 pb-4">
+        <SubscriptionBadge />
+      </section>
+
+      {/* ATI TOOLS */}
+      <section className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <SectionHeader overline="ATI Scoring Tools" title="Instant Aircraft Intelligence" isDark={isDark} />
+        </div>
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          {[
+            { n: "FREE", color: accentCyan, icon: Zap, title: "ATI Quick Score", body: "Paste any listing text or N-number. Get an instant 8-dimension scorecard, OMVM range, deal score and a single buyer alert — no document output.", link: "/ati-quick-score", badge: "Free · Instant" },
+            { n: "PRO", color: accentGold, icon: FileText, title: "ATI Full Report", body: "Professional aircraft appraisal: 8-dimension scoring, executive summary, strengths, risks, recommendations, identity table and branded .docx export.", link: "/ati-full-report", badge: "Pro · Export" },
+          ].map((m) => (
+            <Link key={m.n} to={m.link}>
+              <HudPanel className="p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: `${m.color}35` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}35` }}>
+                    <m.icon className="w-4 h-4" style={{ color: m.color }} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
+                      style={{ background: `${m.color}15`, color: m.color }}>{m.badge}</span>
+                  </div>
+                </div>
+                <h4 className="text-[11px] font-black uppercase tracking-tight mb-2" style={{ color: textColor }}>{m.title}</h4>
+                <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-bold"
+                  style={{ borderColor: `${m.color}20`, color: m.color }}>
+                  Launch Tool <ArrowRight className="w-3 h-3" />
+                </div>
+              </HudPanel>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* 4-CAPABILITY MODULES */}
       <section className="px-4 md:px-8 py-6">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
@@ -299,7 +387,7 @@ export default function Dashboard() {
           {[
             { n: "01", color: accentCyan, icon: ShieldCheck, title: "ATI Transaction Report", body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.", link: "/listings" },
             { n: "02", color: accentViolet, icon: Radar, title: "ADS-B Surveillance", body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and 7-day operational history.", link: "/traffic" },
-            { n: "03", color: accentGold, icon: Plane, title: "AI Pre-Buy Inspection", body: "On-site with Max AI — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
+            { n: "03", color: accentGold, icon: Plane, title: "Pre-Buy Inspection", body: "On-site with Max — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
             { n: "04", color: accentRed, icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" },
           ].map((m) => (
             <Link key={m.n} to={m.link}>

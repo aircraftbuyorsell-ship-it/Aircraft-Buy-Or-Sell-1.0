@@ -37,10 +37,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Authenticate — runs via entity automation, must validate the caller
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-
+    // Runs via entity automation — use service role, no user auth required
     const body = await req.json().catch(() => ({}));
 
     const newStatus = body?.data?.status;

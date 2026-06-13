@@ -152,9 +152,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* News Ticker */}
-      <AviationNewsTicker />
-
       {/* ══════════════════════════════════════════════
             MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar
          ══════════════════════════════════════════════ */}
@@ -164,7 +161,7 @@ export default function Dashboard() {
           {/* LEFT — Unified Traffic Panel with 2D/3D toggle */}
           <div className="min-h-0 flex flex-col">
             {/* View toggle bar */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-0">
               <div className="flex items-center rounded-lg overflow-hidden" style={{
                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
                 border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.08)"
@@ -204,6 +201,9 @@ export default function Dashboard() {
                 compact />
               
             </div>
+
+            {/* News Ticker */}
+            <AviationNewsTicker />
 
             {/* View content — 2D map or 3D globe */}
             <div className="flex-1 relative rounded-xl overflow-hidden opacity-100" style={{

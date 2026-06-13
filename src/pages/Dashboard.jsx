@@ -13,7 +13,7 @@ import AIInsightsPanel from "@/components/dashboard/AIInsightsPanel";
 import MarketForecastCharts from "@/components/dashboard/MarketForecastCharts";
 import LiveTrafficBadge from "@/components/dashboard/LiveTrafficBadge";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
-import RotatingGlobe from "@/components/dashboard/RotatingGlobe";
+import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -220,7 +220,7 @@ export default function Dashboard() {
           }} />
         )}
         <div className="absolute inset-0 pointer-events-none">
-          <RotatingGlobe theme={isDark ? "dark" : "light"} className="absolute inset-0 w-full h-full" listings={listings} />
+          <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
         </div>
         <div className="absolute inset-0 pointer-events-none" style={{
           background: isDark

@@ -495,7 +495,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
-      <canvas ref={canvasRef} className="block w-full h-full cursor-grab rounded-[10023px]" />
+      <canvas ref={canvasRef} className="block w-full h-full cursor-grab rounded-[10023px] opacity-100" />
 
       {/* Traffic status badge */}
       <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"

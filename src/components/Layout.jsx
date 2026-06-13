@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp, Lightbulb,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
-  MessageCircle, HelpCircle,
+  MessageCircle, HelpCircle, FileText, Globe, Layers,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -30,46 +30,58 @@ const TOP_ITEMS = [
 const SIDEBAR_SECTIONS = [
   {
     n: "1",
-    label: "Market",
+    label: "MarketSpace",
+    sublabel: "Public Aircraft Intelligence",
+    color: "#00c2ff",
     items: [
-      { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Overview of platform activity, ATI scores, and market pulse" },
-      { path: "/listings", label: "Listings", icon: Plane, desc: "Browse all active aircraft listings with ATI transparency scores" },
-      { path: "/compare", label: "Compare Aircraft", icon: ShieldCheck, desc: "Compare up to 3 aircraft side-by-side on specs, pricing, and ATI scores" },
-      { path: "/community", label: "Community", icon: Users, desc: "Connect with aviation dealers, brokers, and buyers" },
-      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new features for the platform" },
-      { path: "/deal-radar", label: "Deal Radar", icon: Radar, desc: "Spot aircraft priced below market — hot deals with high ATI scores" },
-      { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B aircraft tracking with N-number search and ABOS listing matching" },
-      { path: "/analytics", label: "Analytics", icon: BarChart3, desc: "Market trend charts, price movements, and time-on-market data" },
-      { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence reports with macro signals" },
+      { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Platform overview — active listings, ATI scores, market pulse and live globe" },
+      { path: "/listings", label: "Aircraft Listings", icon: Plane, desc: "Browse all public aircraft listings with ATI scores, deal ratings and swipe deck" },
+      { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, desc: "Instant 8-dimension ATI scorecard from any listing text or N-number — free" },
+      { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
+      { path: "/compare", label: "Compare Aircraft", icon: Layers, desc: "Compare up to 3 aircraft side-by-side on specs, pricing and ATI scores" },
+      { path: "/deal-radar", label: "Deal Radar", icon: TrendingUp, desc: "Hot deals priced below market with high ATI scores — updated in real time" },
+      { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
+      { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
+      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" },
     ],
   },
   {
     n: "2",
-    label: "Tools",
+    label: "IntraZone",
+    sublabel: "User Workspace & Analytics",
+    color: "#D4A017",
     items: [
-      { path: "/marketplace", label: "ABOS MarketSpace", icon: Zap, desc: "Third-party aviation tools and integrations marketplace" },
-      { path: "/intrazone", label: "IntraZone", icon: Zap, desc: "Sales intelligence: lead scoring, deal pipeline, and matching engine" },
-      { path: "/valuation", label: "Valuation", icon: TrendingUp, desc: "Expert aircraft valuation with OMVM market-model estimates" },
-      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "Calculate true annual ownership costs before buying" },
-      { path: "/leads", label: "Leads", icon: Users, desc: "Manage buyer leads, track pipeline stages, and score lead quality" },
-      { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation assistant for pre-buy inspections, valuations, and market advice" },
+      { path: "/intrazone", label: "IntraZone Hub", icon: LayoutDashboard, desc: "Your private workspace — deals, leads, matching engine and negotiation tools" },
+      { path: "/analytics", label: "Market Analytics", icon: BarChart3, desc: "Price trends, days-on-market, top models and inventory liquidity charts" },
+      { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence with macro signals and regional forecasts" },
+      { path: "/valuation", label: "Valuation (OMVM)", icon: TrendingUp, desc: "Off-market valuation model — market-calibrated price estimates" },
+      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "True annual ownership cost calculator — 100h to 999h/year flight time scenarios" },
+      { path: "/escrow", label: "Escrow & Deals", icon: Handshake, desc: "Secure buyer-seller escrow with automated commission splits and payout audit trail" },
+      { path: "/leads", label: "Leads (CRM)", icon: Users, desc: "Buyer lead pipeline — stage tracking, auto-scoring and deal management" },
+      { path: "/pre-buy-inspection", label: "Pre-Buy Inspection", icon: ShieldCheck, desc: "On-site with Max — live visual analysis of airframe, engine and avionics" },
+      { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation intelligence assistant — appraisals, inspections and market advice" },
     ],
   },
   {
     n: "3",
     label: "Account",
+    sublabel: "Plans & Billing",
+    color: "#6366f1",
     items: [
       { path: "/pricing", label: "Credits & Plans", icon: Zap, desc: "Purchase token packs and manage your credit balance" },
       { path: "/subscription", label: "Subscription", icon: CreditCard, desc: "Manage your subscription plan and billing details" },
+      { path: "/my-account", label: "My Account", icon: User, desc: "Profile settings, preferences and account details" },
     ],
   },
   {
     n: "4",
     label: "Admin",
+    sublabel: "Platform Management",
+    color: "#ef4444",
     items: [
-      { path: "/admin/listings", label: "Admin: All Listings", icon: ShieldCheck, desc: "Full listing oversight with bulk actions, scoring, and status management" },
-      { path: "/admin/marketplace", label: "Admin: Marketplace", icon: Zap, desc: "Approve and manage third-party developer tools and integrations" },
-      { path: "/admin/settings", label: "Admin: Settings", icon: ShieldCheck, desc: "Platform configuration, webhooks, auto-scoring, and feature toggles" },
+      { path: "/admin/listings", label: "All Listings", icon: ShieldCheck, desc: "Full listing oversight with bulk actions, scoring and status management" },
+      { path: "/admin/marketplace", label: "Marketplace", icon: Globe, desc: "Approve and manage third-party developer tools and integrations" },
+      { path: "/admin/settings", label: "Settings", icon: Zap, desc: "Platform configuration, webhooks, auto-scoring and feature toggles" },
     ],
   },
 ];
@@ -310,17 +322,21 @@ export default function Layout() {
         <TooltipProvider delayDuration={600}>
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {SIDEBAR_SECTIONS.map((section, idx) => (
-            <div key={section.n} className={idx > 0 ? "mt-6" : ""}>
-              <div className="flex items-center gap-2 px-3 pb-2">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(212,160,23,0.15)", border: "1px solid rgba(212,160,23,0.30)" }}>
-                  <span className="text-[9px] font-black text-[#D4A017] leading-none">{section.n}</span>
+            <div key={section.n} className={idx > 0 ? "mt-5" : ""}>
+              <div className="flex items-center gap-2 px-3 pb-1.5">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: `${section.color}18`, border: `1px solid ${section.color}40` }}>
+                  <span className="text-[9px] font-black leading-none" style={{ color: section.color }}>{section.n}</span>
                 </div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{color: "#D4A017"}}>{section.label}</p>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: section.color }}>{section.label}</p>
+                  {section.sublabel && <p className="text-[8px] leading-none mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.30)" }}>{section.sublabel}</p>}
+                </div>
               </div>
               <div className="space-y-0.5">
                 {section.items.map(({ path, label, icon: NavIcon, desc }) => {
                   const active = pathname === path;
+                  const sc = section.color;
                   const inactiveColor = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
                   const hoverColor = isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.75)";
                   const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
@@ -331,19 +347,19 @@ export default function Layout() {
                           to={path}
                       className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
                       style={{
-                        color: active ? "#1e293b" : inactiveColor,
-                        background: active ? "rgba(212,160,23,0.14)" : "transparent",
-                        border: active ? "1px solid rgba(212,160,23,0.35)" : "1px solid transparent",
+                        color: active ? (isDark ? "#fff" : "#1e293b") : inactiveColor,
+                        background: active ? `${sc}14` : "transparent",
+                        border: active ? `1px solid ${sc}38` : "1px solid transparent",
                       }}
                       onMouseEnter={e => { if (!active) { e.currentTarget.style.background = hoverBg; e.currentTarget.style.color = hoverColor; e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)"; }}}
                       onMouseLeave={e => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = inactiveColor; e.currentTarget.style.border = "1px solid transparent"; }}}
                     >
-                      <NavIcon className="w-3.5 h-3.5 shrink-0" style={{color: active ? "#D4A017" : undefined}} />
+                      <NavIcon className="w-3.5 h-3.5 shrink-0" style={{color: active ? sc : undefined}} />
                       <span>{label}</span>
                       {active && (
                         <div className="ml-auto flex items-center gap-1.5">
-                          <div className="w-1 h-1 rounded-full bg-[#D4A017]/50" />
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#D4A017]" />
+                          <div className="w-1 h-1 rounded-full" style={{ background: `${sc}60` }} />
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc }} />
                         </div>
                       )}
                         </Link>

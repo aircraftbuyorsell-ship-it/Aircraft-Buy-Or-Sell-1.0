@@ -18,22 +18,52 @@ L.Icon.Default.mergeOptions({
 const WORLD_CENTER = [30, -30];
 const WORLD_ZOOM = 3;
 
-function altColor(altM) {
-  if (altM == null) return "#999";
-  const ft = altM * 3.28084;
-  if (ft < 5000) return "#ef4444";
-  if (ft < 15000) return "#f59e0b";
-  if (ft < 30000) return "#22c55e";
-  return "#3b82f6";
+// Neon blue aircraft silhouette SVG (matches 3D globe style)
+function aircraftSilhouetteSvg({ color = "#00d4ff", glow = "rgba(0,212,255,0.35)", size = 32, heading = 0 }) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 96 96" style="transform:rotate(${heading}deg);filter:drop-shadow(0 0 3px ${glow})">
+    <defs>
+      <radialGradient id="acGlow" cx="48" cy="48" r="42">
+        <stop offset="0%" stop-color="${glow}" />
+        <stop offset="100%" stop-color="transparent" />
+      </radialGradient>
+    </defs>
+    <circle cx="48" cy="48" r="42" fill="url(#acGlow)" />
+    <!-- Fuselage -->
+    <rect x="45" y="10" width="6" height="66" fill="${color}" rx="2" />
+    <!-- Wings -->
+    <polygon points="48,26 18,44 20,48 48,32" fill="${color}" />
+    <polygon points="48,26 78,44 76,48 48,32" fill="${color}" />
+    <!-- Horizontal stabilizer -->
+    <polygon points="48,56 26,68 28,72 48,62" fill="${color}" />
+    <polygon points="48,56 70,68 68,72 48,62" fill="${color}" />
+    <!-- Bright core line -->
+    <line x1="48" y1="10" x2="48" y2="76" stroke="white" stroke-width="0.8" opacity="0.6" />
+  </svg>`;
 }
 
-function makeIcon(altM, heading = 0, highlight = false) {
-  const color = highlight ? "#E8A83A" : altColor(altM);
-  const size = highlight ? 34 : 22;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" style="transform:rotate(${heading}deg)">
-    <path d="M12 2 L7 20 L12 17 L17 20 Z" fill="${color}" stroke="white" stroke-width="1.5"/>
-  </svg>`;
-  return L.divIcon({ html: svg, className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2], popupAnchor: [0, -size / 2] });
+function makeIcon(altM, heading = 0, highlight = false, hasListing = false) {
+  let color = "#00d4ff";
+  let glow = "rgba(0,212,255,0.35)";
+  let size = 28;
+
+  if (hasListing) {
+    color = "#E8A83A";
+    glow = "rgba(232,168,58,0.45)";
+    size = 30;
+  }
+  if (highlight) {
+    size = 40;
+    glow = "rgba(0,245,255,0.60)";
+  }
+
+  const svg = aircraftSilhouetteSvg({ color, glow, size, heading });
+  return L.divIcon({
+    html: svg,
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2]
+  });
 }
 
 function FlyTo({ target }) {
@@ -290,7 +320,7 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
               <Marker
                 key={ac.icao24}
                 position={[ac.latitude, ac.longitude]}
-                icon={makeIcon(ac.baro_altitude, ac.true_track || 0, isHighlight)}
+                icon={makeIcon(ac.baro_altitude, ac.true_track || 0, isHighlight, !!ac.listing)}
                 ref={(r) => { if (r) markerRefs.current[ac.icao24] = r; }}
                 zIndexOffset={isHighlight ? 1000 : 0}
               >
@@ -360,16 +390,14 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
 
       {/* Legend */}
       <div className="mt-2 flex flex-wrap gap-3 items-center">
-        <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: mutedColor }}>Altitude:</span>
+        <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: mutedColor }}>Markers:</span>
         {[
-          { color: "#ef4444", label: "0–5k ft" },
-          { color: "#f59e0b", label: "5–15k ft" },
-          { color: "#22c55e", label: "15–30k ft" },
-          { color: "#3b82f6", label: "30k+ ft" },
-          { color: "#E8A83A", label: "Search" },
+          { color: "#00d4ff", label: "Live traffic" },
+          { color: "#E8A83A", label: "ABOS listing" },
+          { color: "#00f5ff", label: "Search target", shadow: true },
         ].map((l) => (
           <div key={l.label} className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: l.color }} />
+            <div className="w-3 h-3 rounded-sm" style={{ background: l.color, boxShadow: l.shadow ? `0 0 6px ${l.color}` : undefined }} />
             <span className="text-[10px]" style={{ color: mutedColor }}>{l.label}</span>
           </div>
         ))}

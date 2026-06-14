@@ -123,22 +123,22 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {stepId === "identity" && (
             <div className="space-y-4">
-              <p className="text-[11px] text-[#6B6560] mb-4">Enter the aircraft's basic identification information.</p>
+              <p className="text-[11px] text-[#3a3530] mb-4">Enter the aircraft's basic identification information.</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Manufacturer</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Manufacturer</label>
                   <input type="text" value={form.make} onChange={e => handleChange("make", e.target.value)} placeholder="Beechcraft, Cessna..." className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Model</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Model</label>
                   <input type="text" value={form.model} onChange={e => handleChange("model", e.target.value)} placeholder="B36TC, 172, P-28..." className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Year</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Year</label>
                   <input type="number" value={form.year} onChange={e => handleChange("year", e.target.value)} placeholder="2000" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Registration (N-Number)</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Registration (N-Number)</label>
                   <input type="text" value={form.registration} onChange={e => handleChange("registration", e.target.value)} placeholder="N12345" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                 </div>
               </div>
@@ -149,10 +149,10 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
             <div className="space-y-4">
               <div className="bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.2)] rounded-lg p-3 mb-4">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-[#A67C00] mb-1">💡 Pricing Tip</p>
-                <p className="text-[11px] text-[#6B6560]">Missing asking price eliminates 70% of serious buyers. Be specific: "$245,000" beats "negotiable".</p>
+                <p className="text-[11px] text-[#3a3530]">Missing asking price eliminates 70% of serious buyers. Be specific: "$245,000" beats "negotiable".</p>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Asking Price (USD)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Asking Price (USD)</label>
                 <div className="flex gap-2">
                   <input type="number" value={form.asking_price} onChange={e => handleChange("asking_price", e.target.value)} placeholder="250000" className="flex-1 px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                   <select value={form.currency} onChange={e => handleChange("currency", e.target.value)} className="px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]">
@@ -163,7 +163,7 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
                 </div>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Brief Condition Summary</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Brief Condition Summary</label>
                 <textarea value={form.condition_summary} onChange={e => handleChange("condition_summary", e.target.value)} placeholder="Well-maintained, recent avionics upgrade, no damage history..." rows={4} className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017] resize-none" />
               </div>
             </div>
@@ -171,17 +171,17 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
 
           {stepId === "times" && (
             <div className="space-y-4">
-              <p className="text-[11px] text-[#6B6560] mb-4">Engine hours since major overhaul (SMOH) are critical for buyer financing and value.</p>
+              <p className="text-[11px] text-[#3a3530] mb-4">Engine hours since major overhaul (SMOH) are critical for buyer financing and value.</p>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Total Airframe Hours (TT)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Total Airframe Hours (TT)</label>
                 <input type="number" value={form.total_time} onChange={e => handleChange("total_time", e.target.value)} placeholder="4171" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Engine Hours Since Major Overhaul (SMOH)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Engine Hours Since Major Overhaul (SMOH)</label>
                 <input type="number" value={form.engine_hours} onChange={e => handleChange("engine_hours", e.target.value)} placeholder="283" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Engine TBO (Hours)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Engine TBO (Hours)</label>
                 <input type="number" value={form.tbo} onChange={e => handleChange("tbo", e.target.value)} placeholder="2000" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
             </div>
@@ -191,19 +191,19 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
             <div className="space-y-4">
               <div className="bg-[rgba(192,57,43,0.08)] border border-[rgba(192,57,43,0.15)] rounded-lg p-3 mb-4">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-[#C0392B] mb-1">⚠️ Critical Data</p>
-                <p className="text-[11px] text-[#6B6560]">Missing any of these creates buyer friction & lost inquiries.</p>
+                <p className="text-[11px] text-[#3a3530]">Missing any of these creates buyer friction & lost inquiries.</p>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Autopilot Status</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Autopilot Status</label>
                 <input type="text" value={form.autopilot_status} onChange={e => handleChange("autopilot_status", e.target.value)} placeholder="King KFC 150 with altitude hold  OR  None installed" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
                 <p className="text-[9px] text-[#AAA49C] mt-1">Be specific: brand/model or state if not equipped</p>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">O2 System Status</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">O2 System Status</label>
                 <input type="text" value={form.o2_system} onChange={e => handleChange("o2_system", e.target.value)} placeholder="Built-in O2 system, bottle hydro current to 2026" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Useful Load (lbs)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Useful Load (lbs)</label>
                 <input type="text" value={form.useful_load} onChange={e => handleChange("useful_load", e.target.value)} placeholder="850 lbs (equipped weight 3,600 lbs)" className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
             </div>
@@ -213,15 +213,15 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
             <div className="space-y-4">
               <div className="bg-[rgba(15,122,86,0.08)] border border-[rgba(15,122,86,0.15)] rounded-lg p-3 mb-4">
                 <p className="text-[10px] uppercase tracking-wider font-bold text-[#0F7A56] mb-1">✓ Buyer Confidence Signal</p>
-                <p className="text-[11px] text-[#6B6560]">Recent maintenance shows ongoing care. Include specific dates & work.</p>
+                <p className="text-[11px] text-[#3a3530]">Recent maintenance shows ongoing care. Include specific dates & work.</p>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Post-2018 Maintenance Narrative</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Post-2018 Maintenance Narrative</label>
                 <textarea value={form.post_2018_narrative} onChange={e => handleChange("post_2018_narrative", e.target.value)} placeholder="2023: Concorde battery installed. 2024: Gear swing & brake inspection. 2025: Annual compressions 75+/80, cowl flaps rebuilt." rows={4} className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017] resize-none" />
                 <p className="text-[9px] text-[#AAA49C] mt-1">List major work with years. Buyers want proof of care since last major refresh.</p>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Avionics Package</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Avionics Package</label>
                 <input type="text" value={form.avionics} onChange={e => handleChange("avionics", e.target.value)} placeholder="IFD 440, King HSI 525, S-Tec 55 autopilot..." className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
             </div>
@@ -229,10 +229,10 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
 
           {stepId === "photos" && (
             <div className="space-y-4">
-              <p className="text-[11px] text-[#6B6560] mb-4">Photos & documents aren't required to create the listing, but they increase buyer confidence & inquiries by 3-5x.</p>
+              <p className="text-[11px] text-[#3a3530] mb-4">Photos & documents aren't required to create the listing, but they increase buyer confidence & inquiries by 3-5x.</p>
               <div className="bg-[#F7F4EF] rounded-lg p-4 text-center">
-                <p className="text-[12px] font-semibold text-[#6B6560]">High-Impact Photo Checklist:</p>
-                <ul className="text-[11px] text-[#6B6560] mt-2 space-y-1 text-left">
+                <p className="text-[12px] font-semibold text-[#3a3530]">High-Impact Photo Checklist:</p>
+                <ul className="text-[11px] text-[#3a3530] mt-2 space-y-1 text-left">
                   <li>✓ Panel closeup (avionics clarity)</li>
                   <li>✓ Engine compartment (condition proof)</li>
                   <li>✓ Cabin looking aft (interior quality)</li>
@@ -241,7 +241,7 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
                 </ul>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">Original Listing URL (if importing)</label>
+                <label className="text-[10px] uppercase tracking-wider text-[#3d3840] font-semibold block mb-1">Original Listing URL (if importing)</label>
                 <input type="url" value={form.source_url} onChange={e => handleChange("source_url", e.target.value)} placeholder="https://..." className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm focus:outline-none focus:border-[#D4A017]" />
               </div>
             </div>
@@ -249,7 +249,7 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
 
           {stepId === "review" && (
             <div className="space-y-3">
-              <p className="text-[11px] text-[#6B6560] mb-4">Review your listing before publishing. Quality check:</p>
+              <p className="text-[11px] text-[#3a3530] mb-4">Review your listing before publishing. Quality check:</p>
               <div className="space-y-2">
                 {[
                   { label: "Price stated", value: form.asking_price },
@@ -272,7 +272,7 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
               </div>
               <div className="bg-[rgba(24,95,165,0.08)] border border-[rgba(24,95,165,0.15)] rounded-lg p-3 mt-4">
                 <p className="text-[10px] font-bold text-[#185FA5] mb-1">📊 Estimated Buyer Reach</p>
-                <p className="text-[11px] text-[#6B6560]">With all critical fields: 80-90% of qualified buyer pool. Missing fields: 30-40%.</p>
+                <p className="text-[11px] text-[#3a3530]">With all critical fields: 80-90% of qualified buyer pool. Missing fields: 30-40%.</p>
               </div>
             </div>
           )}
@@ -289,7 +289,7 @@ export default function AircraftWizard({ open, onClose, onPublish }) {
           <button
             onClick={handlePrev}
             disabled={currentStep === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/10 text-[#6B6560] hover:border-[#D4A017] disabled:opacity-40 text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/10 text-[#3a3530] hover:border-[#D4A017] disabled:opacity-40 text-sm font-semibold transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Back

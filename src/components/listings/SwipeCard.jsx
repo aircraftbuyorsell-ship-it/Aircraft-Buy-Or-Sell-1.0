@@ -139,8 +139,8 @@ function Card({ listing: l }) {
               <div className="min-w-0">
                 <p className="text-[#E8A83A] text-[8px] uppercase tracking-[0.2em] font-black">ATI Score Card</p>
                 <h3 className="text-[#1A1814] font-black text-lg leading-tight truncate">{aircraftTitle}</h3>
-                <p className="text-[#6B6560] font-mono text-[10px] mt-0.5">{l.registration || "N-reg pending"}</p>
-                <p className="text-[#AAA49C] text-[9px] mt-1">ID {l.public_card_code || l.ati_card_code || l.id?.slice(-8) || "—"}</p>
+                <p className="text-[#3a3530] font-mono text-[10px] mt-0.5">{l.registration || "N-reg pending"}</p>
+                <p className="text-[#4a4550] text-[9px] mt-1">ID {l.public_card_code || l.ati_card_code || l.id?.slice(-8) || "—"}</p>
               </div>
               <div className="shrink-0 text-center">
                 <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg" style={{ backgroundColor: color }}>
@@ -153,11 +153,11 @@ function Card({ listing: l }) {
             {hasPrice &&
             <div className="px-4 py-2 grid grid-cols-2 gap-2 border-b border-black/[0.06]">
               <div>
-                <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">Price</p>
+                <p className="text-[8px] text-[#4a4550] uppercase tracking-wider font-bold">Price</p>
                 <p className="text-sm font-black text-[#1A1814]">{fmtMoney(l.asking_price)}</p>
               </div>
               <div className="text-right">
-                <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">OMVM</p>
+                <p className="text-[8px] text-[#4a4550] uppercase tracking-wider font-bold">OMVM</p>
                 <p className="text-sm font-black text-[#0B2D5B]">{l.omvm_value ? fmtMoney(l.omvm_value) : "—"}</p>
                 {l.discount_pct != null &&
                 <p className={`text-[9px] font-black ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
@@ -172,7 +172,7 @@ function Card({ listing: l }) {
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                 {info.slice(0, 12).map((item) =>
                 <div key={item.label} className="min-w-0">
-                    <p className="text-[7px] text-[#AAA49C] uppercase tracking-wider font-bold leading-none">{item.label}</p>
+                    <p className="text-[7px] text-[#4a4550] uppercase tracking-wider font-bold leading-none">{item.label}</p>
                     <p className="text-[10px] text-[#1A1814] font-bold truncate mt-0.5">{item.value}</p>
                   </div>
                 )}
@@ -180,7 +180,7 @@ function Card({ listing: l }) {
               <div className="mt-2 grid grid-cols-3 gap-1.5">
                 {info.slice(12).map((item) =>
                 <div key={item.label} className="bg-[#F7F4EF] rounded-lg px-2 py-1 border border-black/[0.04]">
-                    <p className="text-[7px] text-[#AAA49C] uppercase tracking-wider font-bold">{item.label}</p>
+                    <p className="text-[7px] text-[#4a4550] uppercase tracking-wider font-bold">{item.label}</p>
                     <p className="text-[9px] text-[#1A1814] font-black truncate">{item.value}</p>
                   </div>
                 )}
@@ -361,14 +361,14 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
     <div className="w-full">
       {/* Desktop/Tablet header hint */}
       <div className="hidden md:flex items-center justify-center gap-4 mb-6 px-4">
-        <div className="flex items-center gap-2 text-[11px] text-[#AAA49C] font-semibold uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-[11px] text-[#4a4550] font-semibold uppercase tracking-wider">
           <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
           </svg>
           Swipe left to skip
         </div>
         <div className="h-4 w-px bg-black/10" />
-        <div className="flex items-center gap-2 text-[11px] text-[#AAA49C] font-semibold uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-[11px] text-[#4a4550] font-semibold uppercase tracking-wider">
           Swipe right to shortlist
           <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -481,7 +481,7 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
       </div>
 
       {/* ── MOBILE: Full-width card (no side cards) ── */}
-      <div className="md:hidden mt-2 text-center text-[10px] text-[#AAA49C] font-medium">
+      <div className="md:hidden mt-2 text-center text-[10px] text-[#4a4550] font-medium">
         {current + 1} / {listings.length}
       </div>
     </div>);

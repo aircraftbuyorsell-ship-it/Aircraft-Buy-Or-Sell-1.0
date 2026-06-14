@@ -48,7 +48,7 @@
     --secondary: 220 15% 92%;
     --secondary-foreground: 220 20% 20%;
     --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 45%;
+    --muted-foreground: 220 10% 30%;
     --accent: 200 80% 42%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
@@ -107,7 +107,7 @@
     --secondary: 240 40% 16%;
     --secondary-foreground: 210 40% 90%;
     --muted: 240 40% 14%;
-    --muted-foreground: 230 20% 55%;
+    --muted-foreground: 230 30% 70%;
     --accent: 185 100% 50%;
     --accent-foreground: 240 50% 8%;
     --destructive: 0 75% 55%;
@@ -175,21 +175,21 @@
   }
 }
 
-/* ── Light mode inputs ── */
+/* ── Light mode inputs ── high-contrast black/white ── */
 input, textarea, select {
-  background-color: rgba(255,255,255,0.8);
-  color: #0f1020;
-  border-color: rgba(0,0,0,0.12);
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+  border-color: rgba(0,0,0,0.22) !important;
 }
-input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.30); }
+input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; }
 
-/* ── Dark mode inputs ── */
+/* ── Dark mode inputs ── high-contrast white/black ── */
 .dark input, .dark textarea, .dark select {
-  background-color: rgba(122,0,255,0.08) !important;
-  color: rgba(255,255,255,0.95) !important;
-  border-color: rgba(0,245,255,0.16) !important;
+  background-color: #1a1a2e !important;
+  color: #f8f8fa !important;
+  border-color: rgba(255,255,255,0.22) !important;
 }
-.dark input::placeholder, .dark textarea::placeholder { color: rgba(255,255,255,0.28) !important; }
+.dark input::placeholder, .dark textarea::placeholder { color: rgba(255,255,255,0.40) !important; }
 
 /* iOS safe area helpers */
 .safe-top   { padding-top:    env(safe-area-inset-top); }

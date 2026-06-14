@@ -25,7 +25,7 @@ import { HelpCircle } from "lucide-react";
 function ATIBadge({ score }) {
   if (score == null) return (
     <div className="w-11 h-11 rounded-full bg-[#F0EDE6] border border-black/[0.06] flex items-center justify-center shrink-0">
-      <span className="text-[9px] text-[#AAA49C] font-bold">—</span>
+      <span className="text-[9px] text-[#4a4550] font-bold">—</span>
     </div>);
 
   const color = score >= 90 ? "#0F7A56" : score >= 72 ? "#185FA5" : score >= 54 ? "#D4A017" : "#C0392B";
@@ -83,7 +83,7 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
         className="shrink-0 text-[#0B2D5B] opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
         style={{ opacity: selected ? 1 : undefined }}>
         
-        {selected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-[#AAA49C]" />}
+        {selected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-[#4a4550]" />}
       </button>
 
       {/* ATI Ring */}
@@ -98,7 +98,7 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
           </p>
           {listing.registration &&
-          <span className="text-[10px] text-[#6B6560] font-mono bg-[#F0EDE6] px-2 py-0.5 rounded-md border border-black/[0.05]">
+          <span className="text-[10px] text-[#3a3530] font-mono bg-[#F0EDE6] px-2 py-0.5 rounded-md border border-black/[0.05]">
               {listing.registration}
             </span>
           }
@@ -107,13 +107,13 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
           {listing.total_time &&
-          <span className="text-[11px] text-[#6B6560]">
-              <span className="text-[#AAA49C] font-medium">TT </span>{listing.total_time.toLocaleString()} h
+          <span className="text-[11px] text-[#3a3530]">
+              <span className="text-[#4a4550] font-medium">TT </span>{listing.total_time.toLocaleString()} h
             </span>
           }
           {listing.engine_hours &&
-          <span className="text-[11px] text-[#6B6560]">
-              <span className="text-[#AAA49C] font-medium">ENG </span>{listing.engine_hours.toLocaleString()} h
+          <span className="text-[11px] text-[#3a3530]">
+              <span className="text-[#4a4550] font-medium">ENG </span>{listing.engine_hours.toLocaleString()} h
             </span>
           }
           {enginePct != null &&
@@ -121,11 +121,11 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
               <div className="w-20 h-1 bg-black/[0.06] rounded-full overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
               </div>
-              <span className="text-[9px] text-[#AAA49C] font-medium">{Math.round(enginePct)}%</span>
+              <span className="text-[9px] text-[#4a4550] font-medium">{Math.round(enginePct)}%</span>
             </div>
           }
           {listing.avionics &&
-          <span className="text-[11px] text-[#AAA49C] truncate max-w-[140px]">{listing.avionics}</span>
+          <span className="text-[11px] text-[#4a4550] truncate max-w-[140px]">{listing.avionics}</span>
           }
         </div>
       </div>
@@ -134,7 +134,7 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
       <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0" onClick={() => !selected && onClick(listing)}>
         <div className="text-right">
           <p className="text-[15px] font-black text-[#1A1814] tracking-tight">
-            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#AAA49C] text-sm font-normal">On request</span>}
+            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#4a4550] text-sm font-normal">On request</span>}
           </p>
           {hasDiscount &&
           <div className={`flex items-center justify-end gap-0.5 text-[10px] font-bold mt-0.5 ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
@@ -165,7 +165,7 @@ function SelectAllCheckbox({ filtered, selectedIds, onSelectAll, onClear }) {
       
       {allSelected ?
       <CheckSquare className="w-4 h-4" /> :
-      <Square className="w-4 h-4 text-[#AAA49C]" />}
+      <Square className="w-4 h-4 text-[#4a4550]" />}
     </button>);
 
 }
@@ -263,7 +263,7 @@ export default function Listings() {
       <div className="px-4 md:px-8 py-3 bg-white border-b border-black/[0.05] sticky top-0 z-10 shadow-sm">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4a4550]" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -271,14 +271,14 @@ export default function Listings() {
               className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors" />
             
             {search &&
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C] hover:text-[#6B6560]">
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a4550] hover:text-[#3a3530]">
                 <X className="w-3.5 h-3.5" />
               </button>
             }
           </div>
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-[#F7F4EF] border-black/[0.07] text-[#6B6560] hover:border-[#D4A017] hover:text-[#D4A017]"}`}>
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-[#F7F4EF] border-black/[0.07] text-[#3a3530] hover:border-[#D4A017] hover:text-[#D4A017]"}`}>
             
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
@@ -289,7 +289,7 @@ export default function Listings() {
         {showFilters &&
         <div className="mt-2.5 bg-[#F7F4EF] border border-black/[0.06] rounded-xl p-4 flex flex-wrap gap-5 items-end">
             <div className="min-w-[160px]">
-              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Registration</label>
+              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">Registration</label>
               <select
               value={regRegion}
               onChange={(e) => setRegRegion(e.target.value)}
@@ -301,7 +301,7 @@ export default function Listings() {
               </select>
             </div>
             <div className="min-w-[180px]">
-              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">Manufacturer</label>
+              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">Manufacturer</label>
               <BottomSheetSelect
               label="Filter by make"
               value={makeFilter}
@@ -312,7 +312,7 @@ export default function Listings() {
             
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1.5">
+              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">
                 Min ATI Score: <span className="text-[#D4A017] font-black">{minATI}</span>
               </label>
               <input type="range" min={0} max={100} step={5} value={minATI}
@@ -366,12 +366,12 @@ export default function Listings() {
           )}
           </div> :
         filtered.length === 0 ?
-        <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-16 text-[#AAA49C]">
+        <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-16 text-[#4a4550]">
             <div className="w-12 h-12 rounded-full bg-[#F0EDE6] flex items-center justify-center mb-3">
-              <Plane className="w-6 h-6 text-[#AAA49C]" />
+              <Plane className="w-6 h-6 text-[#4a4550]" />
             </div>
-            <p className="text-sm font-bold text-[#6B6560]">No aircraft match your criteria</p>
-            <p className="text-[11px] mt-1 text-[#AAA49C]">Try adjusting filters or add a new listing</p>
+            <p className="text-sm font-bold text-[#3a3530]">No aircraft match your criteria</p>
+            <p className="text-[11px] mt-1 text-[#4a4550]">Try adjusting filters or add a new listing</p>
             <button
             onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowImport(true))}
             className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-[12px] font-bold px-5 py-2.5 rounded-xl">
@@ -399,9 +399,9 @@ export default function Listings() {
             }
 
               {filtered.filter((l) => !discarded.includes(l.id)).length === 0 ?
-            <div className="text-center py-16 text-[#AAA49C]">
+            <div className="text-center py-16 text-[#4a4550]">
                   <p className="text-2xl mb-2">✈️</p>
-                  <p className="text-sm font-semibold text-[#6B6560]">You've reviewed all aircraft</p>
+                  <p className="text-sm font-semibold text-[#3a3530]">You've reviewed all aircraft</p>
                   {discarded.length > 0 &&
               <button onClick={() => setDiscarded([])}
               className="mt-4 text-[11px] text-[#D4A017] font-bold hover:underline">
@@ -427,7 +427,7 @@ export default function Listings() {
                 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Remaining</p>
+                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Remaining</p>
                     <p className="text-3xl font-black text-[#0B2D5B]">
                       {filtered.filter((l) => !discarded.includes(l.id)).length}
                     </p>
@@ -436,17 +436,17 @@ export default function Listings() {
                   <div className="h-px bg-black/[0.06]" />
 
                   <div>
-                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Shortlisted</p>
+                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Shortlisted</p>
                     <p className="text-2xl font-black text-[#0F7A56]">{shortlisted.length}</p>
                   </div>
 
                   <div>
-                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Skipped</p>
+                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Skipped</p>
                     <p className="text-2xl font-black text-[#C0392B]">{discarded.length}</p>
                   </div>
 
                   <div>
-                    <p className="text-[11px] text-[#AAA49C] font-semibold mb-1">Reviewed</p>
+                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Reviewed</p>
                     <p className="text-2xl font-black text-[#D4A017]">
                       {shortlisted.length + discarded.length} / {filtered.length}
                     </p>
@@ -463,7 +463,7 @@ export default function Listings() {
                     }} />
                   
                   </div>
-                  <p className="text-[9px] text-[#AAA49C] mt-2 text-center">
+                  <p className="text-[9px] text-[#4a4550] mt-2 text-center">
                     {filtered.length > 0 ? Math.round((shortlisted.length + discarded.length) / filtered.length * 100) : 0}% Complete
                   </p>
                 </div>
@@ -494,13 +494,13 @@ export default function Listings() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-[11px] font-bold text-[#0F7A56] truncate">{l.year} {l.make} {l.model}</p>
-                            <p className="text-[10px] text-[#6B6560] font-mono">{l.registration}</p>
+                            <p className="text-[10px] text-[#3a3530] font-mono">{l.registration}</p>
                           </div>
                         </div>
                 )}
                   </div>
                   {shortlisted.length > 5 &&
-              <p className="text-[9px] text-[#6B6560] mt-2 text-center font-semibold">+{shortlisted.length - 5} more</p>
+              <p className="text-[9px] text-[#3a3530] mt-2 text-center font-semibold">+{shortlisted.length - 5} more</p>
               }
                 </div>
             }
@@ -523,8 +523,8 @@ export default function Listings() {
               <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
                 <SelectAllCheckbox filtered={filtered} selectedIds={selectedIds} onSelectAll={selectAll} onClear={clearSelection} />
                 <div className="w-11 shrink-0 hidden sm:block" />
-                <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold">Aircraft</div>
-                <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold hidden sm:block">Price</div>
+                <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#4a4550] font-bold">Aircraft</div>
+                <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#4a4550] font-bold hidden sm:block">Price</div>
               </div>
               {filtered.map((l) =>
             <ListingRow
@@ -545,7 +545,7 @@ export default function Listings() {
             <div className="w-8 h-8 rounded-lg bg-[rgba(11,45,91,0.07)] flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4 text-[#0B2D5B]" />
             </div>
-            <p className="text-[12px] text-[#6B6560]">
+            <p className="text-[12px] text-[#3a3530]">
               <span className="font-black text-[#0B2D5B]">{listings.filter((l) => !l.ati_score).length} aircraft</span> not yet scored — open any listing to issue an ATI Score Card.
             </p>
           </div>
@@ -593,38 +593,38 @@ export default function Listings() {
                 <HelpCircle className="w-5 h-5 text-[#D4A017]" />
                 <h3 className="text-lg font-black text-[#1A1814]">Quick Guide</h3>
               </div>
-              <button onClick={() => setShowFAQ(false)} className="text-[#AAA49C] hover:text-[#6B6560]">
+              <button onClick={() => setShowFAQ(false)} className="text-[#4a4550] hover:text-[#3a3530]">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4 text-[13px]">
               <div>
                 <p className="font-black text-[#0B2D5B] mb-1">What is an ATI Score Card?</p>
-                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                <p className="text-[#3a3530] leading-relaxed text-[12px]">
                   The ABOS Transaction Intelligence (ATI) Score Card is an 8-dimension evaluation of an aircraft's documentation, maintenance, avionics, usage history, and market readiness — scored 0–120.
                 </p>
               </div>
               <div>
                 <p className="font-black text-[#0B2D5B] mb-1">What's the minimum info needed?</p>
-                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                <p className="text-[#3a3530] leading-relaxed text-[12px]">
                   At minimum: <strong>make, model, and year</strong>. For a full score, provide registration (N-reg or EASA mark), total time, engine hours, TBO, avionics, and last annual date.
                 </p>
               </div>
               <div>
                 <p className="font-black text-[#0B2D5B] mb-1">How do I create a card?</p>
-                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                <p className="text-[#3a3530] leading-relaxed text-[12px]">
                   Click the <strong>"Create ATI Score Card"</strong> button above and enter a registration. If the aircraft exists in FAA records, data auto-populates. Or use <strong>"Manual Add"</strong> to enter details yourself.
                 </p>
               </div>
               <div>
                 <p className="font-black text-[#0B2D5B] mb-1">What does OMVM mean?</p>
-                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                <p className="text-[#3a3530] leading-relaxed text-[12px]">
                   Off-Market Value Model — our market-calibrated price estimate based on comparable sales, depreciation curves, and condition adjustments.
                 </p>
               </div>
               <div>
                 <p className="font-black text-[#0B2D5B] mb-1">Who can see my listing?</p>
-                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                <p className="text-[#3a3530] leading-relaxed text-[12px]">
                   Public listings are visible to all logged-in users. Sensitive owner/operator details stay locked behind the confidential card back, accessible only with verified LOI.
                 </p>
               </div>

@@ -372,7 +372,17 @@ Return ONLY raw JSON:
             Listings
           </Link>
           {passport && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              <button onClick={handleGenerate} disabled={generating}
+                className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#D4A017] hover:text-[#A67C00] transition-colors disabled:opacity-40 bg-[rgba(212,160,23,0.1)] border border-[rgba(212,160,23,0.2)] px-3 py-1.5 rounded-lg">
+                <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
+                {generating ? "Updating…" : "Refresh"}
+              </button>
+              <button onClick={() => setWizardOpen(true)} disabled={generating}
+                className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#0B2D5B] hover:text-[#143C75] transition-colors disabled:opacity-40 bg-[rgba(11,45,91,0.06)] border border-[rgba(11,45,91,0.12)] px-3 py-1.5 rounded-lg">
+                <Wand2 className="w-3.5 h-3.5" />
+                Re-score
+              </button>
               <button onClick={handleExportPDF} disabled={exporting}
                 className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#6B6560] hover:text-[#0B2D5B] transition-colors disabled:opacity-40">
                 <Download className={`w-3.5 h-3.5 ${exporting ? "animate-pulse" : ""}`} />
@@ -716,21 +726,9 @@ Return ONLY raw JSON:
             {card && <CardIdentityBlock card={card} />}
             {card && <CardInlineEditor card={card} />}
 
-            {/* ── Re-score / actions ─────────────────────── */}
-            <div className="flex items-center justify-between flex-wrap gap-3 py-2 text-[11px] text-[#6B6560] font-medium">
+            {/* ── Scored info ─────────────────────────────── */}
+            <div className="py-2 text-[11px] text-[#6B6560] font-medium">
               <span>Scored {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2</span>
-              <div className="flex gap-4 items-center flex-wrap">
-                <button onClick={() => setWizardOpen(true)} disabled={generating}
-                  className="flex items-center gap-1.5 hover:text-[#0B2D5B] disabled:opacity-40 transition-colors font-semibold">
-                  <Wand2 className="w-3.5 h-3.5" />
-                  Re-score
-                </button>
-                <button onClick={handleGenerate} disabled={generating}
-                  className="flex items-center gap-1.5 hover:text-[#D4A017] disabled:opacity-40 transition-colors font-semibold">
-                  <RefreshCw className={`w-3.5 h-3.5 ${generating ? "animate-spin" : ""}`} />
-                  {generating ? "Updating…" : "Refresh"}
-                </button>
-              </div>
             </div>
 
             {/* ── Timeline, Reviews, Ownership ───────────── */}

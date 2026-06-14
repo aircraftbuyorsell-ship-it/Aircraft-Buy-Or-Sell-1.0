@@ -40,7 +40,6 @@ Deno.serve(async (req) => {
           .map(r => r.replace(/^N/i, '').trim().toUpperCase())
       );
 
-      // Sample FAA registrations matching ABOS listings
       const { data: matchedSample, error: matchErr } = abosRegs.size > 0
         ? await supabase
             .from('faa_registry')
@@ -57,7 +56,6 @@ Deno.serve(async (req) => {
         return matchedSet.has(n);
       });
 
-      // Count registrations in ABOS but NOT in FAA (potentially stale)
       const abosOnly = abosListings.filter(l => {
         const n = (l.registration || '').replace(/^N/i, '').trim().toUpperCase();
         return /^N/i.test(l.registration || '') && !matchedSet.has(n);
@@ -71,12 +69,7 @@ Deno.serve(async (req) => {
         abosOnly: abosOnly.length,
         sampleMatches: (matchedSample || []).slice(0, 50),
         abosOnlySample: abosOnly.slice(0, 20).map(l => ({
-          id: l.id,
-          registration: l.registration,
-          make: l.make,
-          model: l.model,
-          year: l.year,
-          status: l.status,
+          id: l.id, registration: l.registration, make: l.make, model: l.model, year: l.year, status: l.status,
         })),
       });
     }
@@ -99,7 +92,6 @@ Deno.serve(async (req) => {
 
       if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
 
-      // Enrich with ABOS match status
       const abosListings = await base44.asServiceRole.entities.AircraftListing.filter({}, '-created_date', 10000);
       const abosMap = new Map();
       abosListings.forEach(l => {
@@ -114,31 +106,124 @@ Deno.serve(async (req) => {
       }));
 
       return Response.json({
-        mode: 'browse',
-        page: currentPage,
-        pageSize: size,
-        total: count,
-        data: enriched,
+        mode: 'browse', page: currentPage, pageSize: size, total: count, data: enriched,
+      });
+    }
+
+    // ── MODE: registry_summary ──
+    if (currentMode === 'registry_summary') {
+      const { count, error: countErr } = await supabaseAdmin
+        .from('faa_registry')
+        .select('*', { count: 'exact', head: true });
+      if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
+
+      const { data: sample, error: sampleErr } = await supabaseAdmin
+        .from('faa_registry').select('*').limit(3);
+      if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
+
+      let abosCount = 0;
+      try {
+        const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 1);
+        abosCount = arr.length;
+      } catch (_) {}
+
+      return Response.json({
+        mode: 'registry_summary',
+        faaRegistryTotal: count,
+        abosFaaAircraftCount: abosCount,
+        sample,
+        columns: sample?.length ? Object.keys(sample[0]) : [],
+      });
+    }
+
+    // ── MODE: registry_sync ──
+    if (currentMode === 'registry_sync') {
+      const BATCH = 50;
+
+      // Auto-advance: when no explicit page, derive batch from existing FAAAircraft count
+      let batch;
+      if (page !== undefined && pageSize && pageSize > 0) {
+        batch = currentPage - 1;
+      } else {
+        let existingCount = 0;
+        try {
+          // Use a small limit to avoid rate limits; after that many batches, use offset tracking
+          const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 500);
+          existingCount = arr.length === 500 ? 500 : arr.length;
+        } catch (_) {}
+        batch = Math.floor(existingCount / BATCH);
+      }
+
+      const from = batch * BATCH;
+      const to = from + BATCH - 1;
+
+      const { data: rows, error: syncErr } = await supabaseAdmin
+        .from('faa_registry').select('*').range(from, to);
+      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+
+      let created = 0;
+      let updated = 0;
+
+      for (const r of (rows || [])) {
+        if (!r.n_number) continue;
+        const nNum = r.n_number.trim().toUpperCase();
+
+        const existing = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, '-created_date', 1);
+
+        const aircraftData = {
+          n_number: nNum,
+          serial_number: r.serial_number || '',
+          mfr_mdl_code: r.mfr_mdl_code || '',
+          eng_mfr_mdl: r.eng_mfr_mdl || '',
+          year_mfr: r.year_mfr || null,
+          type_registrant: r.type_registrant || '',
+          name: r.name || '',
+          city: r.city || '',
+          state: r.state || '',
+          country: r.country || '',
+          last_action_date: r.last_action_date || '',
+          cert_issue_date: r.cert_issue_date || '',
+          status_code: r.status_code || '',
+          type_aircraft: r.type_aircraft || '',
+          type_engine: r.type_engine || '',
+          mode_s_hex: r.mode_s_code_hex || '',
+          fract_owner: r.fract_owner || '',
+          air_worth_date: r.air_worth_date || '',
+          expiration_date: r.expiration_date || '',
+        };
+
+        if (existing.length > 0) {
+          await base44.asServiceRole.entities.FAAAircraft.update(existing[0].id, aircraftData);
+          updated++;
+        } else {
+          await base44.asServiceRole.entities.FAAAircraft.create(aircraftData);
+          created++;
+        }
+      }
+
+      const totalBatches = Math.ceil(308985 / BATCH);
+      return Response.json({
+        mode: 'registry_sync',
+        batch: batch + 1,
+        totalBatches,
+        processed: (rows || []).length,
+        created,
+        updated,
       });
     }
 
     // ── MODE: dealers_summary ──
     if (currentMode === 'dealers_summary') {
       const { count, error: countErr } = await supabaseAdmin
-        .from('faa_dealers')
-        .select('*', { count: 'exact', head: true });
+        .from('faa_dealers').select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
       const { data: sample, error: sampleErr } = await supabaseAdmin
-        .from('faa_dealers')
-        .select('*')
-        .limit(5);
+        .from('faa_dealers').select('*').limit(5);
       if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'dealers_summary',
-        total: count,
-        sample,
+        mode: 'dealers_summary', total: count, sample,
         columns: sample?.length ? Object.keys(sample[0]) : [],
       });
     }
@@ -146,20 +231,15 @@ Deno.serve(async (req) => {
     // ── MODE: engine_summary ──
     if (currentMode === 'engine_summary') {
       const { count, error: countErr } = await supabaseAdmin
-        .from('faa_engine')
-        .select('*', { count: 'exact', head: true });
+        .from('faa_engine').select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
       const { data: sample, error: sampleErr } = await supabaseAdmin
-        .from('faa_engine')
-        .select('*')
-        .limit(5);
+        .from('faa_engine').select('*').limit(5);
       if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'engine_summary',
-        total: count,
-        sample,
+        mode: 'engine_summary', total: count, sample,
         columns: sample?.length ? Object.keys(sample[0]) : [],
       });
     }
@@ -167,20 +247,15 @@ Deno.serve(async (req) => {
     // ── MODE: acftref_summary ──
     if (currentMode === 'acftref_summary') {
       const { count, error: countErr } = await supabaseAdmin
-        .from('faa_acftref')
-        .select('*', { count: 'exact', head: true });
+        .from('faa_acftref').select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
       const { data: sample, error: sampleErr } = await supabaseAdmin
-        .from('faa_acftref')
-        .select('*')
-        .limit(20);
+        .from('faa_acftref').select('*').limit(20);
       if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'acftref_summary',
-        total: count,
-        sample,
+        mode: 'acftref_summary', total: count, sample,
         columns: sample?.length ? Object.keys(sample[0]) : [],
       });
     }
@@ -193,55 +268,41 @@ Deno.serve(async (req) => {
       let q = supabaseAdmin.from('faa_acftref').select('*', { count: 'exact' });
       if (search) q = q.or(`code.ilike.%${search}%,mfr.ilike.%${search}%,model.ilike.%${search}%`);
       const { data, count, error: browseErr } = await q.range(from, to).order('code');
-
       if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'acftref_browse',
-        page: currentPage,
-        pageSize: size,
-        total: count,
-        data,
+        mode: 'acftref_browse', page: currentPage, pageSize: size, total: count, data,
       });
     }
 
     // ── MODE: acftref_sync ──
     if (currentMode === 'acftref_sync') {
       const { data: rows, error: syncErr } = await supabaseAdmin
-        .from('faa_acftref')
-        .select('*')
-        .limit(50000);
-
+        .from('faa_acftref').select('*').limit(50000);
       if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
 
-      // Build lookup: mfr_mdl_code → { make, model }
       const lookup = {};
       for (const r of (rows || [])) {
         const code = r.code?.trim();
         if (code) {
           lookup[code] = {
-            make: r.mfr || '',
-            model: r.model || '',
-            type_aircraft: r.type_aircraft || '',
-            type_engine: r.type_engine || '',
+            make: r.mfr || '', model: r.model || '',
+            type_aircraft: r.type_aircraft || '', type_engine: r.type_engine || '',
             category: r.category || '',
           };
         }
       }
 
-      // Get all ABOS listings with mfr_mdl_code (from FAAAircraft) or with missing make/model
       const listings = await base44.asServiceRole.entities.AircraftListing.filter({}, '-created_date', 10000);
       let updated = 0;
       let skipped = 0;
 
-      // Also check FAAAircraft entities for linking
       const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 10000);
       const faaByNNumber = {};
       for (const f of faaAircraft) {
         if (f.n_number) faaByNNumber[f.n_number.trim().toUpperCase()] = f;
       }
 
-      // Update listings that have an FAA match with mfr_mdl_code
       for (const l of listings) {
         const nNum = (l.registration || '').replace(/^N/i, '').trim().toUpperCase();
         const faa = faaByNNumber[nNum];
@@ -263,12 +324,9 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({
-        mode: 'acftref_sync',
-        totalRefs: rows?.length || 0,
-        totalListings: listings.length,
-        totalFaaAircraft: faaAircraft.length,
-        updated,
-        skipped,
+        mode: 'acftref_sync', totalRefs: rows?.length || 0,
+        totalListings: listings.length, totalFaaAircraft: faaAircraft.length,
+        updated, skipped,
       });
     }
 
@@ -280,15 +338,10 @@ Deno.serve(async (req) => {
       let q = supabaseAdmin.from('faa_dealers').select('*', { count: 'exact' });
       if (search) q = q.or(`name.ilike.%${search}%,cert_num.ilike.%${search}%`);
       const { data, count, error: browseErr } = await q.range(from, to).order('name');
-
       if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'dealers_browse',
-        page: currentPage,
-        pageSize: size,
-        total: count,
-        data,
+        mode: 'dealers_browse', page: currentPage, pageSize: size, total: count, data,
       });
     }
 
@@ -300,10 +353,7 @@ Deno.serve(async (req) => {
       const to = from + batchSize - 1;
 
       const { data: rows, error: syncErr } = await supabaseAdmin
-        .from('faa_dealers')
-        .select('*')
-        .range(from, to);
-
+        .from('faa_dealers').select('*').range(from, to);
       if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
 
       let created = 0;
@@ -328,12 +378,8 @@ Deno.serve(async (req) => {
 
       const totalBatches = Math.ceil(12507 / batchSize);
       return Response.json({
-        mode: 'dealers_sync',
-        batch: batch + 1,
-        totalBatches,
-        processed: (rows || []).length,
-        created,
-        updated,
+        mode: 'dealers_sync', batch: batch + 1, totalBatches,
+        processed: (rows || []).length, created, updated,
       });
     }
 
@@ -345,43 +391,31 @@ Deno.serve(async (req) => {
       let q = supabaseAdmin.from('faa_engine').select('*', { count: 'exact' });
       if (search) q = q.or(`code.ilike.%${search}%,mfr.ilike.%${search}%,model.ilike.%${search}%`);
       const { data, count, error: browseErr } = await q.range(from, to).order('code');
-
       if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
 
       return Response.json({
-        mode: 'engine_browse',
-        page: currentPage,
-        pageSize: size,
-        total: count,
-        data,
+        mode: 'engine_browse', page: currentPage, pageSize: size, total: count, data,
       });
     }
 
     // ── MODE: engine_sync ──
     if (currentMode === 'engine_sync') {
       const { data: rows, error: syncErr } = await supabaseAdmin
-        .from('faa_engine')
-        .select('*')
-        .limit(10000);
-
+        .from('faa_engine').select('*').limit(10000);
       if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
 
-      // Build lookup: engine code → engine info
       const engineLookup = {};
       for (const r of (rows || [])) {
         const code = r.code?.trim();
         if (code) {
           engineLookup[code] = {
-            engine_mfr: r.mfr || '',
-            engine_model: r.model || '',
-            engine_type: r.type || '',
-            horsepower: r.horsepower || '',
+            engine_mfr: r.mfr || '', engine_model: r.model || '',
+            engine_type: r.type || '', horsepower: r.horsepower || '',
             thrust: r.thrust || '',
           };
         }
       }
 
-      // Update FAAAircraft records with engine info
       const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 5000);
       let engUpdated = 0;
 
@@ -392,20 +426,15 @@ Deno.serve(async (req) => {
         if (!eng) continue;
 
         await base44.asServiceRole.entities.FAAAircraft.update(f.id, {
-          engine_mfr: eng.engine_mfr,
-          engine_model: eng.engine_model,
-          engine_type: eng.engine_type,
-          horsepower: eng.horsepower,
-          thrust: eng.thrust,
+          engine_mfr: eng.engine_mfr, engine_model: eng.engine_model,
+          engine_type: eng.engine_type, horsepower: eng.horsepower, thrust: eng.thrust,
         });
         engUpdated++;
       }
 
       return Response.json({
-        mode: 'engine_sync',
-        totalRefs: rows?.length || 0,
-        faaAircraftChecked: faaAircraft.length,
-        engineUpdated: engUpdated,
+        mode: 'engine_sync', totalRefs: rows?.length || 0,
+        faaAircraftChecked: faaAircraft.length, engineUpdated: engUpdated,
       });
     }
 

@@ -52,6 +52,7 @@ import SoarStartupHub from "./pages/SoarStartupHub";
 import AviationStartupHub from "./pages/AviationStartupHub";
 import ATIVerify from "./pages/ATIVerify";
 import ATIVerifySession from "./pages/ATIVerifySession";
+import SupabaseSync from "./pages/SupabaseSync";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
         <Route path="/startup-hub" element={<AviationStartupHub />} />
         <Route path="/ati-verify" element={<ATIVerify />} />
         <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
+        <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

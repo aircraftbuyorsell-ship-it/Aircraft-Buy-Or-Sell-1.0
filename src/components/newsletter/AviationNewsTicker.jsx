@@ -39,10 +39,15 @@ export default function AviationNewsTicker() {
     }).catch(() => {});
   }, []);
 
-  const bg = isDark ? "rgba(20,22,34,0.92)" : "#f8fafc";
-  const border = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-  const accent = isDark ? "#60a5fa" : "#3b82f6";
-  const textMuted = isDark ? "rgba(255,255,255,0.55)" : "#64748b";
+  const ringBg = isDark
+    ? "rgba(0,245,255,0.04)"
+    : "rgba(37,99,235,0.04)";
+  const ringBorder = isDark
+    ? "rgba(0,245,255,0.18)"
+    : "rgba(37,99,235,0.15)";
+  const accent = isDark ? "#00f5ff" : "#2563eb";
+  const textMuted = isDark ? "rgba(255,255,255,0.60)" : "#4b5563";
+  const textHeadline = isDark ? "rgba(255,255,255,0.82)" : "#1e293b";
   const sentPositive = "#22c55e";
   const sentNegative = "#ef4444";
 
@@ -53,63 +58,88 @@ export default function AviationNewsTicker() {
   const doubled = [...headlines, ...headlines];
 
   return (
-    <div style={{ background: bg, borderBottom: `1px solid ${border}` }}>
-      <div className="flex items-center h-7">
-        {/* Label */}
+    <div
+      className="w-full rounded-xl overflow-hidden"
+      style={{
+        background: ringBg,
+        border: `1px solid ${ringBorder}`,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        boxShadow: isDark
+          ? `0 0 30px rgba(0,245,255,0.06), inset 0 0 20px rgba(0,245,255,0.04)`
+          : `0 0 20px rgba(37,99,235,0.04), inset 0 0 10px rgba(37,99,235,0.03)`,
+      }}
+    >
+      <div className="flex items-center h-9">
+        {/* Left label — stays as is */}
         <Link
           to={isSubscriber ? "/weekly-briefing" : "/pricing"}
-          className="flex items-center gap-1.5 px-3 h-full shrink-0 border-r hover:opacity-80 transition-opacity"
-          style={{ borderColor: border }}
+          className="flex items-center gap-1.5 px-4 h-full shrink-0 border-r hover:opacity-80 transition-opacity"
+          style={{ borderColor: ringBorder }}
         >
-          <Newspaper className="w-3 h-3" style={{ color: accent }} />
-          <span className="text-[9px] font-semibold tracking-wide whitespace-nowrap" style={{ color: accent }}>
-            {isSubscriber ? "WEEKLY BRIEFING" : "MARKET PULSE"}
+          <Newspaper className="w-3.5 h-3.5" style={{ color: accent }} />
+          <span className="text-[9px] font-bold tracking-[0.12em] uppercase whitespace-nowrap" style={{ color: accent }}>
+            {isSubscriber ? "Weekly Briefing" : "Market Pulse"}
           </span>
         </Link>
 
-        {/* Scrolling marquee */}
-        <div className="flex-1 overflow-hidden relative h-full">
-          <div className="animate-marquee inline-flex items-center h-full whitespace-nowrap"
-            style={{ animation: "marquee 45s linear infinite" }}>
+        {/* Scrolling marquee — entire area links to /pricing */}
+        <Link to="/pricing" className="flex-1 overflow-hidden relative h-full cursor-pointer group">
+          <div
+            className="inline-flex items-center h-full whitespace-nowrap"
+            style={{
+              animation: "marquee-ring 50s linear infinite",
+              animationPlayState: "running",
+            }}
+          >
             {doubled.map((h, i) => {
-              const sentimentColor = h.sentiment === "positive" ? sentPositive : h.sentiment === "negative" ? sentNegative : textMuted;
+              const sentColor = h.sentiment === "positive" ? sentPositive : h.sentiment === "negative" ? sentNegative : textMuted;
               return (
-                <span key={i} className="inline-flex items-center gap-1.5 mx-3">
-                  <span className="text-[8px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-sm"
-                    style={{ color: accent, background: `${accent}12`, whiteSpace: "nowrap" }}>
+                <span key={i} className="inline-flex items-center gap-1.5 mx-4 group-hover:[animation-play-state:paused]">
+                  <span
+                    className="text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    style={{ color: accent, background: `${accent}14`, whiteSpace: "nowrap" }}
+                  >
                     {h.category}
                   </span>
-                  <span className="text-[10px] leading-none flex items-center gap-1" style={{ color: textMuted, whiteSpace: "nowrap" }}>
-                    <span className="inline-block w-1 h-1 rounded-full shrink-0" style={{ background: sentimentColor }} />
+                  <span className="text-[10px] leading-none flex items-center gap-1.5" style={{ color: textHeadline, whiteSpace: "nowrap" }}>
+                    <span className="inline-block w-1 h-1 rounded-full shrink-0" style={{ background: sentColor }} />
                     {h.headline}
                   </span>
-                  <span className="text-[10px] mx-1 opacity-20" style={{ color: textMuted }}>•</span>
+                  <span className="text-[10px] opacity-15 mx-0.5" style={{ color: textMuted }}>•</span>
                 </span>
               );
             })}
           </div>
-        </div>
+          {/* Hover glow effect */}
+          <div
+            className="absolute inset-y-0 right-0 w-12 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{
+              background: isDark
+                ? "linear-gradient(to right, transparent, rgba(0,245,255,0.06))"
+                : "linear-gradient(to right, transparent, rgba(37,99,235,0.06))",
+            }}
+          />
+        </Link>
 
-        {/* CTA */}
+        {/* Right CTA */}
         <Link
           to={isSubscriber ? "/weekly-briefing" : "/pricing"}
-          className="flex items-center gap-1 px-3 h-full shrink-0 border-l hover:opacity-80 transition-opacity"
-          style={{ borderColor: border }}
+          className="flex items-center gap-1 px-4 h-full shrink-0 border-l hover:opacity-80 transition-opacity group/cta"
+          style={{ borderColor: ringBorder }}
         >
-          <span className="text-[9px] font-semibold whitespace-nowrap" style={{ color: accent }}>
-            {isSubscriber ? "Full Report" : "Subscribe"}
+          <span className="text-[9px] font-bold whitespace-nowrap" style={{ color: accent }}>
+            {isSubscriber ? "Full Report" : "Upgrade"}
           </span>
-          <ArrowRight className="w-2.5 h-2.5" style={{ color: accent }} />
+          <ArrowRight className="w-3 h-3 group-hover/cta:translate-x-0.5 transition-transform" style={{ color: accent }} />
         </Link>
       </div>
 
       <style>{`
-        @keyframes marquee {
+        @keyframes marquee-ring {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
-        .animate-marquee { animation: marquee 45s linear infinite; }
-        .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
     </div>
   );

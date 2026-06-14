@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Plane, Radar, User, Menu,
   Handshake, Calculator, Users, BarChart3, TrendingUp, Lightbulb,
   ArrowLeft, ChevronLeft, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
-  MessageCircle, HelpCircle, FileText, Globe, Layers, Star } from
+  MessageCircle, HelpCircle, FileText, Globe, Layers, Star, Rocket } from
 "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -43,7 +43,8 @@ const SIDEBAR_SECTIONS = [
   { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
   { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
   { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" },
-  { path: "/ati-standard", label: "ATI Standard", icon: Star, desc: "ATI Score, Report and Card — the emerging European standard for aircraft valuation" }]
+  { path: "/ati-standard", label: "ATI Standard", icon: Star, desc: "ATI Score, Report and Card — the emerging European standard for aircraft valuation" },
+  { path: "/soar", label: "SOAR Hub", icon: Rocket, desc: "Aviation startup accelerator — funding, mentorship and ATI ecosystem access for founders" }]
 
 },
 {

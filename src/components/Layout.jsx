@@ -32,7 +32,7 @@ const SIDEBAR_SECTIONS = [
   n: "1",
   label: "MarketSpace",
   sublabel: "Public Aircraft Intelligence",
-  color: "#00c2ff",
+  color: "#f48120",
   items: [
   { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Platform overview — active listings, ATI scores, market pulse and live globe" },
   { path: "/listings", label: "Aircraft Listings", icon: Plane, desc: "Browse all public aircraft listings with ATI scores, deal ratings and swipe deck" },
@@ -174,7 +174,7 @@ export default function Layout() {
 
           <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 px-1 group">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
-            style={{ background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(11,45,91,0.30)", border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(37,99,235,0.20)" }}>
+            style={{ background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#f48120,#e07310)", boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(244,129,32,0.30)", border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(244,129,32,0.20)" }}>
               <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
             </div>
             <div className="hidden sm:flex flex-col leading-none">
@@ -215,7 +215,7 @@ export default function Layout() {
             <button
               onClick={() => base44.auth.redirectToLogin()}
               className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
-              style={{ background: "linear-gradient(135deg,#E8A83A,#D4911A)", boxShadow: "0 2px 12px rgba(232,168,58,0.35)" }}>
+              style={{ background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 12px rgba(244,129,32,0.35)" }}>
               
                 <LogIn className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log In</span>
@@ -235,7 +235,7 @@ export default function Layout() {
                   "glass-pill text-[#E8A83A] hover:text-[#D4911A]" :
                   "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}
                   `}
-                  style={active ? { background: "linear-gradient(135deg,#0B2D5B,#1A4A8A)", boxShadow: "0 2px 14px rgba(11,45,91,0.30)" } : {}}>
+                  style={active ? { background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 14px rgba(244,129,32,0.30)" } : {}}>
                   
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
                   <span className="hidden sm:inline">{label}</span>
@@ -292,7 +292,7 @@ export default function Layout() {
 
         <div className="flex items-center justify-between px-5 pt-16 pb-4" style={{ borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
           <div>
-            <p className="text-[10px] font-semibold tracking-wide" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>Navigation</p>
+            <p className="text-[10px] font-semibold tracking-wide" style={{ color: isDark ? "#f48120" : "#e07310" }}>Navigation</p>
             <p className="text-[10px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(100,116,139,0.8)" }}>Global Aircraft Intelligence Network</p>
           </div>
           <button

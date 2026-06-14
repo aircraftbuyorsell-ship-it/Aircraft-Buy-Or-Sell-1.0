@@ -135,7 +135,7 @@ export default function ATICard() {
         {/* ── Certificate hero block ──────────────────── */}
         <div className="bg-white rounded-2xl overflow-hidden border border-black/[0.07] shadow-sm">
           {/* Navy header strip */}
-          <div className="bg-[#0B2D5B] px-6 pt-6 pb-8">
+          <div className="px-6 pt-6 pb-8" style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e)" }}>
             <div className="flex items-start justify-between mb-6">
               <div>
                 <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.25em] font-black mb-1.5">ATI Score Card · ABOS</p>
@@ -190,7 +190,7 @@ export default function ATICard() {
           </div>
 
           {/* Card code footer */}
-          <div className="px-6 py-3 bg-[#F7F4EF] border-t border-black/[0.06] flex items-center justify-between flex-wrap gap-2">
+          <div className="px-6 py-3 bg-[#fbfaf7] border-t border-black/[0.05] flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <span className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-semibold">Card Reference</span>
               <span className="font-mono text-[12px] font-bold text-[#0B2D5B] tracking-wide">{card.public_card_code}</span>

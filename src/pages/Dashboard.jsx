@@ -4,8 +4,10 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, Handshake, TrendingUp,
   ArrowRight, CheckCircle2, Users,
-  ChevronUp, ChevronDown, Lock, Zap, FileText, Globe, Map } from
+  ChevronUp, ChevronDown, Lock, Zap, FileText, Globe, Map, Search,
+  BarChart3, MessageCircle, Calculator } from
 "lucide-react";
+import DividerSection from "@/components/ui/DividerSection";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 import { detectRegType, getRegTypeColor } from "@/lib/regUtils";
@@ -94,10 +96,10 @@ function ATIRing({ score, size = 56 }) {
 
 // ─── Section header ──────────────────────────────────────────────
 function SectionHeader({ overline, title, isDark = true }) {
-  const accentColor = isDark ? "#60a5fa" : "#3b82f6";
+  const accentColor = isDark ? "#f48120" : "#e07310";
   return (
     <div className="mb-5">
-      <p className="text-[10px] tracking-[0.15em] font-semibold mb-1" style={{ color: accentColor }}>{overline}</p>
+      <p className="text-[10px] tracking-[0.2em] font-bold mb-1" style={{ color: accentColor }}>{overline}</p>
       <h2 className="text-lg md:text-xl font-semibold tracking-tight" style={{ color: isDark ? "#f1f5f9" : "#1e293b" }}>
         {title}
       </h2>
@@ -115,10 +117,11 @@ export default function Dashboard() {
   const textColor = isDark ? "#f1f5f9" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(100,116,139,0.9)";
   const subtleColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)";
-  const accentCyan = isDark ? "#60a5fa" : "#3b82f6";
-  const accentViolet = isDark ? "#a78bfa" : "#7c3aed";
-  const accentGold = "#ca8a04";
-  const accentRed = isDark ? "#f87171" : "#dc2626";
+  const accentOrange = isDark ? "#f48120" : "#e07310";
+  const scoreTop = isDark ? "#22c55e" : "#16a34a";
+  const scoreHigh = isDark ? "#3b82f6" : "#2563eb";
+  const scoreMid = isDark ? "#eab308" : "#ca8a04";
+  const scoreLow = isDark ? "#f87171" : "#dc2626";
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -158,7 +161,7 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pt-6 pb-2">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <p className="text-xs tracking-wide font-medium" style={{ color: mutedColor }}>ABOS MarketSpace · Aviation Intelligence</p>
+              <p className="text-[10px] tracking-[0.15em] font-semibold" style={{ color: accentOrange }}>ABOS MarketSpace · Aviation Intelligence</p>
               <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
                 Aircraft <span style={{ color: mutedColor }}>Buy Or Sell</span>
               </h1>
@@ -179,10 +182,10 @@ export default function Dashboard() {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                 style={{
                   background: trafficView === "2d" ?
-                  isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.12)" :
+                  isDark ? "rgba(244,129,32,0.2)" : "rgba(244,129,32,0.12)" :
                   "transparent",
                   color: trafficView === "2d" ?
-                  isDark ? "#60a5fa" : "#3b82f6" :
+                  accentOrange :
                   mutedColor
                 }}>
                 <Map className="w-3 h-3" /> Map
@@ -192,10 +195,10 @@ export default function Dashboard() {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                 style={{
                   background: trafficView === "3d" ?
-                  isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.12)" :
+                  isDark ? "rgba(244,129,32,0.2)" : "rgba(244,129,32,0.12)" :
                   "transparent",
                   color: trafficView === "3d" ?
-                  isDark ? "#60a5fa" : "#3b82f6" :
+                  accentOrange :
                   mutedColor
                 }}>
                 <Globe className="w-3 h-3" /> Globe
@@ -215,22 +218,22 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
-            { color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(), sub: `${evaluated} evaluated`, link: "/listings" },
-            { color: accentViolet, icon: ShieldCheck, label: "ATI Intel", value: evaluated, sub: avg_ati ? `Avg score: ${avg_ati}` : "No scores", link: "/listings" },
-            { color: accentGold, icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
-            { color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" }].
+            { icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(), sub: `${evaluated} evaluated`, link: "/listings" },
+            { icon: ShieldCheck, label: "ATI Scored", value: evaluated, sub: avg_ati ? `Avg score: ${avg_ati}` : "No scores yet", link: "/listings" },
+            { icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
+            { icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" }].
             map((m) =>
             <Link key={m.label} to={m.link}>
-                <Panel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} translucent style={{ borderColor: `${m.color}35` }}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
-                  style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
-                      <m.icon className="w-3 h-3" style={{ color: m.color }} />
+                <Panel className="p-4 h-full transition-colors cursor-pointer" isDark={isDark} translucent>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: isDark ? "rgba(244,129,32,0.08)" : "rgba(244,129,32,0.06)", border: `1px solid ${isDark ? "rgba(244,129,32,0.18)" : "rgba(244,129,32,0.14)"}` }}>
+                      <m.icon className="w-4 h-4" style={{ color: accentOrange }} />
                     </div>
-                    <p className="text-[8px] uppercase tracking-[0.15em] font-black" style={{ color: mutedColor }}>{m.label}</p>
+                    <p className="text-[11px] font-semibold" style={{ color: mutedColor }}>{m.label}</p>
                   </div>
-                  <p className="text-base font-black leading-none" style={{ color: textColor }}>{m.value}</p>
-                  <p className="text-[9px] mt-0.5 leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
+                  <p className="text-xl font-bold leading-none mb-1" style={{ color: textColor }}>{m.value}</p>
+                  <p className="text-[11px] leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
                 </Panel>
               </Link>
             )}
@@ -256,16 +259,16 @@ export default function Dashboard() {
               <Panel className="p-5 h-full transition-colors cursor-pointer" isDark={isDark} translucent>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
-                    <m.icon className="w-4 h-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
+                style={{ background: isDark ? "rgba(244,129,32,0.08)" : "rgba(244,129,32,0.06)", border: `1px solid ${isDark ? "rgba(244,129,32,0.18)" : "rgba(244,129,32,0.14)"}` }}>
+                    <m.icon className="w-4 h-4" style={{ color: accentOrange }} />
                   </div>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-medium"
-                style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", color: isDark ? "#60a5fa" : "#3b82f6" }}>{m.badge}</span>
+                style={{ background: isDark ? "rgba(244,129,32,0.1)" : "rgba(244,129,32,0.08)", color: accentOrange }}>{m.badge}</span>
                 </div>
-                <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
+                <h4 className="text-sm font-bold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
                 <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
-                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-medium"
-              style={{ borderColor: `${m.color}20`, color: m.color }}>
+                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-semibold"
+              style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: accentOrange }}>
                   Launch Tool <ArrowRight className="w-3 h-3" />
                 </div>
               </Panel>
@@ -274,43 +277,41 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* 4-CAPABILITY MODULES */}
-      <section className="px-4 md:px-8 py-6">
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <SectionHeader overline="Platform Capabilities" title="Integrated Intelligence Modules" isDark={isDark} />
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-          { icon: ShieldCheck, title: "ATI Transaction Report", body: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, transaction readiness.", link: "/listings" },
-          { icon: Radar, title: "ADS-B Surveillance", body: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed and historical flight path.", link: "/traffic" },
-          { icon: Plane, title: "Pre-Buy Inspection", body: "On-site with Max — live visual analysis of airframe, corrosion, interior and maintenance discrepancies.", link: "/pre-buy-inspection" },
-          { icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" }].
-          map((m) =>
-          <Link key={m.title} to={m.link}>
-              <Panel className="p-5 h-full transition-colors cursor-pointer" isDark={isDark} translucent>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
-                    <m.icon className="w-4 h-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
-                  </div>
-                </div>
-                <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
-                <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
-                <div className="mt-4 pt-3 border-t flex items-center gap-1 text-[10px] font-medium"
-              style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", color: isDark ? "#60a5fa" : "#3b82f6" }}>
-                  Access Module <ArrowRight className="w-3 h-3" />
-                </div>
-              </Panel>
-            </Link>
-          )}
-        </div>
+      {/* PLATFORM CAPABILITIES — Cloudflare-style dividers */}
+      <section className="px-4 md:px-8 py-8">
+        <SectionHeader overline="Platform Capabilities" title="Integrated Intelligence Modules" isDark={isDark} />
+        <DividerSection
+          columns={[
+            {
+              icon: ShieldCheck,
+              label: "ATI Transaction Report",
+              description: "8-dimension risk scoring — documentation integrity, engine condition, avionics, operational history, and transaction readiness.",
+              link: "/listings",
+              linkLabel: "Browse reports",
+            },
+            {
+              icon: Radar,
+              label: "ADS-B Surveillance",
+              description: "Real-time aircraft tracking by N-number or Mode-S hex. Live position, altitude, speed, and historical flight path.",
+              link: "/traffic",
+              linkLabel: "Open tracker",
+            },
+            {
+              icon: Handshake,
+              label: "Escrow & Commission",
+              description: "Protected buyer-seller escrow with automated commission splits, finder's fees, and full payout audit trail.",
+              link: "/escrow",
+              linkLabel: "Manage deals",
+            },
+          ]}
+        />
       </section>
 
       {/* AIRCRAFT LISTINGS */}
       <section className="px-4 md:px-8 py-6">
         <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
           <SectionHeader overline="Active Listings" title="ATI-Evaluated Aircraft" isDark={isDark} />
-          <Link to="/listings" className="flex items-center gap-1 text-[11px] font-medium hover:opacity-70 transition-opacity" style={{ color: accentCyan }}>
+          <Link to="/listings" className="flex items-center gap-1 text-[11px] font-semibold hover:opacity-70 transition-opacity" style={{ color: accentOrange }}>
             View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -318,7 +319,7 @@ export default function Dashboard() {
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {listings.slice(0, 6).map((l) => {
               const score = l.ati_score || 0;
-              const sc = score >= 90 ? accentCyan : score >= 72 ? accentViolet : score >= 54 ? accentGold : score > 0 ? accentRed : subtleColor;
+              const sc = score >= 90 ? scoreTop : score >= 72 ? scoreHigh : score >= 54 ? scoreMid : score > 0 ? scoreLow : subtleColor;
               const regType = detectRegType(l.registration);
               const regColor = getRegTypeColor(regType, isDark);
               return (
@@ -326,7 +327,7 @@ export default function Dashboard() {
                   <Panel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} translucent style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="min-w-0">
-                        <p className="text-[9px] tracking-wider font-medium" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>ATI Report</p>
+                        <p className="text-[9px] tracking-wider font-semibold" style={{ color: accentOrange }}>ATI Report</p>
                         <p className="text-[10px] font-mono mt-0.5 flex items-center gap-1.5" style={{ color: mutedColor }}>
                           {l.registration || "—"}
                           {regType &&
@@ -371,56 +372,61 @@ export default function Dashboard() {
         <MarketForecastCharts />
       </section>
 
-      {/* WHO WE SERVE */}
-      <section className="px-4 md:px-8 py-6">
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <SectionHeader overline="Who We Serve" title="Built for Aviation Professionals" isDark={isDark} />
-        </div>
-        <div className="grid md:grid-cols-3 gap-3 mb-6">
-          {[
-          { icon: Users, title: "Aircraft Dealers", body: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to institutional buyers." },
-          { icon: Handshake, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline." },
-          { icon: TrendingUp, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process." }].
-          map((x) =>
-          <Panel key={x.title} className="p-5" isDark={isDark} translucent>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
-            style={{ background: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.06)", border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.12)"}` }}>
-                <x.icon className="w-4.5 h-4.5" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
-              </div>
-              <h4 className="text-sm font-semibold mb-1.5" style={{ color: textColor }}>{x.title}</h4>
-              <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{x.body}</p>
-            </Panel>
-          )}
-        </div>
-        <Panel className="p-5" isDark={isDark} translucent>
-          <div className="flex flex-wrap gap-x-8 gap-y-3">
-            {["ATI Transaction Reports", "Secure Escrow Execution", "Commission & Fee Management", "Verified Professional Network", "Real-Time ADS-B Surveillance", "Transparent Deal Pricing"].map((x) =>
-            <div key={x} className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: isDark ? "#60a5fa" : "#3b82f6", opacity: 0.6 }} />
-                <span className="text-[11px] font-medium" style={{ color: mutedColor }}>{x}</span>
-              </div>
-            )}
-          </div>
-        </Panel>
+      {/* WHO WE SERVE — Cloudflare-style dividers */}
+      <section className="px-4 md:px-8 py-8">
+        <SectionHeader overline="Who We Serve" title="Built for Aviation Professionals" isDark={isDark} />
+        <DividerSection
+          columns={[
+            {
+              icon: Users,
+              label: "Aircraft Dealers",
+              description: "Manage your active inventory with verified ATI intelligence reports. Present aircraft professionally to institutional buyers.",
+            },
+            {
+              icon: Handshake,
+              label: "Aviation Brokers",
+              description: "Originate, structure and close deals with confidence. Secure escrow, automated commission management, and deal pipeline.",
+            },
+            {
+              icon: TrendingUp,
+              label: "Operators & Acquirers",
+              description: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process.",
+            },
+          ]}
+        />
       </section>
 
-      {/* FOOTER CTA */}
-      <section className="px-4 md:px-8 py-10 text-center">
-        <Panel className="max-w-2xl mx-auto p-8 md:p-10" isDark={isDark} translucent>
-          <Lock className="w-6 h-6 mx-auto mb-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
-          <h2 className="text-lg md:text-xl font-semibold tracking-tight mb-3" style={{ color: textColor }}>
-            One Platform. <span style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>Institutional Standards.</span>{" "}
-            Verified Results.
-          </h2>
-          <p className="text-sm mb-6 max-w-lg mx-auto leading-relaxed" style={{ color: mutedColor }}>
-            ABOS is the private intelligence network trusted by aviation dealers and brokers for rigorous transaction due diligence, secure deal execution, and auditable outcomes.
-          </p>
-          <Link to="/listings"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-colors"
-          style={{ background: isDark ? "rgba(59,130,246,0.12)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.25)" : "rgba(37,99,235,0.18)"}`, color: isDark ? "#60a5fa" : "#3b82f6" }}>
-            Enter the Platform <ArrowRight className="w-4 h-4" />
-          </Link>
-        </Panel>
+      {/* FOOTER CTA — Cloudflare-style */}
+      <section className="px-4 md:px-8 py-14 text-center">
+        <p className="text-[10px] tracking-[0.2em] font-semibold mb-4" style={{ color: accentOrange }}>
+          JOIN THE NETWORK
+        </p>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-4 max-w-2xl mx-auto" style={{ color: textColor }}>
+          One Platform. Institutional Standards. Verified Results.
+        </h2>
+        <p className="text-[15px] mb-8 max-w-xl mx-auto leading-relaxed" style={{ color: mutedColor }}>
+          ABOS is the private intelligence network trusted by aviation dealers and brokers for rigorous transaction due diligence, secure deal execution, and auditable outcomes.
+        </p>
+        <Link
+          to="/listings"
+          className="inline-flex items-center gap-2 px-7 py-3 rounded-full text-[14px] font-bold transition-all active:scale-95"
+          style={{
+            background: accentOrange,
+            color: "#fff",
+            boxShadow: `0 2px 16px ${accentOrange}40`,
+          }}
+        >
+          Enter the Platform
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 mt-8 text-[11px]" style={{ color: mutedColor }}>
+          {["ATI Transaction Reports", "Secure Escrow", "Commission Management", "ADS-B Surveillance", "Transparent Pricing"].map((x) => (
+            <div key={x} className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3" style={{ color: accentOrange, opacity: 0.6 }} />
+              {x}
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Close z-10 overlay */}

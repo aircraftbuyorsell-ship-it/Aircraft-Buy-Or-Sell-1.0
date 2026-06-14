@@ -332,7 +332,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    camera.position.set(0, 0, 4.2);
+    camera.position.set(0, 0, 3.3);
     cameraRef.current = camera;
 
     const globe = new THREE.Group();
@@ -362,55 +362,13 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     );
     globe.add(grid);
 
-    // ─── Coordinate Grid Rings ───
-    const ringColor = isDark ? 0x00f5ff : 0x1e40af;
-    const ringOpacity = isDark ? 0.30 : 0.22;
-    const createRing = (r, tube, rotX, rotY) => {
-      const m = new THREE.Mesh(
-        new THREE.TorusGeometry(r, tube, 8, 128),
-        new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: ringOpacity, depthTest: true })
-      );
-      if (rotX) m.rotation.x = rotX;
-      if (rotY) m.rotation.y = rotY;
-      return m;
-    };
-
-    // Equator (lat 0°) — horizontal ring in XZ plane
-    globe.add(createRing(1.006, 0.0025, Math.PI / 2, 0));
-
-    // Prime Meridian (lon 0°) — vertical ring in XY plane
-    globe.add(createRing(1.006, 0.0025, 0, 0));
-
-    // 90°E / 90°W meridian — vertical ring in YZ plane
-    globe.add(createRing(1.006, 0.0025, 0, Math.PI / 2));
-
-    // ─── Coordinate markers ───
-    const markerMat = new THREE.MeshBasicMaterial({ color: isDark ? 0xff4d6d : 0xdc2626, transparent: true, opacity: 0.9 });
-    const markerGeo = new THREE.SphereGeometry(0.016, 8, 8);
-
-    // 0°N 0°E origin marker (Gulf of Guinea)
-    const originMarker = new THREE.Mesh(markerGeo, markerMat);
-    originMarker.position.set(1.009, 0, 0);
-    globe.add(originMarker);
-
-    // North Pole
-    const npMarker = new THREE.Mesh(markerGeo, markerMat);
-    npMarker.position.set(0, 1.009, 0);
-    globe.add(npMarker);
-
-    // South Pole
-    const spMarker = new THREE.Mesh(markerGeo, markerMat);
-    spMarker.position.set(0, -1.009, 0);
-    globe.add(spMarker);
-
-    // Atmosphere — thin edge ring only
-    const atmoColor = isDark ? 0x00b8d4 : 0x88bbdd;
-    const atmoRing = new THREE.Mesh(
-      new THREE.TorusGeometry(1.008, 0.018, 8, 128),
-      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.45 : 0.30 })
+    // Atmosphere — winter haze
+    const atmoColor = isDark ? 0x00b8d4 : 0xaaccee;
+    const atmo = new THREE.Mesh(
+      new THREE.SphereGeometry(1.12, 48, 48),
+      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.06 : 0.14, side: THREE.BackSide })
     );
-    atmoRing.rotation.x = Math.PI / 2;
-    globe.add(atmoRing);
+    globe.add(atmo);
 
     // Lights — cool winter sun
     scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0xaabbcc, isDark ? 0.85 : 1.3));

@@ -24,20 +24,11 @@ export function avgPriceByMonth(listings, months = 12) {
     b.count += 1;
   });
 
-  const result = buckets.map(b => ({
+  return buckets.map(b => ({
     month: b.label,
     avgPrice: b.count ? Math.round(b.sum / b.count) : null,
     listings: b.count,
   }));
-
-  // Add month-over-month % change
-  for (let i = 1; i < result.length; i++) {
-    const prev = result[i - 1].avgPrice;
-    const curr = result[i].avgPrice;
-    result[i].momPct = prev && curr ? Math.round(((curr - prev) / prev) * 1000) / 10 : null;
-  }
-
-  return result;
 }
 
 /** Top `n` most-listed models with avg price, avg ATI, listing count. */

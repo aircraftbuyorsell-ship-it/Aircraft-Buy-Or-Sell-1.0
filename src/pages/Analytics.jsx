@@ -6,6 +6,7 @@ import { avgPriceByMonth, topModels, daysOnMarketByModel, priceDelta, summary } 
 import StatTile from "@/components/analytics/StatTile";
 import PriceTrendChart from "@/components/analytics/PriceTrendChart";
 import DaysOnMarketChart from "@/components/analytics/DaysOnMarketChart";
+import MonthOverMonthChart from "@/components/analytics/MonthOverMonthChart";
 import TopModelsTable from "@/components/analytics/TopModelsTable";
 import { useTheme } from "@/lib/useTheme";
 
@@ -103,6 +104,9 @@ export default function Analytics() {
 
           {/* Price trend */}
           <PriceTrendChart data={monthly} isDark={isDark} />
+
+          {/* Month-over-month change */}
+          <MonthOverMonthChart data={monthly} isDark={isDark} />
 
           {/* Days on market + top models */}
           <div className="grid lg:grid-cols-2 gap-5">

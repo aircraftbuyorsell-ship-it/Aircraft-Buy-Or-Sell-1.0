@@ -41,11 +41,16 @@ function aircraftSilhouetteSvg({ color = "#00d4ff", glow = "rgba(0,212,255,0.35)
   </svg>`;
 }
 
-function makeIcon(altM, heading = 0, highlight = false, hasListing = false) {
+function makeIcon(altM, heading = 0, highlight = false, hasListing = false, isLive = false) {
   let color = "#00d4ff";
   let glow = "rgba(0,212,255,0.35)";
   let size = 28;
 
+  if (isLive) {
+    color = "#22c55e";
+    glow = "rgba(34,197,94,0.40)";
+    size = 30;
+  }
   if (hasListing) {
     color = "#E8A83A";
     glow = "rgba(232,168,58,0.45)";
@@ -94,6 +99,9 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
   const [flyTarget, setFlyTarget] = useState(null);
   const [catFilter, setCatFilter] = useState("all");
   const [scoringMap, setScoringMap] = useState({});
+  const [liveTraffic, setLiveTraffic] = useState([]);
+  const [loadingLive, setLoadingLive] = useState(false);
+  const [liveTime, setLiveTime] = useState(null);
   const markerRefs = useRef({});
 
   // Accept external search
@@ -128,7 +136,18 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
     }
   }, []);
 
-  useEffect(() => { fetchTraffic(false); }, []);
+  const fetchLive = useCallback(async () => {
+    setLoadingLive(true);
+    try {
+      const res = await base44.functions.invoke("fetchLiveTraffic", { limit: 2000 });
+      const ac = res.data?.aircraft || [];
+      setLiveTraffic(ac);
+      setLiveTime(new Date());
+    } catch (_) { /* Live layer is optional */ }
+    finally { setLoadingLive(false); }
+  }, []);
+
+  useEffect(() => { fetchTraffic(false); fetchLive(); }, []);
 
   const handleSearchWith = (q) => {
     setSearchError(null);
@@ -249,12 +268,12 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
 
           {/* Refresh */}
           <button
-            onClick={() => fetchTraffic(true)}
-            disabled={refreshing}
+            onClick={() => { fetchTraffic(true); fetchLive(); }}
+            disabled={refreshing || loadingLive}
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-black transition disabled:opacity-50"
             style={{ background: "#E8A83A", color: "#0B2D5B" }}
           >
-            {refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {(refreshing || loadingLive) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
             Refresh
           </button>
         </div>
@@ -267,12 +286,13 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
           { label: "Visible", value: visibleAircraft.length },
           { label: "Total loaded", value: aircraft.length },
           { label: "ABOS matched", value: withListing },
+          { label: "Live DB", value: liveTraffic.length, accent: "#22c55e" },
           { label: "Source", value: sourceLabel },
           { label: "Updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
         ].map((s) => (
           <div key={s.label} className="glass-pill px-3 py-1.5">
-            <span className="text-[9px] font-black uppercase tracking-wider mr-1" style={{ color: mutedColor }}>{s.label}:</span>
-            <span className="text-[11px] font-black" style={{ color: textColor }}>{s.value}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider mr-1" style={{ color: s.accent || mutedColor }}>{s.label}:</span>
+            <span className="text-[11px] font-black" style={{ color: s.accent || textColor }}>{s.value}</span>
           </div>
         ))}
       </div>
@@ -302,6 +322,59 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
         <MapContainer center={WORLD_CENTER} zoom={WORLD_ZOOM} style={{ height: "100%", width: "100%" }} scrollWheelZoom zoomControl worldCopyJump>
           <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {flyTarget && <FlyTo target={flyTarget} key={flyTarget.icao24 + "-fly"} />}
+          {/* Live DB markers (green) — from Supabase live_traffic table */}
+          {liveTraffic.map((ac) => {
+            if (!ac.latitude || !ac.longitude) return null;
+            const isHighlight = flyTarget?.icao24 === ac.icao24;
+            const altFt = ac.altitude_ft != null ? Math.round(ac.altitude_ft) : null;
+            const speedKt = ac.ground_speed_kt != null ? Math.round(ac.ground_speed_kt) : null;
+            const nReg = ac.n_number || ac.registration || null;
+            const vrateStr = ac.vertical_rate != null
+              ? (ac.vertical_rate > 0 ? `▲ ${ac.vertical_rate} fpm` : ac.vertical_rate < 0 ? `▼ ${Math.abs(ac.vertical_rate)} fpm` : "Level")
+              : "—";
+            const bgColor = isDark ? "#1a1f3a" : "#fff";
+            const tColor = isDark ? "#ffffff" : "#0B2D5B";
+            const mColor = isDark ? "rgba(255,255,255,0.45)" : "#6B6560";
+            const sColor = isDark ? "rgba(255,255,255,0.30)" : "#AAA49C";
+            const bColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)";
+            const liveKey = `live-${ac.icao24 || ac.id}`;
+            return (
+              <Marker
+                key={liveKey}
+                position={[ac.latitude, ac.longitude]}
+                icon={makeIcon(null, ac.heading || 0, isHighlight, !!ac.listing, true)}
+                ref={(r) => { if (r) markerRefs.current[liveKey] = r; }}
+                zIndexOffset={isHighlight ? 1000 : 5}
+              >
+                <Popup maxWidth={260}>
+                  <div style={{ minWidth: 220, background: bgColor }}>
+                    <div style={{ borderBottom: `1px solid ${bColor}`, paddingBottom: 6, marginBottom: 6 }}>
+                      <p style={{ fontWeight: 900, color: "#22c55e", fontSize: 12, margin: 0 }}>
+                        {nReg || ac.callsign?.trim() || ac.icao24}
+                      </p>
+                      <p style={{ fontSize: 9, color: sColor, margin: "1px 0 0", fontFamily: "monospace" }}>
+                        ICAO: {ac.icao24} · Live DB
+                      </p>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 10px", fontSize: 11, marginBottom: 4 }}>
+                      <div><span style={{ color: sColor }}>Alt: </span><strong style={{ color: tColor }}>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
+                      <div><span style={{ color: sColor }}>Speed: </span><strong style={{ color: tColor }}>{speedKt != null ? `${speedKt} kt` : "—"}</strong></div>
+                      <div><span style={{ color: sColor }}>Hdg: </span><strong style={{ color: tColor }}>{ac.heading != null ? `${Math.round(ac.heading)}°` : "—"}</strong></div>
+                      <div><span style={{ color: sColor }}>V/S: </span><strong style={{ color: tColor }}>{vrateStr}</strong></div>
+                      <div><span style={{ color: sColor }}>Status: </span><strong style={{ color: ac.on_ground ? "#ef4444" : "#22c55e" }}>{ac.on_ground ? "Ground" : "Airborne"}</strong></div>
+                      {ac.origin_country && <div><span style={{ color: sColor }}>Country: </span><strong style={{ color: tColor }}>{ac.origin_country}</strong></div>}
+                    </div>
+                    {ac.departure_icao && (
+                      <p style={{ fontSize: 10, color: mColor, margin: "2px 0 0" }}>
+                        {ac.departure_icao}{ac.arrival_icao ? ` → ${ac.arrival_icao}` : ""}
+                      </p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
+
           {visibleAircraft.map((ac) => {
             if (!ac.latitude || !ac.longitude) return null;
             const isHighlight = flyTarget?.icao24 === ac.icao24;
@@ -392,7 +465,8 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
       <div className="mt-2 flex flex-wrap gap-3 items-center">
         <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: mutedColor }}>Markers:</span>
         {[
-          { color: "#00d4ff", label: "Live traffic" },
+          { color: "#00d4ff", label: "ADS-B traffic" },
+          { color: "#22c55e", label: "Live DB" },
           { color: "#E8A83A", label: "ABOS listing" },
           { color: "#00f5ff", label: "Search target", shadow: true },
         ].map((l) => (

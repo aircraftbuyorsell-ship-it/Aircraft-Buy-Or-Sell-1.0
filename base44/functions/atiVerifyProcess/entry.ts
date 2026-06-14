@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     });
 
     // Save score
-    await base44.asServiceRole.entities.ATIVerifyScore.create({
+    await base44.entities.ATIVerifyScore.create({
       session: sessionId,
       identity_score: identityScore,
       ownership_score: ownershipScore,

@@ -157,7 +157,7 @@ function Card({ listing: l }) {
                 <p className="text-sm font-black text-[#1A1814]">{fmtMoney(l.asking_price)}</p>
               </div>
               <div className="text-right">
-                <p className="text-[8px] text-[#4a4550] uppercase tracking-wider font-bold">OMVM</p>
+                <p className="text-[8px] text-[#4a4550] uppercase tracking-wider font-bold">Expert Est.</p>
                 <p className="text-sm font-black text-[#0B2D5B]">{l.omvm_value ? fmtMoney(l.omvm_value) : "—"}</p>
                 {l.discount_pct != null &&
                 <p className={`text-[9px] font-black ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>

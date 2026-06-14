@@ -617,9 +617,9 @@ export default function Listings() {
                 </p>
               </div>
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">What does OMVM mean?</p>
+                <p className="font-black text-[#0B2D5B] mb-1">What is Expert Valuation?</p>
                 <p className="text-[#3a3530] leading-relaxed text-[12px]">
-                  Off-Market Value Model — our market-calibrated price estimate based on comparable sales, depreciation curves, and condition adjustments.
+                  Expert Valuation — our aviation specialist appraisal combining comparable market data, technical aircraft analysis, and current market conditions to produce a $70k–$90k price band estimate.
                 </p>
               </div>
               <div>

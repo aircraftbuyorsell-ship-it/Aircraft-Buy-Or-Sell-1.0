@@ -103,7 +103,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                     {l.asking_price != null ? `$${l.asking_price.toLocaleString()}` : "—"}
                   </p>
                   {l.omvm_value && (
-                    <p className="text-[10px] text-[#4a4550] mt-0.5">Market est. ${l.omvm_value.toLocaleString()}</p>
+                    <p className="text-[10px] text-[#4a4550] mt-0.5">Expert Est. ${l.omvm_value.toLocaleString()}</p>
                   )}
                 </div>
                 <div className="text-right space-y-1.5">

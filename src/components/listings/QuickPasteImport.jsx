@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Sparkles, CheckCircle, AlertTriangle } from "lucide-react";
+import { X, Sparkles, CheckCircle, AlertTriangle, Loader2, ShieldCheck } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function QuickPasteImport({ open, onClose, onPublish }) {
@@ -7,6 +7,8 @@ export default function QuickPasteImport({ open, onClose, onPublish }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [scoring, setScoring] = useState(false);
+  const [atiScore, setAtiScore] = useState(null);
 
   const handlePublish = async () => {
     if (!text.trim()) return;
@@ -78,6 +80,20 @@ Return JSON with these fields ONLY if explicitly found in the text:
       });
 
       setPreview(listing);
+
+      // Auto-trigger ATI scoring in background
+      setScoring(true);
+      try {
+        const scoreResult = await base44.functions.invoke('marketExpertValuation', { listingId: listing.id });
+        if (scoreResult?.data?.ati_total) {
+          setAtiScore(scoreResult.data);
+        }
+      } catch (scoreErr) {
+        // Scoring is non-blocking — listing is still published
+        console.warn("Auto-score failed, listing still published:", scoreErr?.message);
+      } finally {
+        setScoring(false);
+      }
     } catch (e) {
       setError(e?.message || "Failed to process listing");
     } finally {
@@ -109,7 +125,7 @@ Return JSON with these fields ONLY if explicitly found in the text:
             <>
               <div className="bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
                 <p className="text-[11px] font-bold text-[#0B2D5B] mb-1">📋 Copy-paste from anywhere</p>
-                <p className="text-[11px] text-[#3a3530]">Facebook Marketplace, Controller.com, Trade-A-Plane, email, or any listing — AI extracts specs automatically.</p>
+                <p className="text-[11px] text-[#3a3530]">Facebook Marketplace, Controller.com, Trade-A-Plane, email, or any listing — AI extracts specs and auto-scores the aircraft.</p>
               </div>
 
               <textarea
@@ -169,6 +185,57 @@ Call John: 555-1234"`}
                     {preview.total_time ? `${preview.total_time.toLocaleString()} hrs` : "—"}
                   </p>
                 </div>
+              </div>
+
+              {/* ATI Score block */}
+              <div className="bg-[rgba(11,45,91,0.04)] border border-[rgba(11,45,91,0.1)] rounded-xl p-4">
+                {scoring ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 text-[#D4A017] animate-spin" />
+                    <div>
+                      <p className="text-[12px] font-bold text-[#0B2D5B]">Scoring aircraft…</p>
+                      <p className="text-[10px] text-[#4a4550]">Analyzing 8 dimensions, market value & comparables</p>
+                    </div>
+                  </div>
+                ) : atiScore ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShieldCheck className="w-4 h-4 text-[#D4A017]" />
+                      <p className="text-[10px] uppercase tracking-[0.12em] font-black text-[#D4A017]">ATI Score Card Ready</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-[#0B2D5B]">{atiScore.ati_total}</span>
+                        <span className="text-sm text-[#4a4550] font-semibold">/ 120</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#185FA5] text-white">
+                        {atiScore.ati_label}
+                      </span>
+                      {atiScore.deal_label && (
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                          atiScore.deal_label === 'hot deal' ? 'bg-[rgba(212,160,23,0.15)] text-[#A67C00]' :
+                          atiScore.deal_label === 'good deal' ? 'bg-[rgba(15,122,86,0.1)] text-[#0F7A56]' :
+                          'bg-black/5 text-[#4a4550]'
+                        }`}>
+                          {atiScore.deal_label}
+                        </span>
+                      )}
+                    </div>
+                    {atiScore.market_estimate && (
+                      <div className="mt-2 flex items-center gap-3 text-[11px]">
+                        <span className="text-[#4a4550]">Expert Est. <strong className="text-[#1A1814]">${atiScore.market_estimate.toLocaleString()}</strong></span>
+                        {atiScore.discount_pct != null && (
+                          <span className={atiScore.discount_pct >= 0 ? "text-[#0F7A56] font-bold" : "text-[#C0392B] font-bold"}>
+                            {Math.abs(atiScore.discount_pct)}% {atiScore.discount_pct >= 0 ? "below" : "above"} market
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="mt-3 text-[10px] text-[#6B6560]">
+                      ATI Code: <span className="font-mono font-bold text-[#0B2D5B]">{atiScore.ati_code}</span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           )}

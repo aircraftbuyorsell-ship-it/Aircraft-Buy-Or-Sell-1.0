@@ -3,8 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
 import {
   Plane, Search, SlidersHorizontal, X, ArrowUpRight,
-  Upload, FileArchive, RefreshCw, TrendingDown, TrendingUp,
-  ShieldCheck, LayoutList, CreditCard, ThumbsUp, ThumbsDown, CheckSquare, Square } from
+  Upload, RefreshCw, TrendingDown, TrendingUp,
+  ShieldCheck, CheckSquare, Square } from
 "lucide-react";
 import BulkActionsBar from "@/components/listings/BulkActionsBar";
 import { Link } from "react-router-dom";
@@ -18,6 +18,8 @@ import { TOKEN_COSTS } from "@/lib/pricing";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
 import SwipeDeck from "@/components/listings/SwipeCard";
 import { detectRegType } from "@/lib/regUtils";
+import ListingsHeader from "@/components/listings/ListingsHeader";
+import { HelpCircle } from "lucide-react";
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -168,21 +170,6 @@ function SelectAllCheckbox({ filtered, selectedIds, onSelectAll, onClear }) {
 
 }
 
-// ─── Stat Pill — glass chip ──────────────────────────────────────
-function StatPill({ value, label, color = "#E8A83A" }) {
-  return (
-    <div className="relative overflow-hidden rounded-xl px-4 py-2.5"
-    style={{
-      background: "linear-gradient(150deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 60%)",
-      border: `1px solid ${color}40`,
-      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)"
-    }}>
-      <p className="text-xl font-black leading-none" style={{ color }}>{value}</p>
-      <p className="text-[9px] uppercase tracking-[0.15em] text-white/50 font-semibold mt-1">{label}</p>
-    </div>);
-
-}
-
 // ─── Page ────────────────────────────────────────────────────────
 export default function Listings() {
   const queryClient = useQueryClient();
@@ -199,6 +186,7 @@ export default function Listings() {
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [showFAQ, setShowFAQ] = useState(false);
 
   const toggleSelect = (id) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   const clearSelection = () => setSelectedIds([]);
@@ -257,75 +245,19 @@ export default function Listings() {
       </div>
 
       {/* ── Header ── */}
-      <div className="relative overflow-hidden bg-[#0B2D5B] min-h-[320px] md:min-h-[380px]">
-        <img
-          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/207a73d13_624324958_2759110867807924_1126729800774297176_n.jpg"
-          alt="Aircraft viewed from an airport lounge window"
-          className="absolute inset-0 w-full h-full object-cover opacity-85" />
-        
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B2D5B]/78 via-[#0B2D5B]/30 to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-7 bg-[#111113]/95 shadow-[0_18px_45px_rgba(0,0,0,0.45)]" />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#111113]/85 via-[#111113]/30 to-transparent" />
-        <div className="absolute left-0 top-0 bottom-0 w-[9%] bg-gradient-to-r from-[#111113]/95 to-transparent" />
-        <div className="absolute left-[23%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/82 shadow-[0_0_35px_rgba(0,0,0,0.55)] rotate-[-2deg] origin-top" />
-        <div className="absolute left-[50%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/78 shadow-[0_0_35px_rgba(0,0,0,0.5)]" />
-        <div className="absolute right-[18%] top-0 bottom-0 w-2 md:w-4 bg-[#111113]/82 shadow-[0_0_35px_rgba(0,0,0,0.55)] rotate-[2deg] origin-top" />
-        <div className="absolute bottom-0 left-8 hidden md:block w-44 h-14 rounded-t-[2rem] bg-[#111113]/75 blur-[1px]" />
-        <div className="absolute bottom-0 right-10 hidden md:block w-56 h-16 rounded-t-[2rem] bg-[#111113]/70 blur-[1px]" />
-        <div className="absolute inset-0 bg-white/[0.04] backdrop-blur-[1px]" />
-        <div className="relative px-4 md:px-8 pt-8 md:pt-12 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-[2rem] border border-white/30 bg-white/[0.10] backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.38)] px-5 md:px-7 py-6 md:py-7 ring-1 ring-white/10 opacity-70">
-            <div>
-              <p className="uppercase tracking-[0.28em] font-bold mb-2 drop-shadow text-xs opacity-50 bg-[hsl(var(--secondary))] text-[hsl(var(--primary))] [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">AIRPORT LOUNGE VIEW · AIRCRAFT INVENTORY</p>
-              <h1 className="text-3xl md:text-5xl font-black tracking-[-0.05em] leading-none drop-shadow-lg text-[hsl(var(--foreground))] [font-family:'Roboto',_sans-serif]">Off-Market Aircraft
-
-              </h1>
-              {!isLoading &&
-              <p className="text-[13px] mt-3 font-medium max-w-xl bg-[hsl(var(--muted-foreground))] text-[hsl(var(--popover-foreground))]">
-                  {filtered.length} aircraft · scored against real market data
-                </p>
-              }
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {/* View mode toggle */}
-              <div className="flex bg-white/[0.16] backdrop-blur-md rounded-full p-1 border border-white/20 shadow-lg">
-                <button onClick={() => setViewMode("cards")}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold transition-colors ${viewMode === "cards" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/65 hover:text-white"}`}>
-                  <CreditCard className="w-3 h-3" /> Cards
-                </button>
-                <button onClick={() => setViewMode("list")}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold transition-colors ${viewMode === "list" ? "bg-white text-[#0B2D5B] shadow-sm" : "text-white/65 hover:text-white"}`}>
-                  <LayoutList className="w-3 h-3" /> List
-                </button>
-              </div>
-              <button
-                onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => setShowImport(true))}
-                className="flex items-center gap-1.5 bg-white/[0.14] hover:bg-white/[0.22] backdrop-blur-md border border-white/20 text-white text-[12px] font-bold px-4 py-2.5 rounded-full transition-colors shadow-lg">
-                
-                <FileArchive className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Import</span>
-              </button>
-              <button
-                onClick={() => setShowWizard(true)}
-                className="flex items-center gap-1.5 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] text-[12px] font-black px-5 py-2.5 rounded-full transition-colors shadow-xl">
-                
-                <Upload className="w-3.5 h-3.5" />
-                Add Aircraft
-              </button>
-            </div>
-          </div>
-
-          {/* Inline stats */}
-          {!isLoading && listings.length > 0 &&
-          <div className="flex flex-wrap items-center gap-3 mt-5 rounded-[1.5rem] border border-white/20 bg-white/[0.12] backdrop-blur-xl px-4 py-3.5 shadow-xl opacity-30">
-              <StatPill value={listings.length} label="Total" color="#E8A83A" />
-              <StatPill value={scoredCount} label="ATI Scored" color="#6FA3E8" />
-              <StatPill value={hotDeals} label="Hot Deals" color="#F5C842" />
-              {avgATI && <StatPill value={avgATI} label="Avg ATI" color="#A8D5BE" />}
-            </div>
-          }
-        </div>
-      </div>
+      <ListingsHeader
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        listingsCount={listings.length}
+        scoredCount={scoredCount}
+        hotDeals={hotDeals}
+        avgATI={avgATI}
+        isLoading={isLoading}
+        onShowImport={() => setShowImport(true)}
+        onShowWizard={() => setShowWizard(true)}
+        requireFeature={requireFeature}
+        onShowFAQ={() => setShowFAQ((v) => !v)}
+      />
 
       {/* ── Search & Filters ── */}
       <div className="px-4 md:px-8 py-3 bg-white border-b border-black/[0.05] sticky top-0 z-10 shadow-sm">
@@ -649,6 +581,63 @@ export default function Listings() {
         userTokens={tokens}
         isVerified={isVerified} />
       
+
+      {/* ── Mini FAQ ── */}
+      {showFAQ && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowFAQ(false); }}>
+          
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 border border-black/[0.08]">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-[#D4A017]" />
+                <h3 className="text-lg font-black text-[#1A1814]">Quick Guide</h3>
+              </div>
+              <button onClick={() => setShowFAQ(false)} className="text-[#AAA49C] hover:text-[#6B6560]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4 text-[13px]">
+              <div>
+                <p className="font-black text-[#0B2D5B] mb-1">What is an ATI Score Card?</p>
+                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                  The ABOS Transaction Intelligence (ATI) Score Card is an 8-dimension evaluation of an aircraft's documentation, maintenance, avionics, usage history, and market readiness — scored 0–120.
+                </p>
+              </div>
+              <div>
+                <p className="font-black text-[#0B2D5B] mb-1">What's the minimum info needed?</p>
+                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                  At minimum: <strong>make, model, and year</strong>. For a full score, provide registration (N-reg or EASA mark), total time, engine hours, TBO, avionics, and last annual date.
+                </p>
+              </div>
+              <div>
+                <p className="font-black text-[#0B2D5B] mb-1">How do I create a card?</p>
+                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                  Click the <strong>"Create ATI Score Card"</strong> button above and enter a registration. If the aircraft exists in FAA records, data auto-populates. Or use <strong>"Manual Add"</strong> to enter details yourself.
+                </p>
+              </div>
+              <div>
+                <p className="font-black text-[#0B2D5B] mb-1">What does OMVM mean?</p>
+                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                  Off-Market Value Model — our market-calibrated price estimate based on comparable sales, depreciation curves, and condition adjustments.
+                </p>
+              </div>
+              <div>
+                <p className="font-black text-[#0B2D5B] mb-1">Who can see my listing?</p>
+                <p className="text-[#6B6560] leading-relaxed text-[12px]">
+                  Public listings are visible to all logged-in users. Sensitive owner/operator details stay locked behind the confidential card back, accessible only with verified LOI.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 pt-4 border-t border-black/[0.06]">
+              <Link to="/max-chat" className="text-[11px] text-[#D4A017] font-bold hover:text-[#A67C00]">
+                Need more help? Ask Max, our aviation assistant →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>);
 
 }

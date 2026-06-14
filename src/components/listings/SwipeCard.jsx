@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
   CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
-  Pencil, ChevronLeft, ChevronRight } from
+  Pencil, ChevronLeft, ChevronRight, X } from
 "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -55,6 +55,18 @@ function Card({ listing: l }) {
     staleTime: 60000
   });
   const isOwner = currentUser && l.owner === currentUser.id;
+  const isAdmin = currentUser?.role === "admin";
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (!confirm(`Delete listing for ${aircraftTitle}?`)) return;
+    try {
+      await base44.entities.AircraftListing.delete(l.id);
+      window.location.reload();
+    } catch (err) {
+      alert("Delete failed: " + (err?.message || "Unknown error"));
+    }
+  };
   const info = [
   { label: "TT", value: fmtHours(l.total_time) },
   { label: "TAF", value: fmtHours(l.taf || l.airframe_hours || l.total_airframe_time) },
@@ -94,15 +106,24 @@ function Card({ listing: l }) {
                 <p className="text-[8px] uppercase tracking-[0.18em] font-black text-[#0B2D5B]">SEO Standard</p>
               </div>
               <div className="pointer-events-auto absolute top-3 right-3 flex items-center gap-1.5">
-                {isOwner &&
+                {(isOwner || isAdmin) &&
                 <Link
                   to={`/ati-passport/${l.id}?edit=true`}
                   onClick={(e) => e.stopPropagation()}
                   className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#185FA5] hover:text-[#0B2D5B] transition-colors"
                   title="Edit listing">
-                    
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Link>
+
+                  <Pencil className="w-3.5 h-3.5" />
+                </Link>
+                }
+                {isAdmin &&
+                <button
+                  onClick={handleDelete}
+                  className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#C0392B] hover:text-red-700 transition-colors"
+                  title="Delete listing">
+
+                  <X className="w-3.5 h-3.5" />
+                </button>
                 }
                 <button
                   onClick={(e) => {e.stopPropagation();setFlipped(true);}}

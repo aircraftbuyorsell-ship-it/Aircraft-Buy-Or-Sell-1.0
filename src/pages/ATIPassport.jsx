@@ -464,66 +464,60 @@ Return ONLY raw JSON:
               <ATIPaymentGate listing={listing} onClose={() => setPaymentGateOpen(false)} onUnlock={handleGenerate} />
             )}
 
-            {/* ── Certificate header ────────────────────── */}
+            {/* ── Report header — clean document style ── */}
             <div className="bg-white rounded-2xl border border-black/[0.07] overflow-hidden shadow-sm">
-              <div className="bg-[#0B2D5B] px-6 pt-6 pb-8">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div>
-                    <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.25em] font-black mb-1.5">ATI Score Card · ABOS v2</p>
-                    <h1 className="text-white font-black text-xl md:text-2xl leading-tight">
-                      {listing?.year} {safeMake} {listing?.model}
-                    </h1>
-                    {listing?.registration && (
-                      <p className="text-white/50 font-mono text-[13px] mt-1">{listing.registration}</p>
-                    )}
-                    {listing?.asking_price && (
-                      <p className="text-white/40 text-[12px] mt-1.5">${listing.asking_price.toLocaleString()}</p>
-                    )}
+              <div className="px-6 md:px-10 pt-10 pb-8">
+                {/* Aircraft identity */}
+                <div className="text-center mb-8">
+                  <p className="text-[#AAA49C] text-[9px] uppercase tracking-[0.25em] font-black mb-2">Aircraft Transparency Index</p>
+                  <h1 className="text-[#1A1814] font-black text-2xl md:text-3xl leading-tight">
+                    {listing?.year} {safeMake} {listing?.model}
+                  </h1>
+                  {listing?.registration && (
+                    <p className="text-[#6B6560] font-mono text-[15px] mt-1.5">{listing.registration}</p>
+                  )}
+                  {listing?.asking_price && (
+                    <p className="text-[#4A4550] text-[13px] mt-1 font-semibold">Asking ${listing.asking_price.toLocaleString()}</p>
+                  )}
+                </div>
+
+                {/* ATI SCORE — prominent centered */}
+                <div className="text-center border-y border-black/[0.06] py-6 mb-6">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-bold mb-2">ATI Score</p>
+                  <div className="flex items-baseline justify-center gap-3">
+                    <span className="text-5xl md:text-6xl font-black" style={{ color: scoreColor(passport.ati_total) }}>{passport.ati_total}</span>
+                    <span className="text-[#C4BEB6] text-xl font-light">/ 120</span>
                   </div>
-                  {/* Score badge — prominent */}
-                  <div className="shrink-0 flex flex-col items-center gap-2 ml-2">
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 shadow-lg"
-                      style={{ borderColor: scoreColor(passport.ati_total), background: `${scoreColor(passport.ati_total)}22`, boxShadow: `0 0 24px ${scoreColor(passport.ati_total)}30` }}>
-                      <span className="text-3xl font-black text-white drop-shadow-md">{passport.ati_total}</span>
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-full border"
-                      style={{ color: scoreColor(passport.ati_total), borderColor: `${scoreColor(passport.ati_total)}40`, backgroundColor: `${scoreColor(passport.ati_total)}14` }}>
+                  <div className="mt-2">
+                    <span className="text-[13px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border"
+                      style={{ color: scoreColor(passport.ati_total), borderColor: `${scoreColor(passport.ati_total)}40`, backgroundColor: `${scoreColor(passport.ati_total)}10` }}>
                       {passport.score_label || (passport.ati_total >= 108 ? "Exceptional" : passport.ati_total >= 90 ? "Strong Buy" : passport.ati_total >= 72 ? "Fair" : passport.ati_total >= 54 ? "Caution" : "Red Flags")}
                     </span>
                   </div>
+
+                  {/* ATI Index — normalized 0–10 */}
+                  <div className="mt-4">
+                    <span className="text-[#6B6560] text-[12px] font-semibold">
+                      ATI Index: <span className="font-black text-[#1A1814]">{(passport.ati_total / 12).toFixed(1)} / 10</span>
+                    </span>
+                    <span className="text-[#AAA49C] text-[11px] ml-2">(normalized 0–10; not a buy/sell recommendation)</span>
+                  </div>
                 </div>
 
-                {/* Progress bar + dimension mini-bars */}
-                <div>
-                  <div className="flex justify-between mb-1.5">
-                    <span className="text-white/50 text-[10px] font-semibold">ATI Score</span>
-                    <span className="text-white/50 text-[11px] font-bold">{passport.ati_total} / 120</span>
-                  </div>
-                  <div className="h-2 bg-white/12 rounded-full overflow-hidden mb-3">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${(passport.ati_total / 120) * 100}%`, backgroundColor: scoreColor(passport.ati_total) }} />
-                  </div>
-                  {/* Mini dimension bars — rows of 4 on mobile, 8 on desktop */}
-                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-1.5 gap-y-2">
-                    {DIMS.map(d => {
-                      const v = passport[d.key] || 0;
-                      const dc = v >= 13 ? "#0F7A56" : v >= 9 ? "#185FA5" : v >= 6 ? "#D4A017" : "#C0392B";
-                      return (
-                        <div key={d.key} title={`${d.label}: ${v}/15`} className="flex flex-col items-center gap-1">
-                          <span className="text-[8px] font-bold text-white/70">{v}</span>
-                          <div className="w-full h-6 bg-white/8 rounded-sm overflow-hidden flex items-end">
-                            <div className="w-full rounded-sm" style={{ height: `${(v / 15) * 100}%`, backgroundColor: dc }} />
-                          </div>
-                          <span className="text-[7px] text-white/40 text-center leading-tight truncate w-full hidden sm:block">{d.label.split(" ")[0]}</span>
-                        </div>
-                      );
-                    })}
+                {/* Dimension score bars */}
+                <div className="mb-4">
+                  <p className="text-[9px] uppercase tracking-[0.15em] text-[#AAA49C] font-bold mb-4 text-center">ATI Dimension Scores</p>
+                  <div className="space-y-3 max-w-2xl mx-auto">
+                    {DIMS.map(d => (
+                      <DimBar key={d.key} label={d.label} value={passport[d.key]} desc={d.desc} />
+                    ))}
                   </div>
                 </div>
               </div>
 
               {/* Badges row */}
               {(passport.deal_radar_eligible || passport.co_ownership_viable) && (
-                <div className="px-6 py-3 border-b border-black/[0.06] flex flex-wrap gap-2">
+                <div className="px-6 md:px-10 py-3 border-t border-black/[0.06] flex flex-wrap gap-2 justify-center">
                   {passport.deal_radar_eligible && (
                     <span className="text-[9px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full bg-[rgba(212,160,23,0.10)] text-[#A67C00] border border-[rgba(212,160,23,0.25)]">
                       ⚡ Deal Radar — Below Market
@@ -538,13 +532,13 @@ Return ONLY raw JSON:
               )}
 
               {/* Ownership stamp */}
-              <div className="px-6 py-3 flex items-center justify-between flex-wrap gap-2">
+              <div className="px-6 md:px-10 py-3 flex items-center justify-center gap-4 flex-wrap border-t border-black/[0.05]">
                 <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="sm" />
-                <p className="text-[10px] text-[#AAA49C]">
+                <span className="text-[10px] text-[#AAA49C]">
                   {verifiedOwnershipCount > 0
                     ? `${verifiedOwnershipCount} verified ownership record${verifiedOwnershipCount > 1 ? "s" : ""}`
                     : "No ownership records verified"}
-                </p>
+                </span>
               </div>
             </div>
 
@@ -726,9 +720,23 @@ Return ONLY raw JSON:
             {card && <CardIdentityBlock card={card} />}
             {card && <CardInlineEditor card={card} />}
 
-            {/* ── Scored info ─────────────────────────────── */}
-            <div className="py-2 text-[11px] text-[#6B6560] font-medium">
-              <span>Scored {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2</span>
+            {/* ── Disclaimers ──────────────────────────────── */}
+            <div className="bg-white rounded-2xl border border-black/[0.07] px-6 md:px-10 py-6 text-[11px] leading-relaxed text-[#6B6560] space-y-4">
+              <p>
+                <strong className="text-[#3A3530]">Important Disclosures.</strong> The Aircraft Transparency Index (ATI) is a proprietary assessment framework designed to evaluate the completeness and quality of aircraft documentation, maintenance records, and market positioning. <strong className="text-[#3A3530]">It is not a pre-purchase inspection, airworthiness certification, or substitute for a physical aircraft examination by a certified A&P mechanic.</strong>
+              </p>
+              <p>
+                <strong className="text-[#3A3530]">No Investment or Purchase Recommendation.</strong> The ATI Score, ATI Index, and related assessments do not constitute investment advice or a recommendation to buy, sell, or hold any aircraft. All purchase decisions should be made with professional guidance from qualified aviation consultants, mechanics, and legal advisors.
+              </p>
+              <p>
+                <strong className="text-[#3A3530]">Data Accuracy.</strong> ATI scoring relies on information provided by sellers, FAA registries, and publicly available sources. ABOS does not independently verify all data points and makes no warranty as to the accuracy, completeness, or timeliness of any information presented in this report.
+              </p>
+              <p>
+                <strong className="text-[#3A3530]">Market Valuation.</strong> Any Expert Estimate or market valuation is based on available comparables and market conditions at the time of scoring. Actual transaction prices may differ materially from any estimate provided.
+              </p>
+              <p className="text-[#AAA49C] text-[10px] pt-2 border-t border-black/[0.05]">
+                ABOS MarketSpace · ATI v2 · Scored {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · © ABOS Standard
+              </p>
             </div>
 
             {/* ── Timeline, Reviews, Ownership ───────────── */}

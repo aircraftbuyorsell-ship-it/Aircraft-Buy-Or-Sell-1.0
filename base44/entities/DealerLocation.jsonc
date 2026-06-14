@@ -7,6 +7,11 @@
       "maxLength": 200,
       "description": "Dealer or FBO name"
     },
+    "cert_number": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "FAA dealer certificate number (DCNxxxx)"
+    },
     "owner_email": {
       "type": "string",
       "format": "email",
@@ -26,6 +31,11 @@
     "country": {
       "type": "string",
       "default": "US"
+    },
+    "zip_code": {
+      "type": "string",
+      "maxLength": 20,
+      "description": "ZIP/postal code"
     },
     "latitude": {
       "type": "number",
@@ -73,10 +83,7 @@
     }
   },
   "required": [
-    "name",
-    "owner_email",
-    "latitude",
-    "longitude"
+    "name"
   ],
   "rls": {
     "create": {

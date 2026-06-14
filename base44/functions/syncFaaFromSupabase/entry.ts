@@ -16,6 +16,9 @@ Deno.serve(async (req) => {
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
+
     const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
     const currentMode = mode || 'summary';
     const currentPage = page || 1;
@@ -121,12 +124,12 @@ Deno.serve(async (req) => {
 
     // ── MODE: dealers_summary ──
     if (currentMode === 'dealers_summary') {
-      const { count, error: countErr } = await supabase
+      const { count, error: countErr } = await supabaseAdmin
         .from('faa_dealers')
         .select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
-      const { data: sample, error: sampleErr } = await supabase
+      const { data: sample, error: sampleErr } = await supabaseAdmin
         .from('faa_dealers')
         .select('*')
         .limit(5);
@@ -142,12 +145,12 @@ Deno.serve(async (req) => {
 
     // ── MODE: engine_summary ──
     if (currentMode === 'engine_summary') {
-      const { count, error: countErr } = await supabase
+      const { count, error: countErr } = await supabaseAdmin
         .from('faa_engine')
         .select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
-      const { data: sample, error: sampleErr } = await supabase
+      const { data: sample, error: sampleErr } = await supabaseAdmin
         .from('faa_engine')
         .select('*')
         .limit(5);
@@ -163,12 +166,12 @@ Deno.serve(async (req) => {
 
     // ── MODE: acftref_summary ──
     if (currentMode === 'acftref_summary') {
-      const { count, error: countErr } = await supabase
+      const { count, error: countErr } = await supabaseAdmin
         .from('faa_acftref')
         .select('*', { count: 'exact', head: true });
       if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
 
-      const { data: sample, error: sampleErr } = await supabase
+      const { data: sample, error: sampleErr } = await supabaseAdmin
         .from('faa_acftref')
         .select('*')
         .limit(20);
@@ -187,7 +190,7 @@ Deno.serve(async (req) => {
       const from = (currentPage - 1) * size;
       const to = from + size - 1;
 
-      let q = supabase.from('faa_acftref').select('*', { count: 'exact' });
+      let q = supabaseAdmin.from('faa_acftref').select('*', { count: 'exact' });
       if (search) q = q.or(`code.ilike.%${search}%,mfr.ilike.%${search}%,model.ilike.%${search}%`);
       const { data, count, error: browseErr } = await q.range(from, to).order('code');
 
@@ -204,7 +207,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: acftref_sync ──
     if (currentMode === 'acftref_sync') {
-      const { data: rows, error: syncErr } = await supabase
+      const { data: rows, error: syncErr } = await supabaseAdmin
         .from('faa_acftref')
         .select('*')
         .limit(50000);
@@ -266,6 +269,143 @@ Deno.serve(async (req) => {
         totalFaaAircraft: faaAircraft.length,
         updated,
         skipped,
+      });
+    }
+
+    // ── MODE: dealers_browse ──
+    if (currentMode === 'dealers_browse') {
+      const from = (currentPage - 1) * size;
+      const to = from + size - 1;
+
+      let q = supabaseAdmin.from('faa_dealers').select('*', { count: 'exact' });
+      if (search) q = q.or(`name.ilike.%${search}%,cert_num.ilike.%${search}%`);
+      const { data, count, error: browseErr } = await q.range(from, to).order('name');
+
+      if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'dealers_browse',
+        page: currentPage,
+        pageSize: size,
+        total: count,
+        data,
+      });
+    }
+
+    // ── MODE: dealers_sync ──
+    if (currentMode === 'dealers_sync') {
+      const batch = (pageSize && pageSize > 0) ? (currentPage - 1) : 0;
+      const batchSize = 50;
+      const from = batch * batchSize;
+      const to = from + batchSize - 1;
+
+      const { data: rows, error: syncErr } = await supabaseAdmin
+        .from('faa_dealers')
+        .select('*')
+        .range(from, to);
+
+      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+
+      let created = 0;
+      let updated = 0;
+
+      for (const r of (rows || [])) {
+        if (!r.cert_num || !r.name) continue;
+        const existing = await base44.asServiceRole.entities.DealerLocation.filter({ cert_number: r.cert_num }, '-created_date', 1);
+        const dealerData = { cert_number: r.cert_num, name: r.name, is_active: r.is_active ?? true, role: 'dealer' };
+        if (r.city) dealerData.city = r.city;
+        if (r.state) dealerData.state = r.state;
+        if (r.zip_code) dealerData.zip_code = r.zip_code;
+
+        if (existing.length > 0) {
+          await base44.asServiceRole.entities.DealerLocation.update(existing[0].id, dealerData);
+          updated++;
+        } else {
+          await base44.asServiceRole.entities.DealerLocation.create(dealerData);
+          created++;
+        }
+      }
+
+      const totalBatches = Math.ceil(12507 / batchSize);
+      return Response.json({
+        mode: 'dealers_sync',
+        batch: batch + 1,
+        totalBatches,
+        processed: (rows || []).length,
+        created,
+        updated,
+      });
+    }
+
+    // ── MODE: engine_browse ──
+    if (currentMode === 'engine_browse') {
+      const from = (currentPage - 1) * size;
+      const to = from + size - 1;
+
+      let q = supabaseAdmin.from('faa_engine').select('*', { count: 'exact' });
+      if (search) q = q.or(`code.ilike.%${search}%,mfr.ilike.%${search}%,model.ilike.%${search}%`);
+      const { data, count, error: browseErr } = await q.range(from, to).order('code');
+
+      if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'engine_browse',
+        page: currentPage,
+        pageSize: size,
+        total: count,
+        data,
+      });
+    }
+
+    // ── MODE: engine_sync ──
+    if (currentMode === 'engine_sync') {
+      const { data: rows, error: syncErr } = await supabaseAdmin
+        .from('faa_engine')
+        .select('*')
+        .limit(10000);
+
+      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+
+      // Build lookup: engine code → engine info
+      const engineLookup = {};
+      for (const r of (rows || [])) {
+        const code = r.code?.trim();
+        if (code) {
+          engineLookup[code] = {
+            engine_mfr: r.mfr || '',
+            engine_model: r.model || '',
+            engine_type: r.type || '',
+            horsepower: r.horsepower || '',
+            thrust: r.thrust || '',
+          };
+        }
+      }
+
+      // Update FAAAircraft records with engine info
+      const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 5000);
+      let engUpdated = 0;
+
+      for (const f of faaAircraft) {
+        const engCode = f.eng_mfr_mdl?.trim();
+        if (!engCode) continue;
+        const eng = engineLookup[engCode];
+        if (!eng) continue;
+
+        await base44.asServiceRole.entities.FAAAircraft.update(f.id, {
+          engine_mfr: eng.engine_mfr,
+          engine_model: eng.engine_model,
+          engine_type: eng.engine_type,
+          horsepower: eng.horsepower,
+          thrust: eng.thrust,
+        });
+        engUpdated++;
+      }
+
+      return Response.json({
+        mode: 'engine_sync',
+        totalRefs: rows?.length || 0,
+        faaAircraftChecked: faaAircraft.length,
+        engineUpdated: engUpdated,
       });
     }
 

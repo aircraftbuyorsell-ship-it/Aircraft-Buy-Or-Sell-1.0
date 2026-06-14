@@ -470,46 +470,43 @@ Return ONLY raw JSON:
                       <p className="text-white/40 text-[12px] mt-1.5">${listing.asking_price.toLocaleString()}</p>
                     )}
                   </div>
-                  {/* Score badge */}
-                  <div className="shrink-0 flex flex-col items-center gap-1.5 ml-2">
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center border-2"
-                      style={{ borderColor: scoreColor(passport.ati_total), background: `${scoreColor(passport.ati_total)}18` }}>
-                      <span className="text-3xl font-black" style={{ color: scoreColor(passport.ati_total) }}>{passport.ati_total}</span>
+                  {/* Score badge — prominent */}
+                  <div className="shrink-0 flex flex-col items-center gap-2 ml-2">
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 shadow-lg"
+                      style={{ borderColor: scoreColor(passport.ati_total), background: `${scoreColor(passport.ati_total)}22`, boxShadow: `0 0 24px ${scoreColor(passport.ati_total)}30` }}>
+                      <span className="text-3xl font-black text-white drop-shadow-md">{passport.ati_total}</span>
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: scoreColor(passport.ati_total) }}>
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-full border"
+                      style={{ color: scoreColor(passport.ati_total), borderColor: `${scoreColor(passport.ati_total)}40`, backgroundColor: `${scoreColor(passport.ati_total)}14` }}>
                       {passport.score_label || (passport.ati_total >= 108 ? "Exceptional" : passport.ati_total >= 90 ? "Strong Buy" : passport.ati_total >= 72 ? "Fair" : passport.ati_total >= 54 ? "Caution" : "Red Flags")}
                     </span>
                   </div>
                 </div>
 
-                {/* Progress */}
+                {/* Progress bar + dimension mini-bars */}
                 <div>
                   <div className="flex justify-between mb-1.5">
-                    <span className="text-white/40 text-[10px]">ATI Score</span>
-                    <span className="text-white/40 text-[10px]">{passport.ati_total} / 120</span>
+                    <span className="text-white/50 text-[10px] font-semibold">ATI Score</span>
+                    <span className="text-white/50 text-[11px] font-bold">{passport.ati_total} / 120</span>
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2.5">
-                    <div className="h-full rounded-full" style={{ width: `${(passport.ati_total / 120) * 100}%`, backgroundColor: scoreColor(passport.ati_total) }} />
+                  <div className="h-2 bg-white/12 rounded-full overflow-hidden mb-3">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${(passport.ati_total / 120) * 100}%`, backgroundColor: scoreColor(passport.ati_total) }} />
                   </div>
-                  {/* Mini dimension bars */}
-                  <div className="grid grid-cols-8 gap-1">
+                  {/* Mini dimension bars — rows of 4 on mobile, 8 on desktop */}
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-x-1.5 gap-y-2">
                     {DIMS.map(d => {
                       const v = passport[d.key] || 0;
                       const dc = v >= 13 ? "#0F7A56" : v >= 9 ? "#185FA5" : v >= 6 ? "#D4A017" : "#C0392B";
                       return (
-                        <div key={d.key} title={`${d.label}: ${v}/15`} className="flex flex-col items-center gap-0.5">
-                          <div className="w-full h-7 bg-white/5 rounded-sm overflow-hidden flex items-end">
-                            <div className="w-full" style={{ height: `${(v / 15) * 100}%`, backgroundColor: dc, opacity: 0.8 }} />
+                        <div key={d.key} title={`${d.label}: ${v}/15`} className="flex flex-col items-center gap-1">
+                          <span className="text-[8px] font-bold text-white/70">{v}</span>
+                          <div className="w-full h-6 bg-white/8 rounded-sm overflow-hidden flex items-end">
+                            <div className="w-full rounded-sm" style={{ height: `${(v / 15) * 100}%`, backgroundColor: dc }} />
                           </div>
-                          <span className="text-[7px] text-white/25">{v}</span>
+                          <span className="text-[7px] text-white/40 text-center leading-tight truncate w-full hidden sm:block">{d.label.split(" ")[0]}</span>
                         </div>
                       );
                     })}
-                  </div>
-                  <div className="grid grid-cols-8 gap-1 mt-0.5">
-                    {DIMS.map(d => (
-                      <span key={d.key} className="text-[6px] text-white/20 text-center truncate">{d.label.split(" ")[0]}</span>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -543,84 +540,149 @@ Return ONLY raw JSON:
 
             {/* ── Specs + Valuation ─────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* ── Specifications — grouped into logical blocks ── */}
               <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-4">Specifications</p>
-                <div className="space-y-0">
-                  {[
-                    { label: "Airframe TT", value: listing?.total_time ? `${listing.total_time.toLocaleString()} hrs` : "—" },
-                    { label: "Engine SMOH", value: listing?.engine_hours ? `${listing.engine_hours.toLocaleString()} hrs` : "—" },
-                    { label: "TBO", value: listing?.tbo ? `${listing.tbo.toLocaleString()} hrs` : "—" },
-                    { label: "Last Annual", value: listing?.last_annual ? new Date(listing.last_annual).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "—" },
-                    { label: "Avionics", value: listing?.avionics || "—" },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="flex items-baseline justify-between py-2.5 border-b border-black/[0.05] last:border-0">
-                      <span className="text-[12px] text-[#6B6560]">{label}</span>
-                      <span className="text-[13px] font-semibold text-[#1A1814] text-right max-w-[55%] leading-tight">{value}</span>
-                    </div>
-                  ))}
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-5">Aircraft Specs</p>
+
+                {/* Airframe block */}
+                <div className="mb-4">
+                  <p className="text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-2">Airframe</p>
+                  <div className="space-y-1.5">
+                    {[
+                      { l: "Total Time", v: listing?.total_time ? `${listing.total_time.toLocaleString()} hrs` : "—" },
+                      { l: "Year", v: listing?.year || "—" },
+                      { l: "Registration", v: listing?.registration || "—" },
+                    ].map(r => (
+                      <div key={r.l} className="flex justify-between items-baseline">
+                        <span className="text-[12px] font-semibold text-[#4A4550]">{r.l}</span>
+                        <span className="text-[13px] font-bold text-[#1A1814] text-right">{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Engine block */}
+                <div className="mb-4 pt-2 border-t border-black/[0.06]">
+                  <p className="text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-2">Engine</p>
+                  <div className="space-y-1.5">
+                    {[
+                      { l: "Engine SMOH", v: listing?.engine_hours ? `${listing.engine_hours.toLocaleString()} hrs` : "—" },
+                      { l: "TBO", v: listing?.tbo ? `${listing.tbo.toLocaleString()} hrs` : "—" },
+                      { l: "Remaining", v: listing?.tbo && listing?.engine_hours != null ? `${Math.round(((listing.tbo - listing.engine_hours) / listing.tbo) * 100)}%` : "—" },
+                    ].map(r => (
+                      <div key={r.l} className="flex justify-between items-baseline">
+                        <span className="text-[12px] font-semibold text-[#4A4550]">{r.l}</span>
+                        <span className="text-[13px] font-bold text-[#1A1814] text-right">{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Maintenance & Avionics block */}
+                <div className="pt-2 border-t border-black/[0.06]">
+                  <p className="text-[9px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-2">Maintenance & Avionics</p>
+                  <div className="space-y-1.5">
+                    {[
+                      { l: "Last Annual", v: listing?.last_annual ? listing.last_annual : "—" },
+                      { l: "Avionics", v: listing?.avionics || "—" },
+                    ].map(r => (
+                      <div key={r.l} className="flex justify-between items-baseline">
+                        <span className="text-[12px] font-semibold text-[#4A4550]">{r.l}</span>
+                        <span className="text-[13px] font-bold text-[#1A1814] text-right max-w-[55%] leading-tight">{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-4">Market Valuation</p>
-                <div className="space-y-0">
-                  {[
-                    { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request", color: null },
-                    { label: "Expert Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: null },
-                    {
-                      label: "vs. Market",
-                      value: (() => {
+              {/* ── Valuation — clean hierarchy ── */}
+              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-5">Expert Valuation</p>
+
+                  {/* Asking Price — prominent */}
+                  <div className="mb-4">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-1">Asking Price</p>
+                    <p className="text-2xl font-black text-[#1A1814]">
+                      {listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request"}
+                    </p>
+                  </div>
+
+                  {/* Expert Estimate — highlighted box */}
+                  <div className="bg-[#F2F0EB] border border-[#0B2D5B]/10 rounded-xl px-4 py-3 mb-4">
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-[#4A4550] font-bold mb-1">Expert Estimate</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-xl font-black text-[#0B2D5B]">
+                        {passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—"}
+                      </p>
+                      {(() => {
                         const d = Number(passport.discount_pct);
-                        if (!Number.isFinite(d)) return "—";
+                        if (!Number.isFinite(d)) return null;
                         const pct = Math.round(Math.abs(d));
-                        return `${d >= 0 ? "▼" : "▲"} ${pct}%`;
-                      })(),
-                      color: Number(passport.discount_pct) >= 0 ? "#0F7A56" : "#C0392B",
-                    },
-                    {
-                      label: "Deal Rating",
-                      value: passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—",
-                      color: passport.deal_score >= 8.5 ? "#0F7A56" : passport.deal_score >= 6.5 ? "#185FA5" : passport.deal_score >= 5 ? "#D4A017" : "#C0392B",
-                    },
-                    { label: "ATI Score", value: `${passport.ati_total} / 120`, color: scoreColor(passport.ati_total) },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className="flex items-baseline justify-between py-2.5 border-b border-black/[0.05] last:border-0">
-                      <span className="text-[12px] text-[#6B6560]">{label}</span>
-                      <span className="text-[13px] font-semibold" style={{ color: color || "#1A1814" }}>{value}</span>
+                        const isBelow = d >= 0;
+                        return (
+                          <span className={`text-[12px] font-black px-2 py-0.5 rounded-full border ${isBelow ? "text-[#0F7A56] border-[#0F7A56]/20 bg-[#0F7A56]/5" : "text-[#C0392B] border-[#C0392B]/20 bg-[#C0392B]/5"}`}>
+                            {isBelow ? "▼" : "▲"} {pct}%
+                          </span>
+                        );
+                      })()}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Deal Quality row */}
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-1">Deal Rating</p>
+                      <span className="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase" style={{
+                        color: passport.deal_score >= 8.5 ? "#0F7A56" : passport.deal_score >= 6.5 ? "#185FA5" : passport.deal_score >= 5 ? "#D4A017" : "#C0392B",
+                        backgroundColor: passport.deal_score >= 8.5 ? "rgba(15,122,86,0.08)" : passport.deal_score >= 6.5 ? "rgba(24,95,165,0.08)" : passport.deal_score >= 5 ? "rgba(212,160,23,0.08)" : "rgba(192,57,43,0.08)",
+                        borderColor: passport.deal_score >= 8.5 ? "rgba(15,122,86,0.2)" : passport.deal_score >= 6.5 ? "rgba(24,95,165,0.18)" : passport.deal_score >= 5 ? "rgba(212,160,23,0.2)" : "rgba(192,57,43,0.18)",
+                        borderWidth: 1,
+                      }}>
+                        {passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-[#AAA49C] font-bold mb-1">ATI Score</p>
+                      <span className="text-[15px] font-black" style={{ color: scoreColor(passport.ati_total) }}>
+                        {passport.ati_total} <span className="text-[10px] font-normal text-[#AAA49C]">/ 120</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* ── Executive Summary ─────────────────────── */}
             {passport.ai_summary && (
-              <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-3">Assessment Overview</p>
-                <p className="text-[13px] text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
+              <div className="bg-gradient-to-br from-[#F7F4EF] to-white rounded-2xl border border-black/[0.06] px-6 py-5 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-3">Executive Summary</p>
+                <p className="text-[13px] text-[#3A3530] leading-relaxed font-medium">{passport.ai_summary}</p>
               </div>
             )}
 
             {/* ── Strengths / Risks / Actions ───────────── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { title: "Strengths", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", border: "rgba(15,122,86,0.18)" },
-                { title: "Risks", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", border: "rgba(192,57,43,0.18)" },
-                { title: "Buyer Actions", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", border: "rgba(212,160,23,0.25)" },
+                { title: "Key Strengths", data: parseList(passport.strengths), icon: CheckCircle, color: "#0F7A56", bg: "rgba(15,122,86,0.04)", border: "rgba(15,122,86,0.15)" },
+                { title: "Risk Factors", data: parseList(passport.risks), icon: AlertTriangle, color: "#C0392B", bg: "rgba(192,57,43,0.04)", border: "rgba(192,57,43,0.15)" },
+                { title: "Buyer Actions", data: parseList(passport.recommendations), icon: ShieldCheck, color: "#D4A017", bg: "rgba(212,160,23,0.03)", border: "rgba(212,160,23,0.18)" },
               ].map(section => (
-                <div key={section.title} className="bg-white rounded-2xl border px-6 py-5 shadow-sm" style={{ borderColor: section.border }}>
+                <div key={section.title} className="rounded-2xl border px-6 py-5 shadow-sm" style={{ backgroundColor: section.bg, borderColor: section.border }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <section.icon className="w-3.5 h-3.5" style={{ color: section.color }} />
-                    <p className="text-[10px] uppercase tracking-[0.18em] font-black" style={{ color: section.color }}>{section.title}</p>
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: `${section.color}18` }}>
+                      <section.icon className="w-3 h-3" style={{ color: section.color }} />
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.15em] font-black" style={{ color: section.color }}>{section.title}</p>
                   </div>
                   {section.data.length === 0 ? (
-                    <p className="text-[11px] text-[#AAA49C]">—</p>
+                    <p className="text-[12px] font-medium text-[#AAA49C] italic">None identified</p>
                   ) : (
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-3">
                       {section.data.map((item, i) => (
-                        <li key={i} className="flex gap-2.5 text-[12px] text-[#4A4845] leading-relaxed">
-                          <span className="shrink-0 w-1 h-1 rounded-full mt-2" style={{ backgroundColor: section.color }} />
-                          {item}
+                        <li key={i} className="flex gap-2.5 text-[12px] text-[#3A3530] leading-relaxed">
+                          <span className="shrink-0 w-1.5 h-1.5 rounded-full mt-1.5" style={{ backgroundColor: section.color }} />
+                          <span className="font-medium">{item}</span>
                         </li>
                       ))}
                     </ul>
@@ -655,7 +717,7 @@ Return ONLY raw JSON:
             {card && <CardInlineEditor card={card} />}
 
             {/* ── Re-score / actions ─────────────────────── */}
-            <div className="flex items-center justify-between flex-wrap gap-3 py-2 text-[11px] text-[#AAA49C]">
+            <div className="flex items-center justify-between flex-wrap gap-3 py-2 text-[11px] text-[#6B6560] font-medium">
               <span>Scored {passport.created_date ? new Date(passport.created_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} · ATI v2</span>
               <div className="flex gap-4 items-center flex-wrap">
                 <button onClick={() => setWizardOpen(true)} disabled={generating}

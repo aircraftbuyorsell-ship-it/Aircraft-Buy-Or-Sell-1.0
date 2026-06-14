@@ -483,36 +483,6 @@ export default function Listings() {
                 listings={filtered.filter((l) => !discarded.includes(l.id))}
                 onLike={(l) => setShortlisted((prev) => prev.includes(l.id) ? prev : [...prev, l.id])}
                 onDiscard={(l) => setDiscarded((prev) => [...prev, l.id])} />
-              
-                  {/* Mobile action buttons */}
-                  <div className="flex lg:hidden items-center justify-center gap-6 mt-6">
-                    <button
-                  onClick={() => {
-                    const top = filtered.filter((l) => !discarded.includes(l.id))[0];
-                    if (top) setDiscarded((prev) => [...prev, top.id]);
-                  }}
-                  className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(192,57,43,0.3)] text-[#C0392B] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
-                  title="Skip (Swipe left)">
-                  
-                      <ThumbsDown className="w-5 h-5" />
-                    </button>
-                    <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider font-semibold">
-                      {filtered.filter((l) => !discarded.includes(l.id)).length} left
-                    </p>
-                    <button
-                  onClick={() => {
-                    const top = filtered.filter((l) => !discarded.includes(l.id))[0];
-                    if (top) {
-                      setShortlisted((prev) => prev.includes(top.id) ? prev : [...prev, top.id]);
-                      setDiscarded((prev) => [...prev, top.id]);
-                    }
-                  }}
-                  className="w-14 h-14 rounded-full bg-white border-2 border-[rgba(15,122,86,0.3)] text-[#0F7A56] flex items-center justify-center shadow-md hover:scale-110 transition-transform active:scale-95"
-                  title="Shortlist (Swipe right)">
-                  
-                      <ThumbsUp className="w-5 h-5" />
-                    </button>
-                  </div>
                 </>
             }
             </div>

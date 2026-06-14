@@ -1,10 +1,13 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
-  CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck } from
+  CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
+  Pencil, ChevronLeft, ChevronRight } from
 "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 const SWIPE_THRESHOLD = 100;
 
@@ -43,6 +46,15 @@ function Card({ listing: l }) {
   const accessAllowed = l.confidential_access || l.is_owner || l.is_operator || l.has_loi;
   const fmtMoney = (v) => v ? `$${Number(v).toLocaleString()}` : "On request";
   const fmtHours = (v) => v ? `${Number(v).toLocaleString()} h` : "—";
+  const hasPrice = l.asking_price != null && l.asking_price > 0;
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["auth-me-swipe"],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+    staleTime: 60000,
+  });
+  const isOwner = currentUser && l.owner === currentUser.id;
   const info = [
   { label: "TT", value: fmtHours(l.total_time) },
   { label: "TAF", value: fmtHours(l.taf || l.airframe_hours || l.total_airframe_time) },
@@ -81,13 +93,25 @@ function Card({ listing: l }) {
               <div className="absolute top-3 left-3 bg-white/92 backdrop-blur rounded-full px-2.5 py-1 border border-black/[0.08]">
                 <p className="text-[8px] uppercase tracking-[0.18em] font-black text-[#0B2D5B]">SEO Standard</p>
               </div>
-              <button
-                onClick={(e) => {e.stopPropagation();setFlipped(true);}}
-                className="pointer-events-auto absolute top-3 right-3 w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#0B2D5B] hover:text-[#E8A83A]"
-                title="Show confidential back">
-                
-                <RotateCw className="w-4 h-4" />
-              </button>
+              <div className="pointer-events-auto absolute top-3 right-3 flex items-center gap-1.5">
+                {isOwner && (
+                  <Link
+                    to={`/ati-passport/${l.id}?edit=true`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#185FA5] hover:text-[#0B2D5B] transition-colors"
+                    title="Edit listing">
+                    
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+                <button
+                  onClick={(e) => {e.stopPropagation();setFlipped(true);}}
+                  className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#0B2D5B] hover:text-[#E8A83A]"
+                  title="Show confidential back">
+                  
+                  <RotateCw className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-3 border-b border-black/[0.06]">
@@ -105,6 +129,7 @@ function Card({ listing: l }) {
               </div>
             </div>
 
+            {hasPrice && (
             <div className="px-4 py-2 grid grid-cols-2 gap-2 border-b border-black/[0.06]">
               <div>
                 <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">Price</p>
@@ -120,6 +145,7 @@ function Card({ listing: l }) {
                 }
               </div>
             </div>
+            )}
 
             <div className="flex-1 px-4 py-2 overflow-hidden">
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
@@ -261,30 +287,54 @@ function SwipeableCard({ listing, onLike, onDiscard }) {
 
 }
 
-// ─── Public export: carousel with center card + blurred sides ────
+// ─── Public export: carousel with center card + visible side cards, arrows & touchpad ────
 export default function SwipeDeck({ listings, onLike, onDiscard }) {
   const [current, setCurrent] = useState(0);
-  const visible = listings.slice(current, current + 3);
+  const carouselRef = useRef(null);
 
-  if (listings.length === 0) return null;
+  const prevIdx = current > 0 ? current - 1 : null;
+  const nextIdx = current + 1 < listings.length ? current + 1 : null;
+  const currentListing = listings[current];
 
-  const handleNextSlide = () => {
-    if (current + 3 < listings.length) setCurrent(current + 1);
-  };
+  useEffect(() => {
+    setCurrent(0);
+  }, [listings]);
 
-  const handlePrevSlide = () => {
-    if (current > 0) setCurrent(current - 1);
-  };
+  const handleNext = useCallback(() => {
+    setCurrent((c) => c + 1 < listings.length ? c + 1 : c);
+  }, [listings.length]);
+
+  const handlePrev = useCallback(() => {
+    setCurrent((c) => c > 0 ? c - 1 : c);
+  }, []);
 
   const handleLikeCard = (l) => {
     onLike(l);
-    handleNextSlide();
+    handleNext();
   };
 
   const handleDiscardCard = (l) => {
     onDiscard(l);
-    handleNextSlide();
+    handleNext();
   };
+
+  // Touchpad 2-finger swipe via wheel events (horizontal scroll on trackpads)
+  const handleWheel = useCallback((e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
+      e.preventDefault();
+      if (e.deltaX > 0) handleNext();
+      else handlePrev();
+    }
+  }, [handleNext, handlePrev]);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  if (listings.length === 0) return null;
 
   return (
     <div className="w-full">
@@ -307,61 +357,111 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
 
       {/* Mobile instruction banner */}
       <div className="md:hidden mb-4 bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.15)] rounded-xl px-4 py-2.5 text-center">
-        <p className="text-[11px] text-[#0B2D5B] font-semibold">👆 Swipe or tap buttons to browse</p>
+        <p className="text-[11px] text-[#0B2D5B] font-semibold">👆 Swipe or use arrows to browse</p>
       </div>
 
-      {/* Carousel container — center card + blurred sides */}
+      {/* Carousel container — three visible cards + arrows */}
       <div
+        ref={carouselRef}
         className="relative w-full mx-auto overflow-hidden"
         style={{
-          height: "clamp(560px, 82vh, 720px)",
-          perspective: "1000px"
+          height: "clamp(560px, 78vh, 700px)",
+          perspective: "1200px"
         }}>
         
-        {/* Blurred left card (peek from left) */}
-        {visible[0] &&
-        <div
-          className="absolute inset-y-0 left-0 w-1/4 md:w-1/3 pointer-events-none z-0 flex items-center justify-center px-2"
-          style={{
-            opacity: 0.35
-          }}>
-          
-            <div className="w-full h-4/5 rounded-2xl overflow-hidden blur-md scale-75 origin-right">
-              <Card listing={visible[0]} />
+        {/* ── LEFT ARROW ── */}
+        {current > 0 && (
+          <button
+            onClick={handlePrev}
+            className="absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
+            aria-label="Previous aircraft">
+            
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* ── RIGHT ARROW ── */}
+        {current + 1 < listings.length && (
+          <button
+            onClick={handleNext}
+            className="absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
+            aria-label="Next aircraft">
+            
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* ── LEFT SIDE CARD (previous, faded & smaller) ── */}
+        {prevIdx != null && listings[prevIdx] && (
+          <div
+            className="absolute inset-y-0 hidden md:flex items-center justify-end pointer-events-none z-0"
+            style={{
+              left: "2%",
+              width: "32%",
+              opacity: 0.45,
+              filter: "blur(1px)",
+              transform: "scale(0.82) translateX(-6%)",
+            }}>
+            
+            <div className="w-full h-[85%] rounded-2xl overflow-hidden shadow-lg">
+              <Card listing={listings[prevIdx]} />
             </div>
           </div>
-        }
+        )}
 
-        {/* Center main draggable card (full focus) */}
+        {/* ── CENTER MAIN CARD ── */}
         <div
-          className="absolute inset-0 flex items-center justify-center px-4 sm:px-0"
-          style={{ zIndex: 10 }}>
+          className="absolute inset-0 flex items-center justify-center z-10 mx-auto"
+          style={{ width: "44%", left: "28%" }}>
           
-          <div className="w-full max-w-sm sm:max-w-md" style={{ height: "100%" }}>
-            {visible[0] &&
-            <SwipeableCard
-              key={visible[0].id}
-              listing={visible[0]}
-              onLike={handleLikeCard}
-              onDiscard={handleDiscardCard} />
-
-            }
+          <div className="w-full" style={{ height: "92%" }}>
+            {currentListing && (
+              <SwipeableCard
+                key={currentListing.id}
+                listing={currentListing}
+                onLike={handleLikeCard}
+                onDiscard={handleDiscardCard} />
+            )}
           </div>
         </div>
 
-        {/* Blurred right card (peek from right) */}
-        {visible[1] &&
-        <div
-          className="absolute inset-y-0 right-0 w-1/4 md:w-1/3 pointer-events-none z-0 flex items-center justify-center px-2"
-          style={{
-            opacity: 0.35
-          }}>
-          
-            <div className="w-full h-4/5 rounded-2xl overflow-hidden blur-md scale-75 origin-left">
-              <Card listing={visible[1]} />
+        {/* ── RIGHT SIDE CARD (next, faded & smaller) ── */}
+        {nextIdx != null && listings[nextIdx] && (
+          <div
+            className="absolute inset-y-0 hidden md:flex items-center justify-start pointer-events-none z-0"
+            style={{
+              right: "2%",
+              width: "32%",
+              opacity: 0.45,
+              filter: "blur(1px)",
+              transform: "scale(0.82) translateX(6%)",
+            }}>
+            
+            <div className="w-full h-[85%] rounded-2xl overflow-hidden shadow-lg">
+              <Card listing={listings[nextIdx]} />
             </div>
           </div>
-        }
+        )}
+
+        {/* ── PAGE INDICATOR ── */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+          {Array.from({ length: Math.min(listings.length, 20) }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-full transition-all duration-200"
+              style={{
+                width: i === current ? 16 : 5,
+                height: 5,
+                background: i === current ? "#E8A83A" : "rgba(0,0,0,0.15)",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── MOBILE: Full-width card (no side cards) ── */}
+      <div className="md:hidden mt-2 text-center text-[10px] text-[#AAA49C] font-medium">
+        {current + 1} / {listings.length}
       </div>
     </div>);
 

@@ -44,7 +44,8 @@ const SIDEBAR_SECTIONS = [
   { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
   { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" },
   { path: "/ati-standard", label: "ATI Standard", icon: Star, desc: "ATI Score, Report and Card — the emerging European standard for aircraft valuation" },
-  { path: "/soar", label: "SOAR Hub", icon: Rocket, desc: "Aviation startup accelerator — funding, mentorship and ATI ecosystem access for founders" }]
+  { path: "/soar", label: "SOAR Hub", icon: Rocket, desc: "Aviation startup accelerator — funding, mentorship and ATI ecosystem access for founders" },
+  { path: "/startup-hub", label: "Start Up Hub", icon: Users, desc: "Aviation innovation network — discover projects, find collaborators and investors" }]
 
 },
 {

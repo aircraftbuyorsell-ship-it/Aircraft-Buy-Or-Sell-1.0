@@ -49,6 +49,7 @@ import SkyBoss from "./pages/SkyBoss";
 import WeeklyBriefing from "./pages/WeeklyBriefing";
 import ATIStandard from "./pages/ATIStandard";
 import SoarStartupHub from "./pages/SoarStartupHub";
+import AviationStartupHub from "./pages/AviationStartupHub";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -115,6 +116,7 @@ const AuthenticatedApp = () => {
         <Route path="/weekly-briefing" element={<WeeklyBriefing />} />
         <Route path="/ati-standard" element={<ATIStandard />} />
         <Route path="/soar" element={<SoarStartupHub />} />
+        <Route path="/startup-hub" element={<AviationStartupHub />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, TrendingUp,
   ArrowRight, Zap, FileText, Globe, Map,
-  Database, Users, Eye, CheckCircle } from
+  Database, Users } from
 "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -58,20 +58,35 @@ export default function Dashboard() {
     queryFn: () => base44.entities.FAAAircraft.list("-created_date", 5000)
   });
 
+  const { data: dealers = [] } = useQuery({
+    queryKey: ["dealer-locations"],
+    queryFn: () => base44.entities.DealerLocation.list("-created_date", 5000),
+    staleTime: 60000,
+  });
+
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
     queryFn: () => base44.entities.DealRadar.list()
   });
 
+  const { data: trafficAppearances = [] } = useQuery({
+    queryKey: ["traffic-appearances-count"],
+    queryFn: () => base44.entities.TrafficAppearance.list("-created_date", 1),
+    staleTime: 30000,
+  });
+
   const totalListings = allListings.length;
   const activeListings = listings.length;
   const faaSynced = faaAircraft.length;
+  const dealerCount = dealers.length;
   const matchedToFaa = listings.filter((l) => l.registration && /^N/i.test(l.registration)).length;
   const avgAti = listings.length > 0
     ? Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length)
     : 0;
   const hotDeals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
   const evaluated = listings.filter((l) => l.ati_score).length;
+  const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
+  const historicTraffic = trafficAppearances.length > 0 ? "Active" : "—";
 
   const panelStyle = { background: panelBg, border: panelBorder, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" };
 
@@ -149,22 +164,18 @@ export default function Dashboard() {
 
         {/* ── METRICS ROW ──────────────────────────────────── */}
         <section className="px-4 md:px-8 pb-5">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
-              { icon: Database, label: "FAA Registry Synced", value: faaSynced.toLocaleString(), sub: `${matchedToFaa} matched to ABOS`, link: "/admin/supabase-sync", color: accentCyan },
-              { icon: Plane, label: "Aircraft Listings", value: totalListings.toLocaleString(), sub: `${activeListings} active · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
-              { icon: Users, label: "FB Community", value: "280K", sub: "Group members · +12 % YoY", link: "#", color: "#1877F2" },
-              { icon: Eye, label: "Annual Reach", value: "11.5M", sub: "Views/year · 960K/mo", link: "#", color: "#22c55e" },
+              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `${matchedToFaa} matched to ABOS`, link: "/admin/supabase-sync", color: accentCyan },
+              { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
+              { icon: ShieldCheck, label: "Engine Data", value: engineEnriched.toLocaleString(), sub: `of ${faaSynced.toLocaleString()} FAA records`, link: "/admin/supabase-sync", color: "#8b5cf6" },
+              { icon: Users, label: "Dealers Synced", value: dealerCount.toLocaleString(), sub: "FAA dealer certificates", link: "/admin/supabase-sync", color: "#06b6d4" },
+              { icon: TrendingUp, label: "Historic Traffic", value: historicTraffic, sub: "Traffic snapshots archive", link: "/traffic", color: "#f59e0b" },
+              { icon: Radar, label: "Live Traffic", value: "ADS‑B + DB", sub: "Real‑time global tracking", link: "/traffic", color: "#22c55e" },
             ].map((m) =>
-              m.link !== "#" ? (
-                <Link key={m.label} to={m.link}>
-                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
-                </Link>
-              ) : (
-                <div key={m.label} className="rounded-xl p-4 h-full" style={{...panelStyle, cursor: "default"}}>
-                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} noHover />
-                </div>
-              )
+              <Link key={m.label} to={m.link}>
+                <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
+              </Link>
             )}
           </div>
         </section>

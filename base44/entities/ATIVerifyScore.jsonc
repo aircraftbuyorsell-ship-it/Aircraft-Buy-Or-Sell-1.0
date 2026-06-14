@@ -57,7 +57,9 @@
     },
     "update": {
       "user_condition": {
-        "role": "admin"
+        "id": {
+          "$exists": true
+        }
       }
     },
     "delete": {

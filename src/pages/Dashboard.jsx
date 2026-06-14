@@ -22,14 +22,16 @@ import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
 // ─── Clean panel — minimal card with subtle border ────────────────
-function Panel({ children, className = "", accent = false, style = {}, isDark = true }) {
-  const bg = isDark ? "rgba(22,22,38,0.85)" : "#ffffff";
+function Panel({ children, className = "", accent = false, style = {}, isDark = true, translucent = false }) {
+  const bg = translucent 
+    ? (isDark ? "rgba(22,22,38,0.55)" : "rgba(255,255,255,0.65)")
+    : (isDark ? "rgba(22,22,38,0.78)" : "#ffffff");
   const border = isDark ?
   `1px solid ${accent ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.06)"}` :
   `1px solid ${accent ? "rgba(37,99,235,0.15)" : "rgba(0,0,0,0.06)"}`;
   return (
-    <div className={`rounded-xl hidden ${className}`}
-    style={{ background: bg, border, boxShadow: isDark ? "0 1px 3px rgba(0,0,0,0.2)" : "0 1px 2px rgba(0,0,0,0.04)", ...style }}>
+    <div className={`rounded-xl ${className}`}
+    style={{ background: bg, border, boxShadow: isDark ? "0 1px 3px rgba(0,0,0,0.2)" : "0 1px 2px rgba(0,0,0,0.04)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", ...style }}>
       {children}
     </div>);
 
@@ -137,141 +139,103 @@ export default function Dashboard() {
   const easaCount = listings.filter((l) => detectRegType(l.registration) === "easa").length;
 
   return (
-    <div className="min-h-screen" style={{ background: "transparent" }}>
+    <div className="min-h-screen relative" style={{ background: "transparent" }}>
       <NotificationStack />
       <NotificationCenter />
 
-      <section className="px-4 md:px-8 pt-6 pb-2">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <p className="text-xs tracking-wide font-medium" style={{ color: mutedColor }}>ABOS MarketSpace · Aviation Intelligence</p>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
-              Aircraft <span style={{ color: mutedColor }}>Buy Or Sell</span>
-            </h1>
-          </div>
-        </div>
-      </section>
+      {/* ══════════════════════════════════════════════
+         GLOBE — fixed full-viewport background
+      ══════════════════════════════════════════════ */}
+      <div className="fixed inset-0 z-0">
+        <SkyBossGlobe className="w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+      </div>
 
       {/* ══════════════════════════════════════════════
-            MAIN GRID — Unified Traffic Panel (2D/3D toggle) + Sidebar
-         ══════════════════════════════════════════════ */}
-      <section className="px-4 md:px-8 pb-4">
-        <div className="grid lg:grid-cols-[1fr_380px] gap-4">
-          
-          {/* LEFT — Unified Traffic Panel with 2D/3D toggle */}
-          <div className="min-h-0 flex flex-col">
-            {/* View toggle bar */}
-            <div className="flex items-center gap-2 mb-0">
-              <div className="flex items-center rounded-lg overflow-hidden" style={{
-                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
-                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.08)"
-              }}>
-                <button
-                  onClick={() => setTrafficView("2d")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
-                  style={{
-                    background: trafficView === "2d" ?
-                    isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.1)" :
-                    "transparent",
-                    color: trafficView === "2d" ?
-                    isDark ? "#60a5fa" : "#3b82f6" :
-                    mutedColor
-                  }}>
-                  <Map className="w-3 h-3" /> Map
-                </button>
-                <button
-                  onClick={() => setTrafficView("3d")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
-                  style={{
-                    background: trafficView === "3d" ?
-                    isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.1)" :
-                    "transparent",
-                    color: trafficView === "3d" ?
-                    isDark ? "#60a5fa" : "#3b82f6" :
-                    mutedColor
-                  }}>
-                  <Globe className="w-3 h-3" /> Globe
-                </button>
-              </div>
-              <div className="flex-1" />
-              <GlobeTrafficControls
-                onSearch={(q) => setTrafficSearch(q)}
-                onRefresh={() => setTrafficRefreshKey((k) => k + 1)}
-                listingCount={listings.length}
-                compact />
-              
+         CONTENT OVERLAY — scrolls on top of globe
+      ══════════════════════════════════════════════ */}
+      <div className="relative z-10">
+        {/* Header */}
+        <section className="px-4 md:px-8 pt-6 pb-2">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-xs tracking-wide font-medium" style={{ color: mutedColor }}>ABOS MarketSpace · Aviation Intelligence</p>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
+                Aircraft <span style={{ color: mutedColor }}>Buy Or Sell</span>
+              </h1>
             </div>
+          </div>
+        </section>
 
-            {/* News Ticker */}
-            <AviationNewsTicker />
-
-            {/* View content — 2D map or 3D globe */}
-            <div className="flex-1 relative rounded-xl overflow-hidden opacity-100" style={{
-              minHeight: "560px",
-              background: trafficView === "3d" ? isDark ? "#111120" : "#f1f5f9" : "transparent",
-              border: trafficView === "3d" ?
-              isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)" :
-              "none",
-              boxShadow: trafficView === "3d" ?
-              isDark ? "0 4px 16px rgba(0,0,0,0.3)" : "0 2px 8px rgba(0,0,0,0.06)" :
-              "none"
+        {/* Floating controls + News Ticker */}
+        <section className="px-4 md:px-8 pb-2">
+          <div className="flex items-center gap-2 mb-0 flex-wrap">
+            <div className="flex items-center rounded-lg overflow-hidden" style={{
+              background: isDark ? "rgba(22,22,38,0.7)" : "rgba(255,255,255,0.7)",
+              border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
+              backdropFilter: "blur(12px)"
             }}>
-              {trafficView === "2d" ?
-              <TrafficMapSection
-                key={trafficRefreshKey}
-                globalSearch={trafficSearch}
-                onClearSearch={() => setTrafficSearch("")} /> :
-
-
-              <SkyBossGlobe className="absolute inset-0 w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
-              }
+              <button
+                onClick={() => setTrafficView("2d")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
+                style={{
+                  background: trafficView === "2d" ?
+                  isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.12)" :
+                  "transparent",
+                  color: trafficView === "2d" ?
+                  isDark ? "#60a5fa" : "#3b82f6" :
+                  mutedColor
+                }}>
+                <Map className="w-3 h-3" /> Map
+              </button>
+              <button
+                onClick={() => setTrafficView("3d")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
+                style={{
+                  background: trafficView === "3d" ?
+                  isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.12)" :
+                  "transparent",
+                  color: trafficView === "3d" ?
+                  isDark ? "#60a5fa" : "#3b82f6" :
+                  mutedColor
+                }}>
+                <Globe className="w-3 h-3" /> Globe
+              </button>
             </div>
+            <div className="flex-1" />
+            <GlobeTrafficControls
+              onSearch={(q) => setTrafficSearch(q)}
+              onRefresh={() => setTrafficRefreshKey((k) => k + 1)}
+              listingCount={listings.length}
+              compact />
           </div>
+          <AviationNewsTicker />
+        </section>
 
-          {/* RIGHT — Metric sidebar */}
-          <div className="flex flex-col gap-3 hidden">
-            {/* Quick-link pills */}
-            <div className="flex flex-wrap gap-1.5 hidden">
-              {[
-              { label: "ATI Report", icon: ShieldCheck, link: "/listings", color: accentCyan },
-              { label: "Pre-Buy", icon: Plane, link: "/pre-buy-inspection", color: accentGold },
-              { label: "Escrow", icon: Handshake, link: "/escrow", color: isDark ? "rgba(255,255,255,0.75)" : "#475569" }].
-              map((cta) =>
-              <Link key={cta.label} to={cta.link}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all active:scale-95 glass-pill"
-              style={{ color: cta.color }}>
-                  <cta.icon className="w-3 h-3" /> {cta.label}
-                </Link>
-              )}
-              <LiveTrafficBadge />
-            </div>
-
-            {/* Metric cards stack */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-              { color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(), sub: `${evaluated} evaluated`, link: "/listings" },
-              { color: accentViolet, icon: ShieldCheck, label: "ATI Intel", value: evaluated, sub: avg_ati ? `Avg score: ${avg_ati}` : "No scores", link: "/listings" },
-              { color: accentGold, icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
-              { color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" }].
-              map((m) =>
-              <Link key={m.label} to={m.link}>
-                  <Panel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} style={{ borderColor: `${m.color}35` }}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
-                    style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
-                        <m.icon className="w-3 h-3" style={{ color: m.color }} />
-                      </div>
-                      <p className="text-[8px] uppercase tracking-[0.15em] font-black" style={{ color: mutedColor }}>{m.label}</p>
+        {/* Metric cards row */}
+        <section className="px-4 md:px-8 pb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {[
+            { color: accentCyan, icon: Plane, label: "Active Listings", value: total_listings.toLocaleString(), sub: `${evaluated} evaluated`, link: "/listings" },
+            { color: accentViolet, icon: ShieldCheck, label: "ATI Intel", value: evaluated, sub: avg_ati ? `Avg score: ${avg_ati}` : "No scores", link: "/listings" },
+            { color: accentGold, icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
+            { color: accentRed, icon: TrendingUp, label: "Hot Deals", value: hot_deals, sub: "Score ≥ 8.5", link: "/deal-radar" }].
+            map((m) =>
+            <Link key={m.label} to={m.link}>
+                <Panel className="p-3 h-full hover:scale-[1.02] transition-transform cursor-pointer" accent isDark={isDark} translucent style={{ borderColor: `${m.color}35` }}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+                  style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
+                      <m.icon className="w-3 h-3" style={{ color: m.color }} />
                     </div>
-                    <p className="text-base font-black leading-none" style={{ color: textColor }}>{m.value}</p>
-                    <p className="text-[9px] mt-0.5 leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
-                  </Panel>
-                </Link>
-              )}
-            </div>
+                    <p className="text-[8px] uppercase tracking-[0.15em] font-black" style={{ color: mutedColor }}>{m.label}</p>
+                  </div>
+                  <p className="text-base font-black leading-none" style={{ color: textColor }}>{m.value}</p>
+                  <p className="text-[9px] mt-0.5 leading-tight" style={{ color: mutedColor }}>{m.sub}</p>
+                </Panel>
+              </Link>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* SUBSCRIPTION STATUS */}
       <section className="px-4 md:px-8 pt-2 pb-4">
@@ -289,7 +253,7 @@ export default function Dashboard() {
           { icon: FileText, title: "ATI Full Report", body: "Professional aircraft appraisal: 8-dimension scoring, executive summary, strengths, risks, recommendations, identity table and branded .docx export.", link: "/ati-full-report", badge: "Pro · Export" }].
           map((m) =>
           <Link key={m.title} to={m.link}>
-              <Panel className="p-5 h-full hover:bg-opacity-90 transition-colors cursor-pointer" isDark={isDark}>
+              <Panel className="p-5 h-full transition-colors cursor-pointer" isDark={isDark} translucent>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
@@ -323,7 +287,7 @@ export default function Dashboard() {
           { icon: Handshake, title: "Escrow & Commission", body: "Protected buyer-seller escrow with automated commission splits, finder's fees and full payout audit trail.", link: "/escrow" }].
           map((m) =>
           <Link key={m.title} to={m.link}>
-              <Panel className="p-5 h-full hover:bg-opacity-90 transition-colors cursor-pointer" isDark={isDark}>
+              <Panel className="p-5 h-full transition-colors cursor-pointer" isDark={isDark} translucent>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                 style={{ background: isDark ? "rgba(59,130,246,0.1)" : "rgba(37,99,235,0.08)", border: `1px solid ${isDark ? "rgba(59,130,246,0.2)" : "rgba(37,99,235,0.15)"}` }}>
@@ -359,7 +323,7 @@ export default function Dashboard() {
               const regColor = getRegTypeColor(regType, isDark);
               return (
                 <Link key={l.id} to={`/ati-passport/${l.id}`}>
-                  <Panel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
+                  <Panel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" isDark={isDark} translucent style={{ borderColor: score > 0 ? `${sc}30` : undefined }}>
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="min-w-0">
                         <p className="text-[9px] tracking-wider font-medium" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>ATI Report</p>
@@ -418,7 +382,7 @@ export default function Dashboard() {
           { icon: Handshake, title: "Aviation Brokers", body: "Originate, structure and close deals with confidence. Secure escrow, automated commission management and deal pipeline." },
           { icon: TrendingUp, title: "Operators & Acquirers", body: "Source quality off-market aircraft, verify title and airworthiness, and execute acquisitions through a structured process." }].
           map((x) =>
-          <Panel key={x.title} className="p-5" isDark={isDark}>
+          <Panel key={x.title} className="p-5" isDark={isDark} translucent>
               <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3"
             style={{ background: isDark ? "rgba(59,130,246,0.08)" : "rgba(37,99,235,0.06)", border: `1px solid ${isDark ? "rgba(59,130,246,0.15)" : "rgba(37,99,235,0.12)"}` }}>
                 <x.icon className="w-4.5 h-4.5" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
@@ -428,7 +392,7 @@ export default function Dashboard() {
             </Panel>
           )}
         </div>
-        <Panel className="p-5" isDark={isDark}>
+        <Panel className="p-5" isDark={isDark} translucent>
           <div className="flex flex-wrap gap-x-8 gap-y-3">
             {["ATI Transaction Reports", "Secure Escrow Execution", "Commission & Fee Management", "Verified Professional Network", "Real-Time ADS-B Surveillance", "Transparent Deal Pricing"].map((x) =>
             <div key={x} className="flex items-center gap-2">
@@ -442,7 +406,7 @@ export default function Dashboard() {
 
       {/* FOOTER CTA */}
       <section className="px-4 md:px-8 py-10 text-center">
-        <Panel className="max-w-2xl mx-auto p-8 md:p-10" isDark={isDark}>
+        <Panel className="max-w-2xl mx-auto p-8 md:p-10" isDark={isDark} translucent>
           <Lock className="w-6 h-6 mx-auto mb-4" style={{ color: isDark ? "#60a5fa" : "#3b82f6" }} />
           <h2 className="text-lg md:text-xl font-semibold tracking-tight mb-3" style={{ color: textColor }}>
             One Platform. <span style={{ color: isDark ? "#60a5fa" : "#3b82f6" }}>Institutional Standards.</span>{" "}
@@ -458,6 +422,9 @@ export default function Dashboard() {
           </Link>
         </Panel>
       </section>
+
+      {/* Close z-10 overlay */}
+      </div>
 
       <AircraftWizard open={wizardOpen} onClose={() => setWizardOpen(false)} />
     </div>);

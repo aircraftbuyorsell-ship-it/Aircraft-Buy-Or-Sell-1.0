@@ -52,7 +52,7 @@ function Card({ listing: l }) {
     queryKey: ["auth-me-swipe"],
     queryFn: () => base44.auth.me(),
     retry: false,
-    staleTime: 60000,
+    staleTime: 60000
   });
   const isOwner = currentUser && l.owner === currentUser.id;
   const info = [
@@ -94,16 +94,16 @@ function Card({ listing: l }) {
                 <p className="text-[8px] uppercase tracking-[0.18em] font-black text-[#0B2D5B]">SEO Standard</p>
               </div>
               <div className="pointer-events-auto absolute top-3 right-3 flex items-center gap-1.5">
-                {isOwner && (
-                  <Link
-                    to={`/ati-passport/${l.id}?edit=true`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#185FA5] hover:text-[#0B2D5B] transition-colors"
-                    title="Edit listing">
+                {isOwner &&
+                <Link
+                  to={`/ati-passport/${l.id}?edit=true`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#185FA5] hover:text-[#0B2D5B] transition-colors"
+                  title="Edit listing">
                     
                     <Pencil className="w-3.5 h-3.5" />
                   </Link>
-                )}
+                }
                 <button
                   onClick={(e) => {e.stopPropagation();setFlipped(true);}}
                   className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#0B2D5B] hover:text-[#E8A83A]"
@@ -129,7 +129,7 @@ function Card({ listing: l }) {
               </div>
             </div>
 
-            {hasPrice && (
+            {hasPrice &&
             <div className="px-4 py-2 grid grid-cols-2 gap-2 border-b border-black/[0.06]">
               <div>
                 <p className="text-[8px] text-[#AAA49C] uppercase tracking-wider font-bold">Price</p>
@@ -145,7 +145,7 @@ function Card({ listing: l }) {
                 }
               </div>
             </div>
-            )}
+            }
 
             <div className="flex-1 px-4 py-2 overflow-hidden">
               <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
@@ -257,7 +257,7 @@ function SwipeableCard({ listing, onLike, onDiscard }) {
 
   return (
     <motion.div
-      className="absolute inset-0 cursor-grab active:cursor-grabbing opacity-60"
+      className="absolute inset-0 cursor-grab active:cursor-grabbing opacity-85"
       style={{ x, rotate }}
       animate={controls}
       drag="x"
@@ -322,8 +322,8 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
   const handleWheel = useCallback((e) => {
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
       e.preventDefault();
-      if (e.deltaX > 0) handleNext();
-      else handlePrev();
+      if (e.deltaX > 0) handleNext();else
+      handlePrev();
     }
   }, [handleNext, handlePrev]);
 
@@ -370,44 +370,44 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
         }}>
         
         {/* ── LEFT ARROW ── */}
-        {current > 0 && (
-          <button
-            onClick={handlePrev}
-            className="absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
-            aria-label="Previous aircraft">
+        {current > 0 &&
+        <button
+          onClick={handlePrev}
+          className="absolute left-1 md:left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
+          aria-label="Previous aircraft">
             
             <ChevronLeft className="w-5 h-5" />
           </button>
-        )}
+        }
 
         {/* ── RIGHT ARROW ── */}
-        {current + 1 < listings.length && (
-          <button
-            onClick={handleNext}
-            className="absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
-            aria-label="Next aircraft">
+        {current + 1 < listings.length &&
+        <button
+          onClick={handleNext}
+          className="absolute right-1 md:right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-black/[0.08] shadow-lg flex items-center justify-center text-[#1A1814] hover:text-[#E8A83A] hover:scale-110 transition-all active:scale-95"
+          aria-label="Next aircraft">
             
             <ChevronRight className="w-5 h-5" />
           </button>
-        )}
+        }
 
         {/* ── LEFT SIDE CARD (previous, faded & smaller) ── */}
-        {prevIdx != null && listings[prevIdx] && (
-          <div
-            className="absolute inset-y-0 hidden md:flex items-center justify-end pointer-events-none z-0"
-            style={{
-              left: "2%",
-              width: "32%",
-              opacity: 0.45,
-              filter: "blur(1px)",
-              transform: "scale(0.82) translateX(-6%)",
-            }}>
+        {prevIdx != null && listings[prevIdx] &&
+        <div
+          className="absolute inset-y-0 hidden md:flex items-center justify-end pointer-events-none z-0"
+          style={{
+            left: "2%",
+            width: "32%",
+            opacity: 0.45,
+            filter: "blur(1px)",
+            transform: "scale(0.82) translateX(-6%)"
+          }}>
             
             <div className="w-full h-[85%] rounded-2xl overflow-hidden shadow-lg">
               <Card listing={listings[prevIdx]} />
             </div>
           </div>
-        )}
+        }
 
         {/* ── CENTER MAIN CARD ── */}
         <div
@@ -415,47 +415,47 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
           style={{ width: "44%", left: "28%" }}>
           
           <div className="w-full" style={{ height: "92%" }}>
-            {currentListing && (
-              <SwipeableCard
-                key={currentListing.id}
-                listing={currentListing}
-                onLike={handleLikeCard}
-                onDiscard={handleDiscardCard} />
-            )}
+            {currentListing &&
+            <SwipeableCard
+              key={currentListing.id}
+              listing={currentListing}
+              onLike={handleLikeCard}
+              onDiscard={handleDiscardCard} />
+            }
           </div>
         </div>
 
         {/* ── RIGHT SIDE CARD (next, faded & smaller) ── */}
-        {nextIdx != null && listings[nextIdx] && (
-          <div
-            className="absolute inset-y-0 hidden md:flex items-center justify-start pointer-events-none z-0"
-            style={{
-              right: "2%",
-              width: "32%",
-              opacity: 0.45,
-              filter: "blur(1px)",
-              transform: "scale(0.82) translateX(6%)",
-            }}>
+        {nextIdx != null && listings[nextIdx] &&
+        <div
+          className="absolute inset-y-0 hidden md:flex items-center justify-start pointer-events-none z-0"
+          style={{
+            right: "2%",
+            width: "32%",
+            opacity: 0.45,
+            filter: "blur(1px)",
+            transform: "scale(0.82) translateX(6%)"
+          }}>
             
             <div className="w-full h-[85%] rounded-2xl overflow-hidden shadow-lg">
               <Card listing={listings[nextIdx]} />
             </div>
           </div>
-        )}
+        }
 
         {/* ── PAGE INDICATOR ── */}
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-          {Array.from({ length: Math.min(listings.length, 20) }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-full transition-all duration-200"
-              style={{
-                width: i === current ? 16 : 5,
-                height: 5,
-                background: i === current ? "#E8A83A" : "rgba(0,0,0,0.15)",
-              }}
-            />
-          ))}
+          {Array.from({ length: Math.min(listings.length, 20) }).map((_, i) =>
+          <div
+            key={i}
+            className="rounded-full transition-all duration-200"
+            style={{
+              width: i === current ? 16 : 5,
+              height: 5,
+              background: i === current ? "#E8A83A" : "rgba(0,0,0,0.15)"
+            }} />
+
+          )}
         </div>
       </div>
 

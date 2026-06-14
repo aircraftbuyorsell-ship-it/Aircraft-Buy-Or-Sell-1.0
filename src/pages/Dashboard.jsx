@@ -14,6 +14,7 @@ import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
+import RocketMetrics from "@/components/dashboard/RocketMetrics";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
@@ -29,19 +30,6 @@ export default function Dashboard() {
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";
   const panelBg = isDark ? "rgba(15,15,28,0.72)" : "rgba(255,255,255,0.78)";
 
-  const MetricCard = ({ m, isDark, mutedColor, textColor, panelStyle, noHover }) => (
-    <div className={`rounded-xl p-4 h-full ${noHover ? "" : "hover:scale-[1.01] transition-transform cursor-pointer"}`} style={panelStyle}>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
-          style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
-          <m.icon className="w-3.5 h-3.5" style={{ color: m.color }} />
-        </div>
-        <p className="text-[10px] font-semibold" style={{ color: mutedColor }}>{m.label}</p>
-      </div>
-      <p className="text-xl font-bold leading-none mb-1" style={{ color: textColor }}>{m.value}</p>
-      <p className="text-[10px]" style={{ color: mutedColor }}>{m.sub}</p>
-    </div>
-  );
   const panelBorder = isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)";
 
   const { data: listings = [] } = useQuery({
@@ -180,33 +168,17 @@ export default function Dashboard() {
 
         {/* ── METRICS ROW ──────────────────────────────────── */}
         <section className="px-4 md:px-8 pb-5">
-          <div className="max-w-6xl mx-auto space-y-2">
-            {/* ABOS Operations */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {[
-                { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: accentOrange },
-                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: accentCyan },
-                { icon: Store, label: "Dealer Network", value: dealerCount.toLocaleString(), sub: `ABOS synced · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
-                { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
-              ].map((m) =>
-                <Link key={m.label} to={m.link}>
-                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
-                </Link>
-              )}
-            </div>
-            {/* FAA Reference Data */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {[
-                { icon: TrendingUp, label: "ACFTREF", value: faaAcftrefTotal.toLocaleString(), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
-                { icon: Radar, label: "FAA Engine Specs", value: faaEngineTotal.toLocaleString(), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
-                { icon: AlertTriangle, label: "Airworthiness Dir.", value: faaAdTotal.toLocaleString(), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
-                { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
-              ].map((m) =>
-                <Link key={m.label} to={m.link}>
-                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
-                </Link>
-              )}
-            </div>
+          <div className="max-w-6xl mx-auto">
+            <RocketMetrics metrics={[
+              { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: accentOrange },
+              { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: accentCyan },
+              { icon: Store, label: "Dealer Network", value: dealerCount.toLocaleString(), sub: `ABOS sync · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
+              { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
+              { icon: TrendingUp, label: "ACFTREF Database", value: faaAcftrefTotal.toLocaleString(), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
+              { icon: Radar, label: "FAA Engine Specs", value: faaEngineTotal.toLocaleString(), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
+              { icon: AlertTriangle, label: "Airworthiness Dir.", value: faaAdTotal.toLocaleString(), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
+              { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
+            ]} />
           </div>
         </section>
 

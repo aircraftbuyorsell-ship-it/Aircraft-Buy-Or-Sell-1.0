@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { Link } from "react-router-dom";
 import L from "leaflet";
 import { base44 } from "@/api/base44Client";
 import {
-  Radar, RefreshCw, Loader2, Search, X, Filter, Sparkles, CheckCircle2, AlertCircle
+  Radar, RefreshCw, Loader2, Search, X, Filter, Sparkles, CheckCircle2, AlertCircle, ExternalLink
 } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
 import "leaflet/dist/leaflet.css";
@@ -346,8 +347,8 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                 ref={(r) => { if (r) markerRefs.current[liveKey] = r; }}
                 zIndexOffset={isHighlight ? 1000 : 5}
               >
-                <Popup maxWidth={260}>
-                  <div style={{ minWidth: 220, background: bgColor }}>
+                <Popup maxWidth={280}>
+                  <div style={{ minWidth: 240, background: bgColor }}>
                     <div style={{ borderBottom: `1px solid ${bColor}`, paddingBottom: 6, marginBottom: 6 }}>
                       <p style={{ fontWeight: 900, color: "#22c55e", fontSize: 12, margin: 0 }}>
                         {nReg || ac.callsign?.trim() || ac.icao24}
@@ -355,6 +356,11 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                       <p style={{ fontSize: 9, color: sColor, margin: "1px 0 0", fontFamily: "monospace" }}>
                         ICAO: {ac.icao24} · Live DB
                       </p>
+                      {(ac.aircraft_category || ac.aircraft_type) && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: isDark ? "#00f5ff" : "#0B2D5B", margin: "3px 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {ac.aircraft_type || ac.aircraft_category}
+                        </p>
+                      )}
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 10px", fontSize: 11, marginBottom: 4 }}>
                       <div><span style={{ color: sColor }}>Alt: </span><strong style={{ color: tColor }}>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
@@ -368,6 +374,27 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                       <p style={{ fontSize: 10, color: mColor, margin: "2px 0 0" }}>
                         {ac.departure_icao}{ac.arrival_icao ? ` → ${ac.arrival_icao}` : ""}
                       </p>
+                    )}
+                    {ac.listing?.id && (
+                      <Link to={`/ati-passport/${ac.listing.id}`} target="_blank" style={{ textDecoration: "none" }}>
+                        <div style={{
+                          marginTop: 8, borderRadius: 8, padding: "7px 10px",
+                          background: isDark ? "rgba(232,168,58,0.08)" : "rgba(232,168,58,0.06)",
+                          border: `1px solid ${isDark ? "rgba(232,168,58,0.25)" : "rgba(232,168,58,0.2)"}`,
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between"
+                        }}>
+                          <div>
+                            <p style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#E8A83A", margin: "0 0 3px" }}>ATI Passport</p>
+                            <p style={{ fontWeight: 700, color: tColor, fontSize: 11, margin: 0 }}>
+                              {ac.listing.year ? `${ac.listing.year} ` : ""}{ac.listing.make || ""} {ac.listing.model || ""}
+                            </p>
+                            {ac.listing.ati_score && (
+                              <span style={{ fontSize: 10, color: mColor }}>ATI: <strong style={{ color: tColor }}>{ac.listing.ati_score}</strong></span>
+                            )}
+                          </div>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" style={{ color: "#E8A83A" }} />
+                        </div>
+                      </Link>
                     )}
                   </div>
                 </Popup>
@@ -397,8 +424,8 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                 ref={(r) => { if (r) markerRefs.current[ac.icao24] = r; }}
                 zIndexOffset={isHighlight ? 1000 : 0}
               >
-                <Popup maxWidth={260}>
-                  <div style={{ minWidth: 220, background: bgColor }}>
+                <Popup maxWidth={300}>
+                  <div style={{ minWidth: 250, background: bgColor }}>
                     <div style={{ borderBottom: `1px solid ${bColor}`, paddingBottom: 6, marginBottom: 6 }}>
                       <p style={{ fontWeight: 900, color: "#E8A83A", fontSize: 12, margin: 0 }}>
                         {nReg || ac.callsign?.trim() || ac.icao24}
@@ -406,24 +433,66 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                       <p style={{ fontSize: 9, color: sColor, margin: "1px 0 0", fontFamily: "monospace" }}>
                         ICAO: {ac.icao24} {ac.squawk ? `· SQWK ${ac.squawk}` : ""}
                       </p>
+                      {/* Aircraft type from FAA or ADS-B */}
+                      {(ac.faa?.type_aircraft || ac.aircraft_type) && (
+                        <p style={{ fontSize: 10, fontWeight: 700, color: isDark ? "#00f5ff" : "#0B2D5B", margin: "3px 0 0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {ac.faa?.type_aircraft || ac.aircraft_type}
+                        </p>
+                      )}
+                      {ac.callsign?.trim() && (nReg || ac.icao24 !== ac.callsign?.trim()) && (
+                        <p style={{ fontSize: 10, color: mColor, margin: "2px 0 0" }}>Callsign: {ac.callsign.trim()}</p>
+                      )}
                     </div>
+                    {/* Flight data grid */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 10px", fontSize: 11, marginBottom: 4 }}>
                       <div><span style={{ color: sColor }}>Alt: </span><strong style={{ color: tColor }}>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
                       <div><span style={{ color: sColor }}>Speed: </span><strong style={{ color: tColor }}>{speedKt != null ? `${speedKt} kt` : "—"}</strong></div>
                       <div><span style={{ color: sColor }}>Hdg: </span><strong style={{ color: tColor }}>{ac.true_track != null ? `${Math.round(ac.true_track)}°` : "—"}</strong></div>
                       <div><span style={{ color: sColor }}>V/S: </span><strong style={{ color: tColor }}>{vrateStr}</strong></div>
+                      <div><span style={{ color: sColor }}>Status: </span><strong style={{ color: ac.on_ground ? "#ef4444" : "#22c55e" }}>{ac.on_ground ? "Ground" : "Airborne"}</strong></div>
+                      {ac.squawk && <div><span style={{ color: sColor }}>Squawk: </span><strong style={{ color: tColor }}>{ac.squawk}</strong></div>}
                     </div>
-                    {ac.listing && (
-                      <div style={{ marginTop: 6, borderRadius: 8, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)", border: `1px solid ${bColor}`, padding: "6px 8px" }}>
-                        <p style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#E8A83A", margin: "0 0 3px" }}>ABOS Listing</p>
-                        <p style={{ fontWeight: 700, color: tColor, fontSize: 11, margin: 0 }}>
-                          {ac.listing.year || ""} {ac.listing.make || ""} {ac.listing.model || ""}
-                        </p>
-                        <div style={{ display: "flex", gap: 8, marginTop: 3, fontSize: 10, flexWrap: "wrap" }}>
-                          {ac.listing.ati_score && <span style={{ color: mColor }}>ATI: <strong style={{ color: tColor }}>{ac.listing.ati_score}</strong></span>}
-                          {ac.listing.asking_price && <span style={{ color: mColor }}>Price: <strong style={{ color: tColor }}>${ac.listing.asking_price?.toLocaleString()}</strong></span>}
+                    {/* FAA registry technical data */}
+                    {ac.faa && (ac.faa.year_mfr || ac.faa.name || ac.faa.engine_mfr) && (
+                      <div style={{
+                        marginTop: 6, borderRadius: 6, padding: "6px 8px",
+                        background: isDark ? "rgba(0,245,255,0.04)" : "rgba(37,99,235,0.04)",
+                        border: `1px solid ${isDark ? "rgba(0,245,255,0.12)" : "rgba(37,99,235,0.12)"}`
+                      }}>
+                        <p style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: isDark ? "#00f5ff" : "#2563eb", margin: "0 0 4px" }}>FAA Registry</p>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 6px", fontSize: 10 }}>
+                          {ac.faa.year_mfr && <div><span style={{ color: sColor }}>Year: </span><strong style={{ color: tColor }}>{ac.faa.year_mfr}</strong></div>}
+                          {ac.faa.name && <div><span style={{ color: sColor }}>Owner: </span><strong style={{ color: tColor }}>{ac.faa.name}</strong></div>}
+                          {ac.faa.city && <div><span style={{ color: sColor }}>Location: </span><strong style={{ color: tColor }}>{ac.faa.city}{ac.faa.state ? `, ${ac.faa.state}` : ""}</strong></div>}
+                          {ac.faa.engine_mfr && <div><span style={{ color: sColor }}>Engine: </span><strong style={{ color: tColor }}>{ac.faa.engine_mfr} {ac.faa.engine_model || ""}</strong></div>}
+                          {ac.faa.status_code && <div><span style={{ color: sColor }}>Reg: </span><strong style={{ color: tColor }}>{ac.faa.status_code}</strong></div>}
+                          {ac.faa.serial_number && <div><span style={{ color: sColor }}>S/N: </span><strong style={{ color: tColor }}>{ac.faa.serial_number}</strong></div>}
                         </div>
                       </div>
+                    )}
+                    {/* ABOS Listing with ATI Passport link */}
+                    {ac.listing && (
+                      <Link to={`/ati-passport/${ac.listing.id}`} target="_blank" style={{ textDecoration: "none" }}>
+                        <div style={{
+                          marginTop: 8, borderRadius: 8, padding: "7px 10px",
+                          background: isDark ? "rgba(232,168,58,0.08)" : "rgba(232,168,58,0.06)",
+                          border: `1px solid ${isDark ? "rgba(232,168,58,0.25)" : "rgba(232,168,58,0.2)"}`,
+                          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between"
+                        }}>
+                          <div>
+                            <p style={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#E8A83A", margin: "0 0 3px" }}>ATI Passport</p>
+                            <p style={{ fontWeight: 700, color: tColor, fontSize: 11, margin: 0 }}>
+                              {ac.listing.year ? `${ac.listing.year} ` : ""}{ac.listing.make || ""} {ac.listing.model || ""}
+                            </p>
+                            <div style={{ display: "flex", gap: 8, marginTop: 3, fontSize: 10, flexWrap: "wrap" }}>
+                              {ac.listing.ati_score && <span style={{ color: mColor }}>ATI: <strong style={{ color: tColor }}>{ac.listing.ati_score}</strong></span>}
+                              {ac.listing.asking_price && <span style={{ color: mColor }}>Price: <strong style={{ color: tColor }}>${ac.listing.asking_price?.toLocaleString()}</strong></span>}
+                              {ac.listing.deal_label && <span style={{ color: ac.listing.deal_label === "hot deal" ? "#22c55e" : mColor }}><strong>{ac.listing.deal_label}</strong></span>}
+                            </div>
+                          </div>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" style={{ color: "#E8A83A" }} />
+                        </div>
+                      </Link>
                     )}
                     {!ac.listing && nReg && /^N/i.test(nReg || "") && !scoringMap[ac.icao24] && (
                       <button

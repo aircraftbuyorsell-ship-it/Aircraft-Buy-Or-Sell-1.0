@@ -183,7 +183,29 @@ function listingDotTexture(color) {
   return new THREE.CanvasTexture(cv);
 }
 
-export default function SkyBossGlobe({ className = "", listings = [], onSelectListing }) {
+import { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
+
+// ─── Filter helpers ─────────────────────────────
+
+const CATEGORY_TEST = {
+  all: () => true,
+  ga: (a) => a.category >= 1 && a.category <= 3,
+  turboprop: (a) => a.category === 4,
+  jet: (a) => a.category === 5 || a.category === 6,
+  heli: (a) => a.category === 8 || a.category === 9,
+  other: (a) => a.category === 0 || a.category >= 10,
+};
+
+const ATI_RANGE_TEST = {
+  all: () => true,
+  exceptional: (l) => (l.ati_score || 0) >= 90,
+  strong: (l) => { const s = l.ati_score || 0; return s >= 72 && s <= 89; },
+  fair: (l) => { const s = l.ati_score || 0; return s >= 54 && s <= 71; },
+  caution: (l) => { const s = l.ati_score || 0; return s > 0 && s < 54; },
+  unscored: (l) => !l.ati_score || l.ati_score === 0,
+};
+
+export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, onSelectListing }) {
   const isDark = useTheme();
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -207,6 +229,18 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const timerRef = useRef(null);
   const loadingRef = useRef(false);
   const listingsRef = useRef(listings);
+  const filterRef = useRef(filter);
+  const adsbCache = useRef([]);
+  const liveCache = useRef([]);
+
+  useEffect(() => {listingsRef.current = listings;}, [listings]);
+  useEffect(() => {filterRef.current = filter;}, [filter]);
+
+  // Re-render layers when filter changes
+  useEffect(() => {
+    if (adsbCache.current.length > 0) renderToGlobe(adsbCache.current);
+    if (liveCache.current.length > 0) renderLiveToGlobe(liveCache.current);
+  }, [filter]);
 
   const [trafficCount, setTrafficCount] = useState(0);
   const [trafficStatus, setTrafficStatus] = useState("idle");
@@ -231,6 +265,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
         allow_heavy: true
       });
       const ac = res.data?.aircraft || [];
+      adsbCache.current = ac;
       renderToGlobe(ac);
       setTrafficStatus("live");
     } catch (e) {
@@ -246,6 +281,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     try {
       const res = await base44.functions.invoke("fetchLiveTraffic", { limit: 2000 });
       const ac = res.data?.aircraft || [];
+      liveCache.current = ac;
       renderLiveToGlobe(ac);
     } catch (_) {}
   }, []);
@@ -254,6 +290,16 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderLiveToGlobe = useCallback((aircraft) => {
     const liveGeo = liveGeoRef.current;
     if (!liveGeo) return;
+    const f = filterRef.current?.liveDb;
+    if (f && !f.enabled) {
+      liveGeo.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
+      liveGeo.setAttribute("color", new THREE.Float32BufferAttribute([], 3));
+      liveGeo.attributes.position.needsUpdate = true;
+      liveGeo.attributes.color.needsUpdate = true;
+      liveMetaRef.current = [];
+      setLiveCount(0);
+      return;
+    }
     const pos = [],meta = [];
     for (const ac of aircraft) {
       if (ac.latitude == null || ac.longitude == null) continue;
@@ -275,11 +321,20 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderToGlobe = useCallback((aircraft) => {
     const acGeo = acGeoRef.current;
     if (!acGeo) return;
+    const f = filterRef.current?.adsb;
+    if (f && !f.enabled) {
+      acGeo.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
+      acGeo.attributes.position.needsUpdate = true;
+      metaRef.current = [];
+      setTrafficCount(0);
+      return;
+    }
+    const catTest = CATEGORY_TEST[f?.category] || CATEGORY_TEST.all;
     const pos = [],meta = [];
     for (const ac of aircraft) {
       if (ac.latitude == null || ac.longitude == null) continue;
-      // Filter out commercial airliners
       if (ac.aircraft_type && COMMERCIAL_AIRLINER_TYPES.has(ac.aircraft_type.toUpperCase())) continue;
+      if (!catTest(ac)) continue;
       const altM = ac.baro_altitude || 0;
       const v = latLonToVec3(ac.latitude, ac.longitude, 1.012 + Math.min(altM, 14000) / 6371000 * 22);
       pos.push(v.x, v.y, v.z);
@@ -295,8 +350,22 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const renderListings = useCallback((listingsData) => {
     const lGeo = lGeoRef.current;
     if (!lGeo) return;
+    const f = filterRef.current?.listings;
+    if (f && !f.enabled) {
+      const empty = new THREE.Float32BufferAttribute([], 3);
+      lGeo.setAttribute("position", empty);
+      lGeo.setAttribute("color", empty);
+      lGeo.attributes.position.needsUpdate = true;
+      lGeo.attributes.color.needsUpdate = true;
+      lMetaRef.current = [];
+      return;
+    }
+    const atiTest = ATI_RANGE_TEST[f?.atiRange] || ATI_RANGE_TEST.all;
+    const statusFilter = f?.status || "all";
     const pos = [],col = [],meta = [];
     listingsData.forEach((l, i) => {
+      if (!atiTest(l)) return;
+      if (statusFilter !== "all" && l.status !== statusFilter) return;
       const coords = listingToLatLon(l, i);
       if (!coords) return;
       const v = latLonToVec3(coords.lat, coords.lon, 1.016);
@@ -305,7 +374,6 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       col.push(c[0], c[1], c[2]);
       meta.push(l);
     });
-    if (pos.length === 0) return;
     lGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
     lGeo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
     lGeo.attributes.position.needsUpdate = true;
@@ -315,7 +383,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
   useEffect(() => {
     renderListings(listings);
-  }, [listings, renderListings]);
+  }, [listings, filter, renderListings]);
 
   // ─── Handle scoring for N-registered aircraft ───
   const handleScoreAircraft = useCallback(async (ac) => {

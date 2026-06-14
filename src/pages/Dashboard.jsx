@@ -10,6 +10,7 @@ import { useTheme } from "@/lib/useTheme";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
 import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
+import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const isDark = useTheme();
   const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
   const [trafficView, setTrafficView] = useState("3d");
+  const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
 
   const textColor = isDark ? "#e2e8f0" : "#1a1a1a";
   const mutedColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
@@ -69,7 +71,7 @@ export default function Dashboard() {
 
       {/* ── GLOBE BACKGROUND ──────────────────────────────── */}
       <div className="fixed inset-0 z-0">
-        <SkyBossGlobe className="w-full h-full" listings={listings} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+        <SkyBossGlobe className="w-full h-full" listings={listings} filter={globeFilter} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
       </div>
 
       {/* ── OVERLAY CONTENT ────────────────────────────────── */}
@@ -105,6 +107,7 @@ export default function Dashboard() {
                 </button>
               </div>
               <div className="flex-1" />
+              <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
               <GlobeTrafficControls
                 onSearch={(q) => { }}
                 onRefresh={() => setTrafficRefreshKey((k) => k + 1)}

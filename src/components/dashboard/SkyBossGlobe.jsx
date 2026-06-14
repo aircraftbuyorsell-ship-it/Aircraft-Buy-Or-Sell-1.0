@@ -362,6 +362,47 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     );
     globe.add(grid);
 
+    // ─── Coordinate Grid Rings ───
+    const ringColor = isDark ? 0x00f5ff : 0x1e40af;
+    const ringOpacity = isDark ? 0.30 : 0.22;
+    const createRing = (r, tube, rotX, rotY) => {
+      const m = new THREE.Mesh(
+        new THREE.TorusGeometry(r, tube, 8, 128),
+        new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: ringOpacity, depthTest: true })
+      );
+      if (rotX) m.rotation.x = rotX;
+      if (rotY) m.rotation.y = rotY;
+      return m;
+    };
+
+    // Equator (lat 0°) — horizontal ring in XZ plane
+    globe.add(createRing(1.006, 0.0025, Math.PI / 2, 0));
+
+    // Prime Meridian (lon 0°) — vertical ring in XY plane
+    globe.add(createRing(1.006, 0.0025, 0, 0));
+
+    // 90°E / 90°W meridian — vertical ring in YZ plane
+    globe.add(createRing(1.006, 0.0025, 0, Math.PI / 2));
+
+    // ─── Coordinate markers ───
+    const markerMat = new THREE.MeshBasicMaterial({ color: isDark ? 0xff4d6d : 0xdc2626, transparent: true, opacity: 0.9 });
+    const markerGeo = new THREE.SphereGeometry(0.016, 8, 8);
+
+    // 0°N 0°E origin marker (Gulf of Guinea)
+    const originMarker = new THREE.Mesh(markerGeo, markerMat);
+    originMarker.position.set(1.009, 0, 0);
+    globe.add(originMarker);
+
+    // North Pole
+    const npMarker = new THREE.Mesh(markerGeo, markerMat);
+    npMarker.position.set(0, 1.009, 0);
+    globe.add(npMarker);
+
+    // South Pole
+    const spMarker = new THREE.Mesh(markerGeo, markerMat);
+    spMarker.position.set(0, -1.009, 0);
+    globe.add(spMarker);
+
     // Atmosphere — winter haze
     const atmoColor = isDark ? 0x00b8d4 : 0xaaccee;
     const atmo = new THREE.Mesh(

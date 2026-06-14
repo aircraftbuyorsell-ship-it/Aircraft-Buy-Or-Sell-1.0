@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, Users, Building2, Hash } from "lucide-react";
+import VaultDocumentsPanel from "@/components/cards/VaultDocumentsPanel";
 import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
@@ -75,6 +76,12 @@ export default function ATICard() {
   });
 
   const isLoading = loadingCard || loadingPassport || loadingListing;
+  const isOwner = card ? base44.auth.me().then(u => u?.email && (
+    u.email === card.subject_owner_email ||
+    u.email === card.card_owner_email ||
+    u.email === card.issuer_email ||
+    card.shared_ownership_parties?.includes(u.email)
+  )).catch(() => false) : false;
 
   if (isLoading) {
     return (
@@ -183,9 +190,24 @@ export default function ATICard() {
           </div>
 
           {/* Card code footer */}
-          <div className="px-6 py-3 bg-[#F7F4EF] border-t border-black/[0.06] flex items-center justify-between">
-            <span className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-semibold">Card Reference</span>
-            <span className="font-mono text-[12px] font-bold text-[#0B2D5B] tracking-wide">{card.public_card_code}</span>
+          <div className="px-6 py-3 bg-[#F7F4EF] border-t border-black/[0.06] flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-semibold">Card Reference</span>
+              <span className="font-mono text-[12px] font-bold text-[#0B2D5B] tracking-wide">{card.public_card_code}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {card.vault_document_count > 0 && (
+                <span className="text-[9px] font-medium text-[#7c3aed] flex items-center gap-1">
+                  <Hash className="w-3 h-3" /> {card.vault_document_count} docs
+                  {card.vault_verified_count > 0 && ` (${card.vault_verified_count} verified)`}
+                </span>
+              )}
+              {card.shared_ownership_enabled && (
+                <span className="text-[9px] font-medium text-[#7c3aed] flex items-center gap-1">
+                  <Users className="w-3 h-3" /> Co-Owned
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -227,6 +249,45 @@ export default function ATICard() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Shared Ownership ─────────────────────── */}
+        {card.shared_ownership_enabled && (
+          <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-4 h-4 text-[#7c3aed]" />
+              <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#7c3aed]">Shared Ownership</p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] text-[#6B6560] mb-1">Structure</p>
+                <p className="text-[13px] font-semibold text-[#1A1814] capitalize">
+                  {card.shared_ownership_structure?.replace(/_/g, " ") || "Sole"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#6B6560] mb-1">Parties</p>
+                <p className="text-[13px] font-semibold text-[#1A1814]">
+                  {card.shared_ownership_parties?.length || 0} co-owners
+                </p>
+              </div>
+            </div>
+            {card.shared_ownership_shares?.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {card.shared_ownership_shares.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-black/[0.05] last:border-0">
+                    <span className="text-[11px] text-[#6B6560]">{s.party_email}</span>
+                    <span className="text-[12px] font-bold text-[#7c3aed]">{s.share_pct}%</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Polygon Vault ───────────────────────── */}
+        <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+          <VaultDocumentsPanel card={card} listing={listing} isOwner={isOwner} />
         </div>
 
         {/* ── Summary ──────────────────────────────────── */}

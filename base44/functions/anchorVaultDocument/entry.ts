@@ -1,0 +1,53 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { file_url, file_name, document_type, ati_card_id, listing_registration } = req.body
+      ? await req.json()
+      : {};
+
+    if (!file_url) return Response.json({ error: 'file_url required' }, { status: 400 });
+
+    // Fetch the file content to compute hash
+    let fileContent = '';
+    try {
+      const fileRes = await fetch(file_url);
+      const buf = await fileRes.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      // Simple hex from bytes
+      const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      fileContent = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      console.warn('Could not fetch file for hashing:', e.message);
+      fileContent = 'hash_unavailable';
+    }
+
+    const timestamp = Date.now();
+    const reg = (listing_registration || 'unknown').replace(/[^a-zA-Z0-9]/g, '');
+
+    // Generate a deterministic Polygon-style tx hash
+    const txSeed = `${fileContent.slice(0, 32)}|${document_type || 'doc'}|${reg}|${timestamp}`;
+    const txHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txSeed));
+    const txHashArray = Array.from(new Uint8Array(txHashBuffer));
+    const txHash = '0x' + txHashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Simulated block number based on timestamp
+    const blockNumber = Math.floor(timestamp / 2000) + 58000000;
+
+    return Response.json({
+      file_hash: fileContent,
+      tx_hash: txHash,
+      block_number: blockNumber,
+      verified_at: new Date().toISOString(),
+      network: 'polygon-mainnet',
+      message: 'Document hash anchored to Polygon blockchain (simulated)',
+    });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});

@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, TrendingUp,
   ArrowRight, Zap, FileText, Globe, Map,
-  Database, Users } from
+  Database, Users, Store, Cpu, AlertTriangle } from
 "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -180,21 +180,33 @@ export default function Dashboard() {
 
         {/* ── METRICS ROW ──────────────────────────────────── */}
         <section className="px-4 md:px-8 pb-5">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
-            {[
-              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `of ${faaRegistryTotal.toLocaleString()} synced · ${matchedToFaa} matched`, link: "/admin/supabase-sync", color: accentCyan },
-              { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
-              { icon: ShieldCheck, label: "Engine Ref (FAA)", value: engineEnriched.toLocaleString(), sub: `of ${faaSynced.toLocaleString()} enriched`, link: "/admin/supabase-sync", color: "#8b5cf6" },
-              { icon: Users, label: "Dealers (FAA)", value: dealerCount.toLocaleString(), sub: `of ${faaDealersTotal.toLocaleString()} synced`, link: "/admin/supabase-sync", color: "#06b6d4" },
-              { icon: TrendingUp, label: "ACFTREF", value: faaAcftrefTotal.toLocaleString(), sub: "Type reference table", link: "/admin/supabase-sync", color: "#f59e0b" },
-              { icon: Radar, label: "FAA Engine DB", value: faaEngineTotal.toLocaleString(), sub: "Engine specs reference", link: "/admin/supabase-sync", color: "#22c55e" },
-              { icon: Database, label: "FAA AD", value: faaAdTotal.toLocaleString(), sub: "Airworthiness directives", link: "/admin/supabase-sync", color: "#ec4899" },
-              { icon: Globe, label: "Live Traffic", value: "ADS‑B + DB", sub: "Real‑time global tracking", link: "/traffic", color: "#14b8a6" },
-            ].map((m) =>
-              <Link key={m.label} to={m.link}>
-                <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
-              </Link>
-            )}
+          <div className="max-w-6xl mx-auto space-y-2">
+            {/* ABOS Operations */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {[
+                { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: accentOrange },
+                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: accentCyan },
+                { icon: Store, label: "Dealer Network", value: dealerCount.toLocaleString(), sub: `ABOS synced · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
+                { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
+              ].map((m) =>
+                <Link key={m.label} to={m.link}>
+                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
+                </Link>
+              )}
+            </div>
+            {/* FAA Reference Data */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {[
+                { icon: TrendingUp, label: "ACFTREF", value: faaAcftrefTotal.toLocaleString(), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
+                { icon: Radar, label: "FAA Engine Specs", value: faaEngineTotal.toLocaleString(), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
+                { icon: AlertTriangle, label: "Airworthiness Dir.", value: faaAdTotal.toLocaleString(), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
+                { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
+              ].map((m) =>
+                <Link key={m.label} to={m.link}>
+                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
+                </Link>
+              )}
+            </div>
           </div>
         </section>
 

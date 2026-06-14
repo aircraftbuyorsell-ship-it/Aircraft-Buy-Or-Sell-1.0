@@ -339,39 +339,44 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     globeRef.current = globe;
     scene.add(globe);
 
-    // Earth core
+    // Earth core — winter ice planet for light mode
     const coreMat = new THREE.MeshPhongMaterial({
-      color: 0x16213f, emissive: 0x05091c, shininess: 6, specular: 0x102844
+      color: isDark ? 0x16213f : 0xc8dcee,
+      emissive: isDark ? 0x05091c : 0x304055,
+      shininess: isDark ? 6 : 20,
+      specular: isDark ? 0x102844 : 0x88aacc
     });
     const core = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 72), coreMat);
     globe.add(core);
     new THREE.TextureLoader().load(EARTH_BLUE, (t) => {
-      coreMat.map = t;coreMat.color.set(isDark ? 0x8899bb : 0xffffff);coreMat.needsUpdate = true;
+      coreMat.map = t;
+      coreMat.color.set(isDark ? 0x8899bb : 0xe8f0ff);
+      coreMat.needsUpdate = true;
     });
 
-    // Grid
-    const gridColor = isDark ? 0x1f6f86 : 0x334466;
+    // Grid — frost lines
+    const gridColor = isDark ? 0x1f6f86 : 0x88aacc;
     const grid = new THREE.Mesh(
       new THREE.SphereGeometry(1.003, 36, 24),
-      new THREE.MeshBasicMaterial({ color: gridColor, wireframe: true, transparent: true, opacity: isDark ? 0.10 : 0.22 })
+      new THREE.MeshBasicMaterial({ color: gridColor, wireframe: true, transparent: true, opacity: isDark ? 0.10 : 0.18 })
     );
     globe.add(grid);
 
-    // Atmosphere
-    const atmoColor = isDark ? 0x00b8d4 : 0x4488cc;
+    // Atmosphere — winter haze
+    const atmoColor = isDark ? 0x00b8d4 : 0xaaccee;
     const atmo = new THREE.Mesh(
-      new THREE.SphereGeometry(1.10, 48, 48),
-      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.06 : 0.10, side: THREE.BackSide })
+      new THREE.SphereGeometry(1.12, 48, 48),
+      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.06 : 0.14, side: THREE.BackSide })
     );
     globe.add(atmo);
 
-    // Lights
-    scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0x8899bb, isDark ? 0.85 : 1.2));
-    const sun = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xffffff, isDark ? 0.9 : 1.2);
+    // Lights — cool winter sun
+    scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0xaabbcc, isDark ? 0.85 : 1.3));
+    const sun = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xeeffff, isDark ? 0.9 : 1.3);
     sun.position.set(3, 1.5, 2.5);
     scene.add(sun);
 
-    // Starfield
+    // Starfield — subtle for light mode
     const sg = new THREE.BufferGeometry();
     const sp = [];
     for (let i = 0; i < 800; i++) {
@@ -381,7 +386,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     }
     sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
     scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
-      color: isDark ? 0x8fa8cc : 0x445566, size: 0.07, transparent: true, opacity: isDark ? 0.7 : 0.4
+      color: isDark ? 0x8fa8cc : 0xaabbcc, size: 0.07, transparent: true, opacity: isDark ? 0.7 : 0.3
     })));
 
     // Aircraft point cloud

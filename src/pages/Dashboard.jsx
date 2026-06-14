@@ -76,6 +76,15 @@ export default function Dashboard() {
     staleTime: 30000,
   });
 
+  const { data: faaSummary } = useQuery({
+    queryKey: ["faa-summary-total"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("syncFaaFromSupabase", { mode: "registry_summary" });
+      return res.data || {};
+    },
+    staleTime: 300000,
+  });
+
   const totalListings = allListings.length;
   const activeListings = listings.length;
   const faaSynced = faaAircraft.length;
@@ -86,6 +95,7 @@ export default function Dashboard() {
     : 0;
   const hotDeals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
   const evaluated = listings.filter((l) => l.ati_score).length;
+  const faaTotalRegistry = faaSummary?.faaRegistryTotal || 308985;
   const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
   const historicTraffic = trafficAppearances.length > 0 ? "Active" : "—";
 
@@ -167,7 +177,7 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
-              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `${matchedToFaa} matched to ABOS`, link: "/admin/supabase-sync", color: accentCyan },
+              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `of ${faaTotalRegistry.toLocaleString()} synced · ${matchedToFaa} matched`, link: "/admin/supabase-sync", color: accentCyan },
               { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
               { icon: ShieldCheck, label: "Engine Data", value: engineEnriched.toLocaleString(), sub: `of ${faaSynced.toLocaleString()} FAA records`, link: "/admin/supabase-sync", color: "#8b5cf6" },
               { icon: Users, label: "Dealers Synced", value: dealerCount.toLocaleString(), sub: "FAA dealer certificates", link: "/admin/supabase-sync", color: "#06b6d4" },
@@ -185,7 +195,7 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto">
             <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>DATABASE ANALYTICS</p>
-            <DatabaseCharts faaAircraft={faaAircraft} listings={listings} matchedCount={matchedToFaa} />
+            <DatabaseCharts faaAircraft={faaAircraft} listings={listings} matchedCount={matchedToFaa} faaTotalRegistry={faaTotalRegistry} />
           </div>
         </section>
 

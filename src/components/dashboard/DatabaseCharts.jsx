@@ -24,7 +24,7 @@ function countByField(data, field, limit = 10) {
     .map(([name, value]) => ({ name, value }));
 }
 
-export default function DatabaseCharts({ faaAircraft = [], listings = [], matchedCount = 0 }) {
+export default function DatabaseCharts({ faaAircraft = [], listings = [], matchedCount = 0, faaTotalRegistry = 308985 }) {
   const isDark = useTheme();
 
   const textColor = isDark ? "#e2e8f0" : "#1e293b";
@@ -36,9 +36,10 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
 
   // Computed stats
   const stats = useMemo(() => {
-    const total = faaAircraft.length;
-    const synced = matchedCount;
-    const unsynced = total - synced;
+    const syncedLocal = faaAircraft.length;
+    const syncedAbos = matchedCount;
+    const total = faaTotalRegistry;
+    const unsynced = total - syncedLocal;
 
     // Age distribution (by decade)
     const ageMap = {};
@@ -75,8 +76,8 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
     const noExpiry = faaAircraft.filter((a) => !a.expiration_date).length;
 
     const syncData = [
-      { name: "Matched ABOS", value: synced, color: "#22c55e" },
-      { name: "Unmatched", value: unsynced, color: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)" },
+      { name: "Synced to DB", value: syncedLocal, color: "#22c55e" },
+      { name: "Remaining FAA", value: unsynced, color: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.10)" },
     ];
 
     const regStatusData = [
@@ -86,11 +87,11 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
     ];
 
     return {
-      total, synced, unsynced, ageData, classData, statusData,
+      syncedLocal, syncedAbos, total, unsynced, ageData, classData, statusData,
       engineTypeData, enrichedEngines, syncData, regStatusData,
       validReg, expiredReg, noExpiry,
     };
-  }, [faaAircraft, matchedCount, isDark, mutedColor]);
+  }, [faaAircraft, matchedCount, faaTotalRegistry, isDark, mutedColor]);
 
   const ChartCard = ({ title, icon: Icon, children, span = 1 }) => (
     <div className="rounded-xl p-4" style={{ ...panelStyle, gridColumn: `span ${span}` }}>
@@ -117,25 +118,26 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
       <ChartCard title="Sync Coverage" icon={PieChartIcon} span={1}>
         <div className="flex items-center justify-center mb-2">
           <div className="text-center">
-            <p className="text-2xl font-black" style={{ color: "#22c55e" }}>{stats.synced.toLocaleString()}</p>
-            <p className="text-[9px] font-semibold" style={{ color: mutedColor }}>of {stats.total.toLocaleString()} synced</p>
+            <p className="text-2xl font-black" style={{ color: "#22c55e" }}>{stats.syncedLocal.toLocaleString()}</p>
+            <p className="text-[9px] font-semibold" style={{ color: mutedColor }}>of {stats.total.toLocaleString()} FAA records</p>
             <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)", width: 120, margin: "0 auto" }}>
-              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((stats.synced / stats.total) * 100, 100)}%`, background: "#22c55e" }} />
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min((stats.syncedLocal / stats.total) * 100, 100)}%`, background: "#22c55e" }} />
             </div>
             <p className="text-[10px] mt-1 font-bold" style={{ color: "#22c55e" }}>
-              {stats.total > 0 ? Math.round((stats.synced / stats.total) * 100) : 0}%
+              {stats.total > 0 ? Math.round((stats.syncedLocal / stats.total) * 100) : 0}%
             </p>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={100}>
-          <PieChart>
-            <Pie data={stats.syncData} cx="50%" cy="50%" innerRadius={25} outerRadius={40} dataKey="value" strokeWidth={0}>
-              {stats.syncData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="mt-2 grid grid-cols-2 gap-1 text-center">
+          <div>
+            <p className="text-[10px] font-bold" style={{ color: textColor }}>{stats.syncedLocal.toLocaleString()}</p>
+            <p className="text-[8px]" style={{ color: mutedColor }}>Synced</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold" style={{ color: mutedColor }}>{stats.unsynced.toLocaleString()}</p>
+            <p className="text-[8px]" style={{ color: mutedColor }}>Remaining</p>
+          </div>
+        </div>
       </ChartCard>
 
       {/* Age Distribution */}
@@ -205,12 +207,12 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
           <div className="w-full px-4">
             <div className="h-2 rounded-full overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)" }}>
               <div className="h-full rounded-full" style={{
-                width: `${Math.min((stats.enrichedEngines / stats.total) * 100, 100)}%`,
+                width: `${Math.min((stats.enrichedEngines / stats.syncedLocal) * 100, 100)}%`,
                 background: "linear-gradient(90deg, #8b5cf6, #06b6d4)",
               }} />
             </div>
             <p className="text-[10px] mt-1 text-center font-bold" style={{ color: "#8b5cf6" }}>
-              {stats.total > 0 ? Math.round((stats.enrichedEngines / stats.total) * 100) : 0}%
+              {stats.syncedLocal > 0 ? Math.round((stats.enrichedEngines / stats.syncedLocal) * 100) : 0}%
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 w-full text-center mt-1">

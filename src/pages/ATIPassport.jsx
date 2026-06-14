@@ -246,25 +246,35 @@ Return ONLY raw JSON:
         result.transaction_ready + result.usage_mission + result.storage_exposure +
         result.config_clarity + result.market_readiness;
 
-      let omvm_value = 55000;
+      let omvm_value = null;
+      let discountPct = null;
+      let deal_score = null;
+      let deal_label = null;
       try {
-        const omvmRes = await base44.functions.invoke("omvmV5Score", { listingId });
-        if (Number.isFinite(omvmRes?.data?.omvm_value) && omvmRes.data.omvm_value > 0) {
-          omvm_value = omvmRes.data.omvm_value;
+        const valRes = await base44.functions.invoke("marketExpertValuation", { listingId });
+        if (Number.isFinite(valRes?.data?.market_estimate) && valRes.data.market_estimate > 0) {
+          omvm_value = valRes.data.market_estimate;
+          discountPct = valRes.data.discount_pct;
+          deal_score = valRes.data.deal_score;
+          deal_label = valRes.data.deal_label;
         }
-      } catch (omvmErr) {
-        console.warn("omvmV5Score failed:", omvmErr?.message);
+      } catch (valErr) {
+        console.warn("marketExpertValuation failed:", valErr?.message);
       }
 
-      const discountPct = listing.asking_price
-        ? Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10
-        : null;
-      const deal_score = discountPct == null ? null
-        : discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5
-        : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
-      const deal_label = deal_score == null ? null
-        : deal_score >= 8.5 ? "hot deal" : deal_score >= 6.5 ? "good deal"
-        : deal_score >= 5 ? "fair" : "overpriced";
+      if (discountPct == null && listing.asking_price && omvm_value) {
+        discountPct = Math.round(((omvm_value - listing.asking_price) / omvm_value) * 1000) / 10;
+      }
+      if (deal_score == null) {
+        deal_score = discountPct == null ? null
+          : discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5
+          : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
+      }
+      if (deal_label == null) {
+        deal_label = deal_score == null ? null
+          : deal_score >= 8.5 ? "hot deal" : deal_score >= 6.5 ? "good deal"
+          : deal_score >= 5 ? "fair" : "overpriced";
+      }
 
       await base44.entities.ATIPassport.create({
         listing: listingId,
@@ -406,7 +416,7 @@ Return ONLY raw JSON:
               <div className="grid sm:grid-cols-3 gap-4 mb-8">
                 {[
                   { icon: ShieldCheck, title: "8-Dimension Analysis", body: "Documentation, engine condition, avionics, history, storage and transaction readiness." },
-                  { icon: TrendingDown, title: "Market Valuation", body: "OMVM v5 comparable pricing for your exact make/model/year. Know fair market value." },
+                  { icon: TrendingDown, title: "Expert Valuation", body: "Professional market appraisal based on live comparables, market conditions, and aircraft condition." },
                   { icon: FileText, title: "Exportable Report", body: "Professional PDF for banks, co-investors and advisors." },
                 ].map(({ icon: Icon, title, body }) => (
                   <div key={title} className="bg-[#F7F4EF] rounded-xl p-4">
@@ -556,11 +566,16 @@ Return ONLY raw JSON:
                 <div className="space-y-0">
                   {[
                     { label: "Asking Price", value: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request", color: null },
-                    { label: "Market Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: null },
+                    { label: "Expert Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: null },
                     {
                       label: "vs. Market",
-                      value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼ " : "▲ "}${Math.abs(passport.discount_pct)}%` : "—",
-                      color: passport.discount_pct >= 0 ? "#0F7A56" : "#C0392B",
+                      value: (() => {
+                        const d = Number(passport.discount_pct);
+                        if (!Number.isFinite(d)) return "—";
+                        const pct = Math.round(Math.abs(d));
+                        return `${d >= 0 ? "▼" : "▲"} ${pct}%`;
+                      })(),
+                      color: Number(passport.discount_pct) >= 0 ? "#0F7A56" : "#C0392B",
                     },
                     {
                       label: "Deal Rating",

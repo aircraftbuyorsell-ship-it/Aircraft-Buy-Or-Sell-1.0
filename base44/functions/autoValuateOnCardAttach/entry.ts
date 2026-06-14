@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 /**
  * Triggered by entity automation when an ATICard is created.
- * Automatically runs OMVM v5 valuation on the linked AircraftListing
+ * Automatically runs Expert Market Valuation on the linked AircraftListing
  * and persists omvm_value, deal_score, deal_label, discount_pct back to the listing.
  */
 Deno.serve(async (req) => {
@@ -32,23 +32,23 @@ Deno.serve(async (req) => {
       return Response.json({ ok: false, reason: 'listing_not_found' });
     }
 
-    console.log(`🔢 Running OMVM valuation for listing ${listingId}: ${listing.year} ${listing.make} ${listing.model}`);
+    console.log(`🔢 Running Expert Valuation for listing ${listingId}: ${listing.year} ${listing.make} ${listing.model}`);
 
-    // Invoke omvmV5Score as service role — functions.invoke returns an Axios response, unwrap .data
-    const response = await base44.asServiceRole.functions.invoke('omvmV5Score', { listingId });
+    // Invoke marketExpertValuation as service role
+    const response = await base44.asServiceRole.functions.invoke('marketExpertValuation', { listingId });
     const result = response?.data ?? response;
 
-    if (!result?.omvm_value) {
-      console.warn('omvmV5Score returned no value', JSON.stringify({ status: response?.status, data: result }));
-      return Response.json({ ok: false, reason: 'omvm_no_result' });
+    if (!result?.market_estimate) {
+      console.warn('marketExpertValuation returned no value', JSON.stringify({ status: response?.status, data: result }));
+      return Response.json({ ok: false, reason: 'valuation_no_result' });
     }
 
-    console.log(`✅ Valuation complete for ${listingId}: OMVM=$${result.omvm_value}, deal=${result.deal_label}, score=${result.deal_score}`);
+    console.log(`✅ Valuation complete for ${listingId}: Estimate=$${result.market_estimate}, deal=${result.deal_label}, score=${result.deal_score}`);
 
     return Response.json({
       ok: true,
       listingId,
-      omvm_value: result.omvm_value,
+      omvm_value: result.market_estimate,
       deal_score: result.deal_score,
       deal_label: result.deal_label,
       discount_pct: result.discount_pct,

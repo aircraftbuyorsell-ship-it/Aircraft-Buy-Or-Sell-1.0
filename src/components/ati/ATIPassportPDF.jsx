@@ -153,7 +153,7 @@ export async function exportATIPassportPDF({ listing, passport, card }) {
 
   y += 44;
 
-  // ── OMVM VALUATION ROW ────────────────────────────────────────
+  // ── EXPERT VALUATION ROW ────────────────────────────────────────
   doc.setFillColor(255, 248, 230);
   doc.setDrawColor(212, 160, 23, 0.3);
   doc.setLineWidth(0.3);
@@ -161,8 +161,8 @@ export async function exportATIPassportPDF({ listing, passport, card }) {
 
   const valItems = [
     { label: "Asking Price", value: listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : "—", color: [26, 24, 20] },
-    { label: "Market Estimate (OMVM)", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: [26, 24, 20] },
-    { label: "Discount vs Market", value: passport.discount_pct != null ? `${passport.discount_pct >= 0 ? "▼" : "▲"} ${Math.abs(passport.discount_pct)}%` : "—", color: passport.discount_pct >= 0 ? [15, 122, 86] : [192, 57, 43] },
+    { label: "Expert Estimate", value: passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—", color: [26, 24, 20] },
+    { label: "Discount vs Market", value: (() => { const d = Number(passport.discount_pct); if (!Number.isFinite(d)) return "—"; const pct = Math.round(Math.abs(d)); return `${d >= 0 ? "\u25BC" : "\u25B2"} ${pct}%`; })(), color: Number(passport.discount_pct) >= 0 ? [15, 122, 86] : [192, 57, 43] },
     { label: "Deal Rating", value: (passport.deal_label || "—").toUpperCase(), color: [212, 160, 23] },
   ];
   const colW = contentW / 4;

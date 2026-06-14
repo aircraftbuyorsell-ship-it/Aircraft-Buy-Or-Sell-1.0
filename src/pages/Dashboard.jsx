@@ -85,6 +85,12 @@ export default function Dashboard() {
     staleTime: 300000,
   });
 
+  const faaRegistryTotal = faaSummary?.faaRegistryTotal || 308985;
+  const faaAcftrefTotal = faaSummary?.faaAcftrefTotal || 93572;
+  const faaAdTotal = faaSummary?.faaAdTotal || 187;
+  const faaDealersTotal = faaSummary?.faaDealersTotal || 12507;
+  const faaEngineTotal = faaSummary?.faaEngineTotal || 4743;
+
   const totalListings = allListings.length;
   const activeListings = listings.length;
   const faaSynced = faaAircraft.length;
@@ -95,7 +101,6 @@ export default function Dashboard() {
     : 0;
   const hotDeals = deals.filter((d) => (d.deal_score || 0) >= 8.5).length;
   const evaluated = listings.filter((l) => l.ati_score).length;
-  const faaTotalRegistry = faaSummary?.faaRegistryTotal || 308985;
   const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
   const historicTraffic = trafficAppearances.length > 0 ? "Active" : "—";
 
@@ -175,14 +180,16 @@ export default function Dashboard() {
 
         {/* ── METRICS ROW ──────────────────────────────────── */}
         <section className="px-4 md:px-8 pb-5">
-          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
-              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `of ${faaTotalRegistry.toLocaleString()} synced · ${matchedToFaa} matched`, link: "/admin/supabase-sync", color: accentCyan },
+              { icon: Database, label: "FAA Registry", value: faaSynced.toLocaleString(), sub: `of ${faaRegistryTotal.toLocaleString()} synced · ${matchedToFaa} matched`, link: "/admin/supabase-sync", color: accentCyan },
               { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
-              { icon: ShieldCheck, label: "Engine Data", value: engineEnriched.toLocaleString(), sub: `of ${faaSynced.toLocaleString()} FAA records`, link: "/admin/supabase-sync", color: "#8b5cf6" },
-              { icon: Users, label: "Dealers Synced", value: dealerCount.toLocaleString(), sub: "FAA dealer certificates", link: "/admin/supabase-sync", color: "#06b6d4" },
-              { icon: TrendingUp, label: "Historic Traffic", value: historicTraffic, sub: "Traffic snapshots archive", link: "/traffic", color: "#f59e0b" },
-              { icon: Radar, label: "Live Traffic", value: "ADS‑B + DB", sub: "Real‑time global tracking", link: "/traffic", color: "#22c55e" },
+              { icon: ShieldCheck, label: "Engine Ref (FAA)", value: engineEnriched.toLocaleString(), sub: `of ${faaSynced.toLocaleString()} enriched`, link: "/admin/supabase-sync", color: "#8b5cf6" },
+              { icon: Users, label: "Dealers (FAA)", value: dealerCount.toLocaleString(), sub: `of ${faaDealersTotal.toLocaleString()} synced`, link: "/admin/supabase-sync", color: "#06b6d4" },
+              { icon: TrendingUp, label: "ACFTREF", value: faaAcftrefTotal.toLocaleString(), sub: "Type reference table", link: "/admin/supabase-sync", color: "#f59e0b" },
+              { icon: Radar, label: "FAA Engine DB", value: faaEngineTotal.toLocaleString(), sub: "Engine specs reference", link: "/admin/supabase-sync", color: "#22c55e" },
+              { icon: Database, label: "FAA AD", value: faaAdTotal.toLocaleString(), sub: "Airworthiness directives", link: "/admin/supabase-sync", color: "#ec4899" },
+              { icon: Globe, label: "Live Traffic", value: "ADS‑B + DB", sub: "Real‑time global tracking", link: "/traffic", color: "#14b8a6" },
             ].map((m) =>
               <Link key={m.label} to={m.link}>
                 <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
@@ -195,7 +202,16 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto">
             <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>DATABASE ANALYTICS</p>
-            <DatabaseCharts faaAircraft={faaAircraft} listings={listings} matchedCount={matchedToFaa} faaTotalRegistry={faaTotalRegistry} />
+            <DatabaseCharts
+              faaAircraft={faaAircraft}
+              listings={listings}
+              matchedCount={matchedToFaa}
+              faaTotalRegistry={faaRegistryTotal}
+              faaAcftrefTotal={faaAcftrefTotal}
+              faaAdTotal={faaAdTotal}
+              faaDealersTotal={faaDealersTotal}
+              faaEngineTotal={faaEngineTotal}
+            />
           </div>
         </section>
 

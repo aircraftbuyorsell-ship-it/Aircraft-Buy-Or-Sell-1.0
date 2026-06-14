@@ -112,10 +112,22 @@ Deno.serve(async (req) => {
 
     // ── MODE: registry_summary ──
     if (currentMode === 'registry_summary') {
-      const { count, error: countErr } = await supabaseAdmin
-        .from('faa_registry')
-        .select('*', { count: 'exact', head: true });
-      if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
+      // Fetch counts for all FAA tables in parallel
+      const [
+        { count: regCount, error: regErr },
+        { count: acftrefCount, error: acftrefErr },
+        { count: adCount, error: adErr },
+        { count: dealersCount, error: dealersErr },
+        { count: engineCount, error: engineErr },
+      ] = await Promise.all([
+        supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true }),
+        supabaseAdmin.from('faa_acftref').select('*', { count: 'exact', head: true }),
+        supabaseAdmin.from('faa_ad').select('*', { count: 'exact', head: true }),
+        supabaseAdmin.from('faa_dealers').select('*', { count: 'exact', head: true }),
+        supabaseAdmin.from('faa_engine').select('*', { count: 'exact', head: true }),
+      ]);
+
+      if (regErr) return Response.json({ error: regErr.message }, { status: 500 });
 
       const { data: sample, error: sampleErr } = await supabaseAdmin
         .from('faa_registry').select('*').limit(3);
@@ -129,7 +141,11 @@ Deno.serve(async (req) => {
 
       return Response.json({
         mode: 'registry_summary',
-        faaRegistryTotal: count,
+        faaRegistryTotal: regCount,
+        faaAcftrefTotal: acftrefCount || 0,
+        faaAdTotal: adCount || 0,
+        faaDealersTotal: dealersCount || 0,
+        faaEngineTotal: engineCount || 0,
         abosFaaAircraftCount: abosCount,
         sample,
         columns: sample?.length ? Object.keys(sample[0]) : [],
@@ -201,7 +217,10 @@ Deno.serve(async (req) => {
         }
       }
 
-      const totalBatches = Math.ceil(308985 / BATCH);
+      // Get actual registry count for accurate batch tracking
+      const { count: realTotal, error: countErr } = await supabaseAdmin
+        .from('faa_registry').select('*', { count: 'exact', head: true });
+      const totalBatches = Math.ceil((realTotal || 308985) / BATCH);
       return Response.json({
         mode: 'registry_sync',
         batch: batch + 1,

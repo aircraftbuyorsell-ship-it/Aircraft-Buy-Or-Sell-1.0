@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import { useTheme } from "@/lib/useTheme";
 import {
-  BarChart3, PieChartIcon, TrendingUp, Layers
+  BarChart3, PieChartIcon, TrendingUp, Layers, Database
 } from "lucide-react";
 
 const COLORS = ["#2563eb", "#06b6d4", "#8b5cf6", "#f59e0b", "#22c55e", "#ef4444", "#ec4899", "#14b8a6", "#f97316", "#6366f1"];
@@ -24,12 +24,20 @@ function countByField(data, field, limit = 10) {
     .map(([name, value]) => ({ name, value }));
 }
 
-export default function DatabaseCharts({ faaAircraft = [], listings = [], matchedCount = 0, faaTotalRegistry = 308985 }) {
+export default function DatabaseCharts({
+  faaAircraft = [], listings = [], matchedCount = 0,
+  faaTotalRegistry = 308985,
+  faaAcftrefTotal = 93572,
+  faaAdTotal = 187,
+  faaDealersTotal = 12507,
+  faaEngineTotal = 4743,
+}) {
   const isDark = useTheme();
 
   const textColor = isDark ? "#e2e8f0" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
   const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const accentCyan = isDark ? "#00f5ff" : "#2563eb";
   const panelBg = isDark ? "rgba(15,15,28,0.72)" : "rgba(255,255,255,0.78)";
   const panelBorder = isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)";
   const panelStyle = { background: panelBg, border: panelBorder, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" };
@@ -86,12 +94,21 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
       { name: "No expiry", value: noExpiry, color: mutedColor },
     ];
 
+    const faaTableData = [
+      { name: "Registry", value: faaTotalRegistry, color: "#2563eb" },
+      { name: "ACFTREF", value: faaAcftrefTotal, color: "#f59e0b" },
+      { name: "Dealers", value: faaDealersTotal, color: "#06b6d4" },
+      { name: "Engine", value: faaEngineTotal, color: "#8b5cf6" },
+      { name: "AD", value: faaAdTotal, color: "#ec4899" },
+    ];
+    const faaTotalRows = faaTableData.reduce((s, t) => s + t.value, 0);
+
     return {
       syncedLocal, syncedAbos, total, unsynced, ageData, classData, statusData,
       engineTypeData, enrichedEngines, syncData, regStatusData,
-      validReg, expiredReg, noExpiry,
+      validReg, expiredReg, noExpiry, faaTableData, faaTotalRows,
     };
-  }, [faaAircraft, matchedCount, faaTotalRegistry, isDark, mutedColor]);
+  }, [faaAircraft, matchedCount, faaTotalRegistry, faaAcftrefTotal, faaAdTotal, faaDealersTotal, faaEngineTotal, isDark, mutedColor]);
 
   const ChartCard = ({ title, icon: Icon, children, span = 1 }) => (
     <div className="rounded-xl p-4" style={{ ...panelStyle, gridColumn: `span ${span}` }}>
@@ -114,6 +131,23 @@ export default function DatabaseCharts({ faaAircraft = [], listings = [], matche
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* FAA Database Overview */}
+      <ChartCard title="FAA Tables" icon={Database} span={1}>
+        <div className="text-center mb-2">
+          <p className="text-2xl font-black" style={{ color: accentCyan }}>{stats.faaTotalRows.toLocaleString()}</p>
+          <p className="text-[9px] font-semibold" style={{ color: mutedColor }}>Total FAA records</p>
+        </div>
+        <div className="space-y-1.5">
+          {stats.faaTableData.map((t) => (
+            <div key={t.name} className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: t.color }} />
+              <span className="text-[9px] flex-1" style={{ color: mutedColor }}>{t.name}</span>
+              <span className="text-[10px] font-bold tabular-nums" style={{ color: textColor }}>{t.value.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      </ChartCard>
+
       {/* Total vs Synced */}
       <ChartCard title="Sync Coverage" icon={PieChartIcon} span={1}>
         <div className="flex items-center justify-center mb-2">

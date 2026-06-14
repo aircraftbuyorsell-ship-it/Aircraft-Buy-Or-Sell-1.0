@@ -119,6 +119,114 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── MODE: acftref_summary ──
+    if (currentMode === 'acftref_summary') {
+      const { count, error: countErr } = await supabase
+        .from('faa_acftref')
+        .select('*', { count: 'exact', head: true });
+      if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
+
+      const { data: sample, error: sampleErr } = await supabase
+        .from('faa_acftref')
+        .select('*')
+        .limit(20);
+      if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'acftref_summary',
+        total: count,
+        sample,
+        columns: sample?.length ? Object.keys(sample[0]) : [],
+      });
+    }
+
+    // ── MODE: acftref_browse ──
+    if (currentMode === 'acftref_browse') {
+      const from = (currentPage - 1) * size;
+      const to = from + size - 1;
+
+      let q = supabase.from('faa_acftref').select('*', { count: 'exact' });
+      if (search) q = q.or(`code.ilike.%${search}%,mfr.ilike.%${search}%,model.ilike.%${search}%`);
+      const { data, count, error: browseErr } = await q.range(from, to).order('code');
+
+      if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'acftref_browse',
+        page: currentPage,
+        pageSize: size,
+        total: count,
+        data,
+      });
+    }
+
+    // ── MODE: acftref_sync ──
+    if (currentMode === 'acftref_sync') {
+      const { data: rows, error: syncErr } = await supabase
+        .from('faa_acftref')
+        .select('*')
+        .limit(50000);
+
+      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+
+      // Build lookup: mfr_mdl_code → { make, model }
+      const lookup = {};
+      for (const r of (rows || [])) {
+        const code = r.code?.trim();
+        if (code) {
+          lookup[code] = {
+            make: r.mfr || '',
+            model: r.model || '',
+            type_aircraft: r.type_aircraft || '',
+            type_engine: r.type_engine || '',
+            category: r.category || '',
+          };
+        }
+      }
+
+      // Get all ABOS listings with mfr_mdl_code (from FAAAircraft) or with missing make/model
+      const listings = await base44.asServiceRole.entities.AircraftListing.filter({}, '-created_date', 10000);
+      let updated = 0;
+      let skipped = 0;
+
+      // Also check FAAAircraft entities for linking
+      const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 10000);
+      const faaByNNumber = {};
+      for (const f of faaAircraft) {
+        if (f.n_number) faaByNNumber[f.n_number.trim().toUpperCase()] = f;
+      }
+
+      // Update listings that have an FAA match with mfr_mdl_code
+      for (const l of listings) {
+        const nNum = (l.registration || '').replace(/^N/i, '').trim().toUpperCase();
+        const faa = faaByNNumber[nNum];
+        if (!faa || !faa.mfr_mdl_code) { skipped++; continue; }
+
+        const ref = lookup[faa.mfr_mdl_code.trim()];
+        if (!ref) { skipped++; continue; }
+
+        const updateData = {};
+        if (!l.make || l.make === 'Unknown') updateData.make = ref.make;
+        if (!l.model || l.model === 'Unknown') updateData.model = ref.model;
+
+        if (Object.keys(updateData).length > 0) {
+          await base44.asServiceRole.entities.AircraftListing.update(l.id, updateData);
+          updated++;
+        } else {
+          skipped++;
+        }
+      }
+
+      return Response.json({
+        mode: 'acftref_sync',
+        totalRefs: rows?.length || 0,
+        totalListings: listings.length,
+        totalFaaAircraft: faaAircraft.length,
+        updated,
+        skipped,
+      });
+    }
+
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

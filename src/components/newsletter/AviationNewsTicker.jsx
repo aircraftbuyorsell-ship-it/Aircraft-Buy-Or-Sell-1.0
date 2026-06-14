@@ -1,25 +1,32 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Newspaper, ArrowRight } from "lucide-react";
 
-const HEADLINES = [
-  { cat: "GA Market", text: "Single-engine piston prices hold steady as inventory tightens across North America" },
-  { cat: "BizJet", text: "Pre-owned midsize jet transactions surge 18% YoY, driven by first-time buyers" },
-  { cat: "Regulatory", text: "FAA proposes new ADS-B mandate for certain Part 91 operations by 2028" },
-  { cat: "Fuel Market", text: "Jet-A spot prices decline 7% as crude fundamentals weaken; operators see relief" },
-  { cat: "Aviation Finance", text: "Aircraft loan rates tick downward as central banks signal potential rate adjustment" },
-  { cat: "Industry Stocks", text: "Textron Aviation reports record backlog; Gulfstream deliveries accelerate in Q2" },
-  { cat: "Sustainability", text: "SAF production capacity doubles year-over-year; major FBO networks commit to availability" },
-  { cat: "EASA News", text: "EASA certifies new Garmin avionics suite for legacy piston fleet retrofits across Europe" },
-  { cat: "Hangar Market", text: "Hangar waitlists extend past 24 months at major US airports; new construction ramps up" },
-  { cat: "Pre-Owned", text: "Used Cirrus SR22 market sees 12% price appreciation as demand outpaces listings" },
+const FALLBACK_HEADLINES = [
+  { category: "market", headline: "Single-engine piston prices hold steady as inventory tightens across North America", sentiment: "neutral" },
+  { category: "market", headline: "Pre-owned midsize jet transactions surge 18% YoY, driven by first-time buyers", sentiment: "positive" },
+  { category: "regulatory", headline: "FAA proposes new ADS-B mandate for certain Part 91 operations by 2028", sentiment: "neutral" },
+  { category: "fuel", headline: "Jet-A spot prices decline 7% as crude fundamentals weaken; operators see relief", sentiment: "positive" },
+  { category: "finance", headline: "Aircraft loan rates tick downward as central banks signal potential rate adjustment", sentiment: "positive" },
+  { category: "market", headline: "Textron Aviation reports record backlog; Gulfstream deliveries accelerate in Q2", sentiment: "positive" },
+  { category: "tech", headline: "SAF production capacity doubles year-over-year; major FBO networks commit to availability", sentiment: "positive" },
+  { category: "regulatory", headline: "EASA certifies new Garmin avionics suite for legacy piston fleet retrofits across Europe", sentiment: "positive" },
+  { category: "market", headline: "Hangar waitlists extend past 24 months at major US airports; new construction ramps up", sentiment: "neutral" },
+  { category: "market", headline: "Used Cirrus SR22 market sees 12% price appreciation as demand outpaces listings", sentiment: "positive" },
 ];
 
 export default function AviationNewsTicker() {
   const isDark = useTheme();
   const [isSubscriber, setIsSubscriber] = useState(false);
+
+  const { data: newsItems = [] } = useQuery({
+    queryKey: ["aviation-news"],
+    queryFn: () => base44.entities.AviationNewsItem.list("-created_date", 20),
+    staleTime: 1000 * 60 * 15,
+  });
 
   useEffect(() => {
     base44.auth.me().then(user => {
@@ -36,8 +43,14 @@ export default function AviationNewsTicker() {
   const border = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
   const accent = isDark ? "#60a5fa" : "#3b82f6";
   const textMuted = isDark ? "rgba(255,255,255,0.55)" : "#64748b";
+  const sentPositive = "#22c55e";
+  const sentNegative = "#ef4444";
 
-  const doubled = [...HEADLINES, ...HEADLINES];
+  const headlines = newsItems.length > 0
+    ? newsItems.map(n => ({ category: n.category, headline: n.headline, sentiment: n.sentiment }))
+    : FALLBACK_HEADLINES;
+
+  const doubled = [...headlines, ...headlines];
 
   return (
     <div style={{ background: bg, borderBottom: `1px solid ${border}` }}>
@@ -58,18 +71,22 @@ export default function AviationNewsTicker() {
         <div className="flex-1 overflow-hidden relative h-full">
           <div className="animate-marquee inline-flex items-center h-full whitespace-nowrap"
             style={{ animation: "marquee 45s linear infinite" }}>
-            {doubled.map((h, i) => (
-              <span key={i} className="inline-flex items-center gap-1.5 mx-3">
-                <span className="text-[8px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-sm"
-                  style={{ color: accent, background: `${accent}12`, whiteSpace: "nowrap" }}>
-                  {h.cat}
+            {doubled.map((h, i) => {
+              const sentimentColor = h.sentiment === "positive" ? sentPositive : h.sentiment === "negative" ? sentNegative : textMuted;
+              return (
+                <span key={i} className="inline-flex items-center gap-1.5 mx-3">
+                  <span className="text-[8px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-sm"
+                    style={{ color: accent, background: `${accent}12`, whiteSpace: "nowrap" }}>
+                    {h.category}
+                  </span>
+                  <span className="text-[10px] leading-none flex items-center gap-1" style={{ color: textMuted, whiteSpace: "nowrap" }}>
+                    <span className="inline-block w-1 h-1 rounded-full shrink-0" style={{ background: sentimentColor }} />
+                    {h.headline}
+                  </span>
+                  <span className="text-[10px] mx-1 opacity-20" style={{ color: textMuted }}>•</span>
                 </span>
-                <span className="text-[10px] leading-none" style={{ color: textMuted, whiteSpace: "nowrap" }}>
-                  {h.text}
-                </span>
-                <span className="text-[10px] mx-1 opacity-20" style={{ color: textMuted }}>•</span>
-              </span>
-            ))}
+              );
+            })}
           </div>
         </div>
 

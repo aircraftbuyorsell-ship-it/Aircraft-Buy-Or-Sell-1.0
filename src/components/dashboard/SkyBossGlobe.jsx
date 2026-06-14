@@ -403,13 +403,14 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     spMarker.position.set(0, -1.009, 0);
     globe.add(spMarker);
 
-    // Atmosphere — winter haze
-    const atmoColor = isDark ? 0x00b8d4 : 0xaaccee;
-    const atmo = new THREE.Mesh(
-      new THREE.SphereGeometry(1.12, 48, 48),
-      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.06 : 0.14, side: THREE.BackSide })
+    // Atmosphere — thin edge ring only
+    const atmoColor = isDark ? 0x00b8d4 : 0x88bbdd;
+    const atmoRing = new THREE.Mesh(
+      new THREE.TorusGeometry(1.008, 0.018, 8, 128),
+      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.45 : 0.30 })
     );
-    globe.add(atmo);
+    atmoRing.rotation.x = Math.PI / 2;
+    globe.add(atmoRing);
 
     // Lights — cool winter sun
     scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0xaabbcc, isDark ? 0.85 : 1.3));

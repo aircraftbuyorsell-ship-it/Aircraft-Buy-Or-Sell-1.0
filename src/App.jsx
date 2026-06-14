@@ -50,6 +50,8 @@ import WeeklyBriefing from "./pages/WeeklyBriefing";
 import ATIStandard from "./pages/ATIStandard";
 import SoarStartupHub from "./pages/SoarStartupHub";
 import AviationStartupHub from "./pages/AviationStartupHub";
+import ATIVerify from "./pages/ATIVerify";
+import ATIVerifySession from "./pages/ATIVerifySession";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -117,6 +119,8 @@ const AuthenticatedApp = () => {
         <Route path="/ati-standard" element={<ATIStandard />} />
         <Route path="/soar" element={<SoarStartupHub />} />
         <Route path="/startup-hub" element={<AviationStartupHub />} />
+        <Route path="/ati-verify" element={<ATIVerify />} />
+        <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

@@ -1,0 +1,129 @@
+{
+  "name": "ATIVerifySession",
+  "type": "object",
+  "properties": {
+    "session_code": {
+      "type": "string",
+      "description": "Unique session ID (e.g. ATI-VFY-0001)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "invited",
+        "in_progress",
+        "completed",
+        "rejected",
+        "expired"
+      ],
+      "default": "draft"
+    },
+    "broker_email": {
+      "type": "string",
+      "description": "Broker/inspector who created the session"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Broker full name"
+    },
+    "seller_email": {
+      "type": "string",
+      "description": "Seller email for invite"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Seller full name"
+    },
+    "aircraft_registration": {
+      "type": "string",
+      "description": "Aircraft registration (N-, OK-, OM-, D-, G-, etc.)"
+    },
+    "aircraft_type": {
+      "type": "string",
+      "description": "Aircraft type/model (e.g. Cessna 172S)"
+    },
+    "aircraft_serial": {
+      "type": "string",
+      "description": "Manufacturer serial number (MSN)"
+    },
+    "invite_link": {
+      "type": "string",
+      "description": "Secure invite link for seller"
+    },
+    "video_room_url": {
+      "type": "string",
+      "description": "Daily.co room URL placeholder"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "review_required",
+        "rejected"
+      ],
+      "description": "Final verification outcome"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "required": [
+    "session_code",
+    "broker_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "data.seller_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

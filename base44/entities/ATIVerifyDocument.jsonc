@@ -1,0 +1,110 @@
+{
+  "name": "ATIVerifyDocument",
+  "type": "object",
+  "properties": {
+    "session": {
+      "type": "string",
+      "relationType": "ATIVerifySession",
+      "description": "Parent verification session"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "passport",
+        "pilot_license",
+        "registration_cert",
+        "airworthiness_cert",
+        "insurance",
+        "logbook",
+        "other"
+      ],
+      "description": "Document category"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded document file URL"
+    },
+    "ocr_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "ocr_raw_text": {
+      "type": "string",
+      "maxLength": 10000,
+      "description": "Raw OCR extracted text"
+    },
+    "extracted_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "extracted_document_number": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "extracted_expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "extracted_country": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "extracted_registration": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "extracted_serial": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "OCR extraction confidence (0-100)"
+    }
+  },
+  "required": [
+    "session",
+    "document_type",
+    "file_url"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

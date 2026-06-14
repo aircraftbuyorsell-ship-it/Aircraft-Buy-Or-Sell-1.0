@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2 } from "lucide-react";
+import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2, ShieldCheck, Hexagon } from "lucide-react";
 
 export default function DocumentUploadPanel({ sessionId, docType, label, icon, existingDocs = [] }) {
   const [uploading, setUploading] = useState(false);
@@ -15,11 +15,30 @@ export default function DocumentUploadPanel({ sessionId, docType, label, icon, e
     setError(null);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Anchor document hash to Polygon blockchain
+      let polygonData = {};
+      try {
+        const anchorRes = await base44.functions.invoke("anchorVaultDocument", {
+          file_url,
+          file_name: file.name,
+          document_type: docType,
+        });
+        polygonData = {
+          polygon_tx_hash: anchorRes.data?.tx_hash || null,
+          polygon_block_number: anchorRes.data?.block_number || null,
+          polygon_verified_at: anchorRes.data?.verified_at || null,
+        };
+      } catch (anchorErr) {
+        console.warn("Polygon anchoring skipped:", anchorErr.message);
+      }
+
       await base44.entities.ATIVerifyDocument.create({
         session: sessionId,
         document_type: docType,
         title: `${label} - ${file.name}`,
         file_url,
+        ...polygonData,
       });
       queryClient.invalidateQueries({ queryKey: ["ati-verify-docs", sessionId] });
     } catch (err) {
@@ -80,6 +99,12 @@ export default function DocumentUploadPanel({ sessionId, docType, label, icon, e
                       <div className="h-full rounded-full bg-[#4ade80]" style={{ width: `${latest.confidence_score}%` }} />
                     </div>
                     <span className="text-white/30">{latest.confidence_score}%</span>
+                  </div>
+                )}
+                {latest.polygon_tx_hash && (
+                  <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/[0.06]">
+                    <Hexagon className="w-3 h-3 text-[#8247E5]" />
+                    <span className="text-[9px] text-[#8247E5] font-bold uppercase tracking-wider">Polygon Anchored</span>
                   </div>
                 )}
               </div>

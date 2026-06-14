@@ -72,6 +72,20 @@
       "minimum": 0,
       "maximum": 100,
       "description": "OCR extraction confidence (0-100)"
+    },
+    "polygon_tx_hash": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Polygon blockchain transaction hash"
+    },
+    "polygon_block_number": {
+      "type": "number",
+      "description": "Polygon block number"
+    },
+    "polygon_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the Polygon anchor was confirmed"
     }
   },
   "required": [

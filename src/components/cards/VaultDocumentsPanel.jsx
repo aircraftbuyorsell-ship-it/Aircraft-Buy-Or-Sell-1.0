@@ -148,6 +148,17 @@ export default function VaultDocumentsPanel({ card, listing, isOwner }) {
         vault_verified_count: verifiedCount,
       });
 
+      // Auto-sync image uploads to listing's image_attachments so photos appear on cards
+      const isImage = file.type.startsWith("image/");
+      if (isImage && listing?.id) {
+        const currentAttachments = listing.image_attachments || [];
+        await base44.entities.AircraftListing.update(listing.id, {
+          image_attachments: [...currentAttachments, fileUrl],
+        });
+        queryClient.invalidateQueries({ queryKey: ["listing", listing.id] });
+        queryClient.invalidateQueries({ queryKey: ["listings-public"] });
+      }
+
       setUploadStatus({ success: "Document uploaded and anchored to Polygon Vault" });
       queryClient.invalidateQueries({ queryKey: ["vault-docs", card?.id] });
       resetForm();

@@ -51,6 +51,13 @@ const COMMERCIAL_AIRLINER_TYPES = new Set([
 "F100", "F70", "RJ85", "RJ1H", "BA46"]
 );
 
+const FALLBACK_REGIONS = [
+  [38, -97], [51, 10], [46, 2], [42, 12], [54, -2], [60, 18], [40, -4],
+  [-34, -64], [-25, 133], [35, 105], [20, 78], [-15, -50], [4, -72], [31, 35],
+  [24, 54], [-29, 25], [39, 35], [14, 108], [47, 8], [52, 20], [36, 128],
+  [1, 104], [-41, 174], [60, 100], [-33, -71], [-10, -76]
+];
+
 function listingToLatLon(listing, index) {
   if (listing.registration) {
     const reg = listing.registration.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -62,7 +69,9 @@ function listingToLatLon(listing, index) {
       }
     }
   }
-  return null;
+  // Fallback: spread across major aviation regions
+  const [flat, flon] = FALLBACK_REGIONS[index % FALLBACK_REGIONS.length];
+  return { lat: flat + Math.sin(index * 3.1) * 3, lon: flon + Math.cos(index * 5.7) * 4 };
 }
 
 function atiColor(score) {
@@ -354,21 +363,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       coreMat.needsUpdate = true;
     });
 
-    // Grid — frost lines
-    const gridColor = isDark ? 0x1f6f86 : 0x88aacc;
-    const grid = new THREE.Mesh(
-      new THREE.SphereGeometry(1.003, 36, 24),
-      new THREE.MeshBasicMaterial({ color: gridColor, wireframe: true, transparent: true, opacity: isDark ? 0.10 : 0.18 })
-    );
-    globe.add(grid);
-
-    // Atmosphere — winter haze
-    const atmoColor = isDark ? 0x00b8d4 : 0xaaccee;
-    const atmo = new THREE.Mesh(
-      new THREE.SphereGeometry(1.12, 48, 48),
-      new THREE.MeshBasicMaterial({ color: atmoColor, transparent: true, opacity: isDark ? 0.06 : 0.14, side: THREE.BackSide })
-    );
-    globe.add(atmo);
+    // Grid & atmosphere removed — clean globe
 
     // Lights — cool winter sun
     scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0xaabbcc, isDark ? 0.85 : 1.3));
@@ -393,7 +388,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const acGeo = new THREE.BufferGeometry();
     acGeoRef.current = acGeo;
     const acMat = new THREE.PointsMaterial({
-      size: 0.12,
+      size: 0.14,
       map: aircraftSilhouetteTexture(),
       vertexColors: false,
       color: 0x00d4ff,
@@ -410,7 +405,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     const lGeo = new THREE.BufferGeometry();
     lGeoRef.current = lGeo;
     const lMat = new THREE.PointsMaterial({
-      size: 0.11,
+      size: 0.16,
       map: dotTexture(),
       vertexColors: true,
       transparent: true,

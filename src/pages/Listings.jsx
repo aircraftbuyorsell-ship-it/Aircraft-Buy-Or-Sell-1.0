@@ -268,7 +268,7 @@ export default function Listings() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Make, model or registration…"
-              className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors" />
+              className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#6B6560] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors" />
             
             {search &&
             <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a4550] hover:text-[#3a3530]">

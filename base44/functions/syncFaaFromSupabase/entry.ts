@@ -119,6 +119,48 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── MODE: dealers_summary ──
+    if (currentMode === 'dealers_summary') {
+      const { count, error: countErr } = await supabase
+        .from('faa_dealers')
+        .select('*', { count: 'exact', head: true });
+      if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
+
+      const { data: sample, error: sampleErr } = await supabase
+        .from('faa_dealers')
+        .select('*')
+        .limit(5);
+      if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'dealers_summary',
+        total: count,
+        sample,
+        columns: sample?.length ? Object.keys(sample[0]) : [],
+      });
+    }
+
+    // ── MODE: engine_summary ──
+    if (currentMode === 'engine_summary') {
+      const { count, error: countErr } = await supabase
+        .from('faa_engine')
+        .select('*', { count: 'exact', head: true });
+      if (countErr) return Response.json({ error: countErr.message }, { status: 500 });
+
+      const { data: sample, error: sampleErr } = await supabase
+        .from('faa_engine')
+        .select('*')
+        .limit(5);
+      if (sampleErr) return Response.json({ error: sampleErr.message }, { status: 500 });
+
+      return Response.json({
+        mode: 'engine_summary',
+        total: count,
+        sample,
+        columns: sample?.length ? Object.keys(sample[0]) : [],
+      });
+    }
+
     // ── MODE: acftref_summary ──
     if (currentMode === 'acftref_summary') {
       const { count, error: countErr } = await supabase

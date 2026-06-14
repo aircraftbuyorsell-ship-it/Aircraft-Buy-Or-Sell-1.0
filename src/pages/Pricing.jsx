@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle, Zap, Sparkles, Crown, Shield, ArrowRight, ExternalLink } from "lucide-react";
+import { CheckCircle, Zap, Sparkles, Crown, Shield, ArrowRight } from "lucide-react";
 import { TIERS, TOKEN_PACKS, toCredits } from "@/lib/pricing";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
-import CreditUsageTable, { CreditPricingTable } from "@/components/pricing/CreditUsageTable";
+
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
@@ -193,11 +193,7 @@ export default function Pricing() {
           />
         </div>
 
-        {/* Credit pricing + usage history */}
-        <div className="mt-8 grid lg:grid-cols-2 gap-4">
-          <CreditPricingTable />
-          <CreditUsageTable userEmail={behavior?.user_email} />
-        </div>
+
 
         {/* FAQ / trust */}
         <div className="mt-8 bg-white border border-black/[0.07] rounded-2xl p-6">

@@ -166,7 +166,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const lGeoRef = useRef(null);
   const metaRef = useRef([]);
   const lMetaRef = useRef([]);
-  const rotRef = useRef({ y: -0.3, x: 0.32 });
+  const rotRef = useRef({ y: -Math.PI / 2, x: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
   const downRef = useRef(null);
   const rafRef = useRef(null);
@@ -425,7 +425,6 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     // Animation
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop);
-      if (!dragRef.current.active) rotRef.current.y += 0.0016;
       globe.rotation.y = rotRef.current.y;
       globe.rotation.x = rotRef.current.x;
       renderer.render(scene, camera);

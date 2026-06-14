@@ -112,6 +112,28 @@ function dotTexture() {
   return new THREE.CanvasTexture(cv);
 }
 
+function liveTrafficTexture() {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 96;
+  const ctx = cv.getContext("2d");
+  const glow = ctx.createRadialGradient(48, 48, 4, 48, 48, 42);
+  glow.addColorStop(0, "rgba(34, 197, 94, 0.95)");
+  glow.addColorStop(0.25, "rgba(34, 197, 94, 0.55)");
+  glow.addColorStop(0.55, "rgba(22, 163, 74, 0.18)");
+  glow.addColorStop(1, "rgba(22, 163, 74, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();ctx.arc(48, 48, 42, 0, Math.PI * 2);ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(45, 10, 6, 66);
+  ctx.beginPath();ctx.moveTo(48, 26);ctx.lineTo(18, 44);ctx.lineTo(20, 48);ctx.lineTo(48, 32);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(48, 26);ctx.lineTo(78, 44);ctx.lineTo(76, 48);ctx.lineTo(48, 32);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(48, 56);ctx.lineTo(26, 68);ctx.lineTo(28, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(48, 56);ctx.lineTo(70, 68);ctx.lineTo(68, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
+  ctx.strokeStyle = "rgba(34, 197, 94, 0.8)";ctx.lineWidth = 1;
+  ctx.beginPath();ctx.moveTo(48, 10);ctx.lineTo(48, 76);ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);ctx.stroke();
+  return new THREE.CanvasTexture(cv);
+}
+
 function aircraftSilhouetteTexture() {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 96;
@@ -173,8 +195,11 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   const acGeoRef = useRef(null);
   const lPointsRef = useRef(null);
   const lGeoRef = useRef(null);
+  const livePointsRef = useRef(null);
+  const liveGeoRef = useRef(null);
   const metaRef = useRef([]);
   const lMetaRef = useRef([]);
+  const liveMetaRef = useRef([]);
   const rotRef = useRef({ y: -Math.PI / 2, x: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
   const downRef = useRef(null);
@@ -185,8 +210,10 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
   const [trafficCount, setTrafficCount] = useState(0);
   const [trafficStatus, setTrafficStatus] = useState("idle");
+  const [liveCount, setLiveCount] = useState(0);
   const [detail, setDetail] = useState(null);
   const [scoringMap, setScoringMap] = useState({});
+  const autoRotateRef = useRef(true);
 
   useEffect(() => {listingsRef.current = listings;}, [listings]);
 
@@ -212,6 +239,36 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     } finally {
       loadingRef.current = false;
     }
+  }, []);
+
+  // ─── Fetch live traffic from Supabase ───
+  const fetchLive = useCallback(async () => {
+    try {
+      const res = await base44.functions.invoke("fetchLiveTraffic", { limit: 2000 });
+      const ac = res.data?.aircraft || [];
+      renderLiveToGlobe(ac);
+    } catch (_) {}
+  }, []);
+
+  // ─── Render live traffic (green) to globe ───
+  const renderLiveToGlobe = useCallback((aircraft) => {
+    const liveGeo = liveGeoRef.current;
+    if (!liveGeo) return;
+    const pos = [],meta = [];
+    for (const ac of aircraft) {
+      if (ac.latitude == null || ac.longitude == null) continue;
+      if (ac.aircraft_type && COMMERCIAL_AIRLINER_TYPES.has(ac.aircraft_type.toUpperCase())) continue;
+      const v = latLonToVec3(ac.latitude, ac.longitude, 1.014 + Math.min(ac.altitude_ft || 0, 45000) / 6371000 * 22);
+      pos.push(v.x, v.y, v.z);
+      meta.push(ac);
+    }
+    liveGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    liveGeo.setAttribute("color", new THREE.Float32BufferAttribute(
+      Array.from({length: meta.length * 3}, (_, i) => i % 3 === 1 ? 0.77 : i % 3 === 0 ? 0.13 : 0.22), 3));
+    liveGeo.attributes.position.needsUpdate = true;
+    liveGeo.attributes.color.needsUpdate = true;
+    liveMetaRef.current = meta;
+    setLiveCount(meta.length);
   }, []);
 
   // ─── Render traffic aircraft data to globe point cloud ───
@@ -320,6 +377,16 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       }
     }
 
+    // Check live traffic (green)
+    if (livePointsRef.current && livePointsRef.current.geometry.attributes.position) {
+      ray.setFromCamera(mouse, cameraRef.current);
+      const liveHits = ray.intersectObject(livePointsRef.current);
+      if (liveHits.length > 0) {
+        setDetail({ type: "livetraffic", data: liveMetaRef.current[liveHits[0].index] });
+        return;
+      }
+    }
+
     setDetail(null);
   }, [onSelectListing]);
 
@@ -417,9 +484,28 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     lPointsRef.current = lPoints;
     globe.add(lPoints);
 
-    // Animation
+    // Live traffic point cloud (green)
+    const liveGeo = new THREE.BufferGeometry();
+    liveGeoRef.current = liveGeo;
+    const liveMat = new THREE.PointsMaterial({
+      size: 0.14,
+      map: liveTrafficTexture(),
+      vertexColors: true,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true
+    });
+    const livePoints = new THREE.Points(liveGeo, liveMat);
+    livePointsRef.current = livePoints;
+    globe.add(livePoints);
+
+    // Animation with slow autorotation
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop);
+      if (autoRotateRef.current && !dragRef.current.active) {
+        rotRef.current.y += 0.0012;
+      }
       globe.rotation.y = rotRef.current.y;
       globe.rotation.x = rotRef.current.x;
       renderer.render(scene, camera);
@@ -436,12 +522,14 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
 
     const onDown = (e) => {
       dragRef.current.active = true;
+      autoRotateRef.current = false;
       dragRef.current.px = e.clientX;
       dragRef.current.py = e.clientY;
       downRef.current = [e.clientX, e.clientY];
       canvas.classList.add("cursor-grabbing");
     };
     const onUp = (e) => {
+      setTimeout(() => { autoRotateRef.current = true; }, 2000);
       if (downRef.current) {
         const moved = Math.abs(e.clientX - downRef.current[0]) + Math.abs(e.clientY - downRef.current[1]);
         if (moved < 5) pick(e);
@@ -484,9 +572,10 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
   // Auto-refresh traffic every 30s
   useEffect(() => {
     fetchTraffic();
-    timerRef.current = setInterval(fetchTraffic, 30000);
+    fetchLive();
+    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 30000);
     return () => clearInterval(timerRef.current);
-  }, [fetchTraffic]);
+  }, [fetchTraffic, fetchLive]);
 
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
@@ -497,21 +586,33 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
 
       {/* Traffic status badge */}
-      <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
-      style={{ color: accentCyan }}>
-        <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
-        style={{
-          background: trafficStatus === "live" ? accentCyan :
-          trafficStatus === "loading" ? "#E8A83A" :
-          trafficStatus === "error" ? "#ff4d6d" : "#888",
-          boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
-          trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
-        }} />
-        {trafficStatus === "loading" ? "Fetching…" :
-        trafficStatus === "error" ? "Unavailable" :
-        trafficStatus === "live" ? `${trafficCount.toLocaleString()} airborne` :
-        "Connecting…"}
+      <div className="absolute bottom-2 left-2 flex gap-2 z-10">
+        <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+        style={{ color: accentCyan }}>
+          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
+          style={{
+            background: trafficStatus === "live" ? accentCyan :
+            trafficStatus === "loading" ? "#E8A83A" :
+            trafficStatus === "error" ? "#ff4d6d" : "#888",
+            boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
+            trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
+          }} />
+          {trafficStatus === "loading" ? "Fetching…" :
+          trafficStatus === "error" ? "Unavailable" :
+          trafficStatus === "live" ? `${trafficCount.toLocaleString()} ADS-B` :
+          "Connecting…"}
+        </div>
+        {liveCount > 0 && (
+          <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+          style={{ color: "#22c55e" }}>
+            <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
+            style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
+            {liveCount.toLocaleString()} Live DB
+          </div>
+        )}
       </div>
+
+
 
       {/* Listing count badge */}
       <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
@@ -614,6 +715,41 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
               }
               </>);
 
+        })()}
+
+          {detail.type === "livetraffic" && (() => {
+          const ac = detail.data;
+          const nReg = ac.n_number || ac.registration || null;
+          const altFt = ac.altitude_ft != null ? Math.round(ac.altitude_ft) : null;
+          const speedKt = ac.ground_speed_kt != null ? Math.round(ac.ground_speed_kt) : null;
+          const vrateStr = ac.vertical_rate != null ?
+          ac.vertical_rate > 0 ? `▲ ${ac.vertical_rate} fpm` : ac.vertical_rate < 0 ? `▼ ${Math.abs(ac.vertical_rate)} fpm` : "Level" :
+          "—";
+
+          return (
+            <>
+                <div className="mb-3 pb-2.5 border-b" style={{ borderColor: "rgba(34,197,94,0.25)" }}>
+                  <p className="text-[11px] font-black text-[#22c55e] uppercase tracking-wide">
+                    {nReg || ac.callsign?.trim() || ac.icao24}
+                  </p>
+                  <p className="text-[8px] font-mono mt-0.5" style={{ color: mutedColor }}>
+                    ICAO: {ac.icao24} · Live DB
+                  </p>
+                  {ac.on_ground &&
+                <span className="inline-block text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded mt-1"
+                style={{ background: "rgba(255,77,109,0.12)", color: "#ff4d6d" }}>On Ground</span>
+                }
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5 mb-3 text-[10px]">
+                  <div><span style={{ color: mutedColor }}>Alt: </span><strong style={{ color: textColor }}>{altFt != null ? `${altFt.toLocaleString()} ft` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>Speed: </span><strong style={{ color: textColor }}>{speedKt != null ? `${speedKt} kt` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>Hdg: </span><strong style={{ color: textColor }}>{ac.heading != null ? `${Math.round(ac.heading)}°` : "—"}</strong></div>
+                  <div><span style={{ color: mutedColor }}>V/S: </span><strong style={{ color: textColor }}>{vrateStr}</strong></div>
+                  {ac.origin_country && <div><span style={{ color: mutedColor }}>Country: </span><strong style={{ color: textColor }}>{ac.origin_country}</strong></div>}
+                  {ac.departure_icao && <div><span style={{ color: mutedColor }}>Route: </span><strong style={{ color: textColor }}>{ac.departure_icao}{ac.arrival_icao ? ` → ${ac.arrival_icao}` : ""}</strong></div>}
+                </div>
+              </>);
         })()}
 
           {detail.type === "listing" &&

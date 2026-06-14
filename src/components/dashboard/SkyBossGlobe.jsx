@@ -332,7 +332,7 @@ export default function SkyBossGlobe({ className = "", listings = [], onSelectLi
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    camera.position.set(0, 0, 3.3);
+    camera.position.set(0, 0, 4.2);
     cameraRef.current = camera;
 
     const globe = new THREE.Group();

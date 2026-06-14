@@ -61,7 +61,7 @@
     },
     "funding_goal": {
       "type": "number",
-      "description": "Funding goal in EUR (if seeking investment)"
+      "description": "Funding goal in EUR"
     },
     "funding_raised": {
       "type": "number",
@@ -98,7 +98,7 @@
     "ati_integrated": {
       "type": "boolean",
       "default": false,
-      "description": "Whether the project integrates with ATI Standard"
+      "description": "Integrates with ATI Standard"
     },
     "status": {
       "type": "string",
@@ -138,11 +138,20 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "id": {
-          "$exists": true
+      "$or": [
+        {
+          "user_condition": {
+            "id": {
+              "$exists": true
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
         }
-      }
+      ]
     },
     "read": {
       "data.status": {

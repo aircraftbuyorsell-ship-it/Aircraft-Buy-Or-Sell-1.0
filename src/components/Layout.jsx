@@ -192,7 +192,19 @@ export default function Layout() {
           <div className="flex-1" />
 
           <nav className="flex items-center gap-1.5">
-            <ThemeToggle />
+          <Link
+            to="/pricing"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold transition-all active:scale-95"
+            style={{
+              background: isDark ? "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(166,124,0,0.12))" : "linear-gradient(135deg,rgba(212,160,23,0.12),rgba(166,124,0,0.08))",
+              border: `1px solid ${isDark ? "rgba(212,160,23,0.30)" : "rgba(212,160,23,0.25)"}`,
+              color: isDark ? "#F5C842" : "#A67C00",
+            }}
+          >
+            <Zap className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Pricing</span>
+          </Link>
+          <ThemeToggle />
             <button
               onClick={() => {
                 localStorage.removeItem("abos_tour_completed_v3");

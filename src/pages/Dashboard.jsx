@@ -205,8 +205,8 @@ export default function Dashboard() {
             <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>ATI SCORING TOOLS</p>
             <div className="grid md:grid-cols-2 gap-3">
               {[
-                { icon: Zap, title: "Quick Score", body: "Paste listing text or N-number for an instant 8-dimension scorecard.", link: "/ati-quick-score", badge: "Instant" },
-                { icon: FileText, title: "Full Report", body: "Professional appraisal with executive summary, strengths, risks and .docx export.", link: "/ati-full-report", badge: "Pro" },
+                { icon: Zap, title: "Quick Score", body: "Paste listing text or N-number for an instant 8-dimension scorecard.", link: "/ati-quick-score", badge: "Free", cost: "0 credits" },
+                { icon: FileText, title: "Full Report", body: "Professional appraisal with executive summary, strengths, risks and .docx export.", link: "/ati-full-report", badge: "Pro", cost: "~25 credits" },
               ].map((m) =>
                 <Link key={m.title} to={m.link}>
                   <div className="rounded-xl p-5 h-full hover:scale-[1.01] transition-transform cursor-pointer" style={panelStyle}>
@@ -217,6 +217,11 @@ export default function Dashboard() {
                       </div>
                       <span className="text-[8px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
                         style={{ background: isDark ? "rgba(244,129,32,0.12)" : "rgba(244,129,32,0.08)", color: accentOrange }}>{m.badge}</span>
+                      <span className="text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                        style={{
+                          background: m.badge === "Free" ? (isDark ? "rgba(34,197,94,0.12)" : "rgba(34,197,94,0.08)") : (isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)"),
+                          color: m.badge === "Free" ? "#22c55e" : "#8b5cf6"
+                        }}>{m.cost}</span>
                     </div>
                     <h4 className="text-sm font-bold mb-1.5" style={{ color: textColor }}>{m.title}</h4>
                     <p className="text-[11px] leading-relaxed" style={{ color: mutedColor }}>{m.body}</p>
@@ -228,6 +233,37 @@ export default function Dashboard() {
                 </Link>
               )}
             </div>
+          </div>
+        </section>
+
+        {/* ── PRICING CTA BANNER ──────────────────────────────── */}
+        <section className="px-4 md:px-8 pb-5">
+          <div className="max-w-6xl mx-auto">
+            <Link to="/pricing" className="block">
+              <div className="rounded-xl p-5 flex items-center justify-between flex-wrap gap-4 hover:scale-[1.01] transition-transform cursor-pointer"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(135deg, rgba(212,160,23,0.10), rgba(166,124,0,0.05))"
+                    : "linear-gradient(135deg, rgba(212,160,23,0.08), rgba(166,124,0,0.03))",
+                  border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.18)"}`,
+                  backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+                }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: isDark ? "rgba(212,160,23,0.15)" : "rgba(212,160,23,0.10)", border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.15)"}` }}>
+                    <Zap className="w-5 h-5 text-[#D4A017]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold" style={{ color: textColor }}>Token-based pricing — pay only for what you use</p>
+                    <p className="text-[11px]" style={{ color: mutedColor }}>Free Quick Score. Full ATI Report ~25 credits. Get 100 credits from $9.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold"
+                  style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)", color: "#fff" }}>
+                  See Plans <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </Link>
           </div>
         </section>
 

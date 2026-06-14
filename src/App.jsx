@@ -47,6 +47,7 @@ import ATIQuickScore from "./pages/ATIQuickScore";
 import ATIFullReport from "./pages/ATIFullReport";
 import SkyBoss from "./pages/SkyBoss";
 import WeeklyBriefing from "./pages/WeeklyBriefing";
+import ATIStandard from "./pages/ATIStandard";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -111,6 +112,7 @@ const AuthenticatedApp = () => {
         <Route path="/ati-full-report" element={<ATIFullReport />} />
         <Route path="/skyboss" element={<SkyBoss />} />
         <Route path="/weekly-briefing" element={<WeeklyBriefing />} />
+        <Route path="/ati-standard" element={<ATIStandard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

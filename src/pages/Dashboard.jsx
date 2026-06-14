@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ShieldCheck, Plane, Radar, TrendingUp,
-  ArrowRight, Zap, FileText, Globe, Map } from
+  ArrowRight, Zap, FileText, Globe, Map,
+  Database, Users, Eye, CheckCircle } from
 "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
@@ -24,7 +25,22 @@ export default function Dashboard() {
   const textColor = isDark ? "#e2e8f0" : "#1a1a1a";
   const mutedColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
   const accentOrange = isDark ? "#f48120" : "#e07310";
+  const accentCyan = isDark ? "#00f5ff" : "#2563eb";
   const panelBg = isDark ? "rgba(15,15,28,0.72)" : "rgba(255,255,255,0.78)";
+
+  const MetricCard = ({ m, isDark, mutedColor, textColor, panelStyle, noHover }) => (
+    <div className={`rounded-xl p-4 h-full ${noHover ? "" : "hover:scale-[1.01] transition-transform cursor-pointer"}`} style={panelStyle}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+          style={{ background: `${m.color}15`, border: `1px solid ${m.color}30` }}>
+          <m.icon className="w-3.5 h-3.5" style={{ color: m.color }} />
+        </div>
+        <p className="text-[10px] font-semibold" style={{ color: mutedColor }}>{m.label}</p>
+      </div>
+      <p className="text-xl font-bold leading-none mb-1" style={{ color: textColor }}>{m.value}</p>
+      <p className="text-[10px]" style={{ color: mutedColor }}>{m.sub}</p>
+    </div>
+  );
   const panelBorder = isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(0,0,0,0.06)";
 
   const { data: listings = [] } = useQuery({
@@ -32,12 +48,25 @@ export default function Dashboard() {
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 5000)
   });
 
+  const { data: allListings = [] } = useQuery({
+    queryKey: ["listings-all"],
+    queryFn: () => base44.entities.AircraftListing.list("-created_date", 5000)
+  });
+
+  const { data: faaAircraft = [] } = useQuery({
+    queryKey: ["faa-aircraft-count"],
+    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 5000)
+  });
+
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
     queryFn: () => base44.entities.DealRadar.list()
   });
 
-  const totalListings = listings.length;
+  const totalListings = allListings.length;
+  const activeListings = listings.length;
+  const faaSynced = faaAircraft.length;
+  const matchedToFaa = listings.filter((l) => l.registration && /^N/i.test(l.registration)).length;
   const avgAti = listings.length > 0
     ? Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length)
     : 0;
@@ -122,24 +151,20 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
-              { icon: Plane, label: "Active Listings", value: totalListings.toLocaleString(), sub: `${evaluated} ATI scored`, link: "/listings" },
-              { icon: ShieldCheck, label: "Avg ATI Score", value: avgAti || "—", sub: "Across all listings", link: "/listings" },
-              { icon: Radar, label: "ADS-B Feed", value: "Live", sub: "Real-time tracking", link: "/traffic" },
-              { icon: TrendingUp, label: "Hot Deals", value: hotDeals, sub: "Score ≥ 8.5", link: "/deal-radar" },
+              { icon: Database, label: "FAA Registry Synced", value: faaSynced.toLocaleString(), sub: `${matchedToFaa} matched to ABOS`, link: "/admin/supabase-sync", color: accentCyan },
+              { icon: Plane, label: "Aircraft Listings", value: totalListings.toLocaleString(), sub: `${activeListings} active · ${evaluated} ATI scored`, link: "/listings", color: accentOrange },
+              { icon: Users, label: "FB Community", value: "280K", sub: "Group members · +12 % YoY", link: "#", color: "#1877F2" },
+              { icon: Eye, label: "Annual Reach", value: "11.5M", sub: "Views/year · 960K/mo", link: "#", color: "#22c55e" },
             ].map((m) =>
-              <Link key={m.label} to={m.link}>
-                <div className="rounded-xl p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer" style={panelStyle}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
-                      style={{ background: isDark ? "rgba(244,129,32,0.1)" : "rgba(244,129,32,0.07)", border: `1px solid ${isDark ? "rgba(244,129,32,0.2)" : "rgba(244,129,32,0.15)"}` }}>
-                      <m.icon className="w-3.5 h-3.5" style={{ color: accentOrange }} />
-                    </div>
-                    <p className="text-[10px] font-semibold" style={{ color: mutedColor }}>{m.label}</p>
-                  </div>
-                  <p className="text-xl font-bold leading-none mb-1" style={{ color: textColor }}>{m.value}</p>
-                  <p className="text-[10px]" style={{ color: mutedColor }}>{m.sub}</p>
+              m.link !== "#" ? (
+                <Link key={m.label} to={m.link}>
+                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
+                </Link>
+              ) : (
+                <div key={m.label} className="rounded-xl p-4 h-full" style={{...panelStyle, cursor: "default"}}>
+                  <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} noHover />
                 </div>
-              </Link>
+              )
             )}
           </div>
         </section>

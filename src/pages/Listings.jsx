@@ -9,7 +9,7 @@ import {
 import BulkActionsBar from "@/components/listings/BulkActionsBar";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
-import ImportAndEditFlow from "@/components/listings/ImportAndEditFlow";
+import QuickPasteImport from "@/components/listings/QuickPasteImport";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import AircraftWizard from "@/components/aircraft-wizard/AircraftWizard";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
@@ -555,7 +555,7 @@ export default function Listings() {
       {/* Modals */}
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
 
-      <ImportAndEditFlow
+      <QuickPasteImport
         open={showImport}
         onClose={() => setShowImport(false)}
         onPublish={() => {

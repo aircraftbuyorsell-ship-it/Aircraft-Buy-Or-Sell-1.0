@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  CreditCard, LayoutList, Search, Zap, Upload, FileArchive,
+  CreditCard, LayoutList, Search, Zap, Upload,
   HelpCircle, X, ArrowRight } from
 "lucide-react";
 import { Link } from "react-router-dom";
@@ -87,11 +87,11 @@ export default function ListingsHeader({
               <span className="hidden sm:inline">How it works</span>
             </button>
             <button
-              onClick={() => requireFeature("bulk_import", TOKEN_COSTS.bulk_import_per_listing * 10, () => onShowImport(true))}
+              onClick={() => requireFeature("quick_import", TOKEN_COSTS.ati_passport_full, () => onShowImport(true))}
               className="flex items-center gap-1.5 bg-white/[0.10] hover:bg-white/[0.18] backdrop-blur-md border border-white/15 text-white/80 hover:text-white text-[11px] font-semibold px-3.5 py-2 rounded-full transition-colors">
               
-              <FileArchive className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Import</span>
+              <Upload className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Paste Text</span>
             </button>
           </div>
         </div>

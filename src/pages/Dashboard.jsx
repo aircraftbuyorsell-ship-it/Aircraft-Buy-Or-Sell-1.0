@@ -13,6 +13,7 @@ import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
 import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
+import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
@@ -177,6 +178,14 @@ export default function Dashboard() {
                 <MetricCard panelStyle={panelStyle} m={m} isDark={isDark} mutedColor={mutedColor} textColor={textColor} />
               </Link>
             )}
+          </div>
+        </section>
+
+        {/* ── DATABASE CHARTS ──────────────────────────────── */}
+        <section className="px-4 md:px-8 pb-5">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>DATABASE ANALYTICS</p>
+            <DatabaseCharts faaAircraft={faaAircraft} listings={listings} matchedCount={matchedToFaa} />
           </div>
         </section>
 

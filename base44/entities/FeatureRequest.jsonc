@@ -52,6 +52,14 @@
       "type": "string",
       "maxLength": 1000,
       "description": "Admin response or notes"
+    },
+    "github_issue_number": {
+      "type": "number",
+      "description": "GitHub issue number for this feature request"
+    },
+    "github_issue_url": {
+      "type": "string",
+      "description": "GitHub issue URL for this feature request"
     }
   },
   "required": [

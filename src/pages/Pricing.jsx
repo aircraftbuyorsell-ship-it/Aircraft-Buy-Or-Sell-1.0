@@ -123,7 +123,7 @@ export default function Pricing() {
           
 
           {/* Pro — token packs inside */}
-          <div className="md:col-span-1 bg-white border-2 border-[#D4A017] rounded-2xl p-6 relative shadow-xl">
+          <div className="md:col-span-1 bg-white border-2 border-[#D4A017] rounded-2xl p-6 relative shadow-xl mb-1">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D4A017] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
               Most flexible
             </div>

@@ -36,7 +36,7 @@ export default function Pricing() {
         tier: "free_explorer",
         tokens_remaining: newTokens,
         tokens_purchased_total: (behavior.tokens_purchased_total || 0) + totalTokens,
-        active_offer: null,
+        active_offer: null
       });
       await base44.entities.TokenTransaction.create({
         user_email: behavior.user_email,
@@ -44,7 +44,7 @@ export default function Pricing() {
         amount: totalTokens,
         pack: "Free Explorer activation",
         price_usd: 0,
-        balance_after: newTokens,
+        balance_after: newTokens
       });
       queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
       setProcessing(null);
@@ -53,9 +53,9 @@ export default function Pricing() {
 
     const bonus = packOrTier.bonus_pct ? Math.round((packOrTier.tokens || 0) * packOrTier.bonus_pct / 100) : 0;
     const totalTokens = (packOrTier.tokens || packOrTier.tokens_included || 0) + bonus;
-    const priceUsd = discountPct
-      ? (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100)
-      : (packOrTier.price_usd || packOrTier.price || 0);
+    const priceUsd = discountPct ?
+    (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100) :
+    packOrTier.price_usd || packOrTier.price || 0;
 
     // Live Stripe Checkout
     const priceId = packOrTier.stripe_price_id;
@@ -72,7 +72,7 @@ export default function Pricing() {
         packName: packOrTier.name,
         tokens: totalTokens,
         priceUsd,
-        returnUrl,
+        returnUrl
       });
       if (res.data?.sessionUrl) {
         window.location.href = res.data.sessionUrl;
@@ -96,17 +96,17 @@ export default function Pricing() {
           Start free, then buy credits as you need them. 1 credit = 1 small action (like a preview). Heavy features like full ATI Passport use ~25 credits.
         </p>
 
-        {discountPct > 0 && (
-          <div className="mt-4 inline-flex items-center gap-2 bg-[rgba(212,160,23,0.12)] border border-[#D4A017]/30 text-[#A67C00] text-sm font-bold rounded-full px-4 py-1.5">
+        {discountPct > 0 &&
+        <div className="mt-4 inline-flex items-center gap-2 bg-[rgba(212,160,23,0.12)] border border-[#D4A017]/30 text-[#A67C00] text-sm font-bold rounded-full px-4 py-1.5">
             <Sparkles className="w-4 h-4" />
             {discountPct}% discount active — code {discountCode}
           </div>
-        )}
-        {stripeError && (
-          <div className="mt-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+        }
+        {stripeError &&
+        <div className="mt-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
             <span className="font-bold">Payment error:</span> {stripeError}
           </div>
-        )}
+        }
       </div>
 
       {/* Tiers */}
@@ -119,8 +119,8 @@ export default function Pricing() {
             accent="#185FA5"
             isCurrent={tier === "free_explorer"}
             processing={processing === "free_explorer"}
-            onBuy={() => handlePurchase({ ...TIERS.free_explorer })}
-          />
+            onBuy={() => handlePurchase({ ...TIERS.free_explorer })} />
+          
 
           {/* Pro — token packs inside */}
           <div className="md:col-span-1 bg-white border-2 border-[#D4A017] rounded-2xl p-6 relative shadow-xl">
@@ -135,7 +135,7 @@ export default function Pricing() {
             <p className="text-sm text-[#6B6560] mt-1">Pick a pack, use anytime. Bonus credits on bigger packs.</p>
 
             <div className="mt-4 space-y-2">
-              {TOKEN_PACKS.map(pack => {
+              {TOKEN_PACKS.map((pack) => {
                 const price = discountPct ? (pack.price_usd * (1 - discountPct / 100)).toFixed(0) : pack.price_usd;
                 const credits = toCredits(pack.tokens);
                 const bonus = pack.bonus_pct ? Math.round(pack.tokens * pack.bonus_pct / 100) : 0;
@@ -145,16 +145,16 @@ export default function Pricing() {
                     key={pack.id}
                     onClick={() => handlePurchase(pack)}
                     disabled={processing === pack.id}
-                    className="w-full flex items-center justify-between gap-3 p-3 bg-[#F7F4EF] hover:bg-[rgba(212,160,23,0.08)] border border-black/10 hover:border-[#D4A017] rounded-xl transition-all text-left disabled:opacity-50"
-                  >
+                    className="w-full flex items-center justify-between gap-3 p-3 bg-[#F7F4EF] hover:bg-[rgba(212,160,23,0.08)] border border-black/10 hover:border-[#D4A017] rounded-xl transition-all text-left disabled:opacity-50">
+                    
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-black text-[#1A1814]">{pack.name}</p>
-                        {pack.badge && (
-                          <span className="text-[8px] uppercase tracking-wider font-bold text-[#A67C00] bg-[rgba(212,160,23,0.15)] px-1.5 py-0.5 rounded">
+                        {pack.badge &&
+                        <span className="text-[8px] uppercase tracking-wider font-bold text-[#A67C00] bg-[rgba(212,160,23,0.15)] px-1.5 py-0.5 rounded">
                             {pack.badge}
                           </span>
-                        )}
+                        }
                       </div>
                       <p className="text-[11px] text-[#6B6560]">
                         {credits.toLocaleString()} credits
@@ -162,24 +162,24 @@ export default function Pricing() {
                       </p>
                     </div>
                     <div className="text-right">
-                      {discountPct > 0 && (
-                        <p className="text-[10px] text-[#AAA49C] line-through">${pack.price_usd}</p>
-                      )}
+                      {discountPct > 0 &&
+                      <p className="text-[10px] text-[#AAA49C] line-through">${pack.price_usd}</p>
+                      }
                       <p className="text-lg font-black text-[#1A1814]">${price}</p>
                     </div>
                     <ArrowRight className="w-4 h-4 text-[#AAA49C]" />
-                  </button>
-                );
+                  </button>);
+
               })}
             </div>
 
             <div className="mt-4 pt-4 border-t border-black/[0.07] space-y-1.5">
-              {TIERS.pro.features.map(f => (
-                <div key={f} className="flex items-start gap-2 text-[12px] text-[#6B6560]">
+              {TIERS.pro.features.map((f) =>
+              <div key={f} className="flex items-start gap-2 text-[12px] text-[#6B6560]">
                   <CheckCircle className="w-3.5 h-3.5 text-[#D4A017] shrink-0 mt-0.5" />
                   {f}
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -189,8 +189,8 @@ export default function Pricing() {
             icon={Crown}
             accent="#1A1814"
             isCurrent={tier === "enterprise"}
-            onBuy={() => window.location.href = "mailto:sales@abos.aero"}
-          />
+            onBuy={() => window.location.href = "mailto:sales@abos.aero"} />
+          
         </div>
 
 
@@ -200,25 +200,25 @@ export default function Pricing() {
           <GoldLabel>Why token-based?</GoldLabel>
           <div className="grid md:grid-cols-3 gap-6 mt-3">
             {[
-              { title: "Never overpay", body: "Pay only for what you actually use — no wasted monthly fees." },
-              { title: "Credits never expire", body: "Your unused credits stay in your account forever." },
-              { title: "Transparent pricing", body: "Every feature shows exactly how many credits it costs." },
-            ].map(x => (
-              <div key={x.title}>
+            { title: "Never overpay", body: "Pay only for what you actually use — no wasted monthly fees." },
+            { title: "Credits never expire", body: "Your unused credits stay in your account forever." },
+            { title: "Transparent pricing", body: "Every feature shows exactly how many credits it costs." }].
+            map((x) =>
+            <div key={x.title}>
                 <p className="text-[13px] font-bold text-[#1A1814]">{x.title}</p>
                 <p className="text-[12px] text-[#6B6560] mt-1">{x.body}</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function TierCard({ tier, icon: Icon, accent, isCurrent, processing, onBuy }) {
   return (
-    <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col">
+    <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col hidden">
       <div className="flex items-center gap-2 mb-1">
         <Icon className="w-5 h-5" style={{ color: accent }} />
         <GoldLabel>{tier.tagline}</GoldLabel>
@@ -227,12 +227,12 @@ function TierCard({ tier, icon: Icon, accent, isCurrent, processing, onBuy }) {
       <p className="text-base font-bold text-[#1A1814] mt-2">{tier.price_label}</p>
 
       <div className="mt-4 space-y-1.5 flex-1">
-        {tier.features.map(f => (
-          <div key={f} className="flex items-start gap-2 text-[12px] text-[#6B6560]">
+        {tier.features.map((f) =>
+        <div key={f} className="flex items-start gap-2 text-[12px] text-[#6B6560]">
             <CheckCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: accent }} />
             {f}
           </div>
-        ))}
+        )}
       </div>
 
       <button
@@ -241,11 +241,11 @@ function TierCard({ tier, icon: Icon, accent, isCurrent, processing, onBuy }) {
         className="mt-5 w-full flex items-center justify-center gap-2 font-bold text-sm py-3 rounded-xl transition-colors disabled:opacity-50"
         style={{
           backgroundColor: isCurrent ? "#F7F4EF" : accent,
-          color: isCurrent ? "#6B6560" : "white",
-        }}
-      >
+          color: isCurrent ? "#6B6560" : "white"
+        }}>
+        
         {isCurrent ? "Current plan" : processing ? "Processing…" : tier.cta}
       </button>
-    </div>
-  );
+    </div>);
+
 }

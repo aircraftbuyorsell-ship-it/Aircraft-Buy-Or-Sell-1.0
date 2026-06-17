@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
       let abosCount = 0;
       try {
-        const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 1);
+        const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 100000);
         abosCount = arr.length;
       } catch (_) {}
 
@@ -163,9 +163,8 @@ Deno.serve(async (req) => {
       } else {
         let existingCount = 0;
         try {
-          // Use a small limit to avoid rate limits; after that many batches, use offset tracking
-          const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 500);
-          existingCount = arr.length === 500 ? 500 : arr.length;
+          const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 100000);
+          existingCount = arr.length;
         } catch (_) {}
         batch = Math.floor(existingCount / BATCH);
       }

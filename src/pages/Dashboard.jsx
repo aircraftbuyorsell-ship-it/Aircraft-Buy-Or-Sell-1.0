@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const { data: faaAircraft = [] } = useQuery({
     queryKey: ["faa-aircraft-count"],
-    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 5000)
+    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 50000)
   });
 
   const { data: dealers = [] } = useQuery({
@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   const totalListings = allListings.length;
   const activeListings = listings.length;
-  const faaSynced = faaAircraft.length;
+  const faaSynced = faaSummary?.abosFaaAircraftCount || faaAircraft.length;
   const dealerCount = dealers.length;
   const matchedToFaa = listings.filter((l) => l.registration && /^N/i.test(l.registration)).length;
   const avgAti = listings.length > 0

@@ -164,8 +164,8 @@ export default function AdminSettings() {
       {/* Auto ATI Scoring */}
       <AutoScoringPanel />
 
-      {/* Feature Toggles — Super Admin only */}
-      {user?.role === "super_admin" && <FeatureTogglePanel />}
+      {/* Feature Toggles — Admin & Super Admin */}
+      {(user?.role === "admin" || user?.role === "super_admin") && <FeatureTogglePanel />}
 
       {/* Webhooks */}
       <WebhooksConfig />

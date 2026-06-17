@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown } from "lucide-react";
+import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown, RefreshCw, Loader2, XCircle } from "lucide-react";
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
 import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
 import FeatureTogglePanel from "@/components/settings/FeatureTogglePanel";
@@ -15,6 +15,39 @@ export default function AdminSettings() {
   const [message, setMessage] = useState("");
   const [frozen, setFrozen] = useState(true);
   const [saved, setSaved] = useState(false);
+
+  // ── Global Data Sync state ──
+  const [syncing, setSyncing] = useState(false);
+  const [syncSteps, setSyncSteps] = useState([
+    { key: "faa", label: "FAA Registry Sync", status: "idle", result: null, error: null },
+    { key: "ati", label: "ATI Scoring (batch 20)", status: "idle", result: null, error: null },
+    { key: "traffic", label: "Traffic Ingestion", status: "idle", result: null, error: null },
+  ]);
+
+  const runGlobalSync = async () => {
+    setSyncing(true);
+    setSyncSteps((prev) => prev.map((s) => ({ ...s, status: "idle", result: null, error: null })));
+
+    const steps = [
+      { key: "faa", fn: () => base44.functions.invoke("syncFaaFromSupabase", { mode: "registry_summary" }) },
+      { key: "ati", fn: () => base44.functions.invoke("autoScoreFAA", { batch_size: 20, offset: 0 }) },
+      { key: "traffic", fn: () => base44.functions.invoke("ingestLiveTraffic", {}) },
+    ];
+
+    for (const step of steps) {
+      setSyncSteps((prev) => prev.map((s) => s.key === step.key ? { ...s, status: "running" } : s));
+      try {
+        const res = await step.fn();
+        const data = res.data || {};
+        const result = typeof data === "object" ? JSON.stringify(data).slice(0, 200) : String(data).slice(0, 200);
+        setSyncSteps((prev) => prev.map((s) => s.key === step.key ? { ...s, status: "success", result } : s));
+      } catch (err) {
+        setSyncSteps((prev) => prev.map((s) => s.key === step.key ? { ...s, status: "error", error: err.message?.slice(0, 200) || "Unknown error" } : s));
+      }
+    }
+
+    setSyncing(false);
+  };
 
   const { data: user } = useQuery({
     queryKey: ["auth-me"],
@@ -169,6 +202,80 @@ export default function AdminSettings() {
 
       {/* Webhooks */}
       <WebhooksConfig />
+
+      {/* Global Data Sync */}
+      <div className="glass-card p-7 mt-6">
+        <div className="flex items-start gap-4 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-[#dc2626]/10 flex items-center justify-center shrink-0">
+            <RefreshCw className="w-5 h-5 text-[#dc2626]" />
+          </div>
+          <div>
+            <h2 className="font-black text-[#0B2D5B] uppercase tracking-tight text-base">
+              Global Data Sync
+            </h2>
+            <p className="text-sm text-[#6B6560] mt-1">
+              One-click full synchronization — FAA registry, ATI scoring, and live traffic ingestion.
+            </p>
+          </div>
+        </div>
+
+        {/* Warning */}
+        <div className="rounded-xl p-4 mb-5 bg-[#dc2626]/05 border border-[#dc2626]/15">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-[#dc2626] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-[#dc2626]">This operation may take several minutes</p>
+              <p className="text-xs text-[#6B6560] mt-0.5">
+                All three steps (FAA sync, ATI scoring, traffic ingestion) run sequentially. Do not close this page until complete.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress steps */}
+        <div className="space-y-2 mb-5">
+          {syncSteps.map((step) => {
+            const statusIcon =
+              step.status === "running" ? <Loader2 className="w-4 h-4 animate-spin text-[#2563eb]" /> :
+              step.status === "success" ? <CheckCircle2 className="w-4 h-4 text-green-500" /> :
+              step.status === "error" ? <XCircle className="w-4 h-4 text-red-500" /> :
+              <div className="w-4 h-4 rounded-full border-2 border-[#AAA49C]/30" />;
+            return (
+              <div key={step.key} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-black/[0.05] bg-white/40">
+                {statusIcon}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#1A1814]">{step.label}</p>
+                  {step.status === "success" && step.result && (
+                    <p className="text-[10px] text-[#6B6560] mt-0.5 truncate font-mono">{step.result}</p>
+                  )}
+                  {step.status === "error" && step.error && (
+                    <p className="text-[10px] text-red-500 mt-0.5 truncate">{step.error}</p>
+                  )}
+                </div>
+                <span className="text-[9px] font-bold uppercase tracking-wider shrink-0"
+                  style={{
+                    color: step.status === "success" ? "#16a34a" : step.status === "error" ? "#dc2626" : step.status === "running" ? "#2563eb" : "#AAA49C",
+                  }}>
+                  {step.status === "success" ? "Done" : step.status === "error" ? "Failed" : step.status === "running" ? "Running" : "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <Button
+          onClick={runGlobalSync}
+          disabled={syncing}
+          className="w-full font-bold uppercase tracking-wide text-white"
+          style={{ background: syncing ? "linear-gradient(135deg,#9ca3af,#6b7280)" : "linear-gradient(135deg,#dc2626,#b91c1c)" }}
+        >
+          {syncing ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> Syncing All Metrics...</>
+          ) : (
+            <><RefreshCw className="w-4 h-4" /> Sync All Metrics</>
+          )}
+        </Button>
+      </div>
 
       {/* Smart Contracts — Coming Soon */}
       <div className="glass-card p-7 opacity-70">

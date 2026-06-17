@@ -145,10 +145,12 @@ export default function Dashboard() {
                 border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
                 backdropFilter: "blur(12px)"
               }}>
-                <button onClick={() => setTrafficView("2d")} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
-                  style={{ background: trafficView === "2d" ? (isDark ? "rgba(244,129,32,0.18)" : "rgba(244,129,32,0.1)") : "transparent", color: trafficView === "2d" ? accentOrange : mutedColor }}>
+                <Link to="/traffic" className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors rounded-lg"
+                  style={{ background: "transparent", color: mutedColor }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? "rgba(244,129,32,0.12)" : "rgba(244,129,32,0.07)"; e.currentTarget.style.color = accentOrange; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = mutedColor; }}>
                   <Map className="w-3 h-3" /> Map
-                </button>
+                </Link>
                 <button onClick={() => setTrafficView("3d")} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
                   style={{ background: trafficView === "3d" ? (isDark ? "rgba(244,129,32,0.18)" : "rgba(244,129,32,0.1)") : "transparent", color: trafficView === "3d" ? accentOrange : mutedColor }}>
                   <Globe className="w-3 h-3" /> Globe

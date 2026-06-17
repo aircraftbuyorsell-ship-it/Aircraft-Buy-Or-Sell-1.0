@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const { data: faaAircraft = [] } = useQuery({
     queryKey: ["faa-aircraft-count"],
-    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 50000)
+    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 5000)
   });
 
   const { data: dealers = [] } = useQuery({
@@ -55,7 +55,7 @@ export default function Dashboard() {
 
   const { data: deals = [] } = useQuery({
     queryKey: ["deals"],
-    queryFn: () => base44.entities.DealRadar.list()
+    queryFn: () => base44.entities.DealRadar.list("-created_date", 2000)
   });
 
   const { data: trafficAppearances = [] } = useQuery({

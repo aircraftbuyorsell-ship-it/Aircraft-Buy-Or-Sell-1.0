@@ -192,48 +192,7 @@ export default function Layout() {
           <div className="flex-1" />
 
           <nav className="flex items-center gap-1.5">
-          <Link
-            to="/pricing"
-            className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold transition-all active:scale-95"
-            style={{
-              background: isDark ? "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(166,124,0,0.12))" : "linear-gradient(135deg,rgba(212,160,23,0.12),rgba(166,124,0,0.08))",
-              border: `1px solid ${isDark ? "rgba(212,160,23,0.30)" : "rgba(212,160,23,0.25)"}`,
-              color: isDark ? "#F5C842" : "#A67C00",
-            }}
-          >
-            <Zap className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">Pricing</span>
-          </Link>
-          <ThemeToggle />
-            <button
-              onClick={() => {
-                localStorage.removeItem("abos_tour_completed_v3");
-                window.dispatchEvent(new Event("abos-tour-open"));
-              }}
-              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
-              aria-label="Open guided tour"
-              title="Platform tour">
-              
-              <HelpCircle className="w-4 h-4" />
-            </button>
-            {currentUser ?
-            <button
-              onClick={() => base44.auth.logout()}
-              className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95 [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">
-              
-                <LogOut className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Log Out</span>
-              </button> :
-
-            <button
-              onClick={() => base44.auth.redirectToLogin()}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
-              style={{ background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 12px rgba(244,129,32,0.35)" }}>
-              
-                <LogIn className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Log In</span>
-              </button>
-            }
+            {/* ── 1. Main navigation ── */}
             {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
               const active = pathname === path;
               return (
@@ -253,8 +212,57 @@ export default function Layout() {
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
                   <span className="hidden sm:inline">{label}</span>
                 </Link>);
-
             })}
+
+            {/* ── 2. Pricing ── */}
+            <Link
+              to="/pricing"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              style={{
+                background: isDark ? "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(166,124,0,0.12))" : "linear-gradient(135deg,rgba(212,160,23,0.12),rgba(166,124,0,0.08))",
+                border: `1px solid ${isDark ? "rgba(212,160,23,0.30)" : "rgba(212,160,23,0.25)"}`,
+                color: isDark ? "#F5C842" : "#A67C00",
+              }}
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Pricing</span>
+            </Link>
+
+            {/* ── 3. Theme ── */}
+            <ThemeToggle />
+
+            {/* ── 4. Help / Tour ── */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("abos_tour_completed_v3");
+                window.dispatchEvent(new Event("abos-tour-open"));
+              }}
+              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              aria-label="Open guided tour"
+              title="Platform tour">
+              
+              <HelpCircle className="w-4 h-4" />
+            </button>
+
+            {/* ── 5. Auth ── */}
+            {currentUser ?
+            <button
+              onClick={() => base44.auth.logout()}
+              className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95 [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">
+              
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log Out</span>
+              </button> :
+
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
+              style={{ background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 12px rgba(244,129,32,0.35)" }}>
+              
+                <LogIn className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log In</span>
+              </button>
+            }
           </nav>
         </div>
       </header>

@@ -277,7 +277,9 @@ export default function MyAccount() {
             </div>
           </HudPanel>
 
-          <DeleteAccountCard alreadyRequested={!!authUser?.deletion_requested_at} />
+          {(authUser?.role !== "admin" && authUser?.role !== "super_admin") && (
+            <DeleteAccountCard alreadyRequested={!!authUser?.deletion_requested_at} />
+          )}
         </div>
       )}
 

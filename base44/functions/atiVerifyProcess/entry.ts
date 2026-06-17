@@ -39,7 +39,17 @@ const MOCK_EXTRACTIONS = {
     extracted_serial: "172S11023",
     confidence_score: 75,
   },
+  ownership_proof: {
+    extracted_name: "John A. Smith",
+    extracted_registration: "N9169Q",
+    extracted_country: "United States",
+    confidence_score: 92,
+  },
 };
+
+function normalize(value) {
+  return (value || "").toUpperCase().trim().replace(/[\s-]/g, "");
+}
 
 Deno.serve(async (req) => {
   try {
@@ -73,11 +83,71 @@ Deno.serve(async (req) => {
 
     // Process each document — mock OCR extraction
     const extractedData = [];
+    let ownershipVerified = false;
+
     for (const doc of documents) {
       const mockData = MOCK_EXTRACTIONS[doc.document_type] || {
         confidence_score: Math.floor(Math.random() * 20) + 65,
       };
 
+      // ── Ownership Proof: compare extracted fields with session ──
+      if (doc.document_type === "ownership_proof") {
+        const extractedName = mockData.extracted_name || "";
+        const extractedReg = mockData.extracted_registration || "";
+
+        const sessionName = normalize(session.seller_name);
+        const sessionReg = normalize(session.aircraft_registration);
+
+        const nameMatch = normalize(extractedName) === sessionName;
+        const regMatch = normalize(extractedReg) === sessionReg;
+
+        if (nameMatch && regMatch) {
+          // Auto-verify — fields match
+          await base44.asServiceRole.entities.ATIVerifyDocument.update(doc.id, {
+            ocr_status: 'completed',
+            ocr_raw_text: `[SIMULATED OCR] Document: ${doc.title}\nType: ${doc.document_type}\nExtracted at: ${new Date().toISOString()}\nConfidence: ${mockData.confidence_score}%\nOwnership match: NAME ✓ REG ✓`,
+            ...mockData,
+            ownership_verified: true,
+          });
+
+          // Update session
+          await base44.asServiceRole.entities.ATIVerifySession.update(sessionId, {
+            ownership_verified_at: new Date().toISOString(),
+          });
+
+          // Update linked ATI Card
+          try {
+            const cards = await base44.asServiceRole.entities.ATICard.filter(
+              { aircraft_registration: session.aircraft_registration },
+              '-created_date',
+              1
+            );
+            if (cards.length > 0) {
+              await base44.asServiceRole.entities.ATICard.update(cards[0].id, {
+                owner_verified: true,
+                owner_verified_at: new Date().toISOString(),
+              });
+            }
+          } catch (_) {
+            // Card not found — non-blocking
+          }
+
+          ownershipVerified = true;
+        } else {
+          // Mismatch — flag for review
+          await base44.asServiceRole.entities.ATIVerifyDocument.update(doc.id, {
+            ocr_status: 'review_required',
+            ocr_raw_text: `[SIMULATED OCR] Document: ${doc.title}\nType: ${doc.document_type}\nExtracted at: ${new Date().toISOString()}\nConfidence: ${mockData.confidence_score}%\nOwnership MISMATCH: Name='${extractedName}' vs '${session.seller_name}' | Reg='${extractedReg}' vs '${session.aircraft_registration}'`,
+            ...mockData,
+            ownership_verified: false,
+          });
+        }
+
+        extractedData.push({ type: doc.document_type, ...mockData, ownership_verified });
+        continue;
+      }
+
+      // ── Standard document processing ──
       await base44.asServiceRole.entities.ATIVerifyDocument.update(doc.id, {
         ocr_status: 'completed',
         ocr_raw_text: `[SIMULATED OCR] Document: ${doc.title}\nType: ${doc.document_type}\nExtracted at: ${new Date().toISOString()}\nConfidence: ${mockData.confidence_score}%`,
@@ -99,10 +169,11 @@ Deno.serve(async (req) => {
     const licenseConf = extractedData.find(d => d.type === 'pilot_license')?.confidence_score || 0;
     const identityScore = hasPassport ? Math.round((passportConf * 0.6 + (hasPilotLicense ? licenseConf * 0.4 : 0))) : hasPilotLicense ? Math.round(licenseConf * 0.6) : 0;
 
-    // Ownership Score: registration + airworthiness + insurance
+    // Ownership Score: registration + airworthiness + insurance + ownership_proof bonus
     const regConf = extractedData.find(d => d.type === 'registration_cert')?.confidence_score || 0;
     const awConf = extractedData.find(d => d.type === 'airworthiness_cert')?.confidence_score || 0;
     const insConf = extractedData.find(d => d.type === 'insurance')?.confidence_score || 0;
+    const ownershipProofVerified = extractedData.some(d => d.type === 'ownership_proof' && d.ownership_verified);
     const ownershipScore = hasRegistration ? Math.round(regConf * 0.4 + (hasAirworthiness ? awConf * 0.35 : 0) + (hasInsurance ? insConf * 0.25 : 0)) : 0;
 
     // Document Confidence: average of all document confidence scores
@@ -111,14 +182,16 @@ Deno.serve(async (req) => {
       ? Math.round(allConfidences.reduce((s, c) => s + c, 0) / allConfidences.length)
       : 0;
 
-    // Overall: weighted average
+    // Overall: weighted average — ownership_proof bonus adds 5 points if matched
     const totalDocs = documents.length;
-    const weightComplete = Math.min(totalDocs / 6, 1); // fraction of 6 doc types present
+    const weightComplete = Math.min(totalDocs / 7, 1); // fraction of 7 doc types present (incl ownership_proof)
+    const ownershipBonus = ownershipProofVerified ? 5 : 0;
     const overallScore = Math.round(
-      identityScore * 0.30 +
-      ownershipScore * 0.40 +
+      identityScore * 0.28 +
+      ownershipScore * 0.35 +
       docConfidence * 0.15 +
-      weightComplete * 100 * 0.15
+      weightComplete * 100 * 0.12 +
+      ownershipBonus * 0.10
     );
 
     // Determine verification status
@@ -131,10 +204,11 @@ Deno.serve(async (req) => {
 
     const scoreDetails = JSON.stringify({
       identity: { score: identityScore, factors: { passport: hasPassport, pilot_license: hasPilotLicense } },
-      ownership: { score: ownershipScore, factors: { registration_cert: hasRegistration, airworthiness: hasAirworthiness, insurance: hasInsurance } },
+      ownership: { score: ownershipScore, factors: { registration_cert: hasRegistration, airworthiness: hasAirworthiness, insurance: hasInsurance, ownership_proof_verified: ownershipProofVerified } },
       documents: { score: docConfidence, total_processed: documents.length },
       overall: overallScore,
-      completeness: `${totalDocs}/6 document types`,
+      completeness: `${totalDocs}/7 document types`,
+      ownership_proof: { verified: ownershipProofVerified },
     });
 
     // Save score
@@ -162,6 +236,7 @@ Deno.serve(async (req) => {
       document_confidence_score: docConfidence,
       overall_score: overallScore,
       verification_status: verificationStatus,
+      ownership_verified: ownershipVerified,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

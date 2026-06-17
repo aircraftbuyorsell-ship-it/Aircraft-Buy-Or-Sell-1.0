@@ -63,6 +63,11 @@
       ],
       "description": "Final verification outcome"
     },
+    "ownership_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When ownership proof was verified"
+    },
     "started_at": {
       "type": "string",
       "format": "date-time"

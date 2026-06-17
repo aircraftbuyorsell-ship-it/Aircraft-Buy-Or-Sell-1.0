@@ -18,6 +18,7 @@ const DOC_TYPES = [
   { key: "airworthiness_cert", label: "Airworthiness Certificate", icon: "✅" },
   { key: "insurance", label: "Insurance Document", icon: "🛡️" },
   { key: "logbook", label: "Logbook Page", icon: "📖" },
+  { key: "ownership_proof", label: "Ownership Proof (LOI / POA / Reg)", icon: "🏷️" },
 ];
 
 function StatusBadge({ status }) {

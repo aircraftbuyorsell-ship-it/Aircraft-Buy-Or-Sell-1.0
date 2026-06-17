@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2, ShieldCheck, Hexagon } from "lucide-react";
+import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2, ShieldCheck, Hexagon, BadgeCheck, XCircle } from "lucide-react";
 
 export default function DocumentUploadPanel({ sessionId, docType, label, icon, existingDocs = [] }) {
   const [uploading, setUploading] = useState(false);
@@ -59,14 +59,21 @@ export default function DocumentUploadPanel({ sessionId, docType, label, icon, e
   };
 
   const latest = existingDocs[0];
+  const isOwnershipProof = docType === "ownership_proof";
 
   return (
-    <div className="bg-[#11162b] border border-white/[0.06] rounded-xl p-4">
+  <div className={`bg-[#11162b] border rounded-xl p-4 ${isOwnershipProof ? "border-[#D4A017]/30" : "border-white/[0.06]"}`}>
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">{icon}</span>
         <p className="text-[11px] font-bold text-white/80">{label}</p>
-        {latest?.ocr_status === "completed" && (
+        {latest?.ocr_status === "completed" && !isOwnershipProof && (
           <CheckCircle2 className="w-3.5 h-3.5 text-[#4ade80]" />
+        )}
+        {isOwnershipProof && latest?.ownership_verified && (
+          <BadgeCheck className="w-3.5 h-3.5 text-[#D4A017]" />
+        )}
+        {isOwnershipProof && latest?.ocr_status === "review_required" && (
+          <XCircle className="w-3.5 h-3.5 text-[#f87171]" />
         )}
       </div>
 
@@ -118,8 +125,22 @@ export default function DocumentUploadPanel({ sessionId, docType, label, icon, e
                 <AlertCircle className="w-3 h-3" />
                 OCR failed
               </div>
+            ) : latest.ocr_status === "review_required" ? (
+              <div className="flex items-center gap-2 text-[10px] text-[#f87171]">
+                <XCircle className="w-3 h-3" />
+                Review Required — name/reg mismatch
+              </div>
             ) : (
               <p className="text-[10px] text-white/20">Awaiting verification</p>
+            )}
+            {/* Ownership verified badge */}
+            {isOwnershipProof && latest?.ownership_verified && (
+              <div className="mt-2 pt-2 border-t border-[#D4A017]/20">
+                <div className="flex items-center gap-1.5">
+                  <BadgeCheck className="w-3.5 h-3.5 text-[#D4A017]" />
+                  <span className="text-[9px] text-[#D4A017] font-black uppercase tracking-wider">Verified by Owner</span>
+                </div>
+              </div>
             )}
           </div>
           <label className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg border border-dashed border-white/[0.1] text-[10px] text-white/30 hover:text-white/60 hover:border-white/[0.2] cursor-pointer transition-all">

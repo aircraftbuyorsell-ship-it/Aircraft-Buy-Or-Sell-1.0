@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Fingerprint, Copy, ExternalLink, Check, Share2 } from "lucide-react";
+import { Fingerprint, Copy, ExternalLink, Check, Share2, BadgeCheck, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { STATUS_META, CARD_TYPE_META } from "@/lib/atiCard";
 
@@ -48,7 +48,26 @@ export default function CardIdentityBlock({ card }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+          {/* Verified by Owner badge */}
+          {card.owner_verified && (
+            <span
+              className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-black px-2.5 py-1.5 rounded-full border"
+              style={{ background: "rgba(212,160,23,0.08)", borderColor: "rgba(212,160,23,0.3)", color: "#A67C00" }}
+            >
+              <BadgeCheck className="w-3.5 h-3.5 text-[#D4A017]" />
+              Verified by Owner
+            </span>
+          )}
+          {!card.owner_verified && (
+            <span
+              className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-full border border-dashed"
+              style={{ color: "rgba(0,0,0,0.25)", borderColor: "rgba(0,0,0,0.12)" }}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Ownership Unverified
+            </span>
+          )}
           <button onClick={copy}
             className="flex items-center gap-1.5 bg-[#F7F4EF] hover:bg-[#0B2D5B] hover:text-white border border-black/10 text-[#1A1814] text-[11px] uppercase tracking-wider font-black px-3 py-2 rounded-md transition-colors">
             {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy ID</>}

@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, Users, Building2, Hash } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, Users, Building2, Hash, BadgeCheck } from "lucide-react";
 import VaultDocumentsPanel from "@/components/cards/VaultDocumentsPanel";
 import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
@@ -195,7 +195,12 @@ export default function ATICard() {
               <span className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-semibold">Card Reference</span>
               <span className="font-mono text-[12px] font-bold text-[#0B2D5B] tracking-wide">{card.public_card_code}</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {card.owner_verified && (
+                <span className="text-[9px] font-black uppercase tracking-wider text-[#A67C00] flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#D4A017]/30 bg-[#D4A017]/8">
+                  <BadgeCheck className="w-3 h-3 text-[#D4A017]" /> Verified by Owner
+                </span>
+              )}
               {card.vault_document_count > 0 && (
                 <span className="text-[9px] font-medium text-[#7c3aed] flex items-center gap-1">
                   <Hash className="w-3 h-3" /> {card.vault_document_count} docs

@@ -144,6 +144,16 @@
       },
       "description": "Ownership percentage breakdown"
     },
+    "owner_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether ownership has been verified via ATI Verify document check"
+    },
+    "owner_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the ownership was verified"
+    },
     "vault_document_count": {
       "type": "number",
       "minimum": 0,

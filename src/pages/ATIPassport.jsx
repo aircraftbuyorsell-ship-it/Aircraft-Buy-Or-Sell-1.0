@@ -5,7 +5,7 @@ import { useParams, Link } from "react-router-dom";
 import {
   ShieldCheck, AlertTriangle, CheckCircle, RefreshCw,
   ArrowLeft, Download, FileText, Wand2, Zap, TrendingDown,
-  Star, Eye, ChevronRight, Lock
+  Star, Eye, ChevronRight, Lock, BadgeCheck
 } from "lucide-react";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import ATIPaymentGate from "@/components/ati/ATIPaymentGate";
@@ -533,12 +533,28 @@ Return ONLY raw JSON:
 
               {/* Ownership stamp */}
               <div className="px-6 md:px-10 py-3 flex items-center justify-center gap-4 flex-wrap border-t border-black/[0.05]">
-                <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="sm" />
-                <span className="text-[10px] text-[#AAA49C]">
-                  {verifiedOwnershipCount > 0
-                    ? `${verifiedOwnershipCount} verified ownership record${verifiedOwnershipCount > 1 ? "s" : ""}`
-                    : "No ownership records verified"}
-                </span>
+                {card?.owner_verified ? (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: "rgba(212,160,23,0.3)", background: "rgba(212,160,23,0.06)" }}>
+                    <BadgeCheck className="w-4 h-4 text-[#D4A017]" />
+                    <span className="text-[11px] font-black uppercase tracking-wider text-[#A67C00]">
+                      Verified by Owner
+                    </span>
+                    {card.owner_verified_at && (
+                      <span className="text-[9px] text-[#D4A017]/60 ml-1">
+                        {new Date(card.owner_verified_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <VerifiedTitleStamp verifiedCount={verifiedOwnershipCount} totalCount={ownershipEvents.length} size="sm" />
+                    <span className="text-[10px] text-[#AAA49C]">
+                      {verifiedOwnershipCount > 0
+                        ? `${verifiedOwnershipCount} verified ownership record${verifiedOwnershipCount > 1 ? "s" : ""}`
+                        : "No ownership records verified"}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 

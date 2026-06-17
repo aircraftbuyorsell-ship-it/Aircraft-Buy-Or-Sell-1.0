@@ -1,8 +1,23 @@
 import { useState, useCallback } from "react";
-import { Search, Loader2, Lock, CheckCircle2, XCircle, Clock, ExternalLink, BadgeCheck, ShieldCheck, AlertTriangle, Zap, User, Building, Plane, ArrowRight } from "lucide-react";
+import { Search, Loader2, Lock, CheckCircle2, XCircle, Clock, ExternalLink, BadgeCheck, ShieldCheck, AlertTriangle, Zap, User, Building, Plane, ArrowRight, Wrench, Paintbrush, Cog, ShoppingCart, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import { Link } from "react-router-dom";
+
+const US_STATE_CENTROIDS = {
+  AL:[32.7,-86.7],AK:[61.4,-150.0],AZ:[34.3,-111.7],AR:[34.8,-92.4],CA:[36.4,-119.7],CO:[39.0,-105.5],
+  CT:[41.6,-72.8],DE:[39.1,-75.5],FL:[28.5,-81.5],GA:[32.7,-83.4],HI:[21.1,-157.5],ID:[44.3,-114.7],
+  IL:[40.0,-89.5],IN:[39.9,-86.3],IA:[42.0,-93.5],KS:[38.5,-97.5],KY:[37.5,-85.3],LA:[31.0,-92.0],
+  ME:[45.2,-69.2],MD:[39.0,-76.8],MA:[42.3,-71.8],MI:[43.4,-84.6],MN:[46.0,-94.5],MS:[32.6,-89.9],
+  MO:[38.3,-92.4],MT:[47.0,-109.6],NE:[41.5,-99.7],NV:[39.0,-116.5],NH:[43.7,-71.6],NJ:[40.2,-74.5],
+  NM:[34.5,-106.0],NY:[43.0,-75.5],NC:[35.5,-79.5],ND:[47.5,-100.5],OH:[40.3,-82.8],OK:[35.5,-97.5],
+  OR:[43.9,-120.5],PA:[40.9,-77.8],RI:[41.6,-71.5],SC:[33.9,-80.9],SD:[44.5,-100.5],TN:[35.8,-86.5],
+  TX:[31.5,-99.5],UT:[39.5,-112.0],VT:[44.0,-72.6],VA:[37.5,-79.0],WA:[47.5,-120.5],WV:[38.8,-80.5],
+  WI:[44.5,-89.5],WY:[42.8,-107.5],DC:[38.9,-77.0],
+};
+
+const ROLE_ICONS = { dealer: ShoppingCart, broker: Building, fbo: MapPin, maintenance: Wrench, other: Cog };
+const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", maintenance: "maintenance shops", other: "services" };
 
 const FAA_STATUS_STYLE = {
   active: { bg: "rgba(34,197,94,0.12)", color: "#22c55e", border: "rgba(34,197,94,0.3)", label: "Active" },
@@ -11,7 +26,7 @@ const FAA_STATUS_STYLE = {
   deregistered: { bg: "rgba(239,68,68,0.12)", color: "#ef4444", border: "rgba(239,68,68,0.3)", label: "Deregistered" },
 };
 
-export default function NRegLookup({ userProfile }) {
+export default function NRegLookup({ userProfile, onFocusLocation }) {
   const isDark = useTheme();
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
@@ -20,9 +35,11 @@ export default function NRegLookup({ userProfile }) {
   const [error, setError] = useState("");
   const [adstcUnlocked, setAdstcUnlocked] = useState(false);
   const [damageUnlocked, setDamageUnlocked] = useState(false);
-  const [unlocking, setUnlocking] = useState(null); // 'adstc' | 'damage'
+  const [unlocking, setUnlocking] = useState(null);
   const [atiCreating, setAtiCreating] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
+  const [areaServices, setAreaServices] = useState(null);
+  const [areaState, setAreaState] = useState("");
 
   const textColor = isDark ? "#e2e8f0" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
@@ -53,6 +70,32 @@ export default function NRegLookup({ userProfile }) {
       }
       const faa = faaResults[0];
       setResult(faa);
+
+      // Focus globe on aircraft location
+      if (faa.state && onFocusLocation) {
+        const coords = US_STATE_CENTROIDS[faa.state.toUpperCase()];
+        if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: faa.state });
+      }
+
+      // Query local services from FAA dealer registry
+      if (faa.state) {
+        try {
+          const dealers = await base44.entities.DealerLocation.filter({ state: faa.state, is_active: true }, "-created_date", 200);
+          if (dealers.length > 0) {
+            const byRole = {};
+            for (const d of dealers) {
+              const r = d.role || "other";
+              byRole[r] = (byRole[r] || 0) + 1;
+            }
+            setAreaServices(byRole);
+            setAreaState(faa.state);
+          } else {
+            setAreaServices(null);
+          }
+        } catch { setAreaServices(null); }
+      } else {
+        setAreaServices(null);
+      }
 
       // Check for ABOS listing match
       try {
@@ -229,6 +272,33 @@ export default function NRegLookup({ userProfile }) {
               </div>
             ))}
           </div>
+
+          {/* ── Area Services Bar ────────────────────── */}
+          {areaServices && Object.keys(areaServices).length > 0 && (
+            <div className="rounded-xl p-3 flex items-center gap-3"
+              style={{
+                background: isDark ? "rgba(0,180,255,0.06)" : "rgba(0,180,255,0.04)",
+                border: "1px solid rgba(0,180,255,0.18)",
+              }}>
+              <MapPin className="w-4 h-4 shrink-0" style={{ color: "#3b82f6" }} />
+              <div className="flex-1">
+                <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: "#3b82f6" }}>
+                  Services in {areaState}
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  {Object.entries(areaServices).map(([role, count]) => {
+                    const Icon = ROLE_ICONS[role] || Cog;
+                    return (
+                      <span key={role} className="inline-flex items-center gap-1 text-[10px] font-semibold" style={{ color: textColor }}>
+                        <Icon className="w-3 h-3" style={{ color: mutedColor }} />
+                        {count} {ROLE_LABELS[role] || role}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Listing match badge */}
           {listingMatch ? (

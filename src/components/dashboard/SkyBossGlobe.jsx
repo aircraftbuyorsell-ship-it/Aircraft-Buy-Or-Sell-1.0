@@ -250,7 +250,7 @@ const ATI_RANGE_TEST = {
   unscored: (l) => !l.ati_score || l.ati_score === 0,
 };
 
-export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, onSelectListing }) {
+export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, focusLocation, onSelectListing }) {
   const isDark = useTheme();
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -291,6 +291,39 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     if (adsbCache.current.length > 0) renderToGlobe(adsbCache.current);
     if (liveCache.current.length > 0) renderLiveToGlobe(liveCache.current);
   }, [filter]);
+
+  // Animate globe to focus on location
+  const focusTargetRef = useRef(null);
+  const focusAnimRef = useRef(null);
+  useEffect(() => {
+    if (!focusLocation?.lat || !focusLocation?.lon) {
+      focusTargetRef.current = null;
+      return;
+    }
+    const targetY = -(focusLocation.lon * Math.PI / 180) - Math.PI / 2;
+    const targetX = focusLocation.lat * Math.PI / 180 * 0.6;
+    focusTargetRef.current = { y: targetY, x: Math.max(-1.3, Math.min(1.3, targetX)) };
+    autoRotateRef.current = false;
+
+    if (focusAnimRef.current) cancelAnimationFrame(focusAnimRef.current);
+    const animate = () => {
+      const target = focusTargetRef.current;
+      if (!target) return;
+      const dy = target.y - rotRef.current.y;
+      const dx = target.x - rotRef.current.x;
+      if (Math.abs(dy) < 0.001 && Math.abs(dx) < 0.001) {
+        rotRef.current.y = target.y;
+        rotRef.current.x = target.x;
+        setTimeout(() => { autoRotateRef.current = true; }, 3000);
+        return;
+      }
+      rotRef.current.y += dy * 0.08;
+      rotRef.current.x += dx * 0.08;
+      focusAnimRef.current = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => { if (focusAnimRef.current) cancelAnimationFrame(focusAnimRef.current); };
+  }, [focusLocation]);
 
   const [trafficCount, setTrafficCount] = useState(0);
   const [trafficStatus, setTrafficStatus] = useState("idle");

@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Globe, Map } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
-import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NRegLookup from "@/components/dashboard/NRegLookup";
@@ -16,14 +13,19 @@ import NotificationCenter from "@/components/dashboard/NotificationCenter";
 
 export default function Dashboard() {
   const isDark = useTheme();
-  const [trafficRefreshKey, setTrafficRefreshKey] = useState(0);
-  const [trafficView, setTrafficView] = useState("3d");
   const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
+  const [focusLocation, setFocusLocation] = useState(null);
 
   const textColor = isDark ? "#e2e8f0" : "#1a1a1a";
   const mutedColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
   const accentOrange = isDark ? "#f48120" : "#e07310";
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";
+  const steelGlass = isDark
+    ? "rgba(12,20,40,0.78)"
+    : "rgba(230,240,255,0.82)";
+  const steelBorder = isDark
+    ? "1px solid rgba(0,180,255,0.14)"
+    : "1px solid rgba(37,99,235,0.12)";
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -49,7 +51,7 @@ export default function Dashboard() {
 
       {/* ── GLOBE BACKGROUND ──────────────────────────────── */}
       <div className="fixed inset-0 z-0">
-        <SkyBossGlobe className="w-full h-full" listings={listings} filter={globeFilter} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
+        <SkyBossGlobe className="w-full h-full" listings={listings} filter={globeFilter} focusLocation={focusLocation} onSelectListing={(l) => window.location.href = `/ati-passport/${l.id}`} />
       </div>
 
       {/* ── OVERLAY CONTENT ────────────────────────────────── */}
@@ -58,7 +60,7 @@ export default function Dashboard() {
         {/* ── HEADER ──────────────────────────────────────── */}
         <section className="px-4 md:px-8 pt-6 pb-3">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="text-[10px] tracking-[0.18em] font-bold" style={{ color: accentOrange }}>ABOS MarketSpace</p>
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
@@ -67,49 +69,28 @@ export default function Dashboard() {
               </div>
               <SubscriptionBadge />
             </div>
-
-            {/* Controls row */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex rounded-lg overflow-hidden" style={{
-                background: isDark ? "rgba(15,15,28,0.7)" : "rgba(255,255,255,0.7)",
-                border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
-                backdropFilter: "blur(12px)"
-              }}>
-                <Link to="/traffic" className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors rounded-lg"
-                  style={{ background: "transparent", color: mutedColor }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = isDark ? "rgba(244,129,32,0.12)" : "rgba(244,129,32,0.07)"; e.currentTarget.style.color = accentOrange; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = mutedColor; }}>
-                  <Map className="w-3 h-3" /> Map
-                </Link>
-                <button onClick={() => setTrafficView("3d")} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium transition-colors"
-                  style={{ background: trafficView === "3d" ? (isDark ? "rgba(244,129,32,0.18)" : "rgba(244,129,32,0.1)") : "transparent", color: trafficView === "3d" ? accentOrange : mutedColor }}>
-                  <Globe className="w-3 h-3" /> Globe
-                </button>
-              </div>
-              <div className="flex-1" />
-              <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
-              <GlobeTrafficControls
-                onSearch={(q) => { }}
-                onRefresh={() => setTrafficRefreshKey((k) => k + 1)}
-                listingCount={listings.length}
-                compact />
-            </div>
-            <div className="mt-2"><AviationNewsTicker /></div>
+            <div className="mt-3"><AviationNewsTicker /></div>
           </div>
         </section>
 
         {/* ── N-REG LOOKUP HERO ───────────────────────────── */}
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto flex flex-col items-center">
-            <NRegLookup userProfile={userProfile} />
+            <div className="w-full rounded-2xl p-4 md:p-6"
+              style={{ background: steelGlass, border: steelBorder, backdropFilter: "blur(28px) saturate(180%)", WebkitBackdropFilter: "blur(28px) saturate(180%)" }}>
+              <NRegLookup userProfile={userProfile} onFocusLocation={setFocusLocation} />
+            </div>
           </div>
         </section>
 
         {/* ── QUICK ACCESS STRIP ──────────────────────────── */}
         <section className="px-4 md:px-8 pb-10">
           <div className="max-w-6xl mx-auto">
-            <p className="text-[10px] tracking-[0.18em] font-bold mb-3 text-center" style={{ color: accentOrange }}>AVIATION TOOLS</p>
-            <QuickAccessStrip />
+            <div className="rounded-2xl p-4 md:p-5"
+              style={{ background: steelGlass, border: steelBorder, backdropFilter: "blur(28px) saturate(180%)", WebkitBackdropFilter: "blur(28px) saturate(180%)" }}>
+              <p className="text-[10px] tracking-[0.18em] font-bold mb-3 text-center" style={{ color: accentOrange }}>AVIATION TOOLS</p>
+              <QuickAccessStrip />
+            </div>
           </div>
         </section>
 

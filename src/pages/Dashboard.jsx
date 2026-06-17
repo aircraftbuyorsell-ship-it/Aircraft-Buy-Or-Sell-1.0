@@ -172,7 +172,7 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto">
             <RocketMetrics metrics={[
-              { icon: Plane, label: "Aircraft Listings", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: accentOrange },
+              { icon: Plane, label: "Aircraft Register", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: accentOrange },
               { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: accentCyan },
               { icon: Store, label: "Dealer Network", value: dealerCount.toLocaleString(), sub: `ABOS sync · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
               { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
@@ -269,11 +269,11 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── RECENT LISTINGS ────────────────────────────────── */}
+        {/* ── AIRCRAFT REGISTER ────────────────────────────────── */}
         <section className="px-4 md:px-8 pb-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-end justify-between mb-3 flex-wrap gap-3">
-              <p className="text-[10px] tracking-[0.18em] font-bold" style={{ color: accentOrange }}>RECENT LISTINGS</p>
+              <p className="text-[10px] tracking-[0.18em] font-bold" style={{ color: accentOrange }}>AIRCRAFT REGISTER</p>
               <Link to="/listings" className="flex items-center gap-1 text-[11px] font-semibold hover:opacity-70" style={{ color: accentOrange }}>
                 View All <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -311,7 +311,7 @@ export default function Dashboard() {
               {listings.length === 0 &&
                 <div className="sm:col-span-2 xl:col-span-3 py-12 text-center rounded-xl" style={panelStyle}>
                   <Plane className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm" style={{ color: mutedColor }}>No aircraft listings yet.</p>
+                  <p className="text-sm" style={{ color: mutedColor }}>No aircraft in register yet.</p>
                 </div>
               }
             </div>

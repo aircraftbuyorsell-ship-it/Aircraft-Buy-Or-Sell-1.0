@@ -34,7 +34,7 @@ const SIDEBAR_SECTIONS = [
     color: "#f48120",
     items: [
       { path: "/", label: "Dashboard", icon: LayoutDashboard, desc: "Platform overview — active listings, ATI scores, market pulse and live globe" },
-      { path: "/listings", label: "Aircraft Listings", icon: Plane, desc: "Browse all public aircraft listings with ATI scores, deal ratings and swipe deck" },
+      { path: "/listings", label: "Aircraft Register", icon: Plane, desc: "Browse the aircraft register with ATI scores, deal ratings and swipe deck" },
       { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, desc: "Instant 8-dimension ATI scorecard from any listing text or N-number — free" },
       { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
       { path: "/compare", label: "Compare Aircraft", icon: Layers, desc: "Compare up to 3 aircraft side-by-side on specs, pricing and ATI scores" },

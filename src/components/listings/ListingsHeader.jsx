@@ -106,7 +106,7 @@ export default function ListingsHeader({
             Discover & Evaluate Aircraft
           </h1>
           <p className="text-white/60 text-[13px] md:text-[14px] mt-3 max-w-xl leading-relaxed">
-            Browse active listings with ATI scores, real-time market intelligence, and off-market valuation data.
+            Browse the aircraft register with ATI scores, real-time market intelligence, and off-market valuation data.
             {!isLoading && (
               <span className="text-white/40"> · {listingsCount} aircraft available</span>
             )}

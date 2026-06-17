@@ -22,7 +22,7 @@ const FEATURE_CATALOG = [
     icon: LayoutDashboard,
     items: [
       { key: "page_dashboard", label: "Dashboard", desc: "Main platform overview with globe, metrics, news ticker", icon: LayoutDashboard },
-      { key: "page_listings", label: "Aircraft Listings", desc: "Browse all public aircraft listings with ATI scores", icon: Plane },
+      { key: "page_listings", label: "Aircraft Register", desc: "Browse the aircraft register with ATI scores", icon: Plane },
       { key: "page_ati_passport", label: "ATI Passport", desc: "Detailed aircraft analysis and scoring report", icon: FileText },
       { key: "page_ati_card", label: "ATI Card", desc: "Digital aircraft identity card with vault", icon: Star },
       { key: "page_ati_quick_score", label: "ATI Quick Score", desc: "Instant 8-dimension scorecard from listing text", icon: Zap },

@@ -377,7 +377,7 @@ export default function Listings() {
             className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-[12px] font-bold px-5 py-2.5 rounded-xl">
             
               <Upload className="w-3.5 h-3.5" />
-              Add First Listing
+              Add First Aircraft
             </button>
           </div> :
         viewMode === "cards" ? (

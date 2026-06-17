@@ -9,6 +9,7 @@ import GlobeClock from "@/components/dashboard/GlobeClock";
 
 const EARTH_DARK = "https://unpkg.com/three-globe/example/img/earth-dark.jpg";
 const EARTH_BLUE = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
+const EARTH_NIGHT = "https://unpkg.com/three-globe/example/img/earth-night.jpg";
 
 // Registration prefix → country → coordinates
 const REG_PREFIX_MAP = {
@@ -501,7 +502,20 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       coreMat.needsUpdate = true;
     });
 
-    // Grid & atmosphere removed — clean globe
+    // Night lights — additive-blended sphere visible only on dark side
+    const nightLightsMat = new THREE.MeshBasicMaterial({
+      map: null,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      opacity: isDark ? 0.9 : 0.75,
+      depthWrite: false
+    });
+    const nightLights = new THREE.Mesh(new THREE.SphereGeometry(1.006, 72, 72), nightLightsMat);
+    globe.add(nightLights);
+    new THREE.TextureLoader().load(EARTH_NIGHT, (t) => {
+      nightLightsMat.map = t;
+      nightLightsMat.needsUpdate = true;
+    });
 
     // Day/night cycle lighting — sun position driven by UTC time
     const ambient = new THREE.AmbientLight(isDark ? 0x1a2a44 : 0x334466, isDark ? 0.22 : 0.28);

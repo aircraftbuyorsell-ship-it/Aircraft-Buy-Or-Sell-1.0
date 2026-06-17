@@ -456,6 +456,112 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── MODE: registry_import_single ──
+    if (currentMode === 'registry_import_single') {
+      const { n_number } = await req.json().catch(() => ({}));
+      if (!n_number) return Response.json({ error: 'n_number required' }, { status: 400 });
+
+      const { data: rows, error: rowErr } = await supabaseAdmin
+        .from('faa_registry').select('*').eq('n_number', n_number.trim().toUpperCase()).limit(1);
+      if (rowErr) return Response.json({ error: rowErr.message }, { status: 500 });
+      if (!rows?.length) return Response.json({ error: 'Not found in FAA registry' }, { status: 404 });
+
+      const r = rows[0];
+      const nNum = r.n_number.trim().toUpperCase();
+      const aircraftData = {
+        n_number: nNum, serial_number: r.serial_number || '', mfr_mdl_code: r.mfr_mdl_code || '',
+        eng_mfr_mdl: r.eng_mfr_mdl || '', year_mfr: r.year_mfr || null, type_registrant: r.type_registrant || '',
+        name: r.name || '', city: r.city || '', state: r.state || '', country: r.country || '',
+        last_action_date: r.last_action_date || '', cert_issue_date: r.cert_issue_date || '',
+        status_code: r.status_code || '', type_aircraft: r.type_aircraft || '', type_engine: r.type_engine || '',
+        mode_s_hex: r.mode_s_code_hex || '', fract_owner: r.fract_owner || '',
+        air_worth_date: r.air_worth_date || '', expiration_date: r.expiration_date || '',
+      };
+      const existing = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, '-created_date', 1);
+      if (existing.length > 0) {
+        await base44.asServiceRole.entities.FAAAircraft.update(existing[0].id, aircraftData);
+        return Response.json({ success: true, action: 'updated', n_number: nNum });
+      }
+      await base44.asServiceRole.entities.FAAAircraft.create(aircraftData);
+      return Response.json({ success: true, action: 'created', n_number: nNum });
+    }
+
+    // ── MODE: acftref_enrich_single ──
+    if (currentMode === 'acftref_enrich_single') {
+      const { code } = await req.json().catch(() => ({}));
+      if (!code) return Response.json({ error: 'code required' }, { status: 400 });
+
+      const { data: refs, error: refErr } = await supabaseAdmin
+        .from('faa_acftref').select('*').eq('code', code.trim()).limit(1);
+      if (refErr) return Response.json({ error: refErr.message }, { status: 500 });
+      if (!refs?.length) return Response.json({ error: 'Code not found' }, { status: 404 });
+
+      const ref = refs[0];
+      const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({ mfr_mdl_code: ref.code.trim() }, '-created_date', 5000);
+      let enriched = 0;
+      for (const f of faaAircraft) {
+        const listingMatch = await base44.asServiceRole.entities.AircraftListing.filter({ registration: `N${f.n_number}` }, '-created_date', 1);
+        if (listingMatch.length > 0) {
+          const updateData = {};
+          if (!listingMatch[0].make || listingMatch[0].make === 'Unknown') updateData.make = ref.mfr;
+          if (!listingMatch[0].model || listingMatch[0].model === 'Unknown') updateData.model = ref.model;
+          if (Object.keys(updateData).length > 0) {
+            await base44.asServiceRole.entities.AircraftListing.update(listingMatch[0].id, updateData);
+            enriched++;
+          }
+        }
+      }
+      return Response.json({ success: true, action: `enriched ${enriched} listings`, code: ref.code, faaMatched: faaAircraft.length });
+    }
+
+    // ── MODE: dealers_import_single ──
+    if (currentMode === 'dealers_import_single') {
+      const { cert_num } = await req.json().catch(() => ({}));
+      if (!cert_num) return Response.json({ error: 'cert_num required' }, { status: 400 });
+
+      const { data: rows, error: rowErr } = await supabaseAdmin
+        .from('faa_dealers').select('*').eq('cert_num', cert_num.trim()).limit(1);
+      if (rowErr) return Response.json({ error: rowErr.message }, { status: 500 });
+      if (!rows?.length) return Response.json({ error: 'Not found' }, { status: 404 });
+
+      const r = rows[0];
+      const dealerData = { cert_number: r.cert_num, name: r.name, is_active: r.is_active ?? true, role: 'dealer' };
+      if (r.city) dealerData.city = r.city;
+      if (r.state) dealerData.state = r.state;
+      if (r.zip_code) dealerData.zip_code = r.zip_code;
+
+      const existing = await base44.asServiceRole.entities.DealerLocation.filter({ cert_number: r.cert_num }, '-created_date', 1);
+      if (existing.length > 0) {
+        await base44.asServiceRole.entities.DealerLocation.update(existing[0].id, dealerData);
+        return Response.json({ success: true, action: 'updated', cert_num: r.cert_num, name: r.name });
+      }
+      await base44.asServiceRole.entities.DealerLocation.create(dealerData);
+      return Response.json({ success: true, action: 'created', cert_num: r.cert_num, name: r.name });
+    }
+
+    // ── MODE: engine_enrich_single ──
+    if (currentMode === 'engine_enrich_single') {
+      const { code } = await req.json().catch(() => ({}));
+      if (!code) return Response.json({ error: 'code required' }, { status: 400 });
+
+      const { data: refs, error: refErr } = await supabaseAdmin
+        .from('faa_engine').select('*').eq('code', code.trim()).limit(1);
+      if (refErr) return Response.json({ error: refErr.message }, { status: 500 });
+      if (!refs?.length) return Response.json({ error: 'Code not found' }, { status: 404 });
+
+      const eng = refs[0];
+      const faaAircraft = await base44.asServiceRole.entities.FAAAircraft.filter({ eng_mfr_mdl: eng.code.trim() }, '-created_date', 5000);
+      let engUpdated = 0;
+      for (const f of faaAircraft) {
+        await base44.asServiceRole.entities.FAAAircraft.update(f.id, {
+          engine_mfr: eng.mfr || '', engine_model: eng.model || '',
+          engine_type: eng.type || '', horsepower: eng.horsepower || '', thrust: eng.thrust || '',
+        });
+        engUpdated++;
+      }
+      return Response.json({ success: true, action: `enriched ${engUpdated} aircraft`, code: eng.code, faaMatched: faaAircraft.length });
+    }
+
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

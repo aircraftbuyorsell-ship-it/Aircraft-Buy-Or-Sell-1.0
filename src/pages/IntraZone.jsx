@@ -6,6 +6,7 @@ import MatchingEngine from "@/components/intrazone/MatchingEngine";
 import NegotiationEngine from "@/components/intrazone/NegotiationEngine";
 import SalesDashboard from "@/components/intrazone/SalesDashboard";
 import { BarChart2, Zap, TrendingUp, Shield, Target, MessageSquare } from "lucide-react";
+import FaaDatabaseCard from "@/components/intrazone/FaaDatabaseCard";
 
 const TAB_GROUPS = [
   {
@@ -81,6 +82,11 @@ export default function IntraZone() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* FAA Database Card */}
+      <div className="px-4 md:px-8 pt-5 pb-3 max-w-5xl mx-auto">
+        <FaaDatabaseCard />
       </div>
 
       {/* Content */}

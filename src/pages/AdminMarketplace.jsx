@@ -62,33 +62,33 @@ export default function AdminMarketplace() {
   const tabActive = isDark ? "rgba(255,255,255,0.12)" : "#ffffff";
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
+    <div className="px-3 sm:px-6 lg:px-10 py-4 sm:py-6 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+      <div className="flex items-center gap-2.5 sm:gap-3 mb-5 sm:mb-6">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0"
           style={isDark ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.30)" } : { background: "#fef2f2", border: "1px solid #fecaca" }}>
-          <ShieldCheck className="w-5 h-5 text-red-500" />
+          <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
         </div>
-        <div>
-          <h1 className="text-2xl font-black tracking-tight" style={{ color: textPrimary }}>Marketplace Admin</h1>
-          <p className="text-sm" style={{ color: textMuted }}>Approve developers and tool submissions</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-black tracking-tight truncate" style={{ color: textPrimary }}>Marketplace Admin</h1>
+          <p className="text-xs sm:text-sm truncate" style={{ color: textMuted }}>Approve developers and tool submissions</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 rounded-xl p-1 w-fit" style={{ background: tabBg }}>
+      <div className="flex gap-1 mb-5 sm:mb-6 rounded-xl p-1 w-fit" style={{ background: tabBg }}>
         {TABS.map(({ key, label, icon: Icon }) => {
           const pending = key === "developers" ? pendingDevs : pendingTools;
           const active = tab === key;
           return (
             <button key={key} onClick={() => setTab(key)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-colors"
               style={{ background: active ? tabActive : "transparent", color: active ? textPrimary : textMuted,
                 boxShadow: active && !isDark ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {label}
               {pending > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black">{pending}</span>
+                <span className="ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[9px] sm:text-[10px] font-black">{pending}</span>
               )}
             </button>
           );

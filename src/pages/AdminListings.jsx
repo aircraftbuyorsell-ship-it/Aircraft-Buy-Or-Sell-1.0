@@ -127,27 +127,27 @@ export default function AdminListings() {
   const headerText = isDark ? "rgba(255,255,255,0.30)" : "rgba(0,0,0,0.40)";
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-3 sm:p-4 md:p-8">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-[#E8A83A] font-black">Admin Panel</p>
-          <h1 className="text-2xl font-black tracking-tight" style={{ color: textPrimary }}>All Aircraft Listings</h1>
-          {!isLoading && <p className="text-sm mt-0.5" style={{ color: textMuted }}>{listings.length} total · {filtered.length} shown</p>}
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight" style={{ color: textPrimary }}>All Aircraft Listings</h1>
+          {!isLoading && <p className="text-xs sm:text-sm mt-0.5" style={{ color: textMuted }}>{listings.length} total · {filtered.length} shown</p>}
         </div>
         <button onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors border"
+          className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors border"
           style={{ color: textMuted, borderColor: filterBorder, background: filterBg }}
           onMouseEnter={e => e.currentTarget.style.color = textPrimary}
           onMouseLeave={e => e.currentTarget.style.color = textMuted}>
-          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+        <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: textMuted }} />
           <input
             value={search}
@@ -164,12 +164,12 @@ export default function AdminListings() {
           )}
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl px-2 py-1 border" style={{ background: filterBg, borderColor: filterBorder }}>
-          <SlidersHorizontal className="w-3.5 h-3.5" style={{ color: textMuted }} />
+        <div className="flex items-center gap-1 rounded-xl px-2 py-1 border overflow-x-auto" style={{ background: filterBg, borderColor: filterBorder }}>
+          <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" style={{ color: textMuted }} />
           {["all", ...STATUS_OPTIONS].map(s => (
             <button key={s}
               onClick={() => setStatusFilter(s)}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors"
+              className="px-2 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold capitalize transition-colors whitespace-nowrap"
               style={statusFilter === s
                 ? { background: "#E8A83A", color: "#0B2D5B" }
                 : { color: textMuted }}>
@@ -181,7 +181,7 @@ export default function AdminListings() {
 
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 px-4 py-3 rounded-xl border"
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 mb-4 px-3 sm:px-4 py-3 rounded-xl border"
           style={isDark
             ? { background: "rgba(11,45,91,0.85)", borderColor: "rgba(0,245,255,0.20)" }
             : { background: "rgba(255,255,255,0.95)", borderColor: "rgba(0,0,0,0.10)", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
@@ -193,7 +193,7 @@ export default function AdminListings() {
           </button>
           <div className="w-px h-4" style={{ background: isDark ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.12)" }} />
           <span className="text-[12px] font-black" style={{ color: isDark ? "#E8A83A" : "#D4911A" }}>{selectedIds.length} selected</span>
-          <div className="flex-1" />
+          <div className="hidden sm:block flex-1" />
 
           {/* Set Status */}
           <div className="relative">
@@ -271,17 +271,17 @@ export default function AdminListings() {
       )}
 
       {/* Table */}
-      <div className="rounded-2xl overflow-hidden border"
+      <div className="rounded-2xl overflow-hidden border overflow-x-auto"
         style={{ background: tableBg, borderColor: tableBorder, backdropFilter: isDark ? "blur(24px)" : "none" }}>
         {/* Header row */}
-        <div className="grid items-center gap-3 px-4 py-3 border-b"
-          style={{ gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px", borderColor: rowDivider }}>
+        <div className="grid items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 border-b min-w-[680px]"
+          style={{ gridTemplateColumns: "36px 40px 1fr 70px 80px 80px 70px 60px", borderColor: rowDivider }}>
           <button onClick={toggleAll} className="flex items-center justify-center transition-colors"
             style={{ color: headerText }}>
             {allSelected ? <CheckSquare className="w-4 h-4 text-[#E8A83A]" /> : <Square className="w-4 h-4" />}
           </button>
-          {["ATI", "Aircraft", "Reg.", "Status", "Price", "TT (h)", "Actions"].map(h => (
-            <p key={h} className="text-[9px] uppercase tracking-[0.15em] font-black" style={{ color: headerText }}>{h}</p>
+          {["ATI", "Aircraft", "Reg.", "Status", "Price", "TT", "Link"].map(h => (
+            <p key={h} className="text-[8px] sm:text-[9px] uppercase tracking-[0.12em] sm:tracking-[0.15em] font-black" style={{ color: headerText }}>{h}</p>
           ))}
         </div>
 
@@ -300,9 +300,9 @@ export default function AdminListings() {
             return (
               <div
                 key={l.id}
-                className="grid items-center gap-3 px-4 py-3 last:border-0 transition-colors cursor-pointer"
+                className="grid items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 last:border-0 transition-colors cursor-pointer min-w-[680px]"
                 style={{
-                  gridTemplateColumns: "40px 44px 1fr 80px 90px 90px 80px 80px",
+                  gridTemplateColumns: "36px 40px 1fr 70px 80px 80px 70px 60px",
                   borderTop: `1px solid ${rowDivider}`,
                   background: sel ? "rgba(232,168,58,0.08)" : i % 2 !== 0 ? rowAlt : undefined
                 }}
@@ -320,27 +320,27 @@ export default function AdminListings() {
 
                 {/* Aircraft */}
                 <div className="min-w-0">
-                  <p className="text-[13px] font-black truncate leading-tight" style={{ color: textPrimary }}>
+                  <p className="text-[11px] sm:text-[13px] font-black truncate leading-tight" style={{ color: textPrimary }}>
                     {l.year ? `${l.year} ` : ""}{l.make} {l.model}
                   </p>
                   {l.deal_label && (
-                    <span className="text-[9px] font-bold uppercase text-[#E8A83A] opacity-70">{l.deal_label}</span>
+                    <span className="text-[8px] sm:text-[9px] font-bold uppercase text-[#E8A83A] opacity-70">{l.deal_label}</span>
                   )}
                 </div>
 
                 {/* Reg */}
-                <p className="text-[11px] font-mono truncate" style={{ color: textMuted }}>{l.registration ?? "—"}</p>
+                <p className="text-[10px] sm:text-[11px] font-mono truncate" style={{ color: textMuted }}>{l.registration ?? "—"}</p>
 
                 {/* Status */}
                 <div><StatusBadge status={l.status} /></div>
 
                 {/* Price */}
-                <p className="text-[12px] font-bold" style={{ color: isDark ? "rgba(255,255,255,0.80)" : "#1A1814" }}>
+                <p className="text-[10px] sm:text-[12px] font-bold" style={{ color: isDark ? "rgba(255,255,255,0.80)" : "#1A1814" }}>
                   {l.asking_price ? `$${l.asking_price.toLocaleString()}` : <span style={{ color: textMuted }}>—</span>}
                 </p>
 
                 {/* TT */}
-                <p className="text-[12px]" style={{ color: textMuted }}>
+                <p className="text-[10px] sm:text-[12px]" style={{ color: textMuted }}>
                   {l.total_time ? l.total_time.toLocaleString() : "—"}
                 </p>
 

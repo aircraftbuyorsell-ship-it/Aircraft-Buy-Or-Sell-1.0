@@ -101,13 +101,13 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10 max-w-5xl mx-auto">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-6 sm:py-10 max-w-5xl mx-auto">
 
       {/* Header */}
-      <div className="mb-10">
-        <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Admin Panel</p>
-        <h1 className="text-2xl font-black text-[#0B2D5B] uppercase tracking-tight mt-1">Platform Settings</h1>
-        <p className="text-sm text-[#6B6560] mt-1">Global configuration for ABOS platform behaviour and AI analysis.</p>
+      <div className="mb-8 sm:mb-10">
+        <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Admin Panel</p>
+        <h1 className="text-xl sm:text-2xl font-black text-[#0B2D5B] uppercase tracking-tight mt-1">Platform Settings</h1>
+        <p className="text-xs sm:text-sm text-[#6B6560] mt-1">Global configuration for ABOS platform behaviour and AI analysis.</p>
       </div>
 
       {/* ABOS Data Influence Card */}
@@ -297,7 +297,7 @@ export default function AdminSettings() {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           {["Automated Escrow Release", "Co-Ownership Tokenization", "B2B / B2C Contract Templates"].map((f) => (
             <div key={f} className="rounded-xl border border-dashed border-[#E8A83A]/30 bg-[#E8A83A]/05 p-3 text-center">
               <Zap className="w-4 h-4 text-[#E8A83A] mx-auto mb-1.5" />

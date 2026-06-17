@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Loader2, Sparkles, CheckCircle2, AlertCircle, X } from
+  Loader2, Sparkles, CheckCircle2, AlertCircle, X, Database, ExternalLink } from
 "lucide-react";
 import GlobeClock from "@/components/dashboard/GlobeClock";
 
@@ -31,6 +31,23 @@ const REG_PREFIX_MAP = {
   "SU": [27, 30], "5N": [9, 8], "5Y": [-1, 37],
   "4X": [31, 35], "HZ": [24, 45], "TC": [39, 35],
   "VN": [14, 108], "HB": [47, 8]
+};
+
+// US state centroids for FAA Registry clustering
+const US_STATE_CENTROIDS = {
+  AL: [32.7, -86.7], AK: [61.4, -150.0], AZ: [34.3, -111.7], AR: [34.8, -92.4],
+  CA: [36.4, -119.7], CO: [39.0, -105.5], CT: [41.6, -72.8], DE: [39.1, -75.5],
+  FL: [28.5, -81.5], GA: [32.7, -83.4], HI: [21.1, -157.5], ID: [44.3, -114.7],
+  IL: [40.0, -89.5], IN: [39.9, -86.3], IA: [42.0, -93.5], KS: [38.5, -97.5],
+  KY: [37.5, -85.3], LA: [31.0, -92.0], ME: [45.2, -69.2], MD: [39.0, -76.8],
+  MA: [42.3, -71.8], MI: [43.4, -84.6], MN: [46.0, -94.5], MS: [32.6, -89.9],
+  MO: [38.3, -92.4], MT: [47.0, -109.6], NE: [41.5, -99.7], NV: [39.0, -116.5],
+  NH: [43.7, -71.6], NJ: [40.2, -74.5], NM: [34.5, -106.0], NY: [43.0, -75.5],
+  NC: [35.5, -79.5], ND: [47.5, -100.5], OH: [40.3, -82.8], OK: [35.5, -97.5],
+  OR: [43.9, -120.5], PA: [40.9, -77.8], RI: [41.6, -71.5], SC: [33.9, -80.9],
+  SD: [44.5, -100.5], TN: [35.8, -86.5], TX: [31.5, -99.5], UT: [39.5, -112.0],
+  VT: [44.0, -72.6], VA: [37.5, -79.0], WA: [47.5, -120.5], WV: [38.8, -80.5],
+  WI: [44.5, -89.5], WY: [42.8, -107.5], DC: [38.9, -77.0],
 };
 
 // Commercial airliner types to exclude from live traffic visualization
@@ -193,6 +210,24 @@ function listingDotTexture(color) {
   return tex;
 }
 
+function faaClusterTexture() {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 64;
+  const x = cv.getContext("2d");
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, "rgba(245,200,66,1)");
+  g.addColorStop(0.2, "rgba(212,160,23,0.95)");
+  g.addColorStop(0.5, "rgba(212,160,23,0.4)");
+  g.addColorStop(1, "rgba(212,160,23,0)");
+  x.fillStyle = g;
+  x.beginPath();
+  x.arc(32, 32, 32, 0, 7);
+  x.fill();
+  const tex = new THREE.CanvasTexture(cv);
+  tex.flipY = false;
+  return tex;
+}
+
 import { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 
 // ─── Filter helpers ─────────────────────────────
@@ -229,9 +264,12 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const lGeoRef = useRef(null);
   const livePointsRef = useRef(null);
   const liveGeoRef = useRef(null);
+  const faaGeoRef = useRef(null);
+  const faaPointsRef = useRef(null);
   const metaRef = useRef([]);
   const lMetaRef = useRef([]);
   const liveMetaRef = useRef([]);
+  const faaMetaRef = useRef([]);
   const rotRef = useRef({ y: -Math.PI / 2, x: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
   const sunRef = useRef(null);
@@ -257,6 +295,8 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const [trafficCount, setTrafficCount] = useState(0);
   const [trafficStatus, setTrafficStatus] = useState("idle");
   const [liveCount, setLiveCount] = useState(0);
+  const [faaCount, setFaaCount] = useState(0);
+  const [faaStateCount, setFaaStateCount] = useState(0);
   const [detail, setDetail] = useState(null);
   const [scoringMap, setScoringMap] = useState({});
   const autoRotateRef = useRef(true);
@@ -393,9 +433,89 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     lMetaRef.current = meta;
   }, []);
 
+  // ─── Render FAA Registry clusters ───
+  const renderFaaToGlobe = useCallback((faaAircraft, listingsForAti) => {
+    const faaGeo = faaGeoRef.current;
+    if (!faaGeo) return;
+    const f = filterRef.current?.faaRegistry;
+    if (!f || !f.enabled) {
+      faaGeo.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
+      faaGeo.attributes.position.needsUpdate = true;
+      faaMetaRef.current = [];
+      setFaaCount(0);
+      setFaaStateCount(0);
+      return;
+    }
+    // Group by state
+    const stateMap = {};
+    for (const ac of faaAircraft) {
+      const st = (ac.state || "").trim().toUpperCase() || "UNKNOWN";
+      if (!stateMap[st]) stateMap[st] = { count: 0, aircraft: [], typeCounts: {} };
+      stateMap[st].count++;
+      stateMap[st].aircraft.push(ac);
+      const t = ac.type_aircraft || "UNK";
+      stateMap[st].typeCounts[t] = (stateMap[st].typeCounts[t] || 0) + 1;
+    }
+    // Cross-reference listings for ATI estimates
+    const listingByReg = {};
+    for (const l of (listingsForAti || [])) {
+      if (l.registration) {
+        const nNum = l.registration.replace(/^N/i, "").trim().toUpperCase();
+        if (nNum) listingByReg[nNum] = l;
+      }
+    }
+    const states = Object.keys(stateMap);
+    const pos = [],meta = [];
+    for (const st of states) {
+      const [lat, lon] = US_STATE_CENTROIDS[st] || [38, -97];
+      const v = latLonToVec3(lat, lon, 1.018);
+      pos.push(v.x, v.y, v.z);
+      const sd = stateMap[st];
+      const topTypes = Object.entries(sd.typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const sampleNums = sd.aircraft.slice(0, 5).map(a => a.n_number);
+      // ATI estimate: average ati_score of matched ABOS listings
+      let atiSum = 0,atiMatch = 0;
+      for (const ac of sd.aircraft) {
+        const l = listingByReg[ac.n_number?.trim().toUpperCase()];
+        if (l?.ati_score) { atiSum += l.ati_score; atiMatch++; }
+      }
+      meta.push({
+        state: st,count: sd.count,
+        topTypes: topTypes.map(([k, v]) => `${k} (${v})`),
+        sampleNums,
+        atiEstimate: atiMatch > 0 ? Math.round(atiSum / atiMatch) : null,
+      });
+    }
+    faaGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    faaGeo.attributes.position.needsUpdate = true;
+    faaMetaRef.current = meta;
+    setFaaCount(faaAircraft.length);
+    setFaaStateCount(states.length);
+  }, []);
+
   useEffect(() => {
     renderListings(listings);
   }, [listings, filter, renderListings]);
+
+  // ─── Fetch & render FAA Registry ───
+  const [faaAircraft, setFaaAircraft] = useState([]);
+  useEffect(() => {
+    const f = filter?.faaRegistry;
+    if (!f || !f.enabled) {
+      setFaaAircraft([]);
+      return;
+    }
+    if (faaAircraft.length > 0) return; // cache once per session
+    base44.entities.FAAAircraft.list("-created_date", 5000).then((data) => {
+      setFaaAircraft(data || []);
+    }).catch(() => {});
+  }, [filter?.faaRegistry?.enabled]);
+
+  useEffect(() => {
+    if (faaAircraft.length > 0) {
+      renderFaaToGlobe(faaAircraft, listings);
+    }
+  }, [faaAircraft, filter, renderFaaToGlobe, listings]);
 
   // ─── Handle scoring for N-registered aircraft ───
   const handleScoreAircraft = useCallback(async (ac) => {
@@ -463,6 +583,16 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       const liveHits = ray.intersectObject(livePointsRef.current);
       if (liveHits.length > 0) {
         setDetail({ type: "livetraffic", data: liveMetaRef.current[liveHits[0].index] });
+        return;
+      }
+    }
+
+    // Check FAA Registry clusters (amber)
+    if (faaPointsRef.current && faaPointsRef.current.geometry.attributes.position) {
+      ray.setFromCamera(mouse, cameraRef.current);
+      const faaHits = ray.intersectObject(faaPointsRef.current);
+      if (faaHits.length > 0) {
+        setDetail({ type: "faaregistry", data: faaMetaRef.current[faaHits[0].index] });
         return;
       }
     }
@@ -600,6 +730,23 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     livePointsRef.current = livePoints;
     globe.add(livePoints);
 
+    // FAA Registry point cloud (amber clusters)
+    const faaGeo = new THREE.BufferGeometry();
+    faaGeoRef.current = faaGeo;
+    const faaMat = new THREE.PointsMaterial({
+      size: 0.22,
+      map: faaClusterTexture(),
+      vertexColors: false,
+      color: 0xD4A017,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    const faaPoints = new THREE.Points(faaGeo, faaMat);
+    faaPointsRef.current = faaPoints;
+    globe.add(faaPoints);
+
     // Animation with slow autorotation + UTC day/night sun
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop);
@@ -732,6 +879,14 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
             <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
             style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
             {liveCount.toLocaleString()} Live DB
+          </div>
+        )}
+        {faaCount > 0 && (
+          <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+          style={{ color: "#D4A017" }}>
+            <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5"
+            style={{ background: "#D4A017", boxShadow: "0 0 6px #D4A017" }} />
+            {faaCount.toLocaleString()} FAA · {faaStateCount} states
           </div>
         )}
       </div>
@@ -895,6 +1050,58 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
               </table>
             </>
         }
+
+          {detail.type === "faaregistry" && (() => {
+          const d = detail.data;
+          return (
+            <>
+                <div className="mb-3 pb-2.5 border-b" style={{ borderColor: "rgba(212,160,23,0.25)" }}>
+                  <p className="text-[11px] font-black text-[#D4A017] uppercase tracking-wide">
+                    FAA Registry · {d.state}
+                  </p>
+                  <p className="text-[8px] font-mono mt-0.5" style={{ color: mutedColor }}>
+                    {d.count.toLocaleString()} aircraft registered
+                  </p>
+                </div>
+
+                <div className="space-y-2 mb-3">
+                  <div>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: mutedColor }}>Top Aircraft Types</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {d.topTypes.map((t, i) => (
+                        <span key={i} className="text-[9px] font-bold px-2 py-0.5 rounded"
+                          style={{ background: "rgba(212,160,23,0.1)", color: "#D4A017", border: "1px solid rgba(212,160,23,0.2)" }}>
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: mutedColor }}>Sample N-Numbers</p>
+                    <p className="text-[9px] font-mono" style={{ color: textColor }}>
+                      {d.sampleNums.join(", ")}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg p-2.5" style={{
+                    background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.04)",
+                    border: "1px solid rgba(212,160,23,0.2)"
+                  }}>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mb-1" style={{ color: mutedColor }}>ATI Estimate</p>
+                    <span className="text-[11px] font-black" style={{ color: d.atiEstimate != null ? "#D4A017" : mutedColor }}>
+                      {d.atiEstimate != null ? `${d.atiEstimate}` : "— Unscored"}
+                    </span>
+                  </div>
+                </div>
+
+                <a href="/admin/supabase-sync" target="_blank" rel="noopener"
+                  className="w-full rounded-lg py-2 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black text-white transition-all active:scale-95"
+                  style={{ background: "linear-gradient(135deg, #A67C00, #D4A017)" }}>
+                  <ExternalLink className="w-3 h-3" /> View in Registry
+                </a>
+              </>);
+        })()}
         </div>
       }
     </div>);

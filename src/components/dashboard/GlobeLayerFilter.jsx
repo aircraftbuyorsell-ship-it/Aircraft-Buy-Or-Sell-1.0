@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Layers, Eye, EyeOff, Plane, Globe, ShieldCheck, Zap,
-  ChevronDown, Filter, SlidersHorizontal, X
+  ChevronDown, Filter, SlidersHorizontal, X, Database
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/lib/useTheme";
@@ -35,6 +35,7 @@ export const DEFAULT_FILTER = {
   adsb: { enabled: true, category: "all" },
   liveDb: { enabled: true },
   listings: { enabled: true, atiRange: "all", status: "all" },
+  faaRegistry: { enabled: false },
 };
 
 export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) {
@@ -46,7 +47,8 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
   const activeCount =
     (filter.adsb?.enabled ? 1 : 0) +
     (filter.liveDb?.enabled ? 1 : 0) +
-    (filter.listings?.enabled ? 1 : 0);
+    (filter.listings?.enabled ? 1 : 0) +
+    (filter.faaRegistry?.enabled ? 1 : 0);
 
   const update = (path, value) => {
     const next = structuredClone(filter);
@@ -84,7 +86,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
         }}
       >
         <SlidersHorizontal className="w-3.5 h-3.5" />
-        Layers ({activeCount}/3)
+        Layers ({activeCount}/4)
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
@@ -115,6 +117,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                 { key: "adsb", label: "ADS-B", icon: RadarIcon, color: accentBlue },
                 { key: "listings", label: "Listings", icon: ShieldCheck, color: accentGold },
                 { key: "live", label: "Live DB", icon: Globe, color: accentGreen },
+                { key: "faa", label: "FAA", icon: Database, color: "#D4A017" },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -245,6 +248,28 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                       <p className="text-[9px]" style={{ color: mutedColor }}>
                         Showing all live traffic data from Supabase.
                         Filtered to exclude commercial airliners.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── FAA Registry Tab ── */}
+              {activeTab === "faa" && (
+                <div className="space-y-3">
+                  <LayerToggle
+                    label="FAA Registry"
+                    color="#D4A017"
+                    enabled={filter.faaRegistry?.enabled ?? false}
+                    onToggle={(v) => update("faaRegistry.enabled", v)}
+                    icon={Database}
+                    subtitle="US state aircraft fleet clusters"
+                  />
+                  {filter.faaRegistry?.enabled && (
+                    <div className="ml-6 p-2 rounded-lg" style={{ background: "rgba(212,160,23,0.06)" }}>
+                      <p className="text-[9px]" style={{ color: mutedColor }}>
+                        FAA aircraft grouped by US state.
+                        Tap any cluster for fleet data & ATI estimate.
                       </p>
                     </div>
                   )}

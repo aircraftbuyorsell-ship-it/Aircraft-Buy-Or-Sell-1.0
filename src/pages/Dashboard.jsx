@@ -188,16 +188,18 @@ export default function Dashboard() {
         <section className="px-4 md:px-8 pb-5">
           <div className="max-w-6xl mx-auto">
             <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>DATABASE ANALYTICS</p>
-            <DatabaseCharts
-              faaAircraft={faaAircraft}
-              listings={listings}
-              matchedCount={matchedToFaa}
-              faaTotalRegistry={faaRegistryTotal}
-              faaAcftrefTotal={faaAcftrefTotal}
-              faaAdTotal={faaAdTotal}
-              faaDealersTotal={faaDealersTotal}
-              faaEngineTotal={faaEngineTotal}
-            />
+            <div className="rounded-xl p-5" style={panelStyle}>
+              <DatabaseCharts
+                faaAircraft={faaAircraft}
+                listings={listings}
+                matchedCount={matchedToFaa}
+                faaTotalRegistry={faaRegistryTotal}
+                faaAcftrefTotal={faaAcftrefTotal}
+                faaAdTotal={faaAdTotal}
+                faaDealersTotal={faaDealersTotal}
+                faaEngineTotal={faaEngineTotal}
+              />
+            </div>
           </div>
         </section>
 

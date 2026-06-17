@@ -14,6 +14,7 @@ import GlobeTrafficControls from "@/components/dashboard/GlobeTrafficControls";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
+import FaaRegistryPanel from "@/components/dashboard/FaaRegistryPanel";
 import RocketMetrics from "@/components/dashboard/RocketMetrics";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -200,6 +201,14 @@ export default function Dashboard() {
                 faaEngineTotal={faaEngineTotal}
               />
             </div>
+          </div>
+        </section>
+
+        {/* ── FAA REGISTRY LIVE ───────────────────────────────── */}
+        <section className="px-4 md:px-8 pb-5">
+          <div className="max-w-6xl mx-auto">
+            <p className="text-[10px] tracking-[0.18em] font-bold mb-3" style={{ color: accentOrange }}>LIVE FAA REGISTRY</p>
+            <FaaRegistryPanel />
           </div>
         </section>
 

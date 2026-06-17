@@ -111,7 +111,9 @@ function dotTexture() {
   x.beginPath();
   x.arc(24, 24, 24, 0, 7);
   x.fill();
-  return new THREE.CanvasTexture(cv);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.flipY = false;
+  return tex;
 }
 
 function liveTrafficTexture() {
@@ -133,7 +135,9 @@ function liveTrafficTexture() {
   ctx.beginPath();ctx.moveTo(48, 56);ctx.lineTo(70, 68);ctx.lineTo(68, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
   ctx.strokeStyle = "rgba(34, 197, 94, 0.8)";ctx.lineWidth = 1;
   ctx.beginPath();ctx.moveTo(48, 10);ctx.lineTo(48, 76);ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);ctx.stroke();
-  return new THREE.CanvasTexture(cv);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.flipY = false;
+  return tex;
 }
 
 function aircraftSilhouetteTexture() {
@@ -166,7 +170,9 @@ function aircraftSilhouetteTexture() {
   ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);
   ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);
   ctx.stroke();
-  return new THREE.CanvasTexture(cv);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.flipY = false;
+  return tex;
 }
 
 function listingDotTexture(color) {
@@ -182,7 +188,9 @@ function listingDotTexture(color) {
   x.beginPath();
   x.arc(32, 32, 32, 0, 7);
   x.fill();
-  return new THREE.CanvasTexture(cv);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.flipY = false;
+  return tex;
 }
 
 import { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";

@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: browse ──
     if (currentMode === 'browse') {
+      const { status_code: statusFilter } = await req.json().catch(() => ({}));
       const from = (currentPage - 1) * size;
       const to = from + size - 1;
       const searchFilter = search
@@ -88,6 +89,7 @@ Deno.serve(async (req) => {
       );
 
       if (search) q = q.or(searchFilter);
+      if (statusFilter) q = q.eq('status_code', statusFilter);
       const { data, count, error: browseErr } = await q.range(from, to).order('n_number');
 
       if (browseErr) return Response.json({ error: browseErr.message }, { status: 500 });

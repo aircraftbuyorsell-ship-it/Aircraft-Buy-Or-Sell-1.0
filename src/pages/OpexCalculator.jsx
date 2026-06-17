@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
-import { Calculator, TrendingUp, Fuel, Wrench, FileText, Plane, Info, ShieldCheck, MapPin, Gauge, Cpu } from "lucide-react";
+import { Calculator, TrendingUp, Fuel, Wrench, FileText, Plane, Info, ShieldCheck, MapPin, Gauge, Cpu, Plus, Lock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { useAutoTrack } from "@/lib/useBehavior";
 import {
   AIRCRAFT_PRESETS, RESERVE_RATES,
@@ -10,6 +12,7 @@ import ClaritySummary from "@/components/opex/ClaritySummary";
 import LocationAdjustments, { LOCATION_RATES } from "@/components/opex/LocationAdjustments";
 import MaintenanceSchedule from "@/components/opex/MaintenanceSchedule";
 import ComplianceTracker from "@/components/opex/ComplianceTracker";
+import CustomAircraftModal from "@/components/opex/CustomAircraftModal";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -55,11 +58,28 @@ function SectionHeader({ icon: Icon, title, desc }) {
   );
 }
 
+const CUSTOM_KEY = "abos_custom_aircraft";
+
+function loadCustomAircraft() {
+  try { const raw = localStorage.getItem(CUSTOM_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
+}
+
 export default function OpexCalculator() {
   useAutoTrack("opex_calculator");
 
+  // --- Tier check ---
+  const { data: user } = useQuery({
+    queryKey: ["auth-me"],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
+  const tier = user?.tier || user?.role === "admin" ? "enterprise" : "free_explorer";
+  const canUseCustom = tier === "starter" || tier === "pro" || tier === "enterprise" || user?.role === "admin" || user?.role === "super_admin";
+
   // --- Aircraft state ---
   const [preset, setPreset] = useState(AIRCRAFT_PRESETS[1]);
+  const [customAircraft, setCustomAircraft] = useState(loadCustomAircraft);
+  const [showCustomModal, setShowCustomModal] = useState(false);
   const [annualHours, setAnnualHours] = useState(200);
   const [totalTime, setTotalTime] = useState(1800);
   const [engineHours, setEngineHours] = useState(900);
@@ -98,13 +118,30 @@ export default function OpexCalculator() {
     setInsuranceYr(p.insurance_yr);
     setHangarYr(p.hangar_yr);
     setEngineHours(Math.min(engineHours, p.tbo));
-    setPropHours(Math.min(propHours, p.tbo_prop));
+    setPropHours(Math.min(propHours, p.tbo_prop || p.tbo));
+  };
+
+  const handleAddCustom = (aircraft) => {
+    const updated = [...customAircraft, aircraft];
+    setCustomAircraft(updated);
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(updated)); } catch {}
+    setShowCustomModal(false);
+    pickPreset(aircraft);
+  };
+
+  const handleDeleteCustom = (id) => {
+    const updated = customAircraft.filter((a) => a.id !== id);
+    setCustomAircraft(updated);
+    try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(updated)); } catch {}
+    if (preset.custom && preset.id === id) pickPreset(AIRCRAFT_PRESETS[1]);
   };
 
   // --- Calculations ---
-  const reserves = RESERVE_RATES[preset.id] || RESERVE_RATES.cirrus_sr22;
+  const reserves = preset.custom
+    ? { engine: preset.reserveEngine || 25, prop: preset.reserveProp || 5, inspection: preset.reserveInspection || 12 }
+    : (RESERVE_RATES[preset.id] || RESERVE_RATES.cirrus_sr22);
   const engineHoursToTBO = preset.tbo - engineHours;
-  const propHoursToTBO = preset.tbo_prop - propHours;
+  const propHoursToTBO = (preset.tbo_prop || preset.tbo) - propHours;
 
   const engineReserveYr = reserves.engine * annualHours;
   const propReserveYr = reserves.prop * annualHours;
@@ -185,10 +222,31 @@ export default function OpexCalculator() {
                 <div className="flex flex-wrap gap-2">
                   {AIRCRAFT_PRESETS.map(p => (
                     <button key={p.id} onClick={() => pickPreset(p)}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}>
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id && !preset.custom ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}>
                       <Plane className="w-3 h-3 inline mr-1" /> {p.name}
                     </button>
                   ))}
+                  {customAircraft.map(p => (
+                    <button key={p.id} onClick={() => pickPreset(p)}
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all group relative ${preset.custom && preset.id === p.id ? "border-[#10b981] bg-[rgba(16,185,129,0.07)] text-[#065f46]" : "border-[#10b981]/30 bg-white text-[#10b981] hover:border-[#10b981]"}`}>
+                      <Plane className="w-3 h-3 inline mr-1" /> {p.name}
+                      <button onClick={(e) => { e.stopPropagation(); handleDeleteCustom(p.id); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[8px] leading-none">×</span>
+                      </button>
+                    </button>
+                  ))}
+                  {canUseCustom ? (
+                    <button onClick={() => setShowCustomModal(true)}
+                      className="text-xs font-bold px-3 py-2 rounded-xl border border-dashed border-[#10b981]/40 bg-[#10b981]/03 text-[#10b981] hover:bg-[#10b981]/08 transition-all">
+                      <Plus className="w-3 h-3 inline mr-1" /> Add Custom
+                    </button>
+                  ) : (
+                    <button disabled className="text-xs font-medium px-3 py-2 rounded-xl border border-black/[0.05] bg-black/[0.01] text-[#AAA49C] cursor-not-allowed"
+                      title="Upgrade to Starter or higher to add custom aircraft">
+                      <Lock className="w-3 h-3 inline mr-1" /> Add Custom
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -420,6 +478,9 @@ export default function OpexCalculator() {
             </p>
           </div>
         </div>
+
+        {/* Custom Aircraft Modal */}
+        <CustomAircraftModal open={showCustomModal} onClose={() => setShowCustomModal(false)} onSave={handleAddCustom} />
 
         {/* CTA — Service finder */}
         <div className="mt-5 bg-[#0B2D5B] text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">

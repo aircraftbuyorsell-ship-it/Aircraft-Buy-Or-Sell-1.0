@@ -2,6 +2,16 @@
   "name": "User",
   "type": "object",
   "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "admin",
+        "super_admin"
+      ],
+      "default": "user",
+      "description": "User role \u2014 super_admin has access to feature toggles and all admin panels"
+    },
     "referred_by_email": {
       "type": "string",
       "description": "Email of the user who referred this account (captured at first login if ?ref=... is in the URL)"

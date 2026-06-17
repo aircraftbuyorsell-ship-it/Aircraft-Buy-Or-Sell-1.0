@@ -13,6 +13,7 @@ import LocationAdjustments, { LOCATION_RATES } from "@/components/opex/LocationA
 import MaintenanceSchedule from "@/components/opex/MaintenanceSchedule";
 import ComplianceTracker from "@/components/opex/ComplianceTracker";
 import CustomAircraftModal from "@/components/opex/CustomAircraftModal";
+import FleetPanel from "@/components/opex/FleetPanel";
 
 function GoldLabel({ children }) {
   return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
@@ -439,6 +440,15 @@ export default function OpexCalculator() {
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Fleet Panel */}
+        <div className="mt-5">
+          <FleetPanel
+            presets={AIRCRAFT_PRESETS}
+            customAircraft={customAircraft}
+            location={location}
+          />
         </div>
 
         {/* Hints */}

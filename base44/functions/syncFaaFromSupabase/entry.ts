@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: summary ──
     if (currentMode === 'summary') {
-      const { count: faaTotal, error: faaErr } = await supabase
+      const { count: faaTotal, error: faaErr } = await supabaseAdmin
         .from('faa_registry')
         .select('*', { count: 'exact', head: true });
 
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       );
 
       const { data: matchedSample, error: matchErr } = abosRegs.size > 0
-        ? await supabase
+        ? await supabaseAdmin
             .from('faa_registry')
             .select('n_number, name, city, state, status_code, type_aircraft, year_mfr')
             .in('n_number', [...abosRegs].slice(0, 200))
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
         ? `n_number.ilike.%${search}%,name.ilike.%${search}%`
         : undefined;
 
-      let q = supabase.from('faa_registry').select(
+      let q = supabaseAdmin.from('faa_registry').select(
         'n_number, name, city, state, country, status_code, type_aircraft, year_mfr, cert_issue_date, last_action_date, serial_number',
         { count: 'exact' }
       );

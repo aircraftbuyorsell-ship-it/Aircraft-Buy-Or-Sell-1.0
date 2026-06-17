@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   RefreshCw, Database, CheckCircle2, AlertTriangle,
@@ -14,7 +14,7 @@ export default function SupabaseSync() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState(null);
 
-  const fetchData = async (fetchMode = mode, fetchPage = page) => {
+  const fetchData = async (fetchMode, fetchPage = 1) => {
     setLoading(true);
     setError(null);
     try {
@@ -22,7 +22,7 @@ export default function SupabaseSync() {
         mode: fetchMode,
         page: fetchPage,
         pageSize: 50,
-        search: search || undefined,
+        search: fetchMode === "browse" ? search : undefined,
       });
       setData(res.data);
     } catch (err) {
@@ -31,6 +31,11 @@ export default function SupabaseSync() {
       setLoading(false);
     }
   };
+
+  // Auto-load summary on mount
+  useEffect(() => {
+    fetchData("summary", 1);
+  }, []);
 
   const loadSummary = () => { setMode("summary"); setPage(1); fetchData("summary", 1); };
   const browseTable = () => { setMode("browse"); setPage(1); fetchData("browse", 1); };
@@ -79,20 +84,6 @@ export default function SupabaseSync() {
         {error && (
           <div className="bg-[#fef2f2] border border-[#fecaca] text-[#991b1b] rounded-xl px-4 py-3 text-sm">
             {error}
-          </div>
-        )}
-
-        {!data && !loading && (
-          <div className="bg-white rounded-2xl border border-black/[0.07] p-10 text-center">
-            <Database className="w-10 h-10 text-[#AAA49C] mx-auto mb-3" />
-            <p className="text-[#6B6560] font-bold mb-1">No data loaded</p>
-            <p className="text-[#AAA49C] text-sm mb-4">Click Summary or Browse to fetch data from Supabase.</p>
-            <button
-              onClick={loadSummary}
-              className="bg-[#0B2D5B] hover:bg-[#143C75] text-white font-bold px-6 py-2.5 rounded-lg text-sm transition-colors"
-            >
-              Load Data
-            </button>
           </div>
         )}
 

@@ -57,7 +57,6 @@ export default function Pricing() {
     (packOrTier.price_usd || packOrTier.price || 0) * (1 - discountPct / 100) :
     packOrTier.price_usd || packOrTier.price || 0;
 
-    // Live Stripe Checkout
     const priceId = packOrTier.stripe_price_id;
     if (!priceId) {
       setStripeError("No Stripe price configured for this pack");
@@ -111,7 +110,8 @@ export default function Pricing() {
 
       {/* Tiers */}
       <div className="px-4 md:px-8 pb-8 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+
           {/* Free Explorer */}
           <TierCard
             tier={TIERS.free_explorer}
@@ -119,11 +119,10 @@ export default function Pricing() {
             accent="#185FA5"
             isCurrent={tier === "free_explorer"}
             processing={processing === "free_explorer"}
-            onBuy={() => handlePurchase({ ...TIERS.free_explorer })} />
-          
+            onBuy={() => handlePurchase({ ...TIERS.free_explorer, id: "free_explorer", tokens_included: 20 })} />
 
-          {/* Pro — token packs inside */}
-          <div className="md:col-span-1 bg-white border-2 border-[#D4A017] rounded-2xl relative shadow-xl mt-3 py-3 mr-3 mb-4 ml-64">
+          {/* Pro — token packs */}
+          <div className="bg-white border-2 border-[#D4A017] rounded-2xl p-6 flex flex-col relative shadow-lg">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#D4A017] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
               Most flexible
             </div>
@@ -134,7 +133,7 @@ export default function Pricing() {
             <h3 className="text-2xl font-black text-[#1A1814]">{TIERS.pro.name}</h3>
             <p className="text-sm text-[#6B6560] mt-1">Pick a pack, use anytime. Bonus credits on bigger packs.</p>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 flex-1">
               {TOKEN_PACKS.map((pack) => {
                 const price = discountPct ? (pack.price_usd * (1 - discountPct / 100)).toFixed(0) : pack.price_usd;
                 const credits = toCredits(pack.tokens);
@@ -169,7 +168,6 @@ export default function Pricing() {
                     </div>
                     <ArrowRight className="w-4 h-4 text-[#AAA49C]" />
                   </button>);
-
               })}
             </div>
 
@@ -190,10 +188,8 @@ export default function Pricing() {
             accent="#1A1814"
             isCurrent={tier === "enterprise"}
             onBuy={() => window.location.href = "mailto:sales@abos.aero"} />
-          
+
         </div>
-
-
 
         {/* FAQ / trust */}
         <div className="mt-8 bg-white border border-black/[0.07] rounded-2xl p-6">
@@ -213,12 +209,11 @@ export default function Pricing() {
         </div>
       </div>
     </div>);
-
 }
 
 function TierCard({ tier, icon: Icon, accent, isCurrent, processing, onBuy }) {
   return (
-    <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col hidden">
+    <div className="bg-white border border-black/[0.07] rounded-2xl p-6 flex flex-col">
       <div className="flex items-center gap-2 mb-1">
         <Icon className="w-5 h-5" style={{ color: accent }} />
         <GoldLabel>{tier.tagline}</GoldLabel>
@@ -243,9 +238,7 @@ function TierCard({ tier, icon: Icon, accent, isCurrent, processing, onBuy }) {
           backgroundColor: isCurrent ? "#F7F4EF" : accent,
           color: isCurrent ? "#6B6560" : "white"
         }}>
-        
         {isCurrent ? "Current plan" : processing ? "Processing…" : tier.cta}
       </button>
     </div>);
-
 }

@@ -179,10 +179,9 @@ export default function Layout() {
               <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
             </div>
             <div className="hidden sm:flex flex-col leading-none">
-              <span className="font-black text-[13px] tracking-[-0.03em]"
+              <span className="font-black text-[13px] tracking-[-0.03em] bg-clip-text text-transparent"
               style={{
-                background: isDark ? "linear-gradient(135deg,#00f5ff 20%,#7a00ff 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+                backgroundImage: isDark ? "linear-gradient(135deg,#00f5ff 20%,#7a00ff 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)",
               }}>ABOS</span>
               <span className="text-[9px] font-semibold tracking-[0.12em] uppercase" style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.40)" }}>MarketSpace</span>
             </div>

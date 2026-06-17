@@ -5,6 +5,7 @@ import { useTheme } from "@/lib/useTheme";
 import {
   Loader2, Sparkles, CheckCircle2, AlertCircle, X } from
 "lucide-react";
+import GlobeClock from "@/components/dashboard/GlobeClock";
 
 const EARTH_DARK = "https://unpkg.com/three-globe/example/img/earth-dark.jpg";
 const EARTH_BLUE = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
@@ -224,6 +225,8 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const liveMetaRef = useRef([]);
   const rotRef = useRef({ y: -Math.PI / 2, x: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
+  const sunRef = useRef(null);
+  const nightFillRef = useRef(null);
   const downRef = useRef(null);
   const rafRef = useRef(null);
   const timerRef = useRef(null);
@@ -483,11 +486,11 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     globeRef.current = globe;
     scene.add(globe);
 
-    // Earth core — winter ice planet for light mode
+    // Earth core — Phong material responds to day/night lighting
     const coreMat = new THREE.MeshPhongMaterial({
       color: isDark ? 0x16213f : 0xc8dcee,
-      emissive: isDark ? 0x05091c : 0x304055,
-      shininess: isDark ? 6 : 20,
+      emissive: isDark ? 0x020510 : 0x101828,
+      shininess: isDark ? 6 : 18,
       specular: isDark ? 0x102844 : 0x88aacc
     });
     const core = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 72), coreMat);
@@ -500,11 +503,18 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
     // Grid & atmosphere removed — clean globe
 
-    // Lights — cool winter sun
-    scene.add(new THREE.AmbientLight(isDark ? 0x3a5575 : 0xaabbcc, isDark ? 0.85 : 1.3));
-    const sun = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xeeffff, isDark ? 0.9 : 1.3);
-    sun.position.set(3, 1.5, 2.5);
-    scene.add(sun);
+    // Day/night cycle lighting — sun position driven by UTC time
+    const ambient = new THREE.AmbientLight(isDark ? 0x1a2a44 : 0x334466, isDark ? 0.22 : 0.28);
+    scene.add(ambient);
+    const sunLight = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xfff8e8, isDark ? 2.0 : 1.8);
+    sunLight.position.set(3, 1.5, 2.5);
+    sunRef.current = sunLight;
+    scene.add(sunLight);
+    // Night-side subtle fill
+    const nightFill = new THREE.DirectionalLight(isDark ? 0x1a3366 : 0x334488, isDark ? 0.08 : 0.06);
+    nightFill.position.set(-3, -0.5, -2.5);
+    nightFillRef.current = nightFill;
+    scene.add(nightFill);
 
     // Starfield — subtle for light mode
     const sg = new THREE.BufferGeometry();
@@ -568,9 +578,28 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     livePointsRef.current = livePoints;
     globe.add(livePoints);
 
-    // Animation with slow autorotation
+    // Animation with slow autorotation + UTC day/night sun
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop);
+
+      // Update sun position from UTC time — creates real day/night terminator
+      const now = new Date();
+      const utcDecimal = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+      const sunLonDeg = (utcDecimal - 12) * 15; // sun at 0° lon (Greenwich) at UTC noon
+      const sunLonRad = sunLonDeg * Math.PI / 180;
+      const sunDist = 5.5;
+      sunRef.current.position.set(
+        Math.cos(sunLonRad) * sunDist,
+        1.8,
+        Math.sin(sunLonRad) * sunDist
+      );
+      // Night fill opposite the sun
+      nightFillRef.current.position.set(
+        Math.cos(sunLonRad + Math.PI) * sunDist,
+        -0.5,
+        Math.sin(sunLonRad + Math.PI) * sunDist
+      );
+
       if (autoRotateRef.current && !dragRef.current.active) {
         rotRef.current.y += 0.0012;
       }
@@ -652,6 +681,11 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
+
+      {/* UTC Clock */}
+      <div className="absolute top-3 left-3 z-20">
+        <GlobeClock />
+      </div>
 
       {/* Traffic status badge */}
       <div className="absolute bottom-2 left-2 flex gap-2 z-10">

@@ -5,9 +5,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock } from "lucide-react";
+import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown } from "lucide-react";
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
 import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
+import FeatureTogglePanel from "@/components/settings/FeatureTogglePanel";
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
@@ -24,7 +25,7 @@ export default function AdminSettings() {
   const { data: configs = [], isLoading } = useQuery({
     queryKey: ["app-config"],
     queryFn: () => base44.entities.AppConfig.filter({ key: "global" }),
-    enabled: user?.role === "admin",
+    enabled: user?.role === "admin" || user?.role === "super_admin",
   });
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function AdminSettings() {
     },
   });
 
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="glass-card p-10 text-center max-w-sm">
@@ -67,7 +68,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10 max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 py-10 max-w-5xl mx-auto">
 
       {/* Header */}
       <div className="mb-10">
@@ -162,6 +163,9 @@ export default function AdminSettings() {
 
       {/* Auto ATI Scoring */}
       <AutoScoringPanel />
+
+      {/* Feature Toggles — Super Admin only */}
+      {user?.role === "super_admin" && <FeatureTogglePanel />}
 
       {/* Webhooks */}
       <WebhooksConfig />

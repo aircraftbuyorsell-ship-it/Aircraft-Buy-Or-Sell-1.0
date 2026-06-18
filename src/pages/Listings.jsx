@@ -235,7 +235,7 @@ export default function Listings() {
   null;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
+    <div className="min-h-screen" style={{ background: "linear-gradient(135deg,#0a1628 0%,#1B2A4A 40%,#0d1f3c 100%)", color: "#fff" }}>
       {/* Pull-to-refresh */}
       <div className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150 bg-[#F7F4EF]" style={{ height: distance }}>
         {(pulling || refreshing) &&
@@ -260,7 +260,7 @@ export default function Listings() {
       />
 
       {/* ── Search & Filters ── */}
-      <div className="px-4 md:px-8 py-3 bg-white border-b border-black/[0.05] sticky top-0 z-10 shadow-sm">
+      <div className="px-4 md:px-8 py-3 sticky top-0 z-10" style={{ background: "rgba(10,22,40,0.95)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4a4550]" />
@@ -268,7 +268,7 @@ export default function Listings() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Make, model or registration…"
-              className="w-full pl-9 pr-4 py-2 bg-[#F7F4EF] border border-black/[0.07] rounded-lg text-[13px] text-[#1A1814] placeholder-[#6B6560] focus:outline-none focus:border-[#D4A017] focus:bg-white transition-colors" />
+              className="w-full pl-9 pr-4 py-2 rounded-lg text-[13px] outline-none transition-colors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }} placeholder="Make, model or registration…" />
             
             {search &&
             <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a4550] hover:text-[#3a3530]">
@@ -278,7 +278,7 @@ export default function Listings() {
           </div>
           <button
             onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-bold transition-colors ${showFilters ? "bg-[#D4A017] text-white border-[#D4A017]" : "bg-[#F7F4EF] border-black/[0.07] text-[#3a3530] hover:border-[#D4A017] hover:text-[#D4A017]"}`}>
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-bold transition-colors ${showFilters ? "text-white border-[#D4A017]" : "border-[rgba(255,255,255,0.15)] text-[rgba(255,255,255,0.55)] hover:border-[#D4A017] hover:text-[#D4A017]"}`} style={showFilters ? { background: "linear-gradient(135deg,#D4A017,#f48120)" } : { background: "rgba(255,255,255,0.06)" }}>
             
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
@@ -287,13 +287,13 @@ export default function Listings() {
         </div>
 
         {showFilters &&
-        <div className="mt-2.5 bg-[#F7F4EF] border border-black/[0.06] rounded-xl p-4 flex flex-wrap gap-5 items-end">
+        <div className="mt-2.5 rounded-xl p-4 flex flex-wrap gap-5 items-end" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
             <div className="min-w-[160px]">
-              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">Registration</label>
+              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Registration</label>
               <select
               value={regRegion}
               onChange={(e) => setRegRegion(e.target.value)}
-              className="w-full bg-white border border-black/[0.08] rounded-lg text-[13px] text-[#1A1814] h-9 px-3 focus:outline-none focus:border-[#D4A017]">
+              className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}>
               
                 <option value="all">All registrations</option>
                 <option value="faa">🇺🇸 FAA (N-Reg)</option>
@@ -301,7 +301,7 @@ export default function Listings() {
               </select>
             </div>
             <div className="min-w-[180px]">
-              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">Manufacturer</label>
+              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Manufacturer</label>
               <BottomSheetSelect
               label="Filter by make"
               value={makeFilter}
@@ -312,7 +312,7 @@ export default function Listings() {
             
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1.5">
+              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>
                 Min ATI Score: <span className="text-[#D4A017] font-black">{minATI}</span>
               </label>
               <input type="range" min={0} max={100} step={5} value={minATI}
@@ -353,7 +353,7 @@ export default function Listings() {
       {/* ── Listings ── */}
       <div className="px-4 md:px-8 py-5 pb-8">
         {isLoading ?
-        <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
             {[...Array(6)].map((_, i) =>
           <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.04]">
                 <div className="w-11 h-11 rounded-full bg-black/[0.05] animate-pulse shrink-0" />
@@ -422,40 +422,40 @@ export default function Listings() {
             {/* Desktop sidebar stats */}
             <div className="hidden lg:flex flex-col gap-4 w-80 shrink-0">
               {/* Summary card */}
-              <div className="bg-white border border-black/[0.07] rounded-2xl p-5 sticky top-4">
-                <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B] mb-4">Session Stats</p>
+              <div className="rounded-2xl p-5 sticky top-4" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+                <p className="text-[10px] uppercase tracking-[0.15em] font-black mb-4" style={{ color: "#D4A017" }}>Session Stats</p>
                 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Remaining</p>
-                    <p className="text-3xl font-black text-[#0B2D5B]">
+                    <p className="text-[11px] font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>Remaining</p>
+                    <p className="text-3xl font-black" style={{ color: "#fff" }}>
                       {filtered.filter((l) => !discarded.includes(l.id)).length}
                     </p>
                   </div>
 
-                  <div className="h-px bg-black/[0.06]" />
+                  <div className="h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
 
                   <div>
-                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Shortlisted</p>
-                    <p className="text-2xl font-black text-[#0F7A56]">{shortlisted.length}</p>
+                    <p className="text-[11px] font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>Shortlisted</p>
+                    <p className="text-2xl font-black" style={{ color: "#22c55e" }}>{shortlisted.length}</p>
                   </div>
 
                   <div>
-                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Skipped</p>
-                    <p className="text-2xl font-black text-[#C0392B]">{discarded.length}</p>
+                    <p className="text-[11px] font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>Skipped</p>
+                    <p className="text-2xl font-black" style={{ color: "#ef4444" }}>{discarded.length}</p>
                   </div>
 
                   <div>
-                    <p className="text-[11px] text-[#4a4550] font-semibold mb-1">Reviewed</p>
-                    <p className="text-2xl font-black text-[#D4A017]">
+                    <p className="text-[11px] font-semibold mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>Reviewed</p>
+                    <p className="text-2xl font-black" style={{ color: "#D4A017" }}>
                       {shortlisted.length + discarded.length} / {filtered.length}
                     </p>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="mt-5 pt-4 border-t border-black/[0.06]">
-                  <div className="h-2 bg-black/[0.05] rounded-full overflow-hidden">
+                <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div
                     className="h-full bg-gradient-to-r from-[#D4A017] to-[#0B2D5B] rounded-full transition-all"
                     style={{
@@ -463,7 +463,7 @@ export default function Listings() {
                     }} />
                   
                   </div>
-                  <p className="text-[9px] text-[#4a4550] mt-2 text-center">
+                  <p className="text-[9px] mt-2 text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
                     {filtered.length > 0 ? Math.round((shortlisted.length + discarded.length) / filtered.length * 100) : 0}% Complete
                   </p>
                 </div>
@@ -481,8 +481,8 @@ export default function Listings() {
 
               {/* Top shortlisted preview (if any) */}
               {shortlisted.length > 0 &&
-            <div className="bg-[rgba(15,122,86,0.06)] border border-[rgba(15,122,86,0.2)] rounded-2xl p-5">
-                  <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0F7A56] mb-3">Your Shortlist</p>
+            <div className="rounded-2xl p-5" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)" }}>
+                  <p className="text-[10px] uppercase tracking-[0.15em] font-black mb-3" style={{ color: "#22c55e" }}>Your Shortlist</p>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {filtered.
                 filter((l) => shortlisted.includes(l.id)).
@@ -520,11 +520,11 @@ export default function Listings() {
             <div className="relative bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-md">
               <div className="absolute top-0 left-0 right-0 h-[2px] z-10"
             style={{ background: "linear-gradient(90deg, transparent 5%, #0B2D5B 50%, transparent 95%)" }} />
-              <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 bg-[#F7F4EF] border-b border-black/[0.05]">
+              <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 border-b" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}>
                 <SelectAllCheckbox filtered={filtered} selectedIds={selectedIds} onSelectAll={selectAll} onClear={clearSelection} />
                 <div className="w-11 shrink-0 hidden sm:block" />
-                <div className="flex-1 text-[9px] uppercase tracking-[0.12em] text-[#4a4550] font-bold">Aircraft</div>
-                <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] text-[#4a4550] font-bold hidden sm:block">Price</div>
+                <div className="flex-1 text-[9px] uppercase tracking-[0.12em] font-bold" style={{ color: "rgba(255,255,255,0.4)" }}>Aircraft</div>
+                <div className="shrink-0 w-28 text-right text-[9px] uppercase tracking-[0.12em] font-bold hidden sm:block" style={{ color: "rgba(255,255,255,0.4)" }}>Price</div>
               </div>
               {filtered.map((l) =>
             <ListingRow

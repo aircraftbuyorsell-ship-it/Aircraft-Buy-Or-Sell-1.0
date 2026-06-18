@@ -4,8 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import { Link, useNavigate } from "react-router-dom";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
-import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
-import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
+import CanvasGlobe from "@/components/dashboard/CanvasGlobe";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import NotificationStack from "@/components/notifications/NotificationStack";
@@ -13,7 +12,7 @@ import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import {
   Globe, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck,
   FileText, Download, TrendingUp, Calculator, BarChart3,
-  Plane, Users, Building2, UserCheck, ChevronRight, Clock
+  Plane, Users, Building2, UserCheck, ChevronRight, Clock, Map
 } from "lucide-react";
 
 const VERIFY_STEPS = [
@@ -42,7 +41,6 @@ const UPSELL_HOOKS = [
 export default function Dashboard() {
   const isDark = useTheme();
   const navigate = useNavigate();
-  const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
   const [focusLocation, setFocusLocation] = useState(null);
 
   const textColor    = isDark ? "#e2e8f0" : "#1a1a1a";
@@ -83,11 +81,8 @@ export default function Dashboard() {
       <NotificationCenter />
 
       <div className="fixed inset-0 z-0">
-        <SkyBossGlobe
-          className="w-full h-full"
+        <CanvasGlobe
           listings={listings}
-          filter={globeFilter}
-          focusLocation={focusLocation}
           onSelectListing={(l) => navigate(`/ati-passport/${l.id}`)}
         />
       </div>

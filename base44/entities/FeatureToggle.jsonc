@@ -103,26 +103,23 @@
   "rls": {
     "create": {
       "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
+        "id": {
+          "$exists": true
+        }
       }
     },
     "read": {
       "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
+        "id": {
+          "$exists": true
+        }
       }
     },
     "update": {
       "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
+        "id": {
+          "$exists": true
+        }
       }
     },
     "delete": {

@@ -5,9 +5,9 @@ import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
   LayoutDashboard, Plane, Radar, User, Menu,
-  Handshake, Calculator, Users, BarChart3, TrendingUp, Lightbulb,
+  Handshake, Calculator, Users, BarChart3, TrendingUp,
   ArrowLeft, ChevronLeft, ChevronDown, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
-  MessageCircle, HelpCircle, FileText, Globe, Layers, Star, Rocket, Video }
+  HelpCircle, FileText, Globe, Layers, Video }
 from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -37,14 +37,8 @@ const SIDEBAR_SECTIONS = [
       { path: "/listings", label: "Aircraft Register", icon: Plane, desc: "Browse the aircraft register with ATI scores, deal ratings and swipe deck" },
       { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, desc: "Instant 8-dimension ATI scorecard from any listing text or N-number — free" },
       { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
-      { path: "/compare", label: "Compare Aircraft", icon: Layers, desc: "Compare up to 3 aircraft side-by-side on specs, pricing and ATI scores" },
       { path: "/deal-radar", label: "Deal Radar", icon: TrendingUp, desc: "Hot deals priced below market with high ATI scores — updated in real time" },
       { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
-      { path: "/community", label: "Community", icon: Users, desc: "Aviation dealers, brokers and buyers — connect, discuss and share" },
-      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb, desc: "Suggest and vote on new platform features" },
-      { path: "/ati-standard", label: "ATI Standard", icon: Star, desc: "ATI Score, Report and Card — the emerging European standard for aircraft valuation" },
-      { path: "/soar", label: "SOAR Hub", icon: Rocket, desc: "Aviation startup accelerator — funding, mentorship and ATI ecosystem access for founders" },
-      { path: "/startup-hub", label: "Start Up Hub", icon: Users, desc: "Aviation innovation network — discover projects, find collaborators and investors" },
       { path: "/ati-verify", label: "ATI Verify", icon: Video, desc: "Remote document verification — live video calls, OCR extraction and ATI scoring" },
     ],
   },
@@ -56,13 +50,10 @@ const SIDEBAR_SECTIONS = [
     items: [
       { path: "/intrazone", label: "IntraZone Hub", icon: LayoutDashboard, desc: "Your private workspace — deals, leads, matching engine and negotiation tools" },
       { path: "/analytics", label: "Market Analytics", icon: BarChart3, desc: "Price trends, days-on-market, top models and inventory liquidity charts" },
-      { path: "/market-reports", label: "Market Reports", icon: TrendingUp, desc: "AI-generated aviation market intelligence with macro signals and regional forecasts" },
       { path: "/valuation", label: "Valuation (OMVM)", icon: TrendingUp, desc: "Off-market valuation model — market-calibrated price estimates" },
       { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, desc: "True annual ownership cost calculator — 100h to 999h/year flight time scenarios" },
       { path: "/escrow", label: "Escrow & Deals", icon: Handshake, desc: "Secure buyer-seller escrow with automated commission splits and payout audit trail" },
       { path: "/leads", label: "Leads (CRM)", icon: Users, desc: "Buyer lead pipeline — stage tracking, auto-scoring and deal management" },
-      { path: "/pre-buy-inspection", label: "Pre-Buy Inspection", icon: ShieldCheck, desc: "On-site with Max — live visual analysis of airframe, engine and avionics" },
-      { path: "/max-chat", label: "Ask Max", icon: MessageCircle, desc: "Aviation intelligence assistant — appraisals, inspections and market advice" },
     ],
   },
   {

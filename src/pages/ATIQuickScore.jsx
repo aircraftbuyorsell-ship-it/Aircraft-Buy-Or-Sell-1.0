@@ -140,7 +140,7 @@ Return ONLY valid JSON.`,
     setUnlocking(true);
     setError("");
     try {
-      await base44.functions.invoke("unlockAtiQuickScore", { nReg });
+      await base44.functions.invoke("unlockAtiQuickScore", { nReg, email, result });
       setUnlocked(true);
       setBlurred(false);
     } catch (e) {

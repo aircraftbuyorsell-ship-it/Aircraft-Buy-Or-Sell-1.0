@@ -37,8 +37,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Runs via entity automation — use service role, no user auth required
     const body = await req.json().catch(() => ({}));
+
+    // Validate caller — must be an authenticated user or an entity automation event
+    const user = await base44.auth.me();
+    if (!user && !body?.event) {
+      return Response.json({ error: 'Forbidden: must be authenticated or triggered by entity automation' }, { status: 403 });
+    }
 
     const newStatus = body?.data?.status;
     const oldStatus = body?.old_data?.status;

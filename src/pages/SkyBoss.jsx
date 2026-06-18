@@ -68,8 +68,8 @@ export default function SkyBoss() {
   const [updated, setUpdated] = useState("—");
   const [credits, setCredits] = useState("—");
   const [showAuth, setShowAuth] = useState(false);
-  const [cid, setCid] = useState("aircraftbuyorsell@gmail.com-api-client");
-  const [csec, setCsec] = useState("IEP2aVXNWl5znURwv52525Vz9SxpA7ea");
+  const [cid, setCid] = useState("");
+  const [csec, setCsec] = useState("");
   const [btok, setBtok] = useState("");
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState(null);
@@ -101,25 +101,28 @@ export default function SkyBoss() {
   /* ── Token ────────────────────────────────────────────────── */
   const getToken = useCallback(async () => {
     if (btok.trim()) return btok.trim();
-    if (!cid.trim() || !csec.trim()) return null;
     if (tokenRef.current && Date.now() < tokenExpRef.current) return tokenRef.current;
-    try {
-      const body = new URLSearchParams({ grant_type: "client_credentials", client_id: cid, client_secret: csec });
-      const res = await fetch(TOKEN_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
-      });
-      if (!res.ok) throw 0;
-      const d = await res.json();
-      tokenRef.current = d.access_token;
-      tokenExpRef.current = Date.now() + (d.expires_in - 30) * 1000;
-      showToast("Authenticated · 4,000 credits/day · 5 s resolution");
-      return tokenRef.current;
-    } catch {
-      showToast("Token request blocked — paste a Bearer token instead, or use anonymous mode.");
-      return null;
+
+    // Try user-entered credentials
+    if (cid.trim() && csec.trim()) {
+      try {
+        const body = new URLSearchParams({ grant_type: "client_credentials", client_id: cid, client_secret: csec });
+        const res = await fetch(TOKEN_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString(),
+        });
+        if (res.ok) {
+          const d = await res.json();
+          tokenRef.current = d.access_token;
+          tokenExpRef.current = Date.now() + (d.expires_in - 30) * 1000;
+          showToast("Authenticated · 4,000 credits/day · 5 s resolution");
+          return tokenRef.current;
+        }
+      } catch { /* fall through */ }
     }
+
+    return null;
   }, [cid, csec, btok, showToast]);
 
   /* ── Fetch states from OpenSky ───────────────────────────── */

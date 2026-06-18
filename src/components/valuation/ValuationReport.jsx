@@ -4,13 +4,13 @@ const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD
 
 function MetricCard({ icon: Icon, label, value, note }) {
   return (
-    <div className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-sm">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F7F4EF]">
-        <Icon className="h-5 w-5 text-[#D4A017]" />
+    <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.06)" }}>
+        <Icon className="h-5 w-5" style={{ color: "#D4A017" }} />
       </div>
-      <p className="text-xs font-black uppercase tracking-wide text-[#6B6560]">{label}</p>
-      <p className="mt-1 text-2xl font-black tracking-tight text-[#1A1814]">{value}</p>
-      {note && <p className="mt-2 text-xs leading-5 text-[#6B6560]">{note}</p>}
+      <p className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>{label}</p>
+      <p className="mt-1 text-2xl font-black tracking-tight" style={{ color: "#fff" }}>{value}</p>
+      {note && <p className="mt-2 text-xs leading-5" style={{ color: "rgba(255,255,255,0.45)" }}>{note}</p>}
     </div>
   );
 }
@@ -18,7 +18,7 @@ function MetricCard({ icon: Icon, label, value, note }) {
 export default function ValuationReport({ result, aircraft }) {
   if (!result) {
     return (
-      <div className="rounded-2xl border border-dashed border-black/[0.12] bg-white/60 p-6 text-sm leading-7 text-[#6B6560]">
+      <div className="rounded-2xl p-6 text-sm leading-7" style={{ background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)" }}>
         Your AI-driven valuation report will appear here with pricing guidance, confidence level, and sales-positioning insights.
       </div>
     );
@@ -47,8 +47,8 @@ export default function ValuationReport({ result, aircraft }) {
         <MetricCard icon={CheckCircle2} label="Engine remaining" value={`${result.engine_remaining_pct}%`} note="Engine life is factored into the valuation as a key buyer confidence driver." />
       </div>
 
-      <div className="rounded-2xl border border-black/[0.07] bg-white p-5 text-sm leading-7 text-[#4A4845] shadow-sm">
-        <h3 className="text-lg font-black tracking-tight text-[#1A1814]">Sales advisory note</h3>
+      <div className="rounded-2xl p-5 text-sm leading-7" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)", color: "rgba(255,255,255,0.55)" }}>
+        <h3 className="text-lg font-black tracking-tight" style={{ color: "#fff", letterSpacing: "-0.01em" }}>Sales advisory note</h3>
         <p className="mt-2">
           Position the aircraft with a value-led narrative: highlight documented condition, remaining engine life, avionics quality, and price discipline versus comparable inventory. For buyer conversations, use the OMVM range as a professional anchor rather than a fixed appraisal.
         </p>

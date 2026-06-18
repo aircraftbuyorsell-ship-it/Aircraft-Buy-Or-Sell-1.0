@@ -71,16 +71,16 @@ export default function ATIVerify() {
   const review = sessions.filter(s => s.verification_status === "review_required").length;
 
   return (
-    <div className="min-h-screen bg-[#0c0f1a] text-white">
+    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg,#0a1628 0%,#1B2A4A 40%,#0d1f3c 100%)" }}>
       {/* Header */}
-      <div className="bg-[#0f1324] border-b border-white/[0.06] sticky top-0 z-10">
+      <div className="border-b sticky top-0 z-10" style={{ background: "rgba(10,22,40,0.95)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="px-4 md:px-8 py-4 max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="text-[10px] tracking-[0.2em] font-black text-[#60a5fa] uppercase">ATI Verify</p>
             <h1 className="text-xl font-bold mt-0.5">Remote Verification Dashboard</h1>
           </div>
           <button onClick={() => setShowNew(true)}
-            className="flex items-center gap-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-sm px-4 py-2.5 rounded-lg transition-colors">
+            className="flex items-center gap-2 text-white font-bold text-sm px-4 py-2.5 rounded-lg transition-colors" style={{ background: "linear-gradient(135deg, #D4A017, #f48120)" }}>
             <Plus className="w-4 h-4" /> New Session
           </button>
         </div>
@@ -95,7 +95,7 @@ export default function ATIVerify() {
             { label: "Pending", value: pending, icon: Clock, color: "#facc15" },
             { label: "Needs Review", value: review, icon: AlertTriangle, color: "#f87171" },
           ].map(s => (
-            <div key={s.label} className="bg-[#11162b] border border-white/[0.06] rounded-xl p-4">
+            <div key={s.label} className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
               <div className="flex items-center gap-2 mb-3">
                 <s.icon className="w-4 h-4" style={{ color: s.color }} />
                 <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">{s.label}</p>
@@ -107,19 +107,19 @@ export default function ATIVerify() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "rgba(255,255,255,0.3)" }} />
           <input
             placeholder="Search by session ID, registration, or name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#11162b] border border-white/[0.08] rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none focus:border-[#2563eb]/40 transition-colors"
+            className="w-full rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none transition-colors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)" }} placeholder="Search by session ID, registration, or name..."
           />
         </div>
 
         {/* Sessions table */}
         {isLoading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-16 bg-[#11162b] rounded-xl animate-pulse" />)}
+            {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.07)" }} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
@@ -133,14 +133,14 @@ export default function ATIVerify() {
           <div className="space-y-2">
             {filtered.map(s => (
               <Link key={s.id} to={`/ati-verify/${s.id}`}>
-                <div className="bg-[#11162b] border border-white/[0.06] rounded-xl px-5 py-4 hover:border-[#2563eb]/30 hover:bg-[#141a33] transition-all flex items-center justify-between gap-4">
+                <div className="rounded-xl px-5 py-4 transition-all flex items-center justify-between gap-4" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-[#1a1f3a] border border-white/[0.08] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.10)" }}>
                       <Video className="w-4 h-4 text-[#60a5fa]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{s.session_code}</p>
-                      <p className="text-[11px] text-white/40 truncate">
+                      <p className="text-sm font-bold truncate" style={{ color: "#fff" }}>{s.session_code}</p>
+                      <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
                         {s.seller_name || "—"} · {s.aircraft_registration || "—"} · {s.aircraft_type || "—"}
                       </p>
                     </div>

@@ -268,7 +268,7 @@ export default function Listings() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Make, model or registration…"
-              className="w-full pl-9 pr-4 py-2 rounded-lg text-[13px] outline-none transition-colors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }} placeholder="Make, model or registration…" />
+              className="w-full pl-9 pr-4 py-2 rounded-lg text-[13px] outline-none transition-colors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }} />
             
             {search &&
             <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a4550] hover:text-[#3a3530]">
@@ -366,15 +366,15 @@ export default function Listings() {
           )}
           </div> :
         filtered.length === 0 ?
-        <div className="bg-white border border-black/[0.07] rounded-2xl flex flex-col items-center py-16 text-[#4a4550]">
-            <div className="w-12 h-12 rounded-full bg-[#F0EDE6] flex items-center justify-center mb-3">
-              <Plane className="w-6 h-6 text-[#4a4550]" />
+        <div className="rounded-2xl flex flex-col items-center py-16" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <Plane className="w-6 h-6" style={{ color: "rgba(255,255,255,0.4)" }} />
             </div>
-            <p className="text-sm font-bold text-[#3a3530]">No aircraft match your criteria</p>
-            <p className="text-[11px] mt-1 text-[#4a4550]">Try adjusting filters or add a new listing</p>
+            <p className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.6)" }}>No aircraft match your criteria</p>
+            <p className="text-[11px] mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>Try adjusting filters or add a new listing</p>
             <button
             onClick={() => requireFeature("ati_passport_full", TOKEN_COSTS.ati_passport_full, () => setShowImport(true))}
-            className="mt-4 flex items-center gap-2 bg-[#0B2D5B] text-white text-[12px] font-bold px-5 py-2.5 rounded-xl">
+            className="mt-4 flex items-center gap-2 text-white text-[12px] font-bold px-5 py-2.5 rounded-xl" style={{ background: "linear-gradient(135deg, #D4A017, #f48120)" }}>
             
               <Upload className="w-3.5 h-3.5" />
               Add First Aircraft
@@ -517,7 +517,7 @@ export default function Listings() {
             onSelectAll={selectAll} />
 
           }
-            <div className="relative bg-white border border-black/[0.07] rounded-2xl overflow-hidden shadow-md">
+            <div className="relative rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
               <div className="absolute top-0 left-0 right-0 h-[2px] z-10"
             style={{ background: "linear-gradient(90deg, transparent 5%, #0B2D5B 50%, transparent 95%)" }} />
               <div className="flex items-center gap-5 px-5 md:px-6 py-2.5 border-b" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}>
@@ -541,12 +541,12 @@ export default function Listings() {
 
         {/* Score CTA */}
         {!isLoading && listings.filter((l) => !l.ati_score).length > 0 &&
-        <div className="mt-4 flex items-center gap-3 bg-white border border-[rgba(11,45,91,0.1)] rounded-xl px-4 py-3 shadow-sm">
-            <div className="w-8 h-8 rounded-lg bg-[rgba(11,45,91,0.07)] flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-[#0B2D5B]" />
+        <div className="mt-4 flex items-center gap-3 rounded-xl px-4 py-3" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(212,160,23,0.12)" }}>
+              <ShieldCheck className="w-4 h-4" style={{ color: "#D4A017" }} />
             </div>
-            <p className="text-[12px] text-[#3a3530]">
-              <span className="font-black text-[#0B2D5B]">{listings.filter((l) => !l.ati_score).length} aircraft</span> not yet scored — open any listing to issue an ATI Score Card.
+            <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+              <span className="font-black" style={{ color: "#D4A017" }}>{listings.filter((l) => !l.ati_score).length} aircraft</span> not yet scored — open any listing to issue an ATI Score Card.
             </p>
           </div>
         }
@@ -605,31 +605,31 @@ export default function Listings() {
                 </p>
               </div>
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">What's the minimum info needed?</p>
-                <p className="text-[#3a3530] leading-relaxed text-[12px]">
+                <p className="font-black mb-1" style={{ color: "#D4A017" }}>What's the minimum info needed?</p>
+                <p className="leading-relaxed text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   At minimum: <strong>make, model, and year</strong>. For a full score, provide registration (N-reg or EASA mark), total time, engine hours, TBO, avionics, and last annual date.
                 </p>
               </div>
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">How do I create a card?</p>
-                <p className="text-[#3a3530] leading-relaxed text-[12px]">
+                <p className="font-black mb-1" style={{ color: "#D4A017" }}>How do I create a card?</p>
+                <p className="leading-relaxed text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   Click the <strong>"Create ATI Score Card"</strong> button above and enter a registration. If the aircraft exists in FAA records, data auto-populates. Or use <strong>"Manual Add"</strong> to enter details yourself.
                 </p>
               </div>
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">What is Expert Valuation?</p>
-                <p className="text-[#3a3530] leading-relaxed text-[12px]">
+                <p className="font-black mb-1" style={{ color: "#D4A017" }}>What is Expert Valuation?</p>
+                <p className="leading-relaxed text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   Expert Valuation — our aviation specialist appraisal combining comparable market data, technical aircraft analysis, and current market conditions to produce a $70k–$90k price band estimate.
                 </p>
               </div>
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">Who can see my listing?</p>
-                <p className="text-[#3a3530] leading-relaxed text-[12px]">
+                <p className="font-black mb-1" style={{ color: "#D4A017" }}>Who can see my listing?</p>
+                <p className="leading-relaxed text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   Public listings are visible to all logged-in users. Sensitive owner/operator details stay locked behind the confidential card back, accessible only with verified LOI.
                 </p>
               </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-black/[0.06]">
+            <div className="mt-6 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <Link to="/max-chat" className="text-[11px] text-[#D4A017] font-bold hover:text-[#A67C00]">
                 Need more help? Ask Max, our aviation assistant →
               </Link>

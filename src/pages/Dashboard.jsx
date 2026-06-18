@@ -11,9 +11,9 @@ import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import {
-  Globe as GlobeIcon, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck,
+  GlobeIcon, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck,
   FileText, Download, TrendingUp, Calculator, BarChart3,
-  Plane, Users, Building2, UserCheck, ChevronRight, Clock
+  Plane, Users, Building2, UserCheck, ChevronRight, Clock, Map
 } from "lucide-react";
 
 const VERIFY_STEPS = [
@@ -42,46 +42,10 @@ const UPSELL_HOOKS = [
 export default function Dashboard() {
   const isDark = useTheme();
   const navigate = useNavigate();
-  const [focusLocation, setFocusLocation] = useState(null);
-  const [detail, setDetail] = useState(null);
   const [trafficDots, setTrafficDots] = useState([]);
   const [listingDots, setListingDots] = useState([]);
   const [trafficLimit, setTrafficLimit] = useState(200);
   const [globeLoading, setGlobeLoading] = useState(true);
-
-  // Fetch listing dots & poll OpenSky
-  useEffect(() => {
-    // Listing dots
-    base44.entities.AircraftListing.list("-created_date", 80).then(items => {
-      setListingDots(
-        (items || []).map(i => ({
-          lat: i.lat || 38 + Math.sin(i.id?.length || 0) * 10,
-          lon: i.lon || -97 + Math.cos(i.id?.length || 0) * 15,
-          title: i.title || `${i.year || ""} ${i.make || ""} ${i.model || ""}`.trim() || "Aircraft",
-          price: i.asking_price,
-        }))
-      );
-    }).catch(() => {});
-
-    // OpenSky poll
-    async function fetchTraffic() {
-      try {
-        const res = await fetch("https://opensky-network.org/api/states/all?lamin=25&lomin=-130&lamax=70&lomax=40");
-        const data = await res.json();
-        if (data?.states) {
-          const dots = data.states
-            .filter(s => s[6] != null && s[5] != null)
-            .slice(0, trafficLimit)
-            .map(s => ({ lat: s[6], lon: s[5], onGround: !!s[8], callsign: (s[1] || "").trim() }));
-          setTrafficDots(dots);
-        }
-      } catch (e) { console.warn("OpenSky unavailable:", e); }
-      finally { setGlobeLoading(false); }
-    }
-    fetchTraffic();
-    const interval = setInterval(fetchTraffic, 45000);
-    return () => clearInterval(interval);
-  }, []);
 
   const textColor    = isDark ? "#e2e8f0" : "#1a1a1a";
   const mutedColor   = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
@@ -95,74 +59,118 @@ export default function Dashboard() {
     ? "1px solid rgba(0,180,255,0.13)"
     : "1px solid rgba(37,99,235,0.10)";
 
-  const { data: listings = [] } = useQuery({
-    queryKey: ["listings-active"],
-    queryFn: () =>
-      base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 5000),
-  });
+  // Fetch listing dots (approximate geo from registration prefix)
+  useEffect(() => {
+    base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 80)
+      .then((items) => {
+        const prefixMap = {
+          N: [38, -97], C: [56, -96], G: [54, -2], D: [51, 10], F: [46, 2],
+          I: [42, 12], EC: [40, -4], OE: [47, 14], SP: [52, 20], OK: [50, 15],
+          OM: [49, 20], HA: [47, 19], LZ: [43, 25], SE: [60, 18], LN: [60, 8],
+          OH: [61, 26], OO: [51, 4], CS: [39, -8], EI: [53, -8], RA: [60, 100],
+          VH: [-25, 133], ZK: [-41, 174], JA: [36, 138], B: [35, 105],
+          VT: [20, 78], HL: [36, 128], HS: [15, 101], PK: [-6, 107],
+          XA: [23, -102], PP: [-15, -50], LV: [-34, -64],
+          HK: [4, -72], ZS: [-29, 25], A6: [24, 54], "4X": [31, 35],
+          HZ: [24, 45], TC: [39, 35],
+        };
+        const dots = items
+          .filter((i) => i.registration)
+          .map((i) => {
+            const reg = (i.registration || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+            const prefix = reg.substring(0, 2);
+            const coords = prefixMap[prefix] || prefixMap[reg.substring(0, 1)] || [38, -97];
+            return {
+              lat: coords[0] + Math.sin((i.id || "").length || 0) * 2.5,
+              lon: coords[1] + Math.cos((i.id || "").length || 0) * 3.5,
+              title: `${i.year || ""} ${i.make || ""} ${i.model || ""}`.trim() || i.registration,
+              price: i.asking_price,
+            };
+          });
+        setListingDots(dots);
+      })
+      .catch(() => {});
+  }, []);
 
-  const { data: userProfile } = useQuery({
-    queryKey: ["user-profile-dashboard"],
-    queryFn: async () => {
+  // Poll OpenSky traffic every 45 seconds
+  useEffect(() => {
+    async function fetchTraffic() {
       try {
-        const me = await base44.auth.me();
-        const profiles = await base44.entities.UserProfile.filter(
-          { user_email: me.email }, "-created_date", 1
+        const res = await fetch(
+          "https://opensky-network.org/api/states/all?lamin=25&lomin=-130&lamax=70&lomax=40"
         );
-        return profiles[0] || null;
-      } catch { return null; }
-    },
-    staleTime: 60000,
-  });
+        const data = await res.json();
+        if (data?.states) {
+          const dots = data.states
+            .filter((s) => s[6] != null && s[5] != null)
+            .slice(0, trafficLimit)
+            .map((s) => ({
+              lat: s[6],
+              lon: s[5],
+              onGround: !!s[8],
+              callsign: (s[1] || "").trim(),
+            }));
+          setTrafficDots(dots);
+        }
+      } catch (e) {
+        console.warn("OpenSky unavailable:", e);
+      } finally {
+        setGlobeLoading(false);
+      }
+    }
+    fetchTraffic();
+    const interval = setInterval(fetchTraffic, 45000);
+    return () => clearInterval(interval);
+  }, [trafficLimit]);
 
   return (
     <div className="min-h-screen relative" style={{ background: "transparent" }}>
       <NotificationStack />
       <NotificationCenter />
 
-      <div className="fixed inset-0 z-0 flex flex-col items-center justify-center">
-        {globeLoading ? (
-          <GlobePageLoader label="Loading live traffic…" size={64} overlay={false} />
-        ) : (
-          <div className="flex flex-col items-center gap-3">
-            <Globe
-              size={Math.min(500, (typeof window !== "undefined" ? window.innerWidth : 1024) - 40)}
-              trafficDots={trafficDots.slice(0, trafficLimit)}
-              listingDots={listingDots}
-              autoRotate={true}
-              onDotClick={(dot) => {
-                if (dot.callsign) {
-                  setDetail({ type: "traffic", data: dot });
-                }
-              }}
-            />
+      <div className="relative z-10">
+
+        {/* ── GLOBE SECTION ── */}
+        <section className="px-4 md:px-8 pt-6 pb-4">
+          <div className="max-w-6xl mx-auto flex flex-col items-center">
+            {globeLoading ? (
+              <GlobePageLoader label="Loading live traffic…" size={64} />
+            ) : (
+              <Globe
+                size={Math.min(500, typeof window !== "undefined" ? window.innerWidth - 40 : 480)}
+                trafficDots={trafficDots.slice(0, trafficLimit)}
+                listingDots={listingDots}
+                autoRotate={true}
+              />
+            )}
             {/* Controls */}
-            <div className="flex items-center gap-3 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
               <input
                 type="range"
-                min="50" max="400" step="50"
+                min="50"
+                max="400"
+                step="50"
                 value={trafficLimit}
-                onChange={e => setTrafficLimit(parseInt(e.target.value))}
-                className="w-24"
-                style={{ accentColor: "#00c2cb" }}
+                onChange={(e) => setTrafficLimit(parseInt(e.target.value))}
+                style={{ width: 100, accentColor: accentCyan }}
               />
-              <span className="text-[10px] font-bold" style={{ color: "rgba(0,194,203,0.9)" }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: accentCyan }}>
                 Traffic: {trafficLimit}
               </span>
               {trafficDots.length > 0 && (
-                <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: "#22c55e" }}>
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
-                  Live
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#22c55e", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: "#22c55e", boxShadow: "0 0 6px #22c55e",
+                    animation: "pulse 2s infinite",
+                  }} /> Live
                 </span>
               )}
             </div>
           </div>
-        )}
-      </div>
+        </section>
 
-      <div className="relative z-10">
-
-        <section className="px-4 md:px-8 pt-6 pb-3">
+        <section className="px-4 md:px-8 pb-3">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>

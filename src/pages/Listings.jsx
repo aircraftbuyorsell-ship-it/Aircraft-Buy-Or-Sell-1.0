@@ -6,6 +6,7 @@ import {
   Upload, RefreshCw, TrendingDown, TrendingUp,
   ShieldCheck, CheckSquare, Square } from
 "lucide-react";
+import MiniGlobe from "@/components/MiniGlobe";
 import BulkActionsBar from "@/components/listings/BulkActionsBar";
 import { Link } from "react-router-dom";
 import ListingDrawer from "@/components/listings/ListingDrawer";
@@ -353,17 +354,8 @@ export default function Listings() {
       {/* ── Listings ── */}
       <div className="px-4 md:px-8 py-5 pb-8">
         {isLoading ?
-        <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
-            {[...Array(6)].map((_, i) =>
-          <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.04]">
-                <div className="w-11 h-11 rounded-full bg-black/[0.05] animate-pulse shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-black/[0.05] rounded-md animate-pulse w-2/5" />
-                  <div className="h-2.5 bg-black/[0.04] rounded-md animate-pulse w-1/3" />
-                </div>
-                <div className="h-5 bg-black/[0.05] rounded-md animate-pulse w-20" />
-              </div>
-          )}
+        <div className="rounded-2xl overflow-hidden flex items-center justify-center py-20" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+            <MiniGlobe size={48} label="Loading listings…" color="#00c2cb" />
           </div> :
         filtered.length === 0 ?
         <div className="rounded-2xl flex flex-col items-center py-16" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>

@@ -1,4 +1,5 @@
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import MiniGlobe from "@/components/MiniGlobe";
 
 const FIELD_CLASS = "w-full rounded-xl px-3 py-2.5 text-sm outline-none transition";
 const FIELD_STYLE = { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" };
@@ -50,7 +51,7 @@ export default function ValuationForm({ formData, onChange, onSubmit, loading })
       </div>
 
       <button disabled={loading} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white transition disabled:opacity-60" style={{ background: "linear-gradient(135deg, #D4A017, #f48120)" }}>
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        {loading ? <MiniGlobe size={18} color="#D4A017" inline={true} /> : <Search className="h-4 w-4" />}
         {loading ? "Building market report..." : "Generate valuation report"}
       </button>
     </form>

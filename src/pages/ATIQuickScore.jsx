@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Zap, FileText, TrendingUp, ShieldCheck, RotateCw } from "lucide-react";
 import { orchestrateATIScoring } from "@/api/orchestrateATIScoring";
 import TierBadge from "@/components/TierBadge";
+import MiniGlobe from "@/components/MiniGlobe";
 import { ScoreArc, DimensionBars, FlagsList, OMVMValue } from "@/components/ati/ATIQuickScoreGauge";
 
 const TIERS = ["free_explorer", "starter", "pro", "enterprise"];
@@ -178,13 +179,7 @@ Asking: $85,000 — Hangared, private owner, all logs`}
       {/* ── Loading ── */}
       {submitted && loading && (
         <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center", padding: "80px 0" }}>
-          <div style={{
-            width: "48px", height: "48px", margin: "0 auto 20px",
-            border: "3px solid rgba(212,160,23,0.15)", borderTopColor: "#D4A017",
-            borderRadius: "50%", animation: "spin 0.8s linear infinite",
-          }} />
-          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>Running ATI analysis…</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <MiniGlobe size={48} label="Running ATI analysis…" color="#D4A017" />
         </div>
       )}
 

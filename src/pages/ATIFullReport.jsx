@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useLocation } from "react-router-dom";
 import { FileText, Download, ChevronDown, ChevronUp } from "lucide-react";
+import MiniGlobe from "@/components/MiniGlobe";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 const DIMS = [
@@ -333,8 +334,7 @@ Return ONLY valid JSON with this exact schema:
           {loading && (
             <div className="rounded-2xl border border-white/[0.07] p-8 text-center"
               style={{ background: "rgba(255,255,255,0.03)" }}>
-              <div className="w-10 h-10 mx-auto mb-4 border-2 border-[#D4A017]/30 border-t-[#D4A017] rounded-full animate-spin" />
-              <p className="text-white/40 text-[12px]">Generating professional ATI report…</p>
+              <MiniGlobe size={40} label="Generating professional ATI report…" color="#D4A017" />
             </div>
           )}
 

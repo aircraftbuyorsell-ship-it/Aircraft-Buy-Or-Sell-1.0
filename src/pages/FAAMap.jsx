@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  Map, Loader2, SlidersHorizontal, Table, Globe, Search, ChevronDown,
+  Map, SlidersHorizontal, Table, Globe, Search, ChevronDown,
   ExternalLink, Zap, ShieldCheck, X, Filter
 } from "lucide-react";
+import MiniGlobe from "@/components/MiniGlobe";
 
 const GLASS_CARD = {
   background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)",
@@ -172,7 +173,7 @@ export default function FAAMap() {
 
         <div style={{ flex: 1 }} />
 
-        {loading && <Loader2 size={16} className="animate-spin" color="rgba(255,255,255,0.4)" />}
+        {loading && <MiniGlobe size={24} color="#00c2cb" inline={true} />}
 
         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>
           {totalCount.current.toLocaleString()} records

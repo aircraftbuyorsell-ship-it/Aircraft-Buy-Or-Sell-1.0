@@ -61,50 +61,35 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
     setDamageUnlocked(false);
 
     try {
-      // Query FAAAircraft
-      const faaResults = await base44.entities.FAAAircraft.filter({ n_number: nNumber }, "-created_date", 1);
-      if (faaResults.length === 0) {
-        setError(`No FAA registry record found for N${nNumber}.`);
+      const res = await base44.functions.invoke("nregSearch", { n_number: nNumber });
+      const data = res.data;
+
+      if (!data.found) {
+        setError(data.error || `No FAA registry record found for N${nNumber}.`);
         setSearching(false);
         return;
       }
-      const faa = faaResults[0];
-      setResult(faa);
+
+      setResult(data.aircraft);
 
       // Focus globe on aircraft location
-      if (faa.state && onFocusLocation) {
-        const coords = US_STATE_CENTROIDS[faa.state.toUpperCase()];
-        if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: faa.state });
+      if (data.aircraft.state && onFocusLocation) {
+        const coords = US_STATE_CENTROIDS[data.aircraft.state.toUpperCase()];
+        if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: data.aircraft.state });
       }
 
-      // Query local services from FAA dealer registry
-      if (faa.state) {
-        try {
-          const dealers = await base44.entities.DealerLocation.filter({ state: faa.state, is_active: true }, "-created_date", 200);
-          if (dealers.length > 0) {
-            const byRole = {};
-            for (const d of dealers) {
-              const r = d.role || "other";
-              byRole[r] = (byRole[r] || 0) + 1;
-            }
-            setAreaServices(byRole);
-            setAreaState(faa.state);
-          } else {
-            setAreaServices(null);
-          }
-        } catch { setAreaServices(null); }
+      // Area services
+      if (data.areaServices) {
+        setAreaServices(data.areaServices.byRole);
+        setAreaState(data.areaServices.state);
       } else {
         setAreaServices(null);
       }
 
-      // Check for ABOS listing match
-      try {
-        const listings = await base44.entities.AircraftListing.filter({
-          registration: `N${nNumber}`,
-          status: "active",
-        }, "-created_date", 1);
-        if (listings.length > 0) setListingMatch(listings[0]);
-      } catch (_) {}
+      // Listing match
+      if (data.listing) {
+        setListingMatch(data.listing);
+      }
     } catch (e) {
       setError("Failed to search FAA registry. Please try again.");
     }
@@ -257,7 +242,6 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           {/* Key data grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: "Owner", value: result.name ? "●●●●●@●●●●●" : "—" },
               { label: "Serial", value: result.serial_number || "—" },
               { label: "Cert Issued", value: result.cert_issue_date || "—" },
               { label: "Expiration", value: result.expiration_date || "—" },
@@ -265,6 +249,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               { label: "Mode S (ICAO)", value: result.mode_s_hex || "—" },
               { label: "Engine", value: result.engine_mfr ? `${result.engine_mfr} ${result.engine_model || ""}` : "—" },
               { label: "Year", value: result.year_mfr || "—" },
+              { label: "State", value: result.state || "—" },
             ].map((d) => (
               <div key={d.label}>
                 <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: mutedColor }}>{d.label}</p>

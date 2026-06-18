@@ -126,7 +126,7 @@ function dotTexture() {
   g.addColorStop(1, "rgba(255,255,255,0)");
   x.fillStyle = g;
   x.beginPath();
-  x.arc(24, 24, 24, 0, 7);
+  x.arc(24, 24, 24, 0, Math.PI * 2);
   x.fill();
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = false;
@@ -137,6 +137,10 @@ function liveTrafficTexture() {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 96;
   const ctx = cv.getContext("2d");
+  // flipY=false means canvas is flipped — draw upside down so it renders right
+  ctx.save();
+  ctx.translate(0, 96);
+  ctx.scale(1, -1);
   const glow = ctx.createRadialGradient(48, 48, 4, 48, 48, 42);
   glow.addColorStop(0, "rgba(34, 197, 94, 0.95)");
   glow.addColorStop(0.25, "rgba(34, 197, 94, 0.55)");
@@ -152,6 +156,7 @@ function liveTrafficTexture() {
   ctx.beginPath();ctx.moveTo(48, 56);ctx.lineTo(70, 68);ctx.lineTo(68, 72);ctx.lineTo(48, 62);ctx.closePath();ctx.fill();
   ctx.strokeStyle = "rgba(34, 197, 94, 0.8)";ctx.lineWidth = 1;
   ctx.beginPath();ctx.moveTo(48, 10);ctx.lineTo(48, 76);ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);ctx.stroke();
+  ctx.restore();
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = false;
   return tex;
@@ -161,6 +166,10 @@ function aircraftSilhouetteTexture() {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 96;
   const ctx = cv.getContext("2d");
+  // flipY=false means canvas is flipped — draw upside down so it renders right
+  ctx.save();
+  ctx.translate(0, 96);
+  ctx.scale(1, -1);
   const glow = ctx.createRadialGradient(48, 48, 4, 48, 48, 42);
   glow.addColorStop(0, "rgba(0, 220, 255, 0.95)");
   glow.addColorStop(0.25, "rgba(0, 180, 255, 0.55)");
@@ -187,6 +196,7 @@ function aircraftSilhouetteTexture() {
   ctx.moveTo(18, 44);ctx.lineTo(48, 28);ctx.lineTo(78, 44);
   ctx.moveTo(26, 68);ctx.lineTo(48, 58);ctx.lineTo(70, 68);
   ctx.stroke();
+  ctx.restore();
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = false;
   return tex;
@@ -203,7 +213,7 @@ function listingDotTexture(color) {
   outer.addColorStop(1, "rgba(255,255,255,0)");
   x.fillStyle = outer;
   x.beginPath();
-  x.arc(32, 32, 32, 0, 7);
+  x.arc(32, 32, 32, 0, Math.PI * 2);
   x.fill();
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = false;
@@ -221,7 +231,7 @@ function faaClusterTexture() {
   g.addColorStop(1, "rgba(212,160,23,0)");
   x.fillStyle = g;
   x.beginPath();
-  x.arc(32, 32, 32, 0, 7);
+  x.arc(32, 32, 32, 0, Math.PI * 2);
   x.fill();
   const tex = new THREE.CanvasTexture(cv);
   tex.flipY = false;

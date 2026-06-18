@@ -230,7 +230,7 @@ Return JSON:
       const omvmResult = await base44.functions.invoke("omvmV5Score", {
         listingId,
       });
-      omvmValue = omvmResult?.omvm_value ?? null;
+      omvmValue = omvmResult?.data?.omvm_value ?? omvmResult?.omvm_value ?? null;
     } catch (err) {
       console.error("[orchestrateATIScoring] omvmV5Score failed:", err);
       // omvmValue stays null — no fallback to hardcoded values

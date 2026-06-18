@@ -94,11 +94,11 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
       {/* Main info */}
       <div className="flex-1 min-w-0" onClick={() => !selected && onClick(listing)}>
         <div className="flex flex-wrap items-center gap-2 mb-1.5">
-          <p className="text-[13px] font-black text-[#1A1814] tracking-tight">
+          <p className="text-[13px] font-black tracking-tight" style={{ color: "#fff" }}>
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
           </p>
           {listing.registration &&
-          <span className="text-[10px] text-[#3a3530] font-mono bg-[#F0EDE6] px-2 py-0.5 rounded-md border border-black/[0.05]">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md" style={{ color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
               {listing.registration}
             </span>
           }
@@ -107,13 +107,13 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
           {listing.total_time &&
-          <span className="text-[11px] text-[#3a3530]">
-              <span className="text-[#4a4550] font-medium">TT </span>{listing.total_time.toLocaleString()} h
+          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+              <span className="font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>TT </span>{listing.total_time.toLocaleString()} h
             </span>
           }
           {listing.engine_hours &&
-          <span className="text-[11px] text-[#3a3530]">
-              <span className="text-[#4a4550] font-medium">ENG </span>{listing.engine_hours.toLocaleString()} h
+          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+              <span className="font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>ENG </span>{listing.engine_hours.toLocaleString()} h
             </span>
           }
           {enginePct != null &&
@@ -121,11 +121,11 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
               <div className="w-20 h-1 bg-black/[0.06] rounded-full overflow-hidden">
                 <div className="h-full rounded-full" style={{ width: `${enginePct}%`, backgroundColor: engineColor }} />
               </div>
-              <span className="text-[9px] text-[#4a4550] font-medium">{Math.round(enginePct)}%</span>
+              <span className="text-[9px] font-medium" style={{ color: "rgba(255,255,255,0.4)" }}>{Math.round(enginePct)}%</span>
             </div>
           }
           {listing.avionics &&
-          <span className="text-[11px] text-[#4a4550] truncate max-w-[140px]">{listing.avionics}</span>
+          <span className="text-[11px] truncate max-w-[140px]" style={{ color: "rgba(255,255,255,0.4)" }}>{listing.avionics}</span>
           }
         </div>
       </div>
@@ -133,8 +133,8 @@ function ListingRow({ listing, onClick, selected, onToggle }) {
       {/* Price + link */}
       <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0" onClick={() => !selected && onClick(listing)}>
         <div className="text-right">
-          <p className="text-[15px] font-black text-[#1A1814] tracking-tight">
-            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-[#4a4550] text-sm font-normal">On request</span>}
+          <p className="text-[15px] font-black tracking-tight" style={{ color: "#fff" }}>
+            {listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : <span className="text-sm font-normal" style={{ color: "rgba(255,255,255,0.4)" }}>On request</span>}
           </p>
           {hasDiscount &&
           <div className={`flex items-center justify-end gap-0.5 text-[10px] font-bold mt-0.5 ${isBelow ? "text-[#0F7A56]" : "text-[#C0392B]"}`}>
@@ -587,20 +587,20 @@ export default function Listings() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) setShowFAQ(false); }}>
           
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 border border-black/[0.08]">
+          <div className="rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6" style={{ background: "linear-gradient(135deg,#0a1628,#1B2A4A)", border: "1px solid rgba(255,255,255,0.15)" }}>
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-[#D4A017]" />
-                <h3 className="text-lg font-black text-[#1A1814]">Quick Guide</h3>
+                <HelpCircle className="w-5 h-5" style={{ color: "#D4A017" }} />
+                <h3 className="text-lg font-black" style={{ color: "#fff" }}>Quick Guide</h3>
               </div>
-              <button onClick={() => setShowFAQ(false)} className="text-[#4a4550] hover:text-[#3a3530]">
+              <button onClick={() => setShowFAQ(false)} style={{ color: "rgba(255,255,255,0.4)" }}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4 text-[13px]">
               <div>
-                <p className="font-black text-[#0B2D5B] mb-1">What is an ATI Score Card?</p>
-                <p className="text-[#3a3530] leading-relaxed text-[12px]">
+                <p className="font-black mb-1" style={{ color: "#D4A017" }}>What is an ATI Score Card?</p>
+                <p className="leading-relaxed text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>
                   The ABOS Transaction Intelligence (ATI) Score Card is an 8-dimension evaluation of an aircraft's documentation, maintenance, avionics, usage history, and market readiness — scored 0–120.
                 </p>
               </div>

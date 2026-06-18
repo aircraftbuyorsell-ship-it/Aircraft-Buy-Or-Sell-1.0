@@ -67,11 +67,7 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
-      }
+      "created_by_id": "{{user.id}}"
     },
     "read": {
       "user_condition": {
@@ -81,16 +77,9 @@
       }
     },
     "update": {
-      "$or": [
-        {
-          "data.submitter_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {

@@ -56,30 +56,24 @@
     "read": {
       "$or": [
         {
+          "created_by_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
-        },
-        {
-          "data.session.broker_email": "{{user.email}}"
-        },
-        {
-          "data.session.seller_email": "{{user.email}}"
         }
       ]
     },
     "update": {
       "$or": [
         {
+          "created_by_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
-        },
-        {
-          "data.session.broker_email": "{{user.email}}"
-        },
-        {
-          "data.session.seller_email": "{{user.email}}"
         }
       ]
     },

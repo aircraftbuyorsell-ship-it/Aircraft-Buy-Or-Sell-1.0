@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { ShieldCheck } from "lucide-react";
 import ValuationForm from "@/components/valuation/ValuationForm";
 import ValuationReport from "@/components/valuation/ValuationReport";
+
+const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
 const INITIAL_FORM = {
   make: "",
@@ -18,10 +20,25 @@ const INITIAL_FORM = {
 const toNumber = (value) => value === "" ? undefined : Number(value);
 
 export default function Valuation() {
-  const [formData, setFormData] = useState(INITIAL_FORM);
+  const [formData, setFormData] = useState(() => ({
+    ...INITIAL_FORM,
+    make: readParam("make"),
+    model: readParam("model"),
+    year: readParam("year"),
+    engine_hours: readParam("engine_hours"),
+    asking_price: readParam("asking_price"),
+  }));
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
+
+  const hasPrefill = !!(readParam("make") || readParam("model"));
+
+  useEffect(() => {
+    if (hasPrefill && formData.make && formData.model) {
+      // Auto-trigger if URL params are present
+    }
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

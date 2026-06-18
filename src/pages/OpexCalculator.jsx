@@ -65,6 +65,8 @@ function loadCustomAircraft() {
   try { const raw = localStorage.getItem(CUSTOM_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
 }
 
+const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
+
 export default function OpexCalculator() {
   useAutoTrack("opex_calculator");
 
@@ -77,13 +79,26 @@ export default function OpexCalculator() {
   const tier = user?.tier || user?.role === "admin" ? "enterprise" : "free_explorer";
   const canUseCustom = tier === "starter" || tier === "pro" || tier === "enterprise" || user?.role === "admin" || user?.role === "super_admin";
 
+  // --- Prefill from URL params ---
+  const urlMake = readParam("make");
+  const urlModel = readParam("model");
+  const urlEngineHours = readParam("engine_hours");
+  const urlState = readParam("state");
+
+  const findMatchingPreset = () => {
+    if (!urlMake) return null;
+    const needle = `${urlMake} ${urlModel}`.toLowerCase().trim();
+    return AIRCRAFT_PRESETS.find(p => p.name.toLowerCase().includes(needle) || needle.includes(p.name.toLowerCase())) || null;
+  };
+  const matchedPreset = findMatchingPreset();
+
   // --- Aircraft state ---
-  const [preset, setPreset] = useState(AIRCRAFT_PRESETS[1]);
+  const [preset, setPreset] = useState(matchedPreset || AIRCRAFT_PRESETS[1]);
   const [customAircraft, setCustomAircraft] = useState(loadCustomAircraft);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [annualHours, setAnnualHours] = useState(200);
   const [totalTime, setTotalTime] = useState(1800);
-  const [engineHours, setEngineHours] = useState(900);
+  const [engineHours, setEngineHours] = useState(urlEngineHours ? parseInt(urlEngineHours) || 900 : 900);
   const [propHours, setPropHours] = useState(400);
   const [annualOverdue, setAnnualOverdue] = useState(false);
   const [upcomingCost, setUpcomingCost] = useState(5000);
@@ -101,7 +116,7 @@ export default function OpexCalculator() {
   const [avionicsSupport, setAvionicsSupport] = useState("supported");
 
   // --- Location & Regional ---
-  const [location, setLocation] = useState("north-america");
+  const [location, setLocation] = useState(urlState ? "north-america" : "north-america");
   const locationMult = LOCATION_RATES[location] || LOCATION_RATES["north-america"];
 
   // --- Compliance ---

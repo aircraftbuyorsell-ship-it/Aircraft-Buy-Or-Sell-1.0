@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Search, Loader2, Lock, CheckCircle2, XCircle, Clock, ExternalLink, BadgeCheck, ShieldCheck, AlertTriangle, Zap, User, Building, Plane, ArrowRight, Wrench, Paintbrush, Cog, ShoppingCart, MapPin } from "lucide-react";
+import { Search, Loader2, Lock, CheckCircle2, XCircle, Clock, ExternalLink, BadgeCheck, ShieldCheck, AlertTriangle, Zap, User, Building, Plane, ArrowRight, Wrench, Paintbrush, Cog, ShoppingCart, MapPin, TrendingUp, Gauge } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import { Link } from "react-router-dom";
@@ -445,6 +445,30 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               <User className="w-4 h-4" /> Contact Owner / Broker
             </button>
           )}
+
+          {/* ── OMVM & Opex Quick Actions ── */}
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <Link
+              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              className="rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{
+                background: "rgba(168,85,247,0.10)",
+                border: "1px solid rgba(168,85,247,0.25)",
+                color: "#a855f7",
+              }}>
+              <TrendingUp className="w-3.5 h-3.5" /> OMVM Estimate
+            </Link>
+            <Link
+              to={`/opex-calculator?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&state=${encodeURIComponent(result.state || "")}`}
+              className="rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{
+                background: "rgba(249,115,22,0.10)",
+                border: "1px solid rgba(249,115,22,0.25)",
+                color: "#f97316",
+              }}>
+              <Gauge className="w-3.5 h-3.5" /> Opex Calculator
+            </Link>
+          </div>
         </div>
       )}
 

@@ -155,7 +155,16 @@
   ],
   "rls": {
     "create": {
-      "data.triggered_by": "{{user.id}}"
+      "$or": [
+        {
+          "data.triggered_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [

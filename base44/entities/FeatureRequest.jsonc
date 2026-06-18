@@ -67,11 +67,7 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
-      }
+      "created_by_id": "{{user.id}}"
     },
     "read": {
       "user_condition": {

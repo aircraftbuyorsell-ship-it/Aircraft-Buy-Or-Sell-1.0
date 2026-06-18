@@ -56,11 +56,7 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
-      }
+      "created_by_id": "{{user.id}}"
     },
     "read": {
       "$or": [
@@ -68,7 +64,7 @@
           "data.status": "approved"
         },
         {
-          "data.reviewer_email": "{{user.email}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -80,7 +76,7 @@
     "update": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -92,7 +88,7 @@
     "delete": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {

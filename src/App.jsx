@@ -53,6 +53,7 @@ import AviationStartupHub from "./pages/AviationStartupHub";
 import ATIVerify from "./pages/ATIVerify";
 import ATIVerifySession from "./pages/ATIVerifySession";
 import SupabaseSync from "./pages/SupabaseSync";
+import FAAMap from "./pages/FAAMap";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -123,6 +124,7 @@ const AuthenticatedApp = () => {
         <Route path="/ati-verify" element={<ATIVerify />} />
         <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
         <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
+        <Route path="/faa-map" element={<FAAMap />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

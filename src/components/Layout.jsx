@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  LayoutDashboard, Plane, Radar, User, Menu,
+  LayoutDashboard, Plane, Radar, User, Menu, Map,
   Handshake, Calculator, Users, BarChart3, TrendingUp,
   ArrowLeft, ChevronLeft, ChevronDown, Zap, LogIn, LogOut, CreditCard, ShieldCheck,
   HelpCircle, FileText, Globe, Layers, Video }
@@ -39,6 +39,7 @@ const SIDEBAR_SECTIONS = [
       { path: "/ati-full-report", label: "ATI Full Report", icon: FileText, desc: "Professional ATI appraisal with executive summary, risk breakdown and .docx export" },
       { path: "/deal-radar", label: "Deal Radar", icon: TrendingUp, desc: "Hot deals priced below market with high ATI scores — updated in real time" },
       { path: "/traffic", label: "Live Traffic", icon: Radar, desc: "Real-time ADS-B tracking with N-number search and ABOS listing matching" },
+      { path: "/faa-map", label: "FAA Map", icon: Map, desc: "Interactive FAA aircraft registry map with filtering and N-number lookup" },
       { path: "/ati-verify", label: "ATI Verify", icon: Video, desc: "Remote document verification — live video calls, OCR extraction and ATI scoring" },
     ],
   },

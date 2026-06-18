@@ -224,13 +224,18 @@ Return JSON:
       },
     });
 
-    // ─── 3) OMVM valuation (same logic as one-shot path) ─────────────
-    const tbo = listing.tbo || 2000;
-    const engineAdj = (tbo - (listing.engine_hours || 0)) * 12;
-    const avionicsAdj = (listing.avionics?.split(",").length || 0) * 4500;
-    const maintAdj = listing.fresh_annual ? 6000 : 0;
-    const omvmValue = Math.round(200000 + engineAdj + avionicsAdj + maintAdj);
-    const discountPct = listing.asking_price
+    // ─── 3) OMVM valuation via omvmV5Score ─────────────
+    let omvmValue = null;
+    try {
+      const omvmResult = await base44.functions.invoke("omvmV5Score", {
+        listingId,
+      });
+      omvmValue = omvmResult?.omvm_value ?? null;
+    } catch (err) {
+      console.error("[orchestrateATIScoring] omvmV5Score failed:", err);
+      // omvmValue stays null — no fallback to hardcoded values
+    }
+    const discountPct = listing.asking_price && omvmValue != null
       ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
       : null;
     const dealScore = discountPct == null ? null

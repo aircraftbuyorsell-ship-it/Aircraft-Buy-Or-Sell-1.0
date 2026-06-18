@@ -2,52 +2,50 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  Map, List, Filter, Search, X, Loader2, ChevronDown, Zap, ShieldCheck
+  Map, Loader2, SlidersHorizontal, Table, Globe, Search, ChevronDown,
+  ExternalLink, Zap, ShieldCheck, X, Filter
 } from "lucide-react";
 
-const PAGE_BG = "linear-gradient(135deg, #0a1628, #1B2A4A, #0d1f3c)";
-const GLASS = {
-  background: "rgba(255,255,255,0.07)",
-  backdropFilter: "blur(22px)",
-  WebkitBackdropFilter: "blur(22px)",
-  border: "1px solid rgba(255,255,255,0.11)",
+const GLASS_CARD = {
+  background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)",
+  WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)",
   borderRadius: "16px",
 };
-const INPUT_STYLE = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.14)",
-  borderRadius: "8px",
-  color: "#fff",
-  outline: "none",
-  padding: "10px 14px",
-  fontSize: "13px",
-  width: "100%",
-  boxSizing: "border-box",
+
+const GLASS_INPUT = {
+  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+  borderRadius: "8px", color: "#fff", outline: "none", padding: "10px 14px",
+  fontSize: "13px", width: "100%", boxSizing: "border-box",
 };
+
+const PAGE_BG = "linear-gradient(135deg, #0a1628, #1B2A4A, #0d1f3c)";
 
 const AIRCRAFT_TYPES = [
   { value: "", label: "All" },
   { value: "4", label: "Fixed Wing" },
-  { value: "5", label: "Rotorcraft" },
-  { value: "1", label: "Balloon" },
-  { value: "2", label: "Glider" },
-  { value: "7", label: "Powered-Lift" },
+  { value: "7", label: "Rotorcraft" },
+  { value: "2", label: "Balloon" },
+  { value: "1", label: "Glider" },
+  { value: "8", label: "Powered-Lift" },
 ];
+
 const ENGINE_TYPES = [
   { value: "", label: "All" },
   { value: "1", label: "Reciprocating" },
   { value: "2", label: "Turboprop" },
   { value: "3", label: "Turbo-shaft" },
-  { value: "4", label: "Turbo-jet" },
-  { value: "5", label: "Turbo-fan" },
+  { value: "5", label: "Turbo-jet" },
+  { value: "6", label: "Turbo-fan" },
   { value: "8", label: "Electric" },
 ];
+
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
   { value: "V", label: "Valid" },
   { value: "I", label: "Invalid" },
   { value: "E", label: "Expired" },
 ];
+
 const CATEGORY_OPTIONS = [
   { value: "", label: "All" },
   { value: "1", label: "Land" },
@@ -55,300 +53,282 @@ const CATEGORY_OPTIONS = [
   { value: "3", label: "Amphibian" },
 ];
 
+function Select({ value, onChange, options, placeholder }) {
+  return (
+    <select value={value} onChange={e => onChange(e.target.value)}
+      style={GLASS_INPUT}>
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map(o => (
+        <option key={o.value || o.label} value={o.value} style={{ color: "#000" }}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export default function FAAMap() {
-  const [aircraft, setAircraft] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [count, setCount] = useState(0);
-  const [viewMode, setViewMode] = useState("map");
+  const [view, setView] = useState("map");
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filters, setFilters] = useState({
+    nNumber: "", type: "", engine: "", status: "V",
+    category: "", yearFrom: "", yearTo: "", limit: 500,
+  });
+  const [aircraft, setAircraft] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const canvasRef = useRef(null);
+  const totalCount = useRef(0);
 
-  const [filters, setFilters] = useState({
-    nNumber: "",
-    typeAircraft: "",
-    typeEngine: "",
-    statusCode: "V",
-    category: "",
-    yearFrom: "",
-    yearTo: "",
-    limit: 500,
-  });
-
-  const fetchAircraft = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const query = {};
-      if (filters.statusCode) query.status_code = filters.statusCode;
-      if (filters.typeAircraft) query.type_aircraft = filters.typeAircraft;
-      if (filters.typeEngine) query.type_engine = filters.typeEngine;
-      if (filters.nNumber) query.n_number = filters.nNumber.toUpperCase().trim();
-
-      let data = await base44.entities.FAAAircraft.filter(query, "-created_date", filters.limit);
-
-      // Client-side filtering
-      if (filters.yearFrom || filters.yearTo) {
-        data = data.filter((a) => {
-          const y = a.year_mfr;
-          if (filters.yearFrom && y < Number(filters.yearFrom)) return false;
-          if (filters.yearTo && y > Number(filters.yearTo)) return false;
-          return true;
-        });
-      }
-      if (filters.category) {
-        data = data.filter((a) => a.type_aircraft === filters.category ||
-          (filters.category === "1" && a.type_aircraft === "4") ||
-          (filters.category === "2" && a.type_aircraft === "5"));
-      }
-
-      setAircraft(data);
-      setCount(data.length);
-    } catch {} finally {
-      setLoading(false);
+      if (filters.nNumber) query.n_number = filters.nNumber.trim().toUpperCase();
+      if (filters.status) query.status_code = filters.status;
+      if (filters.type) query.type_aircraft = filters.type;
+      if (filters.engine) query.type_engine = filters.engine;
+      const data = await base44.entities.FAAAircraft.filter(query, "-created_date", filters.limit);
+      setAircraft(data || []);
+      totalCount.current = (data || []).length;
+    } catch (e) {
+      setAircraft([]);
     }
+    setLoading(false);
   }, [filters]);
 
-  useEffect(() => { fetchAircraft(); }, [fetchAircraft]);
+  useEffect(() => { fetchData(); }, []);
 
-  // ── Map canvas ──
+  // Canvas map rendering
   useEffect(() => {
-    if (viewMode !== "map" || !canvasRef.current) return;
+    if (view !== "map") return;
     const cv = canvasRef.current;
-    const W = cv.parentElement.clientWidth;
-    const H = cv.parentElement.clientHeight;
-    cv.width = W;
-    cv.height = H;
+    if (!cv) return;
     const ctx = cv.getContext("2d");
+    const W = cv.width = cv.offsetWidth * (window.devicePixelRatio || 1);
+    const H = cv.height = cv.offsetHeight * (window.devicePixelRatio || 1);
+    const usCenterX = 0.22, usCenterY = 0.55;
+    const usW = 0.65, usH = 0.5;
 
-    // Background
-    ctx.fillStyle = "#0a1628";
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H);
 
-    // Simple US outline dots
-    const pts = [];
-    for (let i = 0; i < aircraft.length; i++) {
-      const a = aircraft[i];
-      const st = (a.state || "").toUpperCase();
-      const idx = st.charCodeAt(0) * 31 + (st.charCodeAt(1) || 0);
-      const x = ((idx * 7919) % W);
-      const y = ((idx * 6271) % H);
-      pts.push({ x, y, status: a.status_code });
-    }
+    // Map background outline
+    ctx.fillStyle = "rgba(255,255,255,0.03)";
+    ctx.beginPath();
+    ctx.rect(usCenterX * W, usCenterY * H, usW * W, usH * H);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-    for (const p of pts) {
+    // Draw aircraft as dots
+    const dotR = 1.8;
+    for (const ac of aircraft) {
+      const state = (ac.state || "").trim().toUpperCase();
+      const centroid = US_CENTROIDS[state] || [39.8, -98.5];
+      const x = usCenterX + ((centroid[1] + 125) / 59) * usW;
+      const y = usCenterY + ((50 - centroid[0]) / 26) * usH;
+      const cx = x * W, cy = y * H;
+
+      const color = ac.status_code === "V" ? "#22c55e" : "#ef4444";
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = p.status === "V" ? "rgba(34,197,94,0.7)" : "rgba(239,68,68,0.7)";
+      ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
       ctx.fill();
     }
-  }, [viewMode, aircraft]);
 
-  function toggleFilters() { setFiltersOpen((v) => !v); }
-  function updateFilter(key, value) {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }
+    // Count overlay
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillText(`${totalCount.current.toLocaleString()} aircraft`, W - 160, H - 16);
+
+    // States labels
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.font = "7px -apple-system, sans-serif";
+    for (const [st, [lat, lon]] of Object.entries(US_CENTROIDS)) {
+      const x = usCenterX + ((lon + 125) / 59) * usW;
+      const y = usCenterY + ((50 - lat) / 26) * usH;
+      ctx.fillText(st, x * W, y * H);
+    }
+  }, [view, aircraft]);
+
+  const resetFilters = () => {
+    setFilters({ nNumber: "", type: "", engine: "", status: "V", category: "", yearFrom: "", yearTo: "", limit: 500 });
+  };
 
   return (
-    <div style={{ height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column", background: PAGE_BG, color: "#fff" }}>
-      {/* ── Top Bar ── */}
-      <div style={{ ...GLASS, margin: "12px 12px 0", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(0,194,203,0.15)", border: "1px solid rgba(0,194,203,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Map size={18} color="#00c2cb" />
+    <div style={{ minHeight: "100vh", background: PAGE_BG, color: "#fff" }}>
+      {/* Top bar */}
+      <div style={{ ...GLASS_CARD, margin: "12px", padding: "12px 20px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0,194,203,0.15)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(0,194,203,0.3)" }}>
+            <Map size={16} color="#00c2cb" />
           </div>
           <div>
-            <h1 style={{ fontSize: "16px", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>FAA Aircraft Registry</h1>
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "#00c2cb", background: "rgba(0,194,203,0.1)", border: "1px solid rgba(0,194,203,0.25)", borderRadius: "4px", padding: "1px 6px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Map View</span>
+            <h1 style={{ fontSize: 16, fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>FAA Aircraft Registry</h1>
+            <span style={{ fontSize: 10, color: "#00c2cb", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Map View</span>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {loading && <Loader2 size={18} color="rgba(255,255,255,0.5)" className="animate-spin" />}
-          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>{count.toLocaleString()} records</span>
-          <div style={{ display: "flex", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.14)" }}>
-            <button onClick={() => setViewMode("map")} style={{ padding: "6px 14px", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer", background: viewMode === "map" ? "rgba(0,194,203,0.18)" : "transparent", color: viewMode === "map" ? "#00c2cb" : "rgba(255,255,255,0.5)", borderRight: "1px solid rgba(255,255,255,0.14)" }}>
-              <Map size={14} style={{ display: "inline", marginRight: "4px" }} /> Map
+
+        <div style={{ flex: 1 }} />
+
+        {loading && <Loader2 size={16} className="animate-spin" color="rgba(255,255,255,0.4)" />}
+
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>
+          {totalCount.current.toLocaleString()} records
+        </span>
+
+        <div style={{ display: "flex", gap: 4 }}>
+          {[
+            { v: "map", icon: Map, label: "Map" },
+            { v: "list", icon: Table, label: "List" },
+          ].map(({ v, icon: Icon, label }) => (
+            <button key={v} onClick={() => setView(v)}
+              style={{
+                display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
+                borderRadius: 8, border: view === v ? "1px solid rgba(0,194,203,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                background: view === v ? "rgba(0,194,203,0.12)" : "rgba(255,255,255,0.04)",
+                color: view === v ? "#00c2cb" : "rgba(255,255,255,0.5)",
+                fontSize: 11, fontWeight: 700, cursor: "pointer",
+              }}>
+              <Icon size={13} /> {label}
             </button>
-            <button onClick={() => setViewMode("list")} style={{ padding: "6px 14px", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer", background: viewMode === "list" ? "rgba(0,194,203,0.18)" : "transparent", color: viewMode === "list" ? "#00c2cb" : "rgba(255,255,255,0.5)" }}>
-              <List size={14} style={{ display: "inline", marginRight: "4px" }} /> List
-            </button>
-          </div>
-          <button onClick={toggleFilters} style={{ ...GLASS, padding: "6px 14px", fontSize: "12px", fontWeight: 600, border: "1px solid rgba(255,255,255,0.14)", cursor: "pointer", color: filtersOpen ? "#00c2cb" : "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: "6px", borderRadius: "8px" }}>
-            <Filter size={14} /> Filters
+          ))}
+          <button onClick={() => setFiltersOpen(v => !v)}
+            style={{
+              display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
+              borderRadius: 8, border: filtersOpen ? "1px solid rgba(212,160,23,0.3)" : "1px solid rgba(255,255,255,0.08)",
+              background: filtersOpen ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.04)",
+              color: filtersOpen ? "#D4A017" : "rgba(255,255,255,0.5)",
+              fontSize: 11, fontWeight: 700, cursor: "pointer",
+            }}>
+            <Filter size={13} /> Filters
           </button>
         </div>
       </div>
 
-      {/* ── Body ── */}
-      <div style={{ display: "flex", flex: 1, padding: "12px", gap: "12px", overflow: "hidden" }}>
-        {/* Filter Panel */}
+      {/* Body */}
+      <div style={{ display: "flex", padding: "0 12px 12px", gap: 12, height: "calc(100vh - 100px)" }}>
+        {/* Filter panel */}
         {filtersOpen && (
-          <div style={{ ...GLASS, width: "260px", padding: "16px", flexShrink: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>N-Number</label>
-              <input
-                value={filters.nNumber}
-                onChange={(e) => updateFilter("nNumber", e.target.value)}
-                placeholder="e.g. N12345"
-                style={INPUT_STYLE}
-              />
+          <div style={{ ...GLASS_CARD, width: 260, flexShrink: 0, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+              <SlidersHorizontal size={14} color="rgba(255,255,255,0.4)" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Filters</span>
             </div>
 
             <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Aircraft Type</label>
-              <select
-                value={filters.typeAircraft}
-                onChange={(e) => updateFilter("typeAircraft", e.target.value)}
-                style={{ ...INPUT_STYLE, appearance: "none", cursor: "pointer" }}>
-                {AIRCRAFT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>N-Number</label>
+              <input value={filters.nNumber} onChange={e => setFilters(f => ({ ...f, nNumber: e.target.value }))}
+                placeholder="e.g. N12345" style={GLASS_INPUT} />
             </div>
 
             <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Engine Type</label>
-              <select
-                value={filters.typeEngine}
-                onChange={(e) => updateFilter("typeEngine", e.target.value)}
-                style={{ ...INPUT_STYLE, appearance: "none", cursor: "pointer" }}>
-                {ENGINE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Aircraft Type</label>
+              <Select value={filters.type} onChange={v => setFilters(f => ({ ...f, type: v }))} options={AIRCRAFT_TYPES} />
             </div>
 
             <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Registration Status</label>
-              <select
-                value={filters.statusCode}
-                onChange={(e) => updateFilter("statusCode", e.target.value)}
-                style={{ ...INPUT_STYLE, appearance: "none", cursor: "pointer" }}>
-                {STATUS_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Engine Type</label>
+              <Select value={filters.engine} onChange={v => setFilters(f => ({ ...f, engine: v }))} options={ENGINE_TYPES} />
             </div>
 
             <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Category</label>
-              <select
-                value={filters.category}
-                onChange={(e) => updateFilter("category", e.target.value)}
-                style={{ ...INPUT_STYLE, appearance: "none", cursor: "pointer" }}>
-                {CATEGORY_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Registration Status</label>
+              <Select value={filters.status} onChange={v => setFilters(f => ({ ...f, status: v }))} options={STATUS_OPTIONS} />
             </div>
 
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div>
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Category</label>
+              <Select value={filters.category} onChange={v => setFilters(f => ({ ...f, category: v }))} options={CATEGORY_OPTIONS} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Year From</label>
-                <input
-                  type="number"
-                  value={filters.yearFrom}
-                  onChange={(e) => updateFilter("yearFrom", e.target.value)}
-                  placeholder="1960"
-                  style={INPUT_STYLE}
-                />
+                <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Year From</label>
+                <input type="number" value={filters.yearFrom} onChange={e => setFilters(f => ({ ...f, yearFrom: e.target.value }))}
+                  placeholder="1960" style={GLASS_INPUT} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Year To</label>
-                <input
-                  type="number"
-                  value={filters.yearTo}
-                  onChange={(e) => updateFilter("yearTo", e.target.value)}
-                  placeholder="2026"
-                  style={INPUT_STYLE}
-                />
+                <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Year To</label>
+                <input type="number" value={filters.yearTo} onChange={e => setFilters(f => ({ ...f, yearTo: e.target.value }))}
+                  placeholder="2026" style={GLASS_INPUT} />
               </div>
             </div>
 
             <div>
-              <label style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "4px", display: "block" }}>Max Results: {filters.limit}</label>
-              <input
-                type="range"
-                min="50"
-                max="5000"
-                step="50"
-                value={filters.limit}
-                onChange={(e) => updateFilter("limit", Number(e.target.value))}
-                style={{ width: "100%", accentColor: "#D4A017" }}
-              />
+              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>
+                Max Results: {filters.limit}
+              </label>
+              <input type="range" min="50" max="5000" step="50" value={filters.limit}
+                onChange={e => setFilters(f => ({ ...f, limit: parseInt(e.target.value) }))}
+                style={{ width: "100%", accentColor: "#D4A017" }} />
             </div>
 
-            <button
-              onClick={fetchAircraft}
+            <button onClick={fetchData}
               style={{
-                background: "linear-gradient(135deg, #D4A017, #A67C00)",
-                border: "none",
-                borderRadius: "10px",
-                color: "#fff",
-                cursor: "pointer",
-                fontWeight: 700,
-                padding: "10px 0",
-                fontSize: "13px",
-                letterSpacing: "0.04em",
-                width: "100%",
+                background: "linear-gradient(135deg, #D4A017, #A67C00)", border: "none",
+                borderRadius: 10, color: "#fff", cursor: "pointer", fontWeight: 700,
+                padding: "10px 20px", fontSize: 12, letterSpacing: "0.04em",
+                textTransform: "uppercase", marginTop: 4,
               }}>
               Apply Filters
+            </button>
+
+            <button onClick={resetFilters}
+              style={{
+                background: "transparent", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 10, color: "rgba(255,255,255,0.5)", cursor: "pointer",
+                padding: "8px 16px", fontSize: 11, fontWeight: 600,
+              }}>
+              Reset
             </button>
           </div>
         )}
 
         {/* Main area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 }}>
-          <div style={{ ...GLASS, flex: 1, position: "relative", overflow: "hidden" }}>
-            {viewMode === "map" ? (
-              <>
-                <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
-                <div style={{ position: "absolute", bottom: "12px", right: "12px", background: "rgba(0,0,0,0.5)", borderRadius: "8px", padding: "6px 12px", fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
-                  {count.toLocaleString()} aircraft
-                </div>
-              </>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Map / List view */}
+          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative" }}>
+            {view === "map" ? (
+              <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
             ) : (
-              <div style={{ overflow: "auto", maxHeight: "100%" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+              <div style={{ overflow: "auto", height: "100%", padding: 0 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, background: "rgba(10,22,40,0.95)", backdropFilter: "blur(8px)" }}>
-                      {["N-Number", "Make", "Model", "Year", "Type", "Engine", "Status"].map((h) => (
-                        <th key={h} style={{ textAlign: "left", padding: "10px 14px", fontWeight: 700, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)" }}>{h}</th>
+                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                      {["N-Number", "Make", "Model", "Year", "Type", "Engine", "Status"].map(h => (
+                        <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {h}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {aircraft.map((a) => (
-                      <tr
-                        key={a.id}
-                        onClick={() => setSelected(a)}
+                    {aircraft.map((ac, i) => (
+                      <tr key={ac.id || i} onClick={() => setSelected(ac)}
                         style={{
                           borderBottom: "1px solid rgba(255,255,255,0.04)",
                           cursor: "pointer",
-                          transition: "background 0.15s",
-                          background: selected?.id === a.id ? "rgba(0,194,203,0.08)" : "transparent",
+                          background: selected?.id === ac.id ? "rgba(0,194,203,0.08)" : "transparent",
                         }}
-                        onMouseEnter={(e) => { if (selected?.id !== a.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                        onMouseLeave={(e) => { if (selected?.id !== a.id) e.currentTarget.style.background = "transparent"; }}>
-                        <td style={{ padding: "8px 14px", fontWeight: 700, fontFamily: "monospace", color: "#00c2cb" }}>{a.n_number}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.7)" }}>{a.mfr_mdl_code || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.7)" }}>{a.eng_mfr_mdl || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{a.year_mfr || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{a.type_aircraft || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{a.type_engine || "—"}</td>
+                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                        onMouseLeave={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <td style={{ padding: "8px 14px", fontFamily: "monospace", fontWeight: 700, color: "#00c2cb" }}>N{ac.n_number}</td>
+                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.8)" }}>{ac.mfr_mdl_code || "—"}</td>
+                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>—</td>
+                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.year_mfr || "—"}</td>
+                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.type_aircraft || "—"}</td>
+                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.type_engine || "—"}</td>
                         <td style={{ padding: "8px 14px" }}>
                           <span style={{
-                            display: "inline-block",
-                            borderRadius: "4px",
-                            padding: "2px 8px",
-                            fontSize: "10px",
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.05em",
-                            background: a.status_code === "V" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                            color: a.status_code === "V" ? "#22c55e" : "#ef4444",
-                            border: `1px solid ${a.status_code === "V" ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+                            display: "inline-block", padding: "2px 8px", borderRadius: 5,
+                            background: ac.status_code === "V" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+                            color: ac.status_code === "V" ? "#22c55e" : "#ef4444",
+                            fontSize: 10, fontWeight: 700, textTransform: "uppercase",
                           }}>
-                            {a.status_code === "V" ? "Valid" : a.status_code || "Unknown"}
+                            {ac.status_code === "V" ? "Valid" : ac.status_code || "N/A"}
                           </span>
                         </td>
                       </tr>
@@ -357,46 +337,56 @@ export default function FAAMap() {
                 </table>
               </div>
             )}
+
+            {/* Count overlay for map */}
+            {view === "map" && (
+              <div style={{
+                position: "absolute", bottom: 12, right: 12, padding: "6px 14px",
+                borderRadius: 8, background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.1)",
+                fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
+              }}>
+                {totalCount.current.toLocaleString()} aircraft
+              </div>
+            )}
           </div>
 
-          {/* Selected Aircraft Strip */}
+          {/* Selected aircraft strip */}
           {selected && (
-            <div style={{ ...GLASS, border: "1px solid rgba(212,160,23,0.3)", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0 }}>
-                  <X size={16} />
-                </button>
-                <div>
-                  <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: "15px", color: "#D4A017", marginRight: "10px" }}>N{selected.n_number}</span>
-                  <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                    {selected.year_mfr || "—"} · {selected.mfr_mdl_code || "Unknown"} · {selected.eng_mfr_mdl || "—"}
-                  </span>
-                </div>
+            <div style={{ ...GLASS_CARD, border: "1px solid rgba(212,160,23,0.3)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <span style={{ fontSize: 10, color: "#D4A017", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>Selected</span>
+                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 800 }}>
+                  N{selected.n_number} — {selected.mfr_mdl_code || "Aircraft"} ({selected.year_mfr || "—"})
+                </p>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                  {selected.city || ""}{selected.city && selected.state ? ", " : ""}{selected.state || ""}
+                </p>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <Link
-                  to={`/ati-quick-score?nreg=N${selected.n_number}`}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "6px",
-                    background: "rgba(212,160,23,0.12)", border: "1px solid rgba(212,160,23,0.3)",
-                    borderRadius: "8px", color: "#D4A017", padding: "6px 14px",
-                    fontSize: "11px", fontWeight: 700, textDecoration: "none",
-                    letterSpacing: "0.04em", textTransform: "uppercase"
-                  }}>
-                  <Zap size={13} /> ATI Score
-                </Link>
-                <Link
-                  to={`/ati-verify?nreg=N${selected.n_number}`}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "6px",
-                    background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
-                    borderRadius: "8px", color: "#22c55e", padding: "6px 14px",
-                    fontSize: "11px", fontWeight: 700, textDecoration: "none",
-                    letterSpacing: "0.04em", textTransform: "uppercase"
-                  }}>
-                  <ShieldCheck size={13} /> Verify
-                </Link>
-              </div>
+              <div style={{ flex: 1 }} />
+              <Link to={`/ati-quick-score?nreg=N${selected.n_number}`}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                  borderRadius: 10, background: "rgba(212,160,23,0.12)", border: "1px solid rgba(212,160,23,0.3)",
+                  color: "#D4A017", fontWeight: 700, fontSize: 11, textDecoration: "none",
+                  textTransform: "uppercase", letterSpacing: "0.04em",
+                }}>
+                <Zap size={13} /> ATI Score
+              </Link>
+              <Link to={`/ati-verify?nreg=N${selected.n_number}`}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                  borderRadius: 10, background: "rgba(0,194,203,0.12)", border: "1px solid rgba(0,194,203,0.3)",
+                  color: "#00c2cb", fontWeight: 700, fontSize: 11, textDecoration: "none",
+                  textTransform: "uppercase", letterSpacing: "0.04em",
+                }}>
+                <ShieldCheck size={13} /> Verify
+              </Link>
+              <button onClick={() => setSelected(null)}
+                style={{
+                  background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: 4,
+                }}>
+                <X size={16} />
+              </button>
             </div>
           )}
         </div>
@@ -404,3 +394,19 @@ export default function FAAMap() {
     </div>
   );
 }
+
+const US_CENTROIDS = {
+  AL: [32.7, -86.7], AK: [61.4, -150.0], AZ: [34.3, -111.7], AR: [34.8, -92.4],
+  CA: [36.4, -119.7], CO: [39.0, -105.5], CT: [41.6, -72.8], DE: [39.1, -75.5],
+  FL: [28.5, -81.5], GA: [32.7, -83.4], HI: [21.1, -157.5], ID: [44.3, -114.7],
+  IL: [40.0, -89.5], IN: [39.9, -86.3], IA: [42.0, -93.5], KS: [38.5, -97.5],
+  KY: [37.5, -85.3], LA: [31.0, -92.0], ME: [45.2, -69.2], MD: [39.0, -76.8],
+  MA: [42.3, -71.8], MI: [43.4, -84.6], MN: [46.0, -94.5], MS: [32.6, -89.9],
+  MO: [38.3, -92.4], MT: [47.0, -109.6], NE: [41.5, -99.7], NV: [39.0, -116.5],
+  NH: [43.7, -71.6], NJ: [40.2, -74.5], NM: [34.5, -106.0], NY: [43.0, -75.5],
+  NC: [35.5, -79.5], ND: [47.5, -100.5], OH: [40.3, -82.8], OK: [35.5, -97.5],
+  OR: [43.9, -120.5], PA: [40.9, -77.8], RI: [41.6, -71.5], SC: [33.9, -80.9],
+  SD: [44.5, -100.5], TN: [35.8, -86.5], TX: [31.5, -99.5], UT: [39.5, -112.0],
+  VT: [44.0, -72.6], VA: [37.5, -79.0], WA: [47.5, -120.5], WV: [38.8, -80.5],
+  WI: [44.5, -89.5], WY: [42.8, -107.5], DC: [38.9, -77.0],
+};

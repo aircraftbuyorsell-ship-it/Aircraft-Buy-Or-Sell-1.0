@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import { Link, useNavigate } from "react-router-dom";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
-import CanvasGlobe from "@/components/dashboard/CanvasGlobe";
+import Globe from "@/components/Globe";
+import MiniGlobe, { GlobePageLoader } from "@/components/MiniGlobe";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import {
-  Globe, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck,
+  Globe as GlobeIcon, Lock, Zap, ArrowRight, CheckCircle2, ShieldCheck,
   FileText, Download, TrendingUp, Calculator, BarChart3,
-  Plane, Users, Building2, UserCheck, ChevronRight, Clock, Map
+  Plane, Users, Building2, UserCheck, ChevronRight, Clock
 } from "lucide-react";
 
 const VERIFY_STEPS = [
@@ -42,6 +43,45 @@ export default function Dashboard() {
   const isDark = useTheme();
   const navigate = useNavigate();
   const [focusLocation, setFocusLocation] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [trafficDots, setTrafficDots] = useState([]);
+  const [listingDots, setListingDots] = useState([]);
+  const [trafficLimit, setTrafficLimit] = useState(200);
+  const [globeLoading, setGlobeLoading] = useState(true);
+
+  // Fetch listing dots & poll OpenSky
+  useEffect(() => {
+    // Listing dots
+    base44.entities.AircraftListing.list("-created_date", 80).then(items => {
+      setListingDots(
+        (items || []).map(i => ({
+          lat: i.lat || 38 + Math.sin(i.id?.length || 0) * 10,
+          lon: i.lon || -97 + Math.cos(i.id?.length || 0) * 15,
+          title: i.title || `${i.year || ""} ${i.make || ""} ${i.model || ""}`.trim() || "Aircraft",
+          price: i.asking_price,
+        }))
+      );
+    }).catch(() => {});
+
+    // OpenSky poll
+    async function fetchTraffic() {
+      try {
+        const res = await fetch("https://opensky-network.org/api/states/all?lamin=25&lomin=-130&lamax=70&lomax=40");
+        const data = await res.json();
+        if (data?.states) {
+          const dots = data.states
+            .filter(s => s[6] != null && s[5] != null)
+            .slice(0, trafficLimit)
+            .map(s => ({ lat: s[6], lon: s[5], onGround: !!s[8], callsign: (s[1] || "").trim() }));
+          setTrafficDots(dots);
+        }
+      } catch (e) { console.warn("OpenSky unavailable:", e); }
+      finally { setGlobeLoading(false); }
+    }
+    fetchTraffic();
+    const interval = setInterval(fetchTraffic, 45000);
+    return () => clearInterval(interval);
+  }, []);
 
   const textColor    = isDark ? "#e2e8f0" : "#1a1a1a";
   const mutedColor   = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
@@ -80,11 +120,44 @@ export default function Dashboard() {
       <NotificationStack />
       <NotificationCenter />
 
-      <div className="fixed inset-0 z-0">
-        <CanvasGlobe
-          listings={listings}
-          onSelectListing={(l) => navigate(`/ati-passport/${l.id}`)}
-        />
+      <div className="fixed inset-0 z-0 flex flex-col items-center justify-center">
+        {globeLoading ? (
+          <GlobePageLoader label="Loading live traffic…" size={64} overlay={false} />
+        ) : (
+          <div className="flex flex-col items-center gap-3">
+            <Globe
+              size={Math.min(500, (typeof window !== "undefined" ? window.innerWidth : 1024) - 40)}
+              trafficDots={trafficDots.slice(0, trafficLimit)}
+              listingDots={listingDots}
+              autoRotate={true}
+              onDotClick={(dot) => {
+                if (dot.callsign) {
+                  setDetail({ type: "traffic", data: dot });
+                }
+              }}
+            />
+            {/* Controls */}
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <input
+                type="range"
+                min="50" max="400" step="50"
+                value={trafficLimit}
+                onChange={e => setTrafficLimit(parseInt(e.target.value))}
+                className="w-24"
+                style={{ accentColor: "#00c2cb" }}
+              />
+              <span className="text-[10px] font-bold" style={{ color: "rgba(0,194,203,0.9)" }}>
+                Traffic: {trafficLimit}
+              </span>
+              {trafficDots.length > 0 && (
+                <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: "#22c55e" }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
+                  Live
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="relative z-10">
@@ -121,7 +194,7 @@ export default function Dashboard() {
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                       style={{ background: `${accentOrange}18`, border: `1px solid ${accentOrange}40` }}>
-                      <Globe className="w-5 h-5" style={{ color: accentOrange }} />
+                      <GlobeIcon className="w-5 h-5" style={{ color: accentOrange }} />
                     </div>
                     <div>
                       <p className="text-[9px] tracking-[0.2em] font-bold" style={{ color: accentOrange }}>PUBLIC ACCESS</p>

@@ -1,0 +1,45 @@
+{
+  "name": "AppConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique config key (e.g. 'global')"
+    },
+    "freezeAbosDataInfluence": {
+      "type": "boolean",
+      "default": true,
+      "description": "If true, market analysis LLM prompts will ignore internal ABOS listing data and rely solely on external macro/industry signals."
+    },
+    "abosDataFreezeMessage": {
+      "type": "string",
+      "maxLength": 600,
+      "default": "Market analyses currently do not factor in internal ABOS platform listing data due to insufficient data volume for statistically relevant results. Analyses are based exclusively on external macroeconomic and industry signals."
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "name": "NewPlaneBrowser",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "Scraped platform name"
+    },
+    "pages_crawled": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of pages crawled"
+    },
+    "listings_found": {
+      "type": "number",
+      "default": 0,
+      "description": "Total listings found"
+    },
+    "listings_new": {
+      "type": "number",
+      "default": 0,
+      "description": "New listings added"
+    },
+    "listings_updated": {
+      "type": "number",
+      "default": 0,
+      "description": "Existing listings updated"
+    },
+    "errors": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of errors"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "running",
+      "description": "Scraper run status"
+    },
+    "error_log": {
+      "type": "string",
+      "description": "Error log details"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Completion timestamp"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

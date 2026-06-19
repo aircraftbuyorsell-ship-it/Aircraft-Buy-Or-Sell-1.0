@@ -1,0 +1,176 @@
+{
+  "name": "EscrowTransaction",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "aircraft_label": {
+      "type": "string",
+      "description": "Aircraft snapshot label (year make model reg)"
+    },
+    "buyer_name": {
+      "type": "string",
+      "description": "Buyer full name or company"
+    },
+    "buyer_email": {
+      "type": "string",
+      "description": "Buyer email"
+    },
+    "seller_name": {
+      "type": "string",
+      "description": "Seller full name or company"
+    },
+    "seller_email": {
+      "type": "string",
+      "description": "Seller email"
+    },
+    "broker_name": {
+      "type": "string",
+      "description": "Broker / finder name"
+    },
+    "broker_email": {
+      "type": "string",
+      "description": "Broker email"
+    },
+    "sale_amount": {
+      "type": "number",
+      "description": "Agreed sale price"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CZK",
+        "CHF"
+      ],
+      "default": "USD"
+    },
+    "finders_fee_pct": {
+      "type": "number",
+      "description": "Finder's fee percentage"
+    },
+    "finders_fee_amount": {
+      "type": "number",
+      "description": "Calculated finder's fee amount"
+    },
+    "seller_net": {
+      "type": "number",
+      "description": "Net amount seller receives"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "contract_sent",
+        "contract_signed",
+        "funds_pending",
+        "funds_secured",
+        "inspection",
+        "released",
+        "closed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "draft"
+    },
+    "escrow_provider": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "escrow_com"
+      ],
+      "default": "internal"
+    },
+    "escrow_external_id": {
+      "type": "string",
+      "description": "Escrow.com transaction ID"
+    },
+    "inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Scheduled pre-buy inspection date"
+    },
+    "closing_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Transaction closing deadline"
+    },
+    "google_calendar_event_id": {
+      "type": "string",
+      "description": "Google Calendar event ID for inspection + closing events (comma-separated)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "buyer_name",
+    "seller_name",
+    "sale_amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.buyer_email": "{{user.email}}"
+        },
+        {
+          "data.seller_email": "{{user.email}}"
+        },
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.buyer_email": "{{user.email}}"
+        },
+        {
+          "data.seller_email": "{{user.email}}"
+        },
+        {
+          "data.broker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

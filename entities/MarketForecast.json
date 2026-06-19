@@ -1,0 +1,146 @@
+{
+  "name": "MarketForecast",
+  "type": "object",
+  "properties": {
+    "overall_sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative"
+      ],
+      "description": "Celkov\u00fd sentiment trhu"
+    },
+    "key_factors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Kl\u00ed\u010dov\u00e9 faktory ovliv\u0148uj\u00edc\u00ed trh"
+    },
+    "aircraft_trends": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Kategorie letadla (SEP, Turboprop, Light Jet, atd.)"
+          },
+          "popularity_trend": {
+            "type": "string",
+            "enum": [
+              "growing",
+              "stable",
+              "declining"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Trendy popularit\u011b jednotliv\u00fdch kategori\u00ed letadel"
+    },
+    "price_changes_forecast": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "percentage_change": {
+            "type": "number",
+            "description": "O\u010dek\u00e1van\u00e1 zm\u011bna ceny v %"
+          },
+          "timeframe": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "P\u0159edpov\u011bdi cenov\u00fdch zm\u011bn"
+    },
+    "time_on_market_forecast": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "average_days": {
+            "type": "number"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "shortening",
+              "stable",
+              "lengthening"
+            ]
+          }
+        }
+      },
+      "description": "O\u010dek\u00e1van\u00fd \u010das na trhu pro jednotliv\u00e9 kategorie"
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identifikovan\u00e9 p\u0159\u00edle\u017eitosti na trhu"
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identifikovan\u00e1 rizika na trhu"
+    },
+    "forecast_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum generov\u00e1n\u00ed p\u0159edpov\u011bdi"
+    },
+    "model_version": {
+      "type": "string",
+      "default": "gemini_3_1_pro",
+      "description": "LLM model pou\u017eit\u00fd pro generov\u00e1n\u00ed"
+    }
+  },
+  "required": [
+    "overall_sentiment",
+    "key_factors",
+    "aircraft_trends",
+    "price_changes_forecast",
+    "time_on_market_forecast",
+    "opportunities",
+    "risks",
+    "forecast_date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

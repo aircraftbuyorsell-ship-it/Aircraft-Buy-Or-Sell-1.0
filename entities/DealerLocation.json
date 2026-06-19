@@ -1,0 +1,138 @@
+{
+  "name": "DealerLocation",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Dealer or FBO name"
+    },
+    "cert_number": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "FAA dealer certificate number (DCNxxxx)"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the user who registered this location"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "description": "US state (2-letter) or region"
+    },
+    "country": {
+      "type": "string",
+      "default": "US"
+    },
+    "zip_code": {
+      "type": "string",
+      "maxLength": 20,
+      "description": "ZIP/postal code"
+    },
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90,
+      "description": "GPS latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180,
+      "description": "GPS longitude"
+    },
+    "icao_code": {
+      "type": "string",
+      "maxLength": 4,
+      "description": "Nearest airport ICAO code (e.g. KLAX)"
+    },
+    "radius_nm": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 500,
+      "default": 50,
+      "description": "Monitoring radius in nautical miles"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "dealer",
+        "broker",
+        "fbo",
+        "maintenance",
+        "other"
+      ],
+      "default": "dealer",
+      "description": "Type of business at this location"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

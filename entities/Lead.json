@@ -1,0 +1,122 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Full name of the lead"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the lead"
+    },
+    "phone": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "Phone number (international format recommended)"
+    },
+    "aircraft_preference": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Aircraft type preference (e.g. 'SEP, IFR-equipped')"
+    },
+    "budget": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Preferred budget range (e.g. '$100k\u2013$200k')"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "negotiating",
+        "closed",
+        "lost"
+      ],
+      "default": "new",
+      "description": "Lead status in the sales pipeline"
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Lead source (e.g. 'web', 'referral', 'partner')"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Internal notes (max 2000 chars)"
+    },
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Linked aircraft listing"
+    },
+    "listing_label": {
+      "type": "string",
+      "description": "Snapshot of aircraft (year make model N-number)"
+    },
+    "rules_agreed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the lead agreed to the platform rules"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

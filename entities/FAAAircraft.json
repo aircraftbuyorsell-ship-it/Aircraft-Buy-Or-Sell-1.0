@@ -1,0 +1,138 @@
+{
+  "name": "FAAAircraft",
+  "type": "object",
+  "properties": {
+    "n_number": {
+      "type": "string",
+      "description": "N-Number (FAA registration without N prefix)"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Aircraft serial number"
+    },
+    "mfr_mdl_code": {
+      "type": "string",
+      "description": "Manufacturer/Model code (ACFTREF.txt key)"
+    },
+    "eng_mfr_mdl": {
+      "type": "string",
+      "description": "Engine manufacturer/model code"
+    },
+    "engine_mfr": {
+      "type": "string",
+      "description": "Engine manufacturer name (from faa_engine)"
+    },
+    "engine_model": {
+      "type": "string",
+      "description": "Engine model name (from faa_engine)"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type (from faa_engine)"
+    },
+    "horsepower": {
+      "type": "string",
+      "description": "Engine horsepower (from faa_engine)"
+    },
+    "thrust": {
+      "type": "string",
+      "description": "Engine thrust (from faa_engine)"
+    },
+    "year_mfr": {
+      "type": "number",
+      "description": "Year of manufacture"
+    },
+    "type_registrant": {
+      "type": "string",
+      "description": "Registrant type code"
+    },
+    "name": {
+      "type": "string",
+      "description": "Owner name"
+    },
+    "city": {
+      "type": "string",
+      "description": "Owner city"
+    },
+    "state": {
+      "type": "string",
+      "description": "Owner state (US)"
+    },
+    "country": {
+      "type": "string",
+      "description": "Owner country"
+    },
+    "last_action_date": {
+      "type": "string",
+      "description": "Last action date (YYYYMMDD)"
+    },
+    "cert_issue_date": {
+      "type": "string",
+      "description": "Certificate issue date (YYYYMMDD)"
+    },
+    "status_code": {
+      "type": "string",
+      "description": "Registration status code"
+    },
+    "type_aircraft": {
+      "type": "string",
+      "description": "Aircraft type code"
+    },
+    "type_engine": {
+      "type": "string",
+      "description": "Engine type code"
+    },
+    "mode_s_hex": {
+      "type": "string",
+      "description": "ICAO 24-bit address (hex) \u2014 for ADS-B/OpenSky integration"
+    },
+    "fract_owner": {
+      "type": "string",
+      "description": "Fractional ownership (Y/N)"
+    },
+    "air_worth_date": {
+      "type": "string",
+      "description": "Airworthiness certificate date"
+    },
+    "expiration_date": {
+      "type": "string",
+      "description": "Registration expiration date"
+    }
+  },
+  "required": [
+    "n_number"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "id": {
+              "$exists": true
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

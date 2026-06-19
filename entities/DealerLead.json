@@ -1,0 +1,67 @@
+{
+  "name": "DealerLead",
+  "type": "object",
+  "properties": {
+    "cert_num": {
+      "type": "string",
+      "description": "FAA dealer certificate number"
+    },
+    "name": {
+      "type": "string",
+      "description": "Dealer / company name"
+    },
+    "street": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "description": "US state (2-letter)"
+    },
+    "ownership_type": {
+      "type": "string",
+      "description": "FAA ownership type code"
+    },
+    "cert_date": {
+      "type": "string",
+      "description": "Certificate issue date"
+    },
+    "expiration": {
+      "type": "string",
+      "description": "Certificate expiration date"
+    },
+    "is_expired": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the dealer certificate is expired"
+    }
+  },
+  "required": [
+    "cert_num",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

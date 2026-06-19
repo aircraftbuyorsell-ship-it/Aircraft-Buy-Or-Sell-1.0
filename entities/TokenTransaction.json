@@ -1,0 +1,85 @@
+{
+  "name": "TokenTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "consumption",
+        "bonus",
+        "refund"
+      ],
+      "description": "Transaction type"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Signed token amount (+ purchase / - consumption)"
+    },
+    "feature": {
+      "type": "string",
+      "description": "Feature that consumed tokens (e.g. ati_passport, bulk_import)"
+    },
+    "pack": {
+      "type": "string",
+      "description": "Purchased pack name (e.g. 'Starter 100', 'Pro 500')"
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "USD paid (for purchases)"
+    },
+    "stripe_payment_id": {
+      "type": "string",
+      "description": "Stripe payment reference"
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Token balance after this transaction"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

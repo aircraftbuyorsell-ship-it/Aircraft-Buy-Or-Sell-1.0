@@ -1,0 +1,64 @@
+{
+  "name": "DealRadar",
+  "type": "object",
+  "properties": {
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "omvm_value": {
+      "type": "number",
+      "description": "OMVM estimated market value"
+    },
+    "asking_price": {
+      "type": "number",
+      "description": "Current asking price"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "Discount % vs OMVM"
+    },
+    "deal_score": {
+      "type": "number",
+      "description": "Deal score (0\u201310)"
+    },
+    "deal_label": {
+      "type": "string",
+      "enum": [
+        "hot deal",
+        "good deal",
+        "fair",
+        "overpriced"
+      ],
+      "description": "Deal classification"
+    }
+  },
+  "required": [
+    "listing"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

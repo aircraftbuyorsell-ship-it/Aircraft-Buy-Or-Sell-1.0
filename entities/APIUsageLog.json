@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string"
+    },
+    "n_number": {
+      "type": "string"
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "error",
+        "rate_limited",
+        "invalid_key"
+      ],
+      "default": "success"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "partner_id",
+    "n_number",
+    "endpoint"
+  ],
+  "name": "APIUsageLog"
+}

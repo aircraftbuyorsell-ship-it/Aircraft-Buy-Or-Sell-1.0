@@ -1,0 +1,153 @@
+{
+  "properties": {
+    "audit_log": {
+      "description": "Full change history for this listing",
+      "items": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "field_changed": {
+            "type": "string"
+          },
+          "new_value": {
+            "type": "string"
+          },
+          "old_value": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "can_modify_docs": {
+      "default": true,
+      "description": "Can upload/modify documentation",
+      "type": "boolean"
+    },
+    "can_modify_price": {
+      "default": false,
+      "description": "Can change asking_price",
+      "type": "boolean"
+    },
+    "can_publish": {
+      "default": false,
+      "description": "Can change visibility from draft to public",
+      "type": "boolean"
+    },
+    "comments_enabled": {
+      "default": true,
+      "description": "Can read/write comments (if role=comment)",
+      "type": "boolean"
+    },
+    "editor_email": {
+      "description": "Email of the editor (team member)",
+      "type": "string"
+    },
+    "editor_role": {
+      "default": "edit",
+      "description": "Access level granted",
+      "enum": [
+        "view",
+        "comment",
+        "edit",
+        "publish",
+        "admin"
+      ],
+      "type": "string"
+    },
+    "expires_at": {
+      "description": "Optional: access revokes on this date",
+      "format": "date-time",
+      "type": "string"
+    },
+    "granted_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "granted_by_email": {
+      "description": "Who granted this access (listing owner or admin)",
+      "type": "string"
+    },
+    "listing_id": {
+      "description": "Aircraft listing this editor can access",
+      "relationType": "AircraftListing",
+      "type": "string"
+    },
+    "notification_preference": {
+      "default": "major_changes_only",
+      "description": "Notification preference for changes",
+      "enum": [
+        "all_changes",
+        "major_changes_only",
+        "off"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "listing_id",
+    "editor_email",
+    "editor_role",
+    "granted_by_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.editor_email": "{{user.email}}"
+        },
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "name": "EditorProfile"
+}

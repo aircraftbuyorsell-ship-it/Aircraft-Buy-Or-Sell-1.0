@@ -1,0 +1,175 @@
+{
+  "name": "AircraftListing",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (e.g. N123AB)"
+    },
+    "make": {
+      "type": "string",
+      "description": "Manufacturer (e.g. Cessna, Piper)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model (e.g. 172, PA-28)"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year of manufacture"
+    },
+    "total_time": {
+      "type": "number",
+      "description": "Airframe total time (hours)"
+    },
+    "engine_hours": {
+      "type": "number",
+      "description": "Engine hours since overhaul (SMOH)"
+    },
+    "tbo": {
+      "type": "number",
+      "description": "Time between overhauls (TBO hours)"
+    },
+    "last_annual": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last annual inspection"
+    },
+    "avionics": {
+      "type": "string",
+      "description": "Avionics equipment (comma-separated)"
+    },
+    "asking_price": {
+      "type": "number",
+      "description": "Asking price"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CZK",
+        "CHF"
+      ],
+      "default": "USD"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "sold",
+        "draft"
+      ],
+      "default": "active"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public"
+    },
+    "ati_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 120,
+      "description": "ATI score (0\u2013120)"
+    },
+    "omvm_value": {
+      "type": "number",
+      "description": "Off-Market Value Model estimate (USD)"
+    },
+    "deal_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Deal score (0\u201310)"
+    },
+    "deal_label": {
+      "type": "string",
+      "enum": [
+        "hot deal",
+        "good deal",
+        "fair",
+        "overpriced"
+      ],
+      "description": "Deal classification"
+    },
+    "discount_pct": {
+      "type": "number",
+      "description": "% discount vs OMVM (positive = below market)"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated listing summary"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Original listing URL"
+    },
+    "owner": {
+      "type": "string",
+      "relationType": "User",
+      "description": "Listing owner"
+    }
+  },
+  "required": [
+    "make",
+    "model"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.visibility": "public"
+        },
+        {
+          "data.owner": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

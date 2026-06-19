@@ -1,0 +1,131 @@
+{
+  "name": "FeatureToggle",
+  "type": "object",
+  "properties": {
+    "feature_name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Unique feature identifier (e.g., 'escrow_v2', 'market_reports_ai')"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_rollout",
+        "enabled",
+        "disabled",
+        "deprecated"
+      ],
+      "description": "Feature status"
+    },
+    "enabled_for_tiers": {
+      "type": "object",
+      "default": {},
+      "description": "Per-tier status: {pro: true, enterprise: true, free_explorer: false}"
+    },
+    "is_beta": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this is a beta/experimental feature"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "What this feature does (for admin reference)"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Email of admin who created this toggle"
+    },
+    "modified_by": {
+      "type": "string",
+      "description": "Email of admin who last modified"
+    },
+    "last_modified": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this toggle was last changed"
+    },
+    "release_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Planned or actual release date"
+    },
+    "rollout_strategy": {
+      "type": "string",
+      "enum": [
+        "gradual",
+        "canary",
+        "all_at_once",
+        "user_list",
+        "none"
+      ],
+      "description": "How to distribute feature"
+    },
+    "rollout_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "Percentage of users in this tier who see the feature (0-100)"
+    },
+    "whitelisted_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Specific users who have access (for canary/beta)"
+    },
+    "affected_tiers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "free_explorer",
+          "pro",
+          "enterprise"
+        ]
+      },
+      "default": [
+        "free_explorer",
+        "pro",
+        "enterprise"
+      ],
+      "description": "Which tiers this toggle affects"
+    }
+  },
+  "required": [
+    "feature_name",
+    "status",
+    "enabled_for_tiers"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "read": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "update": {
+      "user_condition": {
+        "id": {
+          "$exists": true
+        }
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

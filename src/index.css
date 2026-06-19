@@ -1,128 +1,42 @@
-
-@import url('https://fonts.googleapis.com/css2?family=hostgrotesk:wght@300;400;500;600;700&display=swap');
-
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   :root {
-
-    --accent: 210.9 100% 48%;
-
-    --accent-foreground: 222.2 84% 4.9%;
-
-    --background: 200 23.1% 97.5%;
-
-    --border: 220 13% 91%;
-
-    --card: 200 23.1% 97.5%;
-
-    --card-foreground: 222.2 84% 4.9%;
-
-    --destructive: 0 84.2% 60.2%;
-
-    --destructive-foreground: 210 40% 98%;
-
-    --font-body: 'hostgrotesk', system-ui, sans-serif;
-
-    --font-heading: 'hostgrotesk', system-ui, sans-serif;
-
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
-    --input: 214.3 31.8% 91.4%;
-
-    --muted: 200 23.1% 97.5%;
-
-    --muted-foreground: 220 8.9% 46.1%;
-
-    --popover: 200 23.1% 97.5%;
-
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 216.7 100% 23.7%;
-
-    --primary-foreground: 0 0% 100%;
-
-    --radius: 0.62rem;
-
-    --ring: 210.9 100% 48%;
-
-    --secondary: 210 23.1% 94.9%;
-
-    --secondary-foreground: 216.8 80.3% 13.9%;
-
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
   }
 }
-
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
   }
-}
-
-
-body { font-family: var(--font-body) !important; }
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading) !important; }
-
-
-
-@keyframes floatA {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(3deg); }
-}
-
-@keyframes floatB {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(-2deg); }
-}
-
-@keyframes floatC {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-25px) rotate(2deg); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes gradient-x {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.animate-gradient-x {
-  animation: gradient-x 6s ease infinite;
-  background-size: 200% auto;
-}
-
-@keyframes eYuqoB {
-  0% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
-
-@keyframes fade-in {
-  0% { transform: translate(15px); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-
-@keyframes modal-fadein {
-  0% { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes modal-up2 {
-  0% { opacity: 0; transform: translateY(100px) scale(.96); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Scrollbar */

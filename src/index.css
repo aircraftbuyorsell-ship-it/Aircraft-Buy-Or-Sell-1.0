@@ -448,7 +448,48 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 .dark [class*="border-purple"], .dark [class*="border-violet"],
 .dark [class*="border-cyan"],   .dark [class*="border-teal"],
 .dark [class*="border-sky"],    .dark [class*="border-indigo"],
+.dark [class*="border-blue"],
 .dark [class*="border-orange"], .dark [class*="border-pink"],
 .dark [class*="border-fuchsia"] {
   border-color: var(--abos-gold-border) !important;
+}
+.dark [class*="ring-purple"], .dark [class*="ring-violet"],
+.dark [class*="ring-cyan"],   .dark [class*="ring-teal"],
+.dark [class*="ring-sky"],    .dark [class*="ring-indigo"],
+.dark [class*="ring-blue"],   .dark [class*="ring-orange"],
+.dark [class*="ring-pink"],   .dark [class*="ring-fuchsia"] {
+  --tw-ring-color: var(--abos-gold) !important;
+}
+.dark [class*="from-purple"], .dark [class*="from-violet"],
+.dark [class*="from-cyan"],   .dark [class*="from-teal"],
+.dark [class*="from-sky"],    .dark [class*="from-indigo"],
+.dark [class*="from-blue"],   .dark [class*="from-orange"],
+.dark [class*="to-purple"],   .dark [class*="to-violet"],
+.dark [class*="to-cyan"],     .dark [class*="to-teal"],
+.dark [class*="to-sky"],      .dark [class*="to-indigo"],
+.dark [class*="to-blue"],     .dark [class*="to-orange"],
+.dark [class*="via-purple"],  .dark [class*="via-cyan"],
+.dark [class*="via-blue"] {
+  --tw-gradient-from: var(--abos-gold) !important;
+  --tw-gradient-to: var(--abos-gold-deep) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* ═══════════════════════════════════════════
+   LISTBOX / SVG accent sweep → gold
+   Recharts, gauges and progress strokes often render
+   inline fill / stroke attributes. Map the common
+   non-gold accent hexes used as SVG paint to gold.
+═══════════════════════════════════════════ */
+.dark [fill="#00f5ff"],  .dark [fill="#00c2cb"],  .dark [fill="#06b6d4"],
+.dark [fill="#0ea5e9"],  .dark [fill="#7c3aed"],  .dark [fill="#8b5cf6"],
+.dark [fill="#a855f7"],  .dark [fill="#f48120"],  .dark [fill="#f97316"],
+.dark [fill="#3b82f6"],  .dark [fill="#2563eb"] {
+  fill: var(--abos-gold) !important;
+}
+.dark [stroke="#00f5ff"], .dark [stroke="#00c2cb"], .dark [stroke="#06b6d4"],
+.dark [stroke="#0ea5e9"], .dark [stroke="#7c3aed"], .dark [stroke="#8b5cf6"],
+.dark [stroke="#a855f7"], .dark [stroke="#f48120"], .dark [stroke="#f97316"],
+.dark [stroke="#3b82f6"], .dark [stroke="#2563eb"] {
+  stroke: var(--abos-gold) !important;
 }

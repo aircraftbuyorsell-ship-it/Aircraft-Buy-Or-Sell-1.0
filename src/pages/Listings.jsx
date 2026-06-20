@@ -456,6 +456,27 @@ export default function Listings() {
               Add First Aircraft
             </button>
           </div> :
+        viewMode === "grid" ? (
+        /* ── CARD GRID ── */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filtered.map((l) => <AircraftCard key={l.id} listing={l} />)}
+          </div>) :
+        viewMode === "map" ? (
+        /* ── MAP VIEW (listings layer only) ── */
+        <div className="relative rounded-2xl overflow-hidden" style={{ background: "#0C1620", border: "1px solid rgba(255,255,255,0.11)" }}>
+            <div className="w-full" style={{ height: "560px" }}>
+              <Globe
+                listings={filtered}
+                filter={{
+                  ...DEFAULT_FILTER,
+                  adsb: { ...DEFAULT_FILTER.adsb, enabled: false },
+                  liveDb: { ...DEFAULT_FILTER.liveDb, enabled: false },
+                  faaRegistry: { ...DEFAULT_FILTER.faaRegistry, enabled: false },
+                  listings: { ...DEFAULT_FILTER.listings, enabled: true },
+                }}
+              />
+            </div>
+          </div>) :
         viewMode === "cards" ? (
         /* ── TINDER SWIPE DECK ── */
         <div className="flex flex-col lg:flex-row gap-6 items-start">

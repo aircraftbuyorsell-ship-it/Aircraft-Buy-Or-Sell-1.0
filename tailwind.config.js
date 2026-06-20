@@ -15,9 +15,9 @@ module.exports = {
       },
       colors: {
         gold: {
-          DEFAULT: '#D4A017',
-          bright: '#F5C518',
-          deep: '#A67C00',
+          DEFAULT: '#FFD60A',
+          bright: '#FFE14D',
+          deep: '#D4A017',
         },
         silver: {
           DEFAULT: '#9aa5b4',
@@ -32,9 +32,9 @@ module.exports = {
           deep: '#cc00ff',
         },
         bronze: '#CD7F32',
-        charcoal: '#13141f',
-        'card-dark': '#1a1c2a',
-        'sidebar-dark': '#0f1018',
+        charcoal: '#0d0e12',
+        'card-dark': '#14161e',
+        'sidebar-dark': '#0a0b0e',
         'main-bg': '#F7F4EF',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

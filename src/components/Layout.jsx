@@ -254,7 +254,7 @@ export default function Layout() {
         className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
         style={{
           width: desktopHovered ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
-          background: isDark ? "rgba(15,16,24,0.97)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(10,11,14,0.98)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
@@ -292,7 +292,7 @@ export default function Layout() {
         className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[272px] flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         style={{
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          background: isDark ? "rgba(15,16,24,0.97)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(10,11,14,0.98)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",

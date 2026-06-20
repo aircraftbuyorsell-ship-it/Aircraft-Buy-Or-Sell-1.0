@@ -73,23 +73,23 @@
   .dark {
     color-scheme: dark;
 
-    --glass-bg:        rgba(26, 28, 42, 0.88);
-    --glass-bg-heavy:  rgba(26, 28, 42, 0.94);
-    --glass-bg-subtle: rgba(26, 28, 42, 0.70);
-    --glass-border:    rgba(255, 255, 255, 0.07);
-    --glass-border-subtle: rgba(255, 255, 255, 0.04);
-    --glass-shadow:    0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-    --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+    --glass-bg:        rgba(20, 22, 30, 0.90);
+    --glass-bg-heavy:  rgba(20, 22, 30, 0.96);
+    --glass-bg-subtle: rgba(20, 22, 30, 0.72);
+    --glass-border:    rgba(255, 255, 255, 0.06);
+    --glass-border-subtle: rgba(255, 255, 255, 0.035);
+    --glass-shadow:    0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
+    --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.04);
     --glass-blur:      blur(24px) saturate(140%);
     --glass-blur-sm:   blur(16px) saturate(130%);
 
-    --navbar-bg:     rgba(15, 16, 24, 0.88);
-    --navbar-border: rgba(255, 255, 255, 0.06);
+    --navbar-bg:     rgba(13, 14, 18, 0.90);
+    --navbar-border: rgba(255, 255, 255, 0.05);
 
-    /* Gold / trust */
-    --gold:       #D4A017;
-    --gold-bright:#F5C518;
-    --gold-deep:  #A67C00;
+    /* Gold / trust — Duvo bright yellow-gold */
+    --gold:       #FFD60A;
+    --gold-bright:#FFE14D;
+    --gold-deep:  #D4A017;
 
     /* Brand accents — aligned to charcoal palette */
     --neon-cyan:  #00f5ff;
@@ -99,34 +99,34 @@
     --silver:     #9aa5b4;
     --silver-bright: #c8d0db;
 
-    /* shadcn tokens — dark (charcoal) */
-    --background: 233 20% 10%;
+    /* shadcn tokens — dark (Duvo near-black) */
+    --background: 228 14% 7%;
     --foreground: 210 40% 98%;
-    --card: 233 22% 13%;
+    --card: 228 13% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 233 22% 13%;
+    --popover: 228 13% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 45 84% 46%;
-    --primary-foreground: 233 20% 8%;
-    --secondary: 233 18% 18%;
+    --primary: 49 100% 52%;
+    --primary-foreground: 228 14% 6%;
+    --secondary: 228 12% 16%;
     --secondary-foreground: 215 16% 78%;
-    --muted: 233 16% 16%;
-    --muted-foreground: 215 14% 65%;
-    --accent: 185 100% 50%;
-    --accent-foreground: 233 20% 10%;
+    --muted: 228 11% 14%;
+    --muted-foreground: 215 14% 62%;
+    --accent: 49 100% 52%;
+    --accent-foreground: 228 14% 8%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 233 14% 22%;
-    --input: 233 16% 18%;
-    --ring: 185 100% 50%;
-    --sidebar-background: 240 19% 8%;
+    --border: 228 11% 19%;
+    --input: 228 12% 16%;
+    --ring: 49 100% 52%;
+    --sidebar-background: 228 14% 6%;
     --sidebar-foreground: 215 16% 70%;
-    --sidebar-primary: 185 100% 50%;
-    --sidebar-primary-foreground: 233 20% 8%;
-    --sidebar-accent: 233 18% 14%;
+    --sidebar-primary: 49 100% 52%;
+    --sidebar-primary-foreground: 228 14% 8%;
+    --sidebar-accent: 228 12% 12%;
     --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 233 14% 18%;
-    --sidebar-ring: 185 100% 50%;
+    --sidebar-border: 228 11% 15%;
+    --sidebar-ring: 49 100% 52%;
   }
 }
 
@@ -148,11 +148,11 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── */
+  /* ── DARK body ── Duvo-inspired near-black with subtle dot grid ── */
   .dark body {
-    background-color: #13141f;
-    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-color: #0d0e12;
+    background-image: radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size: 26px 26px;
     color: #e2e8f0;
   }
 
@@ -215,11 +215,11 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .dark .glass {
-  background: rgba(26,28,42,0.88);
+  background: rgba(20,22,30,0.90);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
 }
 
 .glass-heavy {
@@ -230,11 +230,11 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .dark .glass-heavy {
-  background: rgba(26,28,42,0.94);
+  background: rgba(20,22,30,0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
 }
 
 .glass-subtle {
@@ -244,10 +244,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-subtle {
-  background: rgba(26,28,42,0.70);
+  background: rgba(20,22,30,0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.035);
 }
 
 .glass-dark {
@@ -257,10 +257,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-right: 1px solid rgba(0,0,0,0.06);
 }
 .dark .glass-dark {
-  background: linear-gradient(160deg, rgba(15,16,24,0.97) 0%, rgba(12,13,20,0.98) 100%);
+  background: linear-gradient(160deg, rgba(13,14,18,0.98) 0%, rgba(9,10,13,0.99) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
 .glass-navbar {
@@ -270,10 +270,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-navbar {
-  background: rgba(15,16,24,0.9);
+  background: rgba(13,14,18,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .glass-card {
@@ -284,9 +284,9 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .dark .glass-card {
-  background: rgba(26,28,42,0.9);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  background: rgba(20,22,30,0.92);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
 }
 .glass-card:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.07);

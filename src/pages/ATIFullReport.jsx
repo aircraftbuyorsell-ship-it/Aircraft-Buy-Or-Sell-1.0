@@ -6,6 +6,29 @@ import { FileText, Download, ChevronDown, ChevronUp } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
+// ─── v3 design tokens ─────────────────────────────────────────────
+const T = {
+  ink:      "#04060a",
+  ink1:     "#0d1117",
+  ink2:     "#111620",
+  amber:    "#f5c242",
+  amberHov: "#fdd05a",
+  amberDim: "rgba(245,194,66,0.09)",
+  amberBdr: "rgba(245,194,66,0.22)",
+  teal:     "#5dcaa5",
+  tealDim:  "rgba(93,202,165,0.09)",
+  tealBdr:  "rgba(93,202,165,0.20)",
+  red:      "#e24b4a",
+  redDim:   "rgba(226,75,74,0.10)",
+  redBdr:   "rgba(226,75,74,0.22)",
+  w1:       "rgba(255,255,255,0.90)",
+  w2:       "rgba(255,255,255,0.60)",
+  w3:       "rgba(255,255,255,0.35)",
+  w4:       "rgba(255,255,255,0.09)",
+  border:   "rgba(255,255,255,0.08)",
+  borderMd: "rgba(255,255,255,0.12)",
+};
+
 const DIMS = [
   { key: "documentation",      label: "Documentation & Records" },
   { key: "technical",          label: "Technical Condition" },
@@ -17,13 +40,18 @@ const DIMS = [
   { key: "market_readiness",   label: "Market Readiness" },
 ];
 
+// v3 ATI bands
 function verdictFor(total) {
-  if (total >= 100) return { label: "EXCEPTIONAL",  color: "#00f5ff" };
-  if (total >= 85)  return { label: "STRONG BUY",   color: "#0F7A56" };
-  if (total >= 65)  return { label: "FAIR",          color: "#D4A017" };
-  if (total >= 45)  return { label: "CAUTION",       color: "#E8762D" };
-  if (total >= 20)  return { label: "RED FLAGS",     color: "#C0392B" };
-  return               { label: "AVOID",         color: "#7f0000" };
+  if (total >= 96) return { label: "Strong Buy",             color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
+  if (total >= 80) return { label: "Buy",                    color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
+  if (total >= 60) return { label: "Review — Due Diligence", color: T.amber, bg: T.amberDim, bdr: T.amberBdr };
+  return               { label: "Caution — Investigate",     color: T.red,   bg: T.redDim,   bdr: T.redBdr   };
+}
+
+function dimColor(score) {
+  if (score >= 12) return T.teal;
+  if (score >= 8)  return T.amber;
+  return T.red;
 }
 
 function genCode(reg, score) {
@@ -35,10 +63,9 @@ function genCode(reg, score) {
 }
 
 async function exportDocx(report, code) {
-  // Dynamically build a simple DOCX using the docx library if available, fallback to text blob
   const lines = [];
   lines.push("ATI REPORT powered by ABOS — Aircraft Buy Or Sell, since 2021");
-  lines.push("=" .repeat(64));
+  lines.push("=".repeat(64));
   lines.push(`Report Code: ${code}`);
   lines.push(`Generated: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`);
   lines.push("");
@@ -87,36 +114,50 @@ async function exportDocx(report, code) {
   URL.revokeObjectURL(url);
 }
 
+// ─── Sub-components ───────────────────────────────────────────────
+
+function Label({ children, color = T.w3, style = {} }) {
+  return (
+    <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color, margin: 0, ...style }}>
+      {children}
+    </p>
+  );
+}
+
 function DimRow({ label, score, reason }) {
-  const color = score >= 13 ? "#00f5ff" : score >= 10 ? "#0F7A56" : score >= 7 ? "#D4A017" : "#C0392B";
+  const color = dimColor(score);
   const pct = (score / 15) * 100;
   return (
-    <div className="py-3 border-b border-white/[0.06] last:border-0">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[12px] font-bold text-white/80">{label}</span>
-        <span className="text-[14px] font-black" style={{ color }}>{score}<span className="text-white/30 text-[10px]">/15</span></span>
+    <div style={{ marginBottom: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+        <span style={{ fontSize: "11px", color: T.w2 }}>{label}</span>
+        <span style={{ fontSize: "11px", fontWeight: 600, color, fontVariantNumeric: "tabular-nums" }}>
+          {score}<span style={{ color: T.w3, fontWeight: 400 }}>/15</span>
+        </span>
       </div>
-      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden mb-1.5">
-        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      <div style={{ height: "3px", borderRadius: "99px", background: T.w4, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: "99px", transition: "width 0.4s cubic-bezier(0.16,1,0.3,1)" }} />
       </div>
-      {reason && <p className="text-[11px] text-white/40 leading-snug">{reason}</p>}
+      {reason && <p style={{ fontSize: "10px", color: T.w3, marginTop: "3px", lineHeight: 1.5 }}>{reason}</p>}
     </div>
   );
 }
 
-function BulletList({ items, color = "#00f5ff" }) {
-  if (!items?.length) return <p className="text-white/30 text-[12px]">None identified.</p>;
+function BulletList({ items, color = T.teal }) {
+  if (!items?.length) return <p style={{ color: T.w3, fontSize: "12px", margin: 0 }}>None identified.</p>;
   return (
-    <ul className="space-y-1.5">
+    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
       {items.map((item, i) => (
-        <li key={i} className="flex items-start gap-2 text-[13px] text-white/70 leading-snug">
-          <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-          {item}
+        <li key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+          <span style={{ flexShrink: 0, marginTop: "2px", width: "5px", height: "5px", borderRadius: "50%", background: color, opacity: 0.7 }} />
+          <span style={{ fontSize: "12px", color: T.w2, lineHeight: 1.6 }}>{item}</span>
         </li>
       ))}
     </ul>
   );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────
 
 export default function ATIFullReport() {
   const location = useLocation();
@@ -255,68 +296,117 @@ Return ONLY valid JSON with this exact schema:
     ? (((omvmMid - result.asking_price) / omvmMid) * 100).toFixed(1)
     : null;
 
+  const canGenerate = !!input.trim() && !loading;
+
   return (
-    <div className="min-h-screen" style={{ background: "#0A081E" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: T.ink,
+      backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)",
+      backgroundSize: "40px 40px",
+      color: T.w1,
+    }}>
+      {/* Ambient amber glow */}
+      <div aria-hidden style={{
+        position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)",
+        width: "700px", height: "400px",
+        background: "radial-gradient(ellipse, rgba(245,194,66,0.06), transparent 70%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+
       {/* Header */}
-      <div className="px-4 md:px-8 pt-8 pb-6 border-b border-white/[0.07]">
-        <p className="text-[9px] uppercase tracking-[0.3em] font-black mb-1" style={{ color: "#D4A017" }}>
-          ATI Tool 2 · Pro
-        </p>
-        <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight">
-          ATI Full Report
+      <div style={{ position: "relative", zIndex: 1, padding: "32px 32px 24px", borderBottom: `0.5px solid ${T.border}` }}>
+        <Label color={T.amber} style={{ marginBottom: "8px" }}>ATI Tool 2 · Pro</Label>
+        <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 500, letterSpacing: "-0.04em", lineHeight: 1.06, color: T.w1, margin: 0 }}>
+          ATI <span style={{ color: T.amber }}>Full Report</span>
         </h1>
-        <p className="text-white/45 text-[12px] mt-2">
+        <p style={{ color: T.w3, fontSize: "12px", marginTop: "8px" }}>
           Professional aircraft appraisal with narrative, scoring, valuation and .docx export.
         </p>
       </div>
 
-      <div className="px-4 md:px-8 py-6 grid lg:grid-cols-[1fr_560px] gap-6 items-start">
+      <div style={{ position: "relative", zIndex: 1, padding: "24px 32px" }}
+        className="grid grid-cols-1 lg:grid-cols-[1fr_560px] gap-6 items-start">
+
         {/* Input */}
         <div>
-          <div className="mb-4">
-            <button
-              onClick={() => setShowPicker(v => !v)}
-              className="flex items-center gap-2 text-[11px] font-bold px-4 py-2 rounded-lg border border-white/[0.12] text-white/60 hover:text-white hover:border-white/20 transition-colors"
-            >
-              Load from saved listing {showPicker ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-            {showPicker && listings.length > 0 && (
-              <div className="mt-2 rounded-xl border border-white/[0.1] overflow-hidden max-h-56 overflow-y-auto"
-                style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(16px)" }}>
-                {listings.map(l => (
-                  <button key={l.id} onClick={() => prefillFromListing(l)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] last:border-0 hover:bg-white/[0.06] transition-colors text-left">
-                    <span className="text-[12px] text-white font-semibold">{l.year} {cleanAircraftMake(l.make)} {l.model}</span>
-                    <span className="text-[10px] text-white/35 font-mono">{l.registration || "—"}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {listings.length > 0 && (
+            <div style={{ marginBottom: "16px" }}>
+              <button
+                onClick={() => setShowPicker(v => !v)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  fontSize: "11px", fontWeight: 600, padding: "7px 14px", borderRadius: "8px",
+                  background: "transparent", border: `0.5px solid ${T.border}`, color: T.w3,
+                  cursor: "pointer", transition: "border-color 0.15s, color 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.borderMd; e.currentTarget.style.color = T.w1; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.w3; }}
+              >
+                Load from saved listing
+                {showPicker ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+
+              {showPicker && (
+                <div style={{
+                  marginTop: "8px", background: T.ink1, border: `0.5px solid ${T.border}`,
+                  borderRadius: "10px", overflow: "hidden", maxHeight: "220px", overflowY: "auto",
+                }}>
+                  {listings.map(l => (
+                    <button key={l.id} onClick={() => prefillFromListing(l)}
+                      style={{
+                        display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between",
+                        padding: "10px 16px", borderBottom: `0.5px solid ${T.border}`, background: "transparent",
+                        borderLeft: "none", borderRight: "none", borderTop: "none", cursor: "pointer",
+                        textAlign: "left", transition: "background 0.1s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <span style={{ fontSize: "12px", color: T.w1, fontWeight: 500 }}>
+                        {l.year} {cleanAircraftMake(l.make)} {l.model}
+                      </span>
+                      <span style={{ fontSize: "10px", color: T.w3, fontFamily: "'Courier New', monospace", letterSpacing: "0.06em" }}>
+                        {l.registration || "—"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder={`Paste full aircraft details for a professional appraisal report…\n\nInclude:\n- Make, model, year, registration\n- Airframe TT, engine SMOH, TBO\n- Avionics, modifications, STCs\n- Maintenance history, AD compliance\n- Storage, annual status\n- Asking price\n- Seller notes, condition description`}
             rows={18}
-            className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed resize-none focus:outline-none"
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.9)",
+              width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,0.04)",
+              border: `0.5px solid ${T.border}`, borderRadius: "10px", color: T.w1, outline: "none",
+              padding: "14px 16px", fontSize: "13px", lineHeight: 1.7, resize: "vertical",
+              fontFamily: "inherit", transition: "border-color 0.15s, background 0.15s",
             }}
+            onFocus={(e) => { e.target.style.borderColor = T.amberBdr; e.target.style.background = "rgba(245,194,66,0.03)"; }}
+            onBlur={(e) => { e.target.style.borderColor = T.border; e.target.style.background = "rgba(255,255,255,0.04)"; }}
           />
+
           <button
             onClick={handleGenerate}
-            disabled={loading || !input.trim()}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-[13px] uppercase tracking-widest transition-all active:scale-98 disabled:opacity-40"
+            disabled={!canGenerate}
             style={{
-              background: "rgba(212,160,23,0.12)",
-              border: "1px solid rgba(212,160,23,0.40)",
-              color: "#D4A017",
+              marginTop: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+              gap: "8px", padding: "13px 0", borderRadius: "8px",
+              background: canGenerate ? T.amber : "rgba(255,255,255,0.05)",
+              border: canGenerate ? "none" : `0.5px solid ${T.border}`,
+              color: canGenerate ? T.ink : T.w3, fontWeight: 600, fontSize: "13px",
+              letterSpacing: "-0.01em", cursor: canGenerate ? "pointer" : "default",
+              transition: "background 0.15s", opacity: canGenerate ? 1 : 0.6,
             }}
+            onMouseEnter={(e) => { if (canGenerate) e.currentTarget.style.background = T.amberHov; }}
+            onMouseLeave={(e) => { if (canGenerate) e.currentTarget.style.background = T.amber; }}
           >
-            <FileText className="w-4 h-4" />
+            <FileText size={15} />
             {loading ? "Generating Report…" : "Generate ATI Full Report"}
           </button>
         </div>
@@ -324,64 +414,72 @@ Return ONLY valid JSON with this exact schema:
         {/* Report output */}
         <div>
           {!result && !loading && (
-            <div className="rounded-2xl border border-white/[0.07] p-8 text-center"
-              style={{ background: "rgba(255,255,255,0.03)" }}>
-              <FileText className="w-10 h-10 mx-auto mb-3 text-white/20" />
-              <p className="text-white/30 text-sm">Your professional ATI report will appear here</p>
+            <div style={{ background: T.ink1, border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
+              <FileText size={36} style={{ color: T.w4, margin: "0 auto 12px" }} />
+              <p style={{ color: T.w3, fontSize: "13px" }}>Your professional ATI report will appear here</p>
             </div>
           )}
 
           {loading && (
-            <div className="rounded-2xl border border-white/[0.07] p-8 text-center"
-              style={{ background: "rgba(255,255,255,0.03)" }}>
-              <MiniGlobe size={40} label="Generating professional ATI report…" color="#D4A017" />
+            <div style={{ background: T.ink1, border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
+              <MiniGlobe size={40} label="Generating professional ATI report…" color={T.amber} />
             </div>
           )}
 
           {result && verdict && (
-            <div className="rounded-2xl overflow-hidden border border-white/[0.12]"
-              style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(28px)" }}>
+            <div style={{ background: T.ink1, border: `0.5px solid ${T.borderMd}`, borderRadius: "12px", overflow: "hidden" }}>
 
-              {/* Report header — ABOS branded */}
-              <div className="px-6 py-5 border-b border-white/[0.08]"
-                style={{ background: "linear-gradient(135deg, rgba(27,42,74,0.9) 0%, rgba(10,8,30,0.95) 100%)" }}>
-                <p className="text-[#D4A017] text-[9px] uppercase tracking-[0.25em] font-black">
-                  ATI REPORT powered by ABOS — Aircraft Buy Or Sell, since 2021
-                </p>
-                <div className="flex items-end justify-between mt-3 gap-4">
+              {/* Report header */}
+              <div style={{ background: T.ink2, borderBottom: `0.5px solid ${T.border}`, padding: "20px 22px" }}>
+                <div style={{ height: "2px", background: T.amber, margin: "-20px -22px 16px" }} aria-hidden />
+
+                <Label color={T.amber} style={{ marginBottom: "12px" }}>
+                  ATI REPORT · Powered by ABOS Aircraft Buy Or Sell
+                </Label>
+
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "16px" }}>
                   <div>
-                    <p className="text-white font-black text-2xl leading-tight">{result.total}<span className="text-white/30 text-sm">/120</span></p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full"
-                        style={{ background: `${verdict.color}18`, border: `1px solid ${verdict.color}35`, color: verdict.color }}>
+                    <p style={{ fontSize: "clamp(28px,4vw,36px)", fontWeight: 500, letterSpacing: "-0.04em", lineHeight: 1, color: verdict.color, margin: "0 0 6px" }}>
+                      {result.total}<span style={{ fontSize: "14px", color: T.w3, fontWeight: 400 }}>/120</span>
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{
+                        fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                        padding: "3px 10px", borderRadius: "99px", background: verdict.bg,
+                        border: `0.5px solid ${verdict.bdr}`, color: verdict.color,
+                      }}>
                         {verdict.label}
                       </span>
-                      <span className="text-white/40 text-[10px]">Deal Score: <span className="font-black text-white/70">{dealScore}/10</span></span>
+                      <span style={{ color: T.w3, fontSize: "10px" }}>
+                        Deal Score: <span style={{ color: T.w1, fontWeight: 600 }}>{dealScore}/10</span>
+                      </span>
                     </div>
                   </div>
+
                   {reportCode && (
-                    <div className="text-right">
-                      <p className="text-[9px] text-white/30 uppercase tracking-wider">Report Code</p>
-                      <p className="font-mono text-[#D4A017] text-[11px] font-bold">{reportCode}</p>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <Label style={{ marginBottom: "3px" }}>Report Code</Label>
+                      <p style={{ fontFamily: "'Courier New', monospace", color: T.amber, fontSize: "11px", fontWeight: 700, letterSpacing: "0.06em", margin: 0 }}>
+                        {reportCode}
+                      </p>
                     </div>
                   )}
                 </div>
-                {/* Score bar */}
-                <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full rounded-full"
-                    style={{ width: `${(result.total / 120) * 100}%`, background: `linear-gradient(90deg, #1B2A4A, ${verdict.color})` }} />
+
+                <div style={{ marginTop: "14px", height: "3px", borderRadius: "99px", background: T.w4, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${(result.total / 120) * 100}%`, background: verdict.color, borderRadius: "99px", transition: "width 0.5s cubic-bezier(0.16,1,0.3,1)" }} />
                 </div>
               </div>
 
-              {/* Identity table */}
+              {/* Aircraft identity */}
               {result.identity_rows?.length > 0 && (
-                <div className="px-5 py-4 border-b border-white/[0.07]">
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black mb-3">Aircraft Identity</p>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}` }}>
+                  <Label style={{ marginBottom: "12px" }}>Aircraft Identity</Label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: "24px" }}>
                     {result.identity_rows.map(r => (
-                      <div key={r.label} className="flex justify-between gap-2 py-1 border-b border-white/[0.04] last:border-0">
-                        <span className="text-[10px] text-white/35 shrink-0">{r.label}</span>
-                        <span className="text-[10px] text-white/75 font-semibold text-right truncate">{r.value}</span>
+                      <div key={r.label} style={{ display: "flex", justifyContent: "space-between", gap: "8px", padding: "6px 0", borderBottom: `0.5px solid ${T.border}` }}>
+                        <span style={{ fontSize: "10px", color: T.w3, flexShrink: 0 }}>{r.label}</span>
+                        <span style={{ fontSize: "10px", color: T.w1, fontWeight: 600, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.value}</span>
                       </div>
                     ))}
                   </div>
@@ -390,65 +488,76 @@ Return ONLY valid JSON with this exact schema:
 
               {/* Valuation */}
               {omvmMid && (
-                <div className="px-5 py-4 border-b border-white/[0.07] grid grid-cols-3 gap-4">
+                <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}`, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
                   <div>
-                    <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">OMVM Range</p>
-                    <p className="text-[11px] font-black text-white/75">${result.omvm_low.toLocaleString()} – ${result.omvm_high.toLocaleString()}</p>
+                    <Label style={{ marginBottom: "4px" }}>OMVM Range</Label>
+                    <p style={{ fontSize: "11px", fontWeight: 600, color: T.w2, margin: 0 }}>
+                      ${result.omvm_low?.toLocaleString()} – ${result.omvm_high?.toLocaleString()}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Midpoint</p>
-                    <p className="text-[11px] font-black text-white">${omvmMid.toLocaleString()}</p>
+                    <Label style={{ marginBottom: "4px" }}>Midpoint</Label>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: T.w1, margin: 0 }}>${omvmMid.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">vs Market</p>
+                    <Label style={{ marginBottom: "4px" }}>vs Market</Label>
                     {priceDiff ? (
-                      <p className="text-[11px] font-black" style={{ color: parseFloat(priceDiff) >= 0 ? "#0F7A56" : "#C0392B" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 700, color: parseFloat(priceDiff) >= 0 ? T.teal : T.red, margin: 0 }}>
                         {parseFloat(priceDiff) >= 0 ? "▼" : "▲"} {Math.abs(parseFloat(priceDiff))}%
                       </p>
-                    ) : <p className="text-[11px] text-white/30">—</p>}
+                    ) : <p style={{ fontSize: "13px", color: T.w3, margin: 0 }}>—</p>}
                   </div>
                 </div>
               )}
 
               {/* Dimension scores */}
-              <div className="px-5 py-4 border-b border-white/[0.07]">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black mb-3">Dimension Scores</p>
+              <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}` }}>
+                <Label style={{ marginBottom: "14px" }}>Dimension Scores · 15 pts each</Label>
                 {DIMS.map(d => (
                   <DimRow key={d.key} label={d.label} score={result[d.key] || 0} reason={result.reasons?.[d.key]} />
                 ))}
               </div>
 
-              {/* Narrative */}
-              <div className="px-5 py-4 border-b border-white/[0.07]">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black mb-2">Executive Summary</p>
-                <p className="text-[13px] text-white/70 leading-relaxed">{result.summary}</p>
+              {/* Executive summary */}
+              <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}` }}>
+                <Label style={{ marginBottom: "8px" }}>Executive Summary</Label>
+                <p style={{ fontSize: "13px", color: T.w2, lineHeight: 1.7, margin: 0 }}>{result.summary}</p>
               </div>
 
-              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-white/[0.07] border-b border-white/[0.07]">
-                <div className="px-5 py-4">
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-black mb-3" style={{ color: "#00f5ff" }}>Key Strengths</p>
-                  <BulletList items={result.strengths} color="#00f5ff" />
+              {/* Strengths / Risks */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: `0.5px solid ${T.border}` }}>
+                <div style={{ padding: "16px 22px", borderRight: `0.5px solid ${T.border}` }}>
+                  <Label color={T.teal} style={{ marginBottom: "10px" }}>Key Strengths</Label>
+                  <BulletList items={result.strengths} color={T.teal} />
                 </div>
-                <div className="px-5 py-4">
-                  <p className="text-[9px] uppercase tracking-[0.2em] font-black mb-3" style={{ color: "#C0392B" }}>Risk Factors</p>
-                  <BulletList items={result.risks} color="#C0392B" />
+                <div style={{ padding: "16px 22px" }}>
+                  <Label color={T.red} style={{ marginBottom: "10px" }}>Risk Factors</Label>
+                  <BulletList items={result.risks} color={T.red} />
                 </div>
               </div>
 
-              <div className="px-5 py-4 border-b border-white/[0.07]">
-                <p className="text-[9px] uppercase tracking-[0.2em] font-black mb-3" style={{ color: "#D4A017" }}>Recommendations</p>
-                <BulletList items={result.recommendations} color="#D4A017" />
+              {/* Recommendations */}
+              <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}` }}>
+                <Label color={T.amber} style={{ marginBottom: "10px" }}>Recommendations</Label>
+                <BulletList items={result.recommendations} color={T.amber} />
               </div>
 
-              {/* Export */}
-              <div className="px-5 py-4 flex items-center justify-between gap-4">
-                <p className="text-[10px] text-white/30 font-mono">{reportCode}</p>
+              {/* Export footer */}
+              <div style={{ padding: "14px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <p style={{ fontFamily: "'Courier New', monospace", fontSize: "10px", color: T.w3, letterSpacing: "0.04em", margin: 0 }}>
+                  {reportCode}
+                </p>
                 <button
                   onClick={() => exportDocx(result, reportCode)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all hover:opacity-90 active:scale-98"
-                  style={{ background: "rgba(212,160,23,0.12)", border: "1px solid rgba(212,160,23,0.35)", color: "#D4A017" }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "7px", padding: "9px 18px",
+                    borderRadius: "8px", background: T.amberDim, border: `0.5px solid ${T.amberBdr}`,
+                    color: T.amber, fontWeight: 600, fontSize: "11px", cursor: "pointer", transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(245,194,66,0.14)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = T.amberDim; }}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download size={14} />
                   Export .docx
                 </button>
               </div>

@@ -7,26 +7,17 @@ import {
 } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 
-const INK   = "#04060a";
-const INK1  = "#0d1117";
-const AMBER = "#f5c242";
-const TEAL  = "#5dcaa5";
-const W1    = "rgba(255,255,255,0.90)";
-const W2    = "rgba(255,255,255,0.60)";
-const W3    = "rgba(255,255,255,0.35)";
-const BORDER = "rgba(255,255,255,0.08)";
-
 const GLASS_CARD = {
-  background: INK1, border: `0.5px solid ${BORDER}`, borderRadius: "12px",
+  background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)",
+  WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)",
+  borderRadius: "16px",
 };
 
 const GLASS_INPUT = {
-  background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`,
-  borderRadius: "8px", color: W1, outline: "none", padding: "11px 14px",
+  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+  borderRadius: "8px", color: "#fff", outline: "none", padding: "10px 14px",
   fontSize: "13px", width: "100%", boxSizing: "border-box",
 };
-
-const LABEL = { display: "block", fontSize: "9px", color: W3, marginBottom: 4, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" };
 
 const AIRCRAFT_TYPES = [
   { value: "", label: "All" },
@@ -165,25 +156,24 @@ export default function FAAMap() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
-      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(245,194,66,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a1628, #1B2A4A, #0d1f3c)", color: "#fff" }}>
       {/* Top bar */}
-      <div style={{ background: INK1, borderBottom: `0.5px solid ${BORDER}`, padding: "12px 18px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
+      <div style={{ ...GLASS_CARD, margin: "12px", padding: "12px 20px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(245,194,66,0.09)", display: "flex", alignItems: "center", justifyContent: "center", border: `0.5px solid rgba(245,194,66,0.22)` }}>
-            <Map size={16} color={AMBER} />
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0,194,203,0.15)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(0,194,203,0.3)" }}>
+            <Map size={16} color="#00c2cb" />
           </div>
           <div>
-            <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0, letterSpacing: "-0.03em", color: W1 }}>FAA Aircraft Registry</h1>
-            <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Map View</span>
+            <h1 style={{ fontSize: 16, fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>FAA Aircraft Registry</h1>
+            <span style={{ fontSize: 10, color: "#00c2cb", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Map View</span>
           </div>
         </div>
 
         <div style={{ flex: 1 }} />
 
-        {loading && <MiniGlobe size={24} color={AMBER} inline={true} />}
+        {loading && <MiniGlobe size={24} color="#00c2cb" inline={true} />}
 
-        <span style={{ fontSize: 12, color: W2, fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>
           {totalCount.current.toLocaleString()} records
         </span>
 

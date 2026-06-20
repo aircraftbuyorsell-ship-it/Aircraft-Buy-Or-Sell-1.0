@@ -148,10 +148,13 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── flat ABOS navy (dot grid lives on cards/sections, not page bg) ── */
+  /* ── DARK body ── ABOS navy + Duvo-style dot grid texture on the page bg ── */
   .dark body {
     background-color: #0B1220;
-    background-image: none;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-attachment: fixed;
     color: #f1f5f9;
   }
 
@@ -368,12 +371,21 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   --abos-amber: #f59e0b;
 }
 
-/* ── Dot grid on the app shell background ── */
+/* ── App shell: dot grid lives on body (fixed); root stays transparent ── */
 #root {
   min-height: 100vh;
-  background-color: var(--abos-dark);
-  background-image: var(--abos-dots);
-  background-size: var(--abos-dots-size);
+  background-color: transparent;
+  position: relative;
+}
+/* Soft top-center glow behind content — Duvo-style ambient light */
+.dark #root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232,168,58,0.06) 0%, transparent 60%);
 }
 
 /* ── Gold accent helpers ── */

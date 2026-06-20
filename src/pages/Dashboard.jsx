@@ -58,9 +58,9 @@ export default function Dashboard() {
   const accentCyan   = "#00c2cb";
 
   const glass = (alpha = 0.78) =>
-    isDark ? `rgba(10,18,36,${alpha})` : `rgba(230,240,255,${alpha})`;
+    isDark ? `rgba(26,28,42,${alpha})` : `rgba(230,240,255,${alpha})`;
   const glassBorder = isDark
-    ? "1px solid rgba(0,180,255,0.13)"
+    ? "1px solid rgba(255,255,255,0.07)"
     : "1px solid rgba(37,99,235,0.10)";
 
   return (

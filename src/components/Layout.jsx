@@ -179,11 +179,11 @@ export default function Layout() {
           <div className="w-full flex justify-center">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
               style={{
-                background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#f48120,#e07310)",
-                boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(244,129,32,0.30)",
-                border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(244,129,32,0.20)",
-              }}>
-              <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
+                background: isDark ? "linear-gradient(135deg,#1a1c2a 0%,#0f1018 100%)" : "linear-gradient(135deg,#f48120,#e07310)",
+                    boxShadow: isDark ? "0 2px 16px rgba(212,160,23,0.20)" : "0 2px 12px rgba(244,129,32,0.30)",
+                    border: isDark ? "1px solid rgba(212,160,23,0.30)" : "1px solid rgba(244,129,32,0.20)",
+                  }}>
+                  <Plane className="w-4 h-4" style={{ color: isDark ? "#F5C518" : "#fff" }} />
             </div>
           </div>
         ) : (
@@ -254,7 +254,7 @@ export default function Layout() {
         className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
         style={{
           width: desktopHovered ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
-          background: isDark ? "rgba(14,14,24,0.96)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(15,16,24,0.97)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
@@ -292,7 +292,7 @@ export default function Layout() {
         className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[272px] flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         style={{
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          background: isDark ? "rgba(14,14,24,0.96)" : "rgba(255,255,255,0.96)",
+          background: isDark ? "rgba(15,16,24,0.97)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
@@ -325,12 +325,12 @@ export default function Layout() {
           {/* Logo — hidden on desktop (lives in sidebar) */}
           <Link to="/" className="lg:hidden flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 px-1 group">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
-              style={{ background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#f48120,#e07310)", boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(244,129,32,0.30)", border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(244,129,32,0.20)" }}>
-              <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
+              style={{ background: isDark ? "linear-gradient(135deg,#1a1c2a 0%,#0f1018 100%)" : "linear-gradient(135deg,#f48120,#e07310)", boxShadow: isDark ? "0 2px 16px rgba(212,160,23,0.20)" : "0 2px 12px rgba(244,129,32,0.30)", border: isDark ? "1px solid rgba(212,160,23,0.30)" : "1px solid rgba(244,129,32,0.20)" }}>
+              <Plane className="w-4 h-4" style={{ color: isDark ? "#F5C518" : "#fff" }} />
             </div>
             <div className="hidden sm:flex flex-col leading-none">
               <span className="font-black text-[13px] tracking-[-0.03em] bg-clip-text text-transparent"
-                style={{ backgroundImage: isDark ? "linear-gradient(135deg,#00f5ff 20%,#7a00ff 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)" }}>ABOS</span>
+                style={{ backgroundImage: isDark ? "linear-gradient(135deg,#F5C518 20%,#D4A017 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)" }}>ABOS</span>
               <span className="text-[9px] font-semibold tracking-[0.12em] uppercase"
                 style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.40)" }}>MarketSpace</span>
             </div>

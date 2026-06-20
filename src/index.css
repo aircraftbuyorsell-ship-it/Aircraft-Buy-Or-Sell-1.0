@@ -148,11 +148,24 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Duvo-inspired near-black with subtle dot grid ── */
+  /* ── DARK body ── Duvo-inspired near-black with layered texture ── */
   .dark body {
     background-color: #0d0e12;
-    background-image: radial-gradient(rgba(255,255,255,0.028) 1px, transparent 1px);
-    background-size: 26px 26px;
+    background-image:
+      /* soft warm gold glow top-center */
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,214,10,0.06), transparent 60%),
+      /* cool ambient glow bottom-left */
+      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(0,194,203,0.04), transparent 55%),
+      /* fine dot grid */
+      radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      /* faint diagonal mesh lines */
+      linear-gradient(115deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      100% 100%,
+      26px 26px,
+      72px 72px;
+    background-attachment: fixed, fixed, scroll, scroll;
     color: #e2e8f0;
   }
 

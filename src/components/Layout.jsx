@@ -309,9 +309,16 @@ export default function Layout() {
       {/* ═══════════════════════════════════════
           TOP BAR
       ═══════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 glass-navbar safe-top lg:ml-[var(--sidebar-w)]"
-        style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px`, WebkitBackdropFilter: "blur(24px) saturate(180%)" }}>
-        <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
+      <header className="sticky top-0 z-40 safe-top lg:ml-[var(--sidebar-w)] px-3 sm:px-5 pt-3 pb-1"
+        style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px`, background: "transparent" }}>
+        <div className="flex items-center gap-2.5 px-3 sm:px-5 h-[60px] rounded-full mx-auto max-w-[1200px]"
+          style={{
+            background: "linear-gradient(135deg, #13203A 0%, #0B1220 100%)",
+            border: "1px solid rgba(232,168,58,0.18)",
+            boxShadow: "0 10px 40px rgba(232,168,58,0.18), 0 4px 20px rgba(0,0,0,0.4)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          }}>
           {showBack ? (
             <button onClick={() => navigate(-1)}
               className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
@@ -327,18 +334,10 @@ export default function Layout() {
             </button>
           )}
 
-          {/* Logo — hidden on desktop (lives in sidebar) */}
-          <Link to="/" className="lg:hidden flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 px-1 group">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
-              style={{ background: isDark ? "linear-gradient(135deg,#1a1c2a 0%,#0f1018 100%)" : "linear-gradient(135deg,#f48120,#e07310)", boxShadow: isDark ? "0 2px 16px rgba(212,160,23,0.20)" : "0 2px 12px rgba(244,129,32,0.30)", border: isDark ? "1px solid rgba(212,160,23,0.30)" : "1px solid rgba(244,129,32,0.20)" }}>
-              <Plane className="w-4 h-4" style={{ color: isDark ? "#F5C518" : "#fff" }} />
-            </div>
-            <div className="hidden sm:flex flex-col leading-none">
-              <span className="font-black text-[13px] tracking-[-0.03em] bg-clip-text text-transparent"
-                style={{ backgroundImage: isDark ? "linear-gradient(135deg,#F5C518 20%,#D4A017 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)" }}>ABOS</span>
-              <span className="text-[9px] font-semibold tracking-[0.12em] uppercase"
-                style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.40)" }}>MarketSpace</span>
-            </div>
+          {/* Logo — inline ABOS · MarketSpace inside the pill */}
+          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 pl-1.5 pr-1 group">
+            <span className="font-black text-[15px] tracking-[-0.02em] text-white">ABOS</span>
+            <span className="hidden sm:inline text-[14px] font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>· MarketSpace</span>
           </Link>
 
           <GlobalSearch />
@@ -349,45 +348,62 @@ export default function Layout() {
               const active = pathname === path;
               return (
                 <Link key={path} to={path}
-                  className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95
-                    ${active ? "text-white shadow-md" : accent ? "glass-pill text-[#E8A83A] hover:text-[#D4911A]" : "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}`}
-                  style={active ? { background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 14px rgba(244,129,32,0.30)" } : {}}>
+                  className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all active:scale-95"
+                  style={{
+                    background: active ? "rgba(232,168,58,0.12)" : "rgba(255,255,255,0.05)",
+                    border: `1px solid ${active ? "rgba(232,168,58,0.4)" : "rgba(255,255,255,0.08)"}`,
+                    color: active ? "#E8A83A" : "rgba(255,255,255,0.85)",
+                  }}
+                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}>
                   <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
                   <span className="hidden sm:inline">{label}</span>
                 </Link>
               );
             })}
 
-            {/* Pricing */}
+            {/* Pricing — solid gold pill */}
             <Link to="/pricing"
-              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-bold transition-all active:scale-95"
               style={{
-                background: isDark ? "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(166,124,0,0.12))" : "linear-gradient(135deg,rgba(212,160,23,0.12),rgba(166,124,0,0.08))",
-                border: `1px solid ${isDark ? "rgba(212,160,23,0.30)" : "rgba(212,160,23,0.25)"}`,
-                color: isDark ? "#F5C842" : "#A67C00",
-              }}>
+                background: "#E8A83A",
+                border: "1px solid #E8A83A",
+                color: "#0B1220",
+                boxShadow: "0 0 18px rgba(232,168,58,0.4)",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.06)")}
+              onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}>
               <Zap className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Pricing</span>
             </Link>
 
-            {/* Tour */}
+            {/* Tour — ghost pill with label + help icon */}
             <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
-              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-semibold transition-all active:scale-95"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.09)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
               aria-label="Open guided tour" title="Platform tour">
-              <HelpCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Tour</span>
+              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
             </button>
 
-            {/* Auth */}
+            {/* Auth — plain text link */}
             {currentUser ? (
               <button onClick={() => base44.auth.logout()}
-                className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95">
+                className="flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold transition-all active:scale-95"
+                style={{ color: "rgba(255,255,255,0.85)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}>
                 <LogOut className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log Out</span>
               </button>
             ) : (
               <button onClick={() => base44.auth.redirectToLogin()}
-                className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
-                style={{ background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 12px rgba(244,129,32,0.35)" }}>
+                className="flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold transition-all active:scale-95"
+                style={{ color: "rgba(255,255,255,0.85)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}>
                 <LogIn className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden sm:inline">Log In</span>
               </button>

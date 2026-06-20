@@ -2,12 +2,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
-import { useAuth } from "@/lib/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import Globe from "@/components/Globe";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
-import NRegLookup from "@/components/dashboard/NRegLookup";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import NotificationStack from "@/components/notifications/NotificationStack";
@@ -44,7 +42,6 @@ const UPSELL_HOOKS = [
 export default function Dashboard() {
   const isDark = useTheme();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
   const [focusLocation, setFocusLocation] = useState(null);
 
@@ -52,17 +49,6 @@ export default function Dashboard() {
     queryKey: ["listings-active"],
     queryFn: () => base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 200),
     staleTime: 30000,
-  });
-
-  const { data: userProfile } = useQuery({
-    queryKey: ["userProfile", user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      return profiles?.[0] || null;
-    },
-    enabled: !!user?.email,
-    staleTime: 60000,
   });
 
   const textColor    = isDark ? "#e2e8f0" : "#1a1a1a";
@@ -84,33 +70,21 @@ export default function Dashboard() {
 
       <div className="relative z-10">
 
-        {/* ── GLOBE SECTION (full viewport, edge-to-edge) ── */}
-        <section className="relative w-full" style={{ height: "100vh" }}>
-          <Globe
-            listings={listings}
-            filter={globeFilter}
-            focusLocation={focusLocation}
-          />
-
-          {/* Layer filter toggle — top-right */}
-          <div className="absolute top-20 right-3 z-30">
-            <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
-          </div>
-
-          {/* N-Reg Lookup overlay — centered at top */}
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-[680px] z-30 px-4">
-            <div className="text-center mb-2">
-              <p className="text-[10px] tracking-[0.2em] font-bold uppercase" style={{ color: "#D4A017" }}>
-                AIRCRAFT INTELLIGENCE SEARCH
-              </p>
-              <p className="text-[11px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.50)" : "rgba(0,0,0,0.45)" }}>
-                Enter any N-Number for instant FAA registry, compliance and valuation data
-              </p>
+        {/* ── GLOBE SECTION ── */}
+        <section className="px-4 md:px-8 pt-6 pb-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="relative">
+              <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
+                <Globe
+                  listings={listings}
+                  filter={globeFilter}
+                  focusLocation={focusLocation}
+                />
+              </div>
+              <div className="absolute top-3 right-3 z-20">
+                <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
+              </div>
             </div>
-            <NRegLookup
-              userProfile={userProfile}
-              onFocusLocation={setFocusLocation}
-            />
           </div>
         </section>
 

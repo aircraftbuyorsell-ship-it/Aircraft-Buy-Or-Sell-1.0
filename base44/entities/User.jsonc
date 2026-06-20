@@ -1,17 +1,95 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
       "enum": [
+        "user",
         "admin",
-        "user"
-      ]
+        "super_admin"
+      ],
+      "default": "user",
+      "description": "User role \u2014 super_admin has access to feature toggles and all admin panels"
+    },
+    "referred_by_email": {
+      "type": "string",
+      "description": "Email of the user who referred this account (captured at first login if ?ref=... is in the URL)"
+    },
+    "personalization_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether premium branding personalization is active"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name for premium branding"
+    },
+    "brand_logo_url": {
+      "type": "string",
+      "description": "Uploaded brand logo URL"
+    },
+    "brand_primary_color": {
+      "type": "string",
+      "description": "Primary brand color"
+    },
+    "brand_accent_color": {
+      "type": "string",
+      "description": "Accent brand color"
+    },
+    "brand_font": {
+      "type": "string",
+      "description": "Selected brand font family"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "free_explorer",
+        "pro",
+        "enterprise"
+      ],
+      "default": "free_explorer",
+      "description": "Subscription tier"
+    },
+    "sub_tier": {
+      "type": "string",
+      "enum": [
+        "none",
+        "starter",
+        "plus",
+        "premium",
+        "scale",
+        "elite"
+      ],
+      "default": "none",
+      "description": "Sub-tier level within the subscription"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe customer ID for payment management"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Active Stripe subscription ID"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "trialing",
+        "past_due",
+        "canceled",
+        "unpaid",
+        "none"
+      ],
+      "default": "none",
+      "description": "Current Stripe subscription status"
+    },
+    "subscription_current_period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the current billing period ends"
     }
   },
-  "required": [
-    "role"
-  ],
-  "name": "User",
-  "type": "object"
+  "required": []
 }

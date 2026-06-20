@@ -1,5 +1,5 @@
 {
-  "name": "Captured: cz.cebia.com",
+  "name": "ABOS 0.8 IntraZone",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",

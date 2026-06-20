@@ -73,60 +73,60 @@
   .dark {
     color-scheme: dark;
 
-    --glass-bg:        rgba(20, 22, 30, 0.90);
-    --glass-bg-heavy:  rgba(20, 22, 30, 0.96);
-    --glass-bg-subtle: rgba(20, 22, 30, 0.72);
-    --glass-border:    rgba(255, 255, 255, 0.06);
-    --glass-border-subtle: rgba(255, 255, 255, 0.035);
+    --glass-bg:        rgba(13, 19, 33, 0.90);
+    --glass-bg-heavy:  rgba(13, 19, 33, 0.96);
+    --glass-bg-subtle: rgba(13, 19, 33, 0.72);
+    --glass-border:    rgba(255, 255, 255, 0.07);
+    --glass-border-subtle: rgba(255, 255, 255, 0.04);
     --glass-shadow:    0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
     --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.04);
     --glass-blur:      blur(24px) saturate(140%);
     --glass-blur-sm:   blur(16px) saturate(130%);
 
-    --navbar-bg:     rgba(13, 14, 18, 0.90);
-    --navbar-border: rgba(255, 255, 255, 0.05);
+    --navbar-bg:     rgba(11, 18, 32, 0.92);
+    --navbar-border: rgba(255, 255, 255, 0.06);
 
-    /* Accent — unified cyan */
-    --gold:       #00f5ff;
-    --gold-bright:#5cfbff;
-    --gold-deep:  #00c2cb;
+    /* Accent — unified ABOS gold */
+    --gold:       #E8A83A;
+    --gold-bright:#F5C842;
+    --gold-deep:  #C98A1E;
 
-    /* Brand accents — aligned to charcoal palette */
-    --neon-cyan:  #00f5ff;
-    --neon-blue:  #00c2cb;
-    --neon-purple:#e040fb;
-    --neon-pink:  #cc00ff;
+    /* Brand accents — aligned to navy + gold palette */
+    --neon-cyan:  #E8A83A;
+    --neon-blue:  #C98A1E;
+    --neon-purple:#E8A83A;
+    --neon-pink:  #F5C842;
     --silver:     #9aa5b4;
     --silver-bright: #c8d0db;
 
-    /* shadcn tokens — dark (Duvo flat charcoal) */
-    --background: 228 14% 10%;
+    /* shadcn tokens — dark navy (#0B1220) + gold (#E8A83A) */
+    --background: 222 51% 9%;
     --foreground: 210 30% 98%;
-    --card: 228 13% 13%;
+    --card: 222 44% 12%;
     --card-foreground: 210 30% 98%;
-    --popover: 228 13% 13%;
+    --popover: 222 44% 12%;
     --popover-foreground: 210 30% 98%;
-    --primary: 184 100% 50%;
-    --primary-foreground: 228 14% 6%;
-    --secondary: 228 12% 16%;
+    --primary: 38 80% 57%;
+    --primary-foreground: 222 51% 7%;
+    --secondary: 222 35% 16%;
     --secondary-foreground: 215 20% 86%;
-    --muted: 228 11% 14%;
+    --muted: 222 33% 15%;
     --muted-foreground: 215 18% 72%;
-    --accent: 184 100% 50%;
-    --accent-foreground: 228 14% 8%;
+    --accent: 38 80% 57%;
+    --accent-foreground: 222 51% 8%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 228 11% 19%;
-    --input: 228 12% 16%;
-    --ring: 184 100% 50%;
-    --sidebar-background: 228 14% 6%;
+    --border: 222 30% 20%;
+    --input: 222 35% 16%;
+    --ring: 38 80% 57%;
+    --sidebar-background: 222 54% 7%;
     --sidebar-foreground: 215 16% 70%;
-    --sidebar-primary: 184 100% 50%;
-    --sidebar-primary-foreground: 228 14% 8%;
-    --sidebar-accent: 228 12% 12%;
+    --sidebar-primary: 38 80% 57%;
+    --sidebar-primary-foreground: 222 51% 8%;
+    --sidebar-accent: 222 35% 13%;
     --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 228 11% 15%;
-    --sidebar-ring: 184 100% 50%;
+    --sidebar-border: 222 30% 16%;
+    --sidebar-ring: 38 80% 57%;
   }
 }
 
@@ -148,14 +148,10 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Duvo-inspired flat near-black with subtle dot grid ── */
+  /* ── DARK body ── flat ABOS navy (dot grid lives on cards/sections, not page bg) ── */
   .dark body {
-    background-color: #15171f;
-    background-image:
-      /* very subtle even dot grid only — flat like Duvo */
-      radial-gradient(rgba(255,255,255,0.022) 1px, transparent 1px);
-    background-size: 28px 28px;
-    background-attachment: fixed;
+    background-color: #0B1220;
+    background-image: none;
     color: #f1f5f9;
   }
 
@@ -194,7 +190,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 
 /* ── Dark mode inputs ── high-contrast white/black ── */
 .dark input, .dark textarea, .dark select {
-  background-color: #1a1c2a !important;
+  background-color: #141d31 !important;
   color: #f8f8fa !important;
   border-color: rgba(255,255,255,0.12) !important;
 }
@@ -218,10 +214,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .dark .glass {
-  background: rgba(20,22,30,0.90);
+  background: rgba(13,19,33,0.90);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.07);
   box-shadow: 0 8px 32px rgba(0,0,0,0.65);
 }
 
@@ -233,10 +229,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .dark .glass-heavy {
-  background: rgba(20,22,30,0.96);
+  background: rgba(13,19,33,0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.07);
   box-shadow: 0 8px 32px rgba(0,0,0,0.65);
 }
 
@@ -247,7 +243,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-subtle {
-  background: rgba(20,22,30,0.72);
+  background: rgba(13,19,33,0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.035);
@@ -260,10 +256,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-right: 1px solid rgba(0,0,0,0.06);
 }
 .dark .glass-dark {
-  background: linear-gradient(160deg, rgba(13,14,18,0.98) 0%, rgba(9,10,13,0.99) 100%);
+  background: linear-gradient(160deg, rgba(11,18,32,0.98) 0%, rgba(8,13,24,0.99) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
 .glass-navbar {
@@ -273,10 +269,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-navbar {
-  background: rgba(13,14,18,0.92);
+  background: rgba(11,18,32,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .glass-card {
@@ -287,8 +283,8 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .dark .glass-card {
-  background: rgba(20,22,30,0.92);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(13,19,33,0.92);
+  border: 1px solid rgba(255,255,255,0.07);
   box-shadow: 0 8px 32px rgba(0,0,0,0.55);
 }
 .glass-card:hover {

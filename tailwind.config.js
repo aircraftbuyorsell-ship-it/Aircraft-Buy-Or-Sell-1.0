@@ -15,9 +15,9 @@ module.exports = {
       },
       colors: {
         gold: {
-          DEFAULT: '#FFD60A',
-          bright: '#FFE14D',
-          deep: '#D4A017',
+          DEFAULT: '#E8A83A',
+          bright: '#F5C842',
+          deep: '#C98A1E',
         },
         silver: {
           DEFAULT: '#9aa5b4',

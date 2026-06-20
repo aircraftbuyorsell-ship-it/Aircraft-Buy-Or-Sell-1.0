@@ -10,7 +10,6 @@ import {
   HelpCircle, FileText, Globe, Layers, Map, Video }
 from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
-import ThemeToggle from "@/components/ThemeToggle";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import GlobalSearch from "@/components/search/GlobalSearch";
 
@@ -364,8 +363,6 @@ export default function Layout() {
               <Zap className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Pricing</span>
             </Link>
-
-            <ThemeToggle />
 
             {/* Tour */}
             <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}

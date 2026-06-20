@@ -3,11 +3,9 @@ module.exports = {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   safelist: [
-    "bg-[#f5c242]", "text-[#f5c242]", "border-[#f5c242]",
-    "bg-[#5dcaa5]", "text-[#5dcaa5]", "border-[#5dcaa5]",
-    "bg-[#8EB7DC]", "text-[#8EB7DC]", "border-[#8EB7DC]",
-    "bg-[#04060a]", "bg-[#0d1117]", "bg-[#111620]",
-    "bg-[#e24b4a]", "text-[#e24b4a]", "border-[#e24b4a]",
+    "bg-[#D4A017]", "text-[#D4A017]", "border-[#D4A017]",
+    "bg-[#111113]", "bg-[#F7F4EF]",
+    "text-[#1A1814]", "text-[#6B6560]", "text-[#AAA49C]",
   ],
   theme: {
     extend: {
@@ -17,44 +15,12 @@ module.exports = {
       },
       colors: {
         gold: {
-          DEFAULT: '#f5c242',
-          bright: '#fdd05a',
-          deep: '#c4820a',
-        },
-        amber: {
-          DEFAULT: '#f5c242',
-          bright: '#fdd05a',
-          deep: '#c4820a',
-        },
-        teal: {
-          DEFAULT: '#5dcaa5',
-          soft: 'rgba(93,202,165,0.10)',
-        },
-        sky: {
-          DEFAULT: '#8EB7DC',
-          soft: 'rgba(142,183,220,0.12)',
-        },
-        ink: {
-          DEFAULT: '#04060a',
-          surface: '#0d1117',
-          panel: '#111620',
-        },
-        silver: {
-          DEFAULT: '#9aa5b4',
-          bright: '#c8d0db',
-        },
-        cyan: {
-          DEFAULT: '#00f5ff',
-          muted: '#00c2cb',
-        },
-        magenta: {
-          DEFAULT: '#e040fb',
-          deep: '#cc00ff',
+          DEFAULT: '#D4A017',
+          bright: '#F5C842',
+          deep: '#A67C00',
         },
         bronze: '#CD7F32',
-        charcoal: '#0d0e12',
-        'card-dark': '#14161e',
-        'sidebar-dark': '#0a0b0e',
+        'sidebar-dark': '#111113',
         'main-bg': '#F7F4EF',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

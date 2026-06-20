@@ -73,60 +73,56 @@
   .dark {
     color-scheme: dark;
 
-    --glass-bg:        rgba(13, 19, 33, 0.90);
-    --glass-bg-heavy:  rgba(13, 19, 33, 0.96);
-    --glass-bg-subtle: rgba(13, 19, 33, 0.72);
-    --glass-border:    rgba(255, 255, 255, 0.07);
-    --glass-border-subtle: rgba(255, 255, 255, 0.04);
-    --glass-shadow:    0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.03);
-    --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.04);
-    --glass-blur:      blur(24px) saturate(140%);
-    --glass-blur-sm:   blur(16px) saturate(130%);
+    --glass-bg:        rgba(122, 0, 255, 0.06);
+    --glass-bg-heavy:  rgba(122, 0, 255, 0.12);
+    --glass-bg-subtle: rgba(122, 0, 255, 0.03);
+    --glass-border:    rgba(0, 245, 255, 0.18);
+    --glass-border-subtle: rgba(0, 245, 255, 0.08);
+    --glass-shadow:    0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(0,245,255,0.20);
+    --glass-shadow-lg: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(0,245,255,0.25);
+    --glass-blur:      blur(32px) saturate(200%);
+    --glass-blur-sm:   blur(20px) saturate(180%);
 
-    --navbar-bg:     rgba(12, 22, 32, 0.92);
-    --navbar-border: rgba(255, 255, 255, 0.06);
+    --navbar-bg:     rgba(10, 8, 30, 0.85);
+    --navbar-border: rgba(0, 245, 255, 0.12);
 
-    /* Accent — Marketspace Amber v2 */
-    --gold:       #f5c242;
-    --gold-bright:#fdd05a;
-    --gold-deep:  #c4820a;
+    --gold:       #D4A017;
+    --gold-bright:#F5C842;
+    --gold-deep:  #A67C00;
 
-    /* Brand accents — aligned to Ink + Amber palette v2 */
-    --neon-cyan:  #f5c242;
-    --neon-blue:  #8EB7DC;
-    --neon-purple:#f5c242;
-    --neon-pink:  #fdd05a;
-    --silver:     #9aa5b4;
-    --silver-bright: #c8d0db;
+    --neon-cyan:  #00f5ff;
+    --neon-blue:  #0044ff;
+    --neon-purple:#7a00ff;
+    --neon-pink:  #ff007a;
 
-    /* shadcn tokens — Ink (#04060a) + Amber (#f5c242) v2 */
-    --background: 220 43% 3%;
-    --foreground: 0 0% 90%;
-    --card: 215 27% 7%;
-    --card-foreground: 0 0% 90%;
-    --popover: 215 27% 7%;
-    --popover-foreground: 0 0% 90%;
-    --primary: 44 90% 61%;
-    --primary-foreground: 220 43% 3%;
-    --secondary: 220 30% 12%;
-    --secondary-foreground: 0 0% 80%;
-    --muted: 222 24% 10%;
-    --muted-foreground: 0 0% 50%;
-    --accent: 44 90% 61%;
-    --accent-foreground: 220 43% 3%;
-    --destructive: 1 72% 59%;
+    /* shadcn tokens — dark */
+    --background: 243 58% 8%;
+    --foreground: 210 40% 98%;
+    --card: 240 50% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 50% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 42 87% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 40% 16%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 240 40% 14%;
+    --muted-foreground: 230 30% 70%;
+    --accent: 185 100% 50%;
+    --accent-foreground: 240 50% 8%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 20% 14%;
-    --input: 222 24% 10%;
-    --ring: 44 90% 61%;
-    --sidebar-background: 220 43% 2%;
-    --sidebar-foreground: 0 0% 50%;
-    --sidebar-primary: 44 90% 61%;
-    --sidebar-primary-foreground: 220 43% 3%;
-    --sidebar-accent: 220 30% 9%;
-    --sidebar-accent-foreground: 0 0% 88%;
-    --sidebar-border: 222 24% 9%;
-    --sidebar-ring: 44 90% 61%;
+    --border: 240 35% 20%;
+    --input: 240 35% 18%;
+    --ring: 185 100% 50%;
+    --sidebar-background: 243 60% 6%;
+    --sidebar-foreground: 230 20% 65%;
+    --sidebar-primary: 185 100% 50%;
+    --sidebar-primary-foreground: 240 50% 8%;
+    --sidebar-accent: 240 40% 12%;
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border: 240 35% 15%;
+    --sidebar-ring: 185 100% 50%;
   }
 }
 
@@ -148,14 +144,10 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Ink v2 + dot grid texture on the page bg ── */
+  /* ── DARK body ── */
   .dark body {
-    background-color: #04060a;
-    background-image:
-      radial-gradient(circle, rgba(255,255,255,0.07) 1.5px, transparent 1.5px);
-    background-size: 40px 40px;
-    background-attachment: fixed;
-    color: #f1f5f9;
+    background: #0c0e14;
+    color: #e2e8f0;
   }
 
   /* Prevent accidental selection/callout on tappable UI */
@@ -193,9 +185,9 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 
 /* ── Dark mode inputs ── high-contrast white/black ── */
 .dark input, .dark textarea, .dark select {
-  background-color: #141d31 !important;
+  background-color: #1a1a2e !important;
   color: #f8f8fa !important;
-  border-color: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.22) !important;
 }
 .dark input::placeholder, .dark textarea::placeholder { color: rgba(255,255,255,0.40) !important; }
 
@@ -217,11 +209,11 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 .dark .glass {
-  background: rgba(13,19,33,0.90);
+  background: rgba(20,20,35,0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
 .glass-heavy {
@@ -232,11 +224,11 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .dark .glass-heavy {
-  background: rgba(13,19,33,0.96);
+  background: rgba(22,22,38,0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.65);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .glass-subtle {
@@ -246,10 +238,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-subtle {
-  background: rgba(13,19,33,0.72);
+  background: rgba(18,18,30,0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .glass-dark {
@@ -259,10 +251,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-right: 1px solid rgba(0,0,0,0.06);
 }
 .dark .glass-dark {
-  background: linear-gradient(160deg, rgba(11,18,32,0.98) 0%, rgba(8,13,24,0.99) 100%);
+  background: linear-gradient(160deg, rgba(14,14,26,0.96) 0%, rgba(10,10,20,0.98) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
 .glass-navbar {
@@ -272,7 +264,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 .dark .glass-navbar {
-  background: rgba(11,18,32,0.92);
+  background: rgba(14,14,24,0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -286,9 +278,9 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .dark .glass-card {
-  background: rgba(13,19,33,0.92);
-  border: 1px solid rgba(255,255,255,0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  background: rgba(22,22,38,0.9);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .glass-card:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.07);
@@ -325,201 +317,3 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
-
-/* ═══════════════════════════════════════════
-   ABOS DESIGN TOKEN SYSTEM v2
-   3 colors: Dark #0B1220 · Gold #E8A83A · White #FFFFFF
-═══════════════════════════════════════════ */
-:root {
-  /* ── Brand palette — Marketspace v2 (Linear × Vercel × Raycast) ── */
-  --abos-dark:        #04060a;  /* Ink */
-  --abos-dark-mid:    #0d1117;  /* nav / surface */
-  --abos-dark-deep:   #04060a;
-  --abos-gold:        #f5c242;  /* Amber — primary CTA / active */
-  --abos-gold-soft:   rgba(245, 194, 66, 0.12);
-  --abos-gold-border: rgba(245, 194, 66, 0.22);
-
-  /* Teal — verification / trust signals */
-  --abos-teal:        #5dcaa5;
-  --abos-teal-soft:   rgba(93, 202, 165, 0.10);
-  --abos-teal-border: rgba(93, 202, 165, 0.22);
-
-  /* Sky — data surfaces / secondary / charts */
-  --abos-sky:         #8EB7DC;
-  --abos-sky-soft:    rgba(142, 183, 220, 0.12);
-  --abos-sky-border:  rgba(142, 183, 220, 0.28);
-
-  --abos-white:       #FFFFFF;
-  --abos-cream:       #f8f6f0;
-
-  /* ── Text scale (on dark) — v2 white hierarchy ── */
-  --abos-text-1: rgba(255, 255, 255, 0.90);
-  --abos-text-2: rgba(255, 255, 255, 0.50);
-  --abos-text-3: rgba(255, 255, 255, 0.25);
-
-  /* ── Surface scale — v2 Ink hierarchy ── */
-  --abos-surface-1: #04060a;
-  --abos-surface-2: #0d1117;
-  --abos-surface-3: #111620;
-
-  /* ── Border scale ── */
-  --abos-border-1: rgba(255,255,255,0.08);
-  --abos-border-2: rgba(255,255,255,0.12);
-
-  /* ── Dot grid — v2 40px ── */
-  --abos-dots: radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px);
-  --abos-dots-size: 40px 40px;
-
-  /* ── Radius ── */
-  --abos-radius-sm:  6px;
-  --abos-radius-md:  10px;
-  --abos-radius-lg:  14px;
-  --abos-radius-xl:  20px;
-
-  /* ── Semantic (status indicators only — not brand) — v2 ── */
-  --abos-green: #5dcaa5;
-  --abos-red:   #e24b4a;
-  --abos-amber: #f5c242;
-}
-
-/* ── App shell: dot grid lives on body (fixed); root stays transparent ── */
-#root {
-  min-height: 100vh;
-  background-color: transparent;
-  position: relative;
-}
-/* Soft top-center glow behind content — Duvo-style ambient light */
-.dark #root::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,194,66,0.06) 0%, transparent 60%);
-}
-
-/* ── Gold accent helpers ── */
-.abos-gold       { color: var(--abos-gold); }
-.abos-badge-gold {
-  background: var(--abos-gold-soft); border: 1px solid var(--abos-gold-border);
-  color: var(--abos-gold); border-radius: var(--abos-radius-xl);
-  padding: 2px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-  display: inline-block;
-}
-.abos-btn-gold {
-  background: var(--abos-gold-soft); border: 1px solid var(--abos-gold-border);
-  color: var(--abos-gold); border-radius: var(--abos-radius-md);
-  padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
-  cursor: pointer; transition: background 0.15s;
-}
-.abos-btn-gold:hover { background: rgba(248,199,62,0.20); }
-
-/* ── Teal accent helpers (verification / trust) ── */
-.abos-badge-teal {
-  background: var(--abos-teal-soft); border: 1px solid var(--abos-teal-border);
-  color: var(--abos-teal); border-radius: var(--abos-radius-xl);
-  padding: 2px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-  display: inline-block;
-}
-.abos-teal { color: var(--abos-teal); }
-.abos-sky  { color: var(--abos-sky); }
-.abos-btn-gold-solid {
-  background: var(--abos-gold); border: 1px solid var(--abos-gold);
-  color: var(--abos-dark); border-radius: var(--abos-radius-md);
-  padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
-  cursor: pointer; transition: filter 0.15s;
-}
-.abos-btn-gold-solid:hover { filter: brightness(1.08); }
-
-/* ── Card ── */
-.abos-card {
-  background: var(--abos-surface-2);
-  border: 1px solid var(--abos-border-1);
-  border-radius: var(--abos-radius-lg);
-}
-.abos-card:hover { border-color: var(--abos-border-2); }
-
-/* ── Dot card (hero sections with dot overlay) ── */
-.abos-card-dot {
-  background: var(--abos-surface-2);
-  border: 1px solid var(--abos-border-1);
-  border-radius: var(--abos-radius-lg);
-  position: relative;
-  overflow: hidden;
-}
-.abos-card-dot::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: var(--abos-dots);
-  background-size: var(--abos-dots-size);
-  pointer-events: none;
-  opacity: 0.7;
-}
-
-/* ═══════════════════════════════════════════
-   GLOBAL ROGUE-COLOR SWEEP → AMBER
-   Force ALL non-brand accents (purple/violet/cyan/blue/
-   indigo/orange/pink/fuchsia) to the single ABOS Amber.
-   Teal & Sky are now brand colors — intentionally excluded.
-   Semantic green/red/amber are intentionally left untouched.
-═══════════════════════════════════════════ */
-.dark [class*="text-purple"], .dark [class*="text-violet"],
-.dark [class*="text-cyan"],   .dark [class*="text-indigo"],
-.dark [class*="text-blue"],   .dark [class*="text-orange"],
-.dark [class*="text-pink"],   .dark [class*="text-fuchsia"] {
-  color: var(--abos-gold) !important;
-}
-.dark [class*="bg-purple"], .dark [class*="bg-violet"],
-.dark [class*="bg-cyan"],   .dark [class*="bg-indigo"],
-.dark [class*="bg-orange"], .dark [class*="bg-pink"],
-.dark [class*="bg-fuchsia"] {
-  background-color: var(--abos-gold-soft) !important;
-}
-.dark [class*="border-purple"], .dark [class*="border-violet"],
-.dark [class*="border-cyan"],   .dark [class*="border-indigo"],
-.dark [class*="border-blue"],
-.dark [class*="border-orange"], .dark [class*="border-pink"],
-.dark [class*="border-fuchsia"] {
-  border-color: var(--abos-gold-border) !important;
-}
-.dark [class*="ring-purple"], .dark [class*="ring-violet"],
-.dark [class*="ring-cyan"],   .dark [class*="ring-indigo"],
-.dark [class*="ring-blue"],   .dark [class*="ring-orange"],
-.dark [class*="ring-pink"],   .dark [class*="ring-fuchsia"] {
-  --tw-ring-color: var(--abos-gold) !important;
-}
-.dark [class*="from-purple"], .dark [class*="from-violet"],
-.dark [class*="from-cyan"],   .dark [class*="from-indigo"],
-.dark [class*="from-blue"],   .dark [class*="from-orange"],
-.dark [class*="to-purple"],   .dark [class*="to-violet"],
-.dark [class*="to-cyan"],     .dark [class*="to-indigo"],
-.dark [class*="to-blue"],     .dark [class*="to-orange"],
-.dark [class*="via-purple"],  .dark [class*="via-cyan"],
-.dark [class*="via-blue"] {
-  --tw-gradient-from: var(--abos-gold) !important;
-  --tw-gradient-to: var(--abos-gold-deep) !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-
-/* ═══════════════════════════════════════════
-   LISTBOX / SVG accent sweep → gold
-   Recharts, gauges and progress strokes often render
-   inline fill / stroke attributes. Map the common
-   non-gold accent hexes used as SVG paint to gold.
-═══════════════════════════════════════════ */
-.dark [fill="#00f5ff"],  .dark [fill="#00c2cb"],  .dark [fill="#06b6d4"],
-.dark [fill="#0ea5e9"],  .dark [fill="#7c3aed"],  .dark [fill="#8b5cf6"],
-.dark [fill="#a855f7"],  .dark [fill="#f48120"],  .dark [fill="#f97316"],
-.dark [fill="#3b82f6"],  .dark [fill="#2563eb"],  .dark [fill="#F8C73E"],
-.dark [fill="#D4A017"],  .dark [fill="#E8A83A"] {
-  fill: var(--abos-gold) !important;
-}
-.dark [stroke="#00f5ff"], .dark [stroke="#00c2cb"], .dark [stroke="#06b6d4"],
-.dark [stroke="#0ea5e9"], .dark [stroke="#7c3aed"], .dark [stroke="#8b5cf6"],
-.dark [stroke="#a855f7"], .dark [stroke="#f48120"], .dark [stroke="#f97316"],
-.dark [stroke="#3b82f6"], .dark [stroke="#2563eb"], .dark [stroke="#F8C73E"],
-.dark [stroke="#D4A017"], .dark [stroke="#E8A83A"] {
-  stroke: var(--abos-gold) !important;
-}

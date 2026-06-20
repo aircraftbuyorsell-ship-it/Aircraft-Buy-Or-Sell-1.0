@@ -10,8 +10,9 @@ import {
   HelpCircle, FileText, Globe, Layers, Map, Video }
 from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
+import ThemeToggle from "@/components/ThemeToggle";
 import ABOSTour from "@/components/onboarding/ABOSTour";
-import TopNav from "@/components/nav/TopNav";
+import GlobalSearch from "@/components/search/GlobalSearch";
 
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 const TOP_LEVEL = new Set(["/", "/listings", "/deal-radar", "/my-account", "/escrow"]);
@@ -173,28 +174,22 @@ export default function Layout() {
     <>
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-        style={{ borderBottom: "1px solid var(--abos-border-1)" }}>
+        style={{ borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
         {isDesktop && !desktopHovered ? (
           <div className="w-full flex justify-center">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
               style={{
-                background: "var(--abos-gold-soft)",
-                    boxShadow: "0 2px 16px rgba(232,168,58,0.20)",
-                    border: "1px solid var(--abos-gold-border)",
-                  }}>
-                  <Plane className="w-4 h-4" style={{ color: "var(--abos-gold)" }} />
+                background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#f48120,#e07310)",
+                boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(244,129,32,0.30)",
+                border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(244,129,32,0.20)",
+              }}>
+              <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "var(--abos-gold-soft)", border: "1px solid var(--abos-gold-border)" }}>
-              <Plane className="w-4 h-4" style={{ color: "var(--abos-gold)" }} />
-            </div>
-            <div>
-              <p className="text-[12px] font-black tracking-tight leading-none" style={{ color: "var(--abos-white)" }}>ABOS</p>
-              <p className="text-[9px] mt-1 uppercase" style={{ color: "var(--abos-text-3)", letterSpacing: "0.12em" }}>Aircraft Intelligence</p>
-            </div>
+          <div>
+            <p className="text-[10px] font-semibold tracking-wide" style={{ color: isDark ? "#f48120" : "#e07310" }}>Navigation</p>
+            <p className="text-[10px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(100,116,139,0.8)" }}>Global Aircraft Intelligence Network</p>
           </div>
         )}
         {!isDesktop && (
@@ -226,7 +221,7 @@ export default function Layout() {
 
       {/* Footer status */}
       <div className="px-3 py-3 shrink-0"
-        style={{ borderTop: "1px solid var(--abos-border-1)" }}>
+        style={{ borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
         {isDesktop && !desktopHovered ? (
           <div className="flex justify-center">
             <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
@@ -259,10 +254,10 @@ export default function Layout() {
         className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
         style={{
           width: desktopHovered ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
-          background: "var(--abos-dark-mid)",
+          background: isDark ? "rgba(14,14,24,0.96)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderRight: "1px solid var(--abos-border-1)",
+          borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
         }}
         onMouseEnter={() => setDesktopHovered(true)}
         onMouseLeave={() => setDesktopHovered(false)}
@@ -297,21 +292,106 @@ export default function Layout() {
         className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[272px] flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         style={{
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          background: "var(--abos-dark-mid)",
+          background: isDark ? "rgba(14,14,24,0.96)" : "rgba(255,255,255,0.96)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderRight: "1px solid var(--abos-border-1)",
+          borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
         }}
       >
         {renderSidebarContent(false)}
       </aside>
 
       {/* ═══════════════════════════════════════
-          TOP BAR — Marketspace full-width nav
+          TOP BAR
       ═══════════════════════════════════════ */}
-      <div className="lg:ml-[var(--sidebar-w)]" style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px` }}>
-        <TopNav currentUser={currentUser} onOpenSidebar={() => setMobileOpen((v) => !v)} />
-      </div>
+      <header className="sticky top-0 z-40 glass-navbar safe-top lg:ml-[var(--sidebar-w)]"
+        style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px`, WebkitBackdropFilter: "blur(24px) saturate(180%)" }}>
+        <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
+          {showBack ? (
+            <button onClick={() => navigate(-1)}
+              className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              aria-label="Go back">
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-[11px] font-semibold hidden sm:inline">Back</span>
+            </button>
+          ) : (
+            <button onClick={() => setMobileOpen((v) => !v)}
+              className="glass-pill w-9 h-9 lg:hidden flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              aria-label="Open menu">
+              <Menu className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Logo — hidden on desktop (lives in sidebar) */}
+          <Link to="/" className="lg:hidden flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 px-1 group">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
+              style={{ background: isDark ? "linear-gradient(135deg,#0A081E 0%,#1a1040 100%)" : "linear-gradient(135deg,#f48120,#e07310)", boxShadow: isDark ? "0 2px 16px rgba(122,0,255,0.25)" : "0 2px 12px rgba(244,129,32,0.30)", border: isDark ? "1px solid rgba(0,245,255,0.20)" : "1px solid rgba(244,129,32,0.20)" }}>
+              <Plane className="w-4 h-4" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
+            </div>
+            <div className="hidden sm:flex flex-col leading-none">
+              <span className="font-black text-[13px] tracking-[-0.03em] bg-clip-text text-transparent"
+                style={{ backgroundImage: isDark ? "linear-gradient(135deg,#00f5ff 20%,#7a00ff 80%)" : "linear-gradient(135deg,#2563eb 0%,#1e293b 100%)" }}>ABOS</span>
+              <span className="text-[9px] font-semibold tracking-[0.12em] uppercase"
+                style={{ color: isDark ? "rgba(255,255,255,0.40)" : "rgba(0,0,0,0.40)" }}>MarketSpace</span>
+            </div>
+          </Link>
+
+          <GlobalSearch />
+          <div className="flex-1" />
+
+          <nav className="flex items-center gap-1.5">
+            {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
+              const active = pathname === path;
+              return (
+                <Link key={path} to={path}
+                  className={`flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95
+                    ${active ? "text-white shadow-md" : accent ? "glass-pill text-[#E8A83A] hover:text-[#D4911A]" : "glass-pill text-[#0B2D5B]/70 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white"}`}
+                  style={active ? { background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 14px rgba(244,129,32,0.30)" } : {}}>
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
+                  <span className="hidden sm:inline">{label}</span>
+                </Link>
+              );
+            })}
+
+            {/* Pricing */}
+            <Link to="/pricing"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold transition-all active:scale-95"
+              style={{
+                background: isDark ? "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(166,124,0,0.12))" : "linear-gradient(135deg,rgba(212,160,23,0.12),rgba(166,124,0,0.08))",
+                border: `1px solid ${isDark ? "rgba(212,160,23,0.30)" : "rgba(212,160,23,0.25)"}`,
+                color: isDark ? "#F5C842" : "#A67C00",
+              }}>
+              <Zap className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Pricing</span>
+            </Link>
+
+            <ThemeToggle />
+
+            {/* Tour */}
+            <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
+              className="glass-pill w-9 h-9 flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
+              aria-label="Open guided tour" title="Platform tour">
+              <HelpCircle className="w-4 h-4" />
+            </button>
+
+            {/* Auth */}
+            {currentUser ? (
+              <button onClick={() => base44.auth.logout()}
+                className="glass-pill flex items-center gap-1.5 px-3 h-8 text-[11px] font-semibold text-[#0B2D5B]/60 dark:text-white/50 hover:text-[#0B2D5B] dark:hover:text-white transition-all active:scale-95">
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log Out</span>
+              </button>
+            ) : (
+              <button onClick={() => base44.auth.redirectToLogin()}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-white transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg,#f48120,#e07310)", boxShadow: "0 2px 12px rgba(244,129,32,0.35)" }}>
+                <LogIn className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">Log In</span>
+              </button>
+            )}
+          </nav>
+        </div>
+      </header>
 
       {/* ═══════════════════════════════════════
           CONTENT
@@ -344,18 +424,18 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
           className="w-full flex items-center gap-2 px-3 pb-1.5 group"
         >
           <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: "var(--abos-gold-soft)", border: "1px solid var(--abos-gold-border)" }}>
-            <span className="text-[9px] font-black leading-none" style={{ color: "var(--abos-gold)" }}>
+            style={{ background: `${section.color}18`, border: `1px solid ${section.color}40` }}>
+            <span className="text-[9px] font-black leading-none" style={{ color: section.color }}>
               {section.key === "marketspace" ? "1" : section.key === "intrazone" ? "2" : section.key === "account" ? "3" : "4"}
             </span>
           </div>
-          <p className="text-[9px] font-black uppercase flex-1 text-left" style={{ color: "var(--abos-text-3)", letterSpacing: "0.12em" }}>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] flex-1 text-left" style={{ color: section.color }}>
             {section.label}
           </p>
           <ChevronDown
             className="w-3 h-3 shrink-0 transition-transform duration-200"
             style={{
-              color: "var(--abos-text-3)",
+              color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)",
               transform: open ? "rotate(0deg)" : "rotate(-90deg)",
             }}
           />
@@ -365,7 +445,7 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
       {/* Collapsed divider (icon-only mode) */}
       {collapsed && (
         <div className="flex justify-center py-2">
-          <div className="w-6 h-px" style={{ background: "var(--abos-border-1)" }} />
+          <div className="w-6 h-px" style={{ background: `${section.color}30` }} />
         </div>
       )}
 
@@ -374,10 +454,10 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
         <div className="space-y-0.5">
           {section.items.map(({ path, label, icon: NavIcon }) => {
             const active = pathname === path;
-            const sc = "var(--abos-gold)";
-            const inactiveColor = "var(--abos-text-3)";
-            const hoverColor = "var(--abos-text-1)";
-            const hoverBg = "var(--abos-surface-3)";
+            const sc = section.color;
+            const inactiveColor = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
+            const hoverColor = isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.75)";
+            const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
 
             if (collapsed) {
               // ── Icon-only item ──
@@ -386,14 +466,14 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
                   className="flex items-center justify-center py-2.5 mx-1 rounded-xl transition-all duration-150"
                   style={{
                     color: active ? sc : inactiveColor,
-                    background: active ? "var(--abos-gold-soft)" : "transparent",
-                    border: active ? "1px solid var(--abos-gold-border)" : "1px solid transparent",
+                    background: active ? `${sc}14` : "transparent",
+                    border: active ? `1px solid ${sc}38` : "1px solid transparent",
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
                       e.currentTarget.style.background = hoverBg;
                       e.currentTarget.style.color = sc;
-                      e.currentTarget.style.border = "1px solid var(--abos-border-2)";
+                      e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)";
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -415,15 +495,15 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
               <Link key={path} to={path}
                 className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
                 style={{
-                  color: active ? sc : inactiveColor,
-                  background: active ? "var(--abos-gold-soft)" : "transparent",
-                  border: active ? "1px solid var(--abos-gold-border)" : "1px solid transparent",
+                  color: active ? (isDark ? "#fff" : "#1e293b") : inactiveColor,
+                  background: active ? `${sc}14` : "transparent",
+                  border: active ? `1px solid ${sc}38` : "1px solid transparent",
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = hoverBg;
                     e.currentTarget.style.color = hoverColor;
-                    e.currentTarget.style.border = "1px solid var(--abos-border-2)";
+                    e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -438,7 +518,7 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
                 <span>{label}</span>
                 {active && (
                   <div className="ml-auto flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full" style={{ background: "var(--abos-gold-border)" }} />
+                    <div className="w-1 h-1 rounded-full" style={{ background: `${sc}60` }} />
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc }} />
                   </div>
                 )}

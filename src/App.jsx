@@ -55,7 +55,6 @@ import ATIVerifySession from "./pages/ATIVerifySession";
 import SupabaseSync from "./pages/SupabaseSync";
 import FAAMap from "./pages/FAAMap";
 import IntraZoneDemo from "./pages/IntraZoneDemo";
-import PlatformTour from "./components/PlatformTour";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -128,24 +127,6 @@ const AuthenticatedApp = () => {
         <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
         <Route path="/faa-map" element={<FAAMap />} />
         <Route path="/demo" element={<IntraZoneDemo />} />
-        <Route
-          path="/tour"
-          element={
-            <div
-              className="min-h-screen flex items-center justify-center p-4 md:p-8"
-              style={{
-                background: "#0B1220",
-                backgroundImage:
-                  "radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px)",
-                backgroundSize: "22px 22px",
-              }}
-            >
-              <div className="w-full max-w-5xl">
-                <PlatformTour />
-              </div>
-            </div>
-          }
-        />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

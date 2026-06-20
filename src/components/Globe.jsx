@@ -288,7 +288,6 @@ export default function Globe({
   const [detail, setDetail] = useState(null);
   const [scoringMap, setScoringMap] = useState({});
 
-  const firstTrafficLoadRef = useRef(true);
   const fetchTraffic = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -297,13 +296,10 @@ export default function Globe({
       const res = await base44.functions.invoke("cachedTraffic", {
         region_key: "world",
         region_label: "Global",
-        // Only bypass the server cache on the very first load; subsequent
-        // polls reuse the cache to avoid hammering OpenSky / hitting rate limits.
-        force_refresh: firstTrafficLoadRef.current,
+        force_refresh: true,
         limit: 1000,
         allow_heavy: true
       });
-      firstTrafficLoadRef.current = false;
       const ac = res.data?.aircraft || [];
       adsbCache.current = ac;
       renderToGlobe(ac);
@@ -792,8 +788,7 @@ export default function Globe({
   useEffect(() => {
     fetchTraffic();
     fetchLive();
-    // Poll every 90s (was 30s) to stay well under platform rate limits.
-    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 90000);
+    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 30000);
     return () => clearInterval(timerRef.current);
   }, [fetchTraffic, fetchLive]);
 
@@ -802,7 +797,7 @@ export default function Globe({
   const textColor = isDark ? "#fff" : "#1e293b";
 
   return (
-    <div ref={containerRef} className="relative w-full h-full" style={{ background: "transparent", minHeight: "320px" }}>
+    <div ref={containerRef} className="relative" style={{ background: "transparent" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
 
       <div className="absolute top-3 left-3 z-20">

@@ -8,7 +8,7 @@ const ITEMS = [
     label: "ATI Quick Score",
     desc: "Instant 8-dimension aircraft scorecard from listing text or N-number.",
     link: "/ati-quick-score",
-    color: "#00c2cb",
+    color: "#E8A83A",
     credits: 3,
   },
   {
@@ -16,7 +16,7 @@ const ITEMS = [
     label: "ATI Verify",
     desc: "Remote document identity verification with blockchain anchoring.",
     link: "/ati-verify",
-    color: "#00c2cb",
+    color: "#22c55e",
     credits: 5,
   },
   {
@@ -24,7 +24,7 @@ const ITEMS = [
     label: "OMVM Valuation",
     desc: "Off-Market Value Model — AI-powered aircraft pricing estimate.",
     link: "/valuation",
-    color: "#00c2cb",
+    color: "#a855f7",
     credits: 5,
   },
   {
@@ -32,7 +32,7 @@ const ITEMS = [
     label: "Opex Calculator",
     desc: "Total cost of ownership with fleet, maintenance, and reserves.",
     link: "/opex-calculator",
-    color: "#00c2cb",
+    color: "#f97316",
     credits: 8,
   },
 ];

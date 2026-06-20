@@ -9,6 +9,8 @@ import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import HeroSearch from "@/components/marketspace/HeroSearch";
 import FeaturedStrip from "@/components/marketspace/FeaturedStrip";
 import PathCards from "@/components/marketspace/PathCards";
+import StatCounters from "@/components/marketspace/StatCounters";
+import HowItWorks from "@/components/marketspace/HowItWorks";
 
 export default function Dashboard() {
   const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
@@ -34,8 +36,14 @@ export default function Dashboard() {
         {/* ── HERO SEARCH ── */}
         <HeroSearch />
 
+        {/* ── STAT COUNTERS ── */}
+        <StatCounters listings={listings} />
+
         {/* ── FEATURED INVENTORY ── */}
         <FeaturedStrip listings={featured} />
+
+        {/* ── HOW IT WORKS ── */}
+        <HowItWorks />
 
         {/* ── BUYER / SELLER PATHS ── */}
         <PathCards />

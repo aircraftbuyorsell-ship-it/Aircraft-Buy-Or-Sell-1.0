@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Menu, X, Plane, ChevronRight } from "lucide-react";
 import GlobalSearch from "@/components/search/GlobalSearch";
+import ABOSLogo from "@/components/nav/ABOSLogo";
 
 const NAV_LINKS = [
   { path: "/listings", label: "Buy" },
@@ -10,8 +11,8 @@ const NAV_LINKS = [
   { path: "/ati-quick-score", label: "ATI" },
 ];
 
-const INK = "#0C1620";
-const AMBER = "#F8C73E";
+const INK = "#0d1117";
+const AMBER = "#f5c242";
 
 export default function TopNav({ currentUser, onOpenSidebar }) {
   const { pathname } = useLocation();
@@ -43,21 +44,8 @@ export default function TopNav({ currentUser, onOpenSidebar }) {
             <Menu className="w-4 h-4" />
           </button>
 
-          {/* Logo — AM mark + wordmark */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-              style={{ background: AMBER, boxShadow: "0 2px 12px rgba(248,199,62,0.32)" }}
-            >
-              <span className="text-[13px] font-black leading-none" style={{ color: INK }}>AM</span>
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="text-[14px] font-black tracking-[-0.02em] text-white">ABOS</span>
-              <span className="text-[9px] font-semibold tracking-[0.14em] uppercase" style={{ color: "rgba(255,255,255,0.40)" }}>
-                Marketspace
-              </span>
-            </div>
-          </Link>
+          {/* Logo — ABOS mark + wordmark */}
+          <ABOSLogo to="/" />
 
           {/* Left nav links — ghost text (desktop) */}
           <nav className="hidden md:flex items-center gap-1 ml-4">
@@ -128,7 +116,7 @@ export default function TopNav({ currentUser, onOpenSidebar }) {
           <Link
             to="/pricing"
             className="flex items-center gap-1.5 px-4 h-9 rounded-lg text-[13px] font-bold transition-all active:scale-95"
-            style={{ background: AMBER, color: INK, boxShadow: "0 2px 14px rgba(248,199,62,0.35)" }}
+            style={{ background: AMBER, color: INK, boxShadow: "0 2px 14px rgba(245,194,66,0.35)" }}
             onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.06)")}
             onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
           >
@@ -163,7 +151,7 @@ export default function TopNav({ currentUser, onOpenSidebar }) {
                   className="flex items-center justify-between px-3 py-3 rounded-xl text-[14px] font-semibold transition-colors"
                   style={{
                     color: active ? AMBER : "rgba(255,255,255,0.8)",
-                    background: active ? "rgba(248,199,62,0.1)" : "transparent",
+                    background: active ? "rgba(245,194,66,0.1)" : "transparent",
                   }}
                 >
                   {label}

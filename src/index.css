@@ -86,47 +86,47 @@
     --navbar-bg:     rgba(12, 22, 32, 0.92);
     --navbar-border: rgba(255, 255, 255, 0.06);
 
-    /* Accent — Marketspace Amber */
-    --gold:       #F8C73E;
-    --gold-bright:#FFD75E;
-    --gold-deep:  #D9A91E;
+    /* Accent — Marketspace Amber v2 */
+    --gold:       #f5c242;
+    --gold-bright:#fdd05a;
+    --gold-deep:  #c4820a;
 
-    /* Brand accents — aligned to Ink + Amber palette */
-    --neon-cyan:  #F8C73E;
+    /* Brand accents — aligned to Ink + Amber palette v2 */
+    --neon-cyan:  #f5c242;
     --neon-blue:  #8EB7DC;
-    --neon-purple:#F8C73E;
-    --neon-pink:  #FFD75E;
+    --neon-purple:#f5c242;
+    --neon-pink:  #fdd05a;
     --silver:     #9aa5b4;
     --silver-bright: #c8d0db;
 
-    /* shadcn tokens — Ink (#071018) + Amber (#F8C73E) */
-    --background: 207 56% 6%;
-    --foreground: 210 30% 98%;
-    --card: 207 44% 9%;
-    --card-foreground: 210 30% 98%;
-    --popover: 207 44% 9%;
-    --popover-foreground: 210 30% 98%;
-    --primary: 46 93% 61%;
-    --primary-foreground: 207 56% 6%;
-    --secondary: 207 32% 14%;
-    --secondary-foreground: 215 20% 86%;
-    --muted: 207 30% 13%;
-    --muted-foreground: 210 22% 74%;
-    --accent: 46 93% 61%;
-    --accent-foreground: 207 56% 6%;
-    --destructive: 0 75% 55%;
+    /* shadcn tokens — Ink (#04060a) + Amber (#f5c242) v2 */
+    --background: 220 43% 3%;
+    --foreground: 0 0% 90%;
+    --card: 215 27% 7%;
+    --card-foreground: 0 0% 90%;
+    --popover: 215 27% 7%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 44 90% 61%;
+    --primary-foreground: 220 43% 3%;
+    --secondary: 220 30% 12%;
+    --secondary-foreground: 0 0% 80%;
+    --muted: 222 24% 10%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 44 90% 61%;
+    --accent-foreground: 220 43% 3%;
+    --destructive: 1 72% 59%;
     --destructive-foreground: 0 0% 98%;
-    --border: 207 26% 18%;
-    --input: 207 30% 14%;
-    --ring: 46 93% 61%;
-    --sidebar-background: 207 56% 5%;
-    --sidebar-foreground: 210 16% 70%;
-    --sidebar-primary: 46 93% 61%;
-    --sidebar-primary-foreground: 207 56% 6%;
-    --sidebar-accent: 207 32% 11%;
-    --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 207 26% 14%;
-    --sidebar-ring: 46 93% 61%;
+    --border: 222 20% 14%;
+    --input: 222 24% 10%;
+    --ring: 44 90% 61%;
+    --sidebar-background: 220 43% 2%;
+    --sidebar-foreground: 0 0% 50%;
+    --sidebar-primary: 44 90% 61%;
+    --sidebar-primary-foreground: 220 43% 3%;
+    --sidebar-accent: 220 30% 9%;
+    --sidebar-accent-foreground: 0 0% 88%;
+    --sidebar-border: 222 24% 9%;
+    --sidebar-ring: 44 90% 61%;
   }
 }
 
@@ -148,12 +148,12 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Ink + dot grid texture on the page bg ── */
+  /* ── DARK body ── Ink v2 + dot grid texture on the page bg ── */
   .dark body {
-    background-color: #071018;
+    background-color: #04060a;
     background-image:
-      radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 22px 22px;
+      radial-gradient(circle, rgba(255,255,255,0.07) 1.5px, transparent 1.5px);
+    background-size: 40px 40px;
     background-attachment: fixed;
     color: #f1f5f9;
   }
@@ -331,18 +331,18 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
    3 colors: Dark #0B1220 · Gold #E8A83A · White #FFFFFF
 ═══════════════════════════════════════════ */
 :root {
-  /* ── Brand palette — Marketspace 4-color system ── */
-  --abos-dark:        #071018;  /* Ink */
-  --abos-dark-mid:    #0C1620;  /* nav / surface */
-  --abos-dark-deep:   #050B11;
-  --abos-gold:        #F8C73E;  /* Amber — primary CTA / active */
-  --abos-gold-soft:   rgba(248, 199, 62, 0.12);
-  --abos-gold-border: rgba(248, 199, 62, 0.30);
+  /* ── Brand palette — Marketspace v2 (Linear × Vercel × Raycast) ── */
+  --abos-dark:        #04060a;  /* Ink */
+  --abos-dark-mid:    #0d1117;  /* nav / surface */
+  --abos-dark-deep:   #04060a;
+  --abos-gold:        #f5c242;  /* Amber — primary CTA / active */
+  --abos-gold-soft:   rgba(245, 194, 66, 0.12);
+  --abos-gold-border: rgba(245, 194, 66, 0.22);
 
   /* Teal — verification / trust signals */
-  --abos-teal:        #53C4A2;
-  --abos-teal-soft:   rgba(83, 196, 162, 0.12);
-  --abos-teal-border: rgba(83, 196, 162, 0.32);
+  --abos-teal:        #5dcaa5;
+  --abos-teal-soft:   rgba(93, 202, 165, 0.10);
+  --abos-teal-border: rgba(93, 202, 165, 0.22);
 
   /* Sky — data surfaces / secondary / charts */
   --abos-sky:         #8EB7DC;
@@ -350,25 +350,25 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   --abos-sky-border:  rgba(142, 183, 220, 0.28);
 
   --abos-white:       #FFFFFF;
-  --abos-cream:       #F7F4EF;
+  --abos-cream:       #f8f6f0;
 
-  /* ── Text scale (on dark) ── */
-  --abos-text-1: #FFFFFF;
-  --abos-text-2: rgba(255, 255, 255, 0.60);
-  --abos-text-3: rgba(255, 255, 255, 0.35);
+  /* ── Text scale (on dark) — v2 white hierarchy ── */
+  --abos-text-1: rgba(255, 255, 255, 0.90);
+  --abos-text-2: rgba(255, 255, 255, 0.50);
+  --abos-text-3: rgba(255, 255, 255, 0.25);
 
-  /* ── Surface scale ── */
-  --abos-surface-1: #071018;
-  --abos-surface-2: #0C1620;
-  --abos-surface-3: #101D28;
+  /* ── Surface scale — v2 Ink hierarchy ── */
+  --abos-surface-1: #04060a;
+  --abos-surface-2: #0d1117;
+  --abos-surface-3: #111620;
 
   /* ── Border scale ── */
-  --abos-border-1: rgba(255,255,255,0.06);
-  --abos-border-2: rgba(255,255,255,0.11);
+  --abos-border-1: rgba(255,255,255,0.08);
+  --abos-border-2: rgba(255,255,255,0.12);
 
-  /* ── Dot grid ── */
-  --abos-dots: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
-  --abos-dots-size: 22px 22px;
+  /* ── Dot grid — v2 40px ── */
+  --abos-dots: radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px);
+  --abos-dots-size: 40px 40px;
 
   /* ── Radius ── */
   --abos-radius-sm:  6px;
@@ -376,10 +376,10 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   --abos-radius-lg:  14px;
   --abos-radius-xl:  20px;
 
-  /* ── Semantic (status indicators only — not brand) ── */
-  --abos-green: #22c55e;
-  --abos-red:   #ef4444;
-  --abos-amber: #f59e0b;
+  /* ── Semantic (status indicators only — not brand) — v2 ── */
+  --abos-green: #5dcaa5;
+  --abos-red:   #e24b4a;
+  --abos-amber: #f5c242;
 }
 
 /* ── App shell: dot grid lives on body (fixed); root stays transparent ── */
@@ -396,7 +396,7 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(248,199,62,0.06) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,194,66,0.06) 0%, transparent 60%);
 }
 
 /* ── Gold accent helpers ── */
@@ -512,12 +512,14 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 .dark [fill="#00f5ff"],  .dark [fill="#00c2cb"],  .dark [fill="#06b6d4"],
 .dark [fill="#0ea5e9"],  .dark [fill="#7c3aed"],  .dark [fill="#8b5cf6"],
 .dark [fill="#a855f7"],  .dark [fill="#f48120"],  .dark [fill="#f97316"],
-.dark [fill="#3b82f6"],  .dark [fill="#2563eb"] {
+.dark [fill="#3b82f6"],  .dark [fill="#2563eb"],  .dark [fill="#F8C73E"],
+.dark [fill="#D4A017"],  .dark [fill="#E8A83A"] {
   fill: var(--abos-gold) !important;
 }
 .dark [stroke="#00f5ff"], .dark [stroke="#00c2cb"], .dark [stroke="#06b6d4"],
 .dark [stroke="#0ea5e9"], .dark [stroke="#7c3aed"], .dark [stroke="#8b5cf6"],
 .dark [stroke="#a855f7"], .dark [stroke="#f48120"], .dark [stroke="#f97316"],
-.dark [stroke="#3b82f6"], .dark [stroke="#2563eb"] {
+.dark [stroke="#3b82f6"], .dark [stroke="#2563eb"], .dark [stroke="#F8C73E"],
+.dark [stroke="#D4A017"], .dark [stroke="#E8A83A"] {
   stroke: var(--abos-gold) !important;
 }

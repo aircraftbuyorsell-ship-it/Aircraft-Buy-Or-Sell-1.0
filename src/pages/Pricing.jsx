@@ -1,11 +1,19 @@
-import { useState } from "react";
-import { CheckCircle2, XCircle, ShieldCheck, ArrowRight, ChevronRight } from "lucide-react";
-import { useTheme } from "@/lib/useTheme";
+import { CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+
+const INK   = "#04060a";
+const INK1  = "#0d1117";
+const AMBER = "#f5c242";
+const TEAL  = "#5dcaa5";
+const BLUE  = "#4e8ef7";
+const W1    = "rgba(255,255,255,0.90)";
+const W2    = "rgba(255,255,255,0.60)";
+const W3    = "rgba(255,255,255,0.35)";
+const BORDER = "rgba(255,255,255,0.08)";
 
 const TIERS = [
   {
-    id: "t0", label: "T0 — Free", price: "EUR 0", cadence: "automatic, all listings",
+    id: "t0", label: "T0 — Free", price: "€0", cadence: "automatic, all listings", accent: "gray",
     desc: "Baseline N-Reg compliance validation. Every listing gets it.",
     featured: false,
     features: [
@@ -16,10 +24,10 @@ const TIERS = [
       { ok: false, text: "No ATI scoring" },
       { ok: false, text: "No valuation" },
     ],
-    cta: "Included automatically", ctaVariant: "outline", link: null,
+    cta: "Included automatically", ctaVariant: "ghost", link: null,
   },
   {
-    id: "t1", label: "T1 — Starter", price: "EUR 29", cadence: "/month",
+    id: "t1", label: "T1 — Starter", price: "€29", cadence: "/month", accent: "amber",
     desc: "ATI scoring and market valuation for active sellers.",
     featured: false,
     features: [
@@ -30,10 +38,10 @@ const TIERS = [
       { ok: true,  text: "Up to 10 listings / month" },
       { ok: false, text: "No .docx branded report" },
     ],
-    cta: "Get started", ctaVariant: "outline", link: "/my-account",
+    cta: "Get started", ctaVariant: "ghost", link: "/my-account",
   },
   {
-    id: "t2", label: "T2 — Pro", price: "EUR 99", cadence: "/month",
+    id: "t2", label: "T2 — Pro", price: "€99", cadence: "/month", accent: "amber",
     desc: "Full ATI report, white-label API, and unlimited listings.",
     featured: true, badge: "Most popular",
     features: [
@@ -44,10 +52,10 @@ const TIERS = [
       { ok: true, text: "FAA + EASA registry cross-check" },
       { ok: true, text: "Unlimited listings" },
     ],
-    cta: "Start Pro", ctaVariant: "gold", link: "/my-account",
+    cta: "Start Pro", ctaVariant: "amber", link: "/my-account",
   },
   {
-    id: "t3", label: "T3 — Enterprise", price: "EUR 249", cadence: "/month",
+    id: "t3", label: "T3 — Enterprise", price: "€249", cadence: "/month", accent: "blue",
     desc: "Dedicated API, custom branding, SLA, and compliance audit.",
     featured: false,
     features: [
@@ -58,200 +66,227 @@ const TIERS = [
       { ok: true, text: "Quarterly compliance audit report" },
       { ok: true, text: "Named account manager" },
     ],
-    cta: "Contact sales", ctaVariant: "primary", link: "/contact",
+    cta: "Contact sales", ctaVariant: "ghost", link: "/contact",
   },
 ];
 
 const ONE_TIME = [
-  { label: "Implementation service", price: "EUR 749", trigger: "Billed at contract signing", desc: "Full API widget integration, onboarding, technical documentation, and setup support." },
-  { label: "Risk identification milestone", price: "EUR 249", trigger: "Billed on dataset delivery", desc: "Complete risky-listing dataset with risk flags, severity classifications (CRITICAL/HIGH), and direct listing URLs." },
-  { label: "White-label API account setup", price: "EUR 500", trigger: "Billed on API account activation", desc: "Creation and configuration of your white-label ATI API management account. Offer ATI under your own brand." },
+  { label: "Implementation service", price: "€749", trigger: "Billed at contract signing", desc: "Full API widget integration, onboarding, technical documentation, and setup support." },
+  { label: "Risk identification milestone", price: "€249", trigger: "Billed on dataset delivery", desc: "Complete risky-listing dataset with risk flags, severity classifications (CRITICAL/HIGH), and direct listing URLs." },
+  { label: "White-label API account setup", price: "€500", trigger: "Billed on API account activation", desc: "Creation and configuration of your white-label ATI API management account. Offer ATI under your own brand." },
 ];
 
 const VERIFY_FLOW = [
-  { label: "Listing submitted", sub: "seller on your platform", variant: "seller" },
-  { label: "ABOS ATI engine",   sub: "N-reg extracted",         variant: "abos"   },
-  { label: "FAA / EASA dataset",sub: "live cross-reference",    variant: "faa"    },
-  { label: "Match result",      sub: "TRUE or FALSE",           variant: "result" },
+  { label: "Listing submitted", sub: "seller on your platform", color: W3 },
+  { label: "ABOS ATI engine",   sub: "N-reg extracted",         color: AMBER },
+  { label: "FAA / EASA dataset",sub: "live cross-reference",    color: TEAL },
+  { label: "Match result",      sub: "TRUE or FALSE",           color: W2 },
 ];
 
 const AFFILIATE_ROWS = [
-  { tier: "T0 — Free",       price: "—",       abos: "—",   your: "—",   earn: "—"         },
-  { tier: "T1 — Starter",    price: "EUR 29",  abos: "80%", your: "20%", earn: "EUR 5.80"  },
-  { tier: "T2 — Pro",        price: "EUR 99",  abos: "80%", your: "20%", earn: "EUR 19.80" },
-  { tier: "T3 — Enterprise", price: "EUR 249", abos: "80%", your: "20%", earn: "EUR 49.80" },
+  { tier: "T0 — Free",       price: "—",    abos: "—",   your: "—",   earn: "—"      },
+  { tier: "T1 — Starter",    price: "€29",  abos: "80%", your: "20%", earn: "€5.80"  },
+  { tier: "T2 — Pro",        price: "€99",  abos: "80%", your: "20%", earn: "€19.80" },
+  { tier: "T3 — Enterprise", price: "€249", abos: "80%", your: "20%", earn: "€49.80" },
 ];
 
-const NAVY = "#1B2A4A";
-const GOLD = "#D4A017";
+const ACCENTS = {
+  gray:  { line: BORDER,                      chip: { bg: "rgba(255,255,255,0.06)", color: W3,    border: BORDER }                  },
+  amber: { line: AMBER,                       chip: { bg: "rgba(245,194,66,0.09)",  color: AMBER, border: "rgba(245,194,66,0.22)" } },
+  teal:  { line: "rgba(93,202,165,0.55)",     chip: { bg: "rgba(93,202,165,0.09)",  color: TEAL,  border: "rgba(93,202,165,0.20)" } },
+  blue:  { line: "rgba(78,142,247,0.55)",     chip: { bg: "rgba(78,142,247,0.09)",  color: BLUE,  border: "rgba(78,142,247,0.20)" } },
+};
 
 function CTAButton({ variant, children }) {
-  const base = "w-full text-center py-2.5 px-4 rounded-xl text-sm font-semibold cursor-pointer transition-opacity hover:opacity-85 border-0 outline-none";
   const styles = {
-    outline: { background: "transparent", color: NAVY, border: `1px solid ${NAVY}` },
-    gold:    { background: GOLD, color: "#fff" },
-    primary: { background: NAVY, color: "#fff" },
+    amber: { background: AMBER, color: INK, border: "none" },
+    ghost: { background: "transparent", color: W2, border: `0.5px solid ${BORDER}` },
   };
-  return <button className={base} style={styles[variant]}>{children}</button>;
+  return (
+    <button
+      className="w-full text-center py-2.5 px-4 rounded-lg text-[13px] font-semibold cursor-pointer transition-opacity hover:opacity-85 outline-none"
+      style={{ letterSpacing: "-0.01em", ...styles[variant] }}
+    >
+      {children}
+    </button>
+  );
 }
 
+const eyebrow = { fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: W3 };
+
 export default function Pricing() {
-  const isDark = useTheme();
-  const textColor  = isDark ? "#e2e8f0" : "#1a1a1a";
-  const mutedColor = isDark ? "rgba(255,255,255,0.55)" : "#555";
-  const pageBg     = isDark ? "#0d1526" : "#f5f5f3";
-  const cardBg     = isDark ? "rgba(18,28,52,0.95)" : "#fff";
-  const cardBorder = isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid #e0e0e0";
-
   return (
-    <div className="min-h-screen" style={{ background: pageBg, color: textColor }}>
-      <div className="text-center py-2 text-xs" style={{ background: NAVY, color: "#9baabb" }}>
-        New:&nbsp;<strong style={{ color: GOLD }}>N-Reg Validation</strong>&nbsp;— automatic FAA/EASA dataset matching on every listing, free on all tiers
-      </div>
-      <header className="text-center py-12 px-6" style={{ background: NAVY }}>
-        <p className="text-[10px] tracking-[0.2em] font-bold mb-2" style={{ color: GOLD }}>INTRAZONE — ATI PRICING</p>
-        <h1 className="text-3xl font-bold text-white mb-3">Aircraft Transaction Intelligence</h1>
-        <p className="text-sm max-w-xl mx-auto" style={{ color: "#c0ccdd" }}>
-          Compliance, valuation, and fraud prevention for aviation marketplaces and individual aircraft buyers &amp; sellers.
-        </p>
-        <div className="flex flex-wrap justify-center gap-2 mt-5">
-          {["FAA / EASA registry integrated", "ITAR auto-flag", "White-label API", "Fraud-proof N-Reg validation"].map((badge) => (
-            <span key={badge} className="text-xs px-3 py-1 rounded-full font-medium"
-              style={{ background: `${GOLD}22`, color: GOLD, border: `1px solid ${GOLD}40` }}>{badge}</span>
-          ))}
-        </div>
-      </header>
+    <div style={{ background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", minHeight: "100vh", color: W1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
+      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(245,194,66,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
-      <section className="max-w-6xl mx-auto px-4 py-12">
-        <p className="text-center text-sm font-medium mb-8" style={{ color: mutedColor }}>Subscription tiers</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {TIERS.map((tier) => (
-            <div key={tier.id} className="rounded-2xl p-5 relative flex flex-col"
-              style={{ background: tier.featured ? `${GOLD}10` : cardBg, border: tier.featured ? `2px solid ${GOLD}` : cardBorder }}>
-              {tier.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="text-[10px] font-bold px-3 py-1 rounded-full text-white" style={{ background: GOLD }}>{tier.badge}</span>
+      <div className="relative z-10">
+        <div className="text-center py-2 text-[11px]" style={{ background: INK1, color: W2, borderBottom: `0.5px solid ${BORDER}` }}>
+          New:&nbsp;<strong style={{ color: AMBER }}>N-Reg Validation</strong>&nbsp;— automatic FAA/EASA dataset matching on every listing, free on all tiers
+        </div>
+
+        <header className="text-center py-12 px-6">
+          <p style={{ ...eyebrow, color: AMBER }} className="mb-2">INTRAZONE — ATI PRICING</p>
+          <h1 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 500, letterSpacing: "-0.04em", color: W1, margin: 0 }}>Aircraft Transaction Intelligence</h1>
+          <p className="text-[14px] max-w-xl mx-auto mt-3" style={{ color: W2 }}>
+            Compliance, valuation, and fraud prevention for aviation marketplaces and individual aircraft buyers &amp; sellers.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-5">
+            {["FAA / EASA registry integrated", "ITAR auto-flag", "White-label API", "Fraud-proof N-Reg validation"].map((badge) => (
+              <span key={badge} className="text-[11px] px-3 py-1 rounded-full font-semibold"
+                style={{ background: "rgba(245,194,66,0.09)", color: AMBER, border: "0.5px solid rgba(245,194,66,0.22)" }}>{badge}</span>
+            ))}
+          </div>
+        </header>
+
+        {/* Tiers */}
+        <section className="max-w-6xl mx-auto px-4 py-8">
+          <p style={eyebrow} className="text-center mb-8">Subscription tiers</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+            {TIERS.map((tier) => {
+              const a = ACCENTS[tier.accent];
+              return (
+                <div key={tier.id} className="rounded-xl relative flex flex-col overflow-hidden"
+                  style={{ background: INK1, border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
+                  <div style={{ height: "2px", background: a.line }} />
+                  <div className="p-5 flex flex-col flex-1">
+                    {tier.badge && (
+                      <span className="self-start text-[9px] font-bold px-2.5 py-1 rounded-full mb-3" style={{ background: a.chip.bg, color: a.chip.color, border: `0.5px solid ${a.chip.border}`, letterSpacing: "0.08em", textTransform: "uppercase" }}>{tier.badge}</span>
+                    )}
+                    <p style={{ ...eyebrow }} className="mb-2">{tier.label}</p>
+                    <div className="flex items-baseline gap-1">
+                      <span style={{ fontSize: "32px", fontWeight: 500, letterSpacing: "-0.04em", color: W1 }}>{tier.price}</span>
+                      <span style={{ fontSize: "13px", color: W3 }}>{tier.cadence}</span>
+                    </div>
+                    <p className="text-[12px] mt-3 mb-4 min-h-[36px]" style={{ color: W2 }}>{tier.desc}</p>
+                    <ul className="flex-1 mb-5">
+                      {tier.features.map((f, i) => (
+                        <li key={i} className="flex items-start gap-2 text-[13px] py-1.5" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                          {f.ok
+                            ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: tier.accent === "gray" ? TEAL : a.chip.color }} />
+                            : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: W3 }} />}
+                          <span style={{ color: f.ok ? W2 : W3 }}>{f.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {tier.link ? (
+                      <Link to={tier.link}><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
+                    ) : (
+                      <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
+                    )}
+                  </div>
                 </div>
-              )}
-              <p className="text-[10px] tracking-[0.15em] font-bold uppercase mb-2" style={{ color: mutedColor }}>{tier.label}</p>
-              <p className="text-3xl font-black" style={{ color: NAVY }}>{tier.price}</p>
-              <p className="text-xs mb-3" style={{ color: mutedColor }}>{tier.cadence}</p>
-              <p className="text-xs mb-4 min-h-[36px]" style={{ color: mutedColor }}>{tier.desc}</p>
-              <ul className="flex-1 space-y-1 mb-5">
-                {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs py-1 border-b last:border-0"
-                    style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "#f0f0f0" }}>
-                    {f.ok
-                      ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "#1D9E75" }} />
-                      : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "#ccc" }} />}
-                    <span style={{ color: f.ok ? textColor : mutedColor }}>{f.text}</span>
-                  </li>
-                ))}
-              </ul>
-              {tier.link ? (
-                <Link to={tier.link}><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
-              ) : (
-                <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
-              )}
+              );
+            })}
+          </div>
+        </section>
+
+        {/* One-time fees */}
+        <section className="py-10 px-4">
+          <div className="max-w-4xl mx-auto">
+            <p style={eyebrow} className="text-center mb-1">One-time implementation fees</p>
+            <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>For marketplace platform partners integrating IntraZone via API</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {ONE_TIME.map((item) => (
+                <div key={item.label} className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid ${BORDER}` }}>
+                  <div style={{ height: "2px", background: AMBER }} />
+                  <div className="p-5">
+                    <p style={eyebrow} className="mb-2">{item.label}</p>
+                    <p style={{ fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em", color: W1 }} className="mb-1">{item.price}</p>
+                    <p className="text-[10px] font-semibold mb-3" style={{ color: AMBER }}>{item.trigger}</p>
+                    <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="py-12 px-4" style={{ background: isDark ? "rgba(255,255,255,0.03)" : "#f5f5f3" }}>
-        <div className="max-w-4xl mx-auto">
-          <p className="text-center text-sm font-medium mb-1" style={{ color: mutedColor }}>One-time implementation fees</p>
-          <p className="text-center text-xs mb-8" style={{ color: mutedColor }}>For marketplace platform partners integrating IntraZone via API</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {ONE_TIME.map((item) => (
-              <div key={item.label} className="rounded-2xl p-5" style={{ background: cardBg, border: cardBorder }}>
-                <p className="text-[10px] tracking-[0.15em] font-bold uppercase mb-2" style={{ color: mutedColor }}>{item.label}</p>
-                <p className="text-2xl font-black mb-1" style={{ color: NAVY }}>{item.price}</p>
-                <p className="text-[10px] font-medium mb-3" style={{ color: GOLD }}>{item.trigger}</p>
-                <p className="text-xs leading-relaxed" style={{ color: mutedColor }}>{item.desc}</p>
-              </div>
-            ))}
+            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: INK1, border: `0.5px solid rgba(245,194,66,0.22)` }}>
+              <span className="text-[13px]" style={{ color: W2 }}>Total one-time package (all three items)</span>
+              <span style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.03em", color: AMBER }}>€1,498</span>
+            </div>
           </div>
-          <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: NAVY }}>
-            <span className="text-sm" style={{ color: "#9baabb" }}>Total one-time package (all three items)</span>
-            <span className="text-xl font-black" style={{ color: GOLD }}>EUR 1,498</span>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="max-w-4xl mx-auto px-4 py-12">
-        <p className="text-center text-sm font-medium mb-1" style={{ color: mutedColor }}>N-Reg validation — how it works</p>
-        <p className="text-center text-xs mb-8" style={{ color: mutedColor }}>Autonomous, binary, fraud-proof. No human decision-making in the loop.</p>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 justify-center flex-wrap">
-          {VERIFY_FLOW.map((node, i) => {
-            const s = { seller: { background: "#edf0f5", color: NAVY }, abos: { background: NAVY, color: "#fff" }, faa: { background: "#eaf3de", color: "#27500a" }, result: { background: cardBg, color: "#444", border: cardBorder } };
-            return (
+        {/* N-Reg flow */}
+        <section className="max-w-4xl mx-auto px-4 py-10">
+          <p style={eyebrow} className="text-center mb-1">N-Reg validation — how it works</p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Autonomous, binary, fraud-proof. No human decision-making in the loop.</p>
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 justify-center flex-wrap">
+            {VERIFY_FLOW.map((node, i) => (
               <div key={node.label} className="flex items-center gap-2">
-                <div className="rounded-xl px-4 py-3 text-center min-w-[110px]" style={s[node.variant]}>
-                  <p className="text-[11px] font-bold">{node.label}</p>
-                  <p className="text-[9px] opacity-70 mt-0.5">{node.sub}</p>
+                <div className="rounded-lg px-4 py-3 text-center min-w-[110px]" style={{ background: INK1, border: `0.5px solid ${BORDER}`, borderLeft: `3px solid ${node.color}` }}>
+                  <p className="text-[11px] font-semibold" style={{ color: W1 }}>{node.label}</p>
+                  <p className="text-[9px] mt-0.5" style={{ color: W3 }}>{node.sub}</p>
                 </div>
-                {i < VERIFY_FLOW.length - 1 && <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "#ccc" }} />}
+                {i < VERIFY_FLOW.length - 1 && <ChevronRight className="w-4 h-4 shrink-0" style={{ color: W3 }} />}
               </div>
-            );
-          })}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="rounded-2xl p-5" style={{ background: "#eaf3de", border: "1px solid #97c459" }}>
-            <p className="text-sm font-bold mb-3" style={{ color: "#27500a" }}>N-Reg match = TRUE → ATI PASS</p>
-            {["Registration confirmed in FAA / EASA dataset","ATI PASS badge displayed on listing","Airworthiness verifiable by any buyer","Seller eligible for paid T1 / T2 / T3 upgrade"].map((item) => (
-              <p key={item} className="text-xs py-1.5 border-b last:border-0" style={{ color: "#444", borderColor: "rgba(0,0,0,0.08)" }}>{item}</p>
             ))}
           </div>
-          <div className="rounded-2xl p-5" style={{ background: "#fcebeb", border: "1px solid #f09595" }}>
-            <p className="text-sm font-bold mb-3" style={{ color: "#791f1f" }}>N-Reg match = FALSE → Admin report</p>
-            {["No matching registration found in dataset","Automatic report generated instantly","Platform owner notified directly","Zero ABOS influence on this outcome"].map((item, i) => (
-              <p key={item} className={`text-xs py-1.5 border-b last:border-0 ${i===3?"font-bold":""}`} style={{ color: i===3?"#a32d2d":"#444", borderColor: "rgba(0,0,0,0.08)" }}>{item}</p>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-2xl p-5 text-sm leading-relaxed" style={{ background: NAVY, color: "#c0ccdd" }}>
-          <strong style={{ color: GOLD }}>Structurally fraud-proof:</strong> Affiliate revenue flows from end customer → ABOS → platform partner. The N-Reg validation outcome is computed exclusively against official FAA/EASA registry data. Compliant with EU Digital Services Act requirements for platform compliance mechanisms.
-        </div>
-      </section>
-
-      <section className="py-12 px-4" style={{ background: isDark ? "rgba(255,255,255,0.03)" : "#f5f5f3" }}>
-        <div className="max-w-3xl mx-auto">
-          <p className="text-center text-sm font-medium mb-1" style={{ color: mutedColor }}>Affiliate revenue share — for platform partners</p>
-          <p className="text-center text-xs mb-8" style={{ color: mutedColor }}>Earn a passive revenue share on every subscription or report generated through your platform</p>
-          <div className="overflow-x-auto rounded-2xl" style={{ border: cardBorder }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ background: NAVY, color: "#fff" }}>
-                  {["Tier","Monthly price","ABOS share","Your share","Your earn per user/mo"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left font-medium text-xs">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {AFFILIATE_ROWS.map((row) => (
-                  <tr key={row.tier} style={{ borderBottom: "1px solid #eee", background: cardBg }}>
-                    <td className="px-4 py-3 text-xs">{row.tier}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: mutedColor }}>{row.price}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: mutedColor }}>{row.abos}</td>
-                    <td className="px-4 py-3 text-xs" style={{ color: mutedColor }}>{row.your}</td>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: GOLD }}>{row.earn}</td>
-                  </tr>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid rgba(93,202,165,0.20)` }}>
+              <div style={{ height: "2px", background: TEAL }} />
+              <div className="p-5">
+                <p className="text-[13px] font-semibold mb-3" style={{ color: TEAL }}>N-Reg match = TRUE → ATI PASS</p>
+                {["Registration confirmed in FAA / EASA dataset","ATI PASS badge displayed on listing","Airworthiness verifiable by any buyer","Seller eligible for paid T1 / T2 / T3 upgrade"].map((item) => (
+                  <p key={item} className="text-[12px] py-1.5" style={{ color: W2, borderBottom: `0.5px solid ${BORDER}` }}>{item}</p>
                 ))}
-                <tr style={{ background: `${GOLD}10` }}>
-                  <td className="px-4 py-3 text-xs font-bold" colSpan={4} style={{ color: textColor }}>Example: 50 Pro subscribers via your platform</td>
-                  <td className="px-4 py-3 text-sm font-black" style={{ color: GOLD }}>EUR 990 / month</td>
-                </tr>
-              </tbody>
-            </table>
+              </div>
+            </div>
+            <div className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid rgba(226,75,74,0.22)` }}>
+              <div style={{ height: "2px", background: "#e24b4a" }} />
+              <div className="p-5">
+                <p className="text-[13px] font-semibold mb-3" style={{ color: "#e24b4a" }}>N-Reg match = FALSE → Admin report</p>
+                {["No matching registration found in dataset","Automatic report generated instantly","Platform owner notified directly","Zero ABOS influence on this outcome"].map((item, i) => (
+                  <p key={item} className="text-[12px] py-1.5" style={{ color: i === 3 ? "#e24b4a" : W2, fontWeight: i === 3 ? 600 : 400, borderBottom: `0.5px solid ${BORDER}` }}>{item}</p>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+          <div className="rounded-xl p-5 text-[13px] leading-relaxed" style={{ background: INK1, border: `0.5px solid ${BORDER}`, color: W2 }}>
+            <strong style={{ color: AMBER }}>Structurally fraud-proof:</strong> Affiliate revenue flows from end customer → ABOS → platform partner. The N-Reg validation outcome is computed exclusively against official FAA/EASA registry data. Compliant with EU Digital Services Act requirements for platform compliance mechanisms.
+          </div>
+        </section>
 
-      <footer className="text-center py-8 px-4 text-xs" style={{ background: NAVY, color: "#9baabb" }}>
-        <p className="mb-1"><strong className="text-white">IntraZone</strong> — powered by <Link to="/" style={{ color: GOLD }}>Aircraft Buy Or Sell (ABOS)</Link></p>
-        <p>Aviation intelligence since 2021 · 270,000+ member community · FAA / EASA / ITAR compliant</p>
-      </footer>
+        {/* Affiliate table */}
+        <section className="py-10 px-4">
+          <div className="max-w-3xl mx-auto">
+            <p style={eyebrow} className="text-center mb-1">Affiliate revenue share — for platform partners</p>
+            <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Earn a passive revenue share on every subscription or report generated through your platform</p>
+            <div className="overflow-hidden rounded-xl" style={{ background: INK1, border: `0.5px solid ${BORDER}` }}>
+              <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(245,194,66,0.40) 50%, transparent 95%)" }} />
+              <div className="overflow-x-auto">
+                <table className="w-full text-[13px]">
+                  <thead>
+                    <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: `0.5px solid ${BORDER}` }}>
+                      {["Tier","Monthly price","ABOS share","Your share","Your earn / user / mo"].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left" style={{ ...eyebrow }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {AFFILIATE_ROWS.map((row) => (
+                      <tr key={row.tier} style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                        <td className="px-4 py-3" style={{ color: W1 }}>{row.tier}</td>
+                        <td className="px-4 py-3" style={{ color: W2 }}>{row.price}</td>
+                        <td className="px-4 py-3" style={{ color: W2 }}>{row.abos}</td>
+                        <td className="px-4 py-3" style={{ color: W2 }}>{row.your}</td>
+                        <td className="px-4 py-3 font-semibold" style={{ color: AMBER }}>{row.earn}</td>
+                      </tr>
+                    ))}
+                    <tr style={{ background: "rgba(245,194,66,0.06)" }}>
+                      <td className="px-4 py-3 font-semibold" colSpan={4} style={{ color: W1 }}>Example: 50 Pro subscribers via your platform</td>
+                      <td className="px-4 py-3" style={{ fontSize: "15px", fontWeight: 600, color: AMBER }}>€990 / mo</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="text-center py-8 px-4 text-[12px]" style={{ borderTop: `0.5px solid ${BORDER}`, color: W3 }}>
+          <p className="mb-1"><strong style={{ color: W1 }}>IntraZone</strong> — powered by <Link to="/" style={{ color: AMBER }}>Aircraft Buy Or Sell (ABOS)</Link></p>
+          <p>Aviation intelligence since 2021 · 270,000+ member community · FAA / EASA / ITAR compliant</p>
+        </footer>
+      </div>
     </div>
   );
 }

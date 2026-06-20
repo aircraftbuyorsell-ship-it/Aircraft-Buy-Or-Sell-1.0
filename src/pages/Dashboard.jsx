@@ -64,7 +64,24 @@ export default function Dashboard() {
     : "1px solid rgba(37,99,235,0.10)";
 
   return (
-    <div className="min-h-screen relative" style={{ background: "transparent" }}>
+    <div
+      className="min-h-screen relative"
+      style={{
+        background: "#04060a",
+        backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)",
+        backgroundSize: "40px 40px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+      }}
+    >
+      {/* Amber ambient glow */}
+      <div
+        style={{
+          position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)",
+          width: "800px", height: "500px",
+          background: "radial-gradient(ellipse, rgba(245,194,66,0.06) 0%, transparent 70%)",
+          pointerEvents: "none", zIndex: 0,
+        }}
+      />
       <NotificationStack />
       <NotificationCenter />
 
@@ -73,16 +90,28 @@ export default function Dashboard() {
         {/* ── GLOBE SECTION ── */}
         <section className="px-4 md:px-8 pt-6 pb-4">
           <div className="max-w-6xl mx-auto">
-            <div className="relative">
-              <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
-                <Globe
-                  listings={listings}
-                  filter={globeFilter}
-                  focusLocation={focusLocation}
-                />
-              </div>
-              <div className="absolute top-3 right-3 z-20">
-                <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
+            <div
+              style={{
+                background: "#0d1117",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                overflow: "hidden",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06)",
+              }}
+            >
+              {/* Teal accent line */}
+              <div style={{ height: "2px", background: "rgba(93,202,165,0.55)" }} />
+              <div className="relative">
+                <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
+                  <Globe
+                    listings={listings}
+                    filter={globeFilter}
+                    focusLocation={focusLocation}
+                  />
+                </div>
+                <div className="absolute top-3 right-3 z-20">
+                  <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
+                </div>
               </div>
             </div>
           </div>
@@ -92,10 +121,10 @@ export default function Dashboard() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
-                <p className="text-[10px] tracking-[0.18em] font-bold" style={{ color: accentOrange }}>
-                  A.B.O.S — AIRCRAFT BUY OR SELL
+                <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+                  A.B.O.S — Aircraft Buy or Sell
                 </p>
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight mt-0.5" style={{ color: textColor }}>
+                <h1 style={{ fontSize: "22px", fontWeight: 500, letterSpacing: "-0.04em", color: "rgba(255,255,255,0.90)", margin: "2px 0 0" }}>
                   Aviation Intelligence Platform
                 </h1>
               </div>

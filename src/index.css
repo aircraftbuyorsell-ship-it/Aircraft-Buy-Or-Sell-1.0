@@ -86,10 +86,10 @@
     --navbar-bg:     rgba(13, 14, 18, 0.90);
     --navbar-border: rgba(255, 255, 255, 0.05);
 
-    /* Gold / trust — Duvo bright yellow-gold */
-    --gold:       #FFD60A;
-    --gold-bright:#FFE14D;
-    --gold-deep:  #D4A017;
+    /* Accent — unified cyan */
+    --gold:       #00f5ff;
+    --gold-bright:#5cfbff;
+    --gold-deep:  #00c2cb;
 
     /* Brand accents — aligned to charcoal palette */
     --neon-cyan:  #00f5ff;
@@ -106,27 +106,27 @@
     --card-foreground: 210 30% 98%;
     --popover: 228 13% 13%;
     --popover-foreground: 210 30% 98%;
-    --primary: 49 100% 52%;
+    --primary: 184 100% 50%;
     --primary-foreground: 228 14% 6%;
     --secondary: 228 12% 16%;
     --secondary-foreground: 215 20% 86%;
     --muted: 228 11% 14%;
     --muted-foreground: 215 18% 72%;
-    --accent: 49 100% 52%;
+    --accent: 184 100% 50%;
     --accent-foreground: 228 14% 8%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 228 11% 19%;
     --input: 228 12% 16%;
-    --ring: 49 100% 52%;
+    --ring: 184 100% 50%;
     --sidebar-background: 228 14% 6%;
     --sidebar-foreground: 215 16% 70%;
-    --sidebar-primary: 49 100% 52%;
+    --sidebar-primary: 184 100% 50%;
     --sidebar-primary-foreground: 228 14% 8%;
     --sidebar-accent: 228 12% 12%;
     --sidebar-accent-foreground: 210 40% 90%;
     --sidebar-border: 228 11% 15%;
-    --sidebar-ring: 49 100% 52%;
+    --sidebar-ring: 184 100% 50%;
   }
 }
 

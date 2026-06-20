@@ -18,24 +18,24 @@ import {
 
 const VERIFY_STEPS = [
   { label: "N-Reg", sub: "FAA / EASA registry", color: "#00c2cb" },
-  { label: "Owner / Operator", sub: "name + address match", color: "#22c55e" },
-  { label: "Dealer DB", sub: "ABOS dealer cross-ref", color: "#a855f7" },
-  { label: "AW / AD / SD / STC", sub: "compliance flags", color: "#f48120" },
-  { label: "Damage History", sub: "incident & accident", color: "#ef4444" },
+  { label: "Owner / Operator", sub: "name + address match", color: "#00c2cb" },
+  { label: "Dealer DB", sub: "ABOS dealer cross-ref", color: "#00c2cb" },
+  { label: "AW / AD / SD / STC", sub: "compliance flags", color: "#00c2cb" },
+  { label: "Damage History", sub: "incident & accident", color: "#00c2cb" },
 ];
 
 const USER_CATEGORIES = [
   { icon: Users,     label: "Private Buyer",   color: "#00c2cb", desc: "Individual purchase intent" },
-  { icon: Plane,     label: "Private Seller",  color: "#22c55e", desc: "Single aircraft listing"    },
-  { icon: Building2, label: "Dealer / Broker", color: "#f48120", desc: "Verified dealer account"   },
-  { icon: UserCheck, label: "Operator / FBO",  color: "#D4A017", desc: "Fleet or charter context"   },
+  { icon: Plane,     label: "Private Seller",  color: "#00c2cb", desc: "Single aircraft listing"    },
+  { icon: Building2, label: "Dealer / Broker", color: "#00c2cb", desc: "Verified dealer account"   },
+  { icon: UserCheck, label: "Operator / FBO",  color: "#00c2cb", desc: "Fleet or charter context"   },
 ];
 
 const UPSELL_HOOKS = [
-  { icon: FileText,   label: "ATI Score Report",  desc: "Full 8-dimension PDF scorecard",           link: "/ati-full-report", color: "#E8A83A" },
-  { icon: Download,   label: "Export PDF",         desc: "Download branded .pdf or .docx",          link: "/ati-full-report", color: "#a855f7" },
-  { icon: TrendingUp, label: "OMVM Price Check",   desc: "Off-Market Valuation Model — real comps", link: "/valuation",       color: "#22c55e" },
-  { icon: Calculator, label: "OPEX Calculator",    desc: "Total cost of ownership breakdown",        link: "/opex-calculator", color: "#f97316" },
+  { icon: FileText,   label: "ATI Score Report",  desc: "Full 8-dimension PDF scorecard",           link: "/ati-full-report", color: "#00c2cb" },
+  { icon: Download,   label: "Export PDF",         desc: "Download branded .pdf or .docx",          link: "/ati-full-report", color: "#00c2cb" },
+  { icon: TrendingUp, label: "OMVM Price Check",   desc: "Off-Market Valuation Model — real comps", link: "/valuation",       color: "#00c2cb" },
+  { icon: Calculator, label: "OPEX Calculator",    desc: "Total cost of ownership breakdown",        link: "/opex-calculator", color: "#00c2cb" },
   { icon: BarChart3,  label: "CAPEX Analysis",     desc: "Investment & acquisition cost modelling",  link: "/opex-calculator", color: "#00c2cb" },
 ];
 
@@ -53,8 +53,8 @@ export default function Dashboard() {
 
   const textColor    = isDark ? "#f1f5f9" : "#1a1a1a";
   const mutedColor   = isDark ? "rgba(226,232,240,0.72)" : "rgba(0,0,0,0.50)";
-  const accentOrange = "#f48120";
-  const accentGold   = "#D4A017";
+  const accentOrange = "#00c2cb";
+  const accentGold   = "#00c2cb";
   const accentCyan   = "#00c2cb";
 
   const glass = (alpha = 0.78) =>
@@ -262,9 +262,9 @@ export default function Dashboard() {
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 shrink-0" style={{ color: mutedColor, opacity: 0.5 }} />
                 <div className="rounded-xl px-3 py-2 shrink-0 text-center"
-                  style={{ background: "rgba(34,197,94,0.12)", border: "1.5px solid rgba(34,197,94,0.4)" }}>
-                  <ShieldCheck className="w-4 h-4 mx-auto mb-0.5" style={{ color: "#22c55e" }} />
-                  <p className="text-[10px] font-black" style={{ color: "#22c55e" }}>ATI PASS</p>
+                  style={{ background: "rgba(0,194,203,0.12)", border: "1.5px solid rgba(0,194,203,0.4)" }}>
+                  <ShieldCheck className="w-4 h-4 mx-auto mb-0.5" style={{ color: "#00c2cb" }} />
+                  <p className="text-[10px] font-black" style={{ color: "#00c2cb" }}>ATI PASS</p>
                 </div>
               </div>
             </div>

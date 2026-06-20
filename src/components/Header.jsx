@@ -15,12 +15,9 @@ export default function Header() {
   }, []);
 
   const navLinks = [
-    { name: "Aircraft Check", path: "/" },
-    { name: "For Partners", path: "/api-portal" },
-    { name: "How It Works", path: "#" },
-    { name: "FAQ", path: "#" },
-    { name: "Contact", path: "#" },
-    { name: "About", path: "#" },
+    { name: "MarketSpace", path: "/" },
+    { name: "Pricing", path: "/pricing" },
+    { name: "API", path: "/api-portal" },
   ];
 
   return (
@@ -42,7 +39,7 @@ export default function Header() {
               className="font-bold text-2xl text-foreground tracking-tight"
               style={{ fontFamily: "'hostgrotesk', system-ui, sans-serif" }}
             >
-              ANY<span className="text-accent">AIR</span>.ONLINE
+              A<span className="text-accent">B</span>OS
             </span>
           </Link>
 
@@ -84,7 +81,7 @@ export default function Header() {
                     <Plane className="w-4 h-4 text-primary-foreground" />
                   </div>
                   <span className="font-bold text-xl text-foreground">
-                    ANY<span className="text-accent">AIR</span>.ONLINE
+                    A<span className="text-accent">B</span>OS
                   </span>
                 </Link>
 

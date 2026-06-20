@@ -195,23 +195,23 @@ export default function ABOSTour() {
 
   const isLast = step === TOUR_STEPS.length - 1;
   const currentStep = TOUR_STEPS[step];
-  const bgColor = isDark ? "#0f1123" : "#fff";
+  const bgColor = isDark ? "#0B1220" : "#fff";
   const textColor = isDark ? "#fff" : "#1A1814";
   const mutedColor = isDark ? "rgba(255,255,255,0.5)" : "#6B6560";
   const subColor = isDark ? "rgba(255,255,255,0.3)" : "#AAA49C";
-  const accentBlue = isDark ? "#00f5ff" : "#4A90D9";
+  const accentBlue = isDark ? "#E8A83A" : "#C98A1E";
   const cardBg = isDark ? "rgba(255,255,255,0.04)" : "#fff";
   const cardBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
-  const activeBg = isDark ? "rgba(0,245,255,0.1)" : "#EBF4FF";
-  const activeBorder = isDark ? "rgba(0,245,255,0.35)" : "#4A90D9";
-  const headerBg = isDark ? "linear-gradient(135deg, #1a1f4a, #0f1123)" : "#4A90D9";
+  const activeBg = isDark ? "rgba(232,168,58,0.1)" : "#FBF3E3";
+  const activeBorder = isDark ? "rgba(232,168,58,0.35)" : "#C98A1E";
+  const headerBg = isDark ? "linear-gradient(135deg, #13203A, #0B1220)" : "#0B2D5B";
   const footerBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   const progressPct = ((step + 1) / TOUR_STEPS.length) * 100;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="rounded-2xl shadow-2xl w-full max-w-[460px] overflow-hidden flex flex-col" style={{ background: bgColor, border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
+      <div className="rounded-2xl shadow-2xl w-full max-w-[460px] overflow-hidden flex flex-col" style={{ background: bgColor, border: isDark ? "1px solid rgba(232,168,58,0.15)" : "none" }}>
 
         {/* ── Progress bar ── */}
         <div className="h-1 w-full" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "#EBF4FF" }}>
@@ -241,7 +241,7 @@ export default function ABOSTour() {
         <div key={step} className="px-6 pt-7 pb-5 animate-in fade-in slide-in-from-right-4 duration-300">
           {/* Big icon */}
           <div className="flex justify-center mb-5">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: isDark ? "rgba(0,245,255,0.12)" : "#EBF4FF", border: `1px solid ${activeBorder}` }}>
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ background: isDark ? "rgba(232,168,58,0.12)" : "#FBF3E3", border: `1px solid ${activeBorder}` }}>
               <currentStep.icon className="w-9 h-9" style={{ color: accentBlue }} />
             </div>
           </div>
@@ -252,9 +252,9 @@ export default function ABOSTour() {
           {/* Pilot speech bubble */}
           <div className={`flex items-end gap-2 justify-center transition-all duration-300 ${speechVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
             <img src={PILOT_AVATAR} alt="ABOS Guide" className="h-[64px] w-auto object-contain shrink-0" style={{ mixBlendMode: isDark ? "normal" : "multiply" }} />
-            <div className="relative max-w-[280px] rounded-2xl rounded-bl-none px-3.5 py-2.5 shadow-lg mb-2" style={{ background: isDark ? "#1a1f4a" : "#EBF4FF", border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
+            <div className="relative max-w-[280px] rounded-2xl rounded-bl-none px-3.5 py-2.5 shadow-lg mb-2" style={{ background: isDark ? "#13203A" : "#EBF4FF", border: isDark ? "1px solid rgba(232,168,58,0.15)" : "none" }}>
               <p className="text-[11px] leading-snug font-medium" style={{ color: textColor }}>{currentStep.speech}</p>
-              <div className="absolute -left-2 bottom-0 w-0 h-0 border-t-[8px] border-t-transparent border-r-[10px]" style={{ borderRightColor: isDark ? "#1a1f4a" : "#EBF4FF" }} />
+              <div className="absolute -left-2 bottom-0 w-0 h-0 border-t-[8px] border-t-transparent border-r-[10px]" style={{ borderRightColor: isDark ? "#13203A" : "#EBF4FF" }} />
             </div>
           </div>
 
@@ -262,7 +262,7 @@ export default function ABOSTour() {
             <button
               onClick={goToFeature}
               className="w-full inline-flex items-center justify-center gap-1.5 mt-5 px-4 py-2.5 rounded-xl text-[12px] font-black transition-all active:scale-95"
-              style={{ background: isDark ? "rgba(0,245,255,0.12)" : "#EBF4FF", color: accentBlue, border: `1px solid ${activeBorder}` }}
+              style={{ background: isDark ? "rgba(232,168,58,0.12)" : "#FBF3E3", color: accentBlue, border: `1px solid ${activeBorder}` }}
             >
               <Play className="w-3.5 h-3.5" /> Open {currentStep.title} <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -307,7 +307,7 @@ export default function ABOSTour() {
           <button
             onClick={next}
             className="px-5 py-2 rounded-xl text-sm font-black transition-all active:scale-95 flex items-center gap-1"
-            style={{ background: accentBlue, color: isDark ? "#0f1123" : "#fff" }}
+            style={{ background: accentBlue, color: isDark ? "#0B1220" : "#fff" }}
           >
             {isLast ? "Finish" : "Next"} {!isLast && <ChevronRight className="w-4 h-4" />}
           </button>

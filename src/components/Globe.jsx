@@ -288,6 +288,7 @@ export default function Globe({
   const [detail, setDetail] = useState(null);
   const [scoringMap, setScoringMap] = useState({});
 
+  const firstTrafficLoadRef = useRef(true);
   const fetchTraffic = useCallback(async () => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -296,10 +297,13 @@ export default function Globe({
       const res = await base44.functions.invoke("cachedTraffic", {
         region_key: "world",
         region_label: "Global",
-        force_refresh: true,
+        // Only bypass the server cache on the very first load; subsequent
+        // polls reuse the cache to avoid hammering OpenSky / hitting rate limits.
+        force_refresh: firstTrafficLoadRef.current,
         limit: 1000,
         allow_heavy: true
       });
+      firstTrafficLoadRef.current = false;
       const ac = res.data?.aircraft || [];
       adsbCache.current = ac;
       renderToGlobe(ac);
@@ -788,7 +792,8 @@ export default function Globe({
   useEffect(() => {
     fetchTraffic();
     fetchLive();
-    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 30000);
+    // Poll every 90s (was 30s) to stay well under platform rate limits.
+    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 90000);
     return () => clearInterval(timerRef.current);
   }, [fetchTraffic, fetchLive]);
 

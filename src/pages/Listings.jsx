@@ -183,7 +183,7 @@ export default function Listings() {
   const [showImport, setShowImport] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [gate, setGate] = useState(null);
-  const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
+  const [viewMode, setViewMode] = useState("grid"); // "list" | "grid"
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -372,7 +372,7 @@ export default function Listings() {
               Add First Aircraft
             </button>
           </div> :
-        viewMode === "cards" ? (
+        viewMode === "grid" ? (
         /* ── TINDER SWIPE DECK ── */
         <div className="flex flex-col lg:flex-row gap-6 items-start">
             {/* Main deck (left, full width on mobile) */}

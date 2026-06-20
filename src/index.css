@@ -99,13 +99,13 @@
     --silver:     #9aa5b4;
     --silver-bright: #c8d0db;
 
-    /* shadcn tokens — dark (Duvo near-black) */
-    --background: 228 16% 6%;
-    --foreground: 210 30% 99%;
-    --card: 228 13% 10%;
-    --card-foreground: 210 30% 99%;
-    --popover: 228 13% 10%;
-    --popover-foreground: 210 30% 99%;
+    /* shadcn tokens — dark (Duvo flat charcoal) */
+    --background: 228 14% 10%;
+    --foreground: 210 30% 98%;
+    --card: 228 13% 13%;
+    --card-foreground: 210 30% 98%;
+    --popover: 228 13% 13%;
+    --popover-foreground: 210 30% 98%;
     --primary: 49 100% 52%;
     --primary-foreground: 228 14% 6%;
     --secondary: 228 12% 16%;
@@ -148,27 +148,14 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Duvo-inspired near-black with bolder layered texture ── */
+  /* ── DARK body ── Duvo-inspired flat near-black with subtle dot grid ── */
   .dark body {
-    background-color: #0a0b0e;
+    background-color: #15171f;
     background-image:
-      /* stronger warm gold glow top-center */
-      radial-gradient(ellipse 75% 45% at 50% -8%, rgba(255,214,10,0.11), transparent 62%),
-      /* cool ambient glow bottom-left */
-      radial-gradient(ellipse 55% 48% at 0% 100%, rgba(0,194,203,0.07), transparent 55%),
-      /* magenta accent glow bottom-right */
-      radial-gradient(ellipse 50% 45% at 100% 100%, rgba(224,64,251,0.05), transparent 55%),
-      /* visible dot grid */
-      radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-      /* diagonal mesh lines */
-      linear-gradient(115deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-    background-size:
-      100% 100%,
-      100% 100%,
-      100% 100%,
-      24px 24px,
-      64px 64px;
-    background-attachment: fixed, fixed, fixed, scroll, scroll;
+      /* very subtle even dot grid only — flat like Duvo */
+      radial-gradient(rgba(255,255,255,0.022) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
     color: #f1f5f9;
   }
 

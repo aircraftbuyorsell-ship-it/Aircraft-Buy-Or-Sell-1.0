@@ -521,7 +521,7 @@ function TestimonialsSection() {
     { name: "James Mitchell", rating: 5, text: "Definitely recommend paying for a report before buying an aircraft. Saved me from a bad deal.", date: "2 days ago", verified: true },
     { name: "Robert Dawson", rating: 5, text: "Excellent — got exactly the information I needed. Fast and thorough.", date: "5 days ago", verified: true },
     { name: "Michael Torres", rating: 5, text: "Very fast and high quality work, thank you!", date: "1 week ago", verified: true },
-    { name: "David K.", rating: 4, text: "Thanks to ANYAIR I know everything about my plane. Of course it doesn't know everything, but plenty of useful data.", date: "10 days ago", verified: true },
+    { name: "David K.", rating: 4, text: "Thanks to ABOS I know everything about my plane. Of course it doesn't know everything, but plenty of useful data.", date: "10 days ago", verified: true },
     { name: "Sarah Chen", rating: 5, text: "Service center photos of the aircraft? Amazing!", date: "2 weeks ago", verified: true },
   ];
 

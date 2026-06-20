@@ -11,6 +11,15 @@ import Home from './pages/Home';
 import APIPortal from './pages/APIPortal';
 import Report from './pages/Report';
 import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Listings from './pages/Listings';
+import Pricing from './pages/Pricing';
+import ATIQuickScore from './pages/ATIQuickScore';
+import ATIVerify from './pages/ATIVerify';
+import MyAccount from './pages/MyAccount';
+import ATIFullReport from './pages/ATIFullReport';
+import Valuation from './pages/Valuation';
+import OpexCalculator from './pages/OpexCalculator';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -36,7 +45,16 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/listings" element={<Listings />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/ati-quick-score" element={<ATIQuickScore />} />
+        <Route path="/ati-verify" element={<ATIVerify />} />
+        <Route path="/my-account" element={<MyAccount />} />
+        <Route path="/ati-full-report" element={<ATIFullReport />} />
+        <Route path="/valuation" element={<Valuation />} />
+        <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/api-portal" element={<APIPortal />} />
         <Route path="/report/:nNumber" element={<Report />} />
         <Route path="/Login" element={<Login />} />

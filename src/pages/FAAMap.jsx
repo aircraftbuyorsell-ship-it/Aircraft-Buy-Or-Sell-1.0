@@ -7,17 +7,26 @@ import {
 } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 
+const INK   = "#04060a";
+const INK1  = "#0d1117";
+const AMBER = "#f5c242";
+const TEAL  = "#5dcaa5";
+const W1    = "rgba(255,255,255,0.90)";
+const W2    = "rgba(255,255,255,0.60)";
+const W3    = "rgba(255,255,255,0.35)";
+const BORDER = "rgba(255,255,255,0.08)";
+
 const GLASS_CARD = {
-  background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)",
-  WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)",
-  borderRadius: "16px",
+  background: INK1, border: `0.5px solid ${BORDER}`, borderRadius: "12px",
 };
 
 const GLASS_INPUT = {
-  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
-  borderRadius: "8px", color: "#fff", outline: "none", padding: "10px 14px",
+  background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`,
+  borderRadius: "8px", color: W1, outline: "none", padding: "11px 14px",
   fontSize: "13px", width: "100%", boxSizing: "border-box",
 };
+
+const LABEL = { display: "block", fontSize: "9px", color: W3, marginBottom: 4, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" };
 
 const AIRCRAFT_TYPES = [
   { value: "", label: "All" },
@@ -156,24 +165,25 @@ export default function FAAMap() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a1628, #1B2A4A, #0d1f3c)", color: "#fff" }}>
+    <div style={{ minHeight: "100vh", background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
+      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(245,194,66,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
       {/* Top bar */}
-      <div style={{ ...GLASS_CARD, margin: "12px", padding: "12px 20px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+      <div style={{ background: INK1, borderBottom: `0.5px solid ${BORDER}`, padding: "12px 18px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0,194,203,0.15)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(0,194,203,0.3)" }}>
-            <Map size={16} color="#00c2cb" />
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(245,194,66,0.09)", display: "flex", alignItems: "center", justifyContent: "center", border: `0.5px solid rgba(245,194,66,0.22)` }}>
+            <Map size={16} color={AMBER} />
           </div>
           <div>
-            <h1 style={{ fontSize: 16, fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>FAA Aircraft Registry</h1>
-            <span style={{ fontSize: 10, color: "#00c2cb", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Map View</span>
+            <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0, letterSpacing: "-0.03em", color: W1 }}>FAA Aircraft Registry</h1>
+            <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Map View</span>
           </div>
         </div>
 
         <div style={{ flex: 1 }} />
 
-        {loading && <MiniGlobe size={24} color="#00c2cb" inline={true} />}
+        {loading && <MiniGlobe size={24} color={AMBER} inline={true} />}
 
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>
+        <span style={{ fontSize: 12, color: W2, fontWeight: 600 }}>
           {totalCount.current.toLocaleString()} records
         </span>
 
@@ -185,10 +195,10 @@ export default function FAAMap() {
             <button key={v} onClick={() => setView(v)}
               style={{
                 display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-                borderRadius: 8, border: view === v ? "1px solid rgba(0,194,203,0.3)" : "1px solid rgba(255,255,255,0.08)",
-                background: view === v ? "rgba(0,194,203,0.12)" : "rgba(255,255,255,0.04)",
-                color: view === v ? "#00c2cb" : "rgba(255,255,255,0.5)",
-                fontSize: 11, fontWeight: 700, cursor: "pointer",
+                borderRadius: 8, border: view === v ? `0.5px solid rgba(245,194,66,0.22)` : `0.5px solid ${BORDER}`,
+                background: view === v ? "rgba(245,194,66,0.09)" : "rgba(255,255,255,0.04)",
+                color: view === v ? AMBER : W2,
+                fontSize: 11, fontWeight: 600, cursor: "pointer",
               }}>
               <Icon size={13} /> {label}
             </button>
@@ -196,10 +206,10 @@ export default function FAAMap() {
           <button onClick={() => setFiltersOpen(v => !v)}
             style={{
               display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-              borderRadius: 8, border: filtersOpen ? "1px solid rgba(212,160,23,0.3)" : "1px solid rgba(255,255,255,0.08)",
-              background: filtersOpen ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.04)",
-              color: filtersOpen ? "#D4A017" : "rgba(255,255,255,0.5)",
-              fontSize: 11, fontWeight: 700, cursor: "pointer",
+              borderRadius: 8, border: filtersOpen ? `0.5px solid rgba(245,194,66,0.22)` : `0.5px solid ${BORDER}`,
+              background: filtersOpen ? "rgba(245,194,66,0.09)" : "rgba(255,255,255,0.04)",
+              color: filtersOpen ? AMBER : W2,
+              fontSize: 11, fontWeight: 600, cursor: "pointer",
             }}>
             <Filter size={13} /> Filters
           </button>
@@ -207,78 +217,77 @@ export default function FAAMap() {
       </div>
 
       {/* Body */}
-      <div style={{ display: "flex", padding: "0 12px 12px", gap: 12, height: "calc(100vh - 100px)" }}>
+      <div style={{ display: "flex", gap: 0, height: "calc(100vh - 60px)", position: "relative", zIndex: 1 }}>
         {/* Filter panel */}
         {filtersOpen && (
-          <div style={{ ...GLASS_CARD, width: 260, flexShrink: 0, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ width: 260, flexShrink: 0, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, background: INK1, borderRight: `0.5px solid ${BORDER}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-              <SlidersHorizontal size={14} color="rgba(255,255,255,0.4)" />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Filters</span>
+              <SlidersHorizontal size={14} color={W3} />
+              <span style={{ fontSize: 9, fontWeight: 600, color: W3, textTransform: "uppercase", letterSpacing: "0.12em" }}>Filters</span>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>N-Number</label>
+              <label style={LABEL}>N-Number</label>
               <input value={filters.nNumber} onChange={e => setFilters(f => ({ ...f, nNumber: e.target.value }))}
-                placeholder="e.g. N12345" style={GLASS_INPUT} />
+                placeholder="e.g. N12345" style={{ ...GLASS_INPUT, fontFamily: "'Courier New', monospace" }} />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Aircraft Type</label>
+              <label style={LABEL}>Aircraft Type</label>
               <Select value={filters.type} onChange={v => setFilters(f => ({ ...f, type: v }))} options={AIRCRAFT_TYPES} />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Engine Type</label>
+              <label style={LABEL}>Engine Type</label>
               <Select value={filters.engine} onChange={v => setFilters(f => ({ ...f, engine: v }))} options={ENGINE_TYPES} />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Registration Status</label>
+              <label style={LABEL}>Registration Status</label>
               <Select value={filters.status} onChange={v => setFilters(f => ({ ...f, status: v }))} options={STATUS_OPTIONS} />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Category</label>
+              <label style={LABEL}>Category</label>
               <Select value={filters.category} onChange={v => setFilters(f => ({ ...f, category: v }))} options={CATEGORY_OPTIONS} />
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Year From</label>
+                <label style={LABEL}>Year From</label>
                 <input type="number" value={filters.yearFrom} onChange={e => setFilters(f => ({ ...f, yearFrom: e.target.value }))}
                   placeholder="1960" style={GLASS_INPUT} />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>Year To</label>
+                <label style={LABEL}>Year To</label>
                 <input type="number" value={filters.yearTo} onChange={e => setFilters(f => ({ ...f, yearTo: e.target.value }))}
                   placeholder="2026" style={GLASS_INPUT} />
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600 }}>
-                Max Results: {filters.limit}
-              </label>
+              <label style={LABEL}>Max Results: {filters.limit}</label>
               <input type="range" min="50" max="5000" step="50" value={filters.limit}
                 onChange={e => setFilters(f => ({ ...f, limit: parseInt(e.target.value) }))}
-                style={{ width: "100%", accentColor: "#D4A017" }} />
+                style={{ width: "100%", accentColor: AMBER }} />
             </div>
 
             <button onClick={fetchData}
               style={{
-                background: "linear-gradient(135deg, #D4A017, #A67C00)", border: "none",
-                borderRadius: 10, color: "#fff", cursor: "pointer", fontWeight: 700,
-                padding: "10px 20px", fontSize: 12, letterSpacing: "0.04em",
-                textTransform: "uppercase", marginTop: 4,
-              }}>
+                background: AMBER, border: "none",
+                borderRadius: 8, color: INK, cursor: "pointer", fontWeight: 600,
+                padding: "10px 20px", fontSize: 13, letterSpacing: "-0.01em", marginTop: 4,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#fdd05a"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = AMBER; }}>
               Apply Filters
             </button>
 
             <button onClick={resetFilters}
               style={{
-                background: "transparent", border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 10, color: "rgba(255,255,255,0.5)", cursor: "pointer",
-                padding: "8px 16px", fontSize: 11, fontWeight: 600,
+                background: "transparent", border: `0.5px solid ${BORDER}`,
+                borderRadius: 8, color: W2, cursor: "pointer",
+                padding: "10px 20px", fontSize: 13, fontWeight: 600,
               }}>
               Reset
             </button>
@@ -286,18 +295,18 @@ export default function FAAMap() {
         )}
 
         {/* Main area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, padding: 12, minWidth: 0 }}>
           {/* Map / List view */}
-          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative" }}>
+          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative", background: view === "map" ? INK : INK1 }}>
             {view === "map" ? (
-              <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />
+              <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", background: INK }} />
             ) : (
               <div style={{ overflow: "auto", height: "100%", padding: 0 }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                   <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <tr style={{ borderBottom: `0.5px solid ${BORDER}`, background: "rgba(255,255,255,0.03)" }}>
                       {["N-Number", "Make", "Model", "Year", "Type", "Engine", "Status"].map(h => (
-                        <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        <th key={h} style={{ padding: "9px 14px", textAlign: "left", color: W3, fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em" }}>
                           {h}
                         </th>
                       ))}
@@ -307,25 +316,27 @@ export default function FAAMap() {
                     {aircraft.map((ac, i) => (
                       <tr key={ac.id || i} onClick={() => setSelected(ac)}
                         style={{
-                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                          borderBottom: `0.5px solid ${BORDER}`,
+                          borderLeft: `3px solid ${ac.status_code === "V" ? TEAL : "#e24b4a"}`,
                           cursor: "pointer",
-                          background: selected?.id === ac.id ? "rgba(0,194,203,0.08)" : "transparent",
+                          background: selected?.id === ac.id ? "rgba(245,194,66,0.06)" : "transparent",
                         }}
-                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "#111620"; }}
                         onMouseLeave={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "transparent"; }}
                       >
-                        <td style={{ padding: "8px 14px", fontFamily: "monospace", fontWeight: 700, color: "#00c2cb" }}>N{ac.n_number}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.8)" }}>{ac.mfr_mdl_code || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>—</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.year_mfr || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.type_aircraft || "—"}</td>
-                        <td style={{ padding: "8px 14px", color: "rgba(255,255,255,0.6)" }}>{ac.type_engine || "—"}</td>
-                        <td style={{ padding: "8px 14px" }}>
+                        <td style={{ padding: "10px 14px", fontFamily: "'Courier New', monospace", fontWeight: 600, fontSize: 12, letterSpacing: "0.06em", color: AMBER }}>N{ac.n_number}</td>
+                        <td style={{ padding: "10px 14px", color: W1 }}>{ac.mfr_mdl_code || "—"}</td>
+                        <td style={{ padding: "10px 14px", color: W2 }}>—</td>
+                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.year_mfr || "—"}</td>
+                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.type_aircraft || "—"}</td>
+                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.type_engine || "—"}</td>
+                        <td style={{ padding: "10px 14px" }}>
                           <span style={{
-                            display: "inline-block", padding: "2px 8px", borderRadius: 5,
-                            background: ac.status_code === "V" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                            color: ac.status_code === "V" ? "#22c55e" : "#ef4444",
-                            fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+                            display: "inline-block", padding: "2px 10px", borderRadius: 9999,
+                            background: ac.status_code === "V" ? "rgba(93,202,165,0.09)" : "rgba(226,75,74,0.10)",
+                            border: `0.5px solid ${ac.status_code === "V" ? "rgba(93,202,165,0.20)" : "rgba(226,75,74,0.22)"}`,
+                            color: ac.status_code === "V" ? TEAL : "#e24b4a",
+                            fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
                           }}>
                             {ac.status_code === "V" ? "Valid" : ac.status_code || "N/A"}
                           </span>
@@ -341,8 +352,8 @@ export default function FAAMap() {
             {view === "map" && (
               <div style={{
                 position: "absolute", bottom: 12, right: 12, padding: "6px 14px",
-                borderRadius: 8, background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.1)",
-                fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)",
+                borderRadius: 8, background: INK1, border: `0.5px solid ${BORDER}`,
+                fontSize: 11, fontWeight: 600, color: W2,
               }}>
                 {totalCount.current.toLocaleString()} aircraft
               </div>
@@ -351,13 +362,13 @@ export default function FAAMap() {
 
           {/* Selected aircraft strip */}
           {selected && (
-            <div style={{ ...GLASS_CARD, border: "1px solid rgba(212,160,23,0.3)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ background: INK1, border: `0.5px solid rgba(245,194,66,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(245,194,66,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <div>
-                <span style={{ fontSize: 10, color: "#D4A017", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>Selected</span>
-                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 800 }}>
+                <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Selected</span>
+                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 600, letterSpacing: "-0.02em", color: W1 }}>
                   N{selected.n_number} — {selected.mfr_mdl_code || "Aircraft"} ({selected.year_mfr || "—"})
                 </p>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                <p style={{ margin: 0, fontSize: 11, color: W3 }}>
                   {selected.city || ""}{selected.city && selected.state ? ", " : ""}{selected.state || ""}
                 </p>
               </div>
@@ -365,24 +376,22 @@ export default function FAAMap() {
               <Link to={`/ati-quick-score?nreg=N${selected.n_number}`}
                 style={{
                   display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  borderRadius: 10, background: "rgba(212,160,23,0.12)", border: "1px solid rgba(212,160,23,0.3)",
-                  color: "#D4A017", fontWeight: 700, fontSize: 11, textDecoration: "none",
-                  textTransform: "uppercase", letterSpacing: "0.04em",
+                  borderRadius: 8, background: AMBER, color: INK,
+                  fontWeight: 600, fontSize: 12, textDecoration: "none", letterSpacing: "-0.01em",
                 }}>
                 <Zap size={13} /> ATI Score
               </Link>
               <Link to={`/ati-verify?nreg=N${selected.n_number}`}
                 style={{
                   display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  borderRadius: 10, background: "rgba(0,194,203,0.12)", border: "1px solid rgba(0,194,203,0.3)",
-                  color: "#00c2cb", fontWeight: 700, fontSize: 11, textDecoration: "none",
-                  textTransform: "uppercase", letterSpacing: "0.04em",
+                  borderRadius: 8, background: "rgba(93,202,165,0.09)", border: `0.5px solid rgba(93,202,165,0.20)`,
+                  color: TEAL, fontWeight: 600, fontSize: 12, textDecoration: "none", letterSpacing: "-0.01em",
                 }}>
                 <ShieldCheck size={13} /> Verify
               </Link>
               <button onClick={() => setSelected(null)}
                 style={{
-                  background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: 4,
+                  background: "transparent", border: "none", color: W3, cursor: "pointer", padding: 4,
                 }}>
                 <X size={16} />
               </button>

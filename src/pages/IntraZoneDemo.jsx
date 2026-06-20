@@ -6,20 +6,21 @@ import {
   Users, Plane, Building2, UserCheck, ChevronRight, RotateCw, Sparkles
 } from "lucide-react";
 
-/* ─── Glass tokens ─── */
-const PAGE_BG = "linear-gradient(135deg, #0a1628 0%, #1B2A4A 40%, #0d1f3c 100%)";
+/* ─── DS v3 tokens ─── */
+const INK = "#04060a";
+const INK1 = "#0d1117";
 const GLASS = {
-  background: "rgba(255,255,255,0.07)",
-  backdropFilter: "blur(22px)",
-  WebkitBackdropFilter: "blur(22px)",
-  border: "1px solid rgba(255,255,255,0.11)",
-  borderRadius: "16px",
+  background: INK1,
+  border: "0.5px solid rgba(255,255,255,0.08)",
+  borderRadius: "12px",
 };
 const ACCENT = "#a855f7";
-const GOLD = "#D4A017";
-const CYAN = "#00c2cb";
-const MUTED = "rgba(255,255,255,0.45)";
-const WHITE = "#fff";
+const ACCENT_LINE = { height: "2px", background: "#a855f7", flexShrink: 0, margin: "0 0 16px" };
+const GOLD = "#f5c242";
+const TEAL = "#5dcaa5";
+const CYAN = "#5dcaa5";
+const MUTED = "rgba(255,255,255,0.35)";
+const WHITE = "rgba(255,255,255,0.90)";
 
 /* ─── Demo data ─── */
 const DEMO_LISTINGS = [
@@ -160,7 +161,8 @@ export default function IntraZoneDemo() {
   const formatTime = () => `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div style={{ minHeight: "100vh", background: PAGE_BG, color: WHITE, position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", color: WHITE, position: "relative", overflow: "hidden", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" }}>
+      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(168,85,247,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
       {/* DEMO DATA watermark */}
       {!expired && (
         <div style={{
@@ -173,12 +175,12 @@ export default function IntraZoneDemo() {
       )}
 
       {/* ─── DEMO Banner ─── */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, ...GLASS, borderRadius: 0, borderTop: "none", borderLeft: "none", borderRight: "none", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(168,85,247,0.09)", borderBottom: "0.5px solid rgba(168,85,247,0.22)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "5px",
-            background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)",
-            borderRadius: "6px", padding: "3px 10px", fontSize: "10px", fontWeight: 700,
+            background: "rgba(168,85,247,0.09)", border: "0.5px solid rgba(168,85,247,0.22)",
+            borderRadius: "9999px", padding: "2px 10px", fontSize: "9px", fontWeight: 700,
             color: ACCENT, textTransform: "uppercase", letterSpacing: "0.08em",
           }}>
             <Sparkles size={11} /> DEMO MODE
@@ -207,8 +209,10 @@ export default function IntraZoneDemo() {
         </section>
 
         {/* Globe */}
-        <section style={{ ...GLASS, padding: "20px", marginBottom: "24px" }}>
-          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.18em", color: ACCENT, marginBottom: "12px" }}>DEMO GLOBE · SAMPLE POSITIONS</p>
+        <section style={{ ...GLASS, overflow: "hidden", marginBottom: "24px" }}>
+          <div style={ACCENT_LINE} />
+          <div style={{ padding: "4px 20px 20px" }}>
+          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", color: ACCENT, marginBottom: "12px", textTransform: "uppercase" }}>DEMO GLOBE · SAMPLE POSITIONS</p>
           <DemoGlobe />
           <div style={{ display: "flex", gap: "16px", marginTop: "12px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "10px", color: MUTED, display: "flex", alignItems: "center", gap: "4px" }}>
@@ -218,22 +222,31 @@ export default function IntraZoneDemo() {
               JFK · LHR · FRA · LAX · ORD
             </span>
           </div>
+          </div>
         </section>
 
         {/* ATI Score demo card */}
-        <section style={{ ...GLASS, padding: "24px", marginBottom: "24px" }}>
-          <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.18em", color: GOLD, marginBottom: "16px" }}>DEMO AIRCRAFT · ATI QUICK SCORE</p>
+        <section style={{ ...GLASS, overflow: "hidden", marginBottom: "24px" }}>
+          <div style={ACCENT_LINE} />
+          <div style={{ padding: "8px 24px 24px" }}>
+          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", color: ACCENT, marginBottom: "16px", textTransform: "uppercase" }}>DEMO AIRCRAFT · ATI QUICK SCORE</p>
           <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
             <div style={{ flex: "0 0 auto", textAlign: "center" }}>
-              <svg width="120" height="75" viewBox="0 0 120 75">
-                <circle cx="60" cy="60" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
-                <circle cx="60" cy="60" r="42" fill="none" stroke="#22c55e" strokeWidth="6" strokeLinecap="round"
-                  strokeDasharray={`${(87 / 120) * 264} 264`} strokeDashoffset={66}
-                  transform="rotate(180 60 60)" />
-                <text x="60" y="56" textAnchor="middle" fill={WHITE} fontSize="24" fontWeight="800">87</text>
-                <text x="60" y="68" textAnchor="middle" fill={MUTED} fontSize="9">/ 120</text>
+              <svg width="120" height="120" viewBox="0 0 90 90">
+                <defs>
+                  <linearGradient id="demoTeal" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#5dcaa5" />
+                    <stop offset="100%" stopColor="#3da888" />
+                  </linearGradient>
+                </defs>
+                <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+                <circle cx="45" cy="45" r="38" fill="none" stroke="url(#demoTeal)" strokeWidth="5" strokeLinecap="round"
+                  strokeDasharray={`${((87 / 120) * 238.76).toFixed(1)} ${(238.76 - (87 / 120) * 238.76).toFixed(1)}`}
+                  transform="rotate(-90 45 45)" />
+                <text x="45" y="46" textAnchor="middle" fill={TEAL} fontSize="18" fontWeight="600" letterSpacing="-0.04em">87</text>
+                <text x="45" y="58" textAnchor="middle" fill="rgba(255,255,255,0.30)" fontSize="9">/120</text>
               </svg>
-              <span style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "#22c55e", marginTop: "4px", textTransform: "uppercase" }}>Strong</span>
+              <span style={{ display: "inline-block", fontSize: "9px", fontWeight: 700, color: TEAL, marginTop: "4px", textTransform: "uppercase", letterSpacing: "0.08em", background: "rgba(93,202,165,0.09)", border: "0.5px solid rgba(93,202,165,0.20)", borderRadius: "9999px", padding: "2px 10px" }}>Buy</span>
             </div>
             <div>
               <p style={{ fontWeight: 800, fontSize: "18px", margin: "0 0 4px" }}>
@@ -257,13 +270,15 @@ export default function IntraZoneDemo() {
                   </div>
                 ))}
               </div>
-              <div style={{ display: "flex", gap: "16px", marginTop: "12px", alignItems: "center" }}>
-                <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "6px", background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>
-                  OMVM: $285,000
+              <div style={{ display: "flex", gap: "16px", marginTop: "12px", alignItems: "baseline" }}>
+                <span style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: MUTED }}>OMVM Estimate</span>
+                  <span style={{ fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em", color: TEAL }}>$285,000</span>
                 </span>
                 <span style={{ fontSize: "10px", color: MUTED }}>Demo data · Upgrade for real valuations</span>
               </div>
             </div>
+          </div>
           </div>
         </section>
 

@@ -173,22 +173,28 @@ export default function Layout() {
     <>
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0"
-        style={{ borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
+        style={{ borderBottom: "1px solid var(--abos-border-1)" }}>
         {isDesktop && !desktopHovered ? (
           <div className="w-full flex justify-center">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
               style={{
-                background: isDark ? "linear-gradient(135deg,#1a1c2a 0%,#0f1018 100%)" : "linear-gradient(135deg,#f48120,#e07310)",
-                    boxShadow: isDark ? "0 2px 16px rgba(212,160,23,0.20)" : "0 2px 12px rgba(244,129,32,0.30)",
-                    border: isDark ? "1px solid rgba(212,160,23,0.30)" : "1px solid rgba(244,129,32,0.20)",
+                background: "var(--abos-gold-soft)",
+                    boxShadow: "0 2px 16px rgba(232,168,58,0.20)",
+                    border: "1px solid var(--abos-gold-border)",
                   }}>
-                  <Plane className="w-4 h-4" style={{ color: isDark ? "#F5C518" : "#fff" }} />
+                  <Plane className="w-4 h-4" style={{ color: "var(--abos-gold)" }} />
             </div>
           </div>
         ) : (
-          <div>
-            <p className="text-[10px] font-semibold tracking-wide" style={{ color: isDark ? "#f48120" : "#e07310" }}>Navigation</p>
-            <p className="text-[10px] mt-0.5" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(100,116,139,0.8)" }}>Global Aircraft Intelligence Network</p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "var(--abos-gold-soft)", border: "1px solid var(--abos-gold-border)" }}>
+              <Plane className="w-4 h-4" style={{ color: "var(--abos-gold)" }} />
+            </div>
+            <div>
+              <p className="text-[12px] font-black tracking-tight leading-none" style={{ color: "var(--abos-white)" }}>ABOS</p>
+              <p className="text-[9px] mt-1 uppercase" style={{ color: "var(--abos-text-3)", letterSpacing: "0.12em" }}>Aircraft Intelligence</p>
+            </div>
           </div>
         )}
         {!isDesktop && (
@@ -220,7 +226,7 @@ export default function Layout() {
 
       {/* Footer status */}
       <div className="px-3 py-3 shrink-0"
-        style={{ borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)" }}>
+        style={{ borderTop: "1px solid var(--abos-border-1)" }}>
         {isDesktop && !desktopHovered ? (
           <div className="flex justify-center">
             <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
@@ -253,10 +259,10 @@ export default function Layout() {
         className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden"
         style={{
           width: desktopHovered ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
-          background: isDark ? "rgba(10,11,14,0.98)" : "rgba(255,255,255,0.96)",
+          background: "var(--abos-dark-mid)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
+          borderRight: "1px solid var(--abos-border-1)",
         }}
         onMouseEnter={() => setDesktopHovered(true)}
         onMouseLeave={() => setDesktopHovered(false)}
@@ -291,10 +297,10 @@ export default function Layout() {
         className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-[272px] flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
         style={{
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          background: isDark ? "rgba(10,11,14,0.98)" : "rgba(255,255,255,0.96)",
+          background: "var(--abos-dark-mid)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderRight: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
+          borderRight: "1px solid var(--abos-border-1)",
         }}
       >
         {renderSidebarContent(false)}
@@ -421,18 +427,18 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
           className="w-full flex items-center gap-2 px-3 pb-1.5 group"
         >
           <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-            style={{ background: `${section.color}18`, border: `1px solid ${section.color}40` }}>
-            <span className="text-[9px] font-black leading-none" style={{ color: section.color }}>
+            style={{ background: "var(--abos-gold-soft)", border: "1px solid var(--abos-gold-border)" }}>
+            <span className="text-[9px] font-black leading-none" style={{ color: "var(--abos-gold)" }}>
               {section.key === "marketspace" ? "1" : section.key === "intrazone" ? "2" : section.key === "account" ? "3" : "4"}
             </span>
           </div>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] flex-1 text-left" style={{ color: section.color }}>
+          <p className="text-[9px] font-black uppercase flex-1 text-left" style={{ color: "var(--abos-text-3)", letterSpacing: "0.12em" }}>
             {section.label}
           </p>
           <ChevronDown
             className="w-3 h-3 shrink-0 transition-transform duration-200"
             style={{
-              color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)",
+              color: "var(--abos-text-3)",
               transform: open ? "rotate(0deg)" : "rotate(-90deg)",
             }}
           />
@@ -442,7 +448,7 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
       {/* Collapsed divider (icon-only mode) */}
       {collapsed && (
         <div className="flex justify-center py-2">
-          <div className="w-6 h-px" style={{ background: `${section.color}30` }} />
+          <div className="w-6 h-px" style={{ background: "var(--abos-border-1)" }} />
         </div>
       )}
 
@@ -451,10 +457,10 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
         <div className="space-y-0.5">
           {section.items.map(({ path, label, icon: NavIcon }) => {
             const active = pathname === path;
-            const sc = section.color;
-            const inactiveColor = isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)";
-            const hoverColor = isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.75)";
-            const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)";
+            const sc = "var(--abos-gold)";
+            const inactiveColor = "var(--abos-text-3)";
+            const hoverColor = "var(--abos-text-1)";
+            const hoverBg = "var(--abos-surface-3)";
 
             if (collapsed) {
               // ── Icon-only item ──
@@ -463,14 +469,14 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
                   className="flex items-center justify-center py-2.5 mx-1 rounded-xl transition-all duration-150"
                   style={{
                     color: active ? sc : inactiveColor,
-                    background: active ? `${sc}14` : "transparent",
-                    border: active ? `1px solid ${sc}38` : "1px solid transparent",
+                    background: active ? "var(--abos-gold-soft)" : "transparent",
+                    border: active ? "1px solid var(--abos-gold-border)" : "1px solid transparent",
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
                       e.currentTarget.style.background = hoverBg;
                       e.currentTarget.style.color = sc;
-                      e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)";
+                      e.currentTarget.style.border = "1px solid var(--abos-border-2)";
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -492,15 +498,15 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
               <Link key={path} to={path}
                 className="relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl text-[12px] font-semibold transition-all duration-150"
                 style={{
-                  color: active ? (isDark ? "#fff" : "#1e293b") : inactiveColor,
-                  background: active ? `${sc}14` : "transparent",
-                  border: active ? `1px solid ${sc}38` : "1px solid transparent",
+                  color: active ? sc : inactiveColor,
+                  background: active ? "var(--abos-gold-soft)" : "transparent",
+                  border: active ? "1px solid var(--abos-gold-border)" : "1px solid transparent",
                 }}
                 onMouseEnter={(e) => {
                   if (!active) {
                     e.currentTarget.style.background = hoverBg;
                     e.currentTarget.style.color = hoverColor;
-                    e.currentTarget.style.border = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.06)";
+                    e.currentTarget.style.border = "1px solid var(--abos-border-2)";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -515,7 +521,7 @@ function SidebarSection({ section, isDark, pathname, collapsed, topMargin }) {
                 <span>{label}</span>
                 {active && (
                   <div className="ml-auto flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full" style={{ background: `${sc}60` }} />
+                    <div className="w-1 h-1 rounded-full" style={{ background: "var(--abos-gold-border)" }} />
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: sc }} />
                   </div>
                 )}

@@ -322,3 +322,133 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+
+/* ═══════════════════════════════════════════
+   ABOS DESIGN TOKEN SYSTEM v2
+   3 colors: Dark #0B1220 · Gold #E8A83A · White #FFFFFF
+═══════════════════════════════════════════ */
+:root {
+  /* ── Brand palette ── */
+  --abos-dark:        #0B1220;
+  --abos-dark-mid:    #080E1A;
+  --abos-dark-deep:   #060A14;
+  --abos-gold:        #E8A83A;
+  --abos-gold-soft:   rgba(232, 168, 58, 0.12);
+  --abos-gold-border: rgba(232, 168, 58, 0.28);
+  --abos-white:       #FFFFFF;
+  --abos-cream:       #F7F4EF;
+
+  /* ── Text scale (on dark) ── */
+  --abos-text-1: #FFFFFF;
+  --abos-text-2: rgba(255, 255, 255, 0.60);
+  --abos-text-3: rgba(255, 255, 255, 0.35);
+
+  /* ── Surface scale ── */
+  --abos-surface-1: #0B1220;
+  --abos-surface-2: #0D1526;
+  --abos-surface-3: #111C30;
+
+  /* ── Border scale ── */
+  --abos-border-1: rgba(255,255,255,0.06);
+  --abos-border-2: rgba(255,255,255,0.11);
+
+  /* ── Dot grid ── */
+  --abos-dots: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
+  --abos-dots-size: 22px 22px;
+
+  /* ── Radius ── */
+  --abos-radius-sm:  6px;
+  --abos-radius-md:  10px;
+  --abos-radius-lg:  14px;
+  --abos-radius-xl:  20px;
+
+  /* ── Semantic (status indicators only — not brand) ── */
+  --abos-green: #22c55e;
+  --abos-red:   #ef4444;
+  --abos-amber: #f59e0b;
+}
+
+/* ── Dot grid on the app shell background ── */
+#root {
+  min-height: 100vh;
+  background-color: var(--abos-dark);
+  background-image: var(--abos-dots);
+  background-size: var(--abos-dots-size);
+}
+
+/* ── Gold accent helpers ── */
+.abos-gold       { color: var(--abos-gold); }
+.abos-badge-gold {
+  background: var(--abos-gold-soft); border: 1px solid var(--abos-gold-border);
+  color: var(--abos-gold); border-radius: var(--abos-radius-xl);
+  padding: 2px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  display: inline-block;
+}
+.abos-btn-gold {
+  background: var(--abos-gold-soft); border: 1px solid var(--abos-gold-border);
+  color: var(--abos-gold); border-radius: var(--abos-radius-md);
+  padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  cursor: pointer; transition: background 0.15s;
+}
+.abos-btn-gold:hover { background: rgba(232,168,58,0.20); }
+.abos-btn-gold-solid {
+  background: var(--abos-gold); border: 1px solid var(--abos-gold);
+  color: var(--abos-dark); border-radius: var(--abos-radius-md);
+  padding: 8px 16px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  cursor: pointer; transition: filter 0.15s;
+}
+.abos-btn-gold-solid:hover { filter: brightness(1.08); }
+
+/* ── Card ── */
+.abos-card {
+  background: var(--abos-surface-2);
+  border: 1px solid var(--abos-border-1);
+  border-radius: var(--abos-radius-lg);
+}
+.abos-card:hover { border-color: var(--abos-border-2); }
+
+/* ── Dot card (hero sections with dot overlay) ── */
+.abos-card-dot {
+  background: var(--abos-surface-2);
+  border: 1px solid var(--abos-border-1);
+  border-radius: var(--abos-radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+.abos-card-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--abos-dots);
+  background-size: var(--abos-dots-size);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════
+   GLOBAL ROGUE-COLOR SWEEP → GOLD
+   Force ALL non-gold accents (purple/violet/cyan/teal/blue/
+   indigo/sky/orange/pink/fuchsia) to the single ABOS gold.
+   Semantic green/red/amber are intentionally left untouched.
+═══════════════════════════════════════════ */
+.dark [class*="text-purple"], .dark [class*="text-violet"],
+.dark [class*="text-cyan"],   .dark [class*="text-teal"],
+.dark [class*="text-sky"],    .dark [class*="text-indigo"],
+.dark [class*="text-blue"],   .dark [class*="text-orange"],
+.dark [class*="text-pink"],   .dark [class*="text-fuchsia"] {
+  color: var(--abos-gold) !important;
+}
+.dark [class*="bg-purple"], .dark [class*="bg-violet"],
+.dark [class*="bg-cyan"],   .dark [class*="bg-teal"],
+.dark [class*="bg-sky"],    .dark [class*="bg-indigo"],
+.dark [class*="bg-orange"], .dark [class*="bg-pink"],
+.dark [class*="bg-fuchsia"] {
+  background-color: var(--abos-gold-soft) !important;
+}
+.dark [class*="border-purple"], .dark [class*="border-violet"],
+.dark [class*="border-cyan"],   .dark [class*="border-teal"],
+.dark [class*="border-sky"],    .dark [class*="border-indigo"],
+.dark [class*="border-orange"], .dark [class*="border-pink"],
+.dark [class*="border-fuchsia"] {
+  border-color: var(--abos-gold-border) !important;
+}

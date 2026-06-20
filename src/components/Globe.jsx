@@ -797,7 +797,7 @@ export default function Globe({
   const textColor = isDark ? "#fff" : "#1e293b";
 
   return (
-    <div ref={containerRef} className="relative" style={{ background: "transparent" }}>
+    <div ref={containerRef} className="relative w-full h-full" style={{ background: "transparent", minHeight: "320px" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
 
       <div className="absolute top-3 left-3 z-20">

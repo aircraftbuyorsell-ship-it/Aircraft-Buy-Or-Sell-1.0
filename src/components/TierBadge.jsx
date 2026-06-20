@@ -1,9 +1,49 @@
-import{Lock,Zap,Building2,Globe}from"lucide-react";
-const TIERS={free_explorer:{label:'Free',color:'#00c2cb',icon:Globe,bg:'rgba(0,194,203,0.12)'},starter:{label:'T1 Starter',color:'#22c55e',icon:Zap,bg:'rgba(34,197,94,0.12)'},pro:{label:'T2 Pro',color:'#D4A017',icon:Zap,bg:'rgba(212,160,23,0.12)'},enterprise:{label:'T3 Enterprise',color:'#f48120',icon:Building2,bg:'rgba(244,129,32,0.12)'},demo:{label:'DEMO',color:'#a855f7',icon:Zap,bg:'rgba(168,85,247,0.12)'},locked:{label:'Upgrade',color:'#ef4444',icon:Lock,bg:'rgba(239,68,68,0.10)'}};
-export default function TierBadge({tier='free_explorer',locked=false,size='sm'}){
-  const key=locked?'locked':tier;const meta=TIERS[key]||TIERS.free_explorer;const Icon=meta.icon;const isSmall=size==='sm';
-  return(<span style={{display:'inline-flex',alignItems:'center',gap:isSmall?'3px':'5px',background:meta.bg,border:`1px solid ${meta.color}35`,borderRadius:isSmall?'5px':'8px',color:meta.color,fontSize:isSmall?'10px':'12px',fontWeight:700,padding:isSmall?'2px 7px':'4px 10px',letterSpacing:'0.06em',textTransform:'uppercase',whiteSpace:'nowrap'}}><Icon size={isSmall?9:11}/>{meta.label}</span>);
+/**
+ * TierBadge — ABOS DS v3 tier chip
+ * free_explorer=gray, starter=amber, pro=teal, enterprise=blue, demo=purple
+ */
+import { Lock, Zap, Building2, Globe, Sparkles } from "lucide-react";
+
+const TIERS = {
+  free_explorer: { label: "Free Explorer", color: "rgba(255,255,255,0.35)", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.08)", icon: Globe },
+  starter:       { label: "Starter",       color: "#f5c242", bg: "rgba(245,194,66,0.09)",   border: "rgba(245,194,66,0.22)",   icon: Zap       },
+  pro:           { label: "Pro",           color: "#5dcaa5", bg: "rgba(93,202,165,0.09)",   border: "rgba(93,202,165,0.20)",   icon: Sparkles  },
+  enterprise:    { label: "Enterprise",    color: "#4e8ef7", bg: "rgba(78,142,247,0.09)",   border: "rgba(78,142,247,0.20)",   icon: Building2 },
+  demo:          { label: "DEMO",          color: "#a855f7", bg: "rgba(168,85,247,0.09)",   border: "rgba(168,85,247,0.22)",   icon: Zap       },
+  locked:        { label: "Premium",       color: "rgba(255,255,255,0.35)", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.08)", icon: Lock },
+};
+
+export default function TierBadge({ tier = "free_explorer", locked = false, size = "sm" }) {
+  const key  = locked ? "locked" : (tier || "free_explorer");
+  const meta = TIERS[key] || TIERS.free_explorer;
+  const Icon = meta.icon;
+  const md   = size === "md";
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: md ? "5px" : "4px", background: meta.bg, border: `0.5px solid ${meta.border}`, borderRadius: "9999px", color: meta.color, fontSize: md ? "10px" : "9px", fontWeight: 700, padding: md ? "3px 12px" : "2px 10px", letterSpacing: "0.08em", textTransform: "uppercase", lineHeight: 1.6, whiteSpace: "nowrap" }}>
+      <Icon size={md ? 10 : 9} />
+      {meta.label}
+    </span>
+  );
 }
-export function TierRow({tiers=[],label='Available for'}){
-  return(<div style={{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap'}}>{label&&<span style={{color:'rgba(255,255,255,0.4)',fontSize:'11px',marginRight:'2px'}}>{label}:</span>}{tiers.map(t=><TierBadge key={t} tier={t}/>)}</div>);
+
+export function TierRow({ tiers = [], label = "Available for" }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+      {label && <span style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginRight: "2px" }}>{label}:</span>}
+      {tiers.map(t => <TierBadge key={t} tier={t} />)}
+    </div>
+  );
+}
+
+export function LockOverlay({ tier = "pro", children, style = {} }) {
+  return (
+    <div style={{ position: "relative", ...style }}>
+      <div style={{ filter: "blur(4px)", pointerEvents: "none", userSelect: "none", opacity: 0.5 }}>{children}</div>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", background: "rgba(4,6,10,0.60)", backdropFilter: "blur(2px)", borderRadius: "8px" }}>
+        <Lock size={18} color="rgba(255,255,255,0.35)" />
+        <TierBadge tier={tier} />
+        <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.40)" }}>Upgrade to unlock</span>
+      </div>
+    </div>
+  );
 }

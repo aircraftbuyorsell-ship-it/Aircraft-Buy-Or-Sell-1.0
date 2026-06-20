@@ -9,84 +9,81 @@ const DIMENSIONS = [
   { key: "market_readiness", label: "Market Readiness" },
 ];
 
-function colorForScore(score, max) {
-  const pct = score / max;
-  if (pct >= 0.75) return "#22c55e";
-  if (pct >= 0.55) return "#D4A017";
-  return "#ef4444";
+const CIRC = 238.76; // 2π·38
+
+function dimColor(score) {
+  if (score >= 12) return "#5dcaa5";
+  if (score >= 8) return "#f5c242";
+  return "#e24b4a";
 }
 
-function verdictLabel(total) {
-  if (total >= 105) return { text: "Exceptional", color: "#22c55e" };
-  if (total >= 84) return { text: "Strong", color: "#D4A017" };
-  if (total >= 60) return { text: "Fair", color: "#f48120" };
-  return { text: "Needs Attention", color: "#ef4444" };
+function arcColor(total) {
+  if (total >= 96) return { color: "url(#atiTeal)", solid: "#5dcaa5" };
+  if (total >= 80) return { color: "rgba(93,202,165,0.6)", solid: "#5dcaa5" };
+  if (total >= 60) return { color: "url(#atiAmber)", solid: "#f5c242" };
+  return { color: "#e24b4a", solid: "#e24b4a" };
 }
 
 export function ScoreArc({ score, max = 120 }) {
-  const pct = score / max;
-  const radius = 64;
-  const stroke = 8;
-  const circumference = 2 * Math.PI * radius;
-  const filled = circumference * pct;
-  const unfilled = circumference - filled;
-  const v = verdictLabel(score);
+  const arc = Math.max(0, Math.min((score / max) * CIRC, CIRC - 1));
+  const gap = CIRC - arc;
+  const { color, solid } = arcColor(score);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-      <svg width="160" height="100" viewBox="0 0 160 100" style={{ overflow: "visible" }}>
-        <circle cx="80" cy="80" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <svg width="120" height="120" viewBox="0 0 90 90">
+        <defs>
+          <linearGradient id="atiTeal" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#5dcaa5" />
+            <stop offset="100%" stopColor="#3da888" />
+          </linearGradient>
+          <linearGradient id="atiAmber" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f5c242" />
+            <stop offset="100%" stopColor="#d9a520" />
+          </linearGradient>
+        </defs>
+        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={5} />
         <circle
-          cx="80" cy="80" r={radius} fill="none" stroke={v.color}
-          strokeWidth={stroke} strokeLinecap="round"
-          strokeDasharray={`${filled} ${unfilled}`}
-          strokeDashoffset={circumference / 4}
-          transform="rotate(180 80 80)"
-          style={{ transition: "stroke-dasharray 0.8s ease-out" }}
+          cx="45" cy="45" r="38" fill="none" stroke={color}
+          strokeWidth={5} strokeLinecap="round"
+          strokeDasharray={`${arc.toFixed(1)} ${gap.toFixed(1)}`}
+          transform="rotate(-90 45 45)"
+          style={{ transition: "stroke-dasharray 0.8s cubic-bezier(0.16,1,0.3,1)" }}
         />
-        <text x="80" y="76" textAnchor="middle" fill="#fff" fontSize="28" fontWeight="800" letterSpacing="-0.02em">
+        <text x="45" y="46" textAnchor="middle" fill={solid} fontSize="18" fontWeight="600" letterSpacing="-0.04em">
           {score}
         </text>
-        <text x="80" y="92" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="11" fontWeight="600">
-          / {max}
+        <text x="45" y="58" textAnchor="middle" fill="rgba(255,255,255,0.30)" fontSize="9">
+          /{max}
         </text>
       </svg>
-      <span style={{
-        fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-        color: v.color, padding: "2px 12px", borderRadius: "6px",
-        background: `${v.color}18`, border: `1px solid ${v.color}30`,
-      }}>
-        {v.text}
-      </span>
     </div>
   );
 }
 
 export function DimensionBars({ result }) {
-  const total = DIMENSIONS.reduce((sum, d) => sum + (result[d.key] || 0), 0);
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       {DIMENSIONS.map((d) => {
         const score = result[d.key] || 0;
         const pct = (score / 15) * 100;
-        const color = colorForScore(score, 15);
+        const color = dimColor(score);
         return (
-          <div key={d.key} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px", fontWeight: 600 }}>{d.label}</span>
-              <span style={{ color, fontSize: "11px", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-                {score}/15
+          <div key={d.key} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{
+                color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 600,
+                letterSpacing: "0.12em", textTransform: "uppercase",
+              }}>{d.label}</span>
+              <span style={{ color: "rgba(255,255,255,0.90)", fontSize: "12px", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                {score}<span style={{ color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>/15</span>
               </span>
             </div>
-            <div style={{ height: "6px", borderRadius: "3px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-              <div
-                style={{
-                  height: "100%", width: `${pct}%`, borderRadius: "3px",
-                  background: color,
-                  transition: "width 0.6s ease-out",
-                }}
-              />
+            <div style={{ height: "4px", borderRadius: "99px", background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", width: `${pct}%`, borderRadius: "99px",
+                background: color, transition: "width 0.6s cubic-bezier(0.16,1,0.3,1)",
+              }} />
             </div>
           </div>
         );
@@ -98,12 +95,12 @@ export function DimensionBars({ result }) {
 export function FlagsList({ result }) {
   const flags = [];
   if (result.asking_price && result.omvm_low && result.asking_price < result.omvm_low) {
-    flags.push({ text: `Priced below OMVM ($${result.asking_price.toLocaleString()} vs $${result.omvm_low.toLocaleString()}–$${result.omvm_high.toLocaleString()})`, color: "#22c55e" });
+    flags.push(`Priced below OMVM ($${result.asking_price.toLocaleString()} vs $${result.omvm_low.toLocaleString()}–$${result.omvm_high.toLocaleString()})`);
   }
   if (result.asking_price && result.omvm_high && result.asking_price > result.omvm_high) {
-    flags.push({ text: `Priced above OMVM ($${result.asking_price.toLocaleString()} vs $${result.omvm_low.toLocaleString()}–$${result.omvm_high.toLocaleString()})`, color: "#ef4444" });
+    flags.push(`Priced above OMVM ($${result.asking_price.toLocaleString()} vs $${result.omvm_low.toLocaleString()}–$${result.omvm_high.toLocaleString()})`);
   }
-  result.flash_line && flags.push({ text: result.flash_line, color: "#D4A017" });
+  result.flash_line && flags.push(result.flash_line);
 
   if (!flags.length) return null;
 
@@ -111,11 +108,12 @@ export function FlagsList({ result }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
       {flags.map((f, i) => (
         <div key={i} style={{
-          display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", borderRadius: "8px",
-          background: `${f.color}10`, border: `1px solid ${f.color}25`,
+          borderLeft: "3px solid #e24b4a",
+          background: "rgba(226,75,74,0.08)",
+          padding: "10px 14px", borderRadius: "8px",
+          fontSize: "12px", color: "rgba(255,255,255,0.75)", lineHeight: 1.5,
         }}>
-          <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: f.color, flexShrink: 0 }} />
-          <span style={{ color: "rgba(255,255,255,0.75)", fontSize: "12px", lineHeight: 1.4 }}>{f.text}</span>
+          {f}
         </div>
       ))}
     </div>
@@ -126,13 +124,11 @@ export function OMVMValue({ result }) {
   if (!result.omvm_low || !result.omvm_high) return null;
   const mid = Math.round((result.omvm_low + result.omvm_high) / 2);
   return (
-    <div style={{
-      display: "inline-flex", alignItems: "center", gap: "6px",
-      padding: "4px 12px", borderRadius: "8px",
-      background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.25)",
-    }}>
-      <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "10px", fontWeight: 600 }}>OMVM:</span>
-      <span style={{ color: "#22c55e", fontSize: "14px", fontWeight: 800 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+      <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+        OMVM Estimate
+      </span>
+      <span style={{ color: "#5dcaa5", fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em" }}>
         ${mid.toLocaleString()}
       </span>
     </div>

@@ -8,6 +8,7 @@ import Globe from "@/components/Globe";
 import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
+import PlatformTour from "@/components/PlatformTour";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
 import {
@@ -69,6 +70,13 @@ export default function Dashboard() {
       <NotificationCenter />
 
       <div className="relative z-10">
+
+        {/* ── PLATFORM TOUR ── */}
+        <section className="px-4 md:px-8 pt-6">
+          <div className="max-w-6xl mx-auto">
+            <PlatformTour />
+          </div>
+        </section>
 
         {/* ── GLOBE SECTION ── */}
         <section className="px-4 md:px-8 pt-6 pb-4">

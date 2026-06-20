@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
-import Home from './pages/Home';
 import APIPortal from './pages/APIPortal';
 import Report from './pages/Report';
 import Layout from './components/Layout';
@@ -46,7 +45,6 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/home" element={<Home />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/ati-quick-score" element={<ATIQuickScore />} />

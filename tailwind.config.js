@@ -3,9 +3,10 @@ module.exports = {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   safelist: [
-    "bg-[#D4A017]", "text-[#D4A017]", "border-[#D4A017]",
-    "bg-[#111113]", "bg-[#F7F4EF]",
-    "text-[#1A1814]", "text-[#6B6560]", "text-[#AAA49C]",
+    "bg-[#F8C73E]", "text-[#F8C73E]", "border-[#F8C73E]",
+    "bg-[#53C4A2]", "text-[#53C4A2]", "border-[#53C4A2]",
+    "bg-[#8EB7DC]", "text-[#8EB7DC]", "border-[#8EB7DC]",
+    "bg-[#071018]", "bg-[#0C1620]", "bg-[#101D28]",
   ],
   theme: {
     extend: {
@@ -15,9 +16,27 @@ module.exports = {
       },
       colors: {
         gold: {
-          DEFAULT: '#E8A83A',
-          bright: '#F5C842',
-          deep: '#C98A1E',
+          DEFAULT: '#F8C73E',
+          bright: '#FFD75E',
+          deep: '#D9A91E',
+        },
+        amber: {
+          DEFAULT: '#F8C73E',
+          bright: '#FFD75E',
+          deep: '#D9A91E',
+        },
+        teal: {
+          DEFAULT: '#53C4A2',
+          soft: 'rgba(83,196,162,0.12)',
+        },
+        sky: {
+          DEFAULT: '#8EB7DC',
+          soft: 'rgba(142,183,220,0.12)',
+        },
+        ink: {
+          DEFAULT: '#071018',
+          surface: '#0C1620',
+          panel: '#101D28',
         },
         silver: {
           DEFAULT: '#9aa5b4',

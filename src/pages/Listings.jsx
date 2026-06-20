@@ -20,7 +20,25 @@ import { usePullToRefresh } from "@/lib/usePullToRefresh";
 import SwipeDeck from "@/components/listings/SwipeCard";
 import { detectRegType } from "@/lib/regUtils";
 import ListingsHeader from "@/components/listings/ListingsHeader";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, LayoutGrid, List as ListIcon, Map as MapIcon } from "lucide-react";
+import AircraftCard from "@/components/marketspace/AircraftCard";
+import Globe from "@/components/Globe";
+import { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
+
+const BUDGET_OPTIONS = [
+  { value: "all", label: "Any budget" },
+  { value: "0-250000", label: "Under $250k" },
+  { value: "250000-500000", label: "$250k – $500k" },
+  { value: "500000-1000000", label: "$500k – $1M" },
+  { value: "1000000-99999999999", label: "$1M+" },
+];
+
+const SORT_OPTIONS = [
+  { value: "ati", label: "ATI score (high→low)" },
+  { value: "price_asc", label: "Price (low→high)" },
+  { value: "price_desc", label: "Price (high→low)" },
+  { value: "recent", label: "Most recent" },
+];
 
 // ─── ATI Score Ring ──────────────────────────────────────────────
 function ATIBadge({ score }) {
@@ -183,7 +201,9 @@ export default function Listings() {
   const [showImport, setShowImport] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [gate, setGate] = useState(null);
-  const [viewMode, setViewMode] = useState("cards"); // "list" | "cards"
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list" | "cards" | "map"
+  const [budget, setBudget] = useState("all");
+  const [sortBy, setSortBy] = useState("ati");
   const [shortlisted, setShortlisted] = useState([]);
   const [discarded, setDiscarded] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -216,17 +236,31 @@ export default function Listings() {
 
   const makes = useMemo(() => [...new Set(listings.map((l) => l.make).filter(Boolean))].sort(), [listings]);
 
-  const filtered = useMemo(() => listings.filter((l) => {
-    const q = search.toLowerCase();
-    if (q && !`${l.make} ${l.model} ${l.registration}`.toLowerCase().includes(q)) return false;
-    if (makeFilter && l.make !== makeFilter) return false;
-    if ((l.ati_score || 0) < minATI) return false;
-    if (regRegion !== "all") {
-      const rt = detectRegType(l.registration);
-      if (rt !== regRegion) return false;
-    }
-    return true;
-  }), [listings, search, makeFilter, minATI, regRegion]);
+  const filtered = useMemo(() => {
+    const [bMin, bMax] = budget === "all" ? [null, null] : budget.split("-").map(Number);
+    const out = listings.filter((l) => {
+      const q = search.toLowerCase();
+      if (q && !`${l.make} ${l.model} ${l.registration}`.toLowerCase().includes(q)) return false;
+      if (makeFilter && l.make !== makeFilter) return false;
+      if ((l.ati_score || 0) < minATI) return false;
+      if (regRegion !== "all") {
+        const rt = detectRegType(l.registration);
+        if (rt !== regRegion) return false;
+      }
+      if (bMin != null) {
+        const p = l.asking_price || 0;
+        if (p < bMin || p > bMax) return false;
+      }
+      return true;
+    });
+    out.sort((a, b) => {
+      if (sortBy === "price_asc") return (a.asking_price || Infinity) - (b.asking_price || Infinity);
+      if (sortBy === "price_desc") return (b.asking_price || 0) - (a.asking_price || 0);
+      if (sortBy === "recent") return new Date(b.created_date || 0) - new Date(a.created_date || 0);
+      return (b.ati_score || 0) - (a.ati_score || 0);
+    });
+    return out;
+  }, [listings, search, makeFilter, minATI, regRegion, budget, sortBy]);
 
   // Stats
   const scoredCount = listings.filter((l) => l.ati_score).length;
@@ -236,7 +270,7 @@ export default function Listings() {
   null;
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg,#0a1628 0%,#1B2A4A 40%,#0d1f3c 100%)", color: "#fff" }}>
+    <div className="min-h-screen" style={{ background: "#071018", color: "#fff" }}>
       {/* Pull-to-refresh */}
       <div className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150 bg-[#F7F4EF]" style={{ height: distance }}>
         {(pulling || refreshing) &&
@@ -261,7 +295,57 @@ export default function Listings() {
       />
 
       {/* ── Search & Filters ── */}
-      <div className="px-4 md:px-8 py-3 sticky top-0 z-10" style={{ background: "rgba(10,22,40,0.95)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="px-4 md:px-8 py-3 sticky top-0 z-10" style={{ background: "rgba(12,22,32,0.95)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* Top row: budget · region · ATI · sort · view toggle */}
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <select value={budget} onChange={(e) => setBudget(e.target.value)}
+            className="h-9 px-3 rounded-lg text-[12px] font-semibold outline-none"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}>
+            {BUDGET_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <select value={regRegion} onChange={(e) => setRegRegion(e.target.value)}
+            className="h-9 px-3 rounded-lg text-[12px] font-semibold outline-none"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}>
+            <option value="all">All regions</option>
+            <option value="faa">FAA (N-Reg)</option>
+            <option value="easa">EASA (EU)</option>
+          </select>
+          <select value={minATI} onChange={(e) => setMinATI(+e.target.value)}
+            className="h-9 px-3 rounded-lg text-[12px] font-semibold outline-none"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}>
+            {[0, 54, 72, 90].map((v) => <option key={v} value={v}>{v === 0 ? "Any ATI" : `ATI ≥ ${v}`}</option>)}
+          </select>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+            className="h-9 px-3 rounded-lg text-[12px] font-semibold outline-none"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}>
+            {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+
+          <div className="flex-1" />
+
+          {/* View toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
+            {[
+              { id: "grid", icon: LayoutGrid, label: "Cards" },
+              { id: "list", icon: ListIcon, label: "List" },
+              { id: "map", icon: MapIcon, label: "Map" },
+            ].map(({ id, icon: Icon, label }) => {
+              const active = viewMode === id;
+              return (
+                <button key={id} onClick={() => setViewMode(id)} title={label}
+                  className="flex items-center gap-1.5 px-2.5 h-7 rounded-md text-[11px] font-bold transition-all"
+                  style={{
+                    background: active ? "#F8C73E" : "transparent",
+                    color: active ? "#071018" : "rgba(255,255,255,0.6)",
+                  }}>
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#4a4550]" />

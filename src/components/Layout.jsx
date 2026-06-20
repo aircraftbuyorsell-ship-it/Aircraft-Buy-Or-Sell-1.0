@@ -11,7 +11,7 @@ import {
 from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
-import GlobalSearch from "@/components/search/GlobalSearch";
+import TopNav from "@/components/nav/TopNav";
 
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 const TOP_LEVEL = new Set(["/", "/listings", "/deal-radar", "/my-account", "/escrow"]);
@@ -307,110 +307,11 @@ export default function Layout() {
       </aside>
 
       {/* ═══════════════════════════════════════
-          TOP BAR
+          TOP BAR — Marketspace full-width nav
       ═══════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 safe-top lg:ml-[var(--sidebar-w)] px-3 sm:px-5 pt-3 pb-1"
-        style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px`, background: "transparent" }}>
-        <div className="flex items-center gap-2.5 px-3 sm:px-5 h-[60px] rounded-full mx-auto max-w-[1200px]"
-          style={{
-            background: "linear-gradient(135deg, #13203A 0%, #0B1220 100%)",
-            border: "1px solid rgba(232,168,58,0.18)",
-            boxShadow: "0 10px 40px rgba(232,168,58,0.18), 0 4px 20px rgba(0,0,0,0.4)",
-            backdropFilter: "blur(24px) saturate(180%)",
-            WebkitBackdropFilter: "blur(24px) saturate(180%)",
-          }}>
-          {showBack ? (
-            <button onClick={() => navigate(-1)}
-              className="glass-pill flex items-center gap-1 px-3 py-1.5 text-[#0B2D5B] dark:text-white/80 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
-              aria-label="Go back">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-[11px] font-semibold hidden sm:inline">Back</span>
-            </button>
-          ) : (
-            <button onClick={() => setMobileOpen((v) => !v)}
-              className="glass-pill w-9 h-9 lg:hidden flex items-center justify-center text-[#0B2D5B]/60 dark:text-white/60 hover:text-[#0B2D5B] dark:hover:text-white touch-target-compact transition-all active:scale-95"
-              aria-label="Open menu">
-              <Menu className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Logo — inline ABOS · MarketSpace inside the pill */}
-          <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0 transition-all hover:opacity-80 active:scale-95 pl-1.5 pr-1 group">
-            <span className="font-black text-[15px] tracking-[-0.02em] text-white">ABOS</span>
-            <span className="hidden sm:inline text-[14px] font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>· MarketSpace</span>
-          </Link>
-
-          <GlobalSearch />
-          <div className="flex-1" />
-
-          <nav className="flex items-center gap-1.5">
-            {TOP_ITEMS.map(({ path, label, icon: Icon, accent }) => {
-              const active = pathname === path;
-              return (
-                <Link key={path} to={path}
-                  className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all active:scale-95"
-                  style={{
-                    background: active ? "rgba(232,168,58,0.12)" : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${active ? "rgba(232,168,58,0.4)" : "rgba(255,255,255,0.08)"}`,
-                    color: active ? "#E8A83A" : "rgba(255,255,255,0.85)",
-                  }}
-                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
-                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}>
-                  <Icon className={`w-3.5 h-3.5 shrink-0 ${accent && !active ? "animate-pulse" : ""}`} />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
-            })}
-
-            {/* Pricing — solid gold pill */}
-            <Link to="/pricing"
-              className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-bold transition-all active:scale-95"
-              style={{
-                background: "#E8A83A",
-                border: "1px solid #E8A83A",
-                color: "#0B1220",
-                boxShadow: "0 0 18px rgba(232,168,58,0.4)",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.06)")}
-              onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}>
-              <Zap className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Pricing</span>
-            </Link>
-
-            {/* Tour — ghost pill with label + help icon */}
-            <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
-              className="flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12px] font-semibold transition-all active:scale-95"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.09)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-              aria-label="Open guided tour" title="Platform tour">
-              <span className="hidden sm:inline">Tour</span>
-              <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-            </button>
-
-            {/* Auth — plain text link */}
-            {currentUser ? (
-              <button onClick={() => base44.auth.logout()}
-                className="flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold transition-all active:scale-95"
-                style={{ color: "rgba(255,255,255,0.85)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}>
-                <LogOut className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Log Out</span>
-              </button>
-            ) : (
-              <button onClick={() => base44.auth.redirectToLogin()}
-                className="flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold transition-all active:scale-95"
-                style={{ color: "rgba(255,255,255,0.85)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}>
-                <LogIn className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden sm:inline">Log In</span>
-              </button>
-            )}
-          </nav>
-        </div>
-      </header>
+      <div className="lg:ml-[var(--sidebar-w)]" style={{ "--sidebar-w": `${SIDEBAR_COLLAPSED}px` }}>
+        <TopNav currentUser={currentUser} onOpenSidebar={() => setMobileOpen((v) => !v)} />
+      </div>
 
       {/* ═══════════════════════════════════════
           CONTENT

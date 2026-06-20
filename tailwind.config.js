@@ -16,11 +16,25 @@ module.exports = {
       colors: {
         gold: {
           DEFAULT: '#D4A017',
-          bright: '#F5C842',
+          bright: '#F5C518',
           deep: '#A67C00',
         },
+        silver: {
+          DEFAULT: '#9aa5b4',
+          bright: '#c8d0db',
+        },
+        cyan: {
+          DEFAULT: '#00f5ff',
+          muted: '#00c2cb',
+        },
+        magenta: {
+          DEFAULT: '#e040fb',
+          deep: '#cc00ff',
+        },
         bronze: '#CD7F32',
-        'sidebar-dark': '#111113',
+        charcoal: '#13141f',
+        'card-dark': '#1a1c2a',
+        'sidebar-dark': '#0f1018',
         'main-bg': '#F7F4EF',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

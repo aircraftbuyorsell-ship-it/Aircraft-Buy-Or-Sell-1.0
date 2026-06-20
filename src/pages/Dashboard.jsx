@@ -51,8 +51,8 @@ export default function Dashboard() {
     staleTime: 30000,
   });
 
-  const textColor    = isDark ? "#e2e8f0" : "#1a1a1a";
-  const mutedColor   = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
+  const textColor    = isDark ? "#f1f5f9" : "#1a1a1a";
+  const mutedColor   = isDark ? "rgba(226,232,240,0.72)" : "rgba(0,0,0,0.50)";
   const accentOrange = "#f48120";
   const accentGold   = "#D4A017";
   const accentCyan   = "#00c2cb";

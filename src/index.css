@@ -100,18 +100,18 @@
     --silver-bright: #c8d0db;
 
     /* shadcn tokens — dark (Duvo near-black) */
-    --background: 228 14% 7%;
-    --foreground: 210 40% 98%;
-    --card: 228 13% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 228 13% 11%;
-    --popover-foreground: 210 40% 98%;
+    --background: 228 16% 6%;
+    --foreground: 210 30% 99%;
+    --card: 228 13% 10%;
+    --card-foreground: 210 30% 99%;
+    --popover: 228 13% 10%;
+    --popover-foreground: 210 30% 99%;
     --primary: 49 100% 52%;
     --primary-foreground: 228 14% 6%;
     --secondary: 228 12% 16%;
-    --secondary-foreground: 215 16% 78%;
+    --secondary-foreground: 215 20% 86%;
     --muted: 228 11% 14%;
-    --muted-foreground: 215 14% 62%;
+    --muted-foreground: 215 18% 72%;
     --accent: 49 100% 52%;
     --accent-foreground: 228 14% 8%;
     --destructive: 0 75% 55%;
@@ -148,25 +148,28 @@
     color: #1a1a1a;
   }
 
-  /* ── DARK body ── Duvo-inspired near-black with layered texture ── */
+  /* ── DARK body ── Duvo-inspired near-black with bolder layered texture ── */
   .dark body {
-    background-color: #0d0e12;
+    background-color: #0a0b0e;
     background-image:
-      /* soft warm gold glow top-center */
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,214,10,0.06), transparent 60%),
+      /* stronger warm gold glow top-center */
+      radial-gradient(ellipse 75% 45% at 50% -8%, rgba(255,214,10,0.11), transparent 62%),
       /* cool ambient glow bottom-left */
-      radial-gradient(ellipse 60% 50% at 0% 100%, rgba(0,194,203,0.04), transparent 55%),
-      /* fine dot grid */
-      radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      /* faint diagonal mesh lines */
-      linear-gradient(115deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+      radial-gradient(ellipse 55% 48% at 0% 100%, rgba(0,194,203,0.07), transparent 55%),
+      /* magenta accent glow bottom-right */
+      radial-gradient(ellipse 50% 45% at 100% 100%, rgba(224,64,251,0.05), transparent 55%),
+      /* visible dot grid */
+      radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+      /* diagonal mesh lines */
+      linear-gradient(115deg, rgba(255,255,255,0.022) 1px, transparent 1px);
     background-size:
       100% 100%,
       100% 100%,
-      26px 26px,
-      72px 72px;
-    background-attachment: fixed, fixed, scroll, scroll;
-    color: #e2e8f0;
+      100% 100%,
+      24px 24px,
+      64px 64px;
+    background-attachment: fixed, fixed, fixed, scroll, scroll;
+    color: #f1f5f9;
   }
 
   /* Prevent accidental selection/callout on tappable UI */

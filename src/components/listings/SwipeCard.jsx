@@ -1,13 +1,15 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
   CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
-  Pencil, ChevronLeft, ChevronRight, X } from
+  Pencil, ChevronLeft, ChevronRight, ChevronUp, Zap, X } from
 "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import CardAdminEditor from "@/components/listings/CardAdminEditor";
 
 const SWIPE_THRESHOLD = 100;
 
@@ -38,6 +40,7 @@ function dealStyle(label) {
 
 function Card({ listing: l }) {
   const [flipped, setFlipped] = useState(false);
+  const [editing, setEditing] = useState(false);
   const color = scoreColor(l.ati_score);
   const deal = dealStyle(l.deal_label);
   const isBelow = l.discount_pct != null && l.discount_pct >= 0;
@@ -111,14 +114,13 @@ function Card({ listing: l }) {
               </div>
               <div className="pointer-events-auto absolute top-3 right-3 flex items-center gap-1.5">
                 {(isOwner || isAdmin) &&
-                <Link
-                  to={`/ati-passport/${l.id}?edit=true`}
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  onClick={(e) => {e.stopPropagation();setEditing(true);}}
                   className="w-8 h-8 rounded-full bg-white/92 border border-black/[0.08] flex items-center justify-center text-[#185FA5] hover:text-[#0B2D5B] transition-colors"
                   title="Edit listing">
 
                   <Pencil className="w-3.5 h-3.5" />
-                </Link>
+                </button>
                 }
                 {isAdmin &&
                 <button
@@ -255,38 +257,46 @@ function Card({ listing: l }) {
           </div>
         </div>
       </div>
+      {editing && <CardAdminEditor listing={l} onClose={() => setEditing(false)} />}
     </div>);
 
 }
 
 // ─── Swipeable top card ────────────────────────────────────────
-function SwipeableCard({ listing, onLike, onDiscard }) {
+function SwipeableCard({ listing, onLike, onDiscard, onOffer }) {
   const controls = useAnimation();
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 0, 200], [-18, 0, 18]);
   const likeOpacity = useTransform(x, [20, SWIPE_THRESHOLD], [0, 1]);
   const discardOpacity = useTransform(x, [-SWIPE_THRESHOLD, -20], [1, 0]);
+  const offerOpacity = useTransform(y, [-SWIPE_THRESHOLD, -20], [1, 0]);
 
   const handleDragEnd = async (_, info) => {
-    const offset = info.offset.x;
-    if (offset > SWIPE_THRESHOLD) {
+    const ox = info.offset.x;
+    const oy = info.offset.y;
+    // Vertical (up) takes priority when it dominates
+    if (oy < -SWIPE_THRESHOLD && Math.abs(oy) > Math.abs(ox)) {
+      await controls.start({ y: -600, opacity: 0, transition: { duration: 0.3 } });
+      onOffer(listing);
+    } else if (ox > SWIPE_THRESHOLD) {
       await controls.start({ x: 600, opacity: 0, transition: { duration: 0.3 } });
       onLike(listing);
-    } else if (offset < -SWIPE_THRESHOLD) {
+    } else if (ox < -SWIPE_THRESHOLD) {
       await controls.start({ x: -600, opacity: 0, transition: { duration: 0.3 } });
       onDiscard(listing);
     } else {
-      controls.start({ x: 0, rotate: 0, transition: { type: "spring", stiffness: 300, damping: 20 } });
+      controls.start({ x: 0, y: 0, rotate: 0, transition: { type: "spring", stiffness: 300, damping: 20 } });
     }
   };
 
   return (
     <motion.div
       className="absolute inset-0 cursor-grab active:cursor-grabbing opacity-85"
-      style={{ x, rotate }}
+      style={{ x, y, rotate }}
       animate={controls}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      drag
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.8}
       onDragEnd={handleDragEnd}
       whileTap={{ scale: 1.02 }}>
@@ -307,15 +317,24 @@ function SwipeableCard({ listing, onLike, onDiscard }) {
         </div>
       </motion.div>
 
+      {/* Offer (up) overlay */}
+      <motion.div className="absolute inset-0 z-10 flex items-end justify-center p-5 pointer-events-none rounded-2xl overflow-hidden"
+      style={{ opacity: offerOpacity, background: "rgba(232,168,58,0.07)", borderWidth: 2, borderStyle: "solid", borderColor: "rgba(232,168,58,0.45)" }}>
+        <div className="bg-[#E8A83A] text-[#111113] px-4 py-1.5 rounded-xl font-black text-sm flex items-center gap-2">
+          <Zap className="w-4 h-4" /> CREATE ATI OFFER
+        </div>
+      </motion.div>
+
       <Card listing={listing} />
     </motion.div>);
 
 }
 
 // ─── Public export: carousel with center card + visible side cards, arrows & touchpad ────
-export default function SwipeDeck({ listings, onLike, onDiscard }) {
+export default function SwipeDeck({ listings, onLike, onDiscard, onOffer }) {
   const [current, setCurrent] = useState(0);
   const carouselRef = useRef(null);
+  const navigate = useNavigate();
 
   const prevIdx = current > 0 ? current - 1 : null;
   const nextIdx = current + 1 < listings.length ? current + 1 : null;
@@ -343,11 +362,18 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
     handleNext();
   };
 
-  // Touchpad 2-finger swipe via wheel events (horizontal scroll on trackpads)
+  const handleOfferCard = useCallback((l) => {
+    if (!l) return;
+    onOffer?.(l);
+    navigate(`/ati-quick-score?listing=${l.id}`);
+  }, [onOffer, navigate]);
+
+  // Touchpad 2-finger swipe via wheel events (horizontal on trackpads)
   const handleWheel = useCallback((e) => {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
+    const { deltaX, deltaY } = e;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
       e.preventDefault();
-      if (e.deltaX > 0) handleNext();else
+      if (deltaX > 0) handleNext();else
       handlePrev();
     }
   }, [handleNext, handlePrev]);
@@ -358,6 +384,22 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
+
+  // Keyboard binds: ←/A skip, →/D interested, ↑/W create offer
+  useEffect(() => {
+    const handleKey = (e) => {
+      const tag = e.target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
+      const l = listings[current];
+      if (!l) return;
+      const k = e.key.toLowerCase();
+      if (e.key === "ArrowRight" || k === "d") { onLike(l); handleNext(); }
+      else if (e.key === "ArrowLeft" || k === "a") { onDiscard(l); handleNext(); }
+      else if (e.key === "ArrowUp" || k === "w") { e.preventDefault(); handleOfferCard(l); handleNext(); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [listings, current, onLike, onDiscard, handleNext, handleOfferCard]);
 
   if (listings.length === 0) return null;
 
@@ -378,6 +420,13 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </div>
+        <div className="h-4 w-px bg-black/10" />
+        <div className="flex items-center gap-2 text-[11px] text-[#A67C00] font-semibold uppercase tracking-wider">
+          <ChevronUp className="w-4 h-4 animate-pulse" />
+          Swipe up to create ATI offer
+        </div>
+        <div className="h-4 w-px bg-black/10" />
+        <div className="text-[10px] text-[#4a4550] font-medium normal-case tracking-normal">Keys: ← / → / ↑ or A / D / W</div>
       </div>
 
       {/* Mobile instruction banner */}
@@ -445,7 +494,8 @@ export default function SwipeDeck({ listings, onLike, onDiscard }) {
               key={currentListing.id}
               listing={currentListing}
               onLike={handleLikeCard}
-              onDiscard={handleDiscardCard} />
+              onDiscard={handleDiscardCard}
+              onOffer={handleOfferCard} />
             }
           </div>
         </div>

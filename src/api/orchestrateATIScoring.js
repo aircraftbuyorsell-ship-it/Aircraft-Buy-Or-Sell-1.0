@@ -1,6 +1,31 @@
 import { base44 } from "@/api/base44Client";
+import { getOMVMBase, getOMVMConfidence } from "../utils/omvmBaseLookup";
+
+/** Extract make / model / year from free-form listing text for OMVM base lookup. */
+function parseAircraftIdentity(text) {
+  const t = text || "";
+  const year = (t.match(/\b(19|20)\d{2}\b/) || [])[0] || null;
+  const KNOWN_MAKES = [
+    "CESSNA", "PIPER", "BEECHCRAFT", "CIRRUS", "DIAMOND", "MOONEY",
+    "SOCATA", "DAHER", "PILATUS", "TECNAM", "EXTRA", "GRUMMAN",
+    "MAULE", "COLUMBIA", "ROBIN", "ZLIN", "LET",
+  ];
+  const upper = t.toUpperCase();
+  const make = KNOWN_MAKES.find((m) => upper.includes(m)) || "";
+  // Model = token(s) right after the make
+  let model = "";
+  if (make) {
+    const after = upper.split(make)[1] || "";
+    model = (after.trim().match(/^[A-Z0-9-]+(\s?[A-Z0-9-]+)?/) || [""])[0].trim();
+  }
+  return { make, model, year };
+}
 
 export async function orchestrateATIScoring({ input, nReg }) {
+  const { make, model, year } = parseAircraftIdentity(input);
+  const omvmBase = getOMVMBase(make, model, year);
+  const omvmConfidence = getOMVMConfidence(make, model);
+
   const res = await base44.integrations.Core.InvokeLLM({
     prompt: `You are an aviation transaction intelligence engine. Analyse the following aircraft listing text and return a structured ATI Quick Score.
 
@@ -55,5 +80,15 @@ Return ONLY valid JSON.`,
       },
     },
   });
+
+  // Anchor OMVM range around the deterministic per-make/model market base
+  // (fixes BUG-001: prior values relied solely on the LLM with no market floor).
+  if (omvmBase > 0) {
+    res.omvm_low = Math.round(omvmBase * 0.85);
+    res.omvm_high = Math.round(omvmBase * 1.15);
+  }
+  res.omvm_base = omvmBase;
+  res.omvm_confidence = omvmConfidence;
+
   return res;
 }

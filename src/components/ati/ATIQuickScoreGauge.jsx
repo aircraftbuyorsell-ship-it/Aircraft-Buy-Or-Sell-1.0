@@ -123,13 +123,36 @@ export function FlagsList({ result }) {
 export function OMVMValue({ result }) {
   if (!result.omvm_low || !result.omvm_high) return null;
   const mid = Math.round((result.omvm_low + result.omvm_high) / 2);
+  const omvmConfidence = result.omvm_confidence;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
       <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
         OMVM Estimate
       </span>
-      <span style={{ color: "#5dcaa5", fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em" }}>
-        ${mid.toLocaleString()}
+      <span style={{ display: "inline-flex", alignItems: "center" }}>
+        <span style={{ color: "#5dcaa5", fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em" }}>
+          ${mid.toLocaleString()}
+        </span>
+        {omvmConfidence && (
+          <span style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            padding: "2px 8px",
+            borderRadius: "9999px",
+            border: "0.5px solid",
+            marginLeft: "8px",
+            ...(omvmConfidence === "high"
+              ? { color: "#5dcaa5", background: "rgba(93,202,165,0.09)", borderColor: "rgba(93,202,165,0.20)" }
+              : omvmConfidence === "medium"
+              ? { color: "#f5c242", background: "rgba(245,194,66,0.09)", borderColor: "rgba(245,194,66,0.22)" }
+              : { color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.08)" }
+            )
+          }}>
+            {omvmConfidence === "high" ? "Model match" : omvmConfidence === "medium" ? "Make match" : "Estimate"}
+          </span>
+        )}
       </span>
     </div>
   );

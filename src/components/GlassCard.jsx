@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { COLORS, FONT } from "@/theme/glassmorphism";
 
-const INK = { normal: "#0d1117", elevated: "#111620", nested: "#1a2235" };
+const INK = { normal: "rgba(255,255,255,0.04)", elevated: "rgba(255,255,255,0.04)", nested: "rgba(255,255,255,0.04)" };
 const SHADOWS = {
   normal:   "0 1px 3px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06)",
   elevated: "0 4px 16px rgba(0,0,0,0.5),  0 0 0 0.5px rgba(255,255,255,0.08)",
@@ -59,7 +59,7 @@ export default function GlassCard({
 
 export function CardTable({ children, title, tag, style = {} }) {
   return (
-    <div style={{ background: "#0d1117", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06)", fontFamily: "-apple-system, sans-serif", ...style }}>
+    <div style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06)", fontFamily: "-apple-system, sans-serif", ...style }}>
       <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(245,194,66,0.40) 50%, transparent 95%)" }} />
       {(title || tag) && (
         <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 18px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>

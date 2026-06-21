@@ -10,7 +10,7 @@ import {
 const INK = "#04060a";
 const INK1 = "#0d1117";
 const GLASS = {
-  background: INK1,
+  background: "rgba(255,255,255,0.04)",
   border: "0.5px solid rgba(255,255,255,0.08)",
   borderRadius: "12px",
 };

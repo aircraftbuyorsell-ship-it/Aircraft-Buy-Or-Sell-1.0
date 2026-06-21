@@ -16,9 +16,9 @@ import { TOKEN_COSTS }   from "@/lib/pricing";
 // ─── v2 design tokens ─────────────────────────────────────────────────────────
 const T = {
   ink:      "#04060a",
-  ink1:     "#0d1117",
-  ink2:     "#111620",
-  ink3:     "#1a2235",
+  ink1:     "rgba(255,255,255,0.04)",
+  ink2:     "rgba(255,255,255,0.04)",
+  ink3:     "rgba(255,255,255,0.04)",
   amber:    "#f5c242",
   amberDim: "rgba(245,194,66,0.09)",
   amberBdr: "rgba(245,194,66,0.22)",

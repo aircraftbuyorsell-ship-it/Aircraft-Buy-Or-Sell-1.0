@@ -126,7 +126,7 @@ export default function Listings() {
         </div>
 
         {showFilters &&
-        <div className="mt-2.5 rounded-xl p-4 flex flex-wrap gap-5 items-end" style={{ background: "#0d1117", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="mt-2.5 rounded-xl p-4 flex flex-wrap gap-5 items-end" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
             <div className="min-w-[160px]">
               <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Registration</label>
               <select

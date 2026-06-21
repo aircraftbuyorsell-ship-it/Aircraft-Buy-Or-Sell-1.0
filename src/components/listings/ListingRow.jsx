@@ -3,7 +3,7 @@ import { CheckSquare, Square, TrendingDown, TrendingUp, ArrowUpRight } from "luc
 
 // ─── DS v3 tokens ────────────────────────────────────────────────
 const T = {
-  ink2:   "#111620",
+  ink2:   "rgba(255,255,255,0.04)",
   amber:  "#f5c242",
   teal:   "#5dcaa5",
   red:    "#e24b4a",

@@ -17,7 +17,7 @@ const W3    = "rgba(255,255,255,0.35)";
 const BORDER = "rgba(255,255,255,0.08)";
 
 const GLASS_CARD = {
-  background: INK1, border: `0.5px solid ${BORDER}`, borderRadius: "12px",
+  background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, borderRadius: "12px",
 };
 
 const GLASS_INPUT = {
@@ -297,7 +297,7 @@ export default function FAAMap() {
         {/* Main area */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, padding: 12, minWidth: 0 }}>
           {/* Map / List view */}
-          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative", background: view === "map" ? INK : INK1 }}>
+          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative", background: view === "map" ? INK : "rgba(255,255,255,0.04)" }}>
             {view === "map" ? (
               <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", background: INK }} />
             ) : (
@@ -321,7 +321,7 @@ export default function FAAMap() {
                           cursor: "pointer",
                           background: selected?.id === ac.id ? "rgba(245,194,66,0.06)" : "transparent",
                         }}
-                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "#111620"; }}
+                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
                         onMouseLeave={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "transparent"; }}
                       >
                         <td style={{ padding: "10px 14px", fontFamily: "'Courier New', monospace", fontWeight: 600, fontSize: 12, letterSpacing: "0.06em", color: AMBER }}>N{ac.n_number}</td>
@@ -352,7 +352,7 @@ export default function FAAMap() {
             {view === "map" && (
               <div style={{
                 position: "absolute", bottom: 12, right: 12, padding: "6px 14px",
-                borderRadius: 8, background: INK1, border: `0.5px solid ${BORDER}`,
+                borderRadius: 8, background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`,
                 fontSize: 11, fontWeight: 600, color: W2,
               }}>
                 {totalCount.current.toLocaleString()} aircraft
@@ -362,7 +362,7 @@ export default function FAAMap() {
 
           {/* Selected aircraft strip */}
           {selected && (
-            <div style={{ background: INK1, border: `0.5px solid rgba(245,194,66,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(245,194,66,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid rgba(245,194,66,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(245,194,66,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <div>
                 <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Selected</span>
                 <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 600, letterSpacing: "-0.02em", color: W1 }}>

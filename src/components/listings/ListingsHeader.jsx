@@ -109,7 +109,7 @@ function FaaResultCard({ faa, onCreate, creating }) {
   return (
     <div
       className="mt-3 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 duration-200"
-      style={{ background: CARD, border: "1px solid rgba(255,255,255,0.10)" }}
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}
     >
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0">

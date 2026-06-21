@@ -163,7 +163,7 @@ function Section({ section }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden" }}>
+    <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden" }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", gap: "12px" }}
@@ -230,7 +230,7 @@ export default function PrivacyPolicy() {
           </div>
         </div>
 
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "24px" }}>
+        <div style={{ background: "rgba(93,202,165,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "24px" }}>
           <div style={{ height: "2px", background: C.teal }} />
           <div style={{ padding: "20px 22px" }}>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.75, margin: 0 }}>
@@ -243,7 +243,7 @@ export default function PrivacyPolicy() {
           {SECTIONS.map(s => <Section key={s.id} section={s} />)}
         </div>
 
-        <div style={{ marginTop: "40px", padding: "20px 22px", background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px" }}>
+        <div style={{ marginTop: "40px", padding: "20px 22px", background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "12px" }}>
           <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: C.w3, margin: "0 0 8px" }}>Data Controller Contact</p>
           <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.65, margin: 0 }}>
             ABOS s.r.o. · Prague, Czech Republic<br />

@@ -349,7 +349,7 @@ Return ONLY valid JSON with this exact schema:
 
               {showPicker && (
                 <div style={{
-                  marginTop: "8px", background: T.ink1, border: `0.5px solid ${T.border}`,
+                  marginTop: "8px", background: "rgba(255,255,255,0.04)", border: `0.5px solid ${T.border}`,
                   borderRadius: "10px", overflow: "hidden", maxHeight: "220px", overflowY: "auto",
                 }}>
                   {listings.map(l => (
@@ -414,23 +414,23 @@ Return ONLY valid JSON with this exact schema:
         {/* Report output */}
         <div>
           {!result && !loading && (
-            <div style={{ background: T.ink1, border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
+            <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
               <FileText size={36} style={{ color: T.w4, margin: "0 auto 12px" }} />
               <p style={{ color: T.w3, fontSize: "13px" }}>Your professional ATI report will appear here</p>
             </div>
           )}
 
           {loading && (
-            <div style={{ background: T.ink1, border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
+            <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${T.border}`, borderRadius: "12px", padding: "64px 24px", textAlign: "center" }}>
               <MiniGlobe size={40} label="Generating professional ATI report…" color={T.amber} />
             </div>
           )}
 
           {result && verdict && (
-            <div style={{ background: T.ink1, border: `0.5px solid ${T.borderMd}`, borderRadius: "12px", overflow: "hidden" }}>
+            <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${T.borderMd}`, borderRadius: "12px", overflow: "hidden" }}>
 
               {/* Report header */}
-              <div style={{ background: T.ink2, borderBottom: `0.5px solid ${T.border}`, padding: "20px 22px" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", borderBottom: `0.5px solid ${T.border}`, padding: "20px 22px" }}>
                 <div style={{ height: "2px", background: T.amber, margin: "-20px -22px 16px" }} aria-hidden />
 
                 <Label color={T.amber} style={{ marginBottom: "12px" }}>

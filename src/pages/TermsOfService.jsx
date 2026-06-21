@@ -130,7 +130,7 @@ function Section({ section }) {
 
   return (
     <div style={{
-      background:    isImportant ? "rgba(245,194,66,0.04)" : C.ink1,
+      background:    isImportant ? "rgba(245,194,66,0.06)" : "rgba(255,255,255,0.04)",
       border:        `0.5px solid ${isImportant ? C.amberBorder : C.border}`,
       borderRadius:  "12px",
       overflow:      "hidden",
@@ -223,7 +223,7 @@ export default function TermsOfService() {
           </div>
         </div>
 
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "24px" }}>
+        <div style={{ background: "rgba(93,202,165,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "24px" }}>
           <div style={{ height: "2px", background: C.teal }} />
           <div style={{ padding: "20px 22px" }}>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.75, margin: 0 }}>
@@ -236,7 +236,7 @@ export default function TermsOfService() {
           {SECTIONS.map(s => <Section key={s.id} section={s} />)}
         </div>
 
-        <div style={{ marginTop: "40px", padding: "20px 22px", background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px" }}>
+        <div style={{ marginTop: "40px", padding: "20px 22px", background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "12px" }}>
           <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: C.w3, margin: "0 0 8px" }}>Contact</p>
           <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.65, margin: 0 }}>
             ABOS s.r.o. · legal@abos-marketspace.com · Prague, Czech Republic<br />

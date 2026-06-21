@@ -40,7 +40,7 @@ const T = {
 // ─── Card styles ─────────────────────────────────────────────────────────────
 
 const card = {
-  background:   T.ink1,
+  background:   "rgba(255,255,255,0.04)",
   border:       `0.5px solid ${T.border}`,
   borderRadius: "12px",
   overflow:     "hidden",
@@ -48,7 +48,7 @@ const card = {
 
 const cardElevated = {
   ...card,
-  background: T.ink2,
+  background: "rgba(255,255,255,0.04)",
 };
 
 const accentLine = {

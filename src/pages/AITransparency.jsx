@@ -119,7 +119,7 @@ export default function AITransparency() {
           <button onClick={() => navigate(-1)} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: C.w3, fontSize: "13px", cursor: "pointer", padding: 0 }}>
             <ArrowLeft size={14} /> Back
           </button>
-          <div style={{ display: "flex", gap: "4px", background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "8px", padding: "3px" }}>
+          <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "8px", padding: "3px" }}>
             {["en", "cz"].map(l => (
               <button key={l} onClick={() => setLang(l)} style={{
                 padding: "5px 14px", borderRadius: "6px", border: "none", cursor: "pointer",
@@ -150,7 +150,7 @@ export default function AITransparency() {
         </div>
 
         {/* Intro + Features */}
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ height: "2px", background: C.amber }} />
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px", color: C.w1 }}>{t.introTitle}</h2>
@@ -169,7 +169,7 @@ export default function AITransparency() {
         </div>
 
         {/* Mandatory Disclosure */}
-        <div style={{ background: "rgba(245,194,66,0.03)", border: `0.5px solid ${C.amberBorder}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid ${C.amberBorder}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ height: "2px", background: C.amber }} />
           <div style={{ padding: "20px 22px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
@@ -190,7 +190,7 @@ export default function AITransparency() {
         </div>
 
         {/* Not high-risk */}
-        <div style={{ background: C.tealDim, border: `0.5px solid ${C.tealBorder}`, borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(93,202,165,0.06)", border: `0.5px solid ${C.tealBorder}`, borderRadius: "12px", padding: "16px 20px", display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px" }}>
           <CheckCircle size={16} color={C.teal} style={{ flexShrink: 0, marginTop: "1px" }} />
           <div>
             <p style={{ fontSize: "11px", fontWeight: 700, color: C.teal, margin: "0 0 4px", letterSpacing: "0.04em", textTransform: "uppercase" }}>{t.notHighRiskTitle}</p>

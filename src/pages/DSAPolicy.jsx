@@ -128,7 +128,7 @@ export default function DSAPolicy() {
           <button onClick={() => navigate(-1)} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "transparent", border: "none", color: C.w3, fontSize: "13px", cursor: "pointer", padding: 0 }}>
             <ArrowLeft size={14} /> Back
           </button>
-          <div style={{ display: "flex", gap: "4px", background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "8px", padding: "3px" }}>
+          <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "8px", padding: "3px" }}>
             {["en", "cz"].map(l => (
               <button key={l} onClick={() => setLang(l)} style={{
                 padding: "5px 14px", borderRadius: "6px", border: "none", cursor: "pointer",
@@ -159,7 +159,7 @@ export default function DSAPolicy() {
         </div>
 
         {/* Section 1 */}
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(78,142,247,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ height: "2px", background: C.blue }} />
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 14px", color: C.w1 }}>{t.section1}</h2>
@@ -176,7 +176,7 @@ export default function DSAPolicy() {
         </div>
 
         {/* Section 2 */}
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px", color: C.w1 }}>{t.section2}</h2>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.75, margin: 0 }}>
@@ -186,7 +186,7 @@ export default function DSAPolicy() {
         </div>
 
         {/* Section 3 */}
-        <div style={{ background: C.ink1, border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 12px", color: C.w1 }}>{t.section3}</h2>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.75, whiteSpace: "pre-line", margin: 0 }}>
@@ -196,7 +196,7 @@ export default function DSAPolicy() {
         </div>
 
         {/* Contact card */}
-        <div style={{ marginTop: "28px", padding: "18px 22px", background: C.blueDim, border: `0.5px solid ${C.blueBorder}`, borderRadius: "12px", display: "flex", alignItems: "center", gap: "14px" }}>
+        <div style={{ marginTop: "28px", padding: "18px 22px", background: "rgba(78,142,247,0.06)", border: `0.5px solid ${C.blueBorder}`, borderRadius: "12px", display: "flex", alignItems: "center", gap: "14px" }}>
           <Globe size={18} color={C.blue} style={{ flexShrink: 0 }} />
           <div>
             <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.blue, margin: "0 0 4px" }}>DSA Contact Point</p>

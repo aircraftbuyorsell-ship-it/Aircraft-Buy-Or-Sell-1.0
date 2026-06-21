@@ -130,7 +130,7 @@ export default function Pricing() {
       </div>
 
       <div className="relative z-10">
-        <div className="text-center py-2 text-[11px]" style={{ background: INK1, color: W2, borderBottom: `0.5px solid ${BORDER}` }}>
+        <div className="text-center py-2 text-[11px]" style={{ background: "rgba(255,255,255,0.04)", color: W2, borderBottom: `0.5px solid ${BORDER}` }}>
           New:&nbsp;<strong style={{ color: AMBER }}>N-Reg Validation</strong>&nbsp;— automatic FAA/EASA dataset matching on every listing, free on all tiers
         </div>
 
@@ -156,7 +156,7 @@ export default function Pricing() {
               const a = ACCENTS[tier.accent];
               return (
                 <div key={tier.id} className="rounded-xl relative flex flex-col overflow-hidden"
-                  style={{ background: INK1, border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
+                  style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
                   <div style={{ height: "2px", background: a.line }} />
                   <div className="p-5 flex flex-col flex-1">
                     {tier.badge && (
@@ -197,7 +197,7 @@ export default function Pricing() {
             <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>For marketplace platform partners integrating IntraZone via API</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {ONE_TIME.map((item) => (
-                <div key={item.label} className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid ${BORDER}` }}>
+                <div key={item.label} className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
                   <div style={{ height: "2px", background: AMBER }} />
                   <div className="p-5">
                     <p style={eyebrow} className="mb-2">{item.label}</p>
@@ -208,7 +208,7 @@ export default function Pricing() {
                 </div>
               ))}
             </div>
-            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: INK1, border: `0.5px solid rgba(245,194,66,0.22)` }}>
+            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid rgba(245,194,66,0.22)` }}>
               <span className="text-[13px]" style={{ color: W2 }}>Total one-time package (all three items)</span>
               <span style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.03em", color: AMBER }}>€1,498</span>
             </div>
@@ -222,7 +222,7 @@ export default function Pricing() {
           <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 justify-center flex-wrap">
             {VERIFY_FLOW.map((node, i) => (
               <div key={node.label} className="flex items-center gap-2">
-                <div className="rounded-lg px-4 py-3 text-center min-w-[110px]" style={{ background: INK1, border: `0.5px solid ${BORDER}`, borderLeft: `3px solid ${node.color}` }}>
+                <div className="rounded-lg px-4 py-3 text-center min-w-[110px]" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, borderLeft: `3px solid ${node.color}` }}>
                   <p className="text-[11px] font-semibold" style={{ color: W1 }}>{node.label}</p>
                   <p className="text-[9px] mt-0.5" style={{ color: W3 }}>{node.sub}</p>
                 </div>
@@ -231,7 +231,7 @@ export default function Pricing() {
             ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid rgba(93,202,165,0.20)` }}>
+            <div className="rounded-xl overflow-hidden" style={{ background: "rgba(93,202,165,0.06)", border: `0.5px solid rgba(93,202,165,0.20)` }}>
               <div style={{ height: "2px", background: TEAL }} />
               <div className="p-5">
                 <p className="text-[13px] font-semibold mb-3" style={{ color: TEAL }}>N-Reg match = TRUE → ATI PASS</p>
@@ -240,7 +240,7 @@ export default function Pricing() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl overflow-hidden" style={{ background: INK1, border: `0.5px solid rgba(226,75,74,0.22)` }}>
+            <div className="rounded-xl overflow-hidden" style={{ background: "rgba(226,75,74,0.06)", border: `0.5px solid rgba(226,75,74,0.22)` }}>
               <div style={{ height: "2px", background: "#e24b4a" }} />
               <div className="p-5">
                 <p className="text-[13px] font-semibold mb-3" style={{ color: "#e24b4a" }}>N-Reg match = FALSE → Admin report</p>
@@ -250,7 +250,7 @@ export default function Pricing() {
               </div>
             </div>
           </div>
-          <div className="rounded-xl p-5 text-[13px] leading-relaxed" style={{ background: INK1, border: `0.5px solid ${BORDER}`, color: W2 }}>
+          <div className="rounded-xl p-5 text-[13px] leading-relaxed" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, color: W2 }}>
             <strong style={{ color: AMBER }}>Structurally fraud-proof:</strong> Affiliate revenue flows from end customer → ABOS → platform partner. The N-Reg validation outcome is computed exclusively against official FAA/EASA registry data. Compliant with EU Digital Services Act requirements for platform compliance mechanisms.
           </div>
         </section>
@@ -260,7 +260,7 @@ export default function Pricing() {
           <div className="max-w-3xl mx-auto">
             <p style={eyebrow} className="text-center mb-1">Affiliate revenue share — for platform partners</p>
             <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Earn a passive revenue share on every subscription or report generated through your platform</p>
-            <div className="overflow-hidden rounded-xl" style={{ background: INK1, border: `0.5px solid ${BORDER}` }}>
+            <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
               <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(245,194,66,0.40) 50%, transparent 95%)" }} />
               <div className="overflow-x-auto">
                 <table className="w-full text-[13px]">

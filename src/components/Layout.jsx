@@ -17,16 +17,41 @@ import NavItem from "@/components/layout/NavItem";
 const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
-// ── 8 nav items (Sprint 1 cleanup) ──
-const NAV_ITEMS = [
-  { path: "/",                label: "Dashboard",      icon: LayoutDashboard },
-  { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-  { path: "/listings",        label: "Listings",       icon: Plane },
-  { path: "/faa-map",         label: "FAA Map",        icon: Map },
-  { path: "/ati-verify",      label: "Verify Aircraft", icon: Video },
-  { path: "/pricing",         label: "Pricing",        icon: CreditCard },
-  { path: "/demo",            label: "IntraZone Demo", icon: Sparkles },
-  { path: "/admin/settings",  label: "Settings",       icon: Settings },
+// ── Sectioned nav (routes mapped to existing pages) ──
+const NAV_SECTIONS = [
+  {
+    label: "Discover",
+    items: [
+      { path: "/",                label: "Dashboard",        icon: LayoutDashboard },
+      { path: "/listings",        label: "Aircraft Listings", icon: Plane },
+      { path: "/faa-map",         label: "FAA Map",          icon: Map },
+      { path: "/analytics",       label: "Market Analytics", icon: BarChart2 },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { path: "/ati-quick-score", label: "ATI Quick Score",  icon: Zap },
+      { path: "/ati-full-report", label: "ATI Full Report",  icon: FileBarChart },
+      { path: "/ati-standard",    label: "ATI Passport",     icon: Shield },
+      { path: "/demo",            label: "IntraZone Demo",   icon: Sparkles },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { path: "/my-account",      label: "Profile & Settings", icon: User },
+      { path: "/pricing",         label: "Credits & Benefits", icon: CreditCard },
+      { path: "/ati-verify",      label: "Verification Center", icon: CheckCircle },
+    ],
+  },
+  {
+    label: "Deals",
+    items: [
+      { path: "/deal-radar",      label: "Deal Radar",       icon: Radar },
+      { path: "/escrow",          label: "Hustl Contract",   icon: FileText },
+    ],
+  },
 ];
 
 function initials(user) {
@@ -43,16 +68,31 @@ function SidebarContent({ pathname, user, onNavigate }) {
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "12px 10px" }}>
-        {NAV_ITEMS.map((item) => (
-          <NavItem
-            key={item.path}
-            to={item.path}
-            icon={item.icon}
-            label={item.label}
-            active={pathname === item.path}
-            onClick={onNavigate}
-          />
+      <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label}>
+            <div style={{
+              fontSize: "9px",
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.25)",
+              padding: "16px 16px 6px",
+              marginTop: "4px",
+            }}>
+              {section.label}
+            </div>
+            {section.items.map((item) => (
+              <NavItem
+                key={item.path}
+                to={item.path}
+                icon={item.icon}
+                label={item.label}
+                active={pathname === item.path}
+                onClick={onNavigate}
+              />
+            ))}
+          </div>
         ))}
       </nav>
 

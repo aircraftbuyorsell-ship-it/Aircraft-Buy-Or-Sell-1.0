@@ -141,6 +141,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
+          <CookieConsent />
           <GDPRConsentBanner />
           <Toaster />
         </Router>

@@ -489,30 +489,30 @@ export default function ATIQuickScore() {
                       {band.label}
                     </span>
                   </div>
+                </div>
 
-                  {/* AI Disclaimer */}
-                  <div style={{
-                    marginTop: "16px",
-                    padding: "12px 16px",
-                    background: "rgba(245,194,66,0.04)",
-                    border: "0.5px solid rgba(245,194,66,0.18)",
-                    borderRadius: "8px",
-                    display: "flex",
-                    gap: "10px",
-                    alignItems: "flex-start",
+                {/* AI Disclaimer */}
+                <div style={{
+                  marginTop: "16px",
+                  padding: "12px 16px",
+                  background: "rgba(245,194,66,0.04)",
+                  border: "0.5px solid rgba(245,194,66,0.18)",
+                  borderRadius: "8px",
+                  display: "flex",
+                  gap: "10px",
+                  alignItems: "flex-start",
+                }}>
+                  <span style={{ fontSize: "13px", lineHeight: 1, flexShrink: 0, marginTop: "1px" }}>⚠️</span>
+                  <p style={{
+                    fontSize: "11px",
+                    color: "rgba(255,255,255,0.45)",
+                    lineHeight: 1.6,
+                    margin: 0,
                   }}>
-                    <span style={{ fontSize: "13px", lineHeight: 1, flexShrink: 0, marginTop: "1px" }}>⚠️</span>
-                    <p style={{
-                      fontSize: "11px",
-                      color: "rgba(255,255,255,0.45)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}>
-                      <strong style={{ color: "rgba(245,194,66,0.70)", fontWeight: 700 }}>AI-generated estimate.</strong>{" "}
-                      ATI Score and OMVM are decision-support tools only — not a certified appraisal, not a substitute for a professional pre-purchase inspection, and not a guarantee of market value. Always obtain an independent inspection before any transaction.{" "}
-                      <a href="/terms#ai" style={{ color: "rgba(245,194,66,0.55)", textDecoration: "none" }}>Full disclaimer →</a>
-                    </p>
-                  </div>
+                    <strong style={{ color: "rgba(245,194,66,0.70)", fontWeight: 700 }}>AI-generated estimate.</strong>{" "}
+                    ATI Score and OMVM are decision-support tools only — not a certified appraisal, not a substitute for a professional pre-purchase inspection, and not a guarantee of market value. Always obtain an independent inspection before any transaction.{" "}
+                    <a href="/terms#ai" style={{ color: "rgba(245,194,66,0.55)", textDecoration: "none" }}>Full disclaimer →</a>
+                  </p>
                 </div>
               </div>
             )}

@@ -94,12 +94,16 @@ function Card({ listing: l }) {
           
           {/* Front side */}
           <div className="absolute inset-0 bg-white border border-black/[0.08] shadow-xl overflow-hidden flex flex-col" style={{ borderRadius: 15, backfaceVisibility: "hidden" }}>
-            <div className="relative h-[34%] bg-[#F7F4EF] border-b border-black/[0.06] overflow-hidden">
+            <div className="relative h-[38%] bg-[#F7F4EF] border-b border-black/[0.06] overflow-hidden">
               {photo ?
-              <img src={photo} alt={aircraftTitle} className="w-full h-full object-cover" /> :
+              <>
+                <img src={photo} alt={aircraftTitle} className="w-full h-full object-cover" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.35), transparent 45%)" }} />
+              </> :
 
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0B2D5B] to-[#111113]">
-                  <span className="text-[#E8A83A] text-[10px] uppercase tracking-[0.24em] font-black">Frontside Photo</span>
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0B2D5B] to-[#111113]">
+                  <span className="text-[#E8A83A] text-2xl font-black tracking-[0.18em]">ABOS</span>
+                  <span className="text-white/35 text-[9px] uppercase tracking-[0.24em] font-bold mt-1.5">Photo Pending</span>
                 </div>
               }
               <div className="absolute top-3 left-3 bg-white/92 backdrop-blur rounded-full px-2.5 py-1 border border-black/[0.08]">

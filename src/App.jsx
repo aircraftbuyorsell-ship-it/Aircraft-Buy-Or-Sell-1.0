@@ -55,6 +55,7 @@ import ATIVerifySession from "./pages/ATIVerifySession";
 import SupabaseSync from "./pages/SupabaseSync";
 import FAAMap from "./pages/FAAMap";
 import IntraZoneDemo from "./pages/IntraZoneDemo";
+import CookieConsent from "./components/CookieConsent";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -94,8 +95,9 @@ const AuthenticatedApp = () => {
         <Route path="/valuation" element={<Valuation />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyComplete />} />
-        <Route path="/privacy" element={<PrivacyPolicyComplete />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/gdpr-compliance" element={<GDPRCompliance />} />
         <Route path="/affiliate-agreement" element={<AffiliateAgreement />} />
@@ -139,6 +141,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
+          <CookieConsent />
           <GDPRConsentBanner />
           <Toaster />
         </Router>

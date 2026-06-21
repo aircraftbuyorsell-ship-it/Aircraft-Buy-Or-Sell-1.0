@@ -469,6 +469,31 @@ Return ONLY valid JSON with this exact schema:
                 <div style={{ marginTop: "14px", height: "3px", borderRadius: "99px", background: T.w4, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${(result.total / 120) * 100}%`, background: verdict.color, borderRadius: "99px", transition: "width 0.5s cubic-bezier(0.16,1,0.3,1)" }} />
                 </div>
+
+                {/* ATI Score AI Disclaimer */}
+                <div style={{
+                  marginTop: "12px",
+                  padding: "10px 14px",
+                  background: "rgba(245,194,66,0.04)",
+                  border: "0.5px solid rgba(245,194,66,0.18)",
+                  borderRadius: "8px",
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "flex-start",
+                }}>
+                  <span style={{ fontSize: "12px", lineHeight: 1, flexShrink: 0, marginTop: "1px" }}>⚠️</span>
+                  <p style={{
+                    fontSize: "10px",
+                    color: "rgba(255,255,255,0.40)",
+                    lineHeight: 1.6,
+                    margin: 0,
+                  }}>
+                    <strong style={{ color: "rgba(245,194,66,0.65)", fontWeight: 700 }}>AI estimate only.</strong>{" "}
+                    ATI Score is model-generated decision support — not a certified appraisal or substitute for a professional inspection. Per{" "}
+                    <a href="/terms" style={{ color: "rgba(245,194,66,0.50)", textDecoration: "none" }}>Terms of Service §3</a>
+                    {" "}and EU AI Act 2024/1689.
+                  </p>
+                </div>
               </div>
 
               {/* Aircraft identity */}
@@ -506,6 +531,32 @@ Return ONLY valid JSON with this exact schema:
                         {parseFloat(priceDiff) >= 0 ? "▼" : "▲"} {Math.abs(parseFloat(priceDiff))}%
                       </p>
                     ) : <p style={{ fontSize: "13px", color: T.w3, margin: 0 }}>—</p>}
+                  </div>
+
+                  {/* OMVM AI Disclaimer */}
+                  <div style={{
+                    gridColumn: "1 / -1",
+                    marginTop: "12px",
+                    padding: "10px 14px",
+                    background: "rgba(245,194,66,0.04)",
+                    border: "0.5px solid rgba(245,194,66,0.18)",
+                    borderRadius: "8px",
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "flex-start",
+                  }}>
+                    <span style={{ fontSize: "12px", lineHeight: 1, flexShrink: 0, marginTop: "1px" }}>⚠️</span>
+                    <p style={{
+                      fontSize: "10px",
+                      color: "rgba(255,255,255,0.40)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}>
+                      <strong style={{ color: "rgba(245,194,66,0.65)", fontWeight: 700 }}>AI estimate only.</strong>{" "}
+                      OMVM is not a certified appraisal. Value is model-generated and may differ from actual market price. Not a substitute for a professional inspection. Per{" "}
+                      <a href="/terms" style={{ color: "rgba(245,194,66,0.50)", textDecoration: "none" }}>Terms of Service §3</a>
+                      {" "}and EU AI Act 2024/1689.
+                    </p>
                   </div>
                 </div>
               )}

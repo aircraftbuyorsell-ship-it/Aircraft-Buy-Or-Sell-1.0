@@ -489,7 +489,7 @@ Return ONLY valid JSON with this exact schema:
                     margin: 0,
                   }}>
                     <strong style={{ color: "rgba(245,194,66,0.65)", fontWeight: 700 }}>AI estimate only.</strong>{" "}
-                    ATI Score is model-generated decision support — not a certified appraisal or substitute for a professional inspection. Per{" "}
+                    ATI Score is model-generated decision support — not a certified appraisal and not a substitute for a professional inspection. Per{" "}
                     <a href="/terms" style={{ color: "rgba(245,194,66,0.50)", textDecoration: "none" }}>Terms of Service §3</a>
                     {" "}and EU AI Act 2024/1689.
                   </p>
@@ -532,7 +532,6 @@ Return ONLY valid JSON with this exact schema:
                       </p>
                     ) : <p style={{ fontSize: "13px", color: T.w3, margin: 0 }}>—</p>}
                   </div>
-
                   {/* OMVM AI Disclaimer */}
                   <div style={{
                     gridColumn: "1 / -1",

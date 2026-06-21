@@ -96,8 +96,8 @@ const AuthenticatedApp = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyComplete />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/gdpr-compliance" element={<GDPRCompliance />} />
         <Route path="/affiliate-agreement" element={<AffiliateAgreement />} />
@@ -141,7 +141,6 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
-          <CookieConsent />
           <GDPRConsentBanner />
           <Toaster />
         </Router>

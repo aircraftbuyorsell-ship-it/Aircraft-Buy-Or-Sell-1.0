@@ -55,6 +55,31 @@ function SidebarContent({ pathname, user, onNavigate }) {
         ))}
       </nav>
 
+      {/* Legal Footer */}
+      <div style={{
+        borderTop: "0.5px solid rgba(255,255,255,0.06)",
+        padding: "16px 16px 20px",
+        marginTop: "auto",
+      }}>
+        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0 0 8px", letterSpacing: "0.02em" }}>
+          © 2026 ABOS s.r.o.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <a href="/terms" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+            Terms of Service
+          </a>
+          <a href="/privacy" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+            Privacy Policy
+          </a>
+          <button
+            onClick={() => window.ABOS_openCookieSettings?.()}
+            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}
+          >
+            Cookie Settings
+          </button>
+        </div>
+      </div>
+
       {/* User info */}
       <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: "12px 16px" }}>
         {user ? (

@@ -57,6 +57,7 @@ import FAAMap from "./pages/FAAMap";
 import IntraZoneDemo from "./pages/IntraZoneDemo";
 import CookieConsent from "./components/CookieConsent";
 import DSAPolicy from "./pages/DSAPolicy";
+import AITransparency from "./pages/AITransparency";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -130,8 +131,8 @@ const AuthenticatedApp = () => {
         <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
         <Route path="/faa-map" element={<FAAMap />} />
         <Route path="/demo" element={<IntraZoneDemo />} />
-        <Route path="/dsa-policy" element={<DSAPolicy />} />
-        <Route path="/dsa" element={<DSAPolicy />} />
+        <Route path="/legal/dsa" element={<DSAPolicy />} />
+        <Route path="/legal/ai-transparency" element={<AITransparency />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

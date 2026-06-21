@@ -112,6 +112,12 @@ function SidebarContent({ pathname, user, onNavigate }) {
           <a href="/privacy" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
             Privacy Policy
           </a>
+          <a href="/legal/dsa" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+            DSA — Report Content
+          </a>
+          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+            AI Disclosure
+          </a>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
             style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}

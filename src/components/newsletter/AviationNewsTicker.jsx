@@ -39,16 +39,17 @@ export default function AviationNewsTicker() {
     }).catch(() => {});
   }, []);
 
+  const ABOS_AMBER = "#f5c242";
   const ringBg = isDark
-    ? "rgba(0,245,255,0.04)"
-    : "rgba(37,99,235,0.04)";
+    ? "rgba(12,10,6,0.72)"
+    : "rgba(255,255,255,0.72)";
   const ringBorder = isDark
-    ? "rgba(0,245,255,0.18)"
-    : "rgba(37,99,235,0.15)";
-  const accent = isDark ? "#00f5ff" : "#2563eb";
-  const textMuted = isDark ? "rgba(255,255,255,0.60)" : "#4b5563";
-  const textHeadline = isDark ? "rgba(255,255,255,0.82)" : "#1e293b";
-  const sentPositive = "#22c55e";
+    ? `rgba(245,194,66,0.22)`
+    : `rgba(212,160,23,0.20)`;
+  const accent = ABOS_AMBER;
+  const textMuted = isDark ? "rgba(245,194,66,0.42)" : "#6b6560";
+  const textHeadline = isDark ? "rgba(240,232,212,0.88)" : "#1a1814";
+  const sentPositive = "#5dcaa5";
   const sentNegative = "#ef4444";
 
   const headlines = newsItems.length > 0
@@ -66,8 +67,8 @@ export default function AviationNewsTicker() {
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         boxShadow: isDark
-          ? `0 0 30px rgba(0,245,255,0.06), inset 0 0 20px rgba(0,245,255,0.04)`
-          : `0 0 20px rgba(37,99,235,0.04), inset 0 0 10px rgba(37,99,235,0.03)`,
+          ? `0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`
+          : `0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)`,
       }}
     >
       <div className="flex items-center h-9">
@@ -116,8 +117,8 @@ export default function AviationNewsTicker() {
             className="absolute inset-y-0 right-0 w-12 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
             style={{
               background: isDark
-                ? "linear-gradient(to right, transparent, rgba(0,245,255,0.06))"
-                : "linear-gradient(to right, transparent, rgba(37,99,235,0.06))",
+                ? "linear-gradient(to right, transparent, rgba(245,194,66,0.08))"
+                : "linear-gradient(to right, transparent, rgba(212,160,23,0.06))",
             }}
           />
         </Link>

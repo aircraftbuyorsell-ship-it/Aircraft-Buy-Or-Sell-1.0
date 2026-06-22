@@ -798,53 +798,51 @@ export default function Globe({
 
   return (
     <div ref={containerRef} className="relative" style={{ background: "transparent" }}>
-      <div className="absolute inset-0 pointer-events-none z-0"
-        style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+      <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
 
-      <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100 relative z-[1]" />
-
-      {/* Corner brackets */}
-      <div className="pointer-events-none absolute top-0 left-0 z-10" style={{ width: 30, height: 30, borderTop: "2px solid rgba(245,194,66,0.6)", borderLeft: "2px solid rgba(245,194,66,0.6)", borderRadius: "5px 0 0 0" }} />
-      <div className="pointer-events-none absolute top-0 right-0 z-10" style={{ width: 30, height: 30, borderTop: "2px solid rgba(245,194,66,0.6)", borderRight: "2px solid rgba(245,194,66,0.6)", borderRadius: "0 5px 0 0" }} />
-      <div className="pointer-events-none absolute bottom-0 left-0 z-10" style={{ width: 30, height: 30, borderBottom: "2px solid rgba(245,194,66,0.6)", borderLeft: "2px solid rgba(245,194,66,0.6)", borderRadius: "0 0 0 5px" }} />
-      <div className="pointer-events-none absolute bottom-0 right-0 z-10" style={{ width: 30, height: 30, borderBottom: "2px solid rgba(245,194,66,0.6)", borderRight: "2px solid rgba(245,194,66,0.6)", borderRadius: "0 0 5px 0" }} />
-
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-3 left-3 z-20">
         <GlobeClock />
       </div>
 
-      <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 z-10">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl glass-pill" style={{ minWidth: 128 }}>
-          <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
+      <div className="absolute bottom-2 left-2 flex gap-2 z-10">
+        <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+          style={{ color: accentCyan }}>
+          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
             style={{
-              background: trafficStatus === "live" ? accentCyan : trafficStatus === "loading" ? "#E8A83A" : trafficStatus === "error" ? "#ff4d6d" : "#888",
-              boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` : trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
+              background: trafficStatus === "live" ? accentCyan :
+                trafficStatus === "loading" ? "#E8A83A" :
+                  trafficStatus === "error" ? "#ff4d6d" : "#888",
+              boxShadow: trafficStatus === "live" ? `0 0 6px ${accentCyan}` :
+                trafficStatus === "loading" ? "0 0 6px #E8A83A" : "none"
             }} />
-          <span className="text-[8px] font-bold uppercase tracking-[0.12em]" style={{ color: mutedColor }}>ADS-B</span>
-          <span className="ml-auto text-[11px] font-black" style={{ color: accentCyan, fontVariantNumeric: "tabular-nums", fontFamily: "'Courier Prime', monospace" }}>
-            {trafficStatus === "live" ? trafficCount.toLocaleString() : trafficStatus === "loading" ? "…" : trafficStatus === "error" ? "N/A" : "—"}
-          </span>
+          {trafficStatus === "loading" ? "Fetching…" :
+            trafficStatus === "error" ? "Unavailable" :
+              trafficStatus === "live" ? `${trafficCount.toLocaleString()} ADS-B` :
+                "Connecting…"}
         </div>
         {liveCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl glass-pill" style={{ minWidth: 128 }}>
-            <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
-            <span className="text-[8px] font-bold uppercase tracking-[0.12em]" style={{ color: mutedColor }}>Live DB</span>
-            <span className="ml-auto text-[11px] font-black" style={{ color: "#22c55e", fontVariantNumeric: "tabular-nums", fontFamily: "'Courier Prime', monospace" }}>{liveCount.toLocaleString()}</span>
+          <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+            style={{ color: "#22c55e" }}>
+            <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
+              style={{ background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
+            {liveCount.toLocaleString()} Live DB
           </div>
         )}
         {faaCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl glass-pill" style={{ minWidth: 128 }}>
-            <span className="inline-block w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#D4A017", boxShadow: "0 0 6px #D4A017" }} />
-            <span className="text-[8px] font-bold uppercase tracking-[0.12em]" style={{ color: mutedColor }}>FAA</span>
-            <span className="ml-auto text-[11px] font-black" style={{ color: "#D4A017", fontVariantNumeric: "tabular-nums", fontFamily: "'Courier Prime', monospace" }}>{faaCount.toLocaleString()}</span>
+          <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
+            style={{ color: "#D4A017" }}>
+            <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5"
+              style={{ background: "#D4A017", boxShadow: "0 0 6px #D4A017" }} />
+            {faaCount.toLocaleString()} FAA · {faaStateCount} states
           </div>
         )}
       </div>
 
-      <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-xl glass-pill z-10" style={{ minWidth: 128 }}>
-        <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
-        <span className="text-[8px] font-bold uppercase tracking-[0.12em]" style={{ color: mutedColor }}>Listings</span>
-        <span className="ml-auto text-[11px] font-black" style={{ color: "#E8A83A", fontVariantNumeric: "tabular-nums", fontFamily: "'Courier Prime', monospace" }}>{listings.length.toLocaleString()}</span>
+      <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
+        style={{ color: "#E8A83A" }}>
+        <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
+          style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
+        {listings.length.toLocaleString()} listings
       </div>
 
       {detail && (

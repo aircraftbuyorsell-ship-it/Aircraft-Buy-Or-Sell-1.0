@@ -74,7 +74,7 @@ export default function Dashboard() {
 
         {/* ── GLOBE SECTION ── */}
         <section className="px-4 md:px-8 pt-6 pb-4">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div
               style={{
                 background: "rgba(255,255,255,0.04)",
@@ -87,7 +87,7 @@ export default function Dashboard() {
               {/* Teal accent line */}
               <div style={{ height: "2px", background: "rgba(93,202,165,0.55)" }} />
               <div className="relative">
-                <div className="w-full" style={{ height: "clamp(560px, 80vh, 820px)" }}>
+                <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
                   <Globe
                     listings={listings}
                     filter={globeFilter}

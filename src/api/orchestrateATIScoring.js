@@ -21,23 +21,6 @@ function parseAircraftIdentity(text) {
   return { make, model, year };
 }
 
-function parseAskingPrice(text) {
-  const m = text.match(/\$[\d,]+/);
-  return m ? Number(m[0].replace(/[$,]/g, "")) : null;
-}
-function parseEngineHours(text) {
-  const m = text.match(/(?:smoh|engine|smoh)[^\d]*(\d[\d,]+)/i);
-  return m ? Number(m[1].replace(/,/g, "")) : null;
-}
-function parseTBO(text) {
-  const m = text.match(/tbo[^\d]*(\d[\d,]+)/i);
-  return m ? Number(m[1].replace(/,/g, "")) : null;
-}
-function parseAvionics(text) {
-  const m = text.match(/avionics[^\n]*?:\s*([^\n]+)/i);
-  return m ? m[1].trim() : "";
-}
-
 export async function orchestrateATIScoring({ input, nReg }) {
   const { make, model, year } = parseAircraftIdentity(input);
   const omvmBase = getOMVMBase(make, model, year);
@@ -99,36 +82,13 @@ Return ONLY valid JSON.`,
   });
 
   // Anchor OMVM range around the deterministic per-make/model market base
+  // (fixes BUG-001: prior values relied solely on the LLM with no market floor).
   if (omvmBase > 0) {
     res.omvm_low = Math.round(omvmBase * 0.85);
     res.omvm_high = Math.round(omvmBase * 1.15);
   }
   res.omvm_base = omvmBase;
   res.omvm_confidence = omvmConfidence;
-
-  // Call OMVM v5 backend for market-calibrated valuation
-  try {
-    const askingPrice = parseAskingPrice(input) || res.asking_price || null;
-    const v5Res = await base44.functions.invoke("omvmV5Score", {
-      make, model,
-      year: year ? Number(year) : null,
-      engine_hours: parseEngineHours(input),
-      tbo: parseTBO(input),
-      avionics: parseAvionics(input),
-      asking_price: askingPrice,
-    });
-    const v5 = v5Res?.data || v5Res;
-    if (v5?.omvm_value) {
-      res.omvm_value = v5.omvm_value;
-      res.deal_label = v5.deal_label;
-      res.discount_pct = v5.discount_pct;
-      res.omvm_confidence = (v5.confidence || "").toLowerCase();
-      res.comp_sample = v5.comp_sample;
-      res.omvm_version = "v5_market_calibrated";
-    }
-  } catch (e) {
-    console.warn("omvmV5Score failed:", e?.message);
-  }
 
   return res;
 }

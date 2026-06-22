@@ -141,15 +141,6 @@
       "default": "v2",
       "description": "ATI algorithm version (e.g. v2)"
     },
-    "omvm_version": {
-      "type": "string",
-      "description": "OMVM valuation version (e.g. v5_market_calibrated)"
-    },
-    "comp_sample": {
-      "type": "number",
-      "minimum": 0,
-      "description": "Number of comparable sales used for OMVM v5 valuation"
-    },
     "stripe_payment_id": {
       "type": "string",
       "description": "Stripe payment identifier (when paid generation)"

@@ -35,7 +35,8 @@ export default function Dashboard() {
         height: "100dvh",
         overflow: "hidden",
         background: BG,
-        backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.06) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.05) 0%, transparent 52%)",
+        backgroundImage: `radial-gradient(circle, ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"} 1px, transparent 1px), radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.06) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.05) 0%, transparent 52%)`,
+        backgroundSize: "24px 24px, 100% 100%, 100% 100%",
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
       }}
     >

@@ -14,6 +14,7 @@ import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
@@ -252,12 +253,13 @@ export default function Layout() {
       </header>
 
       {/* ── Content ── */}
-      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px]" style={{ background: "#04060a" }}>
+      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px] md:pb-0 pb-20" style={{ background: "#04060a" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>
       </main>
 
+      <MobileBottomNav />
       <SiteFooter />
       <ABOSTour />
     </div>);

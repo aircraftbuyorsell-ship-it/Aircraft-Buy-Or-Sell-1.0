@@ -192,10 +192,15 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 .dark input::placeholder, .dark textarea::placeholder { color: rgba(255,255,255,0.40) !important; }
 
 /* iOS safe area helpers */
-.safe-top   { padding-top:    env(safe-area-inset-top); }
-.safe-bottom{ padding-bottom: env(safe-area-inset-bottom); }
-.safe-left  { padding-left:   env(safe-area-inset-left); }
-.safe-right { padding-right:  env(safe-area-inset-right); }
+.safe-top    { padding-top:    env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-left   { padding-left:   env(safe-area-inset-left); }
+.safe-right  { padding-right:  env(safe-area-inset-right); }
+
+/* Mobile bottom nav padding adjustment */
+@media (max-width: 768px) {
+  main { padding-bottom: env(safe-area-inset-bottom); }
+}
 
 /* ═══════════════════════════════════════════
    SURFACE UTILITIES — clean & minimal

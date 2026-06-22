@@ -212,15 +212,15 @@ export default function ABOSTour() {
       <div className="rounded-2xl shadow-2xl w-full max-w-[680px] max-h-[90vh] overflow-hidden flex flex-col" style={{ background: bgColor, border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
 
         {/* ── Header ── */}
-        <div className="relative px-6 pt-5 pb-4" style={{ background: headerBg }}>
-          <div className="flex items-center gap-2 mb-1">
+        <div className="relative px-6 pt-5 pb-4 hidden" style={{ background: headerBg }}>
+          <div className="flex items-center gap-2 mb-1 hidden">
             <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
               <Plane className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-white/90 text-xs font-bold uppercase tracking-wider">ABOS MarketSpace</span>
           </div>
-          <h2 className="text-white text-xl font-black">Platform Tour</h2>
-          <p className="text-white/60 text-[11px] mt-0.5">{TOUR_STEPS.length} features to explore</p>
+          <h2 className="text-white text-xl font-black hidden">Platform Tour</h2>
+          <p className="text-white/60 text-[11px] mt-0.5 hidden">{TOUR_STEPS.length} features to explore</p>
 
           <button
             onClick={close}
@@ -250,7 +250,7 @@ export default function ABOSTour() {
         </div>
 
         {/* ── Active step detail ── */}
-        <div className="px-5 pt-6 pb-2">
+        <div className="px-5 pt-6 pb-2 hidden">
           <div className="flex items-center gap-2 mb-3 hidden">
             <span className="text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: isDark ? "rgba(0,245,255,0.12)" : "#EBF4FF", color: accentBlue }}>
               Step {currentStep.n} of {TOUR_STEPS.length}

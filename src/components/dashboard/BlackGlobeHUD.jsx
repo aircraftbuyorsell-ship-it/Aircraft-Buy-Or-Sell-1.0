@@ -261,6 +261,7 @@ export default function BlackGlobeHUD({
   stats = { adsbCount: 2315, liveDbCount: 10987, faaCount: 456 },
   listingsCount = 142,
   isDark = true,
+  hideOverlayPills = false,
 }) {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
@@ -521,6 +522,7 @@ export default function BlackGlobeHUD({
       />
 
       {/* Top-Left: UTC time */}
+      {!hideOverlayPills && (
       <div style={{ position: "absolute", top: 20, left: 20, zIndex: 10 }}>
         <Pill t={t}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: t.pinColor, boxShadow: `0 0 8px ${t.pinColor}80`, flexShrink: 0 }} />
@@ -530,11 +532,13 @@ export default function BlackGlobeHUD({
           </div>
         </Pill>
       </div>
+      )}
 
       {/* Top-Right: Navigation + Admin */}
-      <GlobeNav isDark={isDark} />
+      {!hideOverlayPills && <GlobeNav isDark={isDark} />}
 
       {/* Bottom-Left: Stats */}
+      {!hideOverlayPills && (
       <div style={{ position: "absolute", bottom: 20, left: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8 }}>
         {[
           { color: t.pinColor, label: "ADS-B count", value: stats.adsbCount.toLocaleString() },
@@ -551,7 +555,10 @@ export default function BlackGlobeHUD({
         ))}
       </div>
 
+      )}
+
       {/* Bottom-Right: Listings + hint */}
+      {!hideOverlayPills && (
       <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
         <Pill t={t}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: t.pinColor, boxShadow: `0 0 8px ${t.pinColor}80`, flexShrink: 0 }} />
@@ -568,6 +575,7 @@ export default function BlackGlobeHUD({
           Click a pin to expand listings
         </div>
       </div>
+      )}
 
       {/* Cluster popup */}
       {popup && (

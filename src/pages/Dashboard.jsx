@@ -49,8 +49,20 @@ export default function Dashboard() {
           listingsCount={listings.length}
           stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
           isDark={isDark}
+          hideOverlayPills
         />
       </div>
+
+      {/* ── READABILITY SCRIMS — gradient overlays for text contrast ── */}
+      {/* Top fade */}
+      <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+        style={{ height: "30%", background: "linear-gradient(to bottom, rgba(4,6,10,0.72) 0%, rgba(4,6,10,0.4) 50%, transparent 100%)" }} />
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
+        style={{ height: "48%", background: "linear-gradient(to top, rgba(4,6,10,0.82) 0%, rgba(4,6,10,0.55) 35%, rgba(4,6,10,0.2) 70%, transparent 100%)" }} />
+      {/* Center radial vignette behind search */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"
+        style={{ width: "520px", height: "200px", background: "radial-gradient(ellipse at center, rgba(4,6,10,0.65) 0%, rgba(4,6,10,0.25) 50%, transparent 75%)" }} />
 
       {/* ── TOP BAR: brand + subscription ── */}
       <div className="absolute top-0 left-0 right-0 z-20 px-4 md:px-8 pt-4">
@@ -86,7 +98,7 @@ export default function Dashboard() {
 
         {/* CTA cards — compact floating panel */}
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 md:grid-cols-3 gap-1.5 md:gap-2.5">
 
             {/* MarketSpace */}
             <Link to="/listings" className="block">
@@ -103,7 +115,7 @@ export default function Dashboard() {
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform" style={{ color: ABOS_AMBER }} />
                 </div>
-                <p className="text-[10px] leading-snug mt-1.5" style={{ color: mutedColor }}>
+                <p className="text-[10px] leading-snug mt-1.5 abos-cta-text" style={{ color: mutedColor }}>
                   Browse listings, verify N-Reg, check deal scores.
                 </p>
               </div>
@@ -124,7 +136,7 @@ export default function Dashboard() {
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform" style={{ color: ABOS_AMBER }} />
                 </div>
-                <p className="text-[10px] leading-snug mt-1.5" style={{ color: mutedColor }}>
+                <p className="text-[10px] leading-snug mt-1.5 abos-cta-text" style={{ color: mutedColor }}>
                   Full ATI, OMVM valuation, deal pipeline, API.
                 </p>
               </div>
@@ -156,7 +168,7 @@ export default function Dashboard() {
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform" style={{ color: ABOS_AMBER }} />
                 </div>
-                <p className="text-[10px] leading-snug mt-1.5" style={{ color: mutedColor }}>
+                <p className="text-[10px] leading-snug mt-1.5 abos-cta-text" style={{ color: mutedColor }}>
                   Try ATI scoring — 30 min, no credit card.
                 </p>
               </div>
@@ -166,10 +178,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Mobile: hide some elements to fit */}
+      {/* Mobile / responsive adjustments */}
       <style>{`
-        @media (max-height: 640px) {
+        @media (max-width: 640px) {
           .abos-news-wrap { display: none; }
+        }
+        @media (max-width: 380px) {
+          .abos-cta-text { display: none; }
         }
       `}</style>
     </div>

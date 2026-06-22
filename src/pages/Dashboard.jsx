@@ -63,19 +63,19 @@ export default function Dashboard() {
       style={{ width: "520px", height: "200px", background: `radial-gradient(ellipse at center, rgba(${SCRIM},0.85) 0%, rgba(${SCRIM},0.4) 50%, transparent 75%)` }} />
 
       {/* ── TOP BAR: brand + subscription ── */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-4 md:px-8 pt-4 hidden">
-        <div className="flex items-center justify-between">
-          <div>
-            <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: ABOS_AMBER }}>
-              A.B.O.S — Aircraft Buy or Sell
-            </p>
-            <h1 style={{ fontSize: "18px", fontWeight: 700, letterSpacing: "-0.03em", color: NAVY, margin: "1px 0 0" }}>
-              Aviation Intelligence Platform
-            </h1>
-          </div>
-          <SubscriptionBadge />
-        </div>
-      </div>
+      
+
+
+
+
+
+
+
+
+
+
+
+      
 
       {/* ── CENTER: N-Reg search ── */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-full px-4 md:px-8 pointer-events-none">

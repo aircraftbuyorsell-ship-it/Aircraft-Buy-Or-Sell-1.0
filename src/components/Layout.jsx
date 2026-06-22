@@ -14,6 +14,7 @@ import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
+import MobileTopNav from "@/components/layout/MobileTopNav";
 
 const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
@@ -220,8 +221,8 @@ export default function Layout() {
         <SidebarContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
       </aside>
 
-      {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 lg:ml-[220px]"
+      {/* ── Desktop Top bar ── */}
+      <header className="hidden md:block sticky top-0 z-40 lg:ml-[220px]"
         style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
           {showBack ? (
@@ -251,8 +252,10 @@ export default function Layout() {
         </div>
       </header>
 
+
+
       {/* ── Content ── */}
-      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px]" style={{ background: "#04060a" }}>
+      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px] md:pt-[58px]" style={{ background: "#04060a" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>
@@ -260,6 +263,7 @@ export default function Layout() {
 
       <SiteFooter />
       <ABOSTour />
-    </div>
+      </div>
+    </>
   );
 }

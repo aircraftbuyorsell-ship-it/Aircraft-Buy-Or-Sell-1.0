@@ -110,47 +110,47 @@ export default function SubscriptionBadge() {
   const Icon = meta.icon;
   const credits = toCredits(tokens);
 
-  return (
-    <div className={`rounded-2xl border hidden ${meta.border} ${meta.bg} px-5 py-4`}>
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${meta.bg} border ${meta.border}`}>
-            <Icon className={`w-4 h-4 ${meta.color}`} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] font-black text-foreground">{meta.label}</span>
-              {meta.isBeneficiary &&
-              <span className={`text-[9px] uppercase tracking-[0.15em] font-black px-2 py-0.5 rounded-full ${meta.badge}`}>
-                  ✦ Beneficiary
-                </span>
-              }
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              {meta.isBeneficiary ?
-              `${credits.toLocaleString()} credits available` :
-              "Free tier — upgrade to unlock more"}
-            </p>
-          </div>
-        </div>
-        {!meta.isBeneficiary &&
-        <Link to="/pricing"
-        className="text-[10px] font-black text-[#D4A017] hover:text-[#A67C00] uppercase tracking-wider transition-colors shrink-0">
-            Upgrade →
-          </Link>
-        }
-      </div>
+  return null;
 
-      {/* Features grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-        {features.map((f) =>
-        <div key={f} className="flex items-center gap-1.5">
-            <CheckCircle2 className={`w-3 h-3 shrink-0 ${meta.color}`} />
-            <span className="text-[11px] text-muted-foreground leading-tight">{f}</span>
-          </div>
-        )}
-      </div>
-    </div>);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

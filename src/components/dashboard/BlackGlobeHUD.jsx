@@ -130,7 +130,7 @@ function getTheme(isDark) {
       oceanInner: "#0A0A0A",
       oceanMid: "#050505",
       oceanOuter: "#000000",
-      continentFill: "rgba(245,240,232,0.10)",   // subtle fill so yellow outline pops
+      continentFill: "rgba(245,194,66,0.08)",     // very subtle amber fill
       continentStroke: amber,                     // brand yellow outline
       dotGrid: "rgba(255,255,255,0.025)",
       rim: "rgba(255,255,255,0.06)",
@@ -343,7 +343,7 @@ export default function BlackGlobeHUD({
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.clip();
 
-      // Continents
+      // Continents — thick yellow outline with glow
       for (const poly of POLYGONS) {
         for (const ring of poly) {
           ctx.beginPath();
@@ -355,9 +355,13 @@ export default function BlackGlobeHUD({
           ctx.closePath();
           ctx.fillStyle = th.continentFill;
           ctx.fill();
+          // Glow pass
+          ctx.shadowColor = th.continentStroke;
+          ctx.shadowBlur = 6 * DPR;
           ctx.strokeStyle = th.continentStroke;
-          ctx.lineWidth = 1 * DPR;
+          ctx.lineWidth = 1.8 * DPR;
           ctx.stroke();
+          ctx.shadowBlur = 0;
         }
       }
 

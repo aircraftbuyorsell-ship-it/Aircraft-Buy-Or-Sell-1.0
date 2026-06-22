@@ -132,6 +132,8 @@ function getTheme(isDark) {
       oceanOuter: "#000000",
       continentFill: "rgba(245,194,66,0.08)",     // very subtle amber fill
       continentStroke: amber,                     // brand yellow outline
+      oceanFill: "rgba(245,194,66,0.04)",          // subtle gold tint
+      oceanDotGrid: "rgba(245,194,66,0.10)",       // gold dot grid on surface
       dotGrid: "rgba(255,255,255,0.025)",
       rim: "rgba(255,255,255,0.06)",
       atmosphere: `${amber}08`,
@@ -164,6 +166,8 @@ function getTheme(isDark) {
     oceanOuter: "#b8c5d6",
     continentFill: "rgba(45,80,55,0.65)",
     continentStroke: "rgba(30,50,35,0.4)",
+    oceanFill: "rgba(192,202,216,0.35)",           // subtle silver tint
+    oceanDotGrid: "rgba(140,155,175,0.18)",         // silver dot grid on surface
     dotGrid: "rgba(0,0,0,0.03)",
     rim: "rgba(0,0,0,0.10)",
     atmosphere: `${amber}0D`,
@@ -329,13 +333,32 @@ export default function BlackGlobeHUD({
       const th = tRef.current;
       ctx.clearRect(0, 0, W, H);
 
-      // Ocean — transparent (no fill, let dashboard background show through)
-      // (intentionally removed)
+      // Ocean — subtle silver/gold tint with radial gradient for sphere depth
+      const oceanGrad = ctx.createRadialGradient(CX - R * 0.3, CY - R * 0.3, R * 0.1, CX, CY, R);
+      oceanGrad.addColorStop(0, th.oceanFill);
+      oceanGrad.addColorStop(1, "transparent");
+      ctx.beginPath();
+      ctx.arc(CX, CY, R, 0, Math.PI * 2);
+      ctx.fillStyle = oceanGrad;
+      ctx.fill();
 
       ctx.save();
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.clip();
+
+      // Surface dot grid — denser pattern for texture
+      ctx.fillStyle = th.oceanDotGrid;
+      for (let la = -85; la <= 85; la += 5) {
+        for (let lo = -180; lo <= 180; lo += 5) {
+          const p = project(lo, la);
+          if (!p.vis) continue;
+          const size = (0.4 + p.depth * 0.4) * DPR;
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
 
       // Continents — thick yellow outline with glow
       for (const poly of POLYGONS) {

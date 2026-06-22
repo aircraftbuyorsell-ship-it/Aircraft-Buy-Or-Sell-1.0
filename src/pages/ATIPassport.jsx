@@ -250,16 +250,21 @@ Return ONLY raw JSON:
       let discountPct = null;
       let deal_score = null;
       let deal_label = null;
+      let omvm_version = null;
+      let comp_sample = null;
       try {
-        const valRes = await base44.functions.invoke("marketExpertValuation", { listingId });
-        if (Number.isFinite(valRes?.data?.market_estimate) && valRes.data.market_estimate > 0) {
-          omvm_value = valRes.data.market_estimate;
-          discountPct = valRes.data.discount_pct;
-          deal_score = valRes.data.deal_score;
-          deal_label = valRes.data.deal_label;
+        const valRes = await base44.functions.invoke("omvmV5Score", { listingId });
+        const v5 = valRes?.data || valRes;
+        if (Number.isFinite(v5?.omvm_value) && v5.omvm_value > 0) {
+          omvm_value = v5.omvm_value;
+          discountPct = v5.discount_pct;
+          deal_score = v5.deal_score;
+          deal_label = v5.deal_label;
+          omvm_version = "v5_market_calibrated";
+          comp_sample = v5.comp_sample;
         }
       } catch (valErr) {
-        console.warn("marketExpertValuation failed:", valErr?.message);
+        console.warn("omvmV5Score failed:", valErr?.message);
       }
 
       if (discountPct == null && listing.asking_price && omvm_value) {
@@ -294,6 +299,7 @@ Return ONLY raw JSON:
         co_ownership_viable: result.co_ownership_viable || false,
         omvm_value, deal_score, deal_label, discount_pct: discountPct,
         ati_version: "v2",
+        omvm_version, comp_sample,
       });
 
       await base44.entities.AircraftListing.update(listingId, {
@@ -630,7 +636,14 @@ Return ONLY raw JSON:
 
                   {/* Expert Estimate — highlighted box */}
                   <div className="bg-[#F2F0EB] border border-[#0B2D5B]/10 rounded-xl px-4 py-3 mb-4">
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-[#4A4550] font-bold mb-1">Expert Estimate</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-[#4A4550] font-bold">Expert Estimate</p>
+                      {passport.omvm_version && (
+                        <span className="text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[rgba(93,202,165,0.08)] text-[#0F7A56] border border-[rgba(93,202,165,0.2)]">
+                          OMVM v5 · Market Calibrated
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-baseline gap-2">
                       <p className="text-xl font-black text-[#0B2D5B]">
                         {passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—"}
@@ -638,15 +651,20 @@ Return ONLY raw JSON:
                       {(() => {
                         const d = Number(passport.discount_pct);
                         if (!Number.isFinite(d)) return null;
-                        const pct = Math.round(Math.abs(d));
+                        const pct = Math.abs(d);
                         const isBelow = d >= 0;
                         return (
                           <span className={`text-[12px] font-black px-2 py-0.5 rounded-full border ${isBelow ? "text-[#0F7A56] border-[#0F7A56]/20 bg-[#0F7A56]/5" : "text-[#C0392B] border-[#C0392B]/20 bg-[#C0392B]/5"}`}>
-                            {isBelow ? "▼" : "▲"} {pct}%
+                            {isBelow ? "+" : "-"}{pct}% {isBelow ? "below" : "above"} market
                           </span>
                         );
                       })()}
                     </div>
+                    {passport.comp_sample != null && (
+                      <p className="text-[10px] text-[#6B6560] mt-1.5">
+                        based on {passport.comp_sample} comparable {passport.comp_sample === 1 ? "sale" : "sales"}
+                      </p>
+                    )}
                   </div>
 
                   {/* Deal Quality row */}

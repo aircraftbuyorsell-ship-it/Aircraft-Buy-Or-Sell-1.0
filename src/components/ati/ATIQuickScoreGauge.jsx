@@ -120,7 +120,71 @@ export function FlagsList({ result }) {
   );
 }
 
+const DEAL_COLORS = {
+  "hot deal":     { color: "#5dcaa5", bg: "rgba(93,202,165,0.09)", bdr: "rgba(93,202,165,0.20)" },
+  "good deal":    { color: "rgba(93,202,165,0.60)", bg: "rgba(93,202,165,0.06)", bdr: "rgba(93,202,165,0.15)" },
+  "fair":         { color: "#f5c242", bg: "rgba(245,194,66,0.09)", bdr: "rgba(245,194,66,0.22)" },
+  "overpriced":   { color: "#e24b4a", bg: "rgba(226,75,74,0.09)", bdr: "rgba(226,75,74,0.22)" },
+};
+
+const CONFIDENCE_STYLES = {
+  high:   { color: "#5dcaa5", bg: "rgba(93,202,165,0.09)", bdr: "rgba(93,202,165,0.20)", label: "HIGH" },
+  medium: { color: "#f5c242", bg: "rgba(245,194,66,0.09)", bdr: "rgba(245,194,66,0.22)", label: "MEDIUM" },
+  low:    { color: "rgba(255,255,255,0.35)", bg: "rgba(255,255,255,0.06)", bdr: "rgba(255,255,255,0.08)", label: "LOW" },
+};
+
 export function OMVMValue({ result }) {
+  // OMVM v5 path — market-calibrated single value
+  if (result.omvm_value) {
+    const deal = DEAL_COLORS[(result.deal_label || "").toLowerCase()];
+    const conf = CONFIDENCE_STYLES[(result.omvm_confidence || "").toLowerCase()] || CONFIDENCE_STYLES.low;
+    const disc = result.discount_pct;
+    const isBelow = disc != null && disc >= 0;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+        <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          OMVM v5 · Market Calibrated
+        </span>
+        <span style={{ color: "#5dcaa5", fontSize: "26px", fontWeight: 600, letterSpacing: "-0.03em" }}>
+          ${result.omvm_value.toLocaleString()}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
+          {deal && (
+            <span style={{
+              fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+              padding: "2px 10px", borderRadius: "9999px", border: "0.5px solid",
+              color: deal.color, background: deal.bg, borderColor: deal.bdr,
+            }}>
+              {result.deal_label}
+            </span>
+          )}
+          {disc != null && (
+            <span style={{
+              fontSize: "10px", fontWeight: 600,
+              color: isBelow ? "#5dcaa5" : "#e24b4a",
+            }}>
+              {isBelow ? "+" : ""}{Math.abs(disc)}% {isBelow ? "below" : "above"} market
+            </span>
+          )}
+          <span style={{
+            fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
+            padding: "2px 8px", borderRadius: "9999px", border: "0.5px solid",
+            color: conf.color, background: conf.bg, borderColor: conf.bdr,
+          }}>
+            {conf.label}
+          </span>
+        </div>
+        {result.comp_sample != null && (
+          <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>
+            based on {result.comp_sample} comparable {result.comp_sample === 1 ? "sale" : "sales"}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Legacy fallback — OMVM range from LLM
   if (!result.omvm_low || !result.omvm_high) return null;
   const mid = Math.round((result.omvm_low + result.omvm_high) / 2);
   const omvmConfidence = result.omvm_confidence;

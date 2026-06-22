@@ -226,14 +226,20 @@ Return JSON:
 
     // ─── 3) OMVM valuation via omvmV5Score ─────────────
     let omvmValue = null;
+    let omvmVersion = null;
+    let compSample = null;
+    let omvmConfidence = null;
     try {
       const omvmResult = await base44.functions.invoke("omvmV5Score", {
         listingId,
       });
-      omvmValue = omvmResult?.data?.omvm_value ?? omvmResult?.omvm_value ?? null;
+      const v5 = omvmResult?.data || omvmResult;
+      omvmValue = v5?.omvm_value ?? null;
+      omvmVersion = v5 ? "v5_market_calibrated" : null;
+      compSample = v5?.comp_sample ?? null;
+      omvmConfidence = v5?.confidence ?? null;
     } catch (err) {
       console.error("[orchestrateATIScoring] omvmV5Score failed:", err);
-      // omvmValue stays null — no fallback to hardcoded values
     }
     const discountPct = listing.asking_price && omvmValue != null
       ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
@@ -313,6 +319,13 @@ Return JSON:
       ati_total: atiTotal,
       score_label: scoreLabel,
       dimensions: dimensionScores,
+      omvm_value: omvmValue,
+      omvm_version: omvmVersion,
+      comp_sample: compSample,
+      omvm_confidence: omvmConfidence,
+      discount_pct: discountPct,
+      deal_score: dealScore,
+      deal_label: dealLabel,
     });
   } catch (error) {
     return Response.json({ error: error.message, stack: error.stack }, { status: 500 });

@@ -77,13 +77,44 @@ export default function Dashboard() {
 
       
 
-      {/* ── CENTER: N-Reg search ── */}
+      {/* ── CENTER: N-Reg search — redesigned hero section ── */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-full px-4 md:px-8 pointer-events-none">
-        <div className="max-w-xl mx-auto pointer-events-auto">
-          <p className="text-center text-[9px] tracking-[0.22em] font-bold mb-2" style={{ color: ABOS_AMBER }}>
-            FAA N-REGISTRY LOOKUP
-          </p>
-          <DashboardNRegSearch />
+        <div className="max-w-2xl mx-auto pointer-events-auto">
+          {/* Hero container with gradient backdrop */}
+          <div className="rounded-3xl p-8 md:p-12 backdrop-blur-md border"
+            style={{
+              background: isDark
+                ? "linear-gradient(135deg, rgba(245,194,66,0.08) 0%, rgba(245,194,66,0.03) 100%)"
+                : "linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(245,255,255,0.60) 100%)",
+              border: isDark ? "1px solid rgba(245,194,66,0.20)" : "1px solid rgba(212,160,23,0.25)",
+              boxShadow: isDark
+                ? "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(245,194,66,0.15)"
+                : "0 20px 60px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.80)"
+            }}>
+            {/* Heading */}
+            <div className="text-center mb-6">
+              <p className="text-[8px] tracking-[0.24em] font-bold mb-3 uppercase" style={{ color: ABOS_AMBER }}>
+                ✈️ Instant Registry Search
+              </p>
+              <h2 className="text-2xl md:text-3xl font-black mb-2" style={{ color: NAVY, letterSpacing: "-0.02em" }}>
+                Verify Any Aircraft
+              </h2>
+              <p className="text-[12px] md:text-sm" style={{ color: MUTED }}>
+                Look up FAA registration, aircraft details, and market insights in seconds
+              </p>
+            </div>
+            
+            {/* Search component */}
+            <DashboardNRegSearch />
+            
+            {/* Quick stats footer */}
+            <div className="mt-6 pt-6 border-t flex items-center justify-between text-[10px]"
+              style={{ borderColor: isDark ? "rgba(245,194,66,0.15)" : "rgba(0,0,0,0.06)" }}>
+              <span style={{ color: MUTED }}>🌐 Live FAA Database</span>
+              <span style={{ color: MUTED }}>⚡ Sub-second Lookup</span>
+              <span style={{ color: MUTED }}>✓ Verified Data</span>
+            </div>
+          </div>
         </div>
       </div>
 

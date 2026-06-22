@@ -13,7 +13,7 @@ const PLAN_META = {
     bg: "bg-slate-100 dark:bg-slate-800/40",
     border: "border-slate-200 dark:border-slate-700",
     badge: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200",
-    isBeneficiary: false,
+    isBeneficiary: false
   },
   starter: {
     label: "Starter",
@@ -22,7 +22,7 @@ const PLAN_META = {
     bg: "bg-[rgba(0,181,204,0.06)] dark:bg-[rgba(0,245,255,0.06)]",
     border: "border-[rgba(0,181,204,0.25)] dark:border-[rgba(0,245,255,0.2)]",
     badge: "bg-[rgba(0,181,204,0.15)] text-[#007a8c] dark:text-[#00f5ff]",
-    isBeneficiary: true,
+    isBeneficiary: true
   },
   pro: {
     label: "Pro",
@@ -31,7 +31,7 @@ const PLAN_META = {
     bg: "bg-[rgba(212,160,23,0.06)]",
     border: "border-[rgba(212,160,23,0.25)]",
     badge: "bg-[rgba(212,160,23,0.15)] text-[#A67C00]",
-    isBeneficiary: true,
+    isBeneficiary: true
   },
   enterprise: {
     label: "Enterprise",
@@ -40,8 +40,8 @@ const PLAN_META = {
     bg: "bg-purple-50 dark:bg-purple-900/10",
     border: "border-purple-200 dark:border-purple-700/40",
     badge: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-    isBeneficiary: true,
-  },
+    isBeneficiary: true
+  }
 };
 
 // Map tier + sub_tier to a display plan key
@@ -54,37 +54,37 @@ function resolvePlanKey(tier, subTier, tokens) {
 // Features shown per plan key
 const PLAN_FEATURES = {
   free_explorer: [
-    "Browse all public listings",
-    "20 ATI preview credits",
-    "Basic market insights",
-    "Live traffic map",
-  ],
+  "Browse all public listings",
+  "20 ATI preview credits",
+  "Basic market insights",
+  "Live traffic map"],
+
   starter: [
-    "500 ATI credits included",
-    "Full ATI Passport reports",
-    "Deal Radar access",
-    "Leads CRM",
-    "Bulk import (ZIP / JSON)",
-    "Priority market insights",
-  ],
+  "500 ATI credits included",
+  "Full ATI Passport reports",
+  "Deal Radar access",
+  "Leads CRM",
+  "Bulk import (ZIP / JSON)",
+  "Priority market insights"],
+
   pro: [
-    "Full ATI Passport reports",
-    "Deal Radar access",
-    "Bulk import (ZIP / JSON)",
-    "Leads CRM",
-    "Branded PDF exports",
-    "Priority AI models",
-    "White-label branding",
-  ],
+  "Full ATI Passport reports",
+  "Deal Radar access",
+  "Bulk import (ZIP / JSON)",
+  "Leads CRM",
+  "Branded PDF exports",
+  "Priority AI models",
+  "White-label branding"],
+
   enterprise: [
-    "Unlimited tokens",
-    "Full ATI suite",
-    "API access",
-    "Custom integrations",
-    "Dedicated account manager",
-    "Team seats",
-    "SLA & priority support",
-  ],
+  "Unlimited tokens",
+  "Full ATI suite",
+  "API access",
+  "Custom integrations",
+  "Dedicated account manager",
+  "Team seats",
+  "SLA & priority support"]
+
 };
 
 export default function SubscriptionBadge() {
@@ -92,18 +92,18 @@ export default function SubscriptionBadge() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(me => {
+    base44.auth.me().then((me) => {
       if (!me) return;
-      base44.entities.UserProfile.filter({ user_email: me.email }, "-updated_date", 1)
-        .then(res => setProfile(res?.[0] || null))
-        .catch(() => {});
+      base44.entities.UserProfile.filter({ user_email: me.email }, "-updated_date", 1).
+      then((res) => setProfile(res?.[0] || null)).
+      catch(() => {});
     }).catch(() => {});
   }, []);
 
   // Resolve the display plan key
   const subTier = profile?.sub_tier;
   const profileTier = profile?.tier;
-  const effectiveTier = isAdmin ? "enterprise" : (profileTier || tier || "free_explorer");
+  const effectiveTier = isAdmin ? "enterprise" : profileTier || tier || "free_explorer";
   const planKey = resolvePlanKey(effectiveTier, subTier, tokens);
   const meta = PLAN_META[planKey] || PLAN_META.free_explorer;
   const features = PLAN_FEATURES[planKey] || PLAN_FEATURES.free_explorer;
@@ -111,7 +111,7 @@ export default function SubscriptionBadge() {
   const credits = toCredits(tokens);
 
   return (
-    <div className={`rounded-2xl border ${meta.border} ${meta.bg} px-5 py-4`}>
+    <div className={`rounded-2xl border hidden ${meta.border} ${meta.bg} px-5 py-4`}>
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2.5">
@@ -121,36 +121,36 @@ export default function SubscriptionBadge() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[13px] font-black text-foreground">{meta.label}</span>
-              {meta.isBeneficiary && (
-                <span className={`text-[9px] uppercase tracking-[0.15em] font-black px-2 py-0.5 rounded-full ${meta.badge}`}>
+              {meta.isBeneficiary &&
+              <span className={`text-[9px] uppercase tracking-[0.15em] font-black px-2 py-0.5 rounded-full ${meta.badge}`}>
                   ✦ Beneficiary
                 </span>
-              )}
+              }
             </div>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              {meta.isBeneficiary
-                ? `${credits.toLocaleString()} credits available`
-                : "Free tier — upgrade to unlock more"}
+              {meta.isBeneficiary ?
+              `${credits.toLocaleString()} credits available` :
+              "Free tier — upgrade to unlock more"}
             </p>
           </div>
         </div>
-        {!meta.isBeneficiary && (
-          <Link to="/pricing"
-            className="text-[10px] font-black text-[#D4A017] hover:text-[#A67C00] uppercase tracking-wider transition-colors shrink-0">
+        {!meta.isBeneficiary &&
+        <Link to="/pricing"
+        className="text-[10px] font-black text-[#D4A017] hover:text-[#A67C00] uppercase tracking-wider transition-colors shrink-0">
             Upgrade →
           </Link>
-        )}
+        }
       </div>
 
       {/* Features grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-        {features.map((f) => (
-          <div key={f} className="flex items-center gap-1.5">
+        {features.map((f) =>
+        <div key={f} className="flex items-center gap-1.5">
             <CheckCircle2 className={`w-3 h-3 shrink-0 ${meta.color}`} />
             <span className="text-[11px] text-muted-foreground leading-tight">{f}</span>
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }

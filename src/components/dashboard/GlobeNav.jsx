@@ -42,7 +42,8 @@ export default function GlobeNav({ isDark }) {
     : "1px solid rgba(0,0,0,0.08)";
   const textColor = isDark ? "#fff" : "#1a1a1a";
   const mutedText = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
-  const hoverBg = isDark ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.12)";
+  const brandAmber = "#f5c242";  // ABOS brand amber
+  const hoverBg = isDark ? `${brandAmber}14` : `${brandAmber}1A`;
   const adminColor = isDark ? "#5dcaa5" : "#0D9488";
 
   const linkCls = {
@@ -95,7 +96,7 @@ export default function GlobeNav({ isDark }) {
                   onMouseEnter={e => { e.currentTarget.style.background = hoverBg; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                 >
-                  <Icon size={14} style={{ color: "#F59E0B" }} />
+                  <Icon size={14} style={{ color: brandAmber }} />
                   <span>{l.label}</span>
                 </div>
               </Link>

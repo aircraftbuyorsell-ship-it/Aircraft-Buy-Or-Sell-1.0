@@ -92,7 +92,18 @@ const POLYGONS = [
 function groupByCountry(listings) {
   const groups = {};
   listings.forEach((l) => {
-    const reg = (l.registration || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    // Strip owner/operator identity fields — globe shows specs only
+    const safe = {
+      id: l.id,
+      year: l.year,
+      make: l.make,
+      model: l.model,
+      registration: l.registration,
+      asking_price: l.asking_price,
+      ati_score: l.ati_score,
+      status: l.status,
+    };
+    const reg = (safe.registration || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     let country = null;
     for (const len of [2, 1]) {
       const prefix = reg.substring(0, len);
@@ -103,16 +114,19 @@ function groupByCountry(listings) {
       const c = COUNTRY_COORDS[country] || { lat: 20, lon: 0, flag: "📍", name: country };
       groups[country] = { country, lat: c.lat, lon: c.lon, flag: c.flag, name: c.name, listings: [] };
     }
-    groups[country].listings.push(l);
+    groups[country].listings.push(safe);
   });
   return Object.values(groups);
 }
 
 // ─── Theme palettes ────────────────────────────────────────────
 function getTheme(isDark) {
+  // ABOS brand colors from design handoff
+  const amber = "#f5c242";       // brand amber/gold
+  const darkBg = "#04060a";      // brand dark background
   if (isDark) {
     return {
-      bg: "#000",
+      bg: darkBg,
       oceanInner: "#0A0A0A",
       oceanMid: "#050505",
       oceanOuter: "#000000",
@@ -120,21 +134,27 @@ function getTheme(isDark) {
       continentStroke: "rgba(255,255,255,0.35)",
       dotGrid: "rgba(255,255,255,0.025)",
       rim: "rgba(255,255,255,0.06)",
-      atmosphere: "rgba(245,158,11,0.03)",
+      atmosphere: `${amber}08`,
       pillBg: "rgba(255,255,255,0.08)",
       pillBorder: "1px solid rgba(255,255,255,0.12)",
       pillShadow: "0 8px 32px rgba(0,0,0,0.4)",
       text: "#fff",
       muted: "rgba(255,255,255,0.45)",
       popupBg: "rgba(10,10,10,0.95)",
-      popupBorder: "1px solid rgba(245,158,11,0.25)",
+      popupBorder: `1px solid ${amber}40`,
       popupShadow: "0 12px 40px rgba(0,0,0,0.6)",
       popupArrow: "rgba(10,10,10,0.95)",
       rowBg: "rgba(255,255,255,0.04)",
       rowBorder: "1px solid rgba(255,255,255,0.06)",
-      rowHover: "rgba(245,158,11,0.08)",
+      rowHover: `${amber}14`,
       rowText: "#fff",
       rowMuted: "rgba(255,255,255,0.35)",
+      pinColor: amber,
+      pinGlow: amber,
+      watermarkOpacity: 0.06,
+      watermarkColor: "#ffffff",
+      dotGridBg: "rgba(255,255,255,0.04)",
+      dotGridSize: "40px",
     };
   }
   return {
@@ -146,21 +166,27 @@ function getTheme(isDark) {
     continentStroke: "rgba(30,50,35,0.4)",
     dotGrid: "rgba(0,0,0,0.03)",
     rim: "rgba(0,0,0,0.10)",
-    atmosphere: "rgba(245,158,11,0.05)",
+    atmosphere: `${amber}0D`,
     pillBg: "rgba(255,255,255,0.72)",
     pillBorder: "1px solid rgba(0,0,0,0.08)",
     pillShadow: "0 8px 32px rgba(0,0,0,0.15)",
     text: "#1a1a1a",
     muted: "rgba(0,0,0,0.50)",
     popupBg: "rgba(255,255,255,0.95)",
-    popupBorder: "1px solid rgba(245,158,11,0.30)",
+    popupBorder: `1px solid ${amber}4D`,
     popupShadow: "0 12px 40px rgba(0,0,0,0.2)",
     popupArrow: "rgba(255,255,255,0.95)",
     rowBg: "rgba(0,0,0,0.03)",
     rowBorder: "1px solid rgba(0,0,0,0.05)",
-    rowHover: "rgba(245,158,11,0.10)",
+    rowHover: `${amber}1A`,
     rowText: "#1a1a1a",
     rowMuted: "rgba(0,0,0,0.45)",
+    pinColor: amber,
+    pinGlow: amber,
+    watermarkOpacity: 0.05,
+    watermarkColor: "#000000",
+    dotGridBg: "rgba(0,0,0,0.03)",
+    dotGridSize: "40px",
   };
 }
 
@@ -183,7 +209,7 @@ function ClusterPopup({ cluster, pos, onClose, onOpen, t }) {
             <X size={14} />
           </button>
         </div>
-        <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(245,158,11,0.8)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
+        <div style={{ fontSize: 9, fontWeight: 600, color: t.pinColor, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
           {cluster.listings.length} listing{cluster.listings.length > 1 ? "s" : ""}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 200, overflowY: "auto" }}>
@@ -197,7 +223,7 @@ function ClusterPopup({ cluster, pos, onClose, onOpen, t }) {
               onMouseEnter={e => { e.currentTarget.style.background = t.rowHover; }}
               onMouseLeave={e => { e.currentTarget.style.background = t.rowBg; }}
             >
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: l.ati_score >= 72 ? "#5dcaa5" : "#F59E0B", flexShrink: 0 }} />
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: l.ati_score >= 72 ? "#5dcaa5" : t.pinColor, flexShrink: 0 }} />
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: t.rowText, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {l.year} {l.make} {l.model}
@@ -347,9 +373,13 @@ export default function BlackGlobeHUD({
         }
       }
 
-      // Cluster pins
+      // Cluster pins — ABOS brand amber
       const projectedClusters = [];
       const cls = clustersRef.current;
+      const pinHex = th.pinColor;
+      // Convert hex to rgb for rgba strings
+      const pinRgb = parseInt(pinHex.slice(1), 16);
+      const pr = (pinRgb >> 16) & 255, pg = (pinRgb >> 8) & 255, pb = pinRgb & 255;
       cls.forEach((cluster, i) => {
         const p = project(cluster.lon, cluster.lat);
         projectedClusters.push({ ...p, cluster, index: i });
@@ -364,7 +394,7 @@ export default function BlackGlobeHUD({
           const ringR = (6 + ring * 4 + (isHovered ? pulse * 3 : 0)) * DPR;
           ctx.arc(p.sx, p.sy, ringR, 0, Math.PI * 2);
           const alpha = (isHovered ? 0.18 : 0.08) * (3 - ring) / 3;
-          ctx.strokeStyle = `rgba(245,158,11,${alpha.toFixed(3)})`;
+          ctx.strokeStyle = `rgba(${pr},${pg},${pb},${alpha.toFixed(3)})`;
           ctx.lineWidth = 1.2 * DPR;
           ctx.stroke();
         }
@@ -372,8 +402,8 @@ export default function BlackGlobeHUD({
         const dotR = (isHovered ? 5 : 3.5) * DPR;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, dotR, 0, Math.PI * 2);
-        ctx.fillStyle = "#F59E0B";
-        ctx.shadowColor = "#F59E0B";
+        ctx.fillStyle = pinHex;
+        ctx.shadowColor = pinHex;
         ctx.shadowBlur = (isHovered ? 10 : 5) * DPR;
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -383,7 +413,7 @@ export default function BlackGlobeHUD({
           const by = p.sy - dotR - 2 * DPR;
           ctx.beginPath();
           ctx.arc(bx, by, 6 * DPR, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(245,158,11,0.9)";
+          ctx.fillStyle = `rgba(${pr},${pg},${pb},0.9)`;
           ctx.fill();
           ctx.strokeStyle = "rgba(0,0,0,0.4)";
           ctx.lineWidth = 0.5 * DPR;
@@ -486,17 +516,41 @@ export default function BlackGlobeHUD({
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: t.bg, overflow: "hidden" }}>
+      {/* ABOS dot-grid background pattern */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+        backgroundImage: `radial-gradient(circle, ${t.dotGridBg} 1.5px, transparent 1.5px)`,
+        backgroundSize: t.dotGridSize,
+      }} />
+
+      {/* ABOS watermark logo — centered, faded */}
+      <div style={{
+        position: "absolute", top: "50%", left: "50%",
+        transform: "translate(-50%, -50%) rotate(-8deg)",
+        opacity: t.watermarkOpacity, pointerEvents: "none", zIndex: 1,
+      }}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="380" height="234">
+          <defs>
+            <marker id="wm-arr-globe" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
+              <polygon points="0,0 9,4.5 0,9" fill={t.watermarkColor} />
+            </marker>
+          </defs>
+          <polyline points="2,98 52,8 70,98" stroke={t.watermarkColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={t.watermarkColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr-globe)" />
+        </svg>
+      </div>
+
       <canvas
         ref={canvasRef}
         onClick={handleClick}
         onMouseMove={handleMove}
-        style={{ width: "100%", height: "100%", display: "block" }}
+        style={{ width: "100%", height: "100%", display: "block", position: "relative", zIndex: 2 }}
       />
 
       {/* Top-Left: UTC time */}
       <div style={{ position: "absolute", top: 20, left: 20, zIndex: 10 }}>
         <Pill t={t}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: t.pinColor, boxShadow: `0 0 8px ${t.pinColor}80`, flexShrink: 0 }} />
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontSize: 16, fontWeight: 700, color: t.text, fontFamily: "'Courier New', monospace" }}>{time}</span>
             <span style={{ fontSize: 10, fontWeight: 600, color: t.muted }}>UTC</span>
@@ -510,12 +564,12 @@ export default function BlackGlobeHUD({
       {/* Bottom-Left: Stats */}
       <div style={{ position: "absolute", bottom: 20, left: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8 }}>
         {[
-          { color: "#F59E0B", label: "ADS-B count", value: stats.adsbCount.toLocaleString() },
+          { color: t.pinColor, label: "ADS-B count", value: stats.adsbCount.toLocaleString() },
           { color: "#0D9488", label: "Live DB count", value: stats.liveDbCount.toLocaleString() },
           { color: "#0D9488", label: "FAA count", value: stats.faaCount.toLocaleString() },
         ].map(s => (
           <Pill key={s.label} t={t}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, boxShadow: `0 0 8px ${s.color}80`, flexShrink: 0 }} />
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color || t.pinColor, boxShadow: `0 0 8px ${(s.color || t.pinColor)}80`, flexShrink: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
               <span style={{ fontSize: 9, fontWeight: 600, color: t.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.label}</span>
               <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>{s.value}</span>
@@ -527,7 +581,7 @@ export default function BlackGlobeHUD({
       {/* Bottom-Right: Listings + hint */}
       <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
         <Pill t={t}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: t.pinColor, boxShadow: `0 0 8px ${t.pinColor}80`, flexShrink: 0 }} />
           <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
             <span style={{ fontSize: 9, fontWeight: 600, color: t.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>listings</span>
             <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>Total: {listingsCount}</span>

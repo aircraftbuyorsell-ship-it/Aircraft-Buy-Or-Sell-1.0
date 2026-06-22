@@ -5,8 +5,8 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Zap, Plane, Map, Video, CreditCard,
   Sparkles, Settings, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText,
-} from "lucide-react";
+  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText } from
+"lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import ABOSTour from "@/components/onboarding/ABOSTour";
@@ -20,40 +20,40 @@ const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
 // ── Sectioned nav (routes mapped to existing pages) ──
 const NAV_SECTIONS = [
-  {
-    label: "Discover",
-    items: [
-      { path: "/",                label: "Dashboard",        icon: LayoutDashboard },
-      { path: "/listings",        label: "Aircraft Listings", icon: Plane },
-      { path: "/faa-map",         label: "FAA Map",          icon: Map },
-      { path: "/analytics",       label: "Market Analytics", icon: BarChart2 },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { path: "/ati-quick-score", label: "ATI Quick Score",  icon: Zap },
-      { path: "/ati-full-report", label: "ATI Full Report",  icon: FileBarChart },
-      { path: "/ati-standard",    label: "ATI Passport",     icon: Shield },
-      { path: "/demo",            label: "IntraZone Demo",   icon: Sparkles },
-    ],
-  },
-  {
-    label: "Account",
-    items: [
-      { path: "/my-account",      label: "Profile & Settings", icon: User },
-      { path: "/pricing",         label: "Credits & Benefits", icon: CreditCard },
-      { path: "/ati-verify",      label: "Verification Center", icon: CheckCircle },
-    ],
-  },
-  {
-    label: "Deals",
-    items: [
-      { path: "/deal-radar",      label: "Deal Radar",       icon: Radar },
-      { path: "/escrow",          label: "Hustl Contract",   icon: FileText },
-    ],
-  },
-];
+{
+  label: "Discover",
+  items: [
+  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/listings", label: "Aircraft Listings", icon: Plane },
+  { path: "/faa-map", label: "FAA Map", icon: Map },
+  { path: "/analytics", label: "Market Analytics", icon: BarChart2 }]
+
+},
+{
+  label: "Intelligence",
+  items: [
+  { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
+  { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
+  { path: "/ati-standard", label: "ATI Passport", icon: Shield },
+  { path: "/demo", label: "IntraZone Demo", icon: Sparkles }]
+
+},
+{
+  label: "Account",
+  items: [
+  { path: "/my-account", label: "Profile & Settings", icon: User },
+  { path: "/pricing", label: "Credits & Benefits", icon: CreditCard },
+  { path: "/ati-verify", label: "Verification Center", icon: CheckCircle }]
+
+},
+{
+  label: "Deals",
+  items: [
+  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+  { path: "/escrow", label: "Hustl Contract", icon: FileText }]
+
+}];
+
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -70,38 +70,38 @@ function SidebarContent({ pathname, user, onNavigate }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label}>
+        {NAV_SECTIONS.map((section) =>
+        <div key={section.label}>
             <div style={{
-              fontSize: "9px",
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.25)",
-              padding: "16px 16px 6px",
-              marginTop: "4px",
-            }}>
+            fontSize: "9px",
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.25)",
+            padding: "16px 16px 6px",
+            marginTop: "4px"
+          }}>
               {section.label}
             </div>
-            {section.items.map((item) => (
-              <NavItem
-                key={item.path}
-                to={item.path}
-                icon={item.icon}
-                label={item.label}
-                active={pathname === item.path}
-                onClick={onNavigate}
-              />
-            ))}
+            {section.items.map((item) =>
+          <NavItem
+            key={item.path}
+            to={item.path}
+            icon={item.icon}
+            label={item.label}
+            active={pathname === item.path}
+            onClick={onNavigate} />
+
+          )}
           </div>
-        ))}
+        )}
       </nav>
 
       {/* Legal Footer */}
       <div style={{
         borderTop: "0.5px solid rgba(255,255,255,0.06)",
         padding: "16px 16px 20px",
-        marginTop: "auto",
+        marginTop: "auto"
       }}>
         <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0 0 8px", letterSpacing: "0.02em" }}>
           © 2026 ABOS s.r.o.
@@ -121,8 +121,8 @@ function SidebarContent({ pathname, user, onNavigate }) {
           </a>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
-            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}
-          >
+            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}>
+            
             Cookie Settings
           </button>
         </div>
@@ -130,8 +130,8 @@ function SidebarContent({ pathname, user, onNavigate }) {
 
       {/* User info */}
       <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: "12px 16px" }}>
-        {user ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {user ?
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
             </div>
@@ -144,19 +144,19 @@ function SidebarContent({ pathname, user, onNavigate }) {
               </div>
             </div>
             <button onClick={() => base44.auth.logout()} aria-label="Log out"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
+          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
               <LogOut size={14} />
             </button>
-          </div>
-        ) : (
-          <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+          </div> :
+
+        <button onClick={() => base44.auth.redirectToLogin()}
+        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
             <LogIn size={14} /> Log In
           </button>
-        )}
+        }
       </div>
-    </>
-  );
+    </>);
+
 }
 
 export default function Layout() {
@@ -170,14 +170,14 @@ export default function Layout() {
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
     queryFn: () => base44.auth.me(),
-    retry: false,
+    retry: false
   });
 
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {setMobileOpen(false);}, [pathname]);
 
   // Swipe from left edge to open mobile drawer
   useEffect(() => {
-    const onStart = (e) => { const x = e.touches[0].clientX; if (x < 20) touchStartX.current = x; };
+    const onStart = (e) => {const x = e.touches[0].clientX;if (x < 20) touchStartX.current = x;};
     const onEnd = (e) => {
       if (touchStartX.current == null) return;
       const dx = e.changedTouches[0].clientX - touchStartX.current;
@@ -186,7 +186,7 @@ export default function Layout() {
     };
     document.addEventListener("touchstart", onStart, { passive: true });
     document.addEventListener("touchend", onEnd, { passive: true });
-    return () => { document.removeEventListener("touchstart", onStart); document.removeEventListener("touchend", onEnd); };
+    return () => {document.removeEventListener("touchstart", onStart);document.removeEventListener("touchend", onEnd);};
   }, []);
 
   return (
@@ -197,23 +197,23 @@ export default function Layout() {
 
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col"
-        style={{ width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)" }}>
+      style={{ width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)" }}>
         <SidebarContent pathname={pathname} user={currentUser} />
       </aside>
 
       {/* ── Mobile drawer ── */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
-          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
-      )}
+      {mobileOpen &&
+      <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      }
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300"
-        style={{
-          width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
-          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-        }}>
+      style={{
+        width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
+      }}>
         <div className="flex justify-end px-3 pt-3">
           <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-            style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <ChevronLeft size={15} />
           </button>
         </div>
@@ -222,19 +222,19 @@ export default function Layout() {
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-40 lg:ml-[220px]"
-        style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
-          {showBack ? (
-            <button onClick={() => navigate(-1)} aria-label="Go back"
-              style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
+          {showBack ?
+          <button onClick={() => navigate(-1)} aria-label="Go back"
+          style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
               <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
+            </button> :
+
+          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
+          style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Menu size={16} className="hidden" />
             </button>
-          ) : (
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
-              style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Menu size={16} />
-            </button>
-          )}
+          }
 
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden">
@@ -245,9 +245,9 @@ export default function Layout() {
           <div className="flex-1" />
           <ThemeToggle />
 
-          <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
-            aria-label="Platform tour" title="Platform tour"
-            style={{ display: "none" }} />
+          <button onClick={() => {localStorage.removeItem("abos_tour_completed_v3");window.dispatchEvent(new Event("abos-tour-open"));}}
+          aria-label="Platform tour" title="Platform tour"
+          style={{ display: "none" }} />
         </div>
       </header>
 
@@ -260,6 +260,6 @@ export default function Layout() {
 
       <SiteFooter />
       <ABOSTour />
-    </div>
-  );
+    </div>);
+
 }

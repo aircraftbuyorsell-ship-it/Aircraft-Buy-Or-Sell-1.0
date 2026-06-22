@@ -79,9 +79,9 @@ export default function Dashboard() {
 
       {/* ── CENTER: N-Reg search — redesigned hero section ── */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-full px-4 md:px-8 pointer-events-none">
-        <div className="max-w-2xl mx-auto pointer-events-auto">
+        <div className="max-w-md mx-auto pointer-events-auto">
           {/* Hero container with gradient backdrop */}
-          <div className="rounded-3xl p-8 md:p-12 backdrop-blur-md border"
+          <div className="rounded-3xl p-5 md:p-7 backdrop-blur-md border"
             style={{
               background: isDark
                 ? "linear-gradient(135deg, rgba(245,194,66,0.08) 0%, rgba(245,194,66,0.03) 100%)"

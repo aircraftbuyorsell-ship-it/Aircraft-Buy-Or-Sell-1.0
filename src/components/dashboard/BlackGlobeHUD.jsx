@@ -314,7 +314,7 @@ export default function BlackGlobeHUD({
       cv.width = W; cv.height = H;
       cv.style.width = rect.width + "px";
       cv.style.height = rect.height + "px";
-      R = Math.min(W, H) * 0.42;
+      R = Math.min(W, H) * 0.50;
       CX = W / 2;
       CY = H / 2;
     };

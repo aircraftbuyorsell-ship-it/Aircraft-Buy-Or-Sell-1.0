@@ -94,10 +94,10 @@ export default function DashboardNRegSearch() {
       <AnimatePresence>
         {showDropdown && (result || error || searching) && (
           <motion.div
-            initial={{ opacity: 0, y: -8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
             className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden z-50"
             style={{
               background: "rgba(8,6,4,0.92)",

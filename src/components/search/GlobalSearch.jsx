@@ -69,22 +69,22 @@ export default function GlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative flex-1 max-w-[320px] mx-2">
-      <button
-        onClick={() => {setOpen(true);setTimeout(() => inputRef.current?.focus(), 50);}}
-        className="flex items-center gap-2 w-full h-9 px-3.5 rounded-xl text-[11px] font-medium transition-all hidden"
-        style={{
-          background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-          border: `1px solid ${borderColor}`,
-          color: mutedColor
-        }}>
-        
-        <Search className="w-3.5 h-3.5 shrink-0" />
-        <span className="flex-1 text-left truncate">Search aircraft...</span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold"
-        style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)", color: mutedColor }}>
-          <span className="text-[10px]">⌘</span>K
-        </kbd>
-      </button>
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
 
       {open &&
       <>

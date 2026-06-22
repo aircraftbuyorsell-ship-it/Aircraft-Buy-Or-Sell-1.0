@@ -328,15 +328,8 @@ export default function BlackGlobeHUD({
       const th = tRef.current;
       ctx.clearRect(0, 0, W, H);
 
-      // Ocean
-      const oceanGrad = ctx.createRadialGradient(CX - R * 0.3, CY - R * 0.3, R * 0.1, CX, CY, R);
-      oceanGrad.addColorStop(0, th.oceanInner);
-      oceanGrad.addColorStop(0.7, th.oceanMid);
-      oceanGrad.addColorStop(1, th.oceanOuter);
-      ctx.beginPath();
-      ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.fillStyle = oceanGrad;
-      ctx.fill();
+      // Ocean — transparent (no fill, let dashboard background show through)
+      // (intentionally removed)
 
       ctx.save();
       ctx.beginPath();
@@ -519,31 +512,7 @@ export default function BlackGlobeHUD({
   };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: t.bg, overflow: "hidden" }}>
-      {/* ABOS dot-grid background pattern */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
-        backgroundImage: `radial-gradient(circle, ${t.dotGridBg} 1.5px, transparent 1.5px)`,
-        backgroundSize: t.dotGridSize,
-      }} />
-
-      {/* ABOS watermark logo — centered, faded */}
-      <div style={{
-        position: "absolute", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%) rotate(-8deg)",
-        opacity: t.watermarkOpacity, pointerEvents: "none", zIndex: 1,
-      }}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="380" height="234">
-          <defs>
-            <marker id="wm-arr-globe" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill={t.watermarkColor} />
-            </marker>
-          </defs>
-          <polyline points="2,98 52,8 70,98" stroke={t.watermarkColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={t.watermarkColor} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr-globe)" />
-        </svg>
-      </div>
-
+    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: "transparent", overflow: "hidden" }}>
       <canvas
         ref={canvasRef}
         onClick={handleClick}

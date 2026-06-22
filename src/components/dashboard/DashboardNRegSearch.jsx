@@ -4,7 +4,11 @@ import { Search, Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap, Fil
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 
-const ABOS_AMBER = "#f5c242";
+const ABOS_AMBER = "#D4A017";
+const NAVY = "#1A1F2B";
+const MUTED = "#7D8590";
+const BG = "#F4F6F8";
+const CARD = "#FFFFFF";
 
 export default function DashboardNRegSearch() {
   const [query, setQuery] = useState("");
@@ -61,14 +65,12 @@ export default function DashboardNRegSearch() {
       {/* Hero Search Bar */}
       <div className="flex items-center w-full rounded-2xl overflow-hidden"
         style={{
-          background: "rgba(12,10,6,0.72)",
-          border: `1.5px solid ${ABOS_AMBER}44`,
-          backdropFilter: "blur(28px) saturate(180%)",
-          WebkitBackdropFilter: "blur(28px) saturate(180%)",
-          boxShadow: `0 0 24px ${ABOS_AMBER}14, inset 0 1px 0 rgba(255,255,255,0.06)`,
+          background: CARD,
+          border: `1px solid rgba(0,0,0,0.08)`,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)",
         }}>
         <div className="pl-4 pr-2">
-          <Search className="w-4 h-4" style={{ color: `${ABOS_AMBER}aa` }} />
+          <Search className="w-4 h-4" style={{ color: MUTED }} />
         </div>
         <input
           type="text"
@@ -78,7 +80,7 @@ export default function DashboardNRegSearch() {
           onFocus={() => result && setShowDropdown(true)}
           placeholder="Enter N-Number (e.g. N12345)…"
           className="flex-1 py-2.5 text-sm font-medium bg-transparent border-none outline-none"
-          style={{ color: "#f0e8d4", background: "transparent !important", border: "none !important" }}
+          style={{ color: NAVY, background: "transparent !important", border: "none !important" }}
         />
         <button
           onClick={search}
@@ -100,24 +102,22 @@ export default function DashboardNRegSearch() {
             transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
             className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden z-50"
             style={{
-              background: "rgba(8,6,4,0.92)",
-              border: `1px solid ${ABOS_AMBER}33`,
-              backdropFilter: "blur(32px) saturate(180%)",
-              WebkitBackdropFilter: "blur(32px) saturate(180%)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+              background: CARD,
+              border: `1px solid rgba(0,0,0,0.08)`,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
             }}
           >
             {searching && (
               <div className="p-4 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" style={{ color: ABOS_AMBER }} />
-                <span className="text-[12px]" style={{ color: "rgba(245,194,66,0.6)" }}>Searching FAA registry…</span>
+                <span className="text-[12px]" style={{ color: MUTED }}>Searching FAA registry…</span>
               </div>
             )}
 
             {error && !searching && (
               <div className="p-4 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.6)" }}>{error}</span>
+                <span className="text-[12px]" style={{ color: MUTED }}>{error}</span>
               </div>
             )}
 
@@ -127,8 +127,8 @@ export default function DashboardNRegSearch() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[8px] tracking-[0.15em] font-black uppercase" style={{ color: ABOS_AMBER }}>ATI Passport Preview</p>
-                    <h3 className="text-base font-black" style={{ color: "#f0e8d4" }}>N{result.n_number}</h3>
-                    <p className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>
+                    <h3 className="text-base font-black" style={{ color: NAVY }}>N{result.n_number}</h3>
+                    <p className="text-[11px] font-semibold" style={{ color: MUTED }}>
                       {result.year_mfr || "—"} {result.make || result.mfr_mdl_code || ""} {result.model || ""}
                     </p>
                   </div>
@@ -167,8 +167,8 @@ export default function DashboardNRegSearch() {
                     { label: "State", value: result.state || "—" },
                   ].map((d) => (
                     <div key={d.label}>
-                      <p className="text-[7px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.35)" }}>{d.label}</p>
-                      <p className="text-[10px] font-semibold mt-0.5" style={{ color: "#f0e8d4" }}>{d.value}</p>
+                      <p className="text-[7px] font-bold uppercase tracking-wider" style={{ color: MUTED }}>{d.label}</p>
+                      <p className="text-[10px] font-semibold mt-0.5" style={{ color: NAVY }}>{d.value}</p>
                     </div>
                   ))}
                 </div>
@@ -182,7 +182,7 @@ export default function DashboardNRegSearch() {
                       <BadgeCheck className="w-4 h-4 text-green-400 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[8px] font-black text-green-400 uppercase tracking-wider">Listed on ABOS</p>
-                        <p className="text-[11px] font-bold truncate" style={{ color: "#f0e8d4" }}>
+                        <p className="text-[11px] font-bold truncate" style={{ color: NAVY }}>
                           {listingMatch.year} {listingMatch.make} {listingMatch.model}
                         </p>
                       </div>
@@ -192,8 +192,8 @@ export default function DashboardNRegSearch() {
                 ) : (
                   <div className="flex items-center gap-2 rounded-xl p-3"
                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <Plane className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.3)" }} />
-                    <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.4)" }}>Not currently listed on ABOS</span>
+                    <Plane className="w-3.5 h-3.5" style={{ color: MUTED }} />
+                    <span className="text-[10px]" style={{ color: MUTED }}>Not currently listed on ABOS</span>
                   </div>
                 )}
 
@@ -212,7 +212,7 @@ export default function DashboardNRegSearch() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-[8px] font-black uppercase tracking-wider" style={{ color: ABOS_AMBER }}>Next Step</p>
-                      <p className="text-[11px] font-bold truncate" style={{ color: "#f0e8d4" }}>Create ATI Quick Score</p>
+                      <p className="text-[11px] font-bold truncate" style={{ color: NAVY }}>Create ATI Quick Score</p>
                     </div>
                   </div>
                   <ArrowRight className="w-3.5 h-3.5 shrink-0 group-hover:translate-x-1 transition-transform" style={{ color: ABOS_AMBER }} />

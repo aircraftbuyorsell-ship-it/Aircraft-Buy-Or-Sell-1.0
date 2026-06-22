@@ -4,8 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import { Link, useNavigate } from "react-router-dom";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
-import Globe from "@/components/Globe";
-import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
+import BlackGlobeHUD from "@/components/dashboard/BlackGlobeHUD";
 import SubscriptionBadge from "@/components/dashboard/SubscriptionBadge";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import NotificationCenter from "@/components/dashboard/NotificationCenter";
@@ -24,8 +23,6 @@ const USER_CATEGORIES = [
 export default function Dashboard() {
   const isDark = useTheme();
   const navigate = useNavigate();
-  const [globeFilter, setGlobeFilter] = useState(DEFAULT_FILTER);
-  const [focusLocation, setFocusLocation] = useState(null);
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -88,14 +85,10 @@ export default function Dashboard() {
               <div style={{ height: "2px", background: "rgba(93,202,165,0.55)" }} />
               <div className="relative">
                 <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
-                  <Globe
-                    listings={listings}
-                    filter={globeFilter}
-                    focusLocation={focusLocation}
+                  <BlackGlobeHUD
+                    listingsCount={listings.length}
+                    stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
                   />
-                </div>
-                <div className="absolute top-3 right-3 z-20">
-                  <GlobeLayerFilter filter={globeFilter} onChange={setGlobeFilter} />
                 </div>
               </div>
             </div>

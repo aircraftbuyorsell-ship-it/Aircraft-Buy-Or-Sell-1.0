@@ -69,29 +69,14 @@ export default function Dashboard() {
 
       <div className="relative z-10">
 
-        {/* ── GLOBE SECTION ── */}
-        <section className="px-4 md:px-8 pt-6 pb-4">
-          <div className="max-w-6xl mx-auto">
-            <div
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "0.5px solid rgba(255,255,255,0.08)",
-                borderRadius: "12px",
-                overflow: "hidden",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,255,255,0.06)",
-              }}
-            >
-              {/* Teal accent line */}
-              <div style={{ height: "2px", background: "rgba(93,202,165,0.55)" }} />
-              <div className="relative">
-                <div className="w-full" style={{ maxHeight: "520px", aspectRatio: "1 / 1" }}>
-                  <BlackGlobeHUD
-                    listingsCount={listings.length}
-                    stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
-                  />
-                </div>
-              </div>
-            </div>
+        {/* ── GLOBE SECTION — full bleed ── */}
+        <section className="pt-0 pb-4">
+          <div className="relative w-full" style={{ height: "560px" }}>
+            <BlackGlobeHUD
+              listings={listings}
+              listingsCount={listings.length}
+              stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
+            />
           </div>
         </section>
 

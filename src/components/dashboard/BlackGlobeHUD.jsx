@@ -1,79 +1,234 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 
-// ─── Glass pill card ───────────────────────────────────────────
-function GlassCard({ children, className = "", style = {} }) {
-  return (
-    <div
-      className={className}
-      style={{
-        background: "rgba(255,255,255,0.08)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: 16,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
+// ─── Country coords & reg prefix map (from RotatingGlobe) ──────
+const COUNTRY_COORDS = {
+  "US": { lat: 38, lon: -97, flag: "🇺🇸", name: "USA" },
+  "CA": { lat: 56, lon: -96, flag: "🇨🇦", name: "Canada" },
+  "GB": { lat: 54, lon: -2, flag: "🇬🇧", name: "UK" },
+  "DE": { lat: 51, lon: 10, flag: "🇩🇪", name: "Germany" },
+  "FR": { lat: 46, lon: 2, flag: "🇫🇷", name: "France" },
+  "IT": { lat: 42, lon: 12, flag: "🇮🇹", name: "Italy" },
+  "ES": { lat: 40, lon: -4, flag: "🇪🇸", name: "Spain" },
+  "NL": { lat: 52, lon: 5, flag: "🇳🇱", name: "Netherlands" },
+  "AT": { lat: 47, lon: 14, flag: "🇦🇹", name: "Austria" },
+  "CH": { lat: 47, lon: 8, flag: "🇨🇭", name: "Switzerland" },
+  "CZ": { lat: 50, lon: 15, flag: "🇨🇿", name: "Czech Republic" },
+  "AU": { lat: -25, lon: 133, flag: "🇦🇺", name: "Australia" },
+  "BR": { lat: -15, lon: -50, flag: "🇧🇷", name: "Brazil" },
+  "ZA": { lat: -29, lon: 25, flag: "🇿🇦", name: "South Africa" },
+  "AE": { lat: 24, lon: 54, flag: "🇦🇪", name: "UAE" },
+  "IN": { lat: 20, lon: 78, flag: "🇮🇳", name: "India" },
+  "JP": { lat: 36, lon: 138, flag: "🇯🇵", name: "Japan" },
+  "CN": { lat: 35, lon: 105, flag: "🇨🇳", name: "China" },
+  "RU": { lat: 60, lon: 100, flag: "🇷🇺", name: "Russia" },
+  "TR": { lat: 39, lon: 35, flag: "🇹🇷", name: "Turkey" },
+  "MX": { lat: 23, lon: -102, flag: "🇲🇽", name: "Mexico" },
+  "AR": { lat: -34, lon: -64, flag: "🇦🇷", name: "Argentina" },
+  "NZ": { lat: -41, lon: 174, flag: "🇳🇿", name: "New Zealand" },
+  "SE": { lat: 60, lon: 18, flag: "🇸🇪", name: "Sweden" },
+  "NO": { lat: 60, lon: 8, flag: "🇳🇴", name: "Norway" },
+  "PL": { lat: 52, lon: 20, flag: "🇵🇱", name: "Poland" },
+  "IE": { lat: 53, lon: -8, flag: "🇮🇪", name: "Ireland" },
+  "PT": { lat: 39, lon: -8, flag: "🇵🇹", name: "Portugal" },
+  "GR": { lat: 39, lon: 22, flag: "🇬🇷", name: "Greece" },
+  "SK": { lat: 49, lon: 20, flag: "🇸🇰", name: "Slovakia" },
+  "HU": { lat: 47, lon: 19, flag: "🇭🇺", name: "Hungary" },
+  "SA": { lat: 24, lon: 45, flag: "🇸🇦", name: "Saudi Arabia" },
+  "KR": { lat: 36, lon: 128, flag: "🇰🇷", name: "South Korea" },
+  "SG": { lat: 1, lon: 104, flag: "🇸🇬", name: "Singapore" },
+  "TH": { lat: 15, lon: 101, flag: "🇹🇭", name: "Thailand" },
+  "ID": { lat: -6, lon: 107, flag: "🇮🇩", name: "Indonesia" },
+  "MY": { lat: 4, lon: 102, flag: "🇲🇾", name: "Malaysia" },
+  "PH": { lat: 13, lon: 122, flag: "🇵🇭", name: "Philippines" },
+  "VN": { lat: 14, lon: 108, flag: "🇻🇳", name: "Vietnam" },
+  "CL": { lat: -33, lon: -71, flag: "🇨🇱", name: "Chile" },
+  "CO": { lat: 4, lon: -72, flag: "🇨🇴", name: "Colombia" },
+  "EG": { lat: 27, lon: 30, flag: "🇪🇬", name: "Egypt" },
+  "NG": { lat: 9, lon: 8, flag: "🇳🇬", name: "Nigeria" },
+  "KE": { lat: -1, lon: 37, flag: "🇰🇪", name: "Kenya" },
+  "IL": { lat: 31, lon: 35, flag: "🇮🇱", name: "Israel" },
+  "FI": { lat: 61, lon: 26, flag: "🇫🇮", name: "Finland" },
+  "DK": { lat: 56, lon: 10, flag: "🇩🇰", name: "Denmark" },
+  "BE": { lat: 51, lon: 4, flag: "🇧🇪", name: "Belgium" },
+  "HR": { lat: 45, lon: 16, flag: "🇭🇷", name: "Croatia" },
+  "RO": { lat: 46, lon: 25, flag: "🇷🇴", name: "Romania" },
+  "BG": { lat: 43, lon: 25, flag: "🇧🇬", name: "Bulgaria" },
+  "UA": { lat: 49, lon: 31, flag: "🇺🇦", name: "Ukraine" },
+  "TW": { lat: 24, lon: 121, flag: "🇹🇼", name: "Taiwan" },
+  "LU": { lat: 50, lon: 6, flag: "🇱🇺", name: "Luxembourg" },
+};
 
-// ─── Accent dot ────────────────────────────────────────────────
-function Dot({ color }) {
-  return (
-    <span
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: color,
-        boxShadow: `0 0 8px ${color}80`,
-        flexShrink: 0,
-      }}
-    />
-  );
-}
+const REG_PREFIX_MAP = {
+  "N": "US", "C": "CA", "CF": "CA", "CG": "CA",
+  "G": "GB", "D": "DE", "F": "FR", "I": "IT",
+  "EC": "ES", "PH": "NL", "OE": "AT", "HB": "CH",
+  "SP": "PL", "OK": "CZ", "OM": "SK", "HA": "HU",
+  "YR": "RO", "LZ": "BG", "9A": "HR", "SX": "GR",
+  "SE": "SE", "LN": "NO", "OH": "FI", "OY": "DK",
+  "OO": "BE", "LX": "LU", "CS": "PT", "EI": "IE",
+  "UR": "UA", "RA": "RU", "VH": "AU", "ZK": "NZ",
+  "JA": "JP", "B": "CN", "VT": "IN", "HL": "KR",
+  "9V": "SG", "HS": "TH", "PK": "ID", "9M": "MY",
+  "RP": "PH", "XA": "MX", "XB": "MX", "XC": "MX",
+  "PP": "BR", "PT": "BR", "PR": "BR", "LV": "AR",
+  "LQ": "AR", "CC": "CL", "HK": "CO", "OB": "PE",
+  "ZS": "ZA", "ZT": "ZA", "ZU": "ZA", "A6": "AE",
+  "SU": "EG", "5N": "NG", "5Y": "KE", "4X": "IL",
+  "HZ": "SA", "TC": "TR",
+};
 
-// ─── Stat pill (bottom-left stack style) ───────────────────────
-function StatPill({ color, label, value }) {
-  return (
-    <GlassCard
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 16px",
-        borderRadius: 999,
-      }}
-    >
-      <Dot color={color} />
-      <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-        <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          {label}
-        </span>
-        <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{value}</span>
-      </div>
-    </GlassCard>
-  );
-}
-
-// ─── Black Globe (canvas) ─────────────────────────────────────
+// ─── Continent polygons ────────────────────────────────────────
 const POLYGONS = [
   [[[-168,72],[-140,71],[-125,50],[-124,49],[-124,46],[-122,38],[-117,32],[-110,24],[-105,20],[-99,16],[-91,16],[-88,16],[-84,10],[-79,9],[-77,8],[-63,11],[-60,11],[-53,47],[-56,47],[-64,44],[-67,44],[-70,43],[-70,41],[-74,40],[-76,35],[-80,32],[-81,30],[-81,29],[-80,25],[-80,24],[-97,26],[-97,30],[-93,30],[-90,29],[-89,29],[-93,28],[-97,26],[-100,25],[-107,24],[-110,26],[-117,32],[-124,49],[-141,60],[-168,72]]],
   [[[-45,83],[-20,83],[-18,76],[-22,72],[-28,68],[-40,64],[-44,60],[-52,62],[-52,66],[-54,70],[-58,74],[-50,78],[-45,83]]],
   [[[-72,12],[-63,10],[-52,5],[-50,2],[-50,0],[-50,-2],[-36,-8],[-35,-10],[-37,-12],[-39,-16],[-40,-20],[-41,-22],[-43,-23],[-47,-25],[-48,-27],[-50,-30],[-52,-33],[-52,-34],[-57,-35],[-57,-36],[-58,-38],[-60,-38],[-62,-40],[-63,-42],[-65,-42],[-66,-44],[-67,-46],[-66,-48],[-68,-50],[-68,-52],[-65,-54],[-67,-55],[-65,-55],[-70,-53],[-75,-50],[-75,-44],[-73,-42],[-72,-38],[-72,-36],[-72,-32],[-72,-30],[-71,-28],[-70,-24],[-70,-22],[-70,-18],[-70,-16],[-75,-14],[-76,-12],[-78,-10],[-78,-6],[-78,-4],[-80,-2],[-80,0],[-80,2],[-78,5],[-77,8],[-76,10],[-73,12],[-72,12]]],
-  [[[26,71],[28,68],[20,64],[16,60],[12,58],[8,58],[4,57],[4,56],[8,54],[10,54],[14,54],[10,54],[8,54],[6,53],[4,52],[2,51],[0,51],[-2,49],[-5,48],[-2,48],[-2,47],[-2,46],[0,44],[3,43],[8,44],[8,46],[14,44],[18,43],[18,42],[20,42],[22,42],[24,43],[26,44],[28,45],[30,46],[30,45],[28,47],[22,47],[18,48],[18,50],[22,48],[24,48],[26,50],[26,52],[20,52],[14,52],[8,52],[6,51],[4,52],[6,53],[8,54],[14,54],[18,55],[18,56],[12,58],[8,58],[4,57],[4,58],[6,58],[5,62],[14,65],[20,68],[28,68],[26,71]]],
-  [[[30,70],[50,70],[70,70],[90,68],[100,65],[132,65],[140,60],[138,56],[142,50],[142,48],[136,44],[130,42],[130,38],[136,34],[122,30],[120,26],[114,22],[110,20],[108,16],[106,12],[104,8],[104,2],[104,-2],[106,-4],[108,-6],[110,-8],[116,-8],[114,-6],[110,-4],[108,-2],[104,0],[100,4],[100,6],[98,8],[100,12],[98,16],[96,18],[92,22],[92,24],[88,24],[88,22],[86,18],[84,16],[82,14],[80,10],[78,10],[74,14],[72,16],[72,18],[70,20],[68,20],[68,22],[68,24],[68,26],[66,28],[62,28],[60,26],[58,24],[56,22],[54,26],[52,28],[50,28],[48,30],[44,34],[36,34],[36,36],[36,38],[38,40],[40,40],[42,42],[42,44],[44,44],[46,46],[48,48],[50,50],[52,52],[52,54],[50,52],[48,46],[44,42],[42,42],[40,40],[38,38],[36,36],[34,36],[32,44],[30,48],[48,30],[52,28],[56,22],[54,26],[52,28],[50,32],[50,36],[52,38],[54,50],[56,52],[60,54],[64,56],[68,60],[70,60]]],
+  [[[26,71],[28,68],[20,64],[16,60],[12,58],[8,58],[4,57],[4,56],[8,54],[10,54],[14,54],[6,53],[4,52],[2,51],[0,51],[-2,49],[-5,48],[-2,48],[-2,46],[0,44],[3,43],[8,44],[14,44],[18,43],[20,42],[24,43],[26,44],[28,45],[30,46],[28,47],[22,47],[18,48],[18,50],[22,48],[26,50],[26,52],[20,52],[14,52],[8,52],[6,51],[4,52],[6,53],[8,54],[14,54],[18,55],[18,56],[12,58],[8,58],[4,57],[4,58],[5,62],[14,65],[20,68],[28,68],[26,71]]],
+  [[[30,70],[50,70],[70,70],[90,68],[100,65],[132,65],[140,60],[138,56],[142,50],[142,48],[136,44],[130,42],[130,38],[136,34],[122,30],[120,26],[114,22],[110,20],[108,16],[106,12],[104,8],[104,2],[104,-2],[106,-4],[108,-6],[110,-8],[116,-8],[114,-6],[110,-4],[108,-2],[104,0],[100,4],[100,6],[98,8],[100,12],[98,16],[96,18],[92,22],[92,24],[88,24],[88,22],[86,18],[84,16],[82,14],[80,10],[78,10],[74,14],[72,16],[70,20],[68,20],[68,22],[68,24],[68,26],[66,28],[62,28],[60,26],[58,24],[56,22],[54,26],[52,28],[50,28],[48,30],[44,34],[36,34],[36,36],[36,38],[38,40],[40,40],[42,42],[42,44],[44,44],[46,46],[48,48],[50,50],[52,52],[52,54],[50,52],[48,46],[44,42],[42,42],[40,40],[38,38],[36,36],[34,36],[32,44],[30,48],[50,32],[50,36],[52,38],[54,50],[56,52],[60,54],[64,56],[68,60],[70,60]]],
   [[[128,-14],[130,-14],[134,-14],[136,-14],[138,-14],[138,-16],[140,-16],[141,-17],[140,-20],[138,-22],[138,-24],[140,-26],[142,-26],[144,-26],[148,-26],[152,-27],[154,-28],[153,-30],[152,-32],[151,-34],[150,-36],[148,-38],[146,-38],[142,-38],[140,-37],[138,-36],[136,-35],[136,-34],[134,-34],[132,-34],[130,-34],[128,-32],[116,-30],[114,-28],[114,-26],[114,-24],[114,-22],[118,-20],[122,-18],[124,-16],[126,-15],[128,-14]]],
 ];
 
-function BlackGlobe({ rotationSpeed = 0.06 }) {
+// ─── Group listings by country ────────────────────────────────
+function groupByCountry(listings) {
+  const groups = {};
+  listings.forEach((l, i) => {
+    const reg = (l.registration || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    let country = null;
+    for (const len of [2, 1]) {
+      const prefix = reg.substring(0, len);
+      if (REG_PREFIX_MAP[prefix]) { country = REG_PREFIX_MAP[prefix]; break; }
+    }
+    if (!country) country = "US"; // fallback
+    if (!groups[country]) {
+      const c = COUNTRY_COORDS[country] || { lat: 20, lon: 0, flag: "📍", name: country };
+      groups[country] = { country, lat: c.lat, lon: c.lon, flag: c.flag, name: c.name, listings: [] };
+    }
+    // slight jitter per listing within cluster
+    const j = groups[country].listings.length;
+    groups[country].listings.push({
+      ...l,
+      _jitterLat: c_jitter(j),
+      _jitterLon: c_jitter(j + 100),
+    });
+  });
+  return Object.values(groups);
+}
+
+function c_jitter(i) {
+  return (Math.sin(i * 4.7) * 3 + Math.cos(i * 3.1) * 2);
+}
+
+// ─── Cluster popup (HTML overlay) ──────────────────────────────
+function ClusterPopup({ cluster, pos, onClose, onOpen }) {
+  if (!cluster || !pos) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: pos.x,
+        top: pos.y,
+        transform: "translate(-50%, calc(-100% - 14px))",
+        zIndex: 30,
+      }}
+    >
+      <div style={{
+        background: "rgba(10,10,10,0.95)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        border: "1px solid rgba(245,158,11,0.25)",
+        borderRadius: 14,
+        padding: "12px 14px",
+        minWidth: 200,
+        maxWidth: 260,
+        boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>{cluster.flag}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{cluster.name}</span>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: 2 }}>
+            <X size={14} />
+          </button>
+        </div>
+        <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(245,158,11,0.7)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
+          {cluster.listings.length} listing{cluster.listings.length > 1 ? "s" : ""}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 200, overflowY: "auto" }}>
+          {cluster.listings.map((l, i) => (
+            <button
+              key={l.id || i}
+              onClick={() => onOpen(l)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 8px",
+                borderRadius: 8,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(245,158,11,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: l.ati_score >= 72 ? "#5dcaa5" : "#F59E0B", flexShrink: 0 }} />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: "#fff", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {l.year} {l.make} {l.model}
+                </p>
+                <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0, fontFamily: "'Courier New', monospace" }}>
+                  {l.registration}
+                  {l.asking_price ? ` · $${l.asking_price.toLocaleString()}` : ""}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Arrow */}
+      <div style={{ position: "absolute", left: "50%", bottom: 0, transform: "translate(-50%, 100%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "7px solid rgba(10,10,10,0.95)" }} />
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────
+export default function BlackGlobeHUD({
+  listings = [],
+  utcTime,
+  stats = { adsbCount: 2315, liveDbCount: 10987, faaCount: 456 },
+  listingsCount = 142,
+}) {
+  const navigate = useNavigate();
   const canvasRef = useRef(null);
   const rotRef = useRef(0);
   const rafRef = useRef(null);
+  const pausedRef = useRef(false);
+  const clusterScreenRef = useRef([]); // projected cluster positions for hit-test
+  const [time, setTime] = useState(utcTime || "");
+  const [popup, setPopup] = useState(null); // { cluster, x, y }
+  const [hoverCluster, setHoverCluster] = useState(null);
 
+  const clusters = useMemo(() => groupByCountry(listings), [listings]);
+  const clustersRef = useRef(clusters);
+  useEffect(() => { clustersRef.current = clusters; }, [clusters]);
+
+  // UTC clock
+  useEffect(() => {
+    if (utcTime) return;
+    const update = () => {
+      const d = new Date();
+      setTime(`${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}:${String(d.getUTCSeconds()).padStart(2,"0")}`);
+    };
+    update();
+    const iv = setInterval(update, 1000);
+    return () => clearInterval(iv);
+  }, [utcTime]);
+
+  // Globe canvas
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -105,10 +260,12 @@ function BlackGlobe({ rotationSpeed = 0.06 }) {
       return { sx: CX + x * R, sy: CY - y * R, vis: z > 0, depth: z };
     };
 
+    let frame = 0;
+
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
 
-      // Ocean — pure black sphere
+      // Ocean — pure black
       const oceanGrad = ctx.createRadialGradient(CX - R * 0.3, CY - R * 0.3, R * 0.1, CX, CY, R);
       oceanGrad.addColorStop(0, "#0A0A0A");
       oceanGrad.addColorStop(0.7, "#050505");
@@ -118,13 +275,12 @@ function BlackGlobe({ rotationSpeed = 0.06 }) {
       ctx.fillStyle = oceanGrad;
       ctx.fill();
 
-      // Clip to globe
       ctx.save();
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.clip();
 
-      // Continent silhouettes — very dark grey
+      // Continent silhouettes
       for (const poly of POLYGONS) {
         for (const ring of poly) {
           ctx.beginPath();
@@ -134,48 +290,101 @@ function BlackGlobe({ rotationSpeed = 0.06 }) {
             else ctx.lineTo(p.sx, p.sy);
           });
           ctx.closePath();
-          const alpha = 0.85;
-          ctx.fillStyle = `rgba(20,20,20,${alpha})`;
+          ctx.fillStyle = "rgba(22,22,22,0.9)";
           ctx.fill();
-          ctx.strokeStyle = "rgba(40,40,40,0.5)";
+          ctx.strokeStyle = "rgba(42,42,42,0.5)";
           ctx.lineWidth = 0.5 * DPR;
           ctx.stroke();
         }
       }
 
-      // Subtle dot grid for texture
-      ctx.fillStyle = "rgba(255,255,255,0.015)";
+      // Dot grid texture
+      ctx.fillStyle = "rgba(255,255,255,0.012)";
       for (let la = -80; la <= 80; la += 8) {
         for (let lo = -180; lo <= 180; lo += 8) {
           const p = project(lo, la);
           if (!p.vis) continue;
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, 0.6 * DPR, 0, Math.PI * 2);
+          ctx.arc(p.sx, p.sy, 0.5 * DPR, 0, Math.PI * 2);
           ctx.fill();
         }
       }
 
+      // ── Cluster pins ──
+      const projectedClusters = [];
+      const cls = clustersRef.current;
+      cls.forEach((cluster, i) => {
+        const p = project(cluster.lon, cluster.lat);
+        projectedClusters.push({ ...p, cluster, index: i });
+        if (!p.vis) return;
+
+        const count = cluster.listings.length;
+        const isHovered = hoverCluster === i;
+        const pulse = 0.5 + 0.5 * Math.sin(frame * 0.04 + i * 1.7);
+
+        // Glow ring
+        for (let ring = 2; ring >= 0; ring--) {
+          ctx.beginPath();
+          const ringR = (6 + ring * 4 + (isHovered ? pulse * 3 : 0)) * DPR;
+          ctx.arc(p.sx, p.sy, ringR, 0, Math.PI * 2);
+          const alpha = (isHovered ? 0.18 : 0.08) * (3 - ring) / 3;
+          ctx.strokeStyle = `rgba(245,158,11,${alpha.toFixed(3)})`;
+          ctx.lineWidth = 1.2 * DPR;
+          ctx.stroke();
+        }
+
+        // Pin dot
+        const dotR = (isHovered ? 5 : 3.5) * DPR;
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, dotR, 0, Math.PI * 2);
+        ctx.fillStyle = "#F59E0B";
+        ctx.shadowColor = "#F59E0B";
+        ctx.shadowBlur = (isHovered ? 10 : 5) * DPR;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Count badge (if >1)
+        if (count > 1) {
+          const bx = p.sx + dotR + 2 * DPR;
+          const by = p.sy - dotR - 2 * DPR;
+          ctx.beginPath();
+          ctx.arc(bx, by, 6 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(245,158,11,0.9)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(0,0,0,0.4)";
+          ctx.lineWidth = 0.5 * DPR;
+          ctx.stroke();
+          ctx.fillStyle = "#000";
+          ctx.font = `bold ${8 * DPR}px -apple-system, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(String(count), bx, by);
+        }
+      });
+      clusterScreenRef.current = projectedClusters;
+
       ctx.restore();
 
-      // Rim glow — very subtle
-      const rimGrad = ctx.createRadialGradient(CX, CY, R * 0.96, CX, CY, R * 1.12);
-      rimGrad.addColorStop(0, "rgba(245,158,11,0.04)");
-      rimGrad.addColorStop(1, "transparent");
-      ctx.beginPath();
-      ctx.arc(CX, CY, R * 1.12, 0, Math.PI * 2);
-      ctx.fillStyle = rimGrad;
-      ctx.fill();
-
-      // Thin rim line
+      // Rim
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
       ctx.lineWidth = 1 * DPR;
       ctx.stroke();
+
+      // Subtle atmosphere glow
+      const rimGrad = ctx.createRadialGradient(CX, CY, R * 0.96, CX, CY, R * 1.1);
+      rimGrad.addColorStop(0, "rgba(245,158,11,0.03)");
+      rimGrad.addColorStop(1, "transparent");
+      ctx.beginPath();
+      ctx.arc(CX, CY, R * 1.1, 0, Math.PI * 2);
+      ctx.fillStyle = rimGrad;
+      ctx.fill();
     };
 
     const loop = () => {
-      rotRef.current += rotationSpeed;
+      frame++;
+      if (!pausedRef.current) rotRef.current += 0.04; // slow rotation
       draw();
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -185,113 +394,146 @@ function BlackGlobe({ rotationSpeed = 0.06 }) {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
     };
-  }, [rotationSpeed]);
+  }, [hoverCluster]);
 
-  return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />;
-}
+  // Click → open cluster popup
+  const handleClick = useCallback((e) => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const rect = cv.getBoundingClientRect();
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const mx = (e.clientX - rect.left) * DPR;
+    const my = (e.clientY - rect.top) * DPR;
+    const HIT = 16 * DPR;
 
-// ─── Main HUD overlay ─────────────────────────────────────────
-export default function BlackGlobeHUD({
-  utcTime,
-  flight = { callsign: "AA102", aircraft: "B738" },
-  stats = { adsbCount: 2315, liveDbCount: 10987, faaCount: 456 },
-  listingsCount = 142,
-}) {
-  const [time, setTime] = useState(utcTime || "");
+    let best = null, bestDist = Infinity;
+    for (const pt of clusterScreenRef.current) {
+      if (!pt.vis) continue;
+      const dx = pt.sx - mx, dy = pt.sy - my;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < HIT && d < bestDist) { bestDist = d; best = pt; }
+    }
 
-  useEffect(() => {
-    if (utcTime) return;
-    const update = () => {
-      const d = new Date();
-      const h = String(d.getUTCHours()).padStart(2, "0");
-      const m = String(d.getUTCMinutes()).padStart(2, "0");
-      const s = String(d.getUTCSeconds()).padStart(2, "0");
-      setTime(`${h}:${m}:${s}`);
-    };
-    update();
-    const iv = setInterval(update, 1000);
-    return () => clearInterval(iv);
-  }, [utcTime]);
+    if (best) {
+      pausedRef.current = true;
+      setPopup({ cluster: best.cluster, x: best.sx / DPR, y: best.sy / DPR });
+    } else {
+      setPopup(null);
+      pausedRef.current = false;
+    }
+  }, []);
+
+  // Hover → highlight cluster
+  const handleMove = useCallback((e) => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const rect = cv.getBoundingClientRect();
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const mx = (e.clientX - rect.left) * DPR;
+    const my = (e.clientY - rect.top) * DPR;
+    const HIT = 16 * DPR;
+
+    let found = null;
+    for (const pt of clusterScreenRef.current) {
+      if (!pt.vis) continue;
+      const dx = pt.sx - mx, dy = pt.sy - my;
+      if (Math.sqrt(dx * dx + dy * dy) < HIT) { found = pt.index; break; }
+    }
+    setHoverCluster(found);
+    cv.style.cursor = found !== null ? "pointer" : "default";
+  }, []);
+
+  const closePopup = () => {
+    setPopup(null);
+    pausedRef.current = false;
+  };
+
+  const openListing = (l) => {
+    if (l.id) navigate(`/ati-passport/${l.id}`);
+  };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: "#000", overflow: "hidden", borderRadius: 16 }}>
-      {/* Globe background */}
-      <div style={{ position: "absolute", inset: 0 }}>
-        <BlackGlobe />
-      </div>
+    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: "#000", overflow: "hidden" }}>
+      {/* Globe canvas — full bleed, no card */}
+      <canvas
+        ref={canvasRef}
+        onClick={handleClick}
+        onMouseMove={handleMove}
+        style={{ width: "100%", height: "100%", display: "block" }}
+      />
 
-      {/* ── Top-Left: UTC time pill ── */}
+      {/* ── Top-Left: UTC time ── */}
       <div style={{ position: "absolute", top: 20, left: 20, zIndex: 10 }}>
-        <GlassCard
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 18px",
-            borderRadius: 999,
-          }}
-        >
-          <Dot color="#F59E0B" />
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderRadius: 999,
+          background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Courier New', monospace" }}>
-              {time}
-            </span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Courier New', monospace" }}>{time}</span>
             <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>UTC</span>
           </div>
-        </GlassCard>
+        </div>
       </div>
 
-      {/* ── Top-Right: Flight card ── */}
+      {/* ── Top-Right: Listings count ── */}
       <div style={{ position: "absolute", top: 20, right: 20, zIndex: 10 }}>
-        <GlassCard
-          style={{
-            display: "flex",
-            gap: 16,
-            padding: "12px 16px",
-            borderRadius: 16,
-            position: "relative",
-          }}
-        >
-          <div style={{ position: "absolute", top: 10, right: 10 }}>
-            <Dot color="#0D9488" />
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderRadius: 999,
+          background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+            <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>listings count</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Total: {listingsCount}</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Flight</span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", fontFamily: "'Courier New', monospace" }}>{flight.callsign}</span>
-          </div>
-          <div style={{ width: 1, background: "rgba(255,255,255,0.1)" }} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Aircraft</span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", fontFamily: "'Courier New', monospace" }}>{flight.aircraft}</span>
-          </div>
-        </GlassCard>
+        </div>
       </div>
 
       {/* ── Bottom-Left: Stat stack ── */}
       <div style={{ position: "absolute", bottom: 20, left: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-        <StatPill color="#F59E0B" label="ADS-B count" value={stats.adsbCount.toLocaleString()} />
-        <StatPill color="#0D9488" label="Live DB count" value={stats.liveDbCount.toLocaleString()} />
-        <StatPill color="#0D9488" label="FAA count" value={stats.faaCount.toLocaleString()} />
+        {[
+          { color: "#F59E0B", label: "ADS-B count", value: stats.adsbCount.toLocaleString() },
+          { color: "#0D9488", label: "Live DB count", value: stats.liveDbCount.toLocaleString() },
+          { color: "#0D9488", label: "FAA count", value: stats.faaCount.toLocaleString() },
+        ].map((s) => (
+          <div key={s.label} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 999,
+            background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, boxShadow: `0 0 8px ${s.color}80`, flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+              <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.label}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{s.value}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ── Bottom-Right: Listings pill ── */}
+      {/* ── Bottom-Right: Hint ── */}
       <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 10 }}>
-        <GlassCard
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "10px 18px",
-            borderRadius: 999,
-          }}
-        >
-          <Dot color="#F59E0B" />
-          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>listings count</span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Total Listings: {listingsCount}</span>
-          </div>
-        </GlassCard>
+        <div style={{
+          padding: "8px 14px", borderRadius: 999,
+          background: "rgba(255,255,255,0.06)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)",
+        }}>
+          Click a pin to expand listings
+        </div>
       </div>
+
+      {/* Cluster popup */}
+      {popup && (
+        <ClusterPopup
+          cluster={popup.cluster}
+          pos={{ x: popup.x, y: popup.y }}
+          onClose={closePopup}
+          onOpen={openListing}
+        />
+      )}
     </div>
   );
 }

@@ -1,21 +1,17 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import BlackGlobeHUD from "@/components/dashboard/BlackGlobeHUD";
-import DashboardNRegSearch from "@/components/dashboard/DashboardNRegSearch";
-import ListingCard from "@/components/listings/ListingCard";
+import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
+import NRegLookup from "@/components/dashboard/NRegLookup";
+import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import SiteFooter from "@/components/SiteFooter";
+import ListingCard from "@/components/listings/ListingCard";
+import NotificationStack from "@/components/notifications/NotificationStack";
 import {
-  Globe, Zap, TrendingUp, BarChart3, Wind, Database,
-  Plane, Sliders, Code, Map, ArrowRight, Home, 
-  Gauge, Calculator, Users, Zap as ZapIcon
+  Plane, BarChart2, Shield, Zap, Globe, Cpu, Database, Users, ArrowRight,
+  TrendingUp, CheckCircle, Briefcase, FileText, Calculator,
 } from "lucide-react";
-
-const GOLD = "#C9A84D";
-const BG_PRIMARY = "#05070B";
-const BG_SECONDARY = "#0F1218";
-const TEXT_WHITE = "#ffffff";
-const TEXT_MUTED = "rgba(255,255,255,0.45)";
 
 const todayStart = () => {
   const d = new Date();
@@ -24,574 +20,1143 @@ const todayStart = () => {
 };
 
 export default function Dashboard() {
-  // ─── QUERIES ───────────────────────────────────────────
-  const { data: listingsActive = [] } = useQuery({
-    queryKey: ["listings-active-dashboard"],
-    queryFn: () => base44.entities.AircraftListing.filter(
-      { status: "active", visibility: "public" },
-      "-created_date",
-      10
-    ),
-    staleTime: 30000,
-  });
-
-  const { data: listingsAllActive = [] } = useQuery({
-    queryKey: ["listings-all-active"],
+  const { data: listings = [] } = useQuery({
+    queryKey: ["listings-hub"],
     queryFn: () =>
-      base44.entities.AircraftListing.filter({ status: "active" }),
+      base44.entities.AircraftListing.filter(
+        { status: "active", visibility: "public" },
+        "-created_date",
+        10
+      ),
     staleTime: 30000,
   });
 
-  const { data: atiCardsAll = [] } = useQuery({
-    queryKey: ["ati-cards-all"],
-    queryFn: () => base44.entities.ATICard.list("-created_date", 1000),
+  const { data: atiCards = [] } = useQuery({
+    queryKey: ["ati-cards-hub"],
+    queryFn: () => base44.entities.ATICard.list(),
     staleTime: 30000,
   });
 
-  const { data: atiCardsActive = [] } = useQuery({
-    queryKey: ["ati-cards-active"],
+  const { data: activeAti = [] } = useQuery({
+    queryKey: ["ati-active-hub"],
     queryFn: () => base44.entities.ATICard.filter({ status: "active" }),
     staleTime: 30000,
   });
 
-  const { data: listingsToday = [] } = useQuery({
-    queryKey: ["listings-today"],
-    queryFn: async () => {
-      const ts = todayStart();
-      return base44.entities.AircraftListing.filter({ status: "active" });
-    },
-    staleTime: 30000,
-  });
-
-  const { data: atiCardsToday = [] } = useQuery({
-    queryKey: ["ati-cards-today"],
-    queryFn: async () => {
-      const ts = todayStart();
-      return base44.entities.ATICard.filter({ status: "active" });
-    },
-    staleTime: 30000,
-  });
-
-  // ─── KPI COUNTS ────────────────────────────────────────
-  const kpiListingsCount = listingsAllActive.length;
-  const kpiAtiCardsCount = atiCardsAll.length;
-  const kpiActiveAti = atiCardsActive.length;
-
-  // ─── GRID LISTING (MARKETPLACE) ────────────────────────
-  const marketplaceListings = listingsActive.slice(0, 6);
-
-  // ─── ENGINES ───────────────────────────────────────────
-  const engines = [
-    { name: "Lycoming IO-540", type: "Piston" },
-    { name: "Continental TSIO-550", type: "Piston" },
-    { name: "Pratt & Whitney PT6A", type: "Turbine" },
-    { name: "Williams FJ44", type: "Jet" },
-    { name: "GE CF34", type: "Commercial" },
-  ];
-
   return (
-    <div style={{ background: BG_PRIMARY, color: TEXT_WHITE, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" }}>
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 1 — HERO (full viewport)
-      ═══════════════════════════════════════════════════════ */}
-      <div className="relative w-full" style={{ minHeight: "100vh" }}>
-        {/* Globe background */}
-        <div className="absolute inset-0 z-0">
-          <BlackGlobeHUD
-            listings={listingsActive}
-            listingsCount={listingsActive.length}
-            stats={{ adsbCount: 2315, liveDbCount: listingsActive.length, faaCount: 456 }}
-            isDark={true}
-            hideOverlayPills={true}
-          />
+    <div
+      style={{
+        background: "#04060a",
+        color: "#fff",
+        overflowY: "auto",
+        minHeight: "100vh",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
+      }}
+    >
+      <NotificationStack />
+
+      {/* ── 1. HERO ── 100vh section */}
+      <section
+        style={{
+          position: "relative",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+        }}
+      >
+        {/* Globe fills hero */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+          <SkyBossGlobe className="w-full h-full" listings={listings} />
         </div>
 
-        {/* Gradient scrims for readability */}
+        {/* Dark gradient overlay bottom */}
         <div
-          className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
           style={{
-            height: "28%",
-            background: "linear-gradient(to bottom, rgba(5,7,11,0.85) 0%, transparent 40%, rgba(5,7,11,0.9) 75%, rgba(5,7,11,1) 100%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
-          style={{
-            height: "46%",
-            background: "linear-gradient(to top, rgba(5,7,11,0.95) 0%, rgba(5,7,11,0.7) 35%, rgba(5,7,11,0.25) 70%, transparent 100%)",
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            background:
+              "linear-gradient(to bottom, rgba(4,6,10,0.3) 0%, rgba(4,6,10,0.0) 30%, rgba(4,6,10,0.85) 80%, #04060a 100%)",
           }}
         />
 
-        {/* Center hero: headline + search + KPIs */}
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 md:px-8">
-          <div className="max-w-2xl w-full">
-            {/* Headline */}
-            <h1 className="text-4xl md:text-5xl font-light text-center mb-4" style={{ color: TEXT_WHITE }}>
-              Global Aircraft Identity & Intelligence
-            </h1>
+        {/* Hero content centered */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px 80px",
+            width: "100%",
+          }}
+        >
+          {/* Eyebrow */}
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 16,
+            }}
+          >
+            Global Aircraft Identity & Intelligence
+          </p>
 
-            {/* N-Reg Search */}
-            <div className="mb-12">
-              <p className="text-center text-[9px] tracking-[0.22em] font-bold mb-3" style={{ color: GOLD }}>
-                FAA N-REGISTRY LOOKUP
-              </p>
-              <DashboardNRegSearch />
-            </div>
+          <h1
+            style={{
+              fontSize: "clamp(32px, 5vw, 64px)",
+              fontWeight: 500,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.05,
+              color: "#fff",
+              marginBottom: 32,
+              maxWidth: 800,
+            }}
+          >
+            The Operating System
+            <br />
+            for Aircraft Transactions
+          </h1>
 
-            {/* KPI Tiles */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
-              {[
-                { label: "Aircraft Listings", value: kpiListingsCount },
-                { label: "ATI Cards", value: kpiAtiCardsCount },
-                { label: "Active ATI", value: kpiActiveAti },
-              ].map((kpi) => (
+          {/* NReg search */}
+          <div style={{ maxWidth: 640, marginBottom: 32 }}>
+            <NRegLookup />
+          </div>
+
+          {/* 3 live counters */}
+          <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+            {[
+              { value: listings.length, label: "Active Listings" },
+              { value: atiCards.length, label: "ATI Passports" },
+              { value: activeAti.length, label: "Active ATI" },
+            ].map(({ value, label }) => (
+              <div key={label}>
                 <div
-                  key={kpi.label}
-                  className="rounded-xl px-4 py-5 text-center h-[88px] flex flex-col justify-center"
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: `1px solid ${GOLD}22`,
+                    fontSize: 36,
+                    fontWeight: 500,
+                    letterSpacing: "-0.04em",
+                    color: "#f5c242",
+                    lineHeight: 1,
+                    fontVariantNumeric: "tabular-nums",
                   }}
                 >
-                  <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-1" style={{ color: GOLD }}>
-                    {kpi.label}
-                  </p>
-                  <p className="text-2xl md:text-3xl font-black" style={{ color: TEXT_WHITE }}>
-                    {kpi.value}
-                  </p>
+                  {value}
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.4)",
+                    marginTop: 4,
+                  }}
+                >
+                  {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2. QUICK ACCESS ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            Quick Access
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 32,
+            }}
+          >
+            Everything you need, one click away
+          </h2>
+          <QuickAccessStrip />
+        </div>
+      </section>
+
+      {/* ── 3. LIVE MARKET ── horizontal scroll */}
+      <section
+        style={{
+          background: "#0a0f1a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: 32,
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: "#f5c242",
+                  marginBottom: 8,
+                }}
+              >
+                Live Market
+              </p>
+              <h2
+                style={{
+                  fontSize: 28,
+                  fontWeight: 500,
+                  letterSpacing: "-0.03em",
+                  color: "#fff",
+                }}
+              >
+                Latest Aircraft Listings
+              </h2>
+            </div>
+            <Link
+              to="/listings"
+              style={{
+                fontSize: 12,
+                color: "#f5c242",
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+          {listings.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                overflowX: "auto",
+                paddingBottom: 16,
+                scrollbarWidth: "none",
+              }}
+            >
+              {listings.map((l) => (
+                <div
+                  key={l.id}
+                  style={{ minWidth: 280, flexShrink: 0 }}
+                >
+                  <ListingCard listing={l} />
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 2 — QUICK ACCESS (4 glass cards)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_SECONDARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Quick Access
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-12" style={{ color: TEXT_WHITE }}>
-            Explore Core Modules
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: Globe, label: "MarketSpace", to: "/listings", desc: "Browse live listings" },
-              { icon: Zap, label: "ATI Passport", to: "/ati-quick-score", desc: "Aircraft intelligence" },
-              { icon: TrendingUp, label: "Valuation", to: "/valuation", desc: "OMVM scoring" },
-              { icon: Wind, label: "OPEX Calc", to: "/opex-calculator", desc: "Operating costs" },
-            ].map((item) => (
-              <Link key={item.label} to={item.to}>
-                <div
-                  className="rounded-xl p-6 cursor-pointer group hover:border-[#C9A84D] hover:shadow-[0_0_24px_rgba(201,168,77,0.12)] transition-all h-full"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: `1px solid ${GOLD}22`,
-                  }}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className="rounded-lg p-2.5"
-                      style={{ background: `${GOLD}14`, border: `1px solid ${GOLD}30` }}
-                    >
-                      <item.icon className="w-5 h-5" style={{ color: GOLD }} />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold mb-1" style={{ color: TEXT_WHITE }}>
-                    {item.label}
-                  </h3>
-                  <p className="text-sm" style={{ color: TEXT_MUTED }}>
-                    {item.desc}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 3 — LIVE MARKET (horizontal scroll)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_PRIMARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Live Market
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-8" style={{ color: TEXT_WHITE }}>
-            Recent Listings
-          </h2>
-
-          <div className="flex overflow-x-auto gap-4 pb-4">
-            {listingsActive.map((listing) => (
-              <div key={listing.id} className="flex-shrink-0 w-96">
-                <ListingCard listing={listing} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 4 — MARKET INTELLIGENCE (2 Bloomberg boxes)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_SECONDARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Market Intelligence
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-12" style={{ color: TEXT_WHITE }}>
-            Today's Activity
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* New Listings */}
+          ) : (
             <div
-              className="rounded-xl p-6"
               style={{
-                background: `rgba(255,255,255,0.02)`,
-                border: `1px solid ${GOLD}22`,
-                fontFamily: "'Courier New', monospace",
+                background: "rgba(255,255,255,0.04)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+                borderRadius: 12,
+                padding: 40,
+                textAlign: "center",
+                color: "rgba(255,255,255,0.3)",
+                fontSize: 13,
               }}
             >
-              <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-4" style={{ color: GOLD }}>
-                NEW LISTINGS TODAY
-              </p>
-              <p className="text-4xl font-black mb-2" style={{ color: TEXT_WHITE }}>
-                {listingsToday.length}
-              </p>
-              <p className="text-sm" style={{ color: TEXT_MUTED }}>
-                Aircraft added to marketplace
-              </p>
+              Loading live listings...
             </div>
-
-            {/* New ATI Passports */}
-            <div
-              className="rounded-xl p-6"
-              style={{
-                background: `rgba(255,255,255,0.02)`,
-                border: `1px solid ${GOLD}22`,
-                fontFamily: "'Courier New', monospace",
-              }}
-            >
-              <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-4" style={{ color: GOLD }}>
-                NEW ATI PASSPORTS TODAY
-              </p>
-              <p className="text-4xl font-black mb-2" style={{ color: TEXT_WHITE }}>
-                {atiCardsToday.length}
-              </p>
-              <p className="text-sm" style={{ color: TEXT_MUTED }}>
-                Aircraft intelligence generated
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 5 — AIRCRAFT FINANCE STRIP
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-16 px-6 md:px-8" style={{ background: BG_PRIMARY }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex-1">
-              <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-2" style={{ color: GOLD }}>
-                Aircraft Finance
-              </p>
-              <h3 className="text-2xl md:text-3xl font-light mb-4" style={{ color: TEXT_WHITE }}>
-                OPEX · CAPEX · Leasing · Insurance
-              </h3>
-              <p className="text-sm" style={{ color: TEXT_MUTED }}>
-                Calculate operating costs, capital expenses, financing, and coverage for any aircraft.
-              </p>
-            </div>
-            <Link
-              to="/opex-calculator"
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all hover:gap-3"
-              style={{
-                background: GOLD,
-                color: "#000",
-              }}
-            >
-              Get Calculator <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 6 — FEATURED TOOLS (2x3 grid)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_SECONDARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Featured Tools
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-12" style={{ color: TEXT_WHITE }}>
-            Accelerate Your Workflow
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { icon: Map, label: "Live Traffic", to: "/traffic" },
-              { icon: Zap, label: "ATI Quick Score", to: "/ati-quick-score" },
-              { icon: TrendingUp, label: "Valuation", to: "/valuation" },
-              { icon: Database, label: "IntraZone", to: "/intrazone" },
-              { icon: Database, label: "Data Hub", to: "/intrazone" },
-              { icon: Code, label: "Developers", to: "/developers" },
-            ].map((tool) => (
-              <Link key={tool.label} to={tool.to}>
-                <div
-                  className="rounded-xl p-6 cursor-pointer group hover:border-[#C9A84D] transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: `1px solid ${GOLD}22`,
-                  }}
-                >
-                  <tool.icon className="w-8 h-8 mb-3" style={{ color: GOLD }} />
-                  <p className="text-sm font-bold" style={{ color: TEXT_WHITE }}>
-                    {tool.label}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 7 — ENGINE DB + DEALER NETWORK (2-column split)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_PRIMARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Core Databases
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-12" style={{ color: TEXT_WHITE }}>
-            Trusted Intelligence Sources
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Engine DB */}
-            <Link to="/intrazone">
-              <div
-                className="rounded-xl p-8 cursor-pointer group hover:border-[#C9A84D] transition-all h-full"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: `1px solid ${GOLD}22`,
-                }}
-              >
-                <Wind className="w-8 h-8 mb-4" style={{ color: GOLD }} />
-                <h3 className="text-2xl font-bold mb-6" style={{ color: TEXT_WHITE }}>
-                  Engine Database
-                </h3>
-                <div className="space-y-3">
-                  {engines.map((e) => (
-                    <div key={e.name} className="flex justify-between text-sm">
-                      <span style={{ color: TEXT_WHITE }}>{e.name}</span>
-                      <span style={{ color: TEXT_MUTED }}>{e.type}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Link>
-
-            {/* Dealer Network */}
-            <Link to="/intrazone">
-              <div
-                className="rounded-xl p-8 cursor-pointer group hover:border-[#C9A84D] transition-all h-full"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: `1px solid ${GOLD}22`,
-                }}
-              >
-                <Users className="w-8 h-8 mb-4" style={{ color: GOLD }} />
-                <h3 className="text-2xl font-bold mb-6" style={{ color: TEXT_WHITE }}>
-                  Verified Dealers
-                </h3>
-                <p className="text-4xl font-black mb-8" style={{ color: GOLD }}>
-                  2,341
-                </p>
-                <div className="space-y-3">
-                  {["Piper Dealer Network", "Cessna Authorized", "Cirrus Service", "Beechcraft Partners", "Diamond Specialists"].map(
-                    (d) => (
-                      <div key={d} className="flex items-center gap-2 text-sm">
-                        <span className="w-2 h-2 rounded-full" style={{ background: GOLD }} />
-                        <span style={{ color: TEXT_WHITE }}>{d}</span>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 8 — MARKETPLACE GRID (md:grid-cols-3)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_SECONDARY }}>
-        <div className="max-w-7xl mx-auto">
-          <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-            Marketplace
-          </p>
-          <h2 className="text-3xl md:text-4xl font-light mb-12" style={{ color: TEXT_WHITE }}>
-            Featured Aircraft
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {marketplaceListings.map((listing) => (
-              <div key={listing.id}>
-                <ListingCard listing={listing} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 9 — WHY ABOS (6 icons + text, centered)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 md:px-8" style={{ background: BG_PRIMARY }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-[10px] tracking-[0.2em] uppercase font-bold mb-3" style={{ color: GOLD }}>
-              Why ABOS
-            </p>
-            <h2 className="text-3xl md:text-4xl font-light" style={{ color: TEXT_WHITE }}>
-              Trust Data. Own Intelligence.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-            {[
-              { icon: Database, label: "Aircraft Identity", desc: "Unified N-Reg database" },
-              { icon: TrendingUp, label: "Aircraft Valuation", desc: "OMVM scoring engine" },
-              { icon: Globe, label: "Aircraft Marketplace", desc: "Public listings hub" },
-              { icon: Plane, label: "Aircraft Passport", desc: "Digital identity card" },
-              { icon: Code, label: "Aircraft API", desc: "Developer toolkit" },
-              { icon: BarChart3, label: "Aircraft Analytics", desc: "Market intelligence" },
-            ].map((item) => (
-              <div key={item.label} className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div
-                    className="rounded-lg p-3"
-                    style={{ background: `${GOLD}14`, border: `1px solid ${GOLD}30` }}
-                  >
-                    <item.icon className="w-6 h-6" style={{ color: GOLD }} />
-                  </div>
-                </div>
-                <h3 className="font-bold mb-2" style={{ color: TEXT_WHITE }}>
-                  {item.label}
-                </h3>
-                <p className="text-sm" style={{ color: TEXT_MUTED }}>
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 10 — ENTERPRISE STRIP (API + Partners)
-      ═══════════════════════════════════════════════════════ */}
-      <section className="py-16 px-6 md:px-8" style={{ background: BG_SECONDARY }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <p className="text-[10px] tracking-[0.2em] uppercase font-bold" style={{ color: GOLD }}>
-              Powered by ABOS API
-            </p>
-            <h3 className="text-2xl font-light mt-2" style={{ color: TEXT_WHITE }}>
-              Enterprise Integrations
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            {[
-              "Aircraft Registry",
-              "Live ADS-B",
-              "FAA Database",
-              "Insurance Partners",
-              "Marketplace",
-              "Analytics Engine",
-            ].map((partner) => (
-              <div
-                key={partner}
-                className="rounded-lg p-4 text-center"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: `1px solid ${GOLD}22`,
-                }}
-              >
-                <p className="text-xs font-bold" style={{ color: TEXT_WHITE }}>
-                  {partner}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link
-              to="/developers"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all hover:gap-3"
-              style={{
-                background: GOLD,
-                color: "#000",
-              }}
-            >
-              Explore API <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 11 — FOOTER
-      ═══════════════════════════════════════════════════════ */}
-      <SiteFooter />
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 12 — MOBILE BOTTOM NAV
-      ═══════════════════════════════════════════════════════ */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 md:hidden z-50 border-t"
+      {/* ── 4. MARKET INTELLIGENCE ── terminal-style counters */}
+      <section
         style={{
-          background: BG_PRIMARY,
-          borderColor: `${GOLD}22`,
-          paddingBottom: "env(safe-area-inset-bottom)",
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
         }}
       >
-        <div className="flex items-center justify-around">
-          {[
-            { icon: Home, label: "Home", to: "/" },
-            { icon: Globe, label: "Market", to: "/listings" },
-            { icon: Zap, label: "ATI", to: "/ati-quick-score" },
-            { icon: Gauge, label: "OPEX", to: "/opex-calculator" },
-            { icon: Code, label: "API", to: "/developers" },
-          ].map((item) => (
-            <Link
-              key={item.label}
-              to={item.to}
-              className="flex-1 flex flex-col items-center justify-center py-4 text-[10px] font-bold transition-colors"
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            Market Intelligence
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 32,
+            }}
+          >
+            Real-Time Aviation Data Feed
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {[
+              {
+                label: "Active Listings",
+                value: listings.length,
+                color: "#5dcaa5",
+                icon: "✔",
+              },
+              {
+                label: "ATI Passports Issued",
+                value: atiCards.length,
+                color: "#f5c242",
+                icon: "✔",
+              },
+              {
+                label: "ATI Scores Active",
+                value: activeAti.length,
+                color: "#4e8ef7",
+                icon: "✔",
+              },
+              {
+                label: "Platform Coverage",
+                value: "Global",
+                color: "#5dcaa5",
+                icon: "✔",
+              },
+            ].map(({ label, value, color, icon }) => (
+              <div
+                key={label}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "0.5px solid rgba(245,194,66,0.12)",
+                  borderRadius: 8,
+                  padding: "20px 24px",
+                  fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.3)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {label}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <span style={{ color, fontSize: 12 }}>{icon}</span>
+                  <span
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 400,
+                      color,
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {value}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. AIRCRAFT FINANCE ── */}
+      <section
+        style={{
+          background: "#0a0f1a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            Aircraft Finance
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 32,
+            }}
+          >
+            Full Financial Intelligence
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 12,
+              marginBottom: 32,
+            }}
+          >
+            {[
+              {
+                label: "OPEX Analysis",
+                desc: "Operating cost breakdown per flight hour. Fuel, maintenance, insurance, hangar.",
+                icon: Calculator,
+              },
+              {
+                label: "CAPEX Planning",
+                desc: "Capital expenditure model for acquisition, upgrades, and major overhauls.",
+                icon: BarChart2,
+              },
+              {
+                label: "Leasing Options",
+                desc: "Residual value curves and lease rate factors by aircraft type.",
+                icon: FileText,
+              },
+              {
+                label: "Insurance Quotes",
+                desc: "Risk-adjusted premium estimates based on ATI score and usage profile.",
+                icon: Shield,
+              },
+            ].map(({ label, desc, icon: Icon }) => (
+              <div
+                key={label}
+                style={{
+                  background: "rgba(245,194,66,0.04)",
+                  border: "0.5px solid rgba(245,194,66,0.18)",
+                  borderRadius: 12,
+                  padding: "20px 20px",
+                }}
+              >
+                <Icon size={18} style={{ color: "#f5c242", marginBottom: 12 }} />
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.9)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.4)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link
+            to="/opex-calculator"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#f5c242",
+              color: "#04060a",
+              padding: "12px 24px",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: "none",
+              letterSpacing: "0.02em",
+            }}
+          >
+            Open OPEX Calculator <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 6. FEATURED TOOLS 2x3 GRID ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            Platform Tools
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 32,
+            }}
+          >
+            Built for Aviation Professionals
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {[
+              {
+                label: "ATI Score Engine",
+                desc: "8-dimension aircraft intelligence score. Objective, deterministic, verifiable.",
+                to: "/ati-passport",
+                color: "#f5c242",
+                Icon: Zap,
+              },
+              {
+                label: "Aircraft Marketplace",
+                desc: "Browse ATI-scored listings from verified sellers. Real data, no guesswork.",
+                to: "/listings",
+                color: "#5dcaa5",
+                Icon: Globe,
+              },
+              {
+                label: "N-Number Lookup",
+                desc: "FAA registry deep-dive. Owner history, registration status, aircraft specs.",
+                to: "/listings",
+                color: "#4e8ef7",
+                Icon: Database,
+              },
+              {
+                label: "Traffic Map",
+                desc: "Live ADS-B traffic. Track any aircraft in real time on a 3D globe.",
+                to: "/traffic",
+                color: "#5dcaa5",
+                Icon: Plane,
+              },
+              {
+                label: "Market Analytics",
+                desc: "Price trends, demand signals, and market comparables by aircraft type.",
+                to: "/market-analytics",
+                color: "#f5c242",
+                Icon: TrendingUp,
+              },
+              {
+                label: "Pre-Buy Inspection",
+                desc: "AI-assisted inspection coordination with verified mechanics.",
+                to: "/pre-buy-inspection",
+                color: "#4e8ef7",
+                Icon: CheckCircle,
+              },
+            ].map(({ label, desc, to, color, Icon }) => (
+              <Link
+                key={label}
+                to={to}
+                style={{
+                  display: "block",
+                  textDecoration: "none",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
+                  borderRadius: 12,
+                  padding: "20px 20px",
+                  transition: "border-color 0.15s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor =
+                    "rgba(245,194,66,0.35)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor =
+                    "rgba(255,255,255,0.08)")
+                }
+              >
+                <Icon size={18} style={{ color, marginBottom: 12 }} />
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.9)",
+                    marginBottom: 6,
+                  }}
+                >
+                  {label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.4)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {desc}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. ENGINE DB + DEALER NETWORK TEASER ── */}
+      <section
+        style={{
+          background: "#0a0f1a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 32,
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: 32,
+            }}
+          >
+            <Cpu size={24} style={{ color: "#f5c242", marginBottom: 16 }} />
+            <p
               style={{
-                color: TEXT_MUTED,
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "#f5c242",
+                marginBottom: 8,
               }}
             >
-              <item.icon className="w-5 h-5 mb-1" />
-              {item.label}
+              Engine Database
+            </p>
+            <h3
+              style={{
+                fontSize: 22,
+                fontWeight: 500,
+                letterSpacing: "-0.03em",
+                color: "#fff",
+                marginBottom: 12,
+              }}
+            >
+              Engine Intelligence
+            </h3>
+            <p
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.45)",
+                lineHeight: 1.6,
+                marginBottom: 24,
+              }}
+            >
+              SMOH tracking, TBO benchmarks, overhaul history and engine-specific
+              depreciation curves. Correlated with ATI scores across thousands of
+              aircraft.
+            </p>
+            <div
+              style={{
+                fontSize: 12,
+                color: "#f5c242",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              Coming Soon <ArrowRight size={13} />
+            </div>
+          </div>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "0.5px solid rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: 32,
+            }}
+          >
+            <Users size={24} style={{ color: "#5dcaa5", marginBottom: 16 }} />
+            <p
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "#5dcaa5",
+                marginBottom: 8,
+              }}
+            >
+              Dealer Network
+            </p>
+            <h3
+              style={{
+                fontSize: 22,
+                fontWeight: 500,
+                letterSpacing: "-0.03em",
+                color: "#fff",
+                marginBottom: 12,
+              }}
+            >
+              Verified Professionals
+            </h3>
+            <p
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.45)",
+                lineHeight: 1.6,
+                marginBottom: 24,
+              }}
+            >
+              Connect with verified aviation dealers, brokers, and mechanics.
+              Trusted network, real credentials, zero cold calls.
+            </p>
+            <Link
+              to="/listings"
+              style={{
+                fontSize: 12,
+                color: "#5dcaa5",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                textDecoration: "none",
+              }}
+            >
+              Explore Network <ArrowRight size={13} />
             </Link>
-          ))}
+          </div>
         </div>
-      </nav>
+      </section>
 
-      {/* Safe area spacer for mobile */}
-      <div className="md:hidden h-20" />
+      {/* ── 8. MARKETPLACE GRID ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              marginBottom: 32,
+            }}
+          >
+            <div>
+              <p
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: "#f5c242",
+                  marginBottom: 8,
+                }}
+              >
+                Marketplace
+              </p>
+              <h2
+                style={{
+                  fontSize: 28,
+                  fontWeight: 500,
+                  letterSpacing: "-0.03em",
+                  color: "#fff",
+                }}
+              >
+                Featured Aircraft
+              </h2>
+            </div>
+            <Link
+              to="/listings"
+              style={{
+                fontSize: 12,
+                color: "#f5c242",
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              All listings <ArrowRight size={14} />
+            </Link>
+          </div>
+          {listings.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: 16,
+              }}
+            >
+              {listings.slice(0, 6).map((l) => (
+                <ListingCard key={l.id} listing={l} />
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "0.5px solid rgba(255,255,255,0.08)",
+                borderRadius: 12,
+                padding: 40,
+                textAlign: "center",
+                color: "rgba(255,255,255,0.3)",
+                fontSize: 13,
+              }}
+            >
+              Loading marketplace...
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── 9. WHY ABOS ── */}
+      <section
+        style={{
+          background: "#0a0f1a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+              textAlign: "center",
+            }}
+          >
+            Why ABOS
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 48,
+              textAlign: "center",
+            }}
+          >
+            The Aviation Intelligence Standard
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 24,
+            }}
+          >
+            {[
+              {
+                title: "ATI™ Score Standard",
+                desc: "First objective 8-dimension scoring methodology for aircraft transactions. Not opinion — verified data.",
+                icon: Shield,
+              },
+              {
+                title: "OMVM Pricing",
+                desc: "Open Market Value Model gives every aircraft an algorithmic price baseline. No more guessing.",
+                icon: BarChart2,
+              },
+              {
+                title: "ADS-B Surveillance",
+                desc: "Real-time tracking for every N-registered aircraft. Know where it is, how much it flies.",
+                icon: Globe,
+              },
+              {
+                title: "Deal Radar",
+                desc: "Automatic detection of underpriced aircraft in the market. First mover advantage.",
+                icon: Zap,
+              },
+            ].map(({ title, desc, icon: Icon }) => (
+              <div key={title} style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "rgba(245,194,66,0.08)",
+                    border: "0.5px solid rgba(245,194,66,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 16px",
+                  }}
+                >
+                  <Icon size={20} style={{ color: "#f5c242" }} />
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.9)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {title}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.4)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. ENTERPRISE CTA ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 16,
+            }}
+          >
+            Enterprise
+          </p>
+          <h2
+            style={{
+              fontSize: 36,
+              fontWeight: 500,
+              letterSpacing: "-0.04em",
+              color: "#fff",
+              marginBottom: 16,
+              maxWidth: 600,
+              margin: "0 auto 16px",
+            }}
+          >
+            Built for Serious Aviation Professionals
+          </h2>
+          <p
+            style={{
+              fontSize: 15,
+              color: "rgba(255,255,255,0.45)",
+              maxWidth: 560,
+              margin: "0 auto 40px",
+              lineHeight: 1.6,
+            }}
+          >
+            Dealers, brokers, and fleet operators trust ABOS for objective
+            intelligence. API access, white-label, and custom integrations
+            available.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              to="/pricing"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "#f5c242",
+                color: "#04060a",
+                padding: "14px 28px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              View Plans <ArrowRight size={16} />
+            </Link>
+            <Link
+              to="/listings"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "rgba(255,255,255,0.06)",
+                color: "#fff",
+                padding: "14px 28px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: "none",
+                border: "0.5px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              Explore Platform
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 11. FOOTER ── */}
+      <SiteFooter />
+
+      {/* ── 12. MOBILE BOTTOM NAV (md:hidden) ── */}
+      <nav
+        className="md:hidden"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "rgba(4,6,10,0.95)",
+          backdropFilter: "blur(20px)",
+          borderTop: "0.5px solid rgba(245,194,66,0.15)",
+          display: "flex",
+          justifyContent: "space-around",
+          padding: "10px 0 env(safe-area-inset-bottom)",
+          zIndex: 50,
+        }}
+      >
+        {[
+          { to: "/", label: "Home", Icon: Globe },
+          { to: "/listings", label: "Market", Icon: Briefcase },
+          { to: "/ati-passport", label: "ATI", Icon: Shield },
+          { to: "/traffic", label: "Traffic", Icon: Plane },
+          { to: "/opex-calculator", label: "OPEX", Icon: Calculator },
+        ].map(({ to, label, Icon }) => (
+          <Link
+            key={to}
+            to={to}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              color: "rgba(255,255,255,0.5)",
+              textDecoration: "none",
+              minWidth: 48,
+            }}
+          >
+            <Icon size={20} />
+            <span
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              {label}
+            </span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }

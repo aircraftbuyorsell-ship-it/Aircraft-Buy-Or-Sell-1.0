@@ -130,8 +130,8 @@ function getTheme(isDark) {
       oceanInner: "#0A0A0A",
       oceanMid: "#050505",
       oceanOuter: "#000000",
-      continentFill: "rgba(245,240,232,0.88)",   // cream/white
-      continentStroke: "rgba(255,255,255,0.35)",
+      continentFill: "rgba(245,240,232,0.10)",   // subtle fill so yellow outline pops
+      continentStroke: amber,                     // brand yellow outline
       dotGrid: "rgba(255,255,255,0.025)",
       rim: "rgba(255,255,255,0.06)",
       atmosphere: `${amber}08`,
@@ -356,7 +356,7 @@ export default function BlackGlobeHUD({
           ctx.fillStyle = th.continentFill;
           ctx.fill();
           ctx.strokeStyle = th.continentStroke;
-          ctx.lineWidth = 0.5 * DPR;
+          ctx.lineWidth = 1 * DPR;
           ctx.stroke();
         }
       }

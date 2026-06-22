@@ -207,157 +207,157 @@ export default function ABOSTour() {
   const headerBg = isDark ? "linear-gradient(135deg, #1a1f4a, #0f1123)" : "#4A90D9";
   const footerBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
-      <div className="rounded-2xl shadow-2xl w-full max-w-[680px] max-h-[90vh] overflow-hidden flex flex-col" style={{ background: bgColor, border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
+  return null;
 
-        {/* ── Header ── */}
-        <div className="relative px-6 pt-5 pb-4 hidden" style={{ background: headerBg }}>
-          <div className="flex items-center gap-2 mb-1 hidden">
-            <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: "rgba(255,255,255,0.2)" }}>
-              <Plane className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-white/90 text-xs font-bold uppercase tracking-wider">ABOS MarketSpace</span>
-          </div>
-          <h2 className="text-white text-xl font-black hidden">Platform Tour</h2>
-          <p className="text-white/60 text-[11px] mt-0.5 hidden">{TOUR_STEPS.length} features to explore</p>
 
-          <button
-            onClick={close}
-            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors">
-            
-            <X className="w-5 h-5" />
-          </button>
 
-          {/* Pilot avatar + speech bubble */}
-          <div className="absolute -bottom-2 right-6 flex items-end gap-2">
-            <div
-              className={`relative max-w-[220px] rounded-2xl rounded-br-none px-3 py-2 shadow-lg transition-all duration-300 ${
-              speechVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`
-              }
-              style={{ background: isDark ? "#1a1f4a" : "#fff", transformOrigin: "bottom right", border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
-              
-              <p className="text-[11px] leading-snug font-medium" style={{ color: textColor }}>{currentStep.speech}</p>
-              <div className="absolute -right-2 bottom-0 w-0 h-0 border-t-[8px] border-t-transparent border-l-[10px]" style={{ borderLeftColor: isDark ? "#1a1f4a" : "#fff" }} />
-            </div>
-            <img
-              src={PILOT_AVATAR}
-              alt="ABOS Guide"
-              className="h-[90px] w-auto object-contain shrink-0"
-              style={{ mixBlendMode: "multiply" }} />
-            
-          </div>
-        </div>
 
-        {/* ── Active step detail ── */}
-        <div className="px-5 pt-6 pb-2 hidden">
-          <div className="flex items-center gap-2 mb-3 hidden">
-            <span className="text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: isDark ? "rgba(0,245,255,0.12)" : "#EBF4FF", color: accentBlue }}>
-              Step {currentStep.n} of {TOUR_STEPS.length}
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: subColor }}>
-              {currentStep.title}
-            </span>
-          </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-xl mb-1 hidden" style={{ background: activeBg, border: `1px solid ${activeBorder}` }}>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: isDark ? "rgba(0,245,255,0.15)" : "#4A90D9" }}>
-              <currentStep.icon className="w-5 h-5" style={{ color: isDark ? "#00f5ff" : "#fff" }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-black text-sm mb-1" style={{ color: textColor }}>{currentStep.title}</h3>
-              <p className="text-[12px] leading-relaxed" style={{ color: mutedColor }}>{currentStep.desc}</p>
-              {currentStep.route &&
-              <button
-                onClick={goToFeature}
-                className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl text-[11px] font-black transition-all active:scale-95"
-                style={{ background: isDark ? "rgba(0,245,255,0.15)" : "#4A90D9", color: isDark ? "#00f5ff" : "#fff", border: isDark ? "1px solid rgba(0,245,255,0.3)" : "none" }}>
-                
-                  <Play className="w-3.5 h-3.5" /> Go to {currentStep.title} <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              }
-            </div>
-          </div>
-        </div>
 
-        {/* ── Feature Grid ── */}
-        <div className="px-5 py-3 overflow-y-auto flex-1 hidden">
-          <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: subColor }}>All Features</p>
-          <div className="grid grid-cols-2 gap-2">
-            {TOUR_STEPS.map((s) => {
-              const Icon = s.icon;
-              const isActive = s.n === currentStep.n;
-              return (
-                <button
-                  key={s.n}
-                  onClick={() => setStep(s.n - 1)}
-                  className="relative text-left rounded-xl border p-3 transition-all"
-                  style={{
-                    background: isActive ? activeBg : cardBg,
-                    borderColor: isActive ? activeBorder : cardBorder
-                  }}>
-                  
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: isActive ? isDark ? "rgba(0,245,255,0.2)" : "#4A90D9" : isDark ? "rgba(255,255,255,0.06)" : "#EBF4FF" }}>
-                      <Icon className="w-3.5 h-3.5" style={{ color: isActive ? isDark ? "#00f5ff" : "#fff" : isDark ? "rgba(255,255,255,0.4)" : "#4A90D9" }} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-black leading-tight truncate" style={{ color: textColor }}>{s.title}</p>
-                      <p className="text-[9px] mt-0.5 leading-tight line-clamp-1" style={{ color: subColor }}>{s.desc}</p>
-                    </div>
-                    <span className="absolute top-1 right-2 text-[9px] font-black" style={{ color: isActive ? accentBlue : subColor }}>{s.n}</span>
-                  </div>
-                </button>);
 
-            })}
-          </div>
-        </div>
 
-        {/* ── Dot indicators ── */}
-        <div className="flex items-center justify-center gap-1 py-1.5 hidden">
-          {TOUR_STEPS.map((_, i) =>
-          <button
-            key={i}
-            onClick={() => setStep(i)}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === step ? 14 : 6,
-              height: 6,
-              background: i === step ? accentBlue : isDark ? "rgba(255,255,255,0.15)" : "#D9D3CA"
-            }} />
 
-          )}
-        </div>
 
-        {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-5 py-3 hidden" style={{ borderTop: `1px solid ${footerBorder}` }}>
-          <button
-            onClick={prev}
-            disabled={step === 0}
-            className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-30 transition-colors"
-            style={{ borderColor: cardBorder, color: mutedColor }}>
-            
-            <ChevronLeft className="w-4 h-4 inline -ml-1" /> Back
-          </button>
 
-          <button
-            onClick={close}
-            className="text-[11px] font-semibold underline transition-opacity hover:opacity-70"
-            style={{ color: subColor }}>
-            
-            Skip tour
-          </button>
 
-          <button
-            onClick={next}
-            className="px-5 py-2 rounded-xl text-sm font-black transition-all active:scale-95 flex items-center gap-1"
-            style={{ background: accentBlue, color: isDark ? "#0f1123" : "#fff" }}>
-            
-            {isLast ? "Finish Tour" : "Next"} {!isLast && <ChevronRight className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-    </div>);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }

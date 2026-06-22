@@ -3,53 +3,88 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  LayoutDashboard, Zap, Plane, Map, Video, CreditCard,
-  Sparkles, Settings, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText,
+  LayoutDashboard, Zap, Plane, Map, CreditCard, Sparkles, Settings,
+  Menu, ChevronLeft, ArrowLeft, LogIn, LogOut, BarChart2, FileBarChart,
+  ShieldCheck, User, CheckCircle, Radar, FileText, TrendingUp, Calculator,
+  GitCompare, Users, Lightbulb, Rocket, PlaneTakeoff, Search, MessageSquare,
+  RefreshCw, List, ShoppingBag, Database, Mail, Crown, Globe, ShieldAlert,
 } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
-import NavItem from "@/components/layout/NavItem";
+import SidebarSection from "@/components/layout/SidebarSection";
 
-const SIDEBAR_W = 220;
+const COLLAPSED_W = 56;
+const EXPANDED_W = 272;
+const MOBILE_W = 272;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
-// ── Sectioned nav (routes mapped to existing pages) ──
+// ── Full sidebar structure: 4 accordion sections ──
 const NAV_SECTIONS = [
   {
-    label: "Discover",
+    label: "MarketSpace",
+    subtitle: "Public Aircraft Intelligence",
+    color: "#f48120",
+    icon: Globe,
     items: [
-      { path: "/",                label: "Dashboard",        icon: LayoutDashboard },
-      { path: "/listings",        label: "Aircraft Listings", icon: Plane },
-      { path: "/faa-map",         label: "FAA Map",          icon: Map },
-      { path: "/analytics",       label: "Market Analytics", icon: BarChart2 },
+      { path: "/",                label: "Dashboard",       icon: LayoutDashboard },
+      { path: "/listings",        label: "Aircraft Register", icon: Plane },
+      { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
+      { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
+      { path: "/compare",         label: "Compare Aircraft", icon: GitCompare },
+      { path: "/deal-radar",      label: "Deal Radar",      icon: Radar },
+      { path: "/traffic",         label: "Live Traffic",    icon: Map },
+      { path: "/community",       label: "Community",       icon: Users },
+      { path: "/feature-requests", label: "Feature Requests", icon: Lightbulb },
+      { path: "/ati-standard",    label: "ATI Standard",    icon: ShieldCheck },
+      { path: "/soar",            label: "SOAR Hub",         icon: Rocket },
+      { path: "/startup-hub",     label: "Start Up Hub",    icon: PlaneTakeoff },
+      { path: "/ati-verify",      label: "ATI Verify",      icon: CheckCircle },
     ],
   },
   {
-    label: "Intelligence",
+    label: "IntraZone",
+    subtitle: "User Workspace & Analytics",
+    color: "#D4A017",
+    icon: Sparkles,
     items: [
-      { path: "/ati-quick-score", label: "ATI Quick Score",  icon: Zap },
-      { path: "/ati-full-report", label: "ATI Full Report",  icon: FileBarChart },
-      { path: "/ati-standard",    label: "ATI Passport",     icon: Shield },
-      { path: "/demo",            label: "IntraZone Demo",   icon: Sparkles },
+      { path: "/intrazone",       label: "IntraZone Hub",    icon: Sparkles },
+      { path: "/analytics",       label: "Market Analytics", icon: BarChart2 },
+      { path: "/market-reports",  label: "Market Reports",   icon: FileText },
+      { path: "/valuation",      label: "Valuation (OMVM)", icon: TrendingUp },
+      { path: "/opex-calculator", label: "OPEX Calculator",  icon: Calculator },
+      { path: "/escrow",          label: "Escrow & Deals",   icon: FileText },
+      { path: "/leads",           label: "Leads (CRM)",      icon: Users },
+      { path: "/pre-buy-inspection", label: "Pre-Buy Inspection", icon: Search },
+      { path: "/max-chat",        label: "Ask Max",          icon: MessageSquare },
     ],
   },
   {
     label: "Account",
+    subtitle: "Plans & Billing",
+    color: "#6366f1",
+    icon: User,
     items: [
-      { path: "/my-account",      label: "Profile & Settings", icon: User },
-      { path: "/pricing",         label: "Credits & Benefits", icon: CreditCard },
-      { path: "/ati-verify",      label: "Verification Center", icon: CheckCircle },
+      { path: "/pricing",      label: "Credits & Plans", icon: CreditCard },
+      { path: "/subscription", label: "Subscription",    icon: RefreshCw },
+      { path: "/my-account",   label: "My Account",       icon: User },
     ],
   },
   {
-    label: "Deals",
+    label: "Admin",
+    subtitle: "Platform Management",
+    color: "#ef4444",
+    icon: ShieldAlert,
+    adminOnly: true,
     items: [
-      { path: "/deal-radar",      label: "Deal Radar",       icon: Radar },
-      { path: "/escrow",          label: "Hustl Contract",   icon: FileText },
+      { path: "/admin/listings",     label: "All Listings",   icon: List },
+      { path: "/admin/marketplace",  label: "Marketplace",     icon: ShoppingBag },
+      { path: "/admin/settings",     label: "Settings",         icon: Settings },
+      { path: "/admin/supabase-sync", label: "Supabase Sync", icon: Database },
+      { path: "/weekly-briefing",    label: "Weekly Briefing", icon: Mail },
+      { path: "/skyboss",            label: "SkyBoss",          icon: Crown },
     ],
   },
 ];
@@ -59,102 +94,108 @@ function initials(user) {
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function SidebarContent({ pathname, user, onNavigate }) {
+function SidebarContent({ pathname, user, collapsed, expandedSections, onToggleSection, onNavigate }) {
+  const isAdmin = user?.role === "admin";
+  const sections = NAV_SECTIONS.filter((s) => !s.adminOnly || isAdmin);
+
   return (
     <>
       {/* Logo */}
-      <div style={{ padding: "18px 16px 16px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      <div style={{
+        padding: collapsed ? "16px 0 14px" : "18px 16px 16px",
+        borderBottom: "0.5px solid rgba(255,255,255,0.08)",
+        display: "flex", justifyContent: collapsed ? "center" : "flex-start",
+        overflow: "hidden",
+      }}>
         <SidebarLogo />
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label}>
-            <div style={{
-              fontSize: "9px",
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.25)",
-              padding: "16px 16px 6px",
-              marginTop: "4px",
-            }}>
-              {section.label}
-            </div>
-            {section.items.map((item) => (
-              <NavItem
-                key={item.path}
-                to={item.path}
-                icon={item.icon}
-                label={item.label}
-                active={pathname === item.path}
-                onClick={onNavigate}
-              />
-            ))}
-          </div>
+      <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: collapsed ? "6px 0 12px" : "6px 10px 12px" }}>
+        {sections.map((section) => (
+          <SidebarSection
+            key={section.label}
+            section={section}
+            pathname={pathname}
+            collapsed={collapsed}
+            expanded={expandedSections[section.label] !== false}
+            onToggle={() => onToggleSection(section.label)}
+            onNavigate={onNavigate}
+          />
         ))}
       </nav>
 
-      {/* Legal Footer */}
-      <div style={{
-        borderTop: "0.5px solid rgba(255,255,255,0.06)",
-        padding: "16px 16px 20px",
-        marginTop: "auto",
-      }}>
-        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0 0 8px", letterSpacing: "0.02em" }}>
-          © 2026 ABOS s.r.o.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <a href="/terms" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
-            Terms of Service
-          </a>
-          <a href="/privacy" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
-            Privacy Policy
-          </a>
-          <a href="/legal/dsa" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
-            DSA — Report Content
-          </a>
-          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
-            AI Disclosure
-          </a>
-          <button
-            onClick={() => window.ABOS_openCookieSettings?.()}
-            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}
-          >
-            Cookie Settings
-          </button>
+      {/* Legal Footer (only when expanded) */}
+      {!collapsed && (
+        <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)", padding: "12px 16px 16px", marginTop: "auto" }}>
+          <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0 0 6px", letterSpacing: "0.02em" }}>© 2026 ABOS s.r.o.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+            <a href="/terms" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none" }}>Terms of Service</a>
+            <a href="/privacy" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none" }}>Privacy Policy</a>
+            <a href="/legal/dsa" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none" }}>DSA — Report Content</a>
+            <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none" }}>AI Disclosure</a>
+            <button onClick={() => window.ABOS_openCookieSettings?.()}
+              style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer" }}>
+              Cookie Settings
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* User info */}
-      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: "12px 16px" }}>
+      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: collapsed ? "12px 0" : "12px 16px", overflow: "hidden" }}>
         {user ? (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: collapsed ? "center" : "flex-start" }}>
             <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
             </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.75)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {user.full_name || user.email}
-              </p>
-              <div style={{ marginTop: "3px" }}>
-                <TierBadge tier={user.subscription_tier || user.tier || "free_explorer"} />
+            {!collapsed && (
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.75)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user.full_name || user.email}
+                </p>
+                <div style={{ marginTop: "3px" }}>
+                  <TierBadge tier={user.subscription_tier || user.tier || "free_explorer"} />
+                </div>
               </div>
-            </div>
-            <button onClick={() => base44.auth.logout()} aria-label="Log out"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
-              <LogOut size={14} />
-            </button>
+            )}
+            {!collapsed && (
+              <button onClick={() => base44.auth.logout()} aria-label="Log out"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
+                <LogOut size={14} />
+              </button>
+            )}
           </div>
         ) : (
-          <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
-            <LogIn size={14} /> Log In
-          </button>
+          !collapsed && (
+            <button onClick={() => base44.auth.redirectToLogin()}
+              style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+              <LogIn size={14} /> Log In
+            </button>
+          )
         )}
       </div>
     </>
+  );
+}
+
+// ── Header pill button ──
+function HeaderPill({ to, icon: Icon, label }) {
+  return (
+    <Link to={to} style={{
+      display: "flex", alignItems: "center", gap: "6px",
+      padding: "7px 14px", borderRadius: "999px",
+      background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)",
+      fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.70)",
+      textDecoration: "none", transition: "background 150ms, color 150ms, border-color 150ms",
+      flexShrink: 0,
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.90)"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.70)"; }}
+    >
+      <Icon size={14} />
+      <span className="hidden sm:inline">{label}</span>
+    </Link>
   );
 }
 
@@ -162,6 +203,8 @@ export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
   const touchStartX = useRef(null);
 
   const showBack = BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
@@ -173,6 +216,10 @@ export default function Layout() {
   });
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  const toggleSection = (label) => {
+    setExpandedSections((prev) => ({ ...prev, [label]: prev[label] === false ? true : false }));
+  };
 
   // Swipe from left edge to open mobile drawer
   useEffect(() => {
@@ -188,16 +235,42 @@ export default function Layout() {
     return () => { document.removeEventListener("touchstart", onStart); document.removeEventListener("touchend", onEnd); };
   }, []);
 
+  const desktopWidth = hovered ? EXPANDED_W : COLLAPSED_W;
+
   return (
     <div className="flex flex-col min-h-screen font-sans" style={{ background: "#04060a" }}>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#f5c242] focus:text-[#04060a] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
 
-      {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col"
-        style={{ width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)" }}>
-        <SidebarContent pathname={pathname} user={currentUser} />
+      {/* Ambient glow */}
+      <div aria-hidden style={{
+        position: "fixed", top: 0, left: 0, right: 0, height: "400px",
+        background: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.06) 0%, transparent 52%)",
+        pointerEvents: "none", zIndex: 0,
+      }} />
+
+      {/* ── Desktop sidebar (collapsible on hover) ── */}
+      <aside
+        className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col"
+        style={{
+          width: desktopWidth,
+          background: "#0d1117",
+          borderRight: "0.5px solid rgba(255,255,255,0.08)",
+          transition: "width 200ms cubic-bezier(0.16,1,0.3,1)",
+          overflow: "hidden",
+          boxShadow: hovered ? "4px 0 24px rgba(0,0,0,0.4)" : "none",
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <SidebarContent
+          pathname={pathname}
+          user={currentUser}
+          collapsed={!hovered}
+          expandedSections={expandedSections}
+          onToggleSection={toggleSection}
+        />
       </aside>
 
       {/* ── Mobile drawer ── */}
@@ -207,7 +280,7 @@ export default function Layout() {
       )}
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300"
         style={{
-          width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+          width: MOBILE_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
         }}>
         <div className="flex justify-end px-3 pt-3">
@@ -216,11 +289,18 @@ export default function Layout() {
             <ChevronLeft size={15} />
           </button>
         </div>
-        <SidebarContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
+        <SidebarContent
+          pathname={pathname}
+          user={currentUser}
+          collapsed={false}
+          expandedSections={expandedSections}
+          onToggleSection={toggleSection}
+          onNavigate={() => setMobileOpen(false)}
+        />
       </aside>
 
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 lg:ml-[220px]"
+      <header className="sticky top-0 z-40 lg:ml-[56px]"
         style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
           {showBack ? (
@@ -243,14 +323,21 @@ export default function Layout() {
           <GlobalSearch />
           <div className="flex-1" />
 
-          <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
-            aria-label="Platform tour" title="Platform tour"
-            style={{ display: "none" }} />
+          {/* Right pill buttons */}
+          <div className="flex items-center gap-2">
+            <HeaderPill to="/escrow" icon={FileText} label="Escrow" />
+            <HeaderPill to="/my-account" icon={User} label="Account" />
+          </div>
         </div>
       </header>
 
       {/* ── Content ── */}
-      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px]" style={{ background: "#04060a" }}>
+      <main id="main-content" className="flex-1 overflow-auto lg:ml-[56px] relative z-10"
+        style={{
+          background: "#04060a",
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)",
+          backgroundSize: "40px 40px",
+        }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>

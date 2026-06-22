@@ -14,7 +14,6 @@ import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
-import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
@@ -233,7 +232,7 @@ export default function Layout() {
 
           <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
           style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              
+              <Menu size={16} className="hidden" />
             </button>
           }
 
@@ -253,13 +252,12 @@ export default function Layout() {
       </header>
 
       {/* ── Content ── */}
-      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px] md:pb-0 pb-20" style={{ background: "#04060a" }}>
+      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px]" style={{ background: "#04060a" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>
       </main>
 
-      <MobileBottomNav />
       <SiteFooter />
       <ABOSTour />
     </div>);

@@ -12,14 +12,15 @@ import {
   GlobeIcon, Lock, Zap, ArrowRight, Flame
 } from "lucide-react";
 
-const ABOS_AMBER = "#D4A017";
-const NAVY = "#1A1F2B";
-const MUTED = "#7D8590";
-const BG = "#F4F6F8";
-const CARD = "#FFFFFF";
-
 export default function Dashboard() {
   const isDark = useTheme();
+
+  const ABOS_AMBER = isDark ? "#f5c242" : "#D4A017";
+  const NAVY = isDark ? "#e2e8f0" : "#1A1F2B";
+  const MUTED = isDark ? "rgba(255,255,255,0.45)" : "#7D8590";
+  const BG = isDark ? "#04060a" : "#F4F6F8";
+  const CARD = isDark ? "rgba(22,22,38,0.9)" : "#FFFFFF";
+  const SCRIM = isDark ? "4,6,10" : "244,246,248";
 
   const { data: listings = [] } = useQuery({
     queryKey: ["listings-active"],
@@ -47,18 +48,18 @@ export default function Dashboard() {
           listings={listings}
           listingsCount={listings.length}
           stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
-          isDark={false}
+          isDark={isDark}
           hideOverlayPills
         />
       </div>
 
       {/* ── READABILITY SCRIMS — soft white gradients for text contrast ── */}
       <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
-        style={{ height: "28%", background: "linear-gradient(to bottom, rgba(244,246,248,0.92) 0%, rgba(244,246,248,0.6) 50%, transparent 100%)" }} />
+        style={{ height: "28%", background: `linear-gradient(to bottom, rgba(${SCRIM},0.92) 0%, rgba(${SCRIM},0.6) 50%, transparent 100%)` }} />
       <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none"
-        style={{ height: "46%", background: "linear-gradient(to top, rgba(244,246,248,0.95) 0%, rgba(244,246,248,0.7) 35%, rgba(244,246,248,0.25) 70%, transparent 100%)" }} />
+        style={{ height: "46%", background: `linear-gradient(to top, rgba(${SCRIM},0.95) 0%, rgba(${SCRIM},0.7) 35%, rgba(${SCRIM},0.25) 70%, transparent 100%)` }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"
-        style={{ width: "520px", height: "200px", background: "radial-gradient(ellipse at center, rgba(244,246,248,0.85) 0%, rgba(244,246,248,0.4) 50%, transparent 75%)" }} />
+        style={{ width: "520px", height: "200px", background: `radial-gradient(ellipse at center, rgba(${SCRIM},0.85) 0%, rgba(${SCRIM},0.4) 50%, transparent 75%)` }} />
 
       {/* ── TOP BAR: brand + subscription ── */}
       <div className="absolute top-0 left-0 right-0 z-20 px-4 md:px-8 pt-4">

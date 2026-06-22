@@ -13,6 +13,7 @@ import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
@@ -242,6 +243,7 @@ export default function Layout() {
 
           <GlobalSearch />
           <div className="flex-1" />
+          <ThemeToggle />
 
           <button onClick={() => { localStorage.removeItem("abos_tour_completed_v3"); window.dispatchEvent(new Event("abos-tour-open")); }}
             aria-label="Platform tour" title="Platform tour"

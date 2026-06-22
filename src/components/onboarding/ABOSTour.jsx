@@ -208,7 +208,7 @@ export default function ABOSTour() {
   const footerBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
       <div className="rounded-2xl shadow-2xl w-full max-w-[680px] max-h-[90vh] overflow-hidden flex flex-col" style={{ background: bgColor, border: isDark ? "1px solid rgba(0,245,255,0.15)" : "none" }}>
 
         {/* ── Header ── */}

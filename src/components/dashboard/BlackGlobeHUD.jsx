@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
+import GlobeNav from "@/components/dashboard/GlobeNav";
 
-// ─── Country coords & reg prefix map (from RotatingGlobe) ──────
+// ─── Country coords & reg prefix map ──────────────────────────
 const COUNTRY_COORDS = {
   "US": { lat: 38, lon: -97, flag: "🇺🇸", name: "USA" },
   "CA": { lat: 56, lon: -96, flag: "🇨🇦", name: "Canada" },
@@ -79,7 +80,6 @@ const REG_PREFIX_MAP = {
   "HZ": "SA", "TC": "TR",
 };
 
-// ─── Continent polygons ────────────────────────────────────────
 const POLYGONS = [
   [[[-168,72],[-140,71],[-125,50],[-124,49],[-124,46],[-122,38],[-117,32],[-110,24],[-105,20],[-99,16],[-91,16],[-88,16],[-84,10],[-79,9],[-77,8],[-63,11],[-60,11],[-53,47],[-56,47],[-64,44],[-67,44],[-70,43],[-70,41],[-74,40],[-76,35],[-80,32],[-81,30],[-81,29],[-80,25],[-80,24],[-97,26],[-97,30],[-93,30],[-90,29],[-89,29],[-93,28],[-97,26],[-100,25],[-107,24],[-110,26],[-117,32],[-124,49],[-141,60],[-168,72]]],
   [[[-45,83],[-20,83],[-18,76],[-22,72],[-28,68],[-40,64],[-44,60],[-52,62],[-52,66],[-54,70],[-58,74],[-50,78],[-45,83]]],
@@ -89,108 +89,141 @@ const POLYGONS = [
   [[[128,-14],[130,-14],[134,-14],[136,-14],[138,-14],[138,-16],[140,-16],[141,-17],[140,-20],[138,-22],[138,-24],[140,-26],[142,-26],[144,-26],[148,-26],[152,-27],[154,-28],[153,-30],[152,-32],[151,-34],[150,-36],[148,-38],[146,-38],[142,-38],[140,-37],[138,-36],[136,-35],[136,-34],[134,-34],[132,-34],[130,-34],[128,-32],[116,-30],[114,-28],[114,-26],[114,-24],[114,-22],[118,-20],[122,-18],[124,-16],[126,-15],[128,-14]]],
 ];
 
-// ─── Group listings by country ────────────────────────────────
 function groupByCountry(listings) {
   const groups = {};
-  listings.forEach((l, i) => {
+  listings.forEach((l) => {
     const reg = (l.registration || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     let country = null;
     for (const len of [2, 1]) {
       const prefix = reg.substring(0, len);
       if (REG_PREFIX_MAP[prefix]) { country = REG_PREFIX_MAP[prefix]; break; }
     }
-    if (!country) country = "US"; // fallback
+    if (!country) country = "US";
     if (!groups[country]) {
       const c = COUNTRY_COORDS[country] || { lat: 20, lon: 0, flag: "📍", name: country };
       groups[country] = { country, lat: c.lat, lon: c.lon, flag: c.flag, name: c.name, listings: [] };
     }
-    // slight jitter per listing within cluster
-    const j = groups[country].listings.length;
-    groups[country].listings.push({
-      ...l,
-      _jitterLat: c_jitter(j),
-      _jitterLon: c_jitter(j + 100),
-    });
+    groups[country].listings.push(l);
   });
   return Object.values(groups);
 }
 
-function c_jitter(i) {
-  return (Math.sin(i * 4.7) * 3 + Math.cos(i * 3.1) * 2);
+// ─── Theme palettes ────────────────────────────────────────────
+function getTheme(isDark) {
+  if (isDark) {
+    return {
+      bg: "#000",
+      oceanInner: "#0A0A0A",
+      oceanMid: "#050505",
+      oceanOuter: "#000000",
+      continentFill: "rgba(245,240,232,0.88)",   // cream/white
+      continentStroke: "rgba(255,255,255,0.35)",
+      dotGrid: "rgba(255,255,255,0.025)",
+      rim: "rgba(255,255,255,0.06)",
+      atmosphere: "rgba(245,158,11,0.03)",
+      pillBg: "rgba(255,255,255,0.08)",
+      pillBorder: "1px solid rgba(255,255,255,0.12)",
+      pillShadow: "0 8px 32px rgba(0,0,0,0.4)",
+      text: "#fff",
+      muted: "rgba(255,255,255,0.45)",
+      popupBg: "rgba(10,10,10,0.95)",
+      popupBorder: "1px solid rgba(245,158,11,0.25)",
+      popupShadow: "0 12px 40px rgba(0,0,0,0.6)",
+      popupArrow: "rgba(10,10,10,0.95)",
+      rowBg: "rgba(255,255,255,0.04)",
+      rowBorder: "1px solid rgba(255,255,255,0.06)",
+      rowHover: "rgba(245,158,11,0.08)",
+      rowText: "#fff",
+      rowMuted: "rgba(255,255,255,0.35)",
+    };
+  }
+  return {
+    bg: "#eef2f7",
+    oceanInner: "#dbe5f0",
+    oceanMid: "#cdd8e6",
+    oceanOuter: "#b8c5d6",
+    continentFill: "rgba(45,80,55,0.65)",
+    continentStroke: "rgba(30,50,35,0.4)",
+    dotGrid: "rgba(0,0,0,0.03)",
+    rim: "rgba(0,0,0,0.10)",
+    atmosphere: "rgba(245,158,11,0.05)",
+    pillBg: "rgba(255,255,255,0.72)",
+    pillBorder: "1px solid rgba(0,0,0,0.08)",
+    pillShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    text: "#1a1a1a",
+    muted: "rgba(0,0,0,0.50)",
+    popupBg: "rgba(255,255,255,0.95)",
+    popupBorder: "1px solid rgba(245,158,11,0.30)",
+    popupShadow: "0 12px 40px rgba(0,0,0,0.2)",
+    popupArrow: "rgba(255,255,255,0.95)",
+    rowBg: "rgba(0,0,0,0.03)",
+    rowBorder: "1px solid rgba(0,0,0,0.05)",
+    rowHover: "rgba(245,158,11,0.10)",
+    rowText: "#1a1a1a",
+    rowMuted: "rgba(0,0,0,0.45)",
+  };
 }
 
-// ─── Cluster popup (HTML overlay) ──────────────────────────────
-function ClusterPopup({ cluster, pos, onClose, onOpen }) {
+// ─── Cluster popup ────────────────────────────────────────────
+function ClusterPopup({ cluster, pos, onClose, onOpen, t }) {
   if (!cluster || !pos) return null;
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: pos.x,
-        top: pos.y,
-        transform: "translate(-50%, calc(-100% - 14px))",
-        zIndex: 30,
-      }}
-    >
+    <div style={{ position: "absolute", left: pos.x, top: pos.y, transform: "translate(-50%, calc(-100% - 14px))", zIndex: 30 }}>
       <div style={{
-        background: "rgba(10,10,10,0.95)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        border: "1px solid rgba(245,158,11,0.25)",
-        borderRadius: 14,
-        padding: "12px 14px",
-        minWidth: 200,
-        maxWidth: 260,
-        boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+        background: t.popupBg, backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+        border: t.popupBorder, borderRadius: 14, padding: "12px 14px", minWidth: 200, maxWidth: 260,
+        boxShadow: t.popupShadow,
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}>{cluster.flag}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{cluster.name}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>{cluster.name}</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: 2 }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: t.muted, cursor: "pointer", padding: 2 }}>
             <X size={14} />
           </button>
         </div>
-        <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(245,158,11,0.7)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
+        <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(245,158,11,0.8)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
           {cluster.listings.length} listing{cluster.listings.length > 1 ? "s" : ""}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 200, overflowY: "auto" }}>
           {cluster.listings.map((l, i) => (
-            <button
-              key={l.id || i}
-              onClick={() => onOpen(l)}
+            <button key={l.id || i} onClick={() => onOpen(l)}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 8px",
-                borderRadius: 8,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                cursor: "pointer",
-                textAlign: "left",
+                display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 8,
+                background: t.rowBg, border: t.rowBorder, cursor: "pointer", textAlign: "left",
                 transition: "background 0.15s",
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(245,158,11,0.08)"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = t.rowHover; }}
+              onMouseLeave={e => { e.currentTarget.style.background = t.rowBg; }}
             >
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: l.ati_score >= 72 ? "#5dcaa5" : "#F59E0B", flexShrink: 0 }} />
               <div style={{ minWidth: 0, flex: 1 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: "#fff", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: t.rowText, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {l.year} {l.make} {l.model}
                 </p>
-                <p style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", margin: 0, fontFamily: "'Courier New', monospace" }}>
-                  {l.registration}
-                  {l.asking_price ? ` · $${l.asking_price.toLocaleString()}` : ""}
+                <p style={{ fontSize: 9, color: t.rowMuted, margin: 0, fontFamily: "'Courier New', monospace" }}>
+                  {l.registration}{l.asking_price ? ` · $${l.asking_price.toLocaleString()}` : ""}
                 </p>
               </div>
             </button>
           ))}
         </div>
       </div>
-      {/* Arrow */}
-      <div style={{ position: "absolute", left: "50%", bottom: 0, transform: "translate(-50%, 100%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "7px solid rgba(10,10,10,0.95)" }} />
+      <div style={{ position: "absolute", left: "50%", bottom: 0, transform: "translate(-50%, 100%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: `7px solid ${t.popupArrow}` }} />
+    </div>
+  );
+}
+
+// ─── Pill ─────────────────────────────────────────────────────
+function Pill({ children, t }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 999,
+      background: t.pillBg, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+      border: t.pillBorder, boxShadow: t.pillShadow,
+    }}>
+      {children}
     </div>
   );
 }
@@ -201,22 +234,26 @@ export default function BlackGlobeHUD({
   utcTime,
   stats = { adsbCount: 2315, liveDbCount: 10987, faaCount: 456 },
   listingsCount = 142,
+  isDark = true,
 }) {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   const rotRef = useRef(0);
   const rafRef = useRef(null);
   const pausedRef = useRef(false);
-  const clusterScreenRef = useRef([]); // projected cluster positions for hit-test
+  const clusterScreenRef = useRef([]);
   const [time, setTime] = useState(utcTime || "");
-  const [popup, setPopup] = useState(null); // { cluster, x, y }
+  const [popup, setPopup] = useState(null);
   const [hoverCluster, setHoverCluster] = useState(null);
+
+  const t = getTheme(isDark);
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
 
   const clusters = useMemo(() => groupByCountry(listings), [listings]);
   const clustersRef = useRef(clusters);
   useEffect(() => { clustersRef.current = clusters; }, [clusters]);
 
-  // UTC clock
   useEffect(() => {
     if (utcTime) return;
     const update = () => {
@@ -228,7 +265,6 @@ export default function BlackGlobeHUD({
     return () => clearInterval(iv);
   }, [utcTime]);
 
-  // Globe canvas
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -263,13 +299,14 @@ export default function BlackGlobeHUD({
     let frame = 0;
 
     const draw = () => {
+      const th = tRef.current;
       ctx.clearRect(0, 0, W, H);
 
-      // Ocean — pure black
+      // Ocean
       const oceanGrad = ctx.createRadialGradient(CX - R * 0.3, CY - R * 0.3, R * 0.1, CX, CY, R);
-      oceanGrad.addColorStop(0, "#0A0A0A");
-      oceanGrad.addColorStop(0.7, "#050505");
-      oceanGrad.addColorStop(1, "#000000");
+      oceanGrad.addColorStop(0, th.oceanInner);
+      oceanGrad.addColorStop(0.7, th.oceanMid);
+      oceanGrad.addColorStop(1, th.oceanOuter);
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.fillStyle = oceanGrad;
@@ -280,7 +317,7 @@ export default function BlackGlobeHUD({
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.clip();
 
-      // Continent silhouettes
+      // Continents
       for (const poly of POLYGONS) {
         for (const ring of poly) {
           ctx.beginPath();
@@ -290,16 +327,16 @@ export default function BlackGlobeHUD({
             else ctx.lineTo(p.sx, p.sy);
           });
           ctx.closePath();
-          ctx.fillStyle = "rgba(22,22,22,0.9)";
+          ctx.fillStyle = th.continentFill;
           ctx.fill();
-          ctx.strokeStyle = "rgba(42,42,42,0.5)";
+          ctx.strokeStyle = th.continentStroke;
           ctx.lineWidth = 0.5 * DPR;
           ctx.stroke();
         }
       }
 
-      // Dot grid texture
-      ctx.fillStyle = "rgba(255,255,255,0.012)";
+      // Dot grid
+      ctx.fillStyle = th.dotGrid;
       for (let la = -80; la <= 80; la += 8) {
         for (let lo = -180; lo <= 180; lo += 8) {
           const p = project(lo, la);
@@ -310,7 +347,7 @@ export default function BlackGlobeHUD({
         }
       }
 
-      // ── Cluster pins ──
+      // Cluster pins
       const projectedClusters = [];
       const cls = clustersRef.current;
       cls.forEach((cluster, i) => {
@@ -322,7 +359,6 @@ export default function BlackGlobeHUD({
         const isHovered = hoverCluster === i;
         const pulse = 0.5 + 0.5 * Math.sin(frame * 0.04 + i * 1.7);
 
-        // Glow ring
         for (let ring = 2; ring >= 0; ring--) {
           ctx.beginPath();
           const ringR = (6 + ring * 4 + (isHovered ? pulse * 3 : 0)) * DPR;
@@ -333,7 +369,6 @@ export default function BlackGlobeHUD({
           ctx.stroke();
         }
 
-        // Pin dot
         const dotR = (isHovered ? 5 : 3.5) * DPR;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, dotR, 0, Math.PI * 2);
@@ -343,7 +378,6 @@ export default function BlackGlobeHUD({
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Count badge (if >1)
         if (count > 1) {
           const bx = p.sx + dotR + 2 * DPR;
           const by = p.sy - dotR - 2 * DPR;
@@ -368,13 +402,13 @@ export default function BlackGlobeHUD({
       // Rim
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.strokeStyle = th.rim;
       ctx.lineWidth = 1 * DPR;
       ctx.stroke();
 
-      // Subtle atmosphere glow
+      // Atmosphere
       const rimGrad = ctx.createRadialGradient(CX, CY, R * 0.96, CX, CY, R * 1.1);
-      rimGrad.addColorStop(0, "rgba(245,158,11,0.03)");
+      rimGrad.addColorStop(0, th.atmosphere);
       rimGrad.addColorStop(1, "transparent");
       ctx.beginPath();
       ctx.arc(CX, CY, R * 1.1, 0, Math.PI * 2);
@@ -384,7 +418,7 @@ export default function BlackGlobeHUD({
 
     const loop = () => {
       frame++;
-      if (!pausedRef.current) rotRef.current += 0.04; // slow rotation
+      if (!pausedRef.current) rotRef.current += 0.04;
       draw();
       rafRef.current = requestAnimationFrame(loop);
     };
@@ -396,7 +430,6 @@ export default function BlackGlobeHUD({
     };
   }, [hoverCluster]);
 
-  // Click → open cluster popup
   const handleClick = useCallback((e) => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -423,7 +456,6 @@ export default function BlackGlobeHUD({
     }
   }, []);
 
-  // Hover → highlight cluster
   const handleMove = useCallback((e) => {
     const cv = canvasRef.current;
     if (!cv) return;
@@ -453,8 +485,7 @@ export default function BlackGlobeHUD({
   };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: "#000", overflow: "hidden" }}>
-      {/* Globe canvas — full bleed, no card */}
+    <div style={{ position: "relative", width: "100%", height: "100%", minHeight: 500, background: t.bg, overflow: "hidden" }}>
       <canvas
         ref={canvasRef}
         onClick={handleClick}
@@ -462,64 +493,50 @@ export default function BlackGlobeHUD({
         style={{ width: "100%", height: "100%", display: "block" }}
       />
 
-      {/* ── Top-Left: UTC time ── */}
+      {/* Top-Left: UTC time */}
       <div style={{ position: "absolute", top: 20, left: 20, zIndex: 10 }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderRadius: 999,
-          background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}>
+        <Pill t={t}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "'Courier New', monospace" }}>{time}</span>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>UTC</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: t.text, fontFamily: "'Courier New', monospace" }}>{time}</span>
+            <span style={{ fontSize: 10, fontWeight: 600, color: t.muted }}>UTC</span>
           </div>
-        </div>
+        </Pill>
       </div>
 
-      {/* ── Top-Right: Listings count ── */}
-      <div style={{ position: "absolute", top: 20, right: 20, zIndex: 10 }}>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderRadius: 999,
-          background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
-          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>listings count</span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Total: {listingsCount}</span>
-          </div>
-        </div>
-      </div>
+      {/* Top-Right: Navigation + Admin */}
+      <GlobeNav isDark={isDark} />
 
-      {/* ── Bottom-Left: Stat stack ── */}
+      {/* Bottom-Left: Stats */}
       <div style={{ position: "absolute", bottom: 20, left: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8 }}>
         {[
           { color: "#F59E0B", label: "ADS-B count", value: stats.adsbCount.toLocaleString() },
           { color: "#0D9488", label: "Live DB count", value: stats.liveDbCount.toLocaleString() },
           { color: "#0D9488", label: "FAA count", value: stats.faaCount.toLocaleString() },
-        ].map((s) => (
-          <div key={s.label} style={{
-            display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 999,
-            background: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          }}>
+        ].map(s => (
+          <Pill key={s.label} t={t}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, boxShadow: `0 0 8px ${s.color}80`, flexShrink: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
-              <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.label}</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{s.value}</span>
+              <span style={{ fontSize: 9, fontWeight: 600, color: t.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>{s.label}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>{s.value}</span>
             </div>
-          </div>
+          </Pill>
         ))}
       </div>
 
-      {/* ── Bottom-Right: Hint ── */}
-      <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 10 }}>
+      {/* Bottom-Right: Listings + hint */}
+      <div style={{ position: "absolute", bottom: 20, right: 20, zIndex: 10, display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+        <Pill t={t}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B", boxShadow: "0 0 8px #F59E0B80", flexShrink: 0 }} />
+          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+            <span style={{ fontSize: 9, fontWeight: 600, color: t.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>listings</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: t.text }}>Total: {listingsCount}</span>
+          </div>
+        </Pill>
         <div style={{
           padding: "8px 14px", borderRadius: 999,
-          background: "rgba(255,255,255,0.06)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)",
+          background: t.pillBg, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+          border: t.pillBorder, fontSize: 10, fontWeight: 600, color: t.muted,
         }}>
           Click a pin to expand listings
         </div>
@@ -527,12 +544,7 @@ export default function BlackGlobeHUD({
 
       {/* Cluster popup */}
       {popup && (
-        <ClusterPopup
-          cluster={popup.cluster}
-          pos={{ x: popup.x, y: popup.y }}
-          onClose={closePopup}
-          onOpen={openListing}
-        />
+        <ClusterPopup cluster={popup.cluster} pos={{ x: popup.x, y: popup.y }} onClose={closePopup} onOpen={openListing} t={t} />
       )}
     </div>
   );

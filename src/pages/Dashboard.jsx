@@ -76,6 +76,7 @@ export default function Dashboard() {
               listings={listings}
               listingsCount={listings.length}
               stats={{ adsbCount: 2315, liveDbCount: listings.length, faaCount: 456 }}
+              isDark={isDark}
             />
           </div>
         </section>

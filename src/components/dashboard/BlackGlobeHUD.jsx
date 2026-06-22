@@ -132,8 +132,10 @@ function getTheme(isDark) {
       oceanOuter: "#000000",
       continentFill: "rgba(245,194,66,0.08)",     // very subtle amber fill
       continentStroke: amber,                     // brand yellow outline
-      oceanFill: "rgba(245,194,66,0.04)",          // subtle gold tint
-      oceanDotGrid: "rgba(245,194,66,0.10)",       // gold dot grid on surface
+      oceanFill: "rgba(245,194,66,0.06)",          // gold tint surface
+      oceanFillDeep: "rgba(245,194,66,0.02)",       // deeper gold for edges
+      oceanDotGrid: "rgba(245,194,66,0.22)",       // prominent gold dot grid
+      oceanDotGridBright: "rgba(255,215,100,0.35)", // brighter accent dots
       dotGrid: "rgba(255,255,255,0.025)",
       rim: "rgba(255,255,255,0.06)",
       atmosphere: `${amber}08`,
@@ -166,8 +168,10 @@ function getTheme(isDark) {
     oceanOuter: "#b8c5d6",
     continentFill: "rgba(45,80,55,0.65)",
     continentStroke: "rgba(30,50,35,0.4)",
-    oceanFill: "rgba(192,202,216,0.35)",           // subtle silver tint
-    oceanDotGrid: "rgba(140,155,175,0.18)",         // silver dot grid on surface
+    oceanFill: "rgba(200,212,226,0.45)",            // silver tint surface
+    oceanFillDeep: "rgba(160,175,195,0.15)",        // deeper silver for edges
+    oceanDotGrid: "rgba(120,140,165,0.28)",         // prominent silver dot grid
+    oceanDotGridBright: "rgba(180,195,215,0.40)",   // brighter accent dots
     dotGrid: "rgba(0,0,0,0.03)",
     rim: "rgba(0,0,0,0.10)",
     atmosphere: `${amber}0D`,
@@ -333,9 +337,10 @@ export default function BlackGlobeHUD({
       const th = tRef.current;
       ctx.clearRect(0, 0, W, H);
 
-      // Ocean — subtle silver/gold tint with radial gradient for sphere depth
-      const oceanGrad = ctx.createRadialGradient(CX - R * 0.3, CY - R * 0.3, R * 0.1, CX, CY, R);
+      // Ocean — silver/gold sphere with radial gradient for 3D depth
+      const oceanGrad = ctx.createRadialGradient(CX - R * 0.35, CY - R * 0.35, R * 0.05, CX, CY, R * 1.1);
       oceanGrad.addColorStop(0, th.oceanFill);
+      oceanGrad.addColorStop(0.7, th.oceanFillDeep);
       oceanGrad.addColorStop(1, "transparent");
       ctx.beginPath();
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
@@ -347,18 +352,23 @@ export default function BlackGlobeHUD({
       ctx.arc(CX, CY, R, 0, Math.PI * 2);
       ctx.clip();
 
-      // Surface dot grid — denser pattern for texture
-      ctx.fillStyle = th.oceanDotGrid;
-      for (let la = -85; la <= 85; la += 5) {
-        for (let lo = -180; lo <= 180; lo += 5) {
+      // Surface dot grid — prominent texture with depth-based sizing
+      for (let la = -85; la <= 85; la += 4) {
+        for (let lo = -180; lo <= 180; lo += 4) {
           const p = project(lo, la);
           if (!p.vis) continue;
-          const size = (0.4 + p.depth * 0.4) * DPR;
+          // Brighter dots near center (facing viewer), dimmer at edges
+          const brightness = 0.5 + p.depth * 0.5;
+          const isAccent = ((la | 0) % 12 === 0 && (lo | 0) % 12 === 0);
+          ctx.fillStyle = isAccent ? th.oceanDotGridBright : th.oceanDotGrid;
+          ctx.globalAlpha = brightness;
+          const size = (0.5 + p.depth * 0.6) * DPR;
           ctx.beginPath();
           ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
           ctx.fill();
         }
       }
+      ctx.globalAlpha = 1;
 
       // Continents — thick yellow outline with glow
       for (const poly of POLYGONS) {

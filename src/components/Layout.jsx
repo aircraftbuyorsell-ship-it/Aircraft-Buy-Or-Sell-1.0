@@ -165,7 +165,16 @@ export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pragueNow, setPragueNow] = useState(new Date());
   const touchStartX = useRef(null);
+
+  useEffect(() => {
+    const t = setInterval(() => setPragueNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const pragueDateStr = pragueNow.toLocaleDateString("en-GB", { timeZone: "Europe/Prague", day: "2-digit", month: "2-digit", year: "numeric" });
+  const pragueTimeStr = pragueNow.toLocaleTimeString("en-GB", { timeZone: "Europe/Prague", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   const showBack = BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
 
@@ -219,7 +228,8 @@ export default function Layout() {
       {/* ── Top header bar ── */}
       <header className="sticky top-0 z-40"
       style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 h-[58px]">
+        {/* Row 1: logo | theme + datetime + user */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 h-[54px]">
           {/* Left: logo (desktop) / hamburger + logo (mobile) */}
           <div className="flex items-center gap-2.5 flex-shrink-0">
             {showBack ? (
@@ -241,14 +251,18 @@ export default function Layout() {
             </Link>
           </div>
 
-          {/* Center: floating pill command bar */}
-          <div className="flex-1 flex justify-center">
-            <PillCommandBar />
-          </div>
-
-          {/* Right: theme toggle + user */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right: theme toggle + Prague date/time + user */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <ThemeToggle />
+            {/* Prague date/time — under logout, upper right */}
+            <div className="hidden sm:flex flex-col items-end" style={{ lineHeight: 1.2 }}>
+              <span style={{ fontSize: "11px", fontWeight: 600, color: "#f5c242", fontVariantNumeric: "tabular-nums", letterSpacing: "0.02em" }}>
+                {pragueTimeStr}
+              </span>
+              <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                {pragueDateStr} · Prague
+              </span>
+            </div>
             {currentUser ? (
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -266,6 +280,11 @@ export default function Layout() {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Row 2: floating pill command bar — lower */}
+        <div className="hidden lg:flex items-center justify-center pb-2.5">
+          <PillCommandBar />
         </div>
       </header>
 

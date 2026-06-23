@@ -660,8 +660,8 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    camera.position.set(0, 0, 3.3);
+    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+    camera.position.set(0, 0, 2.45);
     cameraRef.current = camera;
 
     const globe = new THREE.Group();
@@ -697,6 +697,32 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       nightLightsMat.map = t;
       nightLightsMat.needsUpdate = true;
     });
+
+    // Dot grid — fibonacci sphere of subtle dots on the surface
+    const dotCount = 3200;
+    const dgGeo = new THREE.BufferGeometry();
+    const dgPos = [];
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < dotCount; i++) {
+      const y = 1 - (i / (dotCount - 1)) * 2;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = golden * i;
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+      dgPos.push(x * 1.005, y * 1.005, z * 1.005);
+    }
+    dgGeo.setAttribute("position", new THREE.Float32BufferAttribute(dgPos, 3));
+    const dgMat = new THREE.PointsMaterial({
+      size: 0.011,
+      color: isDark ? 0x4a6a9a : 0x5a7aaa,
+      transparent: true,
+      opacity: isDark ? 0.55 : 0.40,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    const dotGrid = new THREE.Points(dgGeo, dgMat);
+    globe.add(dotGrid);
 
     // Day/night cycle lighting — sun position driven by UTC time
     const ambient = new THREE.AmbientLight(isDark ? 0x1a2a44 : 0x334466, isDark ? 0.22 : 0.28);

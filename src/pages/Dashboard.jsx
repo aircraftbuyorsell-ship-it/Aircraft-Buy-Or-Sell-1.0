@@ -63,71 +63,98 @@ export default function Dashboard() {
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end",
         }}
       >
-        {/* Globe fills hero */}
+        {/* Globe fills hero — bigger */}
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <SkyBossGlobe className="w-full h-full" listings={listings} />
         </div>
 
-        {/* Dark gradient overlay bottom */}
+        {/* Dark gradient overlay — left-weighted for text legibility */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             zIndex: 1,
             background:
-              "linear-gradient(to bottom, rgba(4,6,10,0.3) 0%, rgba(4,6,10,0.0) 30%, rgba(4,6,10,0.85) 80%, #04060a 100%)",
+              "linear-gradient(to right, rgba(4,6,10,0.85) 0%, rgba(4,6,10,0.45) 38%, rgba(4,6,10,0.12) 65%, rgba(4,6,10,0.55) 100%)",
           }}
         />
 
-        {/* Hero content centered */}
+        {/* Hero content — two column: H1 left, N-reg search right */}
         <div
           style={{
             position: "relative",
             zIndex: 2,
             maxWidth: 1280,
             margin: "0 auto",
-            padding: "0 32px 80px",
+            padding: "48px 32px 0",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 48,
+            flex: 1,
+          }}
+        >
+          {/* Left: eyebrow + H1 + subtext */}
+          <div style={{ maxWidth: 520 }}>
+            <p
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "#f5c242",
+                marginBottom: 16,
+              }}
+            >
+              Global Aircraft Identity & Intelligence
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(32px, 4.5vw, 56px)",
+                fontWeight: 500,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.08,
+                color: "#fff",
+                marginBottom: 20,
+              }}
+            >
+              Aircraft Intelligence,
+              <br />
+              Verified by Data.
+            </h1>
+            <p
+              style={{
+                fontSize: 15,
+                color: "rgba(255,255,255,0.5)",
+                lineHeight: 1.6,
+                maxWidth: 440,
+              }}
+            >
+              The operating system for aircraft transactions. Identity,
+              valuation, and market intelligence — trusted by dealers, brokers,
+              and owners worldwide.
+            </p>
+          </div>
+
+          {/* Right: N-reg search — centered, smaller */}
+          <div style={{ width: "100%", maxWidth: 360, flexShrink: 0 }}>
+            <NRegLookup />
+          </div>
+        </div>
+
+        {/* Bottom live counters */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px 40px",
             width: "100%",
           }}
         >
-          {/* Eyebrow */}
-          <p
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: "#f5c242",
-              marginBottom: 16,
-            }}
-          >
-            Global Aircraft Identity & Intelligence
-          </p>
-
-          <h1
-            style={{
-              fontSize: "clamp(32px, 5vw, 64px)",
-              fontWeight: 500,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.05,
-              color: "#fff",
-              marginBottom: 32,
-              maxWidth: 800,
-            }}
-          >
-            The Operating System
-            <br />
-            for Aircraft Transactions
-          </h1>
-
-          {/* NReg search */}
-          <div style={{ maxWidth: 640, marginBottom: 32 }}>
-            <NRegLookup />
-          </div>
-
-          {/* 3 live counters */}
           <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
             {[
               { value: listings.length, label: "Active Listings" },
@@ -157,6 +184,107 @@ export default function Dashboard() {
                   }}
                 >
                   {label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 1b. PLATFORM SCALE STATS ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "60px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            Platform Scale
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 32,
+            }}
+          >
+            The Numbers Behind the Network
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {[
+              { value: "11.5M+", label: "FB Group Views", sub: "Monthly impressions" },
+              { value: "280K+", label: "FB Members", sub: "Community members" },
+              { value: "4,200+", label: "Posts per Year", sub: "Community engagement" },
+              { value: "1.2M+", label: "Web Visits", sub: "Monthly unique visitors" },
+              { value: "303,000", label: "N-Reg Records", sub: "FAA registry indexed" },
+              { value: "12,000", label: "Dealers", sub: "Verified professionals" },
+              { value: "8,500", label: "Engine Refs", sub: "Engine models tracked" },
+              { value: "15,000", label: "Airframe Refs", sub: "Type references" },
+              { value: "2.4M+", label: "Traffic Records", sub: "Historical live traffic" },
+            ].map(({ value, label, sub }) => (
+              <div
+                key={label}
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "0.5px solid rgba(245,194,66,0.12)",
+                  borderRadius: 12,
+                  padding: "20px 20px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 500,
+                    letterSpacing: "-0.03em",
+                    color: "#f5c242",
+                    lineHeight: 1,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {value}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.85)",
+                    marginTop: 8,
+                  }}
+                >
+                  {label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: "rgba(255,255,255,0.35)",
+                    marginTop: 2,
+                  }}
+                >
+                  {sub}
                 </div>
               </div>
             ))}
@@ -1162,56 +1290,6 @@ export default function Dashboard() {
       {/* ── 11. FOOTER ── */}
       <SiteFooter />
 
-      {/* ── 12. MOBILE BOTTOM NAV (md:hidden) ── */}
-      <nav
-        className="md:hidden"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "rgba(4,6,10,0.95)",
-          backdropFilter: "blur(20px)",
-          borderTop: "0.5px solid rgba(245,194,66,0.15)",
-          display: "flex",
-          justifyContent: "space-around",
-          padding: "10px 0 env(safe-area-inset-bottom)",
-          zIndex: 50,
-        }}
-      >
-        {[
-          { to: "/", label: "Home", Icon: Globe },
-          { to: "/listings", label: "Market", Icon: Briefcase },
-          { to: "/ati-passport", label: "ATI", Icon: Shield },
-          { to: "/traffic", label: "Traffic", Icon: Plane },
-          { to: "/opex-calculator", label: "OPEX", Icon: Calculator },
-        ].map(({ to, label, Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 3,
-              color: "rgba(255,255,255,0.5)",
-              textDecoration: "none",
-              minWidth: 48,
-            }}
-          >
-            <Icon size={20} />
-            <span
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-              }}
-            >
-              {label}
-            </span>
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }

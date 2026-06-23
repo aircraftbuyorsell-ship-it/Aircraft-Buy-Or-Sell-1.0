@@ -72,9 +72,6 @@ Deno.serve(async (req) => {
       })),
     };
 
-    const apiKey = Deno.env.get('12byteflow_key') || Deno.env.get('SAKANA_12byteflow_API_KEY');
-    if (!apiKey) return Response.json({ error: 'Sakana API key not configured' }, { status: 500 });
-
     const prompt = `You are an expert aviation deal analyst. Analyze the following aircraft listing data and produce a comprehensive deal intelligence brief.
 
 Aircraft & Market Data:
@@ -105,42 +102,48 @@ Produce a JSON response with EXACTLY this structure:
 
 Be specific, data-driven, and professional. Use the ATI score, OMVM value, and comparable data to support your analysis. If data is missing, note it.`;
 
-    const fuguRes = await fetch('https://api.sakana.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const llmRes = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          executive_summary: { type: 'string' },
+          deal_verdict: { type: 'string', enum: ['STRONG BUY', 'GOOD DEAL', 'FAIR', 'OVERPRICED', 'AVOID'] },
+          price_analysis: {
+            type: 'object',
+            properties: {
+              assessment: { type: 'string' },
+              omvm_comparison: { type: 'string' },
+              comparable_context: { type: 'string' },
+            },
+          },
+          strengths: { type: 'array', items: { type: 'string' } },
+          red_flags: { type: 'array', items: { type: 'string' } },
+          negotiation_strategy: {
+            type: 'object',
+            properties: {
+              recommended_approach: { type: 'string' },
+              talking_points: { type: 'array', items: { type: 'string' } },
+              target_price: { type: 'string' },
+            },
+          },
+          next_steps: { type: 'array', items: { type: 'string' } },
+          risk_assessment: {
+            type: 'object',
+            properties: {
+              level: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
+              explanation: { type: 'string' },
+            },
+          },
+        },
+        required: ['executive_summary', 'deal_verdict', 'price_analysis', 'strengths', 'red_flags', 'negotiation_strategy', 'next_steps', 'risk_assessment'],
       },
-      body: JSON.stringify({
-        model: 'fugu',
-        messages: [
-          { role: 'system', content: 'You are an expert aviation deal analyst. Always respond with valid JSON only, no markdown.' },
-          { role: 'user', content: prompt },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.7,
-      }),
     });
-
-    if (!fuguRes.ok) {
-      const errText = await fuguRes.text();
-      return Response.json({ error: `Fugu API error (${fuguRes.status}): ${errText}` }, { status: 502 });
-    }
-
-    const fuguData = await fuguRes.json();
-    const content = fuguData.choices?.[0]?.message?.content;
-
-    let brief;
-    try {
-      brief = JSON.parse(content);
-    } catch (_) {
-      return Response.json({ error: 'Failed to parse Fugu response', raw: content }, { status: 500 });
-    }
 
     return Response.json({
       listing: { id: listing.id, registration: listing.registration, make: listing.make, model: listing.model, year: listing.year },
-      brief,
-      model: fuguData.model || 'fugu',
+      brief: llmRes,
+      model: 'invoke-llm',
       generated_at: new Date().toISOString(),
     });
   } catch (error) {

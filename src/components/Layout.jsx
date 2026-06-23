@@ -14,6 +14,7 @@ import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
+import PragueClock from "@/components/layout/PragueClock";
 
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
@@ -165,16 +166,7 @@ export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [pragueNow, setPragueNow] = useState(new Date());
   const touchStartX = useRef(null);
-
-  useEffect(() => {
-    const t = setInterval(() => setPragueNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const pragueDateStr = pragueNow.toLocaleDateString("en-GB", { timeZone: "Europe/Prague", day: "2-digit", month: "2-digit", year: "numeric" });
-  const pragueTimeStr = pragueNow.toLocaleTimeString("en-GB", { timeZone: "Europe/Prague", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   const showBack = BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
 
@@ -255,14 +247,7 @@ export default function Layout() {
           <div className="flex items-center gap-3 flex-shrink-0">
             <ThemeToggle />
             {/* Prague date/time — under logout, upper right */}
-            <div className="hidden sm:flex flex-col items-end" style={{ lineHeight: 1.2 }}>
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "#f5c242", fontVariantNumeric: "tabular-nums", letterSpacing: "0.02em" }}>
-                {pragueTimeStr}
-              </span>
-              <span style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                {pragueDateStr} · Prague
-              </span>
-            </div>
+            <PragueClock />
             {currentUser ?
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

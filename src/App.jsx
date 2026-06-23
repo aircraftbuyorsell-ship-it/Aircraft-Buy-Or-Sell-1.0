@@ -60,6 +60,7 @@ import DSAPolicy from "./pages/DSAPolicy";
 import AITransparency from "./pages/AITransparency";
 import FunnelDashboard from "./pages/FunnelDashboard";
 import FunnelCanvas from "./pages/FunnelCanvas";
+import SearchConsoleDashboard from "./pages/SearchConsoleDashboard";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -136,6 +137,7 @@ const AuthenticatedApp = () => {
         <Route path="/legal/dsa" element={<DSAPolicy />} />
         <Route path="/legal/ai-transparency" element={<AITransparency />} />
         <Route path="/funnels" element={<FunnelDashboard />} />
+        <Route path="/search-console" element={<SearchConsoleDashboard />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

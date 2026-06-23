@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Zap, Plane, Map, Video, CreditCard,
   Sparkles, Settings, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch } from
+  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch, Search } from
 "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import GlobalSearch from "@/components/search/GlobalSearch";
@@ -26,7 +26,8 @@ const NAV_SECTIONS = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/listings", label: "Aircraft Listings", icon: Plane },
   { path: "/faa-map", label: "FAA Map", icon: Map },
-  { path: "/analytics", label: "Market Analytics", icon: BarChart2 }]
+  { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
+  { path: "/search-console", label: "Search Console", icon: Search }]
 
 },
 {

@@ -61,6 +61,7 @@ import AITransparency from "./pages/AITransparency";
 import FunnelDashboard from "./pages/FunnelDashboard";
 import FunnelCanvas from "./pages/FunnelCanvas";
 import SearchConsoleDashboard from "./pages/SearchConsoleDashboard";
+import DealIntelligence from "./pages/DealIntelligence";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -138,6 +139,7 @@ const AuthenticatedApp = () => {
         <Route path="/legal/ai-transparency" element={<AITransparency />} />
         <Route path="/funnels" element={<FunnelDashboard />} />
         <Route path="/search-console" element={<SearchConsoleDashboard />} />
+        <Route path="/deal-intelligence" element={<DealIntelligence />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

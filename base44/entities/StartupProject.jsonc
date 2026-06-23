@@ -154,13 +154,25 @@
       ]
     },
     "read": {
-      "data.status": {
-        "$in": [
-          "approved",
-          "active",
-          "funded"
-        ]
-      }
+      "$or": [
+        {
+          "data.status": {
+            "$in": [
+              "approved",
+              "active",
+              "funded"
+            ]
+          }
+        },
+        {
+          "data.submitted_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
       "$or": [

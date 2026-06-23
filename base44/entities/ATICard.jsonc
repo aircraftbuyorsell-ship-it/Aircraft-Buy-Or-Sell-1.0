@@ -271,7 +271,14 @@
   ],
   "rls": {
     "create": {
-      "data.issuer_email": "{{user.email}}"
+      "data.issuer_email": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [

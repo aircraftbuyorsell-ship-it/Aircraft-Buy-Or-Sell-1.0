@@ -112,7 +112,14 @@
   ],
   "rls": {
     "create": {
-      "data.owner_email": "{{user.email}}"
+      "data.owner_email": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [

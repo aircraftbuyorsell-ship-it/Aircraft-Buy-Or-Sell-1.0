@@ -236,12 +236,12 @@ export default function Layout() {
             <button onClick={() => navigate(-1)} aria-label="Go back"
             style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
                 <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
-              </button> :
+              </button> : null
 
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden hidden"
-            style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Menu size={16} className="hidden" />
-              </button>
+
+
+
+
             }
             <Link to="/" className="hidden lg:block">
               <SidebarLogo />

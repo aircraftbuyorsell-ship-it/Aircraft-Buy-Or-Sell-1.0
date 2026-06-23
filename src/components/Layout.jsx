@@ -238,9 +238,9 @@ export default function Layout() {
                 <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
               </button> :
 
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden hidden"
             style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Menu size={16} />
+                <Menu size={16} className="hidden" />
               </button>
             }
             <Link to="/" className="hidden lg:block">

@@ -162,25 +162,25 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
   const stcCount = adstcUnlocked ? (result?.stc_count ?? "—") : null;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4">
+    <div className="flex flex-col items-center w-full max-w-lg mx-auto px-4">
       {/* Hero Search Bar */}
       <div className="w-full relative mb-4">
-        <div className="flex items-center gap-0 w-full rounded-2xl overflow-hidden shadow-xl"
+        <div className="flex items-center gap-0 w-full rounded-xl overflow-hidden shadow-lg"
           style={{
             background: isDark ? "rgba(18,18,35,0.88)" : "rgba(255,255,255,0.88)",
             border: isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(37,99,235,0.15)",
             backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
           }}>
-          <div className="pl-5 pr-3">
-            <Search className="w-5 h-5" style={{ color: isDark ? "rgba(0,245,255,0.6)" : "rgba(37,99,235,0.6)" }} />
+          <div className="pl-4 pr-2">
+            <Search className="w-4 h-4" style={{ color: isDark ? "rgba(0,245,255,0.6)" : "rgba(37,99,235,0.6)" }} />
           </div>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter N-Number (e.g. N12345) or tail number…"
-            className="flex-1 py-4 text-base font-medium bg-transparent border-none outline-none"
+            placeholder="Enter N-Number (e.g. N12345)…"
+            className="flex-1 py-2.5 text-sm font-medium bg-transparent border-none outline-none"
             style={{
               color: textColor,
               background: "transparent !important",
@@ -190,13 +190,13 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           <button
             onClick={search}
             disabled={searching || !normalizeN(query)}
-            className="px-6 py-4 text-sm font-bold tracking-wider uppercase transition-all disabled:opacity-30"
+            className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-30"
             style={{
               background: searching ? "transparent" : `linear-gradient(135deg, ${accentCyan}, #0ea5e9)`,
               color: searching ? mutedColor : "#fff",
             }}
           >
-            {searching ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
+            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
           </button>
         </div>
       </div>

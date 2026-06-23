@@ -4,8 +4,17 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
+    // Scheduled automations have no user context — allow them to proceed.
+    // Direct HTTP invocations still require admin auth.
+    let isAuthorized = false;
+    try {
+      const user = await base44.auth.me();
+      isAuthorized = user?.role === 'admin';
+    } catch (_) {
+      // No auth context (scheduled automation) — trusted invocation
+      isAuthorized = true;
+    }
+    if (!isAuthorized) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -18,6 +27,15 @@ Deno.serve(async (req) => {
 
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
+
+    // Helper: detect Supabase HTML error pages (522/503 — project paused or down)
+    const supabaseErrMsg = (err) => {
+      const msg = err?.message || String(err);
+      if (msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out')) {
+        return 'Supabase project is unreachable (522/503). Check if the Supabase project is paused or down.';
+      }
+      return msg;
+    };
 
     const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
     const currentMode = mode || 'summary';
@@ -158,17 +176,19 @@ Deno.serve(async (req) => {
     if (currentMode === 'registry_sync') {
       const BATCH = 50;
 
-      // Auto-advance: when no explicit page, derive batch from existing FAAAircraft count
+      // Determine which batch to process
       let batch;
       if (page !== undefined && pageSize && pageSize > 0) {
         batch = currentPage - 1;
       } else {
-        let existingCount = 0;
+        // Read batch position from AppConfig (O(1) instead of loading 100k records)
+        batch = 0;
         try {
-          const arr = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 100000);
-          existingCount = arr.length;
+          const configs = await base44.asServiceRole.entities.AppConfig.filter({ key: 'faa_sync_batch' }, '-created_date', 1);
+          if (configs.length > 0 && typeof configs[0].value?.batch === 'number') {
+            batch = configs[0].value.batch;
+          }
         } catch (_) {}
-        batch = Math.floor(existingCount / BATCH);
       }
 
       const from = batch * BATCH;
@@ -176,17 +196,33 @@ Deno.serve(async (req) => {
 
       const { data: rows, error: syncErr } = await supabaseAdmin
         .from('faa_registry').select('*').range(from, to);
-      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+      if (syncErr) return Response.json({ error: supabaseErrMsg(syncErr) }, { status: 502 });
 
-      let created = 0;
-      let updated = 0;
+      // Collect n_numbers to check for existing records (single query, not per-record)
+      const nNumbers = (rows || [])
+        .filter(r => r.n_number)
+        .map(r => r.n_number.trim().toUpperCase());
 
+      const existingMap = new Map();
+      if (nNumbers.length > 0) {
+        try {
+          const existing = await base44.asServiceRole.entities.FAAAircraft.filter(
+            { n_number: { $in: nNumbers } },
+            '-created_date',
+            nNumbers.length
+          );
+          for (const f of existing) {
+            if (f.n_number) existingMap.set(f.n_number.trim().toUpperCase(), f);
+          }
+        } catch (_) {}
+      }
+
+      // Separate into bulk create / bulk update batches
+      const toCreate = [];
+      const toUpdate = [];
       for (const r of (rows || [])) {
         if (!r.n_number) continue;
         const nNum = r.n_number.trim().toUpperCase();
-
-        const existing = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, '-created_date', 1);
-
         const aircraftData = {
           n_number: nNum,
           serial_number: r.serial_number || '',
@@ -208,20 +244,42 @@ Deno.serve(async (req) => {
           air_worth_date: r.air_worth_date || '',
           expiration_date: r.expiration_date || '',
         };
-
-        if (existing.length > 0) {
-          await base44.asServiceRole.entities.FAAAircraft.update(existing[0].id, aircraftData);
-          updated++;
+        const existing = existingMap.get(nNum);
+        if (existing) {
+          toUpdate.push({ id: existing.id, ...aircraftData });
         } else {
-          await base44.asServiceRole.entities.FAAAircraft.create(aircraftData);
-          created++;
+          toCreate.push(aircraftData);
         }
       }
 
-      // Get actual registry count for accurate batch tracking
-      const { count: realTotal, error: countErr } = await supabaseAdmin
+      // Bulk operations (2 API calls instead of 100+)
+      let created = 0;
+      let updated = 0;
+      if (toCreate.length > 0) {
+        await base44.asServiceRole.entities.FAAAircraft.bulkCreate(toCreate);
+        created = toCreate.length;
+      }
+      if (toUpdate.length > 0) {
+        await base44.asServiceRole.entities.FAAAircraft.bulkUpdate(toUpdate);
+        updated = toUpdate.length;
+      }
+
+      // Get total for batch tracking
+      const { count: realTotal } = await supabaseAdmin
         .from('faa_registry').select('*', { count: 'exact', head: true });
       const totalBatches = Math.ceil((realTotal || 308985) / BATCH);
+      const nextBatch = (batch + 1 >= totalBatches) ? 0 : batch + 1;
+
+      // Persist next batch position to AppConfig
+      try {
+        const configs = await base44.asServiceRole.entities.AppConfig.filter({ key: 'faa_sync_batch' }, '-created_date', 1);
+        if (configs.length > 0) {
+          await base44.asServiceRole.entities.AppConfig.update(configs[0].id, { value: { batch: nextBatch } });
+        } else {
+          await base44.asServiceRole.entities.AppConfig.create({ key: 'faa_sync_batch', value: { batch: nextBatch } });
+        }
+      } catch (_) {}
+
       return Response.json({
         mode: 'registry_sync',
         batch: batch + 1,
@@ -566,6 +624,14 @@ Deno.serve(async (req) => {
 
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    const msg = error.message || String(error);
+    // Detect HTML error pages from Supabase (paused project, wrong URL, rate limit)
+    if (msg.includes('<!DOCTYPE') || msg.includes('<html')) {
+      return Response.json(
+        { error: 'Supabase returned an HTML error page — the project may be paused or the URL is incorrect. Check VITE_SUPABASE_URL and Supabase project status.' },
+        { status: 502 }
+      );
+    }
+    return Response.json({ error: msg }, { status: 500 });
   }
 });

@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       })),
     };
 
-    const apiKey = Deno.env.get('SAKANA_12byteflow_API_KEY');
+    const apiKey = Deno.env.get('12byteflow_key') || Deno.env.get('SAKANA_12byteflow_API_KEY');
     if (!apiKey) return Response.json({ error: 'Sakana API key not configured' }, { status: 500 });
 
     const prompt = `You are an expert aviation deal analyst. Analyze the following aircraft listing data and produce a comprehensive deal intelligence brief.

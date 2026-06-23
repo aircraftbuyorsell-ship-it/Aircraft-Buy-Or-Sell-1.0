@@ -1,0 +1,97 @@
+{
+  "properties": {
+    "aircraft_listing_id": {
+      "description": "Optional link to an AircraftListing",
+      "type": "string"
+    },
+    "blocks": {
+      "description": "Array of funnel block nodes with id, type, label, x, y position",
+      "items": {
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "connections": {
+      "description": "Array of connections between blocks",
+      "items": {
+        "properties": {
+          "from_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "to_id": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "conversion_rate": {
+      "default": 0,
+      "description": "Conversion rate percentage",
+      "type": "number"
+    },
+    "created_by_email": {
+      "description": "Email of the broker/dealer who created this funnel",
+      "type": "string"
+    },
+    "description": {
+      "description": "Short description of funnel purpose",
+      "type": "string"
+    },
+    "name": {
+      "description": "Funnel name",
+      "type": "string"
+    },
+    "status": {
+      "default": "draft",
+      "description": "Funnel status",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "type": "string"
+    },
+    "total_leads": {
+      "default": 0,
+      "description": "Total leads captured through this funnel",
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "status"
+  ],
+  "type": "object",
+  "name": "SalesFunnel"
+}

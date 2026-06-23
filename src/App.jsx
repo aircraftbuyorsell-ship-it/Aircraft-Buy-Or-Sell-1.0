@@ -58,6 +58,8 @@ import IntraZoneDemo from "./pages/IntraZoneDemo";
 import CookieConsent from "./components/CookieConsent";
 import DSAPolicy from "./pages/DSAPolicy";
 import AITransparency from "./pages/AITransparency";
+import FunnelDashboard from "./pages/FunnelDashboard";
+import FunnelCanvas from "./pages/FunnelCanvas";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -133,7 +135,9 @@ const AuthenticatedApp = () => {
         <Route path="/demo" element={<IntraZoneDemo />} />
         <Route path="/legal/dsa" element={<DSAPolicy />} />
         <Route path="/legal/ai-transparency" element={<AITransparency />} />
+        <Route path="/funnels" element={<FunnelDashboard />} />
       </Route>
+      <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

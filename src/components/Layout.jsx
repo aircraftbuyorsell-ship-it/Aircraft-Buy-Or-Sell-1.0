@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Zap, Plane, Map, Video, CreditCard,
   Sparkles, Settings, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText } from
+  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch } from
 "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import GlobalSearch from "@/components/search/GlobalSearch";
@@ -50,6 +50,7 @@ const NAV_SECTIONS = [
   label: "Deals",
   items: [
   { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+  { path: "/funnels", label: "Funnel Builder", icon: GitBranch },
   { path: "/escrow", label: "Hustl Contract", icon: FileText }]
 
 }];

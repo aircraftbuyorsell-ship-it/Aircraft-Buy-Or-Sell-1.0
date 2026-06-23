@@ -232,17 +232,17 @@ export default function Layout() {
         <div className="flex items-center justify-between gap-3 px-4 sm:px-6 h-[54px]">
           {/* Left: logo (desktop) / hamburger + logo (mobile) */}
           <div className="flex items-center gap-2.5 flex-shrink-0">
-            {showBack ? (
-              <button onClick={() => navigate(-1)} aria-label="Go back"
-              style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
+            {showBack ?
+            <button onClick={() => navigate(-1)} aria-label="Go back"
+            style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
                 <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
-              </button>
-            ) : (
-              <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
-              style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              </button> :
+
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
+            style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Menu size={16} />
               </button>
-            )}
+            }
             <Link to="/" className="hidden lg:block">
               <SidebarLogo />
             </Link>
@@ -263,27 +263,27 @@ export default function Layout() {
                 {pragueDateStr} · Prague
               </span>
             </div>
-            {currentUser ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {currentUser ?
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
                 </div>
                 <button onClick={() => base44.auth.logout()} aria-label="Log out" title="Log out"
-                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
                   <LogOut size={14} />
                 </button>
-              </div>
-            ) : (
-              <button onClick={() => base44.auth.redirectToLogin()}
-              style={{ display: "flex", alignItems: "center", gap: "6px", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+              </div> :
+
+            <button onClick={() => base44.auth.redirectToLogin()}
+            style={{ display: "flex", alignItems: "center", gap: "6px", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
                 <LogIn size={13} /> Log In
               </button>
-            )}
+            }
           </div>
         </div>
 
         {/* Row 2: floating pill command bar — lower */}
-        <div className="hidden lg:flex items-center justify-center pb-2.5">
+        <div className="hidden lg:flex items-center justify-center pb-2.5 opacity-100">
           <PillCommandBar />
         </div>
       </header>

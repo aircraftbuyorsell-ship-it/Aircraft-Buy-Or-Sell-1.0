@@ -3,22 +3,21 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  LayoutDashboard, Zap, Plane, Map, Video, CreditCard,
-  Sparkles, Settings, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
+  LayoutDashboard, Zap, Plane, Map,
+  Sparkles, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
   BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch, Search, Brain } from
 "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
-import GlobalSearch from "@/components/search/GlobalSearch";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
+import PillCommandBar from "@/components/layout/PillCommandBar";
 
-const SIDEBAR_W = 220;
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
-// ── Sectioned nav (routes mapped to existing pages) ──
+// ── Full nav list for mobile drawer ──
 const NAV_SECTIONS = [
 {
   label: "Discover",
@@ -43,7 +42,7 @@ const NAV_SECTIONS = [
   label: "Account",
   items: [
   { path: "/my-account", label: "Profile & Settings", icon: User },
-  { path: "/pricing", label: "Credits & Benefits", icon: CreditCard },
+  { path: "/pricing", label: "Credits & Benefits", icon: Shield },
   { path: "/ati-verify", label: "Verification Center", icon: CheckCircle }]
 
 },
@@ -63,7 +62,7 @@ function initials(user) {
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function SidebarContent({ pathname, user, onNavigate }) {
+function DrawerContent({ pathname, user, onNavigate }) {
   return (
     <>
       {/* Logo */}
@@ -198,12 +197,6 @@ export default function Layout() {
         Skip to content
       </a>
 
-      {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 z-50 flex-col"
-      style={{ width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)" }}>
-        <SidebarContent pathname={pathname} user={currentUser} />
-      </aside>
-
       {/* ── Mobile drawer ── */}
       {mobileOpen &&
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
@@ -211,7 +204,7 @@ export default function Layout() {
       }
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300"
       style={{
-        width: SIDEBAR_W, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        width: 220, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3">
@@ -220,42 +213,64 @@ export default function Layout() {
             <ChevronLeft size={15} />
           </button>
         </div>
-        <SidebarContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
+        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
       </aside>
 
-      {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 lg:ml-[220px]"
+      {/* ── Top header bar ── */}
+      <header className="sticky top-0 z-40"
       style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
-        <div className="flex items-center gap-2.5 px-4 sm:px-6 h-[58px]">
-          {showBack ?
-          <button onClick={() => navigate(-1)} aria-label="Go back"
-          style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
-              <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
-            </button> :
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 h-[58px]">
+          {/* Left: logo (desktop) / hamburger + logo (mobile) */}
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            {showBack ? (
+              <button onClick={() => navigate(-1)} aria-label="Go back"
+              style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
+                <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
+              </button>
+            ) : (
+              <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
+              style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Menu size={16} />
+              </button>
+            )}
+            <Link to="/" className="hidden lg:block">
+              <SidebarLogo />
+            </Link>
+            <Link to="/" className="lg:hidden">
+              <SidebarLogo />
+            </Link>
+          </div>
 
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden"
-          style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Menu size={16} className="hidden" />
-            </button>
-          }
+          {/* Center: floating pill command bar */}
+          <div className="flex-1 flex justify-center">
+            <PillCommandBar />
+          </div>
 
-          {/* Mobile logo */}
-          <Link to="/" className="lg:hidden">
-            <SidebarLogo />
-          </Link>
-
-          <GlobalSearch />
-          <div className="flex-1" />
-          <ThemeToggle />
-
-          <button onClick={() => {localStorage.removeItem("abos_tour_completed_v3");window.dispatchEvent(new Event("abos-tour-open"));}}
-          aria-label="Platform tour" title="Platform tour"
-          style={{ display: "none" }} />
+          {/* Right: theme toggle + user */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <ThemeToggle />
+            {currentUser ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
+                </div>
+                <button onClick={() => base44.auth.logout()} aria-label="Log out" title="Log out"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => base44.auth.redirectToLogin()}
+              style={{ display: "flex", alignItems: "center", gap: "6px", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+                <LogIn size={13} /> Log In
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* ── Content ── */}
-      <main id="main-content" className="flex-1 overflow-auto lg:ml-[220px]" style={{ background: "#04060a" }}>
+      {/* ── Content ── full width ── */}
+      <main id="main-content" className="flex-1 overflow-auto" style={{ background: "#04060a" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>

@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTheme } from "@/lib/useTheme";
-import { base44 } from "@/api/base44Client";
 import {
-  Search, X, RefreshCw, ChevronDown, ChevronUp,
-  Globe, Plane, Gauge, Loader2
+  Search, X, RefreshCw, ChevronDown, ChevronUp, Loader2
 } from "lucide-react";
 
 const REGIONS = [
@@ -13,17 +11,11 @@ const REGIONS = [
   { key: "global", label: "Global", lamin: -60, lomin: -130, lamax: 72, lomax: 50 },
 ];
 
-export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount, listingCount, isLoading, compact }) {
+export default function GlobeTrafficControls({ onSearch, onRefresh, onRegionChange, trafficCount, listingCount, isLoading, compact }) {
   const isDark = useTheme();
   const [region, setRegion] = useState("eu");
   const [search, setSearch] = useState("");
-  const [showAuth, setShowAuth] = useState(false);
-  const [cid, setCid] = useState("aircraftbuyorsell@gmail.com-api-client");
-  const [csec, setCsec] = useState("IEP2aVXNWl5znURwv52525Vz9SxpA7ea");
-  const [btok, setBtok] = useState("");
-  const [dataTime, setDataTime] = useState(null);
-  const [sourceLabel, setSourceLabel] = useState("OpenSky");
-  const [credits, setCredits] = useState("—");
+  const [showLegend, setShowLegend] = useState(false);
 
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";
@@ -36,6 +28,13 @@ export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount
   const clearSearch = () => {
     setSearch("");
     if (onSearch) onSearch("");
+  };
+
+  const handleRegionChange = (e) => {
+    const key = e.target.value;
+    setRegion(key);
+    const r = REGIONS.find((r) => r.key === key);
+    if (onRegionChange) onRegionChange(r);
   };
 
   // ─── Compact inline mode (used in toggle bar) ───
@@ -90,7 +89,7 @@ export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount
             <label className="text-[9px] uppercase tracking-wider" style={{ color: mutedColor }}>Region</label>
             <select
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={handleRegionChange}
               className="w-[120px] text-[10px] px-1.5 py-1 rounded-md bg-white/5 border border-white/10 outline-none"
               style={{ color: accentCyan }}
             >
@@ -147,43 +146,21 @@ export default function GlobeTrafficControls({ onSearch, onRefresh, trafficCount
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-3 text-[8px]" style={{ color: mutedColor }}>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#D4A017" }} />Low</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#3fd0e0" }} />Mid</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: accentCyan }} />High</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#ff4d6d" }} />Listing</span>
-        </div>
-
-        {/* Auth toggle */}
         <div className="border-t pt-2" style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
           <button
-            onClick={() => setShowAuth(!showAuth)}
+            onClick={() => setShowLegend(!showLegend)}
             className="flex items-center gap-1 text-[9px] uppercase tracking-wider w-full"
             style={{ color: mutedColor }}
           >
-            {showAuth ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            Auth (higher limits)
+            {showLegend ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            Legend
           </button>
-          {showAuth && (
-            <div className="mt-2 space-y-1.5">
-              <input
-                value={cid}
-                onChange={(e) => setCid(e.target.value)}
-                placeholder="client_id"
-                className="w-full text-[9px] px-2 py-1 rounded-md bg-white/5 border border-white/10 outline-none font-mono"
-                style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)" }}
-              />
-              <input
-                value={csec}
-                onChange={(e) => setCsec(e.target.value)}
-                type="password"
-                placeholder="client_secret"
-                className="w-full text-[9px] px-2 py-1 rounded-md bg-white/5 border border-white/10 outline-none font-mono"
-                style={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)" }}
-              />
-              <p className="text-[8px] leading-relaxed" style={{ color: mutedColor }}>
-                Anonymous = 400 credits/day. Auth = 4,000/day. Stored in your browser only.
-              </p>
+          {showLegend && (
+            <div className="mt-2 flex items-center gap-3 text-[8px]" style={{ color: mutedColor }}>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#D4A017" }} />Low</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#3fd0e0" }} />Mid</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: accentCyan }} />High</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#ff4d6d" }} />Listing</span>
             </div>
           )}
         </div>

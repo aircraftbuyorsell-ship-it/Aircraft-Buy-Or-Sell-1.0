@@ -38,6 +38,13 @@
       },
       "description": "Sample of individual listing prices (USD)"
     },
+    "raw_listings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Full listing objects from the market feed (title, price, link, specs)"
+    },
     "source_label": {
       "type": "string",
       "default": "ABOS Market Intelligence",

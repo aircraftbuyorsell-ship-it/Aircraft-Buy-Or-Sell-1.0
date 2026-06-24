@@ -23,26 +23,47 @@ function normalizeMakeModel(str) {
   return (str || '').trim();
 }
 
+function parsePriceString(str) {
+  if (str == null) return null;
+  if (typeof str === 'number') return Number.isFinite(str) && str > 1000 ? str : null;
+  const cleaned = String(str).replace(/[$,\s]/g, '').replace(/USD/i, '');
+  const num = Number(cleaned);
+  if (Number.isFinite(num) && num > 1000) return Math.round(num);
+  return null;
+}
+
 function extractPrices(rawListings) {
   if (!Array.isArray(rawListings)) return [];
   const prices = [];
   for (const item of rawListings) {
     if (!item || typeof item !== 'object') continue;
-    // Try common field names for price
-    const price =
-      item.price ?? item.asking_price ?? item.Price ??
-      item.listing_price ?? item.cost ?? item.value;
-    const num = Number(price);
-    if (Number.isFinite(num) && num > 1000) {
-      prices.push(Math.round(num));
-    }
+    const price = item.price ?? item.asking_price ?? item.Price ?? item.listing_price ?? item.cost ?? item.value;
+    const num = parsePriceString(price);
+    if (num != null) prices.push(num);
   }
   return prices;
+}
+
+function extractRawListings(rawListings) {
+  if (!Array.isArray(rawListings)) return [];
+  return rawListings.map((item) => ({
+    title: item.title || null,
+    price: parsePriceString(item.price),
+    price_raw: item.price || null,
+    link: item.link || null,
+    location: item.location || null,
+    year: item.specifications?.year || null,
+    total_time: item.specifications?.totalTime || null,
+    registration: item.specifications?.registration || null,
+    serial_number: item.specifications?.serialNumber || null,
+    images: item.images || [],
+  })).filter((l) => l.title || l.registration);
 }
 
 function extractListingsArray(body) {
   if (!body) return [];
   if (Array.isArray(body)) return body;
+  if (Array.isArray(body.aircraftList)) return body.aircraftList;
   if (Array.isArray(body.results)) return body.results;
   if (Array.isArray(body.listings)) return body.listings;
   if (Array.isArray(body.data)) return body.data;
@@ -51,13 +72,14 @@ function extractListingsArray(body) {
   return [];
 }
 
-function buildComparable(make, model, year, prices, fetchedAt) {
+function buildComparable(make, model, year, prices, rawListings, fetchedAt) {
   const sorted = [...prices].sort((a, b) => a - b);
   const count = sorted.length;
   const avg = count > 0 ? Math.round(sorted.reduce((s, p) => s + p, 0) / count) : null;
   const min = count > 0 ? sorted[0] : null;
   const max = count > 0 ? sorted[count - 1] : null;
   const samples = sorted.slice(0, 20);
+  const listings = extractRawListings(rawListings);
 
   return {
     make: normalizeMakeModel(make),
@@ -68,6 +90,7 @@ function buildComparable(make, model, year, prices, fetchedAt) {
     max_price: max,
     listings_count: count,
     price_samples: samples,
+    raw_listings: listings,
     source_label: 'ABOS Market Intelligence',
     fetched_at: fetchedAt,
     is_stale: false,
@@ -114,6 +137,7 @@ Deno.serve(async (req) => {
     const query = [make, model, year].filter(Boolean).join(' ');
     const apiKey = Deno.env.get('Default_API_Key');
     const fetchedAt = new Date().toISOString();
+    console.log('[piloterrTradeProxy] query:', query, 'apiKey exists:', !!apiKey);
 
     let liveData = null;
     let apiError = null;
@@ -122,26 +146,32 @@ Deno.serve(async (req) => {
     if (apiKey) {
       try {
         const url = `${API_BASE}?query=${encodeURIComponent(query)}`;
+        console.log('[piloterrTradeProxy] fetching:', url);
         const apiRes = await fetch(url, {
           method: 'GET',
           headers: {
             'x-api-key': apiKey,
             'Accept': 'application/json',
           },
-          signal: AbortSignal.timeout(15000),
         });
+        console.log('[piloterrTradeProxy] API status:', apiRes.status);
 
         if (apiRes.ok) {
           const json = await apiRes.json();
           const listings = extractListingsArray(json);
           const prices = extractPrices(listings);
+          console.log(`[piloterrTradeProxy] API OK: ${listings.length} listings, ${prices.length} prices for "${query}"`);
 
           if (prices.length > 0) {
-            liveData = buildComparable(make, model, year, prices, fetchedAt);
+            liveData = buildComparable(make, model, year, prices, listings, fetchedAt);
             liveData._source = 'live';
+          } else {
+            apiError = 'no valid prices in response';
           }
         } else {
-          apiError = `API returned ${apiRes.status}`;
+          const errBody = await apiRes.text().catch(() => '');
+          apiError = `API returned ${apiRes.status}: ${errBody.substring(0, 200)}`;
+          console.warn('[piloterrTradeProxy] API error:', apiError);
         }
       } catch (err) {
         apiError = err.message;
@@ -167,6 +197,7 @@ Deno.serve(async (req) => {
             max_price: liveData.max_price,
             listings_count: liveData.listings_count,
             price_samples: liveData.price_samples,
+            raw_listings: liveData.raw_listings,
             fetched_at: fetchedAt,
             is_stale: false,
           });
@@ -180,6 +211,7 @@ Deno.serve(async (req) => {
             max_price: liveData.max_price,
             listings_count: liveData.listings_count,
             price_samples: liveData.price_samples,
+            raw_listings: liveData.raw_listings,
             source_label: 'ABOS Market Intelligence',
             fetched_at: fetchedAt,
             is_stale: false,

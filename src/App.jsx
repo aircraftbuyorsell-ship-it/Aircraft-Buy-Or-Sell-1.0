@@ -55,7 +55,7 @@ import ATIVerifySession from "./pages/ATIVerifySession";
 import SupabaseSync from "./pages/SupabaseSync";
 import FAAMap from "./pages/FAAMap";
 import IntraZoneDemo from "./pages/IntraZoneDemo";
-import CookieConsent from "./components/CookieConsent";
+import GDPRConsentBanner from "./components/GDPRConsentBanner";
 import DSAPolicy from "./pages/DSAPolicy";
 import AITransparency from "./pages/AITransparency";
 import FunnelDashboard from "./pages/FunnelDashboard";
@@ -153,7 +153,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <AuthenticatedApp />
-          <CookieConsent />
+          <GDPRConsentBanner />
           <Toaster />
         </Router>
       </QueryClientProvider>

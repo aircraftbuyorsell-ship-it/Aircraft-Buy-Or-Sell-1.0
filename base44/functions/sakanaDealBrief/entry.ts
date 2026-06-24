@@ -30,7 +30,24 @@ Deno.serve(async (req) => {
       );
     } catch (_) {}
 
+    // Fetch live market intelligence
+    let marketIntel = null;
+    try {
+      const marketRes = await base44.functions.invoke('piloterrTradeProxy', {
+        make: listing.make, model: listing.model, year: listing.year,
+      });
+      marketIntel = marketRes?.data || marketRes || null;
+    } catch (_) {}
+
     const context = {
+      market_intelligence: marketIntel ? {
+        live_market_avg: marketIntel.avg_price,
+        min_price: marketIntel.min_price,
+        max_price: marketIntel.max_price,
+        listings_count: marketIntel.listings_count,
+        price_samples: (marketIntel.price_samples || []).slice(0, 10),
+        data_source: marketIntel._source === 'cached' ? 'cached' : 'live',
+      } : null,
       aircraft: {
         registration: listing.registration,
         make: listing.make,

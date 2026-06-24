@@ -649,6 +649,54 @@ Return ONLY raw JSON:
                     </div>
                   </div>
 
+                  {/* Market Benchmark Bar */}
+                  {passport.live_market_avg != null && (
+                    <div className="mb-4 bg-[rgba(212,160,23,0.04)] border border-[rgba(212,160,23,0.15)] rounded-xl px-4 py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] uppercase tracking-[0.12em] text-[#4A4550] font-bold">Market Benchmark</p>
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                          style={{
+                            color: passport.market_data_source === 'live' ? '#0F7A56' : '#D4A017',
+                            background: passport.market_data_source === 'live' ? 'rgba(15,122,86,0.08)' : 'rgba(212,160,23,0.08)',
+                          }}>
+                          {passport.market_data_source === 'live' ? '● Live' : '● Cached'}
+                        </span>
+                      </div>
+                      {(() => {
+                        const min = passport.live_min_price || 0;
+                        const max = passport.live_max_price || 0;
+                        const avg = passport.live_market_avg || 0;
+                        const asking = listing?.asking_price || 0;
+                        const range = max - min || 1;
+                        const pos = Math.max(0, Math.min(100, ((asking - min) / range) * 100));
+                        const isBelow = asking < avg * 0.95;
+                        const isAt = asking >= avg * 0.95 && asking <= avg * 1.05;
+                        const dotColor = isBelow ? '#0F7A56' : isAt ? '#D4A017' : '#C0392B';
+                        return (
+                          <div>
+                            <div className="relative h-2 bg-black/5 rounded-full mb-2">
+                              <div className="absolute inset-0 h-full rounded-full"
+                                style={{ background: 'linear-gradient(90deg, rgba(15,122,86,0.2), rgba(212,160,23,0.2), rgba(192,57,43,0.2))' }} />
+                              <div className="absolute w-3 h-3 rounded-full border-2 border-white shadow-md"
+                                style={{ left: `calc(${pos}% - 6px)`, top: '-2px', background: dotColor }} />
+                            </div>
+                            <div className="flex justify-between text-[10px] text-[#6B6560] font-semibold">
+                              <span>${(min / 1000).toFixed(0)}K</span>
+                              <span style={{ color: '#4A4550' }}>Avg ${avg ? avg.toLocaleString() : '—'}</span>
+                              <span>${(max / 1000).toFixed(0)}K</span>
+                            </div>
+                            <p className="text-[10px] text-[#AAA49C] mt-1.5 text-center">
+                              {passport.live_listings_count || 0} market listings · Asking price is{' '}
+                              <span style={{ color: dotColor, fontWeight: 700 }}>
+                                {isBelow ? 'below market' : isAt ? 'at market' : 'above market'}
+                              </span>
+                            </p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
                   {/* Deal Quality row */}
                   <div className="flex items-center gap-4">
                     <div>

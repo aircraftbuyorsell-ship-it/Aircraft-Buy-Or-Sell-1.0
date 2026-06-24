@@ -103,6 +103,17 @@ Deno.serve(async (req) => {
     const listing = await base44.entities.AircraftListing.get(listingId);
     if (!listing) return Response.json({ error: "Listing not found" }, { status: 404 });
 
+    // ─── 0) Fetch live market intelligence for market_readiness enrichment ──
+    let marketIntel = null;
+    try {
+      const marketRes = await base44.functions.invoke('piloterrTradeProxy', {
+        make: listing.make, model: listing.model, year: listing.year,
+      });
+      marketIntel = marketRes?.data || marketRes || null;
+    } catch (marketErr) {
+      console.warn('[orchestrateATIScoring] market intelligence failed:', marketErr.message);
+    }
+
     // ─── 1) Score each dimension separately ───────────────────────────
     const scored = {};
     const riskFlags = [];
@@ -199,6 +210,34 @@ Return ONLY JSON:
       (result.missing || []).forEach((m) => missingData.push(`${d.label}: ${m}`));
     }
 
+    // ─── 1b) Enrich market_readiness with live market intelligence ─────
+    if (marketIntel && marketIntel.avg_price != null && marketIntel.avg_price > 0 && listing.asking_price) {
+      const marketAvg = marketIntel.avg_price;
+      const askingPrice = listing.asking_price;
+      const priceDiffPct = ((askingPrice - marketAvg) / marketAvg) * 100;
+      const listingsCount = marketIntel.listings_count || 0;
+      let mrScore = scored.market_readiness?.score ?? 8;
+      // +15 if within 5% of market avg AND listings_count > 10
+      if (Math.abs(priceDiffPct) <= 5 && listingsCount > 10) {
+        mrScore = 15;
+      }
+      // Penalise if asking_price > market avg by >15%
+      if (priceDiffPct > 15) {
+        mrScore = Math.min(mrScore, 6);
+      }
+      scored.market_readiness = {
+        ...(scored.market_readiness || {}),
+        score: Math.max(0, Math.min(15, mrScore)),
+        market_intelligence: {
+          live_market_avg: marketAvg,
+          listings_count: listingsCount,
+          price_position: Math.round(priceDiffPct * 10) / 10,
+          market_depth: listingsCount > 10 ? 'deep' : listingsCount > 3 ? 'moderate' : 'shallow',
+          data_freshness: marketIntel._source === 'cached' ? 'cached' : 'live',
+        },
+      };
+    }
+
     const dimensionScores = Object.fromEntries(
       Object.entries(scored).map(([k, v]) => [k, v.score])
     );
@@ -235,9 +274,13 @@ Return JSON:
       console.error("[orchestrateATIScoring] omvmV5Score failed:", err);
       // omvmValue stays null — no fallback to hardcoded values
     }
-    const discountPct = listing.asking_price && omvmValue != null
-      ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
-      : null;
+    // Recalculate discount_pct against market avg if available, else OMVM
+    const marketAvgForDeal = marketIntel?.avg_price || null;
+    const discountPct = listing.asking_price && marketAvgForDeal != null
+      ? Math.round(((marketAvgForDeal - listing.asking_price) / marketAvgForDeal) * 1000) / 10
+      : (listing.asking_price && omvmValue != null
+        ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
+        : null);
     const dealScore = discountPct == null ? null
       : discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5
       : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
@@ -266,6 +309,11 @@ Return JSON:
       deal_label: dealLabel,
       discount_pct: discountPct,
       ati_version: "wizard_v1",
+      live_market_avg: marketIntel?.avg_price || null,
+      live_min_price: marketIntel?.min_price || null,
+      live_max_price: marketIntel?.max_price || null,
+      live_listings_count: marketIntel?.listings_count || null,
+      market_data_source: marketIntel ? (marketIntel._source === 'cached' ? 'cached' : 'live') : 'none',
     });
 
     // ─── 5) Update listing ────────────────────────────────────────────

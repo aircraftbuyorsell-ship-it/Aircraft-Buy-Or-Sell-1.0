@@ -21,50 +21,42 @@
     "documentation": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Documentation completeness (0\u201315)"
+      "maximum": 15
     },
     "technical": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Maintenance traceability (0\u201315)"
+      "maximum": 15
     },
     "transparency": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Engine health transparency (0\u201315)"
+      "maximum": 15
     },
     "transaction_ready": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Avionics quality (0\u201315)"
+      "maximum": 15
     },
     "usage_mission": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Usage / mission risk (0\u201315)"
+      "maximum": 15
     },
     "storage_exposure": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Storage & exposure (0\u201315)"
+      "maximum": 15
     },
     "config_clarity": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Configuration clarity (0\u201315)"
+      "maximum": 15
     },
     "market_readiness": {
       "type": "number",
       "minimum": 0,
-      "maximum": 15,
-      "description": "Market readiness (0\u201315)"
+      "maximum": 15
     },
     "score_label": {
       "type": "string",
@@ -75,52 +67,42 @@
         "CAUTION",
         "RED FLAGS",
         "AVOID"
-      ],
-      "description": "ATI score label tied to total bands"
+      ]
     },
     "ai_summary": {
       "type": "string",
-      "maxLength": 500,
-      "description": "AI-generated summary of ATI analysis (max 500 chars)"
+      "maxLength": 500
     },
     "strengths": {
       "type": "string",
-      "maxLength": 2000,
-      "description": "Identified strengths (newline-separated)"
+      "maxLength": 2000
     },
     "risks": {
       "type": "string",
-      "maxLength": 2000,
-      "description": "Identified risks (newline-separated)"
+      "maxLength": 2000
     },
     "recommendations": {
       "type": "string",
-      "maxLength": 2000,
-      "description": "Recommendations (newline-separated)"
+      "maxLength": 2000
     },
     "missing_data": {
       "type": "string",
-      "maxLength": 2000,
-      "description": "Missing critical data fields (newline-separated)"
+      "maxLength": 2000
     },
     "deal_radar_eligible": {
-      "type": "boolean",
-      "description": "Eligible for Deal Radar (ATI \u2265 93 AND price \u2265 8% below market)"
+      "type": "boolean"
     },
     "co_ownership_viable": {
-      "type": "boolean",
-      "description": "Co-ownership viable (asking price \u2265 $150k)"
+      "type": "boolean"
     },
     "omvm_value": {
       "type": "number",
-      "minimum": 0,
-      "description": "OMVM estimated value (USD)"
+      "minimum": 0
     },
     "deal_score": {
       "type": "number",
       "minimum": 0,
-      "maximum": 10,
-      "description": "Deal score (0\u201310)"
+      "maximum": 10
     },
     "deal_label": {
       "type": "string",
@@ -129,25 +111,45 @@
         "good deal",
         "fair",
         "overpriced"
-      ],
-      "description": "Human-readable deal classification"
+      ]
     },
     "discount_pct": {
-      "type": "number",
-      "description": "Discount percentage vs OMVM (positive = below market)"
+      "type": "number"
     },
     "ati_version": {
       "type": "string",
-      "default": "v2",
-      "description": "ATI algorithm version (e.g. v2)"
+      "default": "v2"
+    },
+    "live_market_avg": {
+      "type": "number",
+      "description": "Live/cached market average price from ABOS Market Intelligence feed"
+    },
+    "live_min_price": {
+      "type": "number",
+      "description": "Live/cached market minimum price"
+    },
+    "live_max_price": {
+      "type": "number",
+      "description": "Live/cached market maximum price"
+    },
+    "live_listings_count": {
+      "type": "number",
+      "description": "Number of live market listings found for this aircraft type"
+    },
+    "market_data_source": {
+      "type": "string",
+      "enum": [
+        "live",
+        "cached",
+        "none"
+      ],
+      "description": "Whether market data came from live API, cache fallback, or was unavailable"
     },
     "stripe_payment_id": {
-      "type": "string",
-      "description": "Stripe payment identifier (when paid generation)"
+      "type": "string"
     },
     "pdf_url": {
-      "type": "string",
-      "description": "URL to generated PDF report"
+      "type": "string"
     }
   },
   "required": [

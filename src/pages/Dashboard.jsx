@@ -6,6 +6,7 @@ import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
 import NRegLookup from "@/components/dashboard/NRegLookup";
 import QuickAccessStrip from "@/components/dashboard/QuickAccessStrip";
 import ATIOverviewCards from "@/components/dashboard/ATIOverviewCards";
+import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 import SiteFooter from "@/components/SiteFooter";
 import ListingCard from "@/components/listings/ListingCard";
 import NotificationStack from "@/components/notifications/NotificationStack";
@@ -289,6 +290,59 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── 1c. LIVE MARKET INTELLIGENCE ── */}
+      <section
+        style={{
+          background: "#04060a",
+          padding: "80px 0",
+          borderTop: "1px solid rgba(245,194,66,0.08)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            padding: "0 32px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#f5c242",
+              marginBottom: 8,
+            }}
+          >
+            ABOS Market Intelligence · Live
+          </p>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 500,
+              letterSpacing: "-0.03em",
+              color: "#fff",
+              marginBottom: 8,
+            }}
+          >
+            Live Market Data Feed
+          </h2>
+          <p
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.4)",
+              marginBottom: 32,
+              maxWidth: 560,
+              lineHeight: 1.6,
+            }}
+          >
+            Real-time market pricing and availability across top manufacturers.
+            Data automatically recalibrates OMVM valuations and ATI scoring.
+          </p>
+          <LiveMarketIntelligence />
         </div>
       </section>
 

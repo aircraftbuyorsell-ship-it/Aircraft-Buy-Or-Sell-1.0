@@ -165,7 +165,27 @@ Deno.serve(async (req) => {
     }
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
     const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
-    const omvmValue = Math.max(10000, Math.round(rawOMVM / 1000) * 1000);
+    let omvmValue = Math.max(10000, Math.round(rawOMVM / 1000) * 1000);
+
+    // ── Live market intelligence blend (30% live / 70% model) ──
+    let liveMarketAvg = null, liveMinPrice = null, liveMaxPrice = null, liveListingsCount = null;
+    let marketDataSource = 'none';
+    try {
+      const marketRes = await base44.functions.invoke('piloterrTradeProxy', {
+        make: listing.make, model: listing.model, year: listing.year,
+      });
+      const market = marketRes?.data || marketRes;
+      if (market && market.avg_price != null && market.avg_price > 0) {
+        liveMarketAvg = market.avg_price;
+        liveMinPrice = market.min_price;
+        liveMaxPrice = market.max_price;
+        liveListingsCount = market.listings_count || 0;
+        marketDataSource = market._source === 'cached' ? 'cached' : 'live';
+        omvmValue = Math.max(10000, Math.round((0.7 * omvmValue + 0.3 * liveMarketAvg) / 1000) * 1000);
+      }
+    } catch (marketErr) {
+      console.warn('[omvmV5Score] market intelligence failed:', marketErr.message);
+    }
 
     // 9) Deal scoring
     const askingPrice = listing.asking_price || null;
@@ -192,6 +212,26 @@ Deno.serve(async (req) => {
         deal_label: dealLabel,
         discount_pct: discountPct,
       });
+
+      // Persist market intelligence metadata to most recent ATIPassport
+      if (marketDataSource !== 'none') {
+        try {
+          const passports = await base44.asServiceRole.entities.ATIPassport.filter(
+            { listing: listingId }, '-created_date', 1
+          );
+          if (passports.length > 0) {
+            await base44.asServiceRole.entities.ATIPassport.update(passports[0].id, {
+              live_market_avg: liveMarketAvg,
+              live_min_price: liveMinPrice,
+              live_max_price: liveMaxPrice,
+              live_listings_count: liveListingsCount,
+              market_data_source: marketDataSource,
+            });
+          }
+        } catch (passportErr) {
+          console.warn('[omvmV5Score] passport market metadata persist failed:', passportErr.message);
+        }
+      }
     }
 
     return Response.json({
@@ -206,6 +246,13 @@ Deno.serve(async (req) => {
       engine_remaining_pct: Math.round(engineRemainingFrac * 100),
       expert_calibration: { avg_delta_pct: avgExpertDelta, multiplier: calibrationMultiplier, sample: deltas.length },
       ati_transparency_discount: atiDiscount,
+      market_intelligence: {
+        live_market_avg: liveMarketAvg,
+        live_min_price: liveMinPrice,
+        live_max_price: liveMaxPrice,
+        live_listings_count: liveListingsCount,
+        market_data_source: marketDataSource,
+      },
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

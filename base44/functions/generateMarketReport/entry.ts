@@ -51,6 +51,26 @@ async function gatherDataSnapshot(base44) {
     base44.asServiceRole.entities.DealRadar.list("-created_date", 50),
     base44.asServiceRole.entities.EscrowTransaction.list("-created_date", 30),
   ]);
+
+  // Fetch live market intelligence for top makes
+  const topMakeNames = Object.entries(
+    listings.reduce((acc, l) => { const k = (l.make || "Unknown").trim(); acc[k] = (acc[k] || 0) + 1; return acc; }, {})
+  ).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([make]) => make);
+
+  let marketComparables = [];
+  try {
+    const marketResults = await Promise.all(
+      topMakeNames.map((make) =>
+        base44.functions.invoke('piloterrTradeProxy', { make }).then(
+          (res) => res?.data || res || null,
+          () => null
+        )
+      )
+    );
+    marketComparables = topMakeNames
+      .map((make, i) => ({ make, ...marketResults[i] }))
+      .filter((m) => m && m.avg_price != null);
+  } catch (_) {}
   const prices = listings.map(l => Number(l.asking_price)).filter(p => p > 0);
   const avgPrice = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
   const medianPrice = prices.length ? [...prices].sort((a, b) => a - b)[Math.floor(prices.length / 2)] : 0;
@@ -70,6 +90,14 @@ async function gatherDataSnapshot(base44) {
     deal_label_distribution: dealLabelCounts,
     recent_deal_count: deals.length,
     recent_escrow_count: escrows.length,
+    market_comparables: marketComparables.map((m) => ({
+      make: m.make,
+      avg_price: m.avg_price,
+      min_price: m.min_price,
+      max_price: m.max_price,
+      listings_count: m.listings_count,
+      data_source: m._source === 'cached' ? 'cached' : 'live',
+    })),
     generated_at: new Date().toISOString(),
   };
 }

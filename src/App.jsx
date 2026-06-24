@@ -34,7 +34,7 @@ import AdminMarketplace from "./pages/AdminMarketplace";
 import AdminSettings from "./pages/AdminSettings";
 import DeveloperEarnings from "./pages/DeveloperEarnings";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
-import GDPRConsentBanner from "./components/GDPRConsentBanner";
+
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
 import AffiliateAgreement from "./pages/AffiliateAgreement";
@@ -154,7 +154,6 @@ function App() {
         <Router>
           <AuthenticatedApp />
           <CookieConsent />
-          <GDPRConsentBanner />
           <Toaster />
         </Router>
       </QueryClientProvider>

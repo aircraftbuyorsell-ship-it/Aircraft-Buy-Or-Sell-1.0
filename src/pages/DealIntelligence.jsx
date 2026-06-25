@@ -10,14 +10,14 @@ const fmtPrice = (n) => n ? `$${Number(n).toLocaleString()}` : "—";
 const VERDICT_STYLES = {
   "STRONG BUY": { bg: "rgba(93,202,165,0.12)", border: "rgba(93,202,165,0.3)", color: "#5dcaa5", icon: CheckCircle },
   "GOOD DEAL": { bg: "rgba(93,202,165,0.08)", border: "rgba(93,202,165,0.2)", color: "#7dd3a8", icon: TrendingUp },
-  "FAIR": { bg: "rgba(245,194,66,0.1)", border: "rgba(245,194,66,0.25)", color: "#f5c242", icon: Target },
+  "FAIR": { bg: "rgba(245,194,66,0.1)", border: "rgba(245,194,66,0.25)", color: "#D4A017", icon: Target },
   "OVERPRICED": { bg: "rgba(232,168,58,0.1)", border: "rgba(232,168,58,0.25)", color: "#e8a83a", icon: AlertTriangle },
   "AVOID": { bg: "rgba(226,75,74,0.1)", border: "rgba(226,75,74,0.25)", color: "#e24b4a", icon: XCircle },
 };
 
 const RISK_STYLES = {
   LOW: { color: "#5dcaa5", bg: "rgba(93,202,165,0.1)" },
-  MEDIUM: { color: "#f5c242", bg: "rgba(245,194,66,0.1)" },
+  MEDIUM: { color: "#D4A017", bg: "rgba(245,194,66,0.1)" },
   HIGH: { color: "#e24b4a", bg: "rgba(226,75,74,0.1)" },
 };
 
@@ -71,11 +71,11 @@ export default function DealIntelligence() {
   const riskStyle = riskLevel ? RISK_STYLES[riskLevel] : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#04060a", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0B1220", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
       {/* HEADER */}
       <div style={{ borderBottom: "0.5px solid rgba(245,194,66,0.1)", padding: "24px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <p style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#f5c242", margin: 0, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+          <p style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#D4A017", margin: 0, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
             <Brain size={12} /> Sakana Fugu · Multi-Agent AI
           </p>
           <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.03em", margin: 0 }}>Deal Intelligence Brief</h1>
@@ -108,7 +108,7 @@ export default function DealIntelligence() {
             disabled={loading || !selectedId}
             style={{
               display: "flex", alignItems: "center", gap: 6,
-              background: "#f5c242", color: "#04060a", border: "none", borderRadius: 8,
+              background: "#D4A017", color: "#0B1220", border: "none", borderRadius: 8,
               padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
               opacity: loading || !selectedId ? 0.5 : 1,
             }}
@@ -122,7 +122,7 @@ export default function DealIntelligence() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px" }}>
         {/* SELECTED AIRCRAFT SUMMARY */}
         {selectedListing && (
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px", marginBottom: 24, display: "flex", gap: 32, flexWrap: "wrap" }}>
+          <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px", marginBottom: 24, display: "flex", gap: 32, flexWrap: "wrap" }}>
             <div>
               <p style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", margin: 0, marginBottom: 4 }}>Aircraft</p>
               <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{selectedListing.year} {selectedListing.make} {selectedListing.model}</p>
@@ -130,7 +130,7 @@ export default function DealIntelligence() {
             {selectedListing.registration && (
               <div>
                 <p style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", margin: 0, marginBottom: 4 }}>Registration</p>
-                <p style={{ fontSize: 15, fontWeight: 600, margin: 0, color: "#f5c242" }}>{selectedListing.registration}</p>
+                <p style={{ fontSize: 15, fontWeight: 600, margin: 0, color: "#D4A017" }}>{selectedListing.registration}</p>
               </div>
             )}
             <div>
@@ -164,7 +164,7 @@ export default function DealIntelligence() {
         {/* LOADING */}
         {loading && (
           <div style={{ textAlign: "center", paddingTop: 60 }}>
-            <Loader2 size={28} className="animate-spin" style={{ color: "#f5c242", margin: "0 auto 12px", display: "block" }} />
+            <Loader2 size={28} className="animate-spin" style={{ color: "#D4A017", margin: "0 auto 12px", display: "block" }} />
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>Fugu is orchestrating multi-agent analysis...</p>
             <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, marginTop: 4 }}>This may take 15-30 seconds for complex reasoning</p>
           </div>
@@ -187,9 +187,9 @@ export default function DealIntelligence() {
             {/* PRICE ANALYSIS + RISK */}
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 16 }}>
               {/* Price Analysis */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
+              <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <DollarSign size={14} style={{ color: "#f5c242" }} />
+                  <DollarSign size={14} style={{ color: "#D4A017" }} />
                   <span style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Price Analysis</span>
                 </div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.6, margin: "0 0 10px" }}>{brief.brief.price_analysis?.assessment}</p>
@@ -252,28 +252,28 @@ export default function DealIntelligence() {
             </div>
 
             {/* NEGOTIATION STRATEGY */}
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(245,194,66,0.12)", borderRadius: 12, padding: "20px 24px", marginBottom: 16 }}>
+            <div style={{ background: "#111827", border: "0.5px solid rgba(245,194,66,0.12)", borderRadius: 12, padding: "20px 24px", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <Target size={14} style={{ color: "#f5c242" }} />
-                <span style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#f5c242" }}>Negotiation Strategy</span>
+                <Target size={14} style={{ color: "#D4A017" }} />
+                <span style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "#D4A017" }}>Negotiation Strategy</span>
               </div>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.6, margin: "0 0 16px" }}>{brief.brief.negotiation_strategy?.recommended_approach}</p>
               {brief.brief.negotiation_strategy?.target_price != null && (
                 <div style={{ background: "rgba(245,194,66,0.06)", border: "0.5px solid rgba(245,194,66,0.15)", borderRadius: 8, padding: "10px 14px", marginBottom: 14, display: "inline-block" }}>
                   <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Target Price: </span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#f5c242" }}>{fmtPrice(brief.brief.negotiation_strategy.target_price)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#D4A017" }}>{fmtPrice(brief.brief.negotiation_strategy.target_price)}</span>
                 </div>
               )}
               <p style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", margin: "0 0 8px" }}>Talking Points</p>
               {(brief.brief.negotiation_strategy?.talking_points || []).map((t, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>
-                  <span style={{ color: "#f5c242", flexShrink: 0, fontWeight: 700 }}>{i + 1}.</span> {t}
+                  <span style={{ color: "#D4A017", flexShrink: 0, fontWeight: 700 }}>{i + 1}.</span> {t}
                 </div>
               ))}
             </div>
 
             {/* NEXT STEPS */}
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
+            <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                 <Lightbulb size={14} style={{ color: "#4e8ef7" }} />
                 <span style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Recommended Next Steps</span>

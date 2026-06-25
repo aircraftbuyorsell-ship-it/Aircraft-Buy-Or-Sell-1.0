@@ -24,7 +24,6 @@ export default function MarketReports() {
     retry: false,
   });
 
-  // Latest token transaction → current balance
   const { data: balance } = useQuery({
     queryKey: ["token-balance", user?.email],
     enabled: !!user?.email,
@@ -32,7 +31,7 @@ export default function MarketReports() {
       const txs = await base44.entities.TokenTransaction.filter(
         { user_email: user.email },
         "-created_date",
-        1,
+        1
       );
       return txs[0]?.balance_after ?? 0;
     },
@@ -71,114 +70,244 @@ export default function MarketReports() {
   });
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-[#E8A83A]/15 border border-[#E8A83A]/30 flex items-center justify-center">
-              <TrendingUp className="w-4.5 h-4.5 text-[#A67C00]" />
-            </div>
-            <h1 className="text-2xl font-black text-[#1A1814] tracking-tight">Market Reports</h1>
-          </div>
-          <p className="text-sm text-[#6B6560] max-w-2xl">
-            On-demand synthesized aviation market intelligence. Each report consumes tokens and pulls fresh global + local context.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8A83A]/30 bg-[#E8A83A]/10">
-          <Coins className="w-4 h-4 text-[#A67C00]" />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0B1220",
+        color: "#fff",
+        fontFamily: "Inter, -apple-system, sans-serif",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 24px" }}>
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+            marginBottom: 24,
+          }}
+        >
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-[#A67C00] font-bold">Balance</p>
-            <p className="text-lg font-black text-[#1A1814] leading-tight">{balance ?? "—"} <span className="text-xs font-bold text-[#6B6560]">tokens</span></p>
-          </div>
-          <Link
-            to="/pricing"
-            className="ml-3 text-[11px] font-black uppercase tracking-wide text-[#0B2D5B] hover:text-[#143C75] underline underline-offset-2"
-          >
-            Buy more
-          </Link>
-        </div>
-      </div>
-
-      {/* Error */}
-      {errorMsg && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-red-700">{errorMsg}</p>
-        </div>
-      )}
-
-      {/* Cache hit notice */}
-      {cacheNotice && (
-        <div className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 flex items-start gap-2">
-          <Sparkles className="w-4 h-4 text-green-700 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-green-800">{cacheNotice}</p>
-        </div>
-      )}
-
-      {/* Personalization */}
-      <PersonalizationPanel filters={filters} onChange={setFilters} />
-
-      {/* Scope cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        {SCOPES.map((s) => (
-          <ScopeCard
-            key={s}
-            scope={s}
-            balance={balance}
-            isLoading={generateMutation.isPending && generateMutation.variables === s}
-            disabled={generateMutation.isPending}
-            onGenerate={(scope) => generateMutation.mutate(scope)}
-          />
-        ))}
-      </div>
-
-      {/* Active report */}
-      {activeReport && (
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-4 h-4 text-[#E8A83A]" />
-            <h2 className="text-sm font-black uppercase tracking-wide text-[#1A1814]">Latest Generated</h2>
-          </div>
-          <ReportVisualizations report={activeReport} />
-          <ReportView report={activeReport} />
-        </div>
-      )}
-
-      {/* History */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <History className="w-4 h-4 text-[#6B6560]" />
-          <h2 className="text-sm font-black uppercase tracking-wide text-[#1A1814]">Report History</h2>
-        </div>
-        {reportsLoading ? (
-          <p className="text-sm text-[#6B6560]">Loading…</p>
-        ) : reports.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-black/15 bg-white p-8 text-center">
-            <p className="text-sm text-[#6B6560]">No reports yet — generate your first one above.</p>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {reports.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setActiveReport(r)}
-                className={`text-left rounded-xl border bg-white p-4 hover:shadow-md transition-all ${
-                  activeReport?.id === r.id ? "border-[#E8A83A] shadow-md" : "border-black/8"
-                }`}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "rgba(212,160,23,0.10)",
+                  border: "0.5px solid rgba(212,160,23,0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] uppercase tracking-wider font-black text-[#E8A83A]">{r.scope}</span>
-                  <span className="text-[10px] text-[#AAA49C]">−{r.token_cost} tk</span>
-                </div>
-                <p className="font-black text-sm text-[#1A1814] line-clamp-2 mb-1">{r.title}</p>
-                <p className="text-[11px] text-[#6B6560]">
-                  {format(new Date(r.generated_at || r.created_date), "PPp")}
-                </p>
-              </button>
-            ))}
+                <TrendingUp size={18} style={{ color: "#D4A017" }} />
+              </div>
+              <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: 0 }}>
+                Market Reports
+              </h1>
+            </div>
+            <p
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.45)",
+                maxWidth: 560,
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              On-demand synthesized aviation market intelligence. Each report
+              consumes tokens and pulls fresh global + local context.
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 16px",
+              borderRadius: 10,
+              border: "0.5px solid rgba(212,160,23,0.25)",
+              background: "rgba(212,160,23,0.08)",
+            }}
+          >
+            <Coins size={16} style={{ color: "#D4A017" }} />
+            <div>
+              <p
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "#D4A017",
+                  fontWeight: 600,
+                  margin: 0,
+                }}
+              >
+                Balance
+              </p>
+              <p style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+                {balance ?? "—"}{" "}
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>tokens</span>
+              </p>
+            </div>
+            <Link
+              to="/pricing"
+              style={{
+                marginLeft: 8,
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#D4A017",
+                textDecoration: "underline",
+                textUnderlineOffset: 2,
+              }}
+            >
+              Buy more
+            </Link>
+          </div>
+        </div>
+
+        {/* Error */}
+        {errorMsg && (
+          <div
+            style={{
+              marginBottom: 20,
+              borderRadius: 10,
+              border: "0.5px solid rgba(226,75,74,0.3)",
+              background: "rgba(226,75,74,0.08)",
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            <AlertCircle size={16} style={{ color: "#e24b4a", flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 13, color: "#e24b4a", margin: 0 }}>{errorMsg}</p>
           </div>
         )}
+
+        {/* Cache hit notice */}
+        {cacheNotice && (
+          <div
+            style={{
+              marginBottom: 20,
+              borderRadius: 10,
+              border: "0.5px solid rgba(93,202,165,0.3)",
+              background: "rgba(93,202,165,0.08)",
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            <Sparkles size={16} style={{ color: "#5dcaa5", flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 13, color: "#5dcaa5", margin: 0 }}>{cacheNotice}</p>
+          </div>
+        )}
+
+        {/* Personalization */}
+        <div style={{ marginBottom: 24 }}>
+          <PersonalizationPanel filters={filters} onChange={setFilters} />
+        </div>
+
+        {/* Scope cards */}
+        <div
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+          style={{ marginBottom: 32 }}
+        >
+          {SCOPES.map((s) => (
+            <ScopeCard
+              key={s}
+              scope={s}
+              balance={balance}
+              isLoading={generateMutation.isPending && generateMutation.variables === s}
+              disabled={generateMutation.isPending}
+              onGenerate={(scope) => generateMutation.mutate(scope)}
+            />
+          ))}
+        </div>
+
+        {/* Active report */}
+        {activeReport && (
+          <div style={{ marginBottom: 32 }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-4 h-4" style={{ color: "#D4A017" }} />
+              <h2
+                className="text-sm font-black uppercase tracking-wide"
+                style={{ color: "#fff" }}
+              >
+                Latest Generated
+              </h2>
+            </div>
+            <ReportVisualizations report={activeReport} />
+            <ReportView report={activeReport} />
+          </div>
+        )}
+
+        {/* History */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <History className="w-4 h-4" style={{ color: "rgba(255,255,255,0.45)" }} />
+            <h2
+              className="text-sm font-black uppercase tracking-wide"
+              style={{ color: "#fff" }}
+            >
+              Report History
+            </h2>
+          </div>
+          {reportsLoading ? (
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>Loading…</p>
+          ) : reports.length === 0 ? (
+            <div
+              style={{
+                borderRadius: 12,
+                border: "1px dashed rgba(255,255,255,0.12)",
+                background: "#111827",
+                padding: 32,
+                textAlign: "center",
+              }}
+            >
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+                No reports yet — generate your first one above.
+              </p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {reports.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setActiveReport(r)}
+                  className="text-left rounded-xl p-4 transition-all"
+                  style={{
+                    background: "#111827",
+                    border:
+                      activeReport?.id === r.id
+                        ? "0.5px solid #D4A017"
+                        : "0.5px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className="text-[10px] uppercase tracking-wider font-black"
+                      style={{ color: "#D4A017" }}
+                    >
+                      {r.scope}
+                    </span>
+                    <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      −{r.token_cost} tk
+                    </span>
+                  </div>
+                  <p className="font-black text-sm text-white line-clamp-2 mb-1">{r.title}</p>
+                  <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    {format(new Date(r.generated_at || r.created_date), "PPp")}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

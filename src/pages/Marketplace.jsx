@@ -5,12 +5,12 @@ import { Store, Coins, Search, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ToolCard from "@/components/marketplace/ToolCard";
 import ToolInvokeModal from "@/components/marketplace/ToolInvokeModal";
-import { useTheme } from "@/lib/useTheme";
 
-const CATEGORIES = ["all", "data", "analytics", "ai", "compliance", "valuation", "communication", "other"];
+const CATEGORIES = [
+  "all", "data", "analytics", "ai", "compliance", "valuation", "communication", "other",
+];
 
 export default function Marketplace() {
-  const isDark = useTheme();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -28,7 +28,9 @@ export default function Marketplace() {
     enabled: !!user?.email,
     queryFn: async () => {
       const txs = await base44.entities.TokenTransaction.filter(
-        { user_email: user.email }, "-created_date", 1
+        { user_email: user.email },
+        "-created_date",
+        1
       );
       return txs[0]?.balance_after ?? 0;
     },
@@ -36,7 +38,8 @@ export default function Marketplace() {
 
   const { data: tools = [], isLoading } = useQuery({
     queryKey: ["marketplace-tools"],
-    queryFn: () => base44.entities.ToolIntegration.filter({ is_active: true }, "-invocation_count", 100),
+    queryFn: () =>
+      base44.entities.ToolIntegration.filter({ is_active: true }, "-invocation_count", 100),
   });
 
   const invokeMutation = useMutation({
@@ -61,126 +64,317 @@ export default function Marketplace() {
 
   const filtered = tools.filter((t) => {
     const matchCat = category === "all" || t.category === category;
-    const matchSearch = !search ||
+    const matchSearch =
+      !search ||
       t.name?.toLowerCase().includes(search.toLowerCase()) ||
       t.description?.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
-  const textPrimary = isDark ? "#ffffff" : "#1A1814";
-  const textMuted = isDark ? "rgba(255,255,255,0.45)" : "#6B6560";
-  const panelBg = isDark ? "rgba(255,255,255,0.05)" : "#ffffff";
-  const panelBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
-  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "#ffffff";
-  const inputBorder = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)";
-
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-[#E8A83A]/15 border border-[#E8A83A]/30 flex items-center justify-center">
-              <Store className="w-5 h-5 text-[#A67C00]" />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#0B1220",
+        color: "#fff",
+        fontFamily: "Inter, -apple-system, sans-serif",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 24px" }}>
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+            marginBottom: 24,
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "rgba(212,160,23,0.10)",
+                  border: "0.5px solid rgba(212,160,23,0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Store size={18} style={{ color: "#D4A017" }} />
+              </div>
+              <h1 style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-0.03em", margin: 0 }}>
+                Developer Marketplace
+              </h1>
             </div>
-            <h1 className="text-2xl font-black tracking-tight" style={{ color: textPrimary }}>Developer Marketplace</h1>
-          </div>
-          <p className="text-sm max-w-2xl" style={{ color: textMuted }}>
-            Third-party tools built by aviation developers. Pay-per-use with tokens — no subscriptions.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8A83A]/30 bg-[#E8A83A]/10">
-            <Coins className="w-4 h-4 text-[#A67C00]" />
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-[#A67C00] font-bold">Balance</p>
-              <p className="text-lg font-black leading-tight" style={{ color: textPrimary }}>{balance} <span className="text-xs font-bold" style={{ color: textMuted }}>tokens</span></p>
-            </div>
-            <Link to="/pricing" className="ml-2 text-[11px] font-black uppercase tracking-wide text-[#0B2D5B] dark:text-[#00f5ff] hover:opacity-80 underline underline-offset-2">Buy</Link>
-          </div>
-          <Link to="/developers" className="h-10 px-4 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide flex items-center">
-            Submit a Tool
-          </Link>
-        </div>
-      </div>
-
-      {/* Feedback */}
-      {resultMsg && (
-        <div className="mb-5 rounded-xl border px-4 py-3 flex items-start gap-2"
-          style={resultMsg.type === "success"
-            ? { background: isDark ? "rgba(34,197,94,0.12)" : "#f0fdf4", borderColor: isDark ? "rgba(34,197,94,0.30)" : "#bbf7d0" }
-            : { background: isDark ? "rgba(239,68,68,0.12)" : "#fff1f2", borderColor: isDark ? "rgba(239,68,68,0.30)" : "#fecdd3" }}>
-          {resultMsg.type === "success"
-            ? <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-            : <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />}
-          <p className="text-sm" style={{ color: resultMsg.type === "success" ? (isDark ? "#4ade80" : "#166534") : (isDark ? "#f87171" : "#991b1b") }}>
-            {resultMsg.text}
-          </p>
-          <button onClick={() => setResultMsg(null)} className="ml-auto text-xs" style={{ color: textMuted }}>✕</button>
-        </div>
-      )}
-
-      {/* Search + filter */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? "rgba(255,255,255,0.30)" : "#AAA49C" }} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tools…"
-            className="w-full pl-9 pr-4 h-10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E8A83A]/40"
-            style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: textPrimary }}
-          />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className="h-10 px-3 rounded-xl text-xs font-bold capitalize transition-colors"
-              style={category === c
-                ? { background: "#0B2D5B", color: "#ffffff" }
-                : { background: panelBg, border: `1px solid ${panelBorder}`, color: textMuted }}
+            <p
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.45)",
+                maxWidth: 560,
+                lineHeight: 1.6,
+                margin: 0,
+              }}
             >
-              {c}
+              Third-party tools built by aviation developers. Pay-per-use with
+              tokens — no subscriptions.
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 16px",
+                borderRadius: 10,
+                border: "0.5px solid rgba(212,160,23,0.25)",
+                background: "rgba(212,160,23,0.08)",
+              }}
+            >
+              <Coins size={16} style={{ color: "#D4A017" }} />
+              <div>
+                <p
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "#D4A017",
+                    fontWeight: 600,
+                    margin: 0,
+                  }}
+                >
+                  Balance
+                </p>
+                <p style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+                  {balance}{" "}
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>tokens</span>
+                </p>
+              </div>
+              <Link
+                to="/pricing"
+                style={{
+                  marginLeft: 8,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#D4A017",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 2,
+                }}
+              >
+                Buy
+              </Link>
+            </div>
+            <Link
+              to="/developers"
+              style={{
+                height: 40,
+                padding: "0 16px",
+                borderRadius: 10,
+                background: "#2563EB",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                textDecoration: "none",
+              }}
+            >
+              Submit a Tool
+            </Link>
+          </div>
+        </div>
+
+        {/* Feedback */}
+        {resultMsg && (
+          <div
+            style={{
+              marginBottom: 20,
+              borderRadius: 10,
+              border: `0.5px solid ${
+                resultMsg.type === "success"
+                  ? "rgba(93,202,165,0.3)"
+                  : "rgba(226,75,74,0.3)"
+              }`,
+              background:
+                resultMsg.type === "success"
+                  ? "rgba(93,202,165,0.08)"
+                  : "rgba(226,75,74,0.08)",
+              padding: "12px 16px",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            {resultMsg.type === "success" ? (
+              <CheckCircle2 size={16} style={{ color: "#5dcaa5", flexShrink: 0, marginTop: 1 }} />
+            ) : (
+              <AlertCircle size={16} style={{ color: "#e24b4a", flexShrink: 0, marginTop: 1 }} />
+            )}
+            <p
+              style={{
+                fontSize: 13,
+                color: resultMsg.type === "success" ? "#5dcaa5" : "#e24b4a",
+                margin: 0,
+                flex: 1,
+              }}
+            >
+              {resultMsg.text}
+            </p>
+            <button
+              onClick={() => setResultMsg(null)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "rgba(255,255,255,0.4)",
+                cursor: "pointer",
+                fontSize: 12,
+              }}
+            >
+              ✕
             </button>
-          ))}
+          </div>
+        )}
+
+        {/* Search + filter */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
+            <Search
+              size={16}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "rgba(255,255,255,0.3)",
+              }}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tools…"
+              style={{
+                width: "100%",
+                paddingLeft: 36,
+                paddingRight: 16,
+                height: 40,
+                borderRadius: 10,
+                fontSize: 13,
+                background: "#111827",
+                border: "0.5px solid rgba(255,255,255,0.10)",
+                color: "#fff",
+                outline: "none",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {CATEGORIES.map((c) => {
+              const on = category === c;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  style={{
+                    height: 40,
+                    padding: "0 12px",
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textTransform: "capitalize",
+                    cursor: "pointer",
+                    background: on ? "#2563EB" : "#111827",
+                    color: on ? "#fff" : "rgba(255,255,255,0.5)",
+                    border: on ? "none" : "0.5px solid rgba(255,255,255,0.10)",
+                  }}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Tools grid */}
+        {isLoading ? (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse"
+                style={{
+                  borderRadius: 12,
+                  padding: 20,
+                  height: 192,
+                  background: "#111827",
+                  border: "0.5px solid rgba(255,255,255,0.08)",
+                }}
+              />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div
+            style={{
+              borderRadius: 12,
+              border: "1px dashed rgba(255,255,255,0.12)",
+              padding: 48,
+              textAlign: "center",
+              background: "#111827",
+            }}
+          >
+            <Store
+              size={32}
+              style={{ color: "rgba(255,255,255,0.25)", margin: "0 auto 12px", display: "block" }}
+            />
+            <p style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px" }}>No tools found</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+              {tools.length === 0
+                ? "No tools have been published yet. Be the first to submit one."
+                : "Try adjusting your search or category filter."}
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {filtered.map((tool) => (
+              <ToolCard
+                key={tool.id}
+                tool={tool}
+                balance={balance}
+                onInvoke={() => setSelectedTool(tool)}
+                isDark={true}
+              />
+            ))}
+          </div>
+        )}
+
+        {selectedTool && (
+          <ToolInvokeModal
+            tool={selectedTool}
+            balance={balance}
+            isLoading={invokeMutation.isPending}
+            onConfirm={(payload) =>
+              invokeMutation.mutate({ tool_integration_id: selectedTool.id, payload })
+            }
+            onClose={() => setSelectedTool(null)}
+          />
+        )}
       </div>
-
-      {/* Tools grid */}
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl p-5 h-48 animate-pulse border" style={{ background: panelBg, borderColor: panelBorder }} />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed p-12 text-center" style={{ background: panelBg, borderColor: panelBorder }}>
-          <Store className="w-8 h-8 mx-auto mb-3" style={{ color: isDark ? "rgba(255,255,255,0.25)" : "#AAA49C" }} />
-          <p className="font-black mb-1" style={{ color: textPrimary }}>No tools found</p>
-          <p className="text-sm" style={{ color: textMuted }}>
-            {tools.length === 0 ? "No tools have been published yet. Be the first to submit one." : "Try adjusting your search or category filter."}
-          </p>
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} balance={balance} onInvoke={() => setSelectedTool(tool)} isDark={isDark} />
-          ))}
-        </div>
-      )}
-
-      {/* Invoke modal */}
-      {selectedTool && (
-        <ToolInvokeModal
-          tool={selectedTool}
-          balance={balance}
-          isLoading={invokeMutation.isPending}
-          onConfirm={(payload) => invokeMutation.mutate({ tool_integration_id: selectedTool.id, payload })}
-          onClose={() => setSelectedTool(null)}
-        />
-      )}
     </div>
   );
 }

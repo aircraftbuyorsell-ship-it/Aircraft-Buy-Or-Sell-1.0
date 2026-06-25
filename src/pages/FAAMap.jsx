@@ -7,9 +7,9 @@ import {
 } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 
-const INK   = "#04060a";
-const INK1  = "#0d1117";
-const AMBER = "#f5c242";
+const INK   = "#0B1220";
+const INK1  = "#111827";
+const AMBER = "#D4A017";
 const TEAL  = "#5dcaa5";
 const W1    = "rgba(255,255,255,0.90)";
 const W2    = "rgba(255,255,255,0.60)";
@@ -166,11 +166,11 @@ export default function FAAMap() {
 
   return (
     <div style={{ minHeight: "100vh", background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
-      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(245,194,66,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(212,160,23,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
       {/* Top bar */}
       <div style={{ background: INK1, borderBottom: `0.5px solid ${BORDER}`, padding: "12px 18px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(245,194,66,0.09)", display: "flex", alignItems: "center", justifyContent: "center", border: `0.5px solid rgba(245,194,66,0.22)` }}>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(212,160,23,0.09)", display: "flex", alignItems: "center", justifyContent: "center", border: `0.5px solid rgba(212,160,23,0.22)` }}>
             <Map size={16} color={AMBER} />
           </div>
           <div>
@@ -195,8 +195,8 @@ export default function FAAMap() {
             <button key={v} onClick={() => setView(v)}
               style={{
                 display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-                borderRadius: 8, border: view === v ? `0.5px solid rgba(245,194,66,0.22)` : `0.5px solid ${BORDER}`,
-                background: view === v ? "rgba(245,194,66,0.09)" : "rgba(255,255,255,0.04)",
+                borderRadius: 8, border: view === v ? `0.5px solid rgba(212,160,23,0.22)` : `0.5px solid ${BORDER}`,
+                background: view === v ? "rgba(212,160,23,0.09)" : "rgba(255,255,255,0.04)",
                 color: view === v ? AMBER : W2,
                 fontSize: 11, fontWeight: 600, cursor: "pointer",
               }}>
@@ -206,8 +206,8 @@ export default function FAAMap() {
           <button onClick={() => setFiltersOpen(v => !v)}
             style={{
               display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-              borderRadius: 8, border: filtersOpen ? `0.5px solid rgba(245,194,66,0.22)` : `0.5px solid ${BORDER}`,
-              background: filtersOpen ? "rgba(245,194,66,0.09)" : "rgba(255,255,255,0.04)",
+              borderRadius: 8, border: filtersOpen ? `0.5px solid rgba(212,160,23,0.22)` : `0.5px solid ${BORDER}`,
+              background: filtersOpen ? "rgba(212,160,23,0.09)" : "rgba(255,255,255,0.04)",
               color: filtersOpen ? AMBER : W2,
               fontSize: 11, fontWeight: 600, cursor: "pointer",
             }}>
@@ -319,7 +319,7 @@ export default function FAAMap() {
                           borderBottom: `0.5px solid ${BORDER}`,
                           borderLeft: `3px solid ${ac.status_code === "V" ? TEAL : "#e24b4a"}`,
                           cursor: "pointer",
-                          background: selected?.id === ac.id ? "rgba(245,194,66,0.06)" : "transparent",
+                          background: selected?.id === ac.id ? "rgba(212,160,23,0.06)" : "transparent",
                         }}
                         onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
                         onMouseLeave={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "transparent"; }}
@@ -362,7 +362,7 @@ export default function FAAMap() {
 
           {/* Selected aircraft strip */}
           {selected && (
-            <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid rgba(245,194,66,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(245,194,66,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ background: "rgba(212,160,23,0.06)", border: `0.5px solid rgba(212,160,23,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(212,160,23,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <div>
                 <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Selected</span>
                 <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 600, letterSpacing: "-0.02em", color: W1 }}>

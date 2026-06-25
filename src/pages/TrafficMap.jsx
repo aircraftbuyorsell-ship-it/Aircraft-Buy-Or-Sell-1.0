@@ -5,11 +5,11 @@ import TrafficGlobe from "@/components/live-traffic/TrafficGlobe";
 import AircraftInfoPanel from "@/components/live-traffic/AircraftInfoPanel";
 
 const C = {
-  ink: "#04060a",
-  ink1: "#0d1117",
-  amber: "#f5c242",
-  amberDim: "rgba(245,194,66,0.10)",
-  amberBdr: "rgba(245,194,66,0.22)",
+  ink: "#0B1220",
+  ink1: "#111827",
+  amber: "#D4A017",
+  amberDim: "rgba(212,160,23,0.10)",
+  amberBdr: "rgba(212,160,23,0.22)",
   teal: "#5dcaa5",
   red: "#e24b4a",
   w1: "rgba(255,255,255,0.90)",
@@ -32,7 +32,7 @@ const CATEGORY_FILTERS = [
 
 const LEGEND = [
   { color: "#e24b4a", label: "0–5k ft" },
-  { color: "#f5c242", label: "5–15k ft" },
+  { color: "#D4A017", label: "5–15k ft" },
   { color: "#5dcaa5", label: "15–30k ft" },
   { color: "#4e8ef7", label: "30k+ ft" },
 ];

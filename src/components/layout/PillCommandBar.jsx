@@ -100,8 +100,8 @@ export default function PillCommandBar() {
           gap: 2,
           height: 48,
           padding: 4,
-          background: "#0d1117",
-          border: "1px solid rgba(245,194,66,0.28)",
+          background: "#111827",
+          border: "1px solid rgba(212,160,23,0.28)",
           borderRadius: 999,
           boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
         }}
@@ -120,8 +120,8 @@ export default function PillCommandBar() {
                 style={{
                   fontSize: 13,
                   fontWeight: active ? 600 : 500,
-                  color: active ? "#04060a" : "rgba(255,255,255,0.65)",
-                  background: active ? "#f5c242" : "transparent",
+                  color: active ? "#0B1220" : "rgba(255,255,255,0.65)",
+                  background: active ? "#D4A017" : "transparent",
                   border: "none",
                   borderRadius: 999,
                   padding: "8px 16px",
@@ -147,8 +147,8 @@ export default function PillCommandBar() {
                   gap: 4,
                   fontSize: 13,
                   fontWeight: active ? 600 : 500,
-                  color: open ? "#fff" : active ? "#04060a" : "rgba(255,255,255,0.65)",
-                  background: active && !open ? "#f5c242" : "transparent",
+                  color: open ? "#fff" : active ? "#0B1220" : "rgba(255,255,255,0.65)",
+                  background: active && !open ? "#D4A017" : "transparent",
                   border: "none",
                   borderRadius: 999,
                   padding: "8px 16px",
@@ -170,8 +170,8 @@ export default function PillCommandBar() {
                     top: "calc(100% + 8px)",
                     left: 0,
                     minWidth: 220,
-                    background: "#0d1117",
-                    border: "1px solid rgba(245,194,66,0.15)",
+                    background: "#111827",
+                    border: "1px solid rgba(212,160,23,0.15)",
                     borderRadius: 12,
                     boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
                     padding: 6,
@@ -190,7 +190,7 @@ export default function PillCommandBar() {
                           textAlign: "left",
                           fontSize: 13,
                           fontWeight: itemActive ? 600 : 500,
-                          color: itemActive ? "#f5c242" : "rgba(255,255,255,0.75)",
+                          color: itemActive ? "#D4A017" : "rgba(255,255,255,0.75)",
                           background: "transparent",
                           border: "none",
                           borderRadius: 8,
@@ -199,12 +199,12 @@ export default function PillCommandBar() {
                           transition: "background 150ms ease, color 150ms ease",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "rgba(245,194,66,0.07)";
+                          e.currentTarget.style.background = "rgba(212,160,23,0.07)";
                           e.currentTarget.style.color = "#fff";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
-                          e.currentTarget.style.color = itemActive ? "#f5c242" : "rgba(255,255,255,0.75)";
+                          e.currentTarget.style.color = itemActive ? "#D4A017" : "rgba(255,255,255,0.75)";
                         }}
                       >
                         {item.label}

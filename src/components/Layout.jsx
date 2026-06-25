@@ -161,8 +161,8 @@ function DrawerContent({ pathname, user, onNavigate }) {
       <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: "12px 16px" }}>
         {user ?
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
+            <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.75)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -179,7 +179,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
           </div> :
 
         <button onClick={() => base44.auth.redirectToLogin()}
-        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
             <LogIn size={14} /> Log In
           </button>
         }
@@ -219,8 +219,8 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen font-sans" style={{ background: "#04060a" }}>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#f5c242] focus:text-[#04060a] focus:rounded-xl focus:text-sm focus:font-bold">
+    <div className="flex flex-col min-h-screen font-sans" style={{ background: "#0B1220" }}>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
 
@@ -231,7 +231,7 @@ export default function Layout() {
       }
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300"
       style={{
-        width: 220, background: "#0d1117", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        width: 220, background: "#111827", borderRight: "0.5px solid rgba(255,255,255,0.08)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3">
@@ -276,8 +276,8 @@ export default function Layout() {
             <PragueClock />
             {currentUser ?
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ color: "#f5c242", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
                 </div>
                 <button onClick={() => base44.auth.logout()} aria-label="Log out" title="Log out"
               style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
@@ -286,7 +286,7 @@ export default function Layout() {
               </div> :
 
             <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "6px", background: "#f5c242", color: "#04060a", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
+            style={{ display: "flex", alignItems: "center", gap: "6px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
                 <LogIn size={13} /> Log In
               </button>
             }
@@ -300,7 +300,7 @@ export default function Layout() {
       </header>
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="flex-1 overflow-auto" style={{ background: "#04060a" }}>
+      <main id="main-content" className="flex-1 overflow-auto" style={{ background: "#0B1220" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>

@@ -48,7 +48,7 @@ export default function Dashboard() {
   return (
     <div
       style={{
-        background: "#04060a",
+        background: "#0B1220",
         color: "#fff",
         overflowY: "auto",
         minHeight: "100vh",
@@ -78,7 +78,7 @@ export default function Dashboard() {
             inset: 0,
             zIndex: 1,
             background:
-              "linear-gradient(to right, rgba(4,6,10,0.85) 0%, rgba(4,6,10,0.45) 38%, rgba(4,6,10,0.12) 65%, rgba(4,6,10,0.55) 100%)",
+              "linear-gradient(to right, rgba(11,18,32,0.85) 0%, rgba(11,18,32,0.45) 38%, rgba(11,18,32,0.12) 65%, rgba(11,18,32,0.55) 100%)",
           }}
         />
 
@@ -105,7 +105,7 @@ export default function Dashboard() {
                 fontSize: 10,
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
-                color: "#f5c242",
+                color: "#D4A017",
                 marginBottom: 16,
               }}
             >
@@ -168,7 +168,7 @@ export default function Dashboard() {
                     fontSize: 36,
                     fontWeight: 500,
                     letterSpacing: "-0.04em",
-                    color: "#f5c242",
+                    color: "#D4A017",
                     lineHeight: 1,
                     fontVariantNumeric: "tabular-nums",
                   }}
@@ -195,9 +195,9 @@ export default function Dashboard() {
       {/* ── 1b. PLATFORM SCALE STATS ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "60px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -212,7 +212,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -251,7 +251,7 @@ export default function Dashboard() {
                 key={label}
                 style={{
                   background: "rgba(255,255,255,0.04)",
-                  border: "0.5px solid rgba(245,194,66,0.12)",
+                  border: "0.5px solid rgba(212,160,23,0.12)",
                   borderRadius: 12,
                   padding: "20px 20px",
                 }}
@@ -261,7 +261,7 @@ export default function Dashboard() {
                     fontSize: 28,
                     fontWeight: 500,
                     letterSpacing: "-0.03em",
-                    color: "#f5c242",
+                    color: "#D4A017",
                     lineHeight: 1,
                     fontVariantNumeric: "tabular-nums",
                   }}
@@ -296,9 +296,9 @@ export default function Dashboard() {
       {/* ── 1c. LIVE MARKET INTELLIGENCE ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -313,7 +313,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -349,9 +349,9 @@ export default function Dashboard() {
       {/* ── 2. QUICK ACCESS ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -366,7 +366,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -390,9 +390,9 @@ export default function Dashboard() {
       {/* ── 3. LIVE MARKET ── horizontal scroll */}
       <section
         style={{
-          background: "#0a0f1a",
+          background: "#1F2937",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -416,7 +416,7 @@ export default function Dashboard() {
                   fontSize: 10,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  color: "#f5c242",
+                  color: "#D4A017",
                   marginBottom: 8,
                 }}
               >
@@ -437,7 +437,7 @@ export default function Dashboard() {
               to="/listings"
               style={{
                 fontSize: 12,
-                color: "#f5c242",
+                color: "#D4A017",
                 textDecoration: "none",
                 display: "flex",
                 alignItems: "center",
@@ -487,9 +487,9 @@ export default function Dashboard() {
       {/* ── 3b. ATI OVERVIEW CARDS ── market data by aircraft type */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -504,7 +504,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -541,9 +541,9 @@ export default function Dashboard() {
       {/* ── 4. MARKET INTELLIGENCE ── terminal-style counters */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -558,7 +558,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -592,7 +592,7 @@ export default function Dashboard() {
               {
                 label: "ATI Passports Issued",
                 value: atiCards.length,
-                color: "#f5c242",
+                color: "#D4A017",
                 icon: "✔",
               },
               {
@@ -612,7 +612,7 @@ export default function Dashboard() {
                 key={label}
                 style={{
                   background: "rgba(0,0,0,0.4)",
-                  border: "0.5px solid rgba(245,194,66,0.12)",
+                  border: "0.5px solid rgba(212,160,23,0.12)",
                   borderRadius: 8,
                   padding: "20px 24px",
                   fontFamily: "'JetBrains Mono', 'Courier New', monospace",
@@ -657,9 +657,9 @@ export default function Dashboard() {
       {/* ── 5. AIRCRAFT FINANCE ── */}
       <section
         style={{
-          background: "#0a0f1a",
+          background: "#1F2937",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -674,7 +674,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -724,13 +724,13 @@ export default function Dashboard() {
               <div
                 key={label}
                 style={{
-                  background: "rgba(245,194,66,0.04)",
-                  border: "0.5px solid rgba(245,194,66,0.18)",
+                  background: "rgba(212,160,23,0.04)",
+                  border: "0.5px solid rgba(212,160,23,0.18)",
                   borderRadius: 12,
                   padding: "20px 20px",
                 }}
               >
-                <Icon size={18} style={{ color: "#f5c242", marginBottom: 12 }} />
+                <Icon size={18} style={{ color: "#D4A017", marginBottom: 12 }} />
                 <div
                   style={{
                     fontSize: 13,
@@ -759,8 +759,8 @@ export default function Dashboard() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              background: "#f5c242",
-              color: "#04060a",
+              background: "#D4A017",
+              color: "#0B1220",
               padding: "12px 24px",
               borderRadius: 8,
               fontSize: 13,
@@ -777,9 +777,9 @@ export default function Dashboard() {
       {/* ── 6. FEATURED TOOLS 2x3 GRID ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -794,7 +794,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
             }}
           >
@@ -823,7 +823,7 @@ export default function Dashboard() {
                 label: "ATI Score Engine",
                 desc: "8-dimension aircraft intelligence score. Objective, deterministic, verifiable.",
                 to: "/ati-passport",
-                color: "#f5c242",
+                color: "#D4A017",
                 Icon: Zap,
               },
               {
@@ -851,7 +851,7 @@ export default function Dashboard() {
                 label: "Market Analytics",
                 desc: "Price trends, demand signals, and market comparables by aircraft type.",
                 to: "/market-analytics",
-                color: "#f5c242",
+                color: "#D4A017",
                 Icon: TrendingUp,
               },
               {
@@ -877,7 +877,7 @@ export default function Dashboard() {
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.borderColor =
-                    "rgba(245,194,66,0.35)")
+                    "rgba(212,160,23,0.35)")
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.borderColor =
@@ -913,9 +913,9 @@ export default function Dashboard() {
       {/* ── 7. ENGINE DB + DEALER NETWORK TEASER ── */}
       <section
         style={{
-          background: "#0a0f1a",
+          background: "#1F2937",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -936,13 +936,13 @@ export default function Dashboard() {
               padding: 32,
             }}
           >
-            <Cpu size={24} style={{ color: "#f5c242", marginBottom: 16 }} />
+            <Cpu size={24} style={{ color: "#D4A017", marginBottom: 16 }} />
             <p
               style={{
                 fontSize: 10,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
-                color: "#f5c242",
+                color: "#D4A017",
                 marginBottom: 8,
               }}
             >
@@ -974,7 +974,7 @@ export default function Dashboard() {
             <div
               style={{
                 fontSize: 12,
-                color: "#f5c242",
+                color: "#D4A017",
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
@@ -1045,9 +1045,9 @@ export default function Dashboard() {
       {/* ── 8. MARKETPLACE GRID ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -1071,7 +1071,7 @@ export default function Dashboard() {
                   fontSize: 10,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  color: "#f5c242",
+                  color: "#D4A017",
                   marginBottom: 8,
                 }}
               >
@@ -1092,7 +1092,7 @@ export default function Dashboard() {
               to="/listings"
               style={{
                 fontSize: 12,
-                color: "#f5c242",
+                color: "#D4A017",
                 textDecoration: "none",
                 display: "flex",
                 alignItems: "center",
@@ -1135,9 +1135,9 @@ export default function Dashboard() {
       {/* ── 9. WHY ABOS ── */}
       <section
         style={{
-          background: "#0a0f1a",
+          background: "#1F2937",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -1152,7 +1152,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 8,
               textAlign: "center",
             }}
@@ -1206,15 +1206,15 @@ export default function Dashboard() {
                     width: 48,
                     height: 48,
                     borderRadius: "50%",
-                    background: "rgba(245,194,66,0.08)",
-                    border: "0.5px solid rgba(245,194,66,0.2)",
+                    background: "rgba(212,160,23,0.08)",
+                    border: "0.5px solid rgba(212,160,23,0.2)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     margin: "0 auto 16px",
                   }}
                 >
-                  <Icon size={20} style={{ color: "#f5c242" }} />
+                  <Icon size={20} style={{ color: "#D4A017" }} />
                 </div>
                 <div
                   style={{
@@ -1244,9 +1244,9 @@ export default function Dashboard() {
       {/* ── 10. ENTERPRISE CTA ── */}
       <section
         style={{
-          background: "#04060a",
+          background: "#0B1220",
           padding: "80px 0",
-          borderTop: "1px solid rgba(245,194,66,0.08)",
+          borderTop: "1px solid rgba(212,160,23,0.08)",
         }}
       >
         <div
@@ -1262,7 +1262,7 @@ export default function Dashboard() {
               fontSize: 10,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "#f5c242",
+              color: "#D4A017",
               marginBottom: 16,
             }}
           >
@@ -1308,8 +1308,8 @@ export default function Dashboard() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                background: "#f5c242",
-                color: "#04060a",
+                background: "#D4A017",
+                color: "#0B1220",
                 padding: "14px 28px",
                 borderRadius: 8,
                 fontSize: 14,

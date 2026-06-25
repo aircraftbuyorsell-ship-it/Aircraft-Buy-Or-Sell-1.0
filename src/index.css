@@ -96,33 +96,33 @@
     --neon-pink:  #ff007a;
 
     /* shadcn tokens — dark */
-    --background: 243 58% 8%;
+    --background: 222 49% 8%;
     --foreground: 210 40% 98%;
-    --card: 240 50% 11%;
+    --card: 222 39% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 240 50% 11%;
+    --popover: 222 39% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 42 87% 46%;
+    --primary: 45 80% 46%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 40% 16%;
+    --secondary: 220 28% 17%;
     --secondary-foreground: 210 40% 90%;
-    --muted: 240 40% 14%;
+    --muted: 222 30% 12%;
     --muted-foreground: 230 30% 70%;
-    --accent: 185 100% 50%;
-    --accent-foreground: 240 50% 8%;
+    --accent: 217 83% 53%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 35% 20%;
-    --input: 240 35% 18%;
-    --ring: 185 100% 50%;
-    --sidebar-background: 243 60% 6%;
+    --border: 220 20% 20%;
+    --input: 222 30% 16%;
+    --ring: 217 83% 53%;
+    --sidebar-background: 222 49% 6%;
     --sidebar-foreground: 230 20% 65%;
-    --sidebar-primary: 185 100% 50%;
-    --sidebar-primary-foreground: 240 50% 8%;
-    --sidebar-accent: 240 40% 12%;
+    --sidebar-primary: 45 80% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 28% 14%;
     --sidebar-accent-foreground: 210 40% 90%;
-    --sidebar-border: 240 35% 15%;
-    --sidebar-ring: 185 100% 50%;
+    --sidebar-border: 222 20% 16%;
+    --sidebar-ring: 217 83% 53%;
   }
 }
 
@@ -146,7 +146,7 @@
 
   /* ── DARK body ── */
   .dark body {
-    background: #0c0e14;
+    background: #0B1220;
     color: #e2e8f0;
   }
 

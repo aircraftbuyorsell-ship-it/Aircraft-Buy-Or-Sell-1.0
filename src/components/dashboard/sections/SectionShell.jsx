@@ -8,7 +8,7 @@ export default function SectionShell({
   title,
   subtitle,
   children,
-  bg = "#0B1220",
+  bg = "transparent",
   action,
   topBorder = true,
   padding = "80px 0",

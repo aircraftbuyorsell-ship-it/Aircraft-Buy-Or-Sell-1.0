@@ -34,16 +34,16 @@ export default function DeveloperEarnings() {
 
   if (!account) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-[#6B6560]">No developer account found. Register on the <a href="/developers" className="text-[#0B2D5B] underline">Developers</a> page.</p>
+      <div className="flex items-center justify-center h-64" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
+        <p className="text-sm text-[#6B6560]">No developer account found. Register on the <a href="/developers" className="text-[#2563EB] underline">Developers</a> page.</p>
       </div>
     );
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
+    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl bg-[#E8A83A]/15 border border-[#E8A83A]/30 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-xl bg-[#D4A017]/15 border border-[#D4A017]/30 flex items-center justify-center">
           <Coins className="w-4.5 h-4.5 text-[#A67C00]" />
         </div>
         <div>

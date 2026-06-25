@@ -62,9 +62,9 @@ export default function Valuation() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-8" style={{ background: "linear-gradient(135deg,#0a1628 0%,#1B2A4A 40%,#0d1f3c 100%)", color: "#fff" }}>
+    <div className="min-h-screen px-4 py-8 md:px-8" style={{ background: "#0B1220", color: "#fff" }}>
       <div className="mx-auto max-w-6xl space-y-8">
-        <div className="rounded-3xl p-6 md:p-8" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+        <div className="rounded-3xl p-6 md:p-8" style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.08)" }}>
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)" }}>

@@ -18,7 +18,7 @@ const fmtDate = (d) => {
 const ChartTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: "#0a0f1a", border: "0.5px solid rgba(245,194,66,0.25)", borderRadius: 8, padding: "8px 12px", fontSize: 11 }}>
+    <div style={{ background: "#0B1220", border: "0.5px solid rgba(212,160,23,0.25)", borderRadius: 8, padding: "8px 12px", fontSize: 11 }}>
       <p style={{ margin: "0 0 4px", color: "rgba(255,255,255,0.5)", fontSize: 10 }}>{fmtDate(label)}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ margin: 0, color: p.color, fontWeight: 600 }}>
@@ -84,14 +84,14 @@ export default function SearchConsoleDashboard() {
       value: fmtNum(data.current.clicks),
       change: data.changes.clicks,
       icon: MousePointerClick,
-      color: "#f5c242",
+      color: "#D4A017",
     },
     {
       label: "Impressions",
       value: fmtNum(data.current.impressions),
       change: data.changes.impressions,
       icon: Eye,
-      color: "#4e8ef7",
+      color: "#2563EB",
     },
     {
       label: "Avg CTR",
@@ -112,11 +112,11 @@ export default function SearchConsoleDashboard() {
   ] : [];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#04060a", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0B1220", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
       {/* HEADER */}
-      <div style={{ borderBottom: "0.5px solid rgba(245,194,66,0.1)", padding: "24px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      <div style={{ borderBottom: "0.5px solid rgba(212,160,23,0.1)", padding: "24px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <p style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#f5c242", margin: 0, marginBottom: 4 }}>Google Search Console</p>
+          <p style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#D4A017", margin: 0, marginBottom: 4 }}>Google Search Console</p>
           <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: "-0.03em", margin: 0 }}>Marketspace Performance Trends</h1>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -130,7 +130,7 @@ export default function SearchConsoleDashboard() {
                 onChange={(e) => setSelectedSite(e.target.value)}
                 style={{
                   appearance: "none",
-                  background: "rgba(255,255,255,0.04)",
+                  background: "#111827",
                   border: "0.5px solid rgba(255,255,255,0.12)",
                   borderRadius: 8,
                   padding: "8px 32px 8px 12px",
@@ -142,7 +142,7 @@ export default function SearchConsoleDashboard() {
                 }}
               >
                 {sites.map((s) => (
-                  <option key={s.url} value={s.url} style={{ background: "#0a0f1a", color: "#fff" }}>
+                  <option key={s.url} value={s.url} style={{ background: "#0B1220", color: "#fff" }}>
                     {s.url}
                   </option>
                 ))}
@@ -157,7 +157,7 @@ export default function SearchConsoleDashboard() {
               onChange={(e) => setDays(Number(e.target.value))}
               style={{
                 appearance: "none",
-                background: "rgba(255,255,255,0.04)",
+                background: "#111827",
                 border: "0.5px solid rgba(255,255,255,0.12)",
                 borderRadius: 8,
                 padding: "8px 32px 8px 12px",
@@ -167,9 +167,9 @@ export default function SearchConsoleDashboard() {
                 cursor: "pointer",
               }}
             >
-              <option value={7} style={{ background: "#0a0f1a" }}>Last 7 days</option>
-              <option value={28} style={{ background: "#0a0f1a" }}>Last 28 days</option>
-              <option value={90} style={{ background: "#0a0f1a" }}>Last 90 days</option>
+              <option value={7} style={{ background: "#0B1220" }}>Last 7 days</option>
+              <option value={28} style={{ background: "#0B1220" }}>Last 28 days</option>
+              <option value={90} style={{ background: "#0B1220" }}>Last 90 days</option>
             </select>
             <ChevronDown size={14} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)", pointerEvents: "none" }} />
           </div>
@@ -178,8 +178,8 @@ export default function SearchConsoleDashboard() {
             disabled={loadingPerf}
             style={{
               display: "flex", alignItems: "center", gap: 6,
-              background: "rgba(245,194,66,0.1)", border: "0.5px solid rgba(245,194,66,0.25)",
-              color: "#f5c242", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              background: "rgba(212,160,23,0.1)", border: "0.5px solid rgba(212,160,23,0.25)",
+              color: "#D4A017", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer",
             }}
           >
             {loadingPerf ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} Refresh
@@ -196,7 +196,7 @@ export default function SearchConsoleDashboard() {
           </div>
         ) : loadingPerf && !data ? (
           <div style={{ textAlign: "center", paddingTop: 60 }}>
-            <Loader2 size={28} className="animate-spin" style={{ color: "#f5c242", margin: "0 auto 12px", display: "block" }} />
+            <Loader2 size={28} className="animate-spin" style={{ color: "#D4A017", margin: "0 auto 12px", display: "block" }} />
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Loading performance data...</p>
           </div>
         ) : data ? (
@@ -207,7 +207,7 @@ export default function SearchConsoleDashboard() {
                 const isPositive = invertChange ? change < 0 : change > 0;
                 const isNeutral = change === 0;
                 return (
-                  <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "20px 22px" }}>
+                  <div key={label} style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                       <Icon size={14} style={{ color }} />
                       <span style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>{label}</span>
@@ -228,7 +228,7 @@ export default function SearchConsoleDashboard() {
             </div>
 
             {/* TREND CHART */}
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "24px", marginBottom: 32 }}>
+            <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "24px", marginBottom: 32 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div>
                   <p style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", margin: 0, marginBottom: 4 }}>Search Performance</p>
@@ -236,10 +236,10 @@ export default function SearchConsoleDashboard() {
                 </div>
                 <div style={{ display: "flex", gap: 16, fontSize: 11 }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.5)" }}>
-                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#f5c242" }} /> Clicks
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#D4A017" }} /> Clicks
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.5)" }}>
-                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#4e8ef7" }} /> Impressions
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: "#2563EB" }} /> Impressions
                   </span>
                 </div>
               </div>
@@ -248,20 +248,20 @@ export default function SearchConsoleDashboard() {
                   <AreaChart data={data.daily} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="clicksGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f5c242" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#f5c242" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#D4A017" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#D4A017" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="imprGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#4e8ef7" stopOpacity={0.2} />
-                        <stop offset="100%" stopColor="#4e8ef7" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#2563EB" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="date" tickFormatter={fmtDate} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.08)" }} tickLine={false} />
                     <YAxis tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }} axisLine={false} tickLine={false} />
                     <Tooltip content={<ChartTooltip />} />
-                    <Area type="monotone" dataKey="impressions" stroke="#4e8ef7" strokeWidth={1.5} fill="url(#imprGrad)" />
-                    <Area type="monotone" dataKey="clicks" stroke="#f5c242" strokeWidth={2} fill="url(#clicksGrad)" />
+                    <Area type="monotone" dataKey="impressions" stroke="#2563EB" strokeWidth={1.5} fill="url(#imprGrad)" />
+                    <Area type="monotone" dataKey="clicks" stroke="#D4A017" strokeWidth={2} fill="url(#clicksGrad)" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -272,7 +272,7 @@ export default function SearchConsoleDashboard() {
             {/* TOP QUERIES & PAGES */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               {/* Top Queries */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ padding: "14px 20px", borderBottom: "0.5px solid rgba(255,255,255,0.06)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
                   Top Search Queries
                 </div>
@@ -287,9 +287,9 @@ export default function SearchConsoleDashboard() {
                     </thead>
                     <tbody>
                       {data.topQueries.length > 0 ? data.topQueries.map((q, i) => (
-                        <tr key={i} style={{ borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
+                        <tr key={i} style={{ borderBottom: "0.5px solid #111827" }}>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{q.query}</td>
-                          <td style={{ padding: "8px 16px", color: "#f5c242", fontWeight: 600 }}>{fmtNum(q.clicks)}</td>
+                          <td style={{ padding: "8px 16px", color: "#D4A017", fontWeight: 600 }}>{fmtNum(q.clicks)}</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.5)" }}>{fmtNum(q.impressions)}</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.6)" }}>{q.ctr}%</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.6)" }}>{q.position}</td>
@@ -303,7 +303,7 @@ export default function SearchConsoleDashboard() {
               </div>
 
               {/* Top Pages */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ padding: "14px 20px", borderBottom: "0.5px solid rgba(255,255,255,0.06)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
                   Top Pages
                 </div>
@@ -318,11 +318,11 @@ export default function SearchConsoleDashboard() {
                     </thead>
                     <tbody>
                       {data.topPages.length > 0 ? data.topPages.map((p, i) => (
-                        <tr key={i} style={{ borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
+                        <tr key={i} style={{ borderBottom: "0.5px solid #111827" }}>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={p.page}>
                             {p.page.replace(/^https?:\/\//, "").replace(/\/$/, "")}
                           </td>
-                          <td style={{ padding: "8px 16px", color: "#f5c242", fontWeight: 600 }}>{fmtNum(p.clicks)}</td>
+                          <td style={{ padding: "8px 16px", color: "#D4A017", fontWeight: 600 }}>{fmtNum(p.clicks)}</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.5)" }}>{fmtNum(p.impressions)}</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.6)" }}>{p.ctr}%</td>
                           <td style={{ padding: "8px 16px", color: "rgba(255,255,255,0.6)" }}>{p.position}</td>
@@ -338,7 +338,7 @@ export default function SearchConsoleDashboard() {
 
             {/* DEVICE BREAKDOWN */}
             {data.devices.length > 0 && (
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px", marginTop: 16 }}>
+              <div style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "20px 24px", marginTop: 16 }}>
                 <p style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>Device Breakdown</p>
                 <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                   {data.devices.map((d) => {
@@ -350,9 +350,9 @@ export default function SearchConsoleDashboard() {
                           <Globe size={12} style={{ color: "rgba(255,255,255,0.4)" }} />
                           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", textTransform: "capitalize" }}>{d.device}</span>
                         </div>
-                        <div style={{ fontSize: 20, fontWeight: 500, color: "#f5c242", marginBottom: 4 }}>{fmtNum(d.clicks)} <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>clicks</span></div>
+                        <div style={{ fontSize: 20, fontWeight: 500, color: "#D4A017", marginBottom: 4 }}>{fmtNum(d.clicks)} <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>clicks</span></div>
                         <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${pct}%`, background: "#f5c242", borderRadius: 2 }} />
+                          <div style={{ height: "100%", width: `${pct}%`, background: "#D4A017", borderRadius: 2 }} />
                         </div>
                         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{pct}% of total</div>
                       </div>

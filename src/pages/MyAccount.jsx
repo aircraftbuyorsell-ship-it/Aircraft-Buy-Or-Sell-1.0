@@ -15,7 +15,7 @@ function getInitials(name) {
 }
 
 function SectionHeader({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[#00f5ff] mb-1">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[#D4A017] mb-1">{children}</p>;
 }
 
 function HudPanel({ children, className = "" }) {
@@ -23,14 +23,14 @@ function HudPanel({ children, className = "" }) {
     <div
       className={`relative rounded-2xl overflow-hidden ${className}`}
       style={{
-        background: "rgba(13,20,50,0.70)",
+        background: "rgba(17,24,39,0.70)",
         backdropFilter: "blur(32px) saturate(180%)",
         WebkitBackdropFilter: "blur(32px) saturate(180%)",
-        border: "1px solid rgba(0,245,255,0.12)",
-        boxShadow: "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,245,255,0.08)",
+        border: "1px solid rgba(212,160,23,0.12)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,160,23,0.08)",
       }}
     >
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, rgba(0,245,255,0.35), transparent)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, rgba(212,160,23,0.35), transparent)", pointerEvents: "none" }} />
       {children}
     </div>
   );
@@ -38,7 +38,7 @@ function HudPanel({ children, className = "" }) {
 
 function ATIBadge({ score }) {
   if (!score) return <span className="text-white/25 text-xs">—</span>;
-  const color = score >= 90 ? "#00f5ff" : score >= 72 ? "#7a00ff" : score >= 54 ? "#E8A83A" : "#ff4d6d";
+  const color = score >= 90 ? "#D4A017" : score >= 72 ? "#7a00ff" : score >= 54 ? "#D4A017" : "#ff4d6d";
   const label = score >= 90 ? "EXCEPTIONAL" : score >= 75 ? "STRONG BUY" : score >= 60 ? "FAIR" : "CAUTION";
   return (
     <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${color}18`, border: `1px solid ${color}40`, color }}>
@@ -49,17 +49,17 @@ function ATIBadge({ score }) {
 
 function StatusBadge({ status }) {
   const cfg = {
-    active: ["rgba(0,245,255,0.12)", "#00f5ff"],
+    active: ["rgba(212,160,23,0.12)", "#D4A017"],
     sold: ["rgba(255,255,255,0.08)", "rgba(255,255,255,0.45)"],
-    draft: ["rgba(232,168,58,0.12)", "#E8A83A"],
+    draft: ["rgba(232,168,58,0.12)", "#D4A017"],
     closed: ["rgba(0,200,100,0.12)", "#00c864"],
     funds_secured: ["rgba(0,200,100,0.12)", "#00c864"],
     cancelled: ["rgba(255,77,109,0.12)", "#ff4d6d"],
     disputed: ["rgba(255,77,109,0.12)", "#ff4d6d"],
     contract_sent: ["rgba(122,0,255,0.12)", "#7a00ff"],
     contract_signed: ["rgba(122,0,255,0.12)", "#7a00ff"],
-    inspection: ["rgba(232,168,58,0.12)", "#E8A83A"],
-    funds_pending: ["rgba(232,168,58,0.12)", "#E8A83A"],
+    inspection: ["rgba(232,168,58,0.12)", "#D4A017"],
+    funds_pending: ["rgba(232,168,58,0.12)", "#D4A017"],
   };
   const [bg, color] = cfg[status] ?? ["rgba(255,255,255,0.06)", "rgba(255,255,255,0.35)"];
   return (
@@ -161,14 +161,14 @@ export default function MyAccount() {
 
       {/* Tab bar */}
       <div className="flex gap-1 mb-6 rounded-2xl p-1"
-        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(0,245,255,0.08)" }}>
+        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,160,23,0.08)" }}>
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className="flex items-center gap-1.5 flex-1 justify-center py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all"
             style={tab === t.id
-              ? { background: "linear-gradient(135deg,rgba(0,245,255,0.18),rgba(0,245,255,0.06))", border: "1px solid rgba(0,245,255,0.35)", color: "#00f5ff", boxShadow: "0 0 16px rgba(0,245,255,0.10)" }
+              ? { background: "linear-gradient(135deg,rgba(212,160,23,0.18),rgba(212,160,23,0.06))", border: "1px solid rgba(212,160,23,0.35)", color: "#D4A017", boxShadow: "0 0 16px rgba(212,160,23,0.10)" }
               : { background: "transparent", border: "1px solid transparent", color: "rgba(255,255,255,0.35)" }
             }
           >
@@ -194,15 +194,15 @@ export default function MyAccount() {
               ) : (
                 <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg,rgba(0,245,255,0.20),rgba(122,0,255,0.15))", border: "2px solid rgba(0,245,255,0.35)" }}>
-                    <span className="text-[#00f5ff] font-black text-xl">{getInitials(authUser?.full_name)}</span>
+                    style={{ background: "linear-gradient(135deg,rgba(212,160,23,0.20),rgba(122,0,255,0.15))", border: "2px solid rgba(212,160,23,0.35)" }}>
+                    <span className="text-[#D4A017] font-black text-xl">{getInitials(authUser?.full_name)}</span>
                   </div>
                   <div className="flex-1">
                     <p className="text-base font-bold text-white">{authUser?.full_name || "—"}</p>
                     <p className="text-sm text-white/45">{authUser?.email}</p>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full capitalize"
-                        style={{ background: "rgba(232,168,58,0.15)", border: "1px solid rgba(232,168,58,0.35)", color: "#E8A83A" }}>
+                        style={{ background: "rgba(232,168,58,0.15)", border: "1px solid rgba(232,168,58,0.35)", color: "#D4A017" }}>
                         {currentUser?.role || "user"}
                       </span>
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full capitalize"
@@ -210,7 +210,7 @@ export default function MyAccount() {
                         {currentUser?.plan || "free"}
                       </span>
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                        style={{ background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.20)", color: "#00f5ff" }}>
+                        style={{ background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.20)", color: "#D4A017" }}>
                         {currentUser?.token_balance ?? 0} tokens
                       </span>
                     </div>
@@ -231,13 +231,13 @@ export default function MyAccount() {
                   onChange={(e) => setNameInput(e.target.value)}
                   placeholder="Full name"
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm text-white placeholder-white/25 focus:outline-none"
-                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(0,245,255,0.15)" }}
+                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,160,23,0.15)" }}
                 />
                 <button
                   onClick={() => saveMutation.mutate()}
                   disabled={saveMutation.isPending || !nameInput.trim()}
                   className="px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-colors shrink-0 disabled:opacity-40"
-                  style={{ background: "linear-gradient(135deg,rgba(0,245,255,0.22),rgba(0,245,255,0.08))", border: "1px solid rgba(0,245,255,0.35)", color: "#00f5ff" }}
+                  style={{ background: "linear-gradient(135deg,rgba(212,160,23,0.22),rgba(212,160,23,0.08))", border: "1px solid rgba(212,160,23,0.35)", color: "#D4A017" }}
                 >
                   {saved ? "Saved ✓" : saveMutation.isPending ? "…" : "Save"}
                 </button>
@@ -254,9 +254,9 @@ export default function MyAccount() {
                 <div className="h-10 bg-white/05 rounded animate-pulse" />
               ) : currentUser?.plan === "pro" ? (
                 <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-[#00f5ff]" />
+                  <ShieldCheck className="w-5 h-5 text-[#D4A017]" />
                   <div>
-                    <p className="text-sm font-bold text-[#00f5ff]">Pro Active</p>
+                    <p className="text-sm font-bold text-[#D4A017]">Pro Active</p>
                     <p className="text-[11px] text-white/40">Full access to all ABOS features</p>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function MyAccount() {
                   </div>
                   <Link to="/pricing"
                     className="flex items-center gap-2 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors shrink-0"
-                    style={{ background: "rgba(232,168,58,0.20)", border: "1px solid rgba(232,168,58,0.45)", color: "#E8A83A" }}>
+                    style={{ background: "rgba(232,168,58,0.20)", border: "1px solid rgba(232,168,58,0.45)", color: "#D4A017" }}>
                     <CreditCard className="w-4 h-4" />
                     Upgrade
                   </Link>
@@ -289,7 +289,7 @@ export default function MyAccount() {
           <div className="flex items-center justify-between mb-4">
             <p className="text-white/40 text-sm">{myListings.length} aircraft</p>
             <Link to="/listings"
-              className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#00f5ff] hover:opacity-70 transition-opacity">
+              className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#D4A017] hover:opacity-70 transition-opacity">
               + Add Aircraft <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -304,7 +304,7 @@ export default function MyAccount() {
             <HudPanel className="py-16 text-center">
               <Plane className="w-10 h-10 mx-auto mb-3 text-white/15" />
               <p className="text-white/30 text-sm">No aircraft listed yet.</p>
-              <Link to="/listings" className="text-[#00f5ff] text-[11px] font-bold mt-2 inline-block hover:opacity-70 transition-opacity">
+              <Link to="/listings" className="text-[#D4A017] text-[11px] font-bold mt-2 inline-block hover:opacity-70 transition-opacity">
                 Go to Listings →
               </Link>
             </HudPanel>
@@ -315,7 +315,7 @@ export default function MyAccount() {
                   <HudPanel className="p-4 h-full hover:scale-[1.01] transition-transform cursor-pointer">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <div className="min-w-0">
-                        <p className="text-[8px] uppercase tracking-[0.2em] text-[#00f5ff] font-black">Aircraft</p>
+                        <p className="text-[8px] uppercase tracking-[0.2em] text-[#D4A017] font-black">Aircraft</p>
                         <p className="text-sm font-black text-white truncate mt-0.5 leading-tight">
                           {l.year} {l.make} {l.model}
                         </p>
@@ -356,7 +356,7 @@ export default function MyAccount() {
             <HudPanel className="py-16 text-center">
               <ShieldCheck className="w-10 h-10 mx-auto mb-3 text-white/15" />
               <p className="text-white/30 text-sm">No ATI reports yet.</p>
-              <Link to="/listings" className="text-[#00f5ff] text-[11px] font-bold mt-2 inline-block hover:opacity-70">
+              <Link to="/listings" className="text-[#D4A017] text-[11px] font-bold mt-2 inline-block hover:opacity-70">
                 Generate Your First ATI →
               </Link>
             </HudPanel>
@@ -367,8 +367,8 @@ export default function MyAccount() {
                   <Link key={p.id} to={`/ati-passport/${p.listing}`}
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.03] transition-colors">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.18)" }}>
-                      <ShieldCheck className="w-4 h-4 text-[#00f5ff]" />
+                      style={{ background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.18)" }}>
+                      <ShieldCheck className="w-4 h-4 text-[#D4A017]" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12px] font-bold text-white truncate">
@@ -398,7 +398,7 @@ export default function MyAccount() {
           <div className="flex items-center justify-between mb-4">
             <p className="text-white/40 text-sm">{escrows.length} cases</p>
             <Link to="/escrow"
-              className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#00f5ff] hover:opacity-70 transition-opacity">
+              className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#D4A017] hover:opacity-70 transition-opacity">
               Manage Escrow <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -413,7 +413,7 @@ export default function MyAccount() {
             <HudPanel className="py-16 text-center">
               <Handshake className="w-10 h-10 mx-auto mb-3 text-white/15" />
               <p className="text-white/30 text-sm">No escrow cases yet.</p>
-              <Link to="/escrow" className="text-[#00f5ff] text-[11px] font-bold mt-2 inline-block hover:opacity-70">
+              <Link to="/escrow" className="text-[#D4A017] text-[11px] font-bold mt-2 inline-block hover:opacity-70">
                 Create an Escrow Case →
               </Link>
             </HudPanel>
@@ -428,7 +428,7 @@ export default function MyAccount() {
                       className="flex items-start gap-4 px-5 py-4 hover:bg-white/[0.03] transition-colors">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                         style={{ background: "rgba(232,168,58,0.10)", border: "1px solid rgba(232,168,58,0.25)" }}>
-                        <Handshake className="w-4 h-4 text-[#E8A83A]" />
+                        <Handshake className="w-4 h-4 text-[#D4A017]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -436,12 +436,12 @@ export default function MyAccount() {
                             {e.aircraft_label || `${e.buyer_name} ↔ ${e.seller_name}`}
                           </p>
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-                            style={{ background: "rgba(0,245,255,0.08)", color: "rgba(0,245,255,0.70)", border: "1px solid rgba(0,245,255,0.15)" }}>
+                            style={{ background: "rgba(212,160,23,0.08)", color: "rgba(212,160,23,0.70)", border: "1px solid rgba(212,160,23,0.15)" }}>
                             {myRole}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <p className="text-[11px] font-bold text-[#E8A83A]">
+                          <p className="text-[11px] font-bold text-[#D4A017]">
                             {e.sale_amount ? `$${e.sale_amount.toLocaleString()}` : "—"} {e.currency ?? "USD"}
                           </p>
                           <p className="text-[10px] text-white/30">

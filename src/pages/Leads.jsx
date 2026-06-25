@@ -11,7 +11,7 @@ import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import AddLeadModal from "@/components/leads/AddLeadModal";
 
 function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
 }
 
 const BUDGET_ORDER = ["<100k", "<200k", "<500k", "<1M", ">1M"];
@@ -141,19 +141,19 @@ export default function Leads() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={() => setAddOpen(true)}
-              className="flex items-center gap-1.5 bg-[#0B2D5B] hover:bg-[#143C75] text-white text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full transition-colors">
+              className="flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#143C75] text-white text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full transition-colors">
               <UserPlus className="w-3.5 h-3.5" /> Add Lead
             </button>
-            <div className="flex items-center gap-1.5 bg-[#E8A83A] text-[#0B2D5B] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1.5 bg-[#D4A017] text-[#2563EB] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full">
               <Zap className="w-3.5 h-3.5" /> {LEAD_UNLOCK_COST} cr / single
             </div>
           </div>
         </div>
 
         {/* Private notice */}
-        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#0B2D5B]/88 backdrop-blur-xl text-white rounded-2xl px-4 py-3 border border-white/15 shadow-[0_18px_55px_rgba(11,45,91,0.18)]">
-          <div className="w-8 h-8 rounded-full bg-[#E8A83A] flex items-center justify-center shrink-0">
-            <Lock className="w-4 h-4 text-[#0B2D5B]" strokeWidth={2.5} />
+        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#2563EB]/88 backdrop-blur-xl text-white rounded-2xl px-4 py-3 border border-white/15 shadow-[0_18px_55px_rgba(11,45,91,0.18)]">
+          <div className="w-8 h-8 rounded-full bg-[#D4A017] flex items-center justify-center shrink-0">
+            <Lock className="w-4 h-4 text-[#2563EB]" strokeWidth={2.5} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-black uppercase tracking-tight">Contact info is masked until you unlock it</p>
@@ -173,8 +173,8 @@ export default function Leads() {
           {[
             { label: "Total", value: stats.total, color: "#1A1814" },
             { label: "Unlocked", value: stats.unlocked, color: "#0F7A56" },
-            { label: "Qualified", value: stats.qualified, color: "#E8A83A" },
-            { label: "Closed", value: stats.closed, color: "#0B2D5B" },
+            { label: "Qualified", value: stats.qualified, color: "#D4A017" },
+            { label: "Closed", value: stats.closed, color: "#2563EB" },
           ].map(s => (
             <div key={s.label} className="bg-white/58 backdrop-blur-xl border border-white/65 rounded-xl px-4 py-3 text-center shadow-sm">
               <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
@@ -189,7 +189,7 @@ export default function Leads() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search aircraft preference, budget…"
-              className="w-full pl-9 pr-4 py-2.5 bg-white/62 backdrop-blur-xl border border-white/70 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#0B2D5B] transition-colors shadow-sm" />
+              className="w-full pl-9 pr-4 py-2.5 bg-white/62 backdrop-blur-xl border border-white/70 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#2563EB] transition-colors shadow-sm" />
             {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C]"><X className="w-3.5 h-3.5" /></button>}
           </div>
           <BottomSheetSelect

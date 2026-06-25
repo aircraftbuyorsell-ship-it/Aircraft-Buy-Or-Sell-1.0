@@ -16,7 +16,7 @@ import CustomAircraftModal from "@/components/opex/CustomAircraftModal";
 import FleetPanel from "@/components/opex/FleetPanel";
 
 function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
 }
 
 function Slider({ label, value, onChange, min, max, step, hint, suffix = "" }) {
@@ -26,13 +26,13 @@ function Slider({ label, value, onChange, min, max, step, hint, suffix = "" }) {
         <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold">{label}</label>
         <span className="text-sm font-black text-[#1A1814]">{value.toLocaleString()}{suffix}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(+e.target.value)} className="w-full mt-1 accent-[#0B2D5B]" />
+      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(+e.target.value)} className="w-full mt-1 accent-[#2563EB]" />
       {hint && <p className="text-[10px] text-[#AAA49C] mt-1 flex items-center gap-1"><Info className="w-2.5 h-2.5" /> {hint}</p>}
     </div>
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, accent = "#0B2D5B" }) {
+function StatCard({ label, value, sub, icon: Icon, accent = "#2563EB" }) {
   return (
     <div className="bg-white border border-black/[0.07] rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-1">
@@ -48,7 +48,7 @@ function StatCard({ label, value, sub, icon: Icon, accent = "#0B2D5B" }) {
 function SectionHeader({ icon: Icon, title, desc }) {
   return (
     <div className="flex items-start gap-2.5 pb-3 border-b border-black/[0.06]">
-      <div className="w-8 h-8 rounded-lg bg-[#0B2D5B] flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4 text-white" />
       </div>
       <div>
@@ -238,7 +238,7 @@ export default function OpexCalculator() {
                 <div className="flex flex-wrap gap-2">
                   {AIRCRAFT_PRESETS.map(p => (
                     <button key={p.id} onClick={() => pickPreset(p)}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id && !preset.custom ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}>
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id && !preset.custom ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}>
                       <Plane className="w-3 h-3 inline mr-1" /> {p.name}
                     </button>
                   ))}
@@ -277,7 +277,7 @@ export default function OpexCalculator() {
                     { id: "commercial_multi", label: "Comm. multi-crew" },
                   ].map(o => (
                     <button key={o.id} onClick={() => setCrewType(o.id)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${crewType === o.id ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${crewType === o.id ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
                       {o.label}
                     </button>
                   ))}
@@ -338,7 +338,7 @@ export default function OpexCalculator() {
                     { v: 3, label: "4+" },
                   ].map(o => (
                     <button key={o.v} onClick={() => setServiceCenters(o.v)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${serviceCenters === o.v ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${serviceCenters === o.v ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
                       {o.label}
                     </button>
                   ))}
@@ -350,7 +350,7 @@ export default function OpexCalculator() {
                 <div className="flex flex-wrap gap-2">
                   {["poor", "fair", "good", "excellent"].map(o => (
                     <button key={o} onClick={() => setPartsAccessibility(o)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border capitalize transition-all ${partsAccessibility === o ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border capitalize transition-all ${partsAccessibility === o ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
                       {o}
                     </button>
                   ))}
@@ -366,7 +366,7 @@ export default function OpexCalculator() {
                     { v: "modern", label: "Modern / current" },
                   ].map(o => (
                     <button key={o.v} onClick={() => setAvionicsSupport(o.v)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${avionicsSupport === o.v ? "border-[#0B2D5B] bg-[rgba(11,45,91,0.06)] text-[#0B2D5B]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${avionicsSupport === o.v ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
                       {o.label}
                     </button>
                   ))}
@@ -384,7 +384,7 @@ export default function OpexCalculator() {
             <StatCard label="Fixed (insurance + hangar)" value={Math.round(fixed)} sub="Adjusted for region" icon={Wrench} accent="#A67C00" />
 
             <div className="pt-2">
-              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#E8A83A] mb-2">Reserves (per-hour accrual)</p>
+              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017] mb-2">Reserves (per-hour accrual)</p>
               <div className="space-y-2">
                 <ReserveCard
                   label="Engine Reserve"
@@ -392,7 +392,7 @@ export default function OpexCalculator() {
                   annualCost={engineReserveYr}
                   hoursRemaining={engineHoursToTBO}
                   status={engineHoursToTBO < 200 ? "Due Soon" : engineHoursToTBO < 500 ? "Plan Ahead" : "Healthy"}
-                  color={engineHoursToTBO < 200 ? "#C0392B" : engineHoursToTBO < 500 ? "#E8A83A" : "#0F7A56"}
+                  color={engineHoursToTBO < 200 ? "#C0392B" : engineHoursToTBO < 500 ? "#D4A017" : "#0F7A56"}
                 />
                 <ReserveCard
                   label="Prop Reserve"
@@ -434,7 +434,7 @@ export default function OpexCalculator() {
 
         {/* Compliance controls (hidden in accordion) */}
         <div className="mt-4 bg-white border border-black/[0.07] rounded-2xl p-4">
-          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B] mb-3">Certification Status</p>
+          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#2563EB] mb-3">Certification Status</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
               { label: "ADS-B", state: adsb, setState: setAdsb },
@@ -495,8 +495,8 @@ export default function OpexCalculator() {
           </div>
           <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-2">
-              <Cpu className="w-4 h-4 text-[#0B2D5B]" />
-              <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#0B2D5B]">For the Seller</p>
+              <Cpu className="w-4 h-4 text-[#2563EB]" />
+              <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#2563EB]">For the Seller</p>
             </div>
             <p className="text-[13px] text-[#4A4845] leading-relaxed">
               Present the aircraft with <b>logic and credibility</b>. A <b>{clarity.label}</b> clarity score builds buyer confidence and defends asking price.
@@ -508,12 +508,12 @@ export default function OpexCalculator() {
         <CustomAircraftModal open={showCustomModal} onClose={() => setShowCustomModal(false)} onSave={handleAddCustom} />
 
         {/* CTA — Service finder */}
-        <div className="mt-5 bg-[#0B2D5B] text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-5 bg-[#2563EB] text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <GoldLabel>Need real quotes?</GoldLabel>
             <p className="text-sm font-bold mt-1">Compare insurance, MRO & hangar rates from verified providers near you.</p>
           </div>
-          <a href="/service-finder" className="shrink-0 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+          <a href="/service-finder" className="shrink-0 bg-[#D4A017] hover:bg-[#f5bb4e] text-[#2563EB] font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5">
             <FileText className="w-4 h-4" /> Find services
           </a>
         </div>

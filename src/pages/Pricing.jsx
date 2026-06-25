@@ -1,9 +1,9 @@
 import { CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const INK   = "#04060a";
-const INK1  = "#0d1117";
-const AMBER = "#f5c242";
+const INK   = "#0B1220";
+const INK1  = "#111827";
+const AMBER = "#D4A017";
 const TEAL  = "#5dcaa5";
 const BLUE  = "#4e8ef7";
 const W1    = "rgba(255,255,255,0.90)";
@@ -92,7 +92,7 @@ const AFFILIATE_ROWS = [
 
 const ACCENTS = {
   gray:  { line: BORDER,                      chip: { bg: "rgba(255,255,255,0.06)", color: W3,    border: BORDER }                  },
-  amber: { line: AMBER,                       chip: { bg: "rgba(245,194,66,0.09)",  color: AMBER, border: "rgba(245,194,66,0.22)" } },
+  amber: { line: AMBER,                       chip: { bg: "rgba(212,160,23,0.09)",  color: AMBER, border: "rgba(212,160,23,0.22)" } },
   teal:  { line: "rgba(93,202,165,0.55)",     chip: { bg: "rgba(93,202,165,0.09)",  color: TEAL,  border: "rgba(93,202,165,0.20)" } },
   blue:  { line: "rgba(78,142,247,0.55)",     chip: { bg: "rgba(78,142,247,0.09)",  color: BLUE,  border: "rgba(78,142,247,0.20)" } },
 };
@@ -116,7 +116,7 @@ const eyebrow = { fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", tex
 
 export default function Pricing() {
   return (
-    <div style={{ background: INK, backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)", backgroundSize: "100% 100%, 100% 100%, 100% 100%, 24px 24px", minHeight: "100vh", color: W1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
+    <div style={{ background: INK, backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)", backgroundSize: "100% 100%, 100% 100%, 100% 100%, 24px 24px", minHeight: "100vh", color: W1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
@@ -143,7 +143,7 @@ export default function Pricing() {
           <div className="flex flex-wrap justify-center gap-2 mt-5">
             {["FAA / EASA registry integrated", "ITAR auto-flag", "White-label API", "Fraud-proof N-Reg validation"].map((badge) => (
               <span key={badge} className="text-[11px] px-3 py-1 rounded-full font-semibold"
-                style={{ background: "rgba(245,194,66,0.09)", color: AMBER, border: "0.5px solid rgba(245,194,66,0.22)" }}>{badge}</span>
+                style={{ background: "rgba(212,160,23,0.09)", color: AMBER, border: "0.5px solid rgba(212,160,23,0.22)" }}>{badge}</span>
             ))}
           </div>
         </header>
@@ -208,7 +208,7 @@ export default function Pricing() {
                 </div>
               ))}
             </div>
-            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid rgba(245,194,66,0.22)` }}>
+            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: "rgba(212,160,23,0.06)", border: `0.5px solid rgba(212,160,23,0.22)` }}>
               <span className="text-[13px]" style={{ color: W2 }}>Total one-time package (all three items)</span>
               <span style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.03em", color: AMBER }}>€1,498</span>
             </div>
@@ -261,7 +261,7 @@ export default function Pricing() {
             <p style={eyebrow} className="text-center mb-1">Affiliate revenue share — for platform partners</p>
             <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Earn a passive revenue share on every subscription or report generated through your platform</p>
             <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
-              <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(245,194,66,0.40) 50%, transparent 95%)" }} />
+              <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)" }} />
               <div className="overflow-x-auto">
                 <table className="w-full text-[13px]">
                   <thead>
@@ -281,7 +281,7 @@ export default function Pricing() {
                         <td className="px-4 py-3 font-semibold" style={{ color: AMBER }}>{row.earn}</td>
                       </tr>
                     ))}
-                    <tr style={{ background: "rgba(245,194,66,0.06)" }}>
+                    <tr style={{ background: "rgba(212,160,23,0.06)" }}>
                       <td className="px-4 py-3 font-semibold" colSpan={4} style={{ color: W1 }}>Example: 50 Pro subscribers via your platform</td>
                       <td className="px-4 py-3" style={{ fontSize: "15px", fontWeight: 600, color: AMBER }}>€990 / mo</td>
                     </tr>

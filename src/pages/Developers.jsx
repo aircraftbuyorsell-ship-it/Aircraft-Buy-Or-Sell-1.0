@@ -47,20 +47,20 @@ export default function Developers() {
 
   if (devLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-[#E8A83A]/30 border-t-[#E8A83A] rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-64" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
+        <div className="w-8 h-8 border-4 border-[#D4A017]/30 border-t-[#D4A017] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto">
+    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-[#0B2D5B]/10 border border-[#0B2D5B]/20 flex items-center justify-center">
-              <Code2 className="w-4.5 h-4.5 text-[#0B2D5B]" />
+            <div className="w-9 h-9 rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center">
+              <Code2 className="w-4.5 h-4.5 text-[#2563EB]" />
             </div>
             <h1 className="text-2xl font-black text-[#1A1814] tracking-tight">Developer Portal</h1>
           </div>
@@ -72,13 +72,13 @@ export default function Developers() {
           <div className="flex items-center gap-2">
             <Link
               to="/developer-earnings"
-              className="flex items-center gap-2 h-10 px-4 rounded-xl border border-[#E8A83A]/40 bg-[#E8A83A]/10 text-[#A67C00] text-xs font-black uppercase tracking-wide"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl border border-[#D4A017]/40 bg-[#D4A017]/10 text-[#A67C00] text-xs font-black uppercase tracking-wide"
             >
               <Coins className="w-4 h-4" /> Earnings
             </Link>
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#0B2D5B] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl bg-[#2563EB] hover:bg-[#143C75] text-white text-xs font-black uppercase tracking-wide"
             >
               <Plus className="w-4 h-4" /> Submit Tool
             </button>

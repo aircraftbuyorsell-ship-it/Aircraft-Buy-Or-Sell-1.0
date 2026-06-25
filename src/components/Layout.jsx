@@ -16,6 +16,7 @@ import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import PragueClock from "@/components/layout/PragueClock";
+import DotGrid from "@/components/layout/DotGrid";
 
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
@@ -219,7 +220,8 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen font-sans" style={{ background: "#0B1220" }}>
+    <div className="relative flex flex-col min-h-screen font-sans" style={{ background: "#0B1220" }}>
+      <DotGrid />
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
@@ -300,7 +302,7 @@ export default function Layout() {
       </header>
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="flex-1 overflow-auto" style={{ background: "#0B1220" }}>
+      <main id="main-content" className="relative z-10 flex-1 overflow-auto" style={{ background: "transparent" }}>
         <div className="mx-auto w-full max-w-[1600px]">
           <Outlet />
         </div>

@@ -1,64 +1,76 @@
 import { format } from "date-fns";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 
+const W1 = "rgba(255,255,255,0.90)";
+const W2 = "rgba(255,255,255,0.60)";
+const W3 = "rgba(255,255,255,0.35)";
+const BORDER = "rgba(255,255,255,0.08)";
+const AMBER = "#f5c242";
+const TEAL = "#5dcaa5";
+const RED = "#e24b4a";
+const CARD = "rgba(255,255,255,0.04)";
+
 const STATUS_ICON = {
-  success: <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />,
-  failed:  <XCircle      className="w-3.5 h-3.5 text-red-500" />,
-  pending: <Clock        className="w-3.5 h-3.5 text-amber-500" />,
-  refunded:<Clock        className="w-3.5 h-3.5 text-gray-400" />,
+  success: <CheckCircle2 className="w-3.5 h-3.5" style={{ color: TEAL }} />,
+  failed:  <XCircle      className="w-3.5 h-3.5" style={{ color: RED }} />,
+  pending: <Clock        className="w-3.5 h-3.5" style={{ color: AMBER }} />,
+  refunded:<Clock        className="w-3.5 h-3.5" style={{ color: W3 }} />,
 };
 
 const STATUS_STYLE = {
-  success:  "text-green-700 bg-green-50",
-  failed:   "text-red-700 bg-red-50",
-  pending:  "text-amber-700 bg-amber-50",
-  refunded: "text-gray-500 bg-gray-100",
+  success:  { bg: "rgba(93,202,165,0.09)", text: TEAL },
+  failed:   { bg: "rgba(226,75,74,0.09)", text: RED },
+  pending:  { bg: "rgba(245,194,66,0.09)", text: AMBER },
+  refunded: { bg: "rgba(255,255,255,0.06)", text: W3 },
 };
 
 export default function InvocationLedger({ invocations, isLoading }) {
-  if (isLoading) return <p className="text-sm text-[#6B6560]">Loading ledger…</p>;
+  if (isLoading) return <p className="text-sm" style={{ color: W2 }}>Loading ledger…</p>;
 
   return (
     <div>
-      <h3 className="font-black text-sm uppercase tracking-wide text-[#1A1814] mb-3">
+      <h3 className="font-black text-sm uppercase tracking-wide mb-3" style={{ color: W1 }}>
         Invocation Ledger ({invocations.length})
       </h3>
 
       {invocations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-white p-8 text-center">
-          <p className="text-sm text-[#6B6560]">No invocations yet. Earnings will appear here once your tools are called.</p>
+        <div className="rounded-2xl p-8 text-center" style={{ background: CARD, border: `0.5px dashed ${BORDER}` }}>
+          <p className="text-sm" style={{ color: W2 }}>No invocations yet. Earnings will appear here once your tools are called.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-black/8 bg-white overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: CARD, border: `0.5px solid ${BORDER}` }}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#F7F4EF] border-b border-black/8">
+              <thead style={{ background: "rgba(255,255,255,0.03)", borderBottom: `0.5px solid ${BORDER}` }}>
                 <tr>
                   {["Date", "Tool", "Called by", "Charged", "Your Share", "Status", "Latency"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#6B6560] whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider whitespace-nowrap" style={{ color: W3 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black/5">
-                {invocations.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-[#F7F4EF]/50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-[#AAA49C] whitespace-nowrap">
-                      {inv.invoked_at ? format(new Date(inv.invoked_at), "MMM d, HH:mm") : "—"}
-                    </td>
-                    <td className="px-4 py-3 font-bold text-[#1A1814] max-w-[140px] truncate">{inv.tool_name || "—"}</td>
-                    <td className="px-4 py-3 text-xs text-[#6B6560] max-w-[140px] truncate">{inv.user_email}</td>
-                    <td className="px-4 py-3 font-black text-[#1A1814]">{inv.tokens_charged} tk</td>
-                    <td className="px-4 py-3 font-black text-[#A67C00]">{(inv.developer_revenue || 0).toFixed(1)} tk</td>
-                    <td className="px-4 py-3">
-                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black w-fit ${STATUS_STYLE[inv.status] || "bg-gray-100 text-gray-500"}`}>
-                        {STATUS_ICON[inv.status]} {inv.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-[#AAA49C]">
-                      {inv.duration_ms != null ? `${inv.duration_ms}ms` : "—"}
-                    </td>
-                  </tr>
-                ))}
+              <tbody>
+                {invocations.map((inv) => {
+                  const ss = STATUS_STYLE[inv.status] || STATUS_STYLE.refunded;
+                  return (
+                    <tr key={inv.id} className="transition-colors hover:bg-white/5" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                      <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: W3 }}>
+                        {inv.invoked_at ? format(new Date(inv.invoked_at), "MMM d, HH:mm") : "—"}
+                      </td>
+                      <td className="px-4 py-3 font-bold max-w-[140px] truncate" style={{ color: W1 }}>{inv.tool_name || "—"}</td>
+                      <td className="px-4 py-3 text-xs max-w-[140px] truncate" style={{ color: W2 }}>{inv.user_email}</td>
+                      <td className="px-4 py-3 font-black" style={{ color: W1 }}>{inv.tokens_charged} tk</td>
+                      <td className="px-4 py-3 font-black" style={{ color: AMBER }}>{(inv.developer_revenue || 0).toFixed(1)} tk</td>
+                      <td className="px-4 py-3">
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black w-fit" style={{ background: ss.bg, color: ss.text }}>
+                          {STATUS_ICON[inv.status]} {inv.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs" style={{ color: W3 }}>
+                        {inv.duration_ms != null ? `${inv.duration_ms}ms` : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

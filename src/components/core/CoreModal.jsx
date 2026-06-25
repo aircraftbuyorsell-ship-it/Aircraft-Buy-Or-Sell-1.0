@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/dialog";
 
 /**
- * CoreModal — Core Platform modal primitive (wraps shadcn Dialog).
- * Props: open, onOpenChange, title, description, footer.
+ * CoreModal — Privacy Policy / Legal Ink style.
+ * Translucent dark surface, thin border, 12px radius.
  */
 export default function CoreModal({
   open,
@@ -19,17 +19,24 @@ export default function CoreModal({
   children,
   footer,
   className = "",
+  style,
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`bg-card border-border/60 rounded-xl ${className}`}
+        className={`rounded-xl ${className}`}
+        style={{
+          background: "rgba(13,17,23,0.95)",
+          border: "0.5px solid rgba(255,255,255,0.08)",
+          color: "rgba(255,255,255,0.90)",
+          ...style,
+        }}
       >
         {(title || description) && (
           <DialogHeader>
-            {title && <DialogTitle className="text-foreground">{title}</DialogTitle>}
+            {title && <DialogTitle className="text-white/90">{title}</DialogTitle>}
             {description && (
-              <DialogDescription className="text-muted-foreground">
+              <DialogDescription className="text-white/50">
                 {description}
               </DialogDescription>
             )}

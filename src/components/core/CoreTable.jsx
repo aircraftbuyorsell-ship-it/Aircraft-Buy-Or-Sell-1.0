@@ -8,21 +8,29 @@ import {
 } from "@/components/ui/table";
 
 /**
- * CoreTable — Core Platform data table primitive.
- * Pass `headers` (string[]) and `rows` (array of arrays/cells).
+ * CoreTable — Privacy Policy / Legal Ink style.
+ * Translucent surface, thin borders, subtle header tint.
  */
-export default function CoreTable({ headers = [], rows = [], className = "" }) {
+export default function CoreTable({ headers = [], rows = [], className = "", style }) {
   return (
     <div
-      className={`rounded-xl border border-border/60 overflow-hidden bg-card ${className}`}
+      className={`rounded-xl overflow-hidden ${className}`}
+      style={{
+        background: "rgba(255,255,255,0.02)",
+        border: "0.5px solid rgba(255,255,255,0.08)",
+        ...style,
+      }}
     >
       <Table>
         <TableHeader>
-          <TableRow className="bg-secondary/50 hover:bg-secondary/50 border-border/60">
+          <TableRow
+            className="border-white/8"
+            style={{ background: "rgba(255,255,255,0.03)" }}
+          >
             {headers.map((h) => (
               <TableHead
                 key={h}
-                className="text-muted-foreground font-semibold uppercase tracking-wide text-xs"
+                className="text-white/35 font-semibold uppercase tracking-[0.08em] text-[10px]"
               >
                 {h}
               </TableHead>
@@ -31,9 +39,9 @@ export default function CoreTable({ headers = [], rows = [], className = "" }) {
         </TableHeader>
         <TableBody>
           {rows.map((row, i) => (
-            <TableRow key={i} className="border-border/40">
+            <TableRow key={i} className="border-white/8">
               {row.map((cell, j) => (
-                <TableCell key={j} className="text-foreground/90">
+                <TableCell key={j} className="text-white/80">
                   {cell}
                 </TableCell>
               ))}

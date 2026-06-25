@@ -1,29 +1,28 @@
 /**
- * Community — isolated design system for community surfaces.
+ * Community — unified with Legal Ink / Privacy Policy style.
  *
- * Distinct dark tier: #0F1218 canvas, #1A1F29 cards, warm gold #C9A84D
- * accent. Separate from Core Platform (#0B1220 / #D4A017) and ATI
- * Premium (ink #04060a / amber #f5c242). Used by the Community hub
- * and its sub-components.
+ * Backgrounds are now transparent so the global dot-grid + radial-gradient
+ * canvas (applied in Layout) shows through. Cards use the same translucent
+ * rgba(255,255,255,0.04) surface as Core Platform. Gold accent retained
+ * for community-specific warmth.
  */
 
 export const C = {
-  bg:        "#0F1218",
-  card:      "#1A1F29",
-  cardHover: "#232838",
+  bg:        "transparent",
+  card:      "rgba(255,255,255,0.04)",
+  cardHover: "rgba(255,255,255,0.06)",
   border:    "rgba(255,255,255,0.08)",
   borderMd:  "rgba(255,255,255,0.12)",
-  gold:      "#C9A84D",
-  goldLight: "#F4E3A1",
-  blue:      "#2563EB",
-  text:      "#ffffff",
-  textMuted: "rgba(255,255,255,0.55)",
+  gold:      "#f5c242",
+  goldLight: "#fdd05a",
+  blue:      "#4e8ef7",
+  text:      "rgba(255,255,255,0.90)",
+  textMuted: "rgba(255,255,255,0.60)",
   textDim:   "rgba(255,255,255,0.35)",
 };
 
 export const communityCard = {
   background: C.card,
-  border: `1px solid ${C.border}`,
-  borderRadius: "1.5rem",
-  boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+  border: `0.5px solid ${C.border}`,
+  borderRadius: "12px",
 };

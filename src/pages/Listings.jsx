@@ -74,7 +74,7 @@ export default function Listings() {
   null;
 
   return (
-    <div className="min-h-screen" style={{ background: "#04060a", color: "#fff" }}>
+    <div className="min-h-screen" style={{ background: "transparent", color: "#fff" }}>
       {/* Pull-to-refresh */}
       <div className="md:hidden flex items-center justify-center overflow-hidden transition-[height] duration-150" style={{ height: distance, background: "#0d1117" }}>
         {(pulling || refreshing) &&

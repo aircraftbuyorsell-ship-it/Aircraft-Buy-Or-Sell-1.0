@@ -362,7 +362,7 @@ Return ONLY raw JSON:
   const safeMake = listing ? cleanAircraftMake(listing.make) : "";
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB]">
+    <div className="min-h-screen bg-[#F2F0EB]" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
 
       {/* ── Sticky nav bar ──────────────────────────── */}
       <div className="bg-white border-b border-black/[0.07] sticky top-0 z-10">

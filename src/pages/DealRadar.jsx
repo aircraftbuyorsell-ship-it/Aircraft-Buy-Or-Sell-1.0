@@ -188,7 +188,7 @@ export default function DealRadar() {
   }, [dealsWithScore, minScore, hotOnly]);
 
   return (
-    <div className="min-h-screen" style={{ background: "#0B1220" }}>
+    <div className="min-h-screen" style={{ background: "transparent" }}>
       <div
         style={{
           background: "#111827",

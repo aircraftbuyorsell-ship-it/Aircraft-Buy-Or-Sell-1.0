@@ -73,7 +73,7 @@ export default function MarketReports() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#0B1220",
+        background: "transparent",
         color: "#fff",
         fontFamily: "Inter, -apple-system, sans-serif",
       }}

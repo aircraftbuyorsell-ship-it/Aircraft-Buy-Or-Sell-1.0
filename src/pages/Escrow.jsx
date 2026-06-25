@@ -88,7 +88,7 @@ export default function Escrow() {
   }, [transactions]);
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
+    <div className="min-h-screen bg-[#F7F4EF]" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
       <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
         <div className="flex items-center gap-2 flex-wrap mb-2">
           <GoldLabel>IntraZone · Transparent Hustle</GoldLabel>

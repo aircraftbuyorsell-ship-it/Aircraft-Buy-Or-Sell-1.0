@@ -47,14 +47,14 @@ export default function Developers() {
 
   if (devLoading) {
     return (
-      <div className="flex items-center justify-center h-64" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
+      <div className="flex items-center justify-center h-64" style={{ background: "#F7F4EF", backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px", minHeight: "100vh" }}>
         <div className="w-8 h-8 border-4 border-[#D4A017]/30 border-t-[#D4A017] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "#F7F4EF", minHeight: "100vh" }}>
+    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "#F7F4EF", backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px", minHeight: "100vh" }}>
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
         <div>

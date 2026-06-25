@@ -233,7 +233,7 @@ export default function FunnelCanvas() {
   };
 
   if (isLoading) return (
-    <div style={{ minHeight: "100vh", background: "#04060a", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+    <div style={{ minHeight: "100vh", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
       Loading canvas...
     </div>
   );

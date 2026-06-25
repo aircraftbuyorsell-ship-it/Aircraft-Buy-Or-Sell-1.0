@@ -211,7 +211,7 @@ export default function OpexCalculator() {
   if (service.score < 40) hints.push({ type: "warn", text: "Limited service network nearby — expect ferry costs and longer downtimes." });
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] p-4 md:p-8">
+    <div className="min-h-screen bg-[#F7F4EF] p-4 md:p-8" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
       <div className="max-w-6xl mx-auto">
         <GoldLabel>Cost Intelligence · Buyer & Seller Transparency</GoldLabel>
         <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight mt-1 uppercase">

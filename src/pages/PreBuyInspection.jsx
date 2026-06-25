@@ -62,7 +62,7 @@ function classifyFinding(text) {
 // ─── Landing Page ─────────────────────────────────────────────────
 function LandingPage({ onStart }) {
   return (
-    <div className="min-h-screen bg-[#060E1A] flex flex-col">
+    <div className="min-h-screen bg-transparent flex flex-col">
       <div className="bg-[#0B2D5B]/80 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-white/5">
         <Link to="/listings" className="text-white/40 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -390,7 +390,7 @@ function LiveSession({ onBack }) {
   const isLive = status === "live";
 
   return (
-    <div className="min-h-screen bg-[#060E1A] flex flex-col">
+    <div className="min-h-screen bg-transparent flex flex-col">
       {/* Header */}
       <div className="bg-[#0B2D5B] px-4 py-3 flex items-center gap-3 border-b border-white/5">
         <button onClick={() => { cleanup(); onBack(); }} className="text-white/40 hover:text-white transition-colors">

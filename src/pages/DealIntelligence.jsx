@@ -71,7 +71,7 @@ export default function DealIntelligence() {
   const riskStyle = riskLevel ? RISK_STYLES[riskLevel] : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0B1220", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "transparent", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}>
       {/* HEADER */}
       <div style={{ borderBottom: "0.5px solid rgba(245,194,66,0.1)", padding: "24px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
         <div>

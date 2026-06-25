@@ -85,7 +85,7 @@ export default function ATICard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F7F4EF] px-4 md:px-8 py-8">
+      <div className="min-h-screen bg-[#F7F4EF] px-4 md:px-8 py-8" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         <div className="max-w-3xl mx-auto space-y-4">
           <div className="h-6 w-36 bg-black/5 rounded animate-pulse" />
           <div className="h-80 bg-white border border-black/[0.07] rounded-2xl animate-pulse" />
@@ -97,7 +97,7 @@ export default function ATICard() {
 
   if (!card || !passport || !listing) {
     return (
-      <div className="min-h-screen bg-[#F7F4EF] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F7F4EF] flex items-center justify-center px-4" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         <div className="text-center">
           <p className="text-lg font-black text-[#1A1814] mb-2">Card Not Found</p>
           <p className="text-[#6B6560] text-sm mb-4">This ATI card does not exist or has been removed.</p>
@@ -113,7 +113,7 @@ export default function ATICard() {
   const safeMake = cleanAircraftMake(listing.make);
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB]">
+    <div className="min-h-screen bg-[#F2F0EB]" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
 
       {/* ── Top navigation bar ─────────────────────── */}
       <div className="bg-white border-b border-black/[0.07] sticky top-0 z-10">

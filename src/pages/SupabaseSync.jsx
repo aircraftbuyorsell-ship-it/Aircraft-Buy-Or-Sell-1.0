@@ -209,7 +209,7 @@ export default function SupabaseSync() {
   const syncPct = supabaseTotal > 0 ? Math.round((syncedCount / supabaseTotal) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
+    <div className="min-h-screen bg-[#F7F4EF]" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
       {/* Header */}
       <div className="bg-[#0B2D5B] px-4 md:px-8 pt-5 pb-0">
         <div className="flex items-center gap-3 mb-1">

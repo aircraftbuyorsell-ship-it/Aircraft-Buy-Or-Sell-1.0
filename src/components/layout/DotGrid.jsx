@@ -3,7 +3,7 @@
  * Fixed full-screen layer, pointer-events none, sits behind all content.
  * Subtle in dark mode, near-invisible in light mode.
  */
-export default function DotGrid({ opacity = 0.10, size = 24 }) {
+export default function DotGrid({ opacity = 0.18, size = 24 }) {
   return (
     <div
       aria-hidden="true"

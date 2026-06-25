@@ -43,7 +43,7 @@ export default function Dashboard() {
   return (
     <div
       style={{
-        background: "#0B1220",
+        background: "transparent",
         color: "#fff",
         overflowY: "auto",
         minHeight: "100vh",

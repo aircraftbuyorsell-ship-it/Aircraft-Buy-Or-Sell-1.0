@@ -113,6 +113,14 @@ export default function Leads() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#F7F4EF]">
+      {/* Dot grid overlay — unified platform texture */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
         <img
           src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/61cd83faf_Snmekobrazovky2026-05-15095426.png"

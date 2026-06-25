@@ -1,18 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useTheme } from "@/lib/useTheme";
 
 const DISPLAY_MS = 4000; // how long each card stays visible
 
+/**
+ * RocketMetrics — Core Platform dark rotating metric strip.
+ * #111827 panel, no glassmorphism, accent trail.
+ */
 export default function RocketMetrics({ metrics = [] }) {
-  const isDark = useTheme();
   const [index, setIndex] = useState(0);
 
-  const mutedColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.50)";
-  const textColor = isDark ? "#e2e8f0" : "#1a1a1a";
-  const panelBg = isDark ? "rgba(15,15,28,0.82)" : "rgba(255,255,255,0.82)";
-  const panelBorder = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)";
+  const mutedColor = "rgba(255,255,255,0.45)";
 
   const advance = useCallback(() => {
     setIndex((i) => (i + 1) % metrics.length);
@@ -29,7 +28,7 @@ export default function RocketMetrics({ metrics = [] }) {
   const m = metrics[index];
 
   // Randomize entry trajectory slightly
-  const entryY = (Math.random() - 0.5) * 30; // random vertical offset
+  const entryY = (Math.random() - 0.5) * 30;
   const exitY = (Math.random() - 0.5) * 30;
 
   return (
@@ -53,16 +52,12 @@ export default function RocketMetrics({ metrics = [] }) {
             <div
               className="rounded-xl px-4 py-2.5 flex items-center gap-3 cursor-pointer"
               style={{
-                background: panelBg,
-                border: panelBorder,
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                boxShadow: isDark
-                  ? `0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px ${m.color}20`
-                  : `0 4px 24px rgba(0,0,0,0.08), 0 0 0 1px ${m.color}15`,
+                background: "#111827",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: `0 1px 2px rgba(0,0,0,0.2), 0 0 0 1px ${m.color}20`,
               }}
             >
-              {/* Rocket trail effect — accent line on the left */}
+              {/* Accent trail on the left */}
               <div
                 className="w-1 h-10 rounded-full shrink-0 animate-pulse"
                 style={{ background: m.color, boxShadow: `0 0 8px ${m.color}60` }}
@@ -85,7 +80,7 @@ export default function RocketMetrics({ metrics = [] }) {
                 </div>
               </div>
 
-              {/* Small progress dot indicator */}
+              {/* Progress dot indicator */}
               <div className="flex gap-1 shrink-0">
                 {metrics.map((_, i) => (
                   <div

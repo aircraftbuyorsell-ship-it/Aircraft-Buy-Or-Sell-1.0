@@ -1,31 +1,50 @@
 ---
 name: abos-legal-ink
 description: >-
-  ABOS Marketspace unified "Legal Ink" design system — the dark, transparent,
-  dot-grid aesthetic used across all platform surfaces (Core, ATI Premium,
-  Community, Legal). Use this skill whenever the user asks to style, restyle,
-  theme, or unify pages, cards, buttons, badges, modals, tables, inputs, or
-  any UI component to match the Privacy Policy / Terms of Service look. Also
-  use when the user mentions "legal ink style", "privacy policy style",
-  "dot grid", "transparent cards", "unified design", "ABOS design system",
-  "DS v3", or wants visual consistency across the platform. This is the single
-  source of truth for the ABOS visual identity.
+  ABOS Marketspace unified "Legal Ink" design system — the mandatory visual
+  standard for EVERY page and component in the platform. Automatically apply
+  this skill whenever creating a new page, component, card, button, badge,
+  modal, table, input, or any UI element — even if the user doesn't mention
+  styling. Also use when the user asks to style, restyle, theme, unify, or
+  audit any surface, or mentions "legal ink", "privacy policy style", "dot
+  grid", "transparent cards", "ABOS design", "DS v3", or wants visual
+  consistency. This skill ensures every new component inherits the dark,
+  transparent, dot-grid aesthetic without re-explanation.
 ---
 
 # ABOS Legal Ink — Unified Design System
 
-The ABOS Marketspace platform uses one visual language across every surface:
-**Legal Ink** — a dark, transparent, dot-grid aesthetic inspired by the
-Privacy Policy and Terms of Service pages. This skill gives you the complete
-token set and component recipes so you can apply it without re-explaining.
+Every new page and component in ABOS Marketspace MUST follow this visual
+language. Apply these tokens and recipes automatically — do not ask the user
+to confirm styling unless they explicitly request a deviation.
+
+## Quick Application Rules
+
+When creating a **new page**:
+1. Root container: `background: "transparent"` — NEVER opaque. The global
+   dot-grid + radial gradients (from Layout) show through.
+2. Use `CoreCard`, `CoreButton`, `CoreBadge`, `CoreModal`, `CoreTable`,
+   `CoreInput`, `CoreSelect` from `@/components/core/*` — they already match.
+3. Text colors: white scale (w1/w2/w3) — never hardcoded black/dark text.
+4. Accent colors: amber `#f5c242` (primary), teal `#5dcaa5` (positive),
+   red `#e24b4a` (danger), blue `#4e8ef7` (info).
+
+When creating a **new component**:
+1. Card surface: `background: rgba(255,255,255,0.04)`,
+   `border: 0.5px solid rgba(255,255,255,0.08)`, `borderRadius: 12px`.
+2. Button: amber primary (`#f5c242` bg, `#04060a` text) or ghost
+   (transparent, `0.5px solid` border).
+3. Badge/chip: uppercase 9px, tinted bg (`<accent>Dim`), `0.5px` border,
+   pill shape.
+4. Input: `rgba(255,255,255,0.04)` bg, `0.5px` border, 8px radius.
 
 ## Design Tokens
 
 ```
 INK (backgrounds)
-  ink    #04060a   ← page canvas (deepest)
-  ink1   #0d1117   ← elevated surface
-  ink2   #111620   ← card / modal
+  ink    #04060a   ← page canvas (deepest, owned by Layout)
+  ink1   #0d1117   ← elevated surface / modal
+  ink2   #111620   ← card
   ink3   #1a2235   ← nested card
 
 ACCENTS
@@ -35,26 +54,26 @@ ACCENTS
   blue   #4e8ef7   ← info / accent (tier: enterprise)
 
 WHITE SCALE (text + borders)
-  w1  rgba(255,255,255,0.90)  ← primary text
+  w1  rgba(255,255,255,0.90)  ← primary text / headings
   w2  rgba(255,255,255,0.60)  ← body text
-  w3  rgba(255,255,255,0.35)  ← muted / labels
+  w3  rgba(255,255,255,0.35)  ← muted / labels / eyebrows
   w4  rgba(255,255,255,0.14)
   w5  rgba(255,255,255,0.06)  ← subtle tint
   border   rgba(255,255,255,0.08)   ← standard 0.5px border
   borderMd rgba(255,255,255,0.12)
   borderHv rgba(255,255,255,0.18)
 
-DIMMED ACCENT BACKGROUNDS (for chips/badges/tinted cards)
+DIMMED ACCENT BACKGROUNDS (chips/badges/tinted cards)
   amberDim  rgba(245,194,66,0.09)   amberBorder rgba(245,194,66,0.22)
   tealDim   rgba(93,202,165,0.09)   tealBorder  rgba(93,202,165,0.20)
   redDim    rgba(226,75,74,0.10)    redBorder   rgba(226,75,74,0.22)
   blueDim   rgba(78,142,247,0.09)   blueBorder  rgba(78,142,247,0.20)
 ```
 
-## Page Background (global — applied in Layout)
+## Page Background (global — owned by Layout)
 
-The Layout component owns this; individual pages should be **transparent**
-so the canvas shows through in the gaps between cards.
+The Layout component owns the canvas. Individual pages MUST be transparent
+so the dot grid + radial gradients show through in gaps between cards.
 
 ```
 background:     #04060a
@@ -64,43 +83,39 @@ backgroundImage:
   radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)
 ```
 
-A **dot grid** overlay sits on top (DotGrid component, opacity 0.18, 24px
-spacing):
+Dot grid overlay (DotGrid component, opacity 0.18, 24px):
 ```
 radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)
 backgroundSize: 24px 24px
 ```
 
-A **watermark** SVG (chart line with arrow) is fixed center, rotated -8deg,
-opacity 0.055 — already in Layout, do not duplicate on pages.
+Watermark SVG (chart line + arrow) fixed center, rotated -8deg, opacity 0.055
+— already in Layout, do NOT duplicate on pages.
 
 ## Component Recipes
 
-### Card (CoreCard)
+### Card
 ```
 background:   rgba(255,255,255,0.04)
 border:       0.5px solid rgba(255,255,255,0.08)
 borderRadius: 12px
 ```
-For elevated/important cards, add a 2px accent line on top:
-```
-{ height: "2px", background: <accent color> }
-```
+Important card → add 2px accent line on top: `{ height: "2px", background: <accent> }`
 
-### Button (CoreButton)
-| variant      | background                  | color      | border                          |
-|--------------|-----------------------------|------------|---------------------------------|
-| default      | #f5c242 (amber)             | #04060a    | none                            |
-| secondary    | rgba(255,255,255,0.04)      | w1         | 0.5px solid border              |
-| outline      | transparent                 | w1         | 0.5px solid border              |
-| ghost        | transparent                 | w2         | none                            |
-| destructive  | redDim                      | red        | 0.5px solid redBorder           |
-| teal         | tealDim                     | teal       | 0.5px solid tealBorder          |
+### Button
+| variant     | background                  | color      | border                          |
+|-------------|-----------------------------|------------|---------------------------------|
+| default     | #f5c242 (amber)             | #04060a    | none                            |
+| secondary   | rgba(255,255,255,0.04)     | w1         | 0.5px solid border              |
+| outline     | transparent                 | w1         | 0.5px solid border              |
+| ghost       | transparent                 | w2         | none                            |
+| destructive | redDim                      | red        | 0.5px solid redBorder           |
+| teal        | tealDim                     | teal       | 0.5px solid tealBorder          |
 
 All: `borderRadius: 8px`, `fontSize: 13px`, `fontWeight: 600`,
 `letterSpacing: -0.01em`, `hover: opacity 0.9`.
 
-### Badge / Chip (CoreBadge)
+### Badge / Chip
 ```
 fontSize: 9px, fontWeight: 700, letterSpacing: 0.08em,
 textTransform: uppercase, borderRadius: 9999px,
@@ -109,7 +124,7 @@ background: <accent>Dim, color: <accent>, border: 0.5px solid <accent>Border
 ```
 Variants: gold (amber), blue, teal, success (teal), danger (red), neutral (w5/w3/border).
 
-### Modal (CoreModal)
+### Modal
 ```
 background:   rgba(13,17,23,0.95)   ← ink1 at 95% (readable but dark)
 border:       0.5px solid rgba(255,255,255,0.08)
@@ -117,7 +132,7 @@ borderRadius: 12px
 color:        w1
 ```
 
-### Table (CoreTable)
+### Table
 ```
 container: background rgba(255,255,255,0.02), border 0.5px solid border, radius 12px
 header row: background rgba(255,255,255,0.03)
@@ -126,7 +141,7 @@ body text: w1/80
 row border: 0.5px solid border
 ```
 
-### Input / Select (CoreInput, CoreSelect)
+### Input / Select
 ```
 background:   rgba(255,255,255,0.04)
 border:       0.5px solid rgba(255,255,255,0.08)
@@ -134,7 +149,7 @@ borderRadius: 8px
 color:        w1
 focus:        borderColor → amberBorder, background → rgba(245,194,66,0.03)
 ```
-Select dropdown content: `rgba(13,17,23,0.98)` for readability.
+Select dropdown: `rgba(13,17,23,0.98)` for readability.
 
 ### Typography
 ```
@@ -170,24 +185,29 @@ pro            teal / tealDim / tealBorder
 enterprise     blue / blueDim / blueBorder
 ```
 
-## Rules
-1. **Never use opaque backgrounds** on page roots — always transparent so the
-   global dot grid + radial gradients show through.
-2. **Cards are translucent** (rgba 0.04), never solid ink — the dot grid
-   should be faintly visible behind them.
-3. **Borders are 0.5px** and use the white scale (0.08 default), never
-   thicker unless explicitly requested.
-4. **No glassmorphism** (no heavy blur, no saturated backdrop) — surfaces are
-   flat translucent layers.
+## Mandatory Rules
+1. **NEVER use opaque page backgrounds** — always `transparent`.
+2. **Cards are translucent** (rgba 0.04) — dot grid faintly visible behind.
+3. **Borders are 0.5px** white scale (0.08 default) — never thicker.
+4. **No glassmorphism** — no heavy blur, no saturated backdrop. Flat layers.
 5. **Accent lines** (2px) on top of cards signal importance / category.
-6. **Watermark + dot grid live in Layout** — do not re-add them on pages.
-7. Use `theme/glassmorphism.js` exports (`COLORS`, `card()`, `btnPrimary()`,
-   `chip`, etc.) for inline-styled components — they already match this system.
-8. Core components (`components/core/*`) are the preferred primitives — use
-   them instead of raw shadcn for new surfaces.
+6. **Watermark + dot grid live in Layout** — do NOT re-add on pages.
+7. **Prefer core components** (`@/components/core/*`) over raw shadcn.
+8. **Use `theme/glassmorphism.js`** exports for inline-styled components.
+9. **Never use light-theme classes** (`bg-white`, `text-black`, `bg-[#F7F4EF]`,
+   `text-[#1A1814]`, `text-[#6B6560]`) — these break the dark canvas.
 
 ## Existing Theme Files
 - `theme/glassmorphism.js` — full token library + style factories (matches
-  Legal Ink exactly; use for inline-styled components).
+  Legal Ink; use for inline-styled components).
 - `theme/atiPremium.js` — ATI surfaces (same palette, already aligned).
-- `theme/community.js` — now transparent (unified with Legal Ink).
+- `theme/community.js` — transparent (unified with Legal Ink).
+
+## Anti-Patterns to Fix on Sight
+If you encounter these in existing code, convert them:
+- `bg-white` / `bg-[#F7F4EF]` / `bg-[#111827]` → `rgba(255,255,255,0.04)` or transparent
+- `text-[#1A1814]` / `text-[#6B6560]` / `text-[#AAA49C]` → w1 / w2 / w3
+- `border-black/[0.07]` / `border-black/10` → `rgba(255,255,255,0.08)`
+- `bg-[#0B2D5B]` / `bg-[#2563EB]` buttons → amber `#f5c242` with ink text
+- `text-[#E8A83A]` / `text-[#D4A017]` → amber `#f5c242`
+- `hover:bg-[#F7F4EF]` → `hover:bg-white/5

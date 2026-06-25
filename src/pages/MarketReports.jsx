@@ -263,8 +263,8 @@ export default function MarketReports() {
             <div
               style={{
                 borderRadius: 12,
-                border: "1px dashed rgba(255,255,255,0.12)",
-                background: "#111827",
+                border: "0.5px dashed rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.02)",
                 padding: 32,
                 textAlign: "center",
               }}
@@ -281,10 +281,10 @@ export default function MarketReports() {
                   onClick={() => setActiveReport(r)}
                   className="text-left rounded-xl p-4 transition-all"
                   style={{
-                    background: "#111827",
+                    background: "rgba(255,255,255,0.04)",
                     border:
                       activeReport?.id === r.id
-                        ? "0.5px solid #D4A017"
+                        ? "0.5px solid #f5c242"
                         : "0.5px solid rgba(255,255,255,0.08)",
                   }}
                 >

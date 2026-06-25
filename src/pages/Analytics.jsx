@@ -75,10 +75,10 @@ export default function Analytics() {
     : delta.pct < 0 ? "#e24b4a"
     : (isDark ? "rgba(255,255,255,0.45)" : "#6B6560");
 
-  const textColor = isDark ? "#ffffff" : "#1A1814";
-  const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "#6B6560";
-  const cardBg = isDark ? "#111827" : "#ffffff";
-  const cardBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
+  const textColor = "rgba(255,255,255,0.90)";
+  const mutedColor = "rgba(255,255,255,0.60)";
+  const cardBg = "rgba(255,255,255,0.04)";
+  const cardBorder = "rgba(255,255,255,0.08)";
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>

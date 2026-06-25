@@ -62,6 +62,9 @@ import FunnelDashboard from "./pages/FunnelDashboard";
 import FunnelCanvas from "./pages/FunnelCanvas";
 import SearchConsoleDashboard from "./pages/SearchConsoleDashboard";
 import DealIntelligence from "./pages/DealIntelligence";
+import ATICenter from "./pages/ATICenter";
+import StartupHub from "./pages/StartupHub";
+import GrowthCenter from "./pages/GrowthCenter";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -140,6 +143,9 @@ const AuthenticatedApp = () => {
         <Route path="/funnels" element={<FunnelDashboard />} />
         <Route path="/search-console" element={<SearchConsoleDashboard />} />
         <Route path="/deal-intelligence" element={<DealIntelligence />} />
+        <Route path="/ati-center" element={<ATICenter />} />
+        <Route path="/startup-center" element={<StartupHub />} />
+        <Route path="/growth-center" element={<GrowthCenter />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

@@ -5,29 +5,7 @@ import { useLocation } from "react-router-dom";
 import { FileText, Download, ChevronDown, ChevronUp } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
-
-// ─── v3 design tokens ─────────────────────────────────────────────
-const T = {
-  ink:      "#04060a",
-  ink1:     "#0d1117",
-  ink2:     "#111620",
-  amber:    "#f5c242",
-  amberHov: "#fdd05a",
-  amberDim: "rgba(245,194,66,0.09)",
-  amberBdr: "rgba(245,194,66,0.22)",
-  teal:     "#5dcaa5",
-  tealDim:  "rgba(93,202,165,0.09)",
-  tealBdr:  "rgba(93,202,165,0.20)",
-  red:      "#e24b4a",
-  redDim:   "rgba(226,75,74,0.10)",
-  redBdr:   "rgba(226,75,74,0.22)",
-  w1:       "rgba(255,255,255,0.90)",
-  w2:       "rgba(255,255,255,0.60)",
-  w3:       "rgba(255,255,255,0.35)",
-  w4:       "rgba(255,255,255,0.09)",
-  border:   "rgba(255,255,255,0.08)",
-  borderMd: "rgba(255,255,255,0.12)",
-};
+import { T, atiBand, atiDimColor } from "@/theme/atiPremium";
 
 const DIMS = [
   { key: "documentation",      label: "Documentation & Records" },
@@ -40,19 +18,9 @@ const DIMS = [
   { key: "market_readiness",   label: "Market Readiness" },
 ];
 
-// v3 ATI bands
-function verdictFor(total) {
-  if (total >= 96) return { label: "Strong Buy",             color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
-  if (total >= 80) return { label: "Buy",                    color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
-  if (total >= 60) return { label: "Review — Due Diligence", color: T.amber, bg: T.amberDim, bdr: T.amberBdr };
-  return               { label: "Caution — Investigate",     color: T.red,   bg: T.redDim,   bdr: T.redBdr   };
-}
-
-function dimColor(score) {
-  if (score >= 12) return T.teal;
-  if (score >= 8)  return T.amber;
-  return T.red;
-}
+// ATI Premium bands + dimension colors (isolated in theme/atiPremium.js)
+const verdictFor = atiBand;
+const dimColor = atiDimColor;
 
 function genCode(reg, score) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

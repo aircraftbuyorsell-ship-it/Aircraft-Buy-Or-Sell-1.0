@@ -9,59 +9,19 @@ import MiniGlobe   from "@/components/MiniGlobe";
 import {
   ScoreArc, DimensionBars, FlagsList, OMVMValue,
 } from "@/components/ati/ATIQuickScoreGauge";
+import {
+  T, atiCard, atiAccentLine, atiAccentLineDim, atiBand,
+} from "@/theme/atiPremium";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIERS = ["free_explorer", "starter", "pro", "enterprise"];
 
-// v2 design tokens
-const T = {
-  ink:      "#04060a",
-  ink1:     "#0d1117",
-  ink2:     "#111620",
-  ink3:     "#1a2235",
-  amber:    "#f5c242",
-  amberDim: "rgba(245,194,66,0.10)",
-  amberBdr: "rgba(245,194,66,0.22)",
-  teal:     "#5dcaa5",
-  tealDim:  "rgba(93,202,165,0.09)",
-  tealBdr:  "rgba(93,202,165,0.20)",
-  red:      "#e24b4a",
-  redDim:   "rgba(226,75,74,0.10)",
-  redBdr:   "rgba(226,75,74,0.22)",
-  w1:       "rgba(255,255,255,0.90)",
-  w2:       "rgba(255,255,255,0.50)",
-  w3:       "rgba(255,255,255,0.25)",
-  w4:       "rgba(255,255,255,0.09)",
-  border:   "rgba(255,255,255,0.08)",
-  borderMd: "rgba(255,255,255,0.12)",
-};
-
-// ─── Card styles ─────────────────────────────────────────────────────────────
-
-const card = {
-  background:   "rgba(255,255,255,0.04)",
-  border:       `0.5px solid ${T.border}`,
-  borderRadius: "12px",
-  overflow:     "hidden",
-};
-
-const cardElevated = {
-  ...card,
-  background: "rgba(255,255,255,0.04)",
-};
-
-const accentLine = {
-  height:     "2px",
-  background: T.amber,
-  flexShrink: 0,
-};
-
-const accentLineDim = {
-  height:     "2px",
-  background: T.border,
-  flexShrink: 0,
-};
+// ATI Premium shared styles (isolated in theme/atiPremium.js)
+const card = atiCard;
+const cardElevated = atiCard;
+const accentLine = atiAccentLine;
+const accentLineDim = atiAccentLineDim;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -78,14 +38,6 @@ export function calcATITotal(result) {
     result.transaction_ready, result.usage_mission, result.storage_exposure,
     result.config_clarity,    result.market_readiness,
   ].reduce((s, v) => s + (v || 0), 0);
-}
-
-/** ATI score → band label + colors */
-function atiBand(total) {
-  if (total >= 96) return { label: "Strong Buy",             color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
-  if (total >= 80) return { label: "Buy",                    color: T.teal,  bg: T.tealDim,  bdr: T.tealBdr  };
-  if (total >= 60) return { label: "Review — Due Diligence", color: T.amber, bg: T.amberDim, bdr: T.amberBdr };
-  return               { label: "Caution — Investigate",     color: T.red,   bg: T.redDim,   bdr: T.redBdr   };
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────

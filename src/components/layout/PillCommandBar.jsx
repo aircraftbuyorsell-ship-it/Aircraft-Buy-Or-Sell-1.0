@@ -1,51 +1,98 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 
-const PRIMARY_ITEMS = [
-{ path: "/", label: "Dashboard" },
-{ path: "/listings", label: "Aircraft Listings" },
-{ path: "/faa-map", label: "FAA Map" },
-{ path: "/analytics", label: "Market Analytics" },
-{ path: "/search-console", label: "Search Console" },
-{ path: "/ati-quick-score", label: "ATI Quick Score" }];
-
-
-const MORE_ITEMS = [
-{ path: "/ati-full-report", label: "ATI Full Report" },
-{ path: "/ati-standard", label: "ATI Passport" },
-{ path: "/demo", label: "IntraZone Demo" },
-{ path: "/my-account", label: "Profile & Settings" },
-{ path: "/pricing", label: "Credits & Benefits" },
-{ path: "/ati-verify", label: "Verification Center" },
-{ path: "/deal-radar", label: "Deal Radar" },
-{ path: "/funnels", label: "Funnel Builder" },
-{ path: "/deal-intelligence", label: "Deal Intelligence" },
-{ path: "/escrow", label: "Hustl Contract" }];
-
+const SECTIONS = [
+  { label: "Home", path: "/" },
+  {
+    label: "Marketplace",
+    items: [
+      { path: "/listings", label: "Aircraft Listings" },
+      { path: "/compare", label: "Compare Aircraft" },
+      { path: "/deal-radar", label: "Deal Radar" },
+      { path: "/escrow", label: "Escrow" },
+      { path: "/pre-buy-inspection", label: "Pre-buy Inspection" },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { path: "/analytics", label: "Analytics" },
+      { path: "/market-reports", label: "Market Reports" },
+      { path: "/traffic", label: "Traffic Maps" },
+      { path: "/faa-map", label: "FAA Registry" },
+    ],
+  },
+  {
+    label: "ATI",
+    items: [
+      { path: "/ati-quick-score", label: "Quick Score" },
+      { path: "/ati-standard", label: "Standard" },
+      { path: "/ati-full-report", label: "Full Report" },
+      { path: "/ati-verify", label: "Verification" },
+      { path: "/ati-passport", label: "Passport" },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { path: "/opex-calculator", label: "OPEX Calculator" },
+      { path: "/valuation", label: "Valuation" },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { path: "/community", label: "ABOS Community" },
+      { path: "/weekly-briefing", label: "Weekly Briefings" },
+      { path: "/feature-requests", label: "Feature Requests" },
+    ],
+  },
+  { label: "Developers", path: "/developers" },
+  {
+    label: "Account",
+    items: [
+      { path: "/my-account", label: "Profile & Settings" },
+      { path: "/pricing", label: "Credits & Benefits" },
+    ],
+  },
+  {
+    label: "Admin",
+    items: [
+      { path: "/admin/settings", label: "Admin Settings" },
+      { path: "/admin/listings", label: "Admin Listings" },
+    ],
+  },
+];
 
 export default function PillCommandBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef(null);
+  const [openSection, setOpenSection] = useState(null);
+  const barRef = useRef(null);
 
   useEffect(() => {
     const onClick = (e) => {
-      if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false);
+      if (barRef.current && !barRef.current.contains(e.target)) setOpenSection(null);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
   const handleNav = (path) => {
-    setMoreOpen(false);
+    setOpenSection(null);
     navigate(path);
   };
 
+  const isSectionActive = (section) => {
+    if (section.path) return pathname === section.path;
+    return section.items?.some(
+      (i) => pathname === i.path || pathname.startsWith(i.path + "/")
+    );
+  };
+
   return (
-    <div className="hidden lg:flex items-center gap-1" style={{ height: 48 }}>
-      {/* Pill bar */}
+    <div ref={barRef} className="hidden lg:flex items-center gap-1" style={{ height: 48 }}>
       <div
         style={{
           display: "flex",
@@ -56,117 +103,120 @@ export default function PillCommandBar() {
           background: "#0d1117",
           border: "1px solid rgba(245,194,66,0.28)",
           borderRadius: 999,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.5)"
-        }} className="mx-auto">
-        
-        {PRIMARY_ITEMS.map((item) => {
-          const active = pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                fontSize: 13,
-                fontWeight: active ? 600 : 500,
-                color: active ? "#04060a" : "rgba(255,255,255,0.65)",
-                background: active ? "#f5c242" : "transparent",
-                borderRadius: 999,
-                padding: "8px 16px",
-                textDecoration: "none",
-                transition: "color 150ms ease, background 150ms ease",
-                whiteSpace: "nowrap"
-              }}
-              onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.color = "#fff";
-              }}
-              onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.65)";
-              }}>
-              
-              {item.label}
-            </Link>);
+          boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
+        }}
+        className="mx-auto"
+      >
+        {SECTIONS.map((section) => {
+          const active = isSectionActive(section);
+          const open = openSection === section.label;
+          const hasDropdown = !!section.items;
 
-        })}
-
-        {/* More dropdown */}
-        <div ref={moreRef} style={{ position: "relative" }}>
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 13,
-              fontWeight: 500,
-              color: moreOpen ? "#fff" : "rgba(255,255,255,0.65)",
-              background: "transparent",
-              border: "none",
-              borderRadius: 999,
-              padding: "8px 16px",
-              cursor: "pointer",
-              transition: "color 150ms ease",
-              whiteSpace: "nowrap"
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "#fff"}
-            onMouseLeave={(e) => {
-              if (!moreOpen) e.currentTarget.style.color = "rgba(255,255,255,0.65)";
-            }}>
-            
-            More <ChevronDown size={14} style={{ transition: "transform 150ms ease", transform: moreOpen ? "rotate(180deg)" : "none" }} />
-          </button>
-
-          {moreOpen &&
-          <div
-            style={{
-              position: "absolute",
-              top: "calc(100% + 8px)",
-              right: 0,
-              minWidth: 220,
-              background: "#0d1117",
-              border: "1px solid rgba(245,194,66,0.15)",
-              borderRadius: 12,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-              padding: 6,
-              zIndex: 100
-            }}>
-            
-              {MORE_ITEMS.map((item) => {
-              const active = pathname === item.path;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNav(item.path)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "left",
-                    fontSize: 13,
-                    fontWeight: active ? 600 : 500,
-                    color: active ? "#f5c242" : "rgba(255,255,255,0.75)",
-                    background: "transparent",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "10px 16px",
-                    cursor: "pointer",
-                    transition: "background 150ms ease, color 150ms ease"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(245,194,66,0.07)";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = active ? "#f5c242" : "rgba(255,255,255,0.75)";
-                  }}>
-                  
-                    {item.label}
-                  </button>);
-
-            })}
-            </div>
+          if (!hasDropdown) {
+            return (
+              <button
+                key={section.label}
+                onClick={() => handleNav(section.path)}
+                style={{
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                  color: active ? "#04060a" : "rgba(255,255,255,0.65)",
+                  background: active ? "#f5c242" : "transparent",
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "color 150ms ease, background 150ms ease",
+                }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+              >
+                {section.label}
+              </button>
+            );
           }
-        </div>
-      </div>
-    </div>);
 
+          return (
+            <div key={section.label} style={{ position: "relative" }}>
+              <button
+                onClick={() => setOpenSection(open ? null : section.label)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 13,
+                  fontWeight: active ? 600 : 500,
+                  color: open ? "#fff" : active ? "#04060a" : "rgba(255,255,255,0.65)",
+                  background: active && !open ? "#f5c242" : "transparent",
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "color 150ms ease, background 150ms ease",
+                }}
+                onMouseEnter={(e) => { if (!active && !open) e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={(e) => { if (!active && !open) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+              >
+                {section.label}
+                <ChevronDown size={14} style={{ transition: "transform 150ms ease", transform: open ? "rotate(180deg)" : "none" }} />
+              </button>
+
+              {open && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 8px)",
+                    left: 0,
+                    minWidth: 220,
+                    background: "#0d1117",
+                    border: "1px solid rgba(245,194,66,0.15)",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                    padding: 6,
+                    zIndex: 100,
+                  }}
+                >
+                  {section.items.map((item) => {
+                    const itemActive = pathname === item.path;
+                    return (
+                      <button
+                        key={item.path}
+                        onClick={() => handleNav(item.path)}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          textAlign: "left",
+                          fontSize: 13,
+                          fontWeight: itemActive ? 600 : 500,
+                          color: itemActive ? "#f5c242" : "rgba(255,255,255,0.75)",
+                          background: "transparent",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "10px 16px",
+                          cursor: "pointer",
+                          transition: "background 150ms ease, color 150ms ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "rgba(245,194,66,0.07)";
+                          e.currentTarget.style.color = "#fff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.color = itemActive ? "#f5c242" : "rgba(255,255,255,0.75)";
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

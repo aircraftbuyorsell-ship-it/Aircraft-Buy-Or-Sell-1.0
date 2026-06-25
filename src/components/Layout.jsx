@@ -5,7 +5,8 @@ import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard, Zap, Plane, Map,
   Sparkles, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch, Search, Brain } from
+  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch, Search, Brain,
+  Calculator, Users, TrendingUp, Code, Scale } from
 "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
@@ -21,40 +22,65 @@ const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 // ── Full nav list for mobile drawer ──
 const NAV_SECTIONS = [
 {
-  label: "Discover",
+  label: "Home",
   items: [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/", label: "Dashboard", icon: LayoutDashboard }]
+},
+{
+  label: "Marketplace",
+  items: [
   { path: "/listings", label: "Aircraft Listings", icon: Plane },
-  { path: "/faa-map", label: "FAA Map", icon: Map },
-  { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
-  { path: "/search-console", label: "Search Console", icon: Search }]
-
+  { path: "/compare", label: "Compare Aircraft", icon: Scale },
+  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+  { path: "/escrow", label: "Escrow", icon: Shield },
+  { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle }]
 },
 {
   label: "Intelligence",
   items: [
-  { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-  { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
-  { path: "/ati-standard", label: "ATI Passport", icon: Shield },
-  { path: "/demo", label: "IntraZone Demo", icon: Sparkles }]
-
+  { path: "/analytics", label: "Analytics", icon: BarChart2 },
+  { path: "/market-reports", label: "Market Reports", icon: FileText },
+  { path: "/traffic", label: "Traffic Maps", icon: Plane },
+  { path: "/faa-map", label: "FAA Registry", icon: Map }]
+},
+{
+  label: "ATI",
+  items: [
+  { path: "/ati-quick-score", label: "Quick Score", icon: Zap },
+  { path: "/ati-standard", label: "Standard", icon: Shield },
+  { path: "/ati-full-report", label: "Full Report", icon: FileBarChart },
+  { path: "/ati-verify", label: "Verification", icon: CheckCircle },
+  { path: "/ati-passport", label: "Passport", icon: Shield }]
+},
+{
+  label: "Tools",
+  items: [
+  { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+  { path: "/valuation", label: "Valuation", icon: TrendingUp }]
+},
+{
+  label: "Community",
+  items: [
+  { path: "/community", label: "ABOS Community", icon: Users },
+  { path: "/weekly-briefing", label: "Weekly Briefings", icon: FileText },
+  { path: "/feature-requests", label: "Feature Requests", icon: GitBranch }]
+},
+{
+  label: "Developers",
+  items: [
+  { path: "/developers", label: "API & SDK", icon: Code }]
 },
 {
   label: "Account",
   items: [
   { path: "/my-account", label: "Profile & Settings", icon: User },
-  { path: "/pricing", label: "Credits & Benefits", icon: Shield },
-  { path: "/ati-verify", label: "Verification Center", icon: CheckCircle }]
-
+  { path: "/pricing", label: "Credits & Benefits", icon: Shield }]
 },
 {
-  label: "Deals",
+  label: "Admin",
   items: [
-  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-  { path: "/funnels", label: "Funnel Builder", icon: GitBranch },
-  { path: "/deal-intelligence", label: "Deal Intelligence", icon: Brain },
-  { path: "/escrow", label: "Hustl Contract", icon: FileText }]
-
+  { path: "/admin/settings", label: "Admin Settings", icon: Shield },
+  { path: "/admin/listings", label: "Admin Listings", icon: Shield }]
 }];
 
 

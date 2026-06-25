@@ -15,16 +15,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 // ─── Tier config ──────────────────────────────────────────────────────────────
 const TIER_META = {
-  free_explorer: { icon: Shield, color: "#185FA5", label: "Free Explorer", bg: "rgba(24,95,165,0.10)", border: "rgba(24,95,165,0.25)" },
-  pro:           { icon: Zap,    color: "#D4A017", label: "Pro",           bg: "rgba(212,160,23,0.10)", border: "rgba(212,160,23,0.30)" },
+  free_explorer: { icon: Shield, color: "#4e8ef7", label: "Free Explorer", bg: "rgba(24,95,165,0.10)", border: "rgba(24,95,165,0.25)" },
+  pro:           { icon: Zap,    color: "#f5c242", label: "Pro",           bg: "rgba(212,160,23,0.10)", border: "rgba(212,160,23,0.30)" },
   enterprise:   { icon: Crown,  color: "#1A1814", label: "Enterprise",    bg: "rgba(26,24,20,0.08)",  border: "rgba(26,24,20,0.20)" },
 };
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
 function GlassCard({ children, className = "" }) {
   return (
-    <div className={`rounded-2xl border bg-white/60 backdrop-blur-md ${className}`}
-      style={{ border: "1px solid rgba(255,255,255,0.75)", boxShadow: "0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.90)" }}>
+    <div className={`rounded-2xl ${className}`}
+      style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
       {children}
     </div>
   );
@@ -35,7 +35,7 @@ function InfoTip({ text }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Info className="w-3.5 h-3.5 text-[#AAA49C] cursor-help shrink-0" />
+          <Info className="w-3.5 h-3.5 text-[rgba(255,255,255,0.35)] cursor-help shrink-0" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[220px] text-xs">{text}</TooltipContent>
       </Tooltip>
@@ -44,7 +44,7 @@ function InfoTip({ text }) {
 }
 
 function SectionLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#D4A017] mb-3">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-[#f5c242] mb-3">{children}</p>;
 }
 
 // ─── Token Balance Ring ───────────────────────────────────────────────────────
@@ -58,8 +58,8 @@ function BalanceRing({ tokens }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width="96" height="96" className="-rotate-90">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="7" />
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#D4A017"
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f5c242"
           strokeWidth="7" strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={circ * (1 - pct)}
@@ -67,8 +67,8 @@ function BalanceRing({ tokens }) {
         />
       </svg>
       <div className="text-center -mt-[76px] pb-4 pointer-events-none">
-        <p className="text-2xl font-black text-[#1A1814] leading-none">{credits.toLocaleString()}</p>
-        <p className="text-[10px] text-[#6B6560] uppercase tracking-wider font-semibold mt-0.5">credits</p>
+        <p className="text-2xl font-black text-[rgba(255,255,255,0.90)] leading-none">{credits.toLocaleString()}</p>
+        <p className="text-[10px] text-[rgba(255,255,255,0.60)] uppercase tracking-wider font-semibold mt-0.5">credits</p>
       </div>
     </div>
   );
@@ -104,18 +104,18 @@ function UpgradeModal({ open, onClose, behavior }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden bg-white/95 backdrop-blur-xl border border-white/80"
+      <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden bg-[rgba(13,17,23,0.98)] border border-[rgba(255,255,255,0.08)]"
         style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.14)" }}>
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-black/[0.06]">
-          <DialogTitle className="text-lg font-black text-[#1A1814] uppercase tracking-tight flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#D4A017]" /> Buy Token Pack
+          <DialogTitle className="text-lg font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#f5c242]" /> Buy Token Pack
           </DialogTitle>
-          <p className="text-xs text-[#6B6560] mt-1">Credits never expire. Use them anytime for any feature.</p>
+          <p className="text-xs text-[rgba(255,255,255,0.60)] mt-1">Credits never expire. Use them anytime for any feature.</p>
         </DialogHeader>
 
         <div className="p-6 space-y-3">
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 bg-[rgba(226,75,74,0.06)] border border-[rgba(226,75,74,0.22)] text-[#e24b4a] text-xs rounded-xl px-4 py-3">
               <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
             </div>
           )}
@@ -125,32 +125,32 @@ function UpgradeModal({ open, onClose, behavior }) {
             const isProcessing = processing === pack.id;
             return (
               <button key={pack.id} onClick={() => handleBuy(pack)} disabled={!!processing}
-                className="w-full flex items-center justify-between gap-3 p-4 rounded-xl border transition-all text-left disabled:opacity-60 hover:border-[#D4A017] hover:bg-[rgba(212,160,23,0.04)] group"
-                style={{ background: "rgba(247,244,239,0.60)", border: "1px solid rgba(0,0,0,0.08)" }}>
+                className="w-full flex items-center justify-between gap-3 p-4 rounded-xl border transition-all text-left disabled:opacity-60 hover:border-[#f5c242] hover:bg-[rgba(212,160,23,0.04)] group"
+                style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-sm text-[#1A1814]">{pack.name}</span>
+                    <span className="font-black text-sm text-[rgba(255,255,255,0.90)]">{pack.name}</span>
                     {pack.badge && (
-                      <span className="text-[8px] uppercase tracking-wider font-bold text-[#D4A017] bg-[rgba(212,160,23,0.15)] px-2 py-0.5 rounded-full">{pack.badge}</span>
+                      <span className="text-[8px] uppercase tracking-wider font-bold text-[#f5c242] bg-[rgba(212,160,23,0.15)] px-2 py-0.5 rounded-full">{pack.badge}</span>
                     )}
                   </div>
-                  <p className="text-xs text-[#6B6560] mt-0.5">
+                  <p className="text-xs text-[rgba(255,255,255,0.60)] mt-0.5">
                     {toCredits(pack.tokens).toLocaleString()} credits
-                    {bonus > 0 && <span className="text-[#0F7A56] font-semibold"> + {toCredits(bonus).toLocaleString()} bonus</span>}
+                    {bonus > 0 && <span className="text-[#5dcaa5] font-semibold"> + {toCredits(bonus).toLocaleString()} bonus</span>}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-lg font-black text-[#1A1814]">{pack.display_price}</p>
-                  <p className="text-[10px] text-[#AAA49C]">{totalCredits.toLocaleString()} total credits</p>
+                  <p className="text-lg font-black text-[rgba(255,255,255,0.90)]">{pack.display_price}</p>
+                  <p className="text-[10px] text-[rgba(255,255,255,0.35)]">{totalCredits.toLocaleString()} total credits</p>
                 </div>
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin text-[#D4A017]" /> : <ChevronRight className="w-4 h-4 text-[#AAA49C] group-hover:text-[#D4A017] transition-colors" />}
+                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin text-[#f5c242]" /> : <ChevronRight className="w-4 h-4 text-[rgba(255,255,255,0.35)] group-hover:text-[#f5c242] transition-colors" />}
               </button>
             );
           })}
         </div>
 
         <div className="px-6 pb-5">
-          <p className="text-[10px] text-[#AAA49C] text-center">Secured by Stripe · All major cards accepted · Credits never expire</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.35)] text-center">Secured by Stripe · All major cards accepted · Credits never expire</p>
         </div>
       </DialogContent>
     </Dialog>
@@ -161,13 +161,13 @@ function UpgradeModal({ open, onClose, behavior }) {
 function CancelDialog({ open, onClose, onConfirm }) {
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/80 max-w-sm"
+      <AlertDialogContent className="rounded-2xl bg-[rgba(13,17,23,0.98)] border border-[rgba(255,255,255,0.08)] max-w-sm"
         style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.14)" }}>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-base font-black">
             <AlertTriangle className="w-5 h-5 text-red-500" /> Cancel Subscription?
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm text-[#6B6560]">
+          <AlertDialogDescription className="text-sm text-[rgba(255,255,255,0.60)]">
             Your remaining credits will stay in your account. You'll lose access to Pro features at the end of your current billing period.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -215,13 +215,13 @@ export default function SubscriptionManagement() {
 
         {/* Header */}
         <div className="mb-8">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#D4A017]">Account</p>
-          <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] uppercase tracking-tight mt-1">Subscription Management</h1>
-          <p className="text-sm text-[#6B6560] mt-1">Manage your plan, credits, and billing details.</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#f5c242]">Account</p>
+          <h1 className="text-2xl md:text-3xl font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight mt-1">Subscription Management</h1>
+          <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">Manage your plan, credits, and billing details.</p>
         </div>
 
         {cancelDone && (
-          <div className="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 text-sm rounded-2xl px-5 py-4">
+          <div className="mb-6 flex items-center gap-3 bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5] text-sm rounded-2xl px-5 py-4">
             <CheckCircle2 className="w-5 h-5 shrink-0" />
             Cancellation request submitted. Your access continues until the end of the billing period.
           </div>
@@ -242,8 +242,8 @@ export default function SubscriptionManagement() {
                     <TierIcon className="w-5 h-5" style={{ color: tierMeta.color }} />
                   </div>
                   <div>
-                    <p className="text-lg font-black text-[#1A1814]">{tierMeta.label}</p>
-                    <p className="text-xs text-[#6B6560]">{TIERS[tier]?.price_label || "Custom"}</p>
+                    <p className="text-lg font-black text-[rgba(255,255,255,0.90)]">{tierMeta.label}</p>
+                    <p className="text-xs text-[rgba(255,255,255,0.60)]">{TIERS[tier]?.price_label || "Custom"}</p>
                   </div>
                 </div>
 
@@ -251,7 +251,7 @@ export default function SubscriptionManagement() {
                   {!isAdmin && tier !== "enterprise" && (
                     <button onClick={() => setUpgradeOpen(true)}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95"
-                      style={{ background: "linear-gradient(135deg,#D4A017,#E8B832)", boxShadow: "0 4px 14px rgba(212,160,23,0.30)" }}
+                      style={{ background: "linear-gradient(135deg,#f5c242,#f5c242)", boxShadow: "0 4px 14px rgba(212,160,23,0.30)" }}
                       title="Buy additional credits for pay-as-you-go access">
                       <Zap className="w-3.5 h-3.5" /> Buy Credits
                     </button>
@@ -259,7 +259,7 @@ export default function SubscriptionManagement() {
                   {tier === "enterprise" && (
                     <a href="mailto:sales@abos.aero"
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95"
-                      style={{ background: "linear-gradient(135deg,#0B2D5B,#143C75)" }}>
+                      style={{ background: "linear-gradient(135deg,#4e8ef7,#4e8ef7)" }}>
                       <ArrowUpRight className="w-3.5 h-3.5" /> Contact Account Manager
                     </a>
                   )}
@@ -274,10 +274,10 @@ export default function SubscriptionManagement() {
               </div>
 
               {/* Feature list */}
-              <div className="mt-5 pt-4 border-t border-black/[0.05] grid sm:grid-cols-2 gap-2">
+              <div className="mt-5 pt-4 border-t border-[rgba(255,255,255,0.08)] grid sm:grid-cols-2 gap-2">
                 {(TIERS[tier]?.features || []).map(f => (
-                  <div key={f} className="flex items-center gap-2 text-xs text-[#4A4845]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4A017] shrink-0" />
+                  <div key={f} className="flex items-center gap-2 text-xs text-[rgba(255,255,255,0.70)]">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#f5c242] shrink-0" />
                     {f}
                   </div>
                 ))}
@@ -304,22 +304,22 @@ export default function SubscriptionManagement() {
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-[#4A4845]">{item.label}</span>
+                        <span className="text-xs text-[rgba(255,255,255,0.70)]">{item.label}</span>
                         <InfoTip text={item.tip} />
                       </div>
-                      <span className="text-xs font-bold text-[#1A1814] tabular-nums">{toCredits(item.cost)} credits</span>
+                      <span className="text-xs font-bold text-[rgba(255,255,255,0.90)] tabular-nums">{toCredits(item.cost)} credits</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-black/[0.05] flex items-center justify-between">
+              <div className="mt-5 pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-[#6B6560]" />
-                  <span className="text-xs text-[#6B6560]">Raw tokens remaining</span>
+                  <Package className="w-3.5 h-3.5 text-[rgba(255,255,255,0.60)]" />
+                  <span className="text-xs text-[rgba(255,255,255,0.60)]">Raw tokens remaining</span>
                   <InfoTip text="Raw tokens are the underlying unit. Multiply by 5 for display credits." />
                 </div>
-                <span className="text-sm font-black text-[#1A1814]">{isAdmin ? "∞" : (tokens || 0).toLocaleString()} tokens</span>
+                <span className="text-sm font-black text-[rgba(255,255,255,0.90)]">{isAdmin ? "∞" : (tokens || 0).toLocaleString()} tokens</span>
               </div>
             </GlassCard>
 
@@ -328,21 +328,21 @@ export default function SubscriptionManagement() {
               <SectionLabel>Payment Method</SectionLabel>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F4EF] border border-black/[0.07] flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-[#6B6560]" />
+                  <div className="w-10 h-10 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-[rgba(255,255,255,0.60)]" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[#1A1814]">Managed via Stripe</p>
-                    <p className="text-xs text-[#6B6560]">Secure payment processing · All major cards</p>
+                    <p className="text-sm font-semibold text-[rgba(255,255,255,0.90)]">Managed via Stripe</p>
+                    <p className="text-xs text-[rgba(255,255,255,0.60)]">Secure payment processing · All major cards</p>
                   </div>
                 </div>
                 <a href="https://billing.stripe.com/p/login/fZedQQfYycx74Da288" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0B2D5B] border border-[#0B2D5B]/20 hover:bg-[#0B2D5B]/[0.06] transition-all"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#4e8ef7] border border-[#4e8ef7]/20 hover:bg-[#4e8ef7]/[0.06] transition-all"
                   title="Open the Stripe customer portal to update your payment details">
                   <RefreshCw className="w-3.5 h-3.5" /> Manage Billing
                 </a>
               </div>
-              <p className="text-[11px] text-[#AAA49C] mt-3 flex items-center gap-1.5">
+              <p className="text-[11px] text-[rgba(255,255,255,0.35)] mt-3 flex items-center gap-1.5">
                 <Info className="w-3 h-3" />
                 Invoices, billing history, and card updates are available in the Stripe customer portal.
               </p>
@@ -362,7 +362,7 @@ export default function SubscriptionManagement() {
               </div>
 
               {transactions.length === 0 ? (
-                <div className="text-center py-8 text-[#AAA49C]">
+                <div className="text-center py-8 text-[rgba(255,255,255,0.35)]">
                   <Clock className="w-8 h-8 mx-auto opacity-30 mb-2" />
                   <p className="text-xs">No transactions yet</p>
                 </div>
@@ -371,16 +371,16 @@ export default function SubscriptionManagement() {
                   {transactions.map(tx => {
                     const isPositive = tx.amount > 0;
                     return (
-                      <div key={tx.id} className="flex items-center justify-between gap-2 py-2 border-b border-black/[0.04] last:border-0">
+                      <div key={tx.id} className="flex items-center justify-between gap-2 py-2 border-b border-[rgba(255,255,255,0.06)] last:border-0">
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-[#1A1814] truncate">{tx.pack || tx.feature || tx.type}</p>
-                          <p className="text-[10px] text-[#AAA49C]">{new Date(tx.created_date).toLocaleDateString()}</p>
+                          <p className="text-xs font-semibold text-[rgba(255,255,255,0.90)] truncate">{tx.pack || tx.feature || tx.type}</p>
+                          <p className="text-[10px] text-[rgba(255,255,255,0.35)]">{new Date(tx.created_date).toLocaleDateString()}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className={`text-sm font-black ${isPositive ? "text-[#0F7A56]" : "text-[#FF3B30]"}`}>
+                          <p className={`text-sm font-black ${isPositive ? "text-[#5dcaa5]" : "text-[#e24b4a]"}`}>
                             {isPositive ? "+" : ""}{toCredits(tx.amount)} cr
                           </p>
-                          {tx.price_usd && <p className="text-[10px] text-[#AAA49C]">${tx.price_usd}</p>}
+                          {tx.price_usd && <p className="text-[10px] text-[rgba(255,255,255,0.35)]">${tx.price_usd}</p>}
                         </div>
                       </div>
                     );
@@ -396,15 +396,15 @@ export default function SubscriptionManagement() {
                   style={{ background: "radial-gradient(ellipse at 100% 0%, rgba(212,160,23,0.12) 0%, transparent 60%)" }} />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-[#D4A017]" />
-                    <p className="text-xs font-black text-[#1A1814] uppercase tracking-wide">Go Pro</p>
+                    <TrendingUp className="w-4 h-4 text-[#f5c242]" />
+                    <p className="text-xs font-black text-[rgba(255,255,255,0.90)] uppercase tracking-wide">Go Pro</p>
                   </div>
-                  <p className="text-xs text-[#6B6560] leading-relaxed">
+                  <p className="text-xs text-[rgba(255,255,255,0.60)] leading-relaxed">
                     Unlock full ATI Passport reports, Deal Radar, Leads CRM, and bulk import with token packs.
                   </p>
                   <button onClick={() => setUpgradeOpen(true)}
-                    className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-[#0B2D5B] transition-all active:scale-95"
-                    style={{ background: "linear-gradient(135deg,#F5C842,#E8A83A)", boxShadow: "0 4px 14px rgba(212,160,23,0.28)" }}>
+                    className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-[#4e8ef7] transition-all active:scale-95"
+                    style={{ background: "linear-gradient(135deg,#f5c242,#f5c242)", boxShadow: "0 4px 14px rgba(212,160,23,0.28)" }}>
                     <Zap className="w-3.5 h-3.5" /> View Token Packs
                   </button>
                 </div>
@@ -415,12 +415,12 @@ export default function SubscriptionManagement() {
             {tier !== "enterprise" && (
               <GlassCard className="p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-4 h-4 text-[#1A1814]" />
-                  <p className="text-xs font-black text-[#1A1814] uppercase tracking-wide">Enterprise?</p>
+                  <Crown className="w-4 h-4 text-[rgba(255,255,255,0.90)]" />
+                  <p className="text-xs font-black text-[rgba(255,255,255,0.90)] uppercase tracking-wide">Enterprise?</p>
                 </div>
-                <p className="text-xs text-[#6B6560]">Need unlimited tokens, API access, or team seats? Contact us for a custom plan.</p>
+                <p className="text-xs text-[rgba(255,255,255,0.60)]">Need unlimited tokens, API access, or team seats? Contact us for a custom plan.</p>
                 <a href="mailto:sales@abos.aero"
-                  className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#0B2D5B] hover:text-[#D4A017] transition-colors">
+                  className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#4e8ef7] hover:text-[#f5c242] transition-colors">
                   Contact Sales <ArrowUpRight className="w-3 h-3" />
                 </a>
               </GlassCard>

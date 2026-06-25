@@ -96,14 +96,14 @@ function MsgBubble({ msg }) {
   return (
     <div className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
       <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
-        isUser ? "bg-[#0B2D5B] text-white rounded-br-sm" : "bg-white/90 border border-white/20 text-[#1A1814] rounded-bl-sm"
+        isUser ? "bg-[#0B2D5B] text-white rounded-br-sm" : "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.12)] text-[rgba(255,255,255,0.90)] rounded-bl-sm"
       }`}>
         {isUser ? <p>{msg.content}</p> : (
           <ReactMarkdown
             className="prose prose-xs max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
             components={{
               p: ({ children }) => <p className="my-0.5">{children}</p>,
-              strong: ({ children }) => <strong className="font-bold text-[#0B2D5B]">{children}</strong>,
+              strong: ({ children }) => <strong className="font-bold text-[#4e8ef7]">{children}</strong>,
             }}
           >
             {msg.content}
@@ -434,7 +434,7 @@ export default function MaxChat() {
               disabled={loading || !input.trim()}
               className="shrink-0 w-10 h-10 rounded-xl bg-[#E8A83A] hover:bg-[#f5bb4e] disabled:opacity-30 flex items-center justify-center transition-colors"
             >
-              {loading ? <Loader2 className="w-4 h-4 text-[#0B2D5B] animate-spin" /> : <Send className="w-4 h-4 text-[#0B2D5B]" />}
+              {loading ? <Loader2 className="w-4 h-4 text-[#4e8ef7] animate-spin" /> : <Send className="w-4 h-4 text-[#4e8ef7]" />}
             </button>
           </div>
         </div>

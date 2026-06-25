@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Coins, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import { Coins } from "lucide-react";
 import EarningsSummary from "@/components/developers/EarningsSummary";
 import InvocationLedger from "@/components/developers/InvocationLedger";
+
+const W1 = "rgba(255,255,255,0.90)";
+const W2 = "rgba(255,255,255,0.60)";
+const AMBER = "#f5c242";
 
 export default function DeveloperEarnings() {
   const { data: user } = useQuery({
@@ -34,21 +38,21 @@ export default function DeveloperEarnings() {
 
   if (!account) {
     return (
-      <div className="flex items-center justify-center h-64" style={{ background: "#F7F4EF", backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px", minHeight: "100vh" }}>
-        <p className="text-sm text-[#6B6560]">No developer account found. Register on the <a href="/developers" className="text-[#2563EB] underline">Developers</a> page.</p>
+      <div className="flex items-center justify-center h-64" style={{ background: "transparent", minHeight: "100vh" }}>
+        <p className="text-sm" style={{ color: W2 }}>No developer account found. Register on the <a href="/developers" className="underline" style={{ color: AMBER }}>Developers</a> page.</p>
       </div>
     );
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "#F7F4EF", backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px", minHeight: "100vh" }}>
+    <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "transparent" }}>
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl bg-[#D4A017]/15 border border-[#D4A017]/30 flex items-center justify-center">
-          <Coins className="w-4.5 h-4.5 text-[#A67C00]" />
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
+          <Coins className="w-4.5 h-4.5" style={{ color: AMBER }} />
         </div>
         <div>
-          <h1 className="text-2xl font-black text-[#1A1814] tracking-tight">Earnings & Payouts</h1>
-          <p className="text-sm text-[#6B6560]">{account.company_name} · Revenue ledger</p>
+          <h1 className="text-2xl font-black tracking-tight" style={{ color: W1 }}>Earnings & Payouts</h1>
+          <p className="text-sm" style={{ color: W2 }}>{account.company_name} · Revenue ledger</p>
         </div>
       </div>
 

@@ -48,7 +48,7 @@ export default function AdminMarketplace() {
   if (user.role !== "admin") {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-[#6B6560] text-sm">Admin access required.</p>
+        <p className="text-[rgba(255,255,255,0.60)] text-sm">Admin access required.</p>
       </div>
     );
   }

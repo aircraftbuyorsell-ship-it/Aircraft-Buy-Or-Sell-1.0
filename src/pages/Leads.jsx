@@ -10,12 +10,20 @@ import UpgradeGate from "@/components/marketing/UpgradeGate";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import AddLeadModal from "@/components/leads/AddLeadModal";
 
+const W1 = "rgba(255,255,255,0.90)";
+const W2 = "rgba(255,255,255,0.60)";
+const W3 = "rgba(255,255,255,0.35)";
+const BORDER = "rgba(255,255,255,0.08)";
+const AMBER = "#f5c242";
+const TEAL = "#5dcaa5";
+const BLUE = "#4e8ef7";
+const CARD = "rgba(255,255,255,0.04)";
+
 function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold" style={{ color: AMBER }}>{children}</p>;
 }
 
 const BUDGET_ORDER = ["<100k", "<200k", "<500k", "<1M", ">1M"];
-
 
 export default function Leads() {
   const queryClient = useQueryClient();
@@ -26,7 +34,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState("");
   const [budgetFilter, setBudgetFilter] = useState("");
   const [unlocked, setUnlocked] = useState(() => new Set());
-  const [gate, setGate] = useState(null); // { creditsNeeded }
+  const [gate, setGate] = useState(null);
   const [toast, setToast] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -43,7 +51,6 @@ export default function Leads() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["leads"] }),
   });
 
-  // Consume credits (tokens) + persist unlock
   const consumeCredits = async (credits, feature) => {
     if (isEnterprise) return true;
     const tokensNeeded = fromCredits(credits);
@@ -71,18 +78,16 @@ export default function Leads() {
     const next = new Set(unlocked);
     next.add(lead.id);
     setUnlocked(next);
-    setToast({ msg: `Contact unlocked — ${LEAD_UNLOCK_COST} credits used`, color: "#0F7A56" });
+    setToast({ msg: `Contact unlocked — ${LEAD_UNLOCK_COST} credits used`, color: TEAL });
     setTimeout(() => setToast(null), 2500);
   };
 
   const handleBuyPack = async (pack) => {
-    // Single pack just scrolls to nearest locked row — user picks which to unlock
     if (pack.id === "single") {
       const firstLocked = leads.find(l => !unlocked.has(l.id));
       if (firstLocked) handleUnlockOne(firstLocked);
       return;
     }
-    // Bulk packs unlock N locked leads
     const ok = await consumeCredits(pack.credits, `lead_pack_${pack.id}`);
     if (!ok) return;
     const locked = leads.filter(l => !unlocked.has(l.id)).slice(0, pack.leads);
@@ -91,7 +96,7 @@ export default function Leads() {
     setUnlocked(next);
     setToast({
       msg: `${locked.length} contacts unlocked · ${pack.credits} credits used`,
-      color: "#0F7A56",
+      color: TEAL,
     });
     setTimeout(() => setToast(null), 3000);
   };
@@ -112,60 +117,38 @@ export default function Leads() {
   }), [leads, unlocked]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F7F4EF]">
-      {/* Dot grid overlay — unified platform texture */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] overflow-hidden">
-        <img
-          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/61cd83faf_Snmekobrazovky2026-05-15095426.png"
-          alt="Airport lounge window motif"
-          className="absolute inset-0 w-full h-full object-cover opacity-[0.55] grayscale"
-        />
-        <img
-          src="https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/aad075b19_624324958_2759110867807924_1126729800774297176_n.jpg"
-          alt="Aircraft runway motif"
-          className="absolute right-[-6%] top-12 w-[58%] max-w-3xl opacity-[0.58] mix-blend-multiply blur-[0.4px] hidden md:block"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-[#F7F4EF]/42 to-[#F7F4EF]/90" />
-        <div className="absolute inset-y-0 left-[18%] w-px bg-[#111113]/10" />
-        <div className="absolute inset-y-0 left-[48%] w-px bg-[#111113]/10" />
-        <div className="absolute inset-y-0 right-[19%] w-px bg-[#111113]/10" />
-      </div>
+    <div className="relative min-h-screen overflow-hidden" style={{ background: "transparent" }}>
       {/* Header */}
       <div className="relative z-10 px-4 md:px-8 pt-6 md:pt-8 pb-5">
         <GoldLabel>IntraZone · Private Marketplace</GoldLabel>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3 rounded-[2rem] border border-white/65 bg-white/45 backdrop-blur-xl px-5 py-5 shadow-[0_24px_70px_rgba(11,45,91,0.08)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3 rounded-2xl px-5 py-5" style={{ background: CARD, border: `0.5px solid ${BORDER}` }}>
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight uppercase">Qualified Leads Marketplace</h1>
-            <p className="text-[#6B6560] text-sm mt-0.5">
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase" style={{ color: W1 }}>Qualified Leads Marketplace</h1>
+            <p className="text-sm mt-0.5" style={{ color: W2 }}>
               {stats.unlocked}/{stats.total} contacts unlocked · {userCredits.toLocaleString()} credits available
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={() => setAddOpen(true)}
-              className="flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#143C75] text-white text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full transition-colors">
+              className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full transition-opacity hover:opacity-90"
+              style={{ background: BLUE, color: "#04060a" }}>
               <UserPlus className="w-3.5 h-3.5" /> Add Lead
             </button>
-            <div className="flex items-center gap-1.5 bg-[#D4A017] text-[#2563EB] text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full"
+              style={{ background: AMBER, color: "#04060a" }}>
               <Zap className="w-3.5 h-3.5" /> {LEAD_UNLOCK_COST} cr / single
             </div>
           </div>
         </div>
 
         {/* Private notice */}
-        <div className="mt-4 flex flex-wrap items-start gap-3 bg-[#2563EB]/88 backdrop-blur-xl text-white rounded-2xl px-4 py-3 border border-white/15 shadow-[0_18px_55px_rgba(11,45,91,0.18)]">
-          <div className="w-8 h-8 rounded-full bg-[#D4A017] flex items-center justify-center shrink-0">
-            <Lock className="w-4 h-4 text-[#2563EB]" strokeWidth={2.5} />
+        <div className="mt-4 flex flex-wrap items-start gap-3 rounded-2xl px-4 py-3" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: AMBER }}>
+            <Lock className="w-4 h-4" style={{ color: "#04060a" }} strokeWidth={2.5} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-black uppercase tracking-tight">Contact info is masked until you unlock it</p>
-            <p className="text-[12px] text-white/75 mt-0.5 leading-relaxed">
+            <p className="text-sm font-black uppercase tracking-tight" style={{ color: W1 }}>Contact info is masked until you unlock it</p>
+            <p className="text-[12px] mt-0.5 leading-relaxed" style={{ color: W2 }}>
               Buy a single contact on-demand — or unlock in volume with a discounted pack. Verified buyers only.
             </p>
           </div>
@@ -179,14 +162,14 @@ export default function Leads() {
         {/* Stats row */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: "Total", value: stats.total, color: "#1A1814" },
-            { label: "Unlocked", value: stats.unlocked, color: "#0F7A56" },
-            { label: "Qualified", value: stats.qualified, color: "#D4A017" },
-            { label: "Closed", value: stats.closed, color: "#2563EB" },
+            { label: "Total", value: stats.total, color: W1 },
+            { label: "Unlocked", value: stats.unlocked, color: TEAL },
+            { label: "Qualified", value: stats.qualified, color: AMBER },
+            { label: "Closed", value: stats.closed, color: BLUE },
           ].map(s => (
-            <div key={s.label} className="bg-white/58 backdrop-blur-xl border border-white/65 rounded-xl px-4 py-3 text-center shadow-sm">
+            <div key={s.label} className="rounded-xl px-4 py-3 text-center" style={{ background: CARD, border: `0.5px solid ${BORDER}` }}>
               <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
-              <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold mt-0.5">{s.label}</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold mt-0.5" style={{ color: W3 }}>{s.label}</p>
             </div>
           ))}
         </div>
@@ -194,11 +177,12 @@ export default function Leads() {
         {/* Search & Filters */}
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[180px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#AAA49C]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: W3 }} />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search aircraft preference, budget…"
-              className="w-full pl-9 pr-4 py-2.5 bg-white/62 backdrop-blur-xl border border-white/70 rounded-xl text-sm text-[#1A1814] placeholder-[#AAA49C] focus:outline-none focus:border-[#2563EB] transition-colors shadow-sm" />
-            {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA49C]"><X className="w-3.5 h-3.5" /></button>}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-colors"
+              style={{ background: CARD, border: `0.5px solid ${BORDER}`, color: W1 }} />
+            {search && <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: W3 }}><X className="w-3.5 h-3.5" /></button>}
           </div>
           <BottomSheetSelect
             label="Filter by status"
@@ -222,36 +206,36 @@ export default function Leads() {
         </div>
 
         {/* Table */}
-        <div className="bg-white/62 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden shadow-[0_24px_70px_rgba(11,45,91,0.08)]">
-          <div className="hidden md:flex items-center gap-4 px-6 py-3 border-b border-black/[0.06] bg-white/35 backdrop-blur-xl">
+        <div className="rounded-2xl overflow-hidden" style={{ background: CARD, border: `0.5px solid ${BORDER}` }}>
+          <div className="hidden md:flex items-center gap-4 px-6 py-3" style={{ borderBottom: `0.5px solid ${BORDER}`, background: "rgba(255,255,255,0.03)" }}>
             <div className="w-9 shrink-0" />
             <div className="flex-1">
-              <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">Lead</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: W3 }}>Lead</p>
             </div>
             <div className="w-20 text-center">
-              <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">Budget</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: W3 }}>Budget</p>
             </div>
             <div className="w-28 text-right">
-              <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">Status</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: W3 }}>Status</p>
             </div>
             <div className="w-24 text-right">
-              <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">Action</p>
+              <p className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: W3 }}>Action</p>
             </div>
           </div>
 
           {isLoading ? (
             [...Array(8)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-6 py-4 border-b border-black/[0.05]">
-                <div className="w-9 h-9 rounded-full bg-black/5 animate-pulse shrink-0" />
+              <div key={i} className="flex items-center gap-4 px-6 py-4" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                <div className="w-9 h-9 rounded-full animate-pulse shrink-0" style={{ background: "rgba(255,255,255,0.06)" }} />
                 <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 bg-black/5 rounded animate-pulse w-1/3" />
-                  <div className="h-3 bg-black/5 rounded animate-pulse w-1/2" />
+                  <div className="h-3.5 rounded animate-pulse w-1/3" style={{ background: "rgba(255,255,255,0.06)" }} />
+                  <div className="h-3 rounded animate-pulse w-1/2" style={{ background: "rgba(255,255,255,0.06)" }} />
                 </div>
-                <div className="h-5 w-16 bg-black/5 rounded-full animate-pulse" />
+                <div className="h-5 w-16 rounded-full animate-pulse" style={{ background: "rgba(255,255,255,0.06)" }} />
               </div>
             ))
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center py-16 text-[#AAA49C]">
+            <div className="flex flex-col items-center py-16" style={{ color: W3 }}>
               <Users className="w-10 h-10 mb-3 opacity-30" />
               <p className="text-sm font-medium">No leads found</p>
             </div>
@@ -273,8 +257,8 @@ export default function Leads() {
       {/* Toast */}
       {toast && (
         <div
-          className="fixed bottom-6 right-6 z-50 bg-white border rounded-xl shadow-lg px-4 py-3 flex items-center gap-2 animate-in slide-in-from-bottom-5"
-          style={{ borderColor: toast.color }}
+          className="fixed bottom-6 right-6 z-50 rounded-xl shadow-lg px-4 py-3 flex items-center gap-2 animate-in slide-in-from-bottom-5"
+          style={{ background: "rgba(13,17,23,0.98)", border: `0.5px solid ${toast.color}` }}
         >
           <Sparkles className="w-4 h-4" style={{ color: toast.color }} />
           <p className="text-sm font-bold" style={{ color: toast.color }}>{toast.msg}</p>
@@ -295,7 +279,7 @@ export default function Leads() {
         onClose={() => setAddOpen(false)}
         onSaved={() => {
           queryClient.invalidateQueries({ queryKey: ["leads"] });
-          setToast({ msg: "Lead added successfully", color: "#0F7A56" });
+          setToast({ msg: "Lead added successfully", color: TEAL });
           setTimeout(() => setToast(null), 2500);
         }}
       />

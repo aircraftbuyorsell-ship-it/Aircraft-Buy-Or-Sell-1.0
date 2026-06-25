@@ -91,10 +91,10 @@ export default function AdminSettings() {
   if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="glass-card p-10 text-center max-w-sm">
-          <Lock className="w-10 h-10 text-[#E8A83A] mx-auto mb-4" />
-          <p className="font-black text-[#0B2D5B] uppercase tracking-tight">Admin Access Required</p>
-          <p className="text-sm text-[#6B6560] mt-2">You do not have permission to view this page.</p>
+        <div className="rounded-2xl p-10 text-center max-w-sm" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+          <Lock className="w-10 h-10 text-[#f5c242] mx-auto mb-4" />
+          <p className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight">Admin Access Required</p>
+          <p className="text-sm text-[rgba(255,255,255,0.60)] mt-2">You do not have permission to view this page.</p>
         </div>
       </div>
     );
@@ -105,40 +105,40 @@ export default function AdminSettings() {
 
       {/* Header */}
       <div className="mb-8 sm:mb-10">
-        <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8A83A]">Admin Panel</p>
-        <h1 className="text-xl sm:text-2xl font-black text-[#0B2D5B] uppercase tracking-tight mt-1">Platform Settings</h1>
-        <p className="text-xs sm:text-sm text-[#6B6560] mt-1">Global configuration for ABOS platform behaviour and AI analysis.</p>
+        <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-bold text-[#f5c242]">Admin Panel</p>
+        <h1 className="text-xl sm:text-2xl font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight mt-1">Platform Settings</h1>
+        <p className="text-xs sm:text-sm text-[rgba(255,255,255,0.60)] mt-1">Global configuration for ABOS platform behaviour and AI analysis.</p>
       </div>
 
       {/* ABOS Data Influence Card */}
-      <div className="glass-card p-7 mb-6">
+      <div className="rounded-2xl p-7 mb-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-11 h-11 rounded-2xl bg-[#0B2D5B]/10 flex items-center justify-center shrink-0">
-            <Database className="w-5 h-5 text-[#0B2D5B]" />
+          <div className="w-11 h-11 rounded-2xl bg-[#4e8ef7]/10 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5 text-[rgba(255,255,255,0.90)]" />
           </div>
           <div>
-            <h2 className="font-black text-[#0B2D5B] uppercase tracking-tight text-base">
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
               Internal Data Influence on Market Analysis
             </h2>
-            <p className="text-sm text-[#6B6560] mt-1">
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
               Controls whether AI-generated market reports and forecasts use internal ABOS listing data as analytical inputs.
             </p>
           </div>
         </div>
 
         {/* Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-2xl border border-black/[0.07] bg-white/50 mb-5">
+        <div className="flex items-center justify-between p-4 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] mb-5">
           <div className="flex items-center gap-3">
             {frozen ? (
-              <AlertTriangle className="w-5 h-5 text-[#E8A83A]" />
+              <AlertTriangle className="w-5 h-5 text-[#f5c242]" />
             ) : (
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <CheckCircle2 className="w-5 h-5 text-[#5dcaa5]" />
             )}
             <div>
-              <p className="font-bold text-[#1A1814] text-sm">
+              <p className="font-bold text-[rgba(255,255,255,0.90)] text-sm">
                 {frozen ? "ABOS Internal Data — EXCLUDED" : "ABOS Internal Data — INCLUDED"}
               </p>
-              <p className="text-xs text-[#6B6560] mt-0.5">
+              <p className="text-xs text-[rgba(255,255,255,0.60)] mt-0.5">
                 {frozen
                   ? "LLM prompts rely solely on external macro/industry signals."
                   : "LLM prompts incorporate ABOS listing data as analysis input."}
@@ -146,7 +146,7 @@ export default function AdminSettings() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={frozen ? "bg-[#E8A83A]/15 text-[#A67C00] border-[#E8A83A]/30" : "bg-green-50 text-green-700 border-green-200"}>
+            <Badge className={frozen ? "bg-[#f5c242]/15 text-[#f5c242] border-[#f5c242]/30" : "bg-[rgba(93,202,165,0.06)] text-[#5dcaa5] border-[rgba(93,202,165,0.20)]"}>
               {frozen ? "Frozen" : "Active"}
             </Badge>
             <Switch
@@ -157,13 +157,13 @@ export default function AdminSettings() {
         </div>
 
         {/* Info box */}
-        <div className={`rounded-xl p-4 mb-5 text-sm ${frozen ? "bg-[#E8A83A]/08 border border-[#E8A83A]/20" : "bg-green-50 border border-green-200"}`}>
+        <div className={`rounded-xl p-4 mb-5 text-sm ${frozen ? "bg-[#f5c242]/08 border border-[#f5c242]/20" : "bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)]"}`}>
           {frozen ? (
-            <p className="text-[#7A5C00]">
+            <p className="text-[#f5c242]">
               <strong>When frozen:</strong> All market analyses (reports + forecasts) will instruct the AI to ignore internal ABOS listing counts, prices, and deal data — relying exclusively on external macroeconomic, regulatory, and industry signals. Analyses will still be generated normally.
             </p>
           ) : (
-            <p className="text-green-800">
+            <p className="text-[#5dcaa5]">
               <strong>When active:</strong> Market analyses will include ABOS internal listing data (active listings, price averages, deal distribution) as supporting context for AI-generated insights.
             </p>
           )}
@@ -171,7 +171,7 @@ export default function AdminSettings() {
 
         {/* Message editor */}
         <div className="mb-5">
-          <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#6B6560] mb-2 block">
+          <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[rgba(255,255,255,0.60)] mb-2 block">
             User Notification Message
           </label>
           <Textarea
@@ -181,14 +181,14 @@ export default function AdminSettings() {
             className="resize-none min-h-[90px] text-sm"
             maxLength={600}
           />
-          <p className="text-[11px] text-[#AAA49C] mt-1.5 text-right">{message.length}/600</p>
+          <p className="text-[11px] text-[rgba(255,255,255,0.35)] mt-1.5 text-right">{message.length}/600</p>
         </div>
 
         <Button
           onClick={() => saveMutation.mutate()}
           disabled={saveMutation.isPending || isLoading}
           className="w-full font-bold uppercase tracking-wide"
-          style={{ background: "linear-gradient(135deg,#0B2D5B,#143C75)" }}
+          style={{ background: "linear-gradient(135deg,#4e8ef7,#143C75)" }}
         >
           {saveMutation.isPending ? "Saving..." : saved ? "✓ Saved" : "Save Settings"}
         </Button>
@@ -204,28 +204,28 @@ export default function AdminSettings() {
       <WebhooksConfig />
 
       {/* Global Data Sync */}
-      <div className="glass-card p-7 mt-6">
+      <div className="rounded-2xl p-7 mt-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4 mb-5">
-          <div className="w-11 h-11 rounded-2xl bg-[#dc2626]/10 flex items-center justify-center shrink-0">
-            <RefreshCw className="w-5 h-5 text-[#dc2626]" />
+          <div className="w-11 h-11 rounded-2xl bg-[#e24b4a]/10 flex items-center justify-center shrink-0">
+            <RefreshCw className="w-5 h-5 text-[#e24b4a]" />
           </div>
           <div>
-            <h2 className="font-black text-[#0B2D5B] uppercase tracking-tight text-base">
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
               Global Data Sync
             </h2>
-            <p className="text-sm text-[#6B6560] mt-1">
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
               One-click full synchronization — FAA registry, ATI scoring, and live traffic ingestion.
             </p>
           </div>
         </div>
 
         {/* Warning */}
-        <div className="rounded-xl p-4 mb-5 bg-[#dc2626]/05 border border-[#dc2626]/15">
+        <div className="rounded-xl p-4 mb-5 bg-[#e24b4a]/05 border border-[#e24b4a]/15">
           <div className="flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-[#dc2626] shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-[#e24b4a] shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-bold text-[#dc2626]">This operation may take several minutes</p>
-              <p className="text-xs text-[#6B6560] mt-0.5">
+              <p className="text-sm font-bold text-[#e24b4a]">This operation may take several minutes</p>
+              <p className="text-xs text-[rgba(255,255,255,0.60)] mt-0.5">
                 All three steps (FAA sync, ATI scoring, traffic ingestion) run sequentially. Do not close this page until complete.
               </p>
             </div>
@@ -236,17 +236,17 @@ export default function AdminSettings() {
         <div className="space-y-2 mb-5">
           {syncSteps.map((step) => {
             const statusIcon =
-              step.status === "running" ? <Loader2 className="w-4 h-4 animate-spin text-[#2563eb]" /> :
-              step.status === "success" ? <CheckCircle2 className="w-4 h-4 text-green-500" /> :
+              step.status === "running" ? <Loader2 className="w-4 h-4 animate-spin text-[#4e8ef7]" /> :
+              step.status === "success" ? <CheckCircle2 className="w-4 h-4 text-[#5dcaa5]" /> :
               step.status === "error" ? <XCircle className="w-4 h-4 text-red-500" /> :
               <div className="w-4 h-4 rounded-full border-2 border-[#AAA49C]/30" />;
             return (
-              <div key={step.key} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-black/[0.05] bg-white/40">
+              <div key={step.key} className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)]">
                 {statusIcon}
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-[#1A1814]">{step.label}</p>
+                  <p className="text-xs font-semibold text-[rgba(255,255,255,0.90)]">{step.label}</p>
                   {step.status === "success" && step.result && (
-                    <p className="text-[10px] text-[#6B6560] mt-0.5 truncate font-mono">{step.result}</p>
+                    <p className="text-[10px] text-[rgba(255,255,255,0.60)] mt-0.5 truncate font-mono">{step.result}</p>
                   )}
                   {step.status === "error" && step.error && (
                     <p className="text-[10px] text-red-500 mt-0.5 truncate">{step.error}</p>
@@ -254,7 +254,7 @@ export default function AdminSettings() {
                 </div>
                 <span className="text-[9px] font-bold uppercase tracking-wider shrink-0"
                   style={{
-                    color: step.status === "success" ? "#16a34a" : step.status === "error" ? "#dc2626" : step.status === "running" ? "#2563eb" : "#AAA49C",
+                    color: step.status === "success" ? "#5dcaa5" : step.status === "error" ? "#e24b4a" : step.status === "running" ? "#4e8ef7" : "#AAA49C",
                   }}>
                   {step.status === "success" ? "Done" : step.status === "error" ? "Failed" : step.status === "running" ? "Running" : "—"}
                 </span>
@@ -267,7 +267,7 @@ export default function AdminSettings() {
           onClick={runGlobalSync}
           disabled={syncing}
           className="w-full font-bold uppercase tracking-wide text-white"
-          style={{ background: syncing ? "linear-gradient(135deg,#9ca3af,#6b7280)" : "linear-gradient(135deg,#dc2626,#b91c1c)" }}
+          style={{ background: syncing ? "linear-gradient(135deg,#9ca3af,#6b7280)" : "linear-gradient(135deg,#e24b4a,#b91c1c)" }}
         >
           {syncing ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Syncing All Metrics...</>
@@ -278,51 +278,51 @@ export default function AdminSettings() {
       </div>
 
       {/* Smart Contracts — Coming Soon */}
-      <div className="glass-card p-7 opacity-70">
+      <div className="rounded-2xl p-7 opacity-70" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#E8A83A]/15 flex items-center justify-center shrink-0">
-            <FileText className="w-5 h-5 text-[#E8A83A]" />
+          <div className="w-11 h-11 rounded-2xl bg-[#f5c242]/15 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-[#f5c242]" />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-black text-[#0B2D5B] uppercase tracking-tight text-base">
+              <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
                 Smart Contracts
               </h2>
-              <Badge className="bg-[#E8A83A]/15 text-[#A67C00] border-[#E8A83A]/30 uppercase text-[10px] tracking-widest font-bold">
+              <Badge className="bg-[#f5c242]/15 text-[#f5c242] border-[#f5c242]/30 uppercase text-[10px] tracking-widest font-bold">
                 Coming Soon
               </Badge>
             </div>
-            <p className="text-sm text-[#6B6560] mt-1">
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
               Blockchain-based smart contracts for aircraft transactions — automated escrow release, co-ownership agreements, and fractional ownership tokenization.
             </p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           {["Automated Escrow Release", "Co-Ownership Tokenization", "B2B / B2C Contract Templates"].map((f) => (
-            <div key={f} className="rounded-xl border border-dashed border-[#E8A83A]/30 bg-[#E8A83A]/05 p-3 text-center">
-              <Zap className="w-4 h-4 text-[#E8A83A] mx-auto mb-1.5" />
-              <p className="text-[11px] font-bold text-[#A67C00] uppercase tracking-wide leading-snug">{f}</p>
+            <div key={f} className="rounded-xl border border-dashed border-[#f5c242]/30 bg-[#f5c242]/05 p-3 text-center">
+              <Zap className="w-4 h-4 text-[#f5c242] mx-auto mb-1.5" />
+              <p className="text-[11px] font-bold text-[#f5c242] uppercase tracking-wide leading-snug">{f}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* P4Y Analysis — Coming Soon */}
-      <div className="glass-card p-7 mt-6 opacity-70">
+      <div className="rounded-2xl p-7 mt-6 opacity-70" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#0B2D5B]/10 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-5 h-5 text-[#0B2D5B]" />
+          <div className="w-11 h-11 rounded-2xl bg-[#4e8ef7]/10 flex items-center justify-center shrink-0">
+            <ShieldAlert className="w-5 h-5 text-[rgba(255,255,255,0.90)]" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-black text-[#0B2D5B] uppercase tracking-tight text-base">
+              <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
                 Plane4You (P4Y) Listing Market Analysis
               </h2>
-              <Badge className="bg-[#0B2D5B]/10 text-[#0B2D5B] border-[#0B2D5B]/20 uppercase text-[10px] tracking-widest font-bold">
+              <Badge className="bg-[#4e8ef7]/10 text-[rgba(255,255,255,0.90)] border-[#4e8ef7]/20 uppercase text-[10px] tracking-widest font-bold">
                 Coming Soon
               </Badge>
             </div>
-            <p className="text-sm text-[#6B6560] mt-1">
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
               Predictive targeting for P4Y listings — identify fast-selling aircraft, B2B/B2C sales intelligence, and smart pricing recommendations based on real market data.
             </p>
           </div>

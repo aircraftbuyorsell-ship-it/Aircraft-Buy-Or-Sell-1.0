@@ -8,11 +8,11 @@ import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 function scoreColor(score) {
-  if (score >= 108) return "#0F7A56";
-  if (score >= 90) return "#185FA5";
-  if (score >= 72) return "#D4A017";
-  if (score >= 54) return "#A67C00";
-  return "#C0392B";
+  if (score >= 108) return "#5dcaa5";
+  if (score >= 90) return "#4e8ef7";
+  if (score >= 72) return "#f5c242";
+  if (score >= 54) return "#f5c242";
+  return "#e24b4a";
 }
 
 function scoreLabel(score) {
@@ -36,9 +36,9 @@ const DIMS = [
 
 function DataRow({ label, value, valueClass = "" }) {
   return (
-    <div className="flex items-baseline justify-between py-2.5 border-b border-black/[0.05] last:border-0">
-      <span className="text-[12px] text-[#6B6560]">{label}</span>
-      <span className={`text-[13px] font-semibold text-[#1A1814] ${valueClass}`}>{value}</span>
+    <div className="flex items-baseline justify-between py-2.5 border-b border-[rgba(255,255,255,0.08)] last:border-0">
+      <span className="text-[12px] text-[rgba(255,255,255,0.60)]">{label}</span>
+      <span className={`text-[13px] font-semibold text-[rgba(255,255,255,0.90)] ${valueClass}`}>{value}</span>
     </div>
   );
 }
@@ -85,11 +85,11 @@ export default function ATICard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F7F4EF] px-4 md:px-8 py-8" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+      <div className="min-h-screen px-4 md:px-8 py-8" style={{ background: "transparent" }}>
         <div className="max-w-3xl mx-auto space-y-4">
-          <div className="h-6 w-36 bg-black/5 rounded animate-pulse" />
-          <div className="h-80 bg-white border border-black/[0.07] rounded-2xl animate-pulse" />
-          <div className="h-64 bg-white border border-black/[0.07] rounded-2xl animate-pulse" />
+          <div className="h-6 w-36 bg-[rgba(255,255,255,0.06)] rounded animate-pulse" />
+          <div className="h-80 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-2xl animate-pulse" />
+          <div className="h-64 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -97,11 +97,11 @@ export default function ATICard() {
 
   if (!card || !passport || !listing) {
     return (
-      <div className="min-h-screen bg-[#F7F4EF] flex items-center justify-center px-4" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "transparent" }}>
         <div className="text-center">
-          <p className="text-lg font-black text-[#1A1814] mb-2">Card Not Found</p>
-          <p className="text-[#6B6560] text-sm mb-4">This ATI card does not exist or has been removed.</p>
-          <Link to="/listings" className="text-[#0B2D5B] font-bold hover:underline text-sm">← Back to Listings</Link>
+          <p className="text-lg font-black text-[rgba(255,255,255,0.90)] mb-2">Card Not Found</p>
+          <p className="text-[rgba(255,255,255,0.60)] text-sm mb-4">This ATI card does not exist or has been removed.</p>
+          <Link to="/listings" className="text-[#4e8ef7] font-bold hover:underline text-sm">← Back to Listings</Link>
         </div>
       </div>
     );
@@ -113,18 +113,18 @@ export default function ATICard() {
   const safeMake = cleanAircraftMake(listing.make);
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB]" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+    <div className="min-h-screen" style={{ background: "transparent" }}>
 
       {/* ── Top navigation bar ─────────────────────── */}
-      <div className="bg-white border-b border-black/[0.07] sticky top-0 z-10">
+      <div className="bg-[rgba(255,255,255,0.04)] border-b border-[rgba(255,255,255,0.08)] sticky top-0 z-10">
         <div className="px-4 md:px-8 py-3 max-w-3xl mx-auto flex items-center justify-between">
-          <Link to="/listings" className="inline-flex items-center gap-1.5 text-[12px] text-[#6B6560] hover:text-[#0B2D5B] transition-colors font-medium">
+          <Link to="/listings" className="inline-flex items-center gap-1.5 text-[12px] text-[rgba(255,255,255,0.60)] hover:text-[#4e8ef7] transition-colors font-medium">
             <ArrowLeft className="w-3.5 h-3.5" />
             Listings
           </Link>
           <button onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#0B2D5B] hover:text-[#185FA5] transition-colors">
-            {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-[#0F7A56]" /> : <Copy className="w-3.5 h-3.5" />}
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#4e8ef7] hover:text-[#4e8ef7] transition-colors">
+            {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-[#5dcaa5]" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? "Copied" : "Share"}
           </button>
         </div>
@@ -133,12 +133,12 @@ export default function ATICard() {
       <div className="px-4 md:px-8 py-8 max-w-3xl mx-auto space-y-4">
 
         {/* ── Certificate hero block ──────────────────── */}
-        <div className="bg-white rounded-2xl overflow-hidden border border-black/[0.07] shadow-sm">
+        <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.08)] shadow-sm">
           {/* Navy header strip */}
           <div className="px-6 pt-6 pb-8" style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e)" }}>
             <div className="flex items-start justify-between mb-6">
               <div>
-                <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.25em] font-black mb-1.5">ATI Score Card · ABOS</p>
+                <p className="text-[#f5c242] text-[9px] uppercase tracking-[0.25em] font-black mb-1.5">ATI Score Card · ABOS</p>
                 <h1 className="text-white font-black text-xl md:text-2xl leading-tight">
                   {listing.year} {safeMake} {listing.model}
                 </h1>
@@ -170,7 +170,7 @@ export default function ATICard() {
               <div className="grid grid-cols-8 gap-1 mt-2.5">
                 {DIMS.map(d => {
                   const v = passport[d.key] || 0;
-                  const dc = v >= 13 ? "#0F7A56" : v >= 9 ? "#185FA5" : v >= 6 ? "#D4A017" : "#C0392B";
+                  const dc = v >= 13 ? "#5dcaa5" : v >= 9 ? "#4e8ef7" : v >= 6 ? "#f5c242" : "#e24b4a";
                   return (
                     <div key={d.key} title={`${d.label}: ${v}/15`} className="flex flex-col items-center gap-1">
                       <div className="w-full h-8 bg-white/5 rounded-sm overflow-hidden flex items-end">
@@ -190,15 +190,15 @@ export default function ATICard() {
           </div>
 
           {/* Card code footer */}
-          <div className="px-6 py-3 bg-[#fbfaf7] border-t border-black/[0.05] flex items-center justify-between flex-wrap gap-2">
+          <div className="px-6 py-3 bg-[rgba(255,255,255,0.03)] border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
-              <span className="text-[9px] uppercase tracking-[0.2em] text-[#AAA49C] font-semibold">Card Reference</span>
-              <span className="font-mono text-[12px] font-bold text-[#0B2D5B] tracking-wide">{card.public_card_code}</span>
+              <span className="text-[9px] uppercase tracking-[0.2em] text-[rgba(255,255,255,0.35)] font-semibold">Card Reference</span>
+              <span className="font-mono text-[12px] font-bold text-[#4e8ef7] tracking-wide">{card.public_card_code}</span>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               {card.owner_verified && (
-                <span className="text-[9px] font-black uppercase tracking-wider text-[#A67C00] flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#D4A017]/30 bg-[#D4A017]/8">
-                  <BadgeCheck className="w-3 h-3 text-[#D4A017]" /> Verified by Owner
+                <span className="text-[9px] font-black uppercase tracking-wider text-[#f5c242] flex items-center gap-1 px-2 py-0.5 rounded-full border border-[#f5c242]/30 bg-[#f5c242]/8">
+                  <BadgeCheck className="w-3 h-3 text-[#f5c242]" /> Verified by Owner
                 </span>
               )}
               {card.vault_document_count > 0 && (
@@ -219,9 +219,9 @@ export default function ATICard() {
         {/* ── Aircraft specs + Valuation side by side ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Specs */}
-          <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-1">Aircraft Specifications</p>
-            <p className="text-[11px] text-[#AAA49C] mb-4">{listing.year} {safeMake} {listing.model}</p>
+          <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] px-6 py-5 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#4e8ef7] mb-1">Aircraft Specifications</p>
+            <p className="text-[11px] text-[rgba(255,255,255,0.35)] mb-4">{listing.year} {safeMake} {listing.model}</p>
             <DataRow label="Airframe Total Time" value={listing.total_time ? `${listing.total_time.toLocaleString()} hrs` : "—"} />
             <DataRow label="Engine SMOH" value={listing.engine_hours ? `${listing.engine_hours.toLocaleString()} hrs` : "—"} />
             <DataRow label="TBO" value={listing.tbo ? `${listing.tbo.toLocaleString()} hrs` : "—"} />
@@ -230,9 +230,9 @@ export default function ATICard() {
           </div>
 
           {/* Valuation */}
-          <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B] mb-1">Valuation</p>
-            <p className="text-[11px] text-[#AAA49C] mb-4">Off-Market Value Model · ABOS OMVM v5</p>
+          <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] px-6 py-5 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#4e8ef7] mb-1">Valuation</p>
+            <p className="text-[11px] text-[rgba(255,255,255,0.35)] mb-4">Off-Market Value Model · ABOS OMVM v5</p>
             <DataRow label="Asking Price" value={listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request"} />
             <DataRow label="Market Estimate" value={passport.omvm_value ? `$${passport.omvm_value.toLocaleString()}` : "—"} />
             <DataRow
@@ -240,15 +240,15 @@ export default function ATICard() {
               value={passport.discount_pct != null
                 ? `${passport.discount_pct >= 0 ? "▼ " : "▲ "}${Math.abs(passport.discount_pct)}%`
                 : "—"}
-              valueClass={passport.discount_pct >= 0 ? "text-[#0F7A56]" : "text-[#C0392B]"}
+              valueClass={passport.discount_pct >= 0 ? "text-[#5dcaa5]" : "text-[#e24b4a]"}
             />
             <DataRow
               label="Deal Rating"
               value={passport.deal_label ? passport.deal_label.charAt(0).toUpperCase() + passport.deal_label.slice(1) : "—"}
-              valueClass={passport.deal_score >= 8.5 ? "text-[#0F7A56]" : passport.deal_score >= 6.5 ? "text-[#185FA5]" : passport.deal_score >= 5 ? "text-[#D4A017]" : "text-[#C0392B]"}
+              valueClass={passport.deal_score >= 8.5 ? "text-[#5dcaa5]" : passport.deal_score >= 6.5 ? "text-[#4e8ef7]" : passport.deal_score >= 5 ? "text-[#f5c242]" : "text-[#e24b4a]"}
             />
             {passport.deal_radar_eligible && (
-              <div className="mt-3 px-3 py-2 rounded-xl bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.25)] text-[11px] font-bold text-[#A67C00] flex items-center gap-2">
+              <div className="mt-3 px-3 py-2 rounded-xl bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.25)] text-[11px] font-bold text-[#f5c242] flex items-center gap-2">
                 <TrendingDown className="w-3.5 h-3.5" />
                 Below market — Deal Radar eligible
               </div>
@@ -258,21 +258,21 @@ export default function ATICard() {
 
         {/* ── Shared Ownership ─────────────────────── */}
         {card.shared_ownership_enabled && (
-          <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+          <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] px-6 py-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <Users className="w-4 h-4 text-[#7c3aed]" />
               <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#7c3aed]">Shared Ownership</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] text-[#6B6560] mb-1">Structure</p>
-                <p className="text-[13px] font-semibold text-[#1A1814] capitalize">
+                <p className="text-[10px] text-[rgba(255,255,255,0.60)] mb-1">Structure</p>
+                <p className="text-[13px] font-semibold text-[rgba(255,255,255,0.90)] capitalize">
                   {card.shared_ownership_structure?.replace(/_/g, " ") || "Sole"}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] text-[#6B6560] mb-1">Parties</p>
-                <p className="text-[13px] font-semibold text-[#1A1814]">
+                <p className="text-[10px] text-[rgba(255,255,255,0.60)] mb-1">Parties</p>
+                <p className="text-[13px] font-semibold text-[rgba(255,255,255,0.90)]">
                   {card.shared_ownership_parties?.length || 0} co-owners
                 </p>
               </div>
@@ -280,8 +280,8 @@ export default function ATICard() {
             {card.shared_ownership_shares?.length > 0 && (
               <div className="mt-3 space-y-1.5">
                 {card.shared_ownership_shares.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-black/[0.05] last:border-0">
-                    <span className="text-[11px] text-[#6B6560]">{s.party_email}</span>
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-[rgba(255,255,255,0.08)] last:border-0">
+                    <span className="text-[11px] text-[rgba(255,255,255,0.60)]">{s.party_email}</span>
                     <span className="text-[12px] font-bold text-[#7c3aed]">{s.share_pct}%</span>
                   </div>
                 ))}
@@ -291,18 +291,18 @@ export default function ATICard() {
         )}
 
         {/* ── Polygon Vault ───────────────────────── */}
-        <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+        <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] px-6 py-5 shadow-sm">
           <VaultDocumentsPanel card={card} listing={listing} isOwner={isOwner} />
         </div>
 
         {/* ── Summary ──────────────────────────────────── */}
         {passport.ai_summary && (
-          <div className="bg-white rounded-2xl border border-black/[0.07] px-6 py-5 shadow-sm">
+          <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] px-6 py-5 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <ShieldCheck className="w-4 h-4 text-[#0B2D5B]" />
-              <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#0B2D5B]">Assessment Summary</p>
+              <ShieldCheck className="w-4 h-4 text-[#4e8ef7]" />
+              <p className="text-[10px] uppercase tracking-[0.18em] font-black text-[#4e8ef7]">Assessment Summary</p>
             </div>
-            <p className="text-[13px] text-[#4A4845] leading-relaxed">{passport.ai_summary}</p>
+            <p className="text-[13px] text-[rgba(255,255,255,0.70)] leading-relaxed">{passport.ai_summary}</p>
           </div>
         )}
 
@@ -310,7 +310,7 @@ export default function ATICard() {
         <ATIScoreBreakdown passport={passport} missing_data={passport.missing_data} />
 
         {/* ── Footer metadata ───────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pb-6 text-[11px] text-[#AAA49C]">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pb-6 text-[11px] text-[rgba(255,255,255,0.35)]">
           <span>Issued {card.issued_at ? new Date(card.issued_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "—"}</span>
           <div className="flex items-center gap-3">
             <span>v{card.card_version}</span>

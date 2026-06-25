@@ -63,43 +63,43 @@ function classifyFinding(text) {
 function LandingPage({ onStart }) {
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
-      <div className="bg-[#0B2D5B]/80 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-white/5">
+      <div className="bg-[#04060a]/80 backdrop-blur px-4 py-3 flex items-center gap-3 border-b border-white/5">
         <Link to="/listings" className="text-white/40 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex items-center gap-2 flex-1">
-          <img src={PILOT_AVATAR} alt="Max" className="w-7 h-7 rounded-full border border-[#E8A83A]/50"
+          <img src={PILOT_AVATAR} alt="Max" className="w-7 h-7 rounded-full border border-[#f5c242]/50"
             style={{ mixBlendMode: "multiply", background: "#4A90D9" }} />
           <span className="text-white font-black text-sm">Max · Pre-Buy Inspection</span>
         </div>
-        <span className="text-[9px] uppercase tracking-widest text-[#E8A83A] font-black border border-[#E8A83A]/30 px-2 py-0.5 rounded-full">
+        <span className="text-[9px] uppercase tracking-widest text-[#f5c242] font-black border border-[#f5c242]/30 px-2 py-0.5 rounded-full">
           BETA
         </span>
       </div>
 
       <div className="relative overflow-hidden flex-1 flex flex-col">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#0B2D5B]/60 rounded-full blur-3xl" />
-          <div className="absolute top-20 left-1/3 w-[300px] h-[300px] bg-[#E8A83A]/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#04060a]/60 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-1/3 w-[300px] h-[300px] bg-[#f5c242]/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-2xl mx-auto px-4 pt-12 pb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-[#E8A83A]/10 border border-[#E8A83A]/30 rounded-full px-4 py-1.5 mb-6">
-            <Star className="w-3 h-3 text-[#E8A83A]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8A83A]">Exclusive ABOS Feature</span>
+          <div className="inline-flex items-center gap-2 bg-[#f5c242]/10 border border-[#f5c242]/30 rounded-full px-4 py-1.5 mb-6">
+            <Star className="w-3 h-3 text-[#f5c242]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f5c242]">Exclusive ABOS Feature</span>
           </div>
 
           <div className="relative inline-flex items-center justify-center mb-6">
-            <div className="absolute w-28 h-28 rounded-full bg-[#E8A83A]/10 animate-ping" style={{ animationDuration: "3s" }} />
-            <div className="absolute w-24 h-24 rounded-full bg-[#E8A83A]/15 animate-pulse" />
+            <div className="absolute w-28 h-28 rounded-full bg-[#f5c242]/10 animate-ping" style={{ animationDuration: "3s" }} />
+            <div className="absolute w-24 h-24 rounded-full bg-[#f5c242]/15 animate-pulse" />
             <img src={PILOT_AVATAR} alt="Max"
-              className="relative w-20 h-20 rounded-full border-2 border-[#E8A83A]/60 object-cover shadow-2xl"
+              className="relative w-20 h-20 rounded-full border-2 border-[#f5c242]/60 object-cover shadow-2xl"
               style={{ mixBlendMode: "multiply", background: "#4A90D9" }} />
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3">
             Live Pre-Buy Inspection<br />
-            <span className="text-[#E8A83A]">with Max</span>
+            <span className="text-[#f5c242]">with Max</span>
           </h1>
           <p className="text-white/60 text-sm md:text-base leading-relaxed max-w-lg mx-auto mb-2">
             Point your phone camera at any aircraft during a pre-buy inspection. Max watches the live feed and instantly flags issues, concerns, and highlights — spoken aloud in real time.
@@ -110,7 +110,7 @@ function LandingPage({ onStart }) {
 
           <button
             onClick={onStart}
-            className="group inline-flex items-center gap-3 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-black text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-[#E8A83A]/20 hover:shadow-[#E8A83A]/40 hover:scale-105 active:scale-95"
+            className="group inline-flex items-center gap-3 bg-[#f5c242] hover:bg-[#f5bb4e] text-[#04060a] font-black text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-[#f5c242]/20 hover:shadow-[#f5c242]/40 hover:scale-105 active:scale-95"
           >
             <Video className="w-5 h-5" />
             Start Live Inspection
@@ -123,7 +123,7 @@ function LandingPage({ onStart }) {
           <div className="max-w-2xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { icon: Eye, color: "#4A90D9", title: "Real-Time Vision", desc: "Gemini analyzes your live camera feed frame by frame — engine bay, airframe, logbooks, instruments." },
-              { icon: Volume2, color: "#E8A83A", title: "Voice Commentary", desc: "Max speaks findings aloud so you can keep your eyes on the aircraft, hands-free." },
+              { icon: Volume2, color: "#f5c242", title: "Voice Commentary", desc: "Max speaks findings aloud so you can keep your eyes on the aircraft, hands-free." },
               { icon: FileText, color: "#0F7A56", title: "Auto-Logged Findings", desc: "Every warning, observation, and green flag is captured and classified automatically." },
             ].map(f => (
               <div key={f.title} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left">
@@ -138,8 +138,8 @@ function LandingPage({ onStart }) {
         </div>
 
         <div className="relative z-10 max-w-2xl mx-auto px-4 pb-10">
-          <div className="bg-[#0B2D5B]/60 border border-[#E8A83A]/20 rounded-2xl p-5">
-            <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[#E8A83A] mb-3 flex items-center gap-2">
+          <div className="bg-[#04060a]/60 border border-[#f5c242]/20 rounded-2xl p-5">
+            <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[#f5c242] mb-3 flex items-center gap-2">
               <Plane className="w-3 h-3" /> What Max checks
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -150,7 +150,7 @@ function LandingPage({ onStart }) {
                 "Avionics & instruments", "Interior condition",
               ].map(item => (
                 <div key={item} className="flex items-center gap-2 text-[11px] text-white/60">
-                  <ShieldCheck className="w-3 h-3 text-[#E8A83A] shrink-0" />
+                  <ShieldCheck className="w-3 h-3 text-[#f5c242] shrink-0" />
                   {item}
                 </div>
               ))}
@@ -392,11 +392,11 @@ function LiveSession({ onBack }) {
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
       {/* Header */}
-      <div className="bg-[#0B2D5B] px-4 py-3 flex items-center gap-3 border-b border-white/5">
+      <div className="bg-[#04060a] px-4 py-3 flex items-center gap-3 border-b border-white/5">
         <button onClick={() => { cleanup(); onBack(); }} className="text-white/40 hover:text-white transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <img src={PILOT_AVATAR} alt="Max" className="w-8 h-8 rounded-full border border-[#E8A83A]/50"
+        <img src={PILOT_AVATAR} alt="Max" className="w-8 h-8 rounded-full border border-[#f5c242]/50"
           style={{ mixBlendMode: "multiply", background: "#4A90D9" }} />
         <div className="flex-1">
           <h1 className="text-white font-black text-sm">Max · Live Inspection</h1>
@@ -410,7 +410,7 @@ function LiveSession({ onBack }) {
         {isLive && (
           <div className="flex gap-2">
             <button onClick={() => setMicEnabled(v => !v)}
-              className={`p-2 rounded-lg border transition-colors ${micEnabled ? "bg-[#E8A83A]/20 border-[#E8A83A]/40 text-[#E8A83A]" : "bg-white/5 border-white/10 text-white/30"}`}>
+              className={`p-2 rounded-lg border transition-colors ${micEnabled ? "bg-[#f5c242]/20 border-[#f5c242]/40 text-[#f5c242]" : "bg-white/5 border-white/10 text-white/30"}`}>
               {micEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
             </button>
             <button onClick={() => setVideoEnabled(v => !v)}
@@ -433,14 +433,14 @@ function LiveSession({ onBack }) {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-4">
             <Camera className="w-16 h-16 text-white/20" />
             <p className="text-white/50 text-sm text-center px-8">Point camera at the aircraft — Max will provide real-time analysis</p>
-            <button onClick={startSession} className="flex items-center gap-2 bg-[#E8A83A] hover:bg-[#f5bb4e] text-[#0B2D5B] font-black px-8 py-3 rounded-xl text-sm transition-colors">
+            <button onClick={startSession} className="flex items-center gap-2 bg-[#f5c242] hover:bg-[#f5bb4e] text-[#04060a] font-black px-8 py-3 rounded-xl text-sm transition-colors">
               <Video className="w-4 h-4" /> Start Live Inspection
             </button>
           </div>
         )}
         {status === "connecting" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-3">
-            <Loader2 className="w-10 h-10 text-[#E8A83A] animate-spin" />
+            <Loader2 className="w-10 h-10 text-[#f5c242] animate-spin" />
             <p className="text-white/60 text-sm">Connecting to Gemini Live…</p>
           </div>
         )}
@@ -455,7 +455,7 @@ function LiveSession({ onBack }) {
           <div className="absolute bottom-3 left-3 right-3 bg-red-900/80 backdrop-blur rounded-xl px-4 py-3 flex items-center gap-3">
             <AlertTriangle className="w-4 h-4 text-red-300 shrink-0" />
             <p className="text-red-200 text-[11px] flex-1 leading-snug">{errorMsg}</p>
-            <button onClick={connectWS} className="shrink-0 bg-[#E8A83A] text-[#0B2D5B] text-[11px] font-black px-3 py-1.5 rounded-lg">
+            <button onClick={connectWS} className="shrink-0 bg-[#f5c242] text-[#04060a] text-[11px] font-black px-3 py-1.5 rounded-lg">
               Retry
             </button>
           </div>
@@ -475,7 +475,7 @@ function LiveSession({ onBack }) {
       {/* Findings */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#E8A83A]">
+          <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#f5c242]">
             Findings {findings.length > 0 && `· ${findings.length}`}
           </p>
           {isLive && (

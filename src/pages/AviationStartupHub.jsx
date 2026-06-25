@@ -277,7 +277,7 @@ export default function AviationStartupHub() {
                           {STAGE_LABELS[p.stage] || p.stage}
                         </span>
                         {p.ati_integrated && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#0B2D5B]/10 text-[#0B2D5B] border border-[#0B2D5B]/20">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-[#0B2D5B]/10 text-[#4e8ef7] border border-[#0B2D5B]/20">
                             ATI
                           </span>
                         )}

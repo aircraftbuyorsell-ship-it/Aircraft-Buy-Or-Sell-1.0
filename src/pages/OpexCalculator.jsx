@@ -16,44 +16,44 @@ import CustomAircraftModal from "@/components/opex/CustomAircraftModal";
 import FleetPanel from "@/components/opex/FleetPanel";
 
 function GoldLabel({ children }) {
-  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#D4A017]">{children}</p>;
+  return <p className="text-[10px] uppercase tracking-[0.15em] font-semibold" style={{ color: "#f5c242" }}>{children}</p>;
 }
 
 function Slider({ label, value, onChange, min, max, step, hint, suffix = "" }) {
   return (
     <div>
       <div className="flex justify-between items-baseline">
-        <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold">{label}</label>
-        <span className="text-sm font-black text-[#1A1814]">{value.toLocaleString()}{suffix}</span>
+        <label className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: "rgba(255,255,255,0.60)" }}>{label}</label>
+        <span className="text-sm font-black" style={{ color: "rgba(255,255,255,0.90)" }}>{value.toLocaleString()}{suffix}</span>
       </div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(+e.target.value)} className="w-full mt-1 accent-[#2563EB]" />
-      {hint && <p className="text-[10px] text-[#AAA49C] mt-1 flex items-center gap-1"><Info className="w-2.5 h-2.5" /> {hint}</p>}
+      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(+e.target.value)} className="w-full mt-1 accent-[#f5c242]" />
+      {hint && <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: "rgba(255,255,255,0.35)" }}><Info className="w-2.5 h-2.5" /> {hint}</p>}
     </div>
   );
 }
 
-function StatCard({ label, value, sub, icon: Icon, accent = "#2563EB" }) {
+function StatCard({ label, value, sub, icon: Icon, accent = "#4e8ef7" }) {
   return (
-    <div className="bg-white border border-black/[0.07] rounded-2xl p-4">
+    <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
       <div className="flex items-center gap-2 mb-1">
         <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
-        <p className="text-[10px] uppercase tracking-wider font-semibold text-[#AAA49C]">{label}</p>
+        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</p>
       </div>
-      <p className="text-xl font-black text-[#1A1814]">${value.toLocaleString()}</p>
-      {sub && <p className="text-[10px] text-[#6B6560] mt-0.5">{sub}</p>}
+      <p className="text-xl font-black" style={{ color: "rgba(255,255,255,0.90)" }}>${value.toLocaleString()}</p>
+      {sub && <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.60)" }}>{sub}</p>}
     </div>
   );
 }
 
 function SectionHeader({ icon: Icon, title, desc }) {
   return (
-    <div className="flex items-start gap-2.5 pb-3 border-b border-black/[0.06]">
-      <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center shrink-0">
+    <div className="flex items-start gap-2.5 pb-3" style={{ borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#4e8ef7" }}>
         <Icon className="w-4 h-4 text-white" />
       </div>
       <div>
-        <p className="text-[13px] font-black text-[#1A1814] uppercase tracking-tight">{title}</p>
-        {desc && <p className="text-[10px] text-[#6B6560]">{desc}</p>}
+        <p className="text-[13px] font-black uppercase tracking-tight" style={{ color: "rgba(255,255,255,0.90)" }}>{title}</p>
+        {desc && <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.60)" }}>{desc}</p>}
       </div>
     </div>
   );
@@ -211,13 +211,13 @@ export default function OpexCalculator() {
   if (service.score < 40) hints.push({ type: "warn", text: "Limited service network nearby — expect ferry costs and longer downtimes." });
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] p-4 md:p-8" style={{ backgroundImage: "radial-gradient(circle, rgba(17,17,19,0.07) 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
+    <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
       <div className="max-w-6xl mx-auto">
         <GoldLabel>Cost Intelligence · Buyer & Seller Transparency</GoldLabel>
-        <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight mt-1 uppercase">
+        <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 uppercase" style={{ color: "rgba(255,255,255,0.90)" }}>
           Aircraft Operational Cost Calculator
         </h1>
-        <p className="text-[#6B6560] text-sm mt-1 max-w-3xl">
+        <p className="text-sm mt-1 max-w-3xl" style={{ color: "rgba(255,255,255,0.60)" }}>
           Not just what the aircraft costs to buy — <b>what it costs to own.</b> Combines flight hours, reserves,
           inspections, maintenance exposure, and service availability into a transparent ownership picture.
         </p>
@@ -231,34 +231,34 @@ export default function OpexCalculator() {
           {/* Inputs */}
           <div className="lg:col-span-2 space-y-4">
             {/* Aircraft & Utilization */}
-            <div className="bg-white border border-black/[0.07] rounded-2xl p-5 space-y-4">
+            <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
               <SectionHeader icon={Plane} title="Aircraft & Utilization" desc="Core aircraft profile" />
               <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold block mb-2">Aircraft preset</label>
+                <label className="text-[11px] uppercase tracking-wider text-[rgba(255,255,255,0.60)] font-semibold block mb-2">Aircraft preset</label>
                 <div className="flex flex-wrap gap-2">
                   {AIRCRAFT_PRESETS.map(p => (
                     <button key={p.id} onClick={() => pickPreset(p)}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id && !preset.custom ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560] hover:border-black/20"}`}>
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all ${preset.id === p.id && !preset.custom ? "border-[#f5c242] bg-[rgba(245,194,66,0.09)] text-[#f5c242]" : "border-[rgba(255,255,255,0.08)] bg-transparent text-[rgba(255,255,255,0.60)] hover:border-[rgba(255,255,255,0.12)]"}`}>
                       <Plane className="w-3 h-3 inline mr-1" /> {p.name}
                     </button>
                   ))}
                   {customAircraft.map(p => (
                     <button key={p.id} onClick={() => pickPreset(p)}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all group relative ${preset.custom && preset.id === p.id ? "border-[#10b981] bg-[rgba(16,185,129,0.07)] text-[#065f46]" : "border-[#10b981]/30 bg-white text-[#10b981] hover:border-[#10b981]"}`}>
+                      className={`text-xs font-bold px-3 py-2 rounded-xl border transition-all group relative ${preset.custom && preset.id === p.id ? "border-[#5dcaa5] bg-[rgba(16,185,129,0.07)] text-[#5dcaa5]" : "border-[#5dcaa5]/30 bg-transparent text-[#5dcaa5] hover:border-[#5dcaa5]"}`}>
                       <Plane className="w-3 h-3 inline mr-1" /> {p.name}
                       <button onClick={(e) => { e.stopPropagation(); handleDeleteCustom(p.id); }}
-                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#e24b4a] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="text-[8px] leading-none">×</span>
                       </button>
                     </button>
                   ))}
                   {canUseCustom ? (
                     <button onClick={() => setShowCustomModal(true)}
-                      className="text-xs font-bold px-3 py-2 rounded-xl border border-dashed border-[#10b981]/40 bg-[#10b981]/03 text-[#10b981] hover:bg-[#10b981]/08 transition-all">
+                      className="text-xs font-bold px-3 py-2 rounded-xl border border-dashed border-[#5dcaa5]/40 bg-[#5dcaa5]/03 text-[#5dcaa5] hover:bg-[#5dcaa5]/08 transition-all">
                       <Plus className="w-3 h-3 inline mr-1" /> Add Custom
                     </button>
                   ) : (
-                    <button disabled className="text-xs font-medium px-3 py-2 rounded-xl border border-black/[0.05] bg-black/[0.01] text-[#AAA49C] cursor-not-allowed"
+                    <button disabled className="text-xs font-medium px-3 py-2 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[rgba(255,255,255,0.35)] cursor-not-allowed"
                       title="Upgrade to Starter or higher to add custom aircraft">
                       <Lock className="w-3 h-3 inline mr-1" /> Add Custom
                     </button>
@@ -269,7 +269,7 @@ export default function OpexCalculator() {
               <Slider label="Annual flight hours" value={annualHours} onChange={setAnnualHours} min={50} max={1500} step={10} suffix=" hr" />
 
               <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold block mb-2">Crew profile</label>
+                <label className="text-[11px] uppercase tracking-wider text-[rgba(255,255,255,0.60)] font-semibold block mb-2">Crew profile</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { id: "private", label: "Private (Part 91)" },
@@ -277,17 +277,17 @@ export default function OpexCalculator() {
                     { id: "commercial_multi", label: "Comm. multi-crew" },
                   ].map(o => (
                     <button key={o.id} onClick={() => setCrewType(o.id)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${crewType === o.id ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${crewType === o.id ? "border-[#f5c242] bg-[rgba(245,194,66,0.09)] text-[#f5c242]" : "border-[rgba(255,255,255,0.08)] bg-transparent text-[rgba(255,255,255,0.60)]"}`}>
                       {o.label}
                     </button>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#AAA49C] mt-1.5">{limit.label}</p>
+                <p className="text-[10px] text-[rgba(255,255,255,0.35)] mt-1.5">{limit.label}</p>
               </div>
             </div>
 
             {/* Airframe state — reserves & inspections */}
-            <div className="bg-white border border-black/[0.07] rounded-2xl p-5 space-y-4">
+            <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
               <SectionHeader icon={Gauge} title="Airframe & Engine State" desc="Hours, reserves & inspections" />
               <div className="grid md:grid-cols-2 gap-4">
                 <Slider label="Total Time (TT)" value={totalTime} onChange={setTotalTime} min={0} max={15000} step={50} suffix=" hr" />
@@ -296,13 +296,13 @@ export default function OpexCalculator() {
                 <Slider label="Known upcoming maintenance ($)" value={upcomingCost} onChange={setUpcomingCost} min={0} max={100000} step={500} suffix=" $" />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={annualOverdue} onChange={e => setAnnualOverdue(e.target.checked)} className="accent-[#C0392B]" />
-                <span className="text-sm text-[#1A1814] font-medium">Annual inspection overdue or expiring within 30 days</span>
+                <input type="checkbox" checked={annualOverdue} onChange={e => setAnnualOverdue(e.target.checked)} className="accent-[#e24b4a]" />
+                <span className="text-sm text-[rgba(255,255,255,0.90)] font-medium">Annual inspection overdue or expiring within 30 days</span>
               </label>
             </div>
 
             {/* Operating rates */}
-            <div className="bg-white border border-black/[0.07] rounded-2xl p-5 space-y-4">
+            <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
               <SectionHeader icon={Fuel} title="Operating Costs" desc="Variable & fixed expenses" />
               <div className="grid md:grid-cols-2 gap-4">
                 <Slider label="Fuel $/hr" value={fuelRate} onChange={setFuelRate} min={20} max={1500} step={5} suffix=" $/hr" />
@@ -323,11 +323,11 @@ export default function OpexCalculator() {
             />
 
             {/* Service accessibility */}
-            <div className="bg-white border border-black/[0.07] rounded-2xl p-5 space-y-4">
+            <div className="rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
               <SectionHeader icon={MapPin} title="Service Accessibility" desc="Support network in your region" />
 
               <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold block mb-2">
+                <label className="text-[11px] uppercase tracking-wider text-[rgba(255,255,255,0.60)] font-semibold block mb-2">
                   Nearby service centers (within 300 nm)
                 </label>
                 <div className="flex gap-2">
@@ -338,7 +338,7 @@ export default function OpexCalculator() {
                     { v: 3, label: "4+" },
                   ].map(o => (
                     <button key={o.v} onClick={() => setServiceCenters(o.v)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${serviceCenters === o.v ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${serviceCenters === o.v ? "border-[#f5c242] bg-[rgba(245,194,66,0.09)] text-[#f5c242]" : "border-[rgba(255,255,255,0.08)] bg-transparent text-[rgba(255,255,255,0.60)]"}`}>
                       {o.label}
                     </button>
                   ))}
@@ -346,11 +346,11 @@ export default function OpexCalculator() {
               </div>
 
               <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold block mb-2">Parts accessibility</label>
+                <label className="text-[11px] uppercase tracking-wider text-[rgba(255,255,255,0.60)] font-semibold block mb-2">Parts accessibility</label>
                 <div className="flex flex-wrap gap-2">
                   {["poor", "fair", "good", "excellent"].map(o => (
                     <button key={o} onClick={() => setPartsAccessibility(o)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border capitalize transition-all ${partsAccessibility === o ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border capitalize transition-all ${partsAccessibility === o ? "border-[#f5c242] bg-[rgba(245,194,66,0.09)] text-[#f5c242]" : "border-[rgba(255,255,255,0.08)] bg-transparent text-[rgba(255,255,255,0.60)]"}`}>
                       {o}
                     </button>
                   ))}
@@ -358,7 +358,7 @@ export default function OpexCalculator() {
               </div>
 
               <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#6B6560] font-semibold block mb-2">Avionics support status</label>
+                <label className="text-[11px] uppercase tracking-wider text-[rgba(255,255,255,0.60)] font-semibold block mb-2">Avionics support status</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { v: "legacy", label: "Legacy (out of support)" },
@@ -366,7 +366,7 @@ export default function OpexCalculator() {
                     { v: "modern", label: "Modern / current" },
                   ].map(o => (
                     <button key={o.v} onClick={() => setAvionicsSupport(o.v)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${avionicsSupport === o.v ? "border-[#2563EB] bg-[rgba(11,45,91,0.06)] text-[#2563EB]" : "border-black/10 bg-white text-[#6B6560]"}`}>
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all ${avionicsSupport === o.v ? "border-[#f5c242] bg-[rgba(245,194,66,0.09)] text-[#f5c242]" : "border-[rgba(255,255,255,0.08)] bg-transparent text-[rgba(255,255,255,0.60)]"}`}>
                       {o.label}
                     </button>
                   ))}
@@ -378,13 +378,13 @@ export default function OpexCalculator() {
           {/* Results column */}
           <div className="space-y-3">
             <StatCard label="Total / Year" value={Math.round(totalAnnual)} sub={`Incl. reserves + location (${locationMult.fuel}× fuel)`} icon={TrendingUp} />
-            <StatCard label="Monthly Ownership" value={Math.round(monthly)} sub="Year ÷ 12" icon={Calculator} accent="#185FA5" />
-            <StatCard label="Cost / Flight Hour" value={Math.round(perHour)} sub="True $/hr" icon={Gauge} accent="#0F7A56" />
-            <StatCard label="Variable (fuel + maint)" value={Math.round(variable)} sub={`${annualHours} hr (adj.)`} icon={Fuel} accent="#185FA5" />
-            <StatCard label="Fixed (insurance + hangar)" value={Math.round(fixed)} sub="Adjusted for region" icon={Wrench} accent="#A67C00" />
+            <StatCard label="Monthly Ownership" value={Math.round(monthly)} sub="Year ÷ 12" icon={Calculator} accent="#4e8ef7" />
+            <StatCard label="Cost / Flight Hour" value={Math.round(perHour)} sub="True $/hr" icon={Gauge} accent="#5dcaa5" />
+            <StatCard label="Variable (fuel + maint)" value={Math.round(variable)} sub={`${annualHours} hr (adj.)`} icon={Fuel} accent="#4e8ef7" />
+            <StatCard label="Fixed (insurance + hangar)" value={Math.round(fixed)} sub="Adjusted for region" icon={Wrench} accent="#f5c242" />
 
             <div className="pt-2">
-              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#D4A017] mb-2">Reserves (per-hour accrual)</p>
+              <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#f5c242] mb-2">Reserves (per-hour accrual)</p>
               <div className="space-y-2">
                 <ReserveCard
                   label="Engine Reserve"
@@ -392,7 +392,7 @@ export default function OpexCalculator() {
                   annualCost={engineReserveYr}
                   hoursRemaining={engineHoursToTBO}
                   status={engineHoursToTBO < 200 ? "Due Soon" : engineHoursToTBO < 500 ? "Plan Ahead" : "Healthy"}
-                  color={engineHoursToTBO < 200 ? "#C0392B" : engineHoursToTBO < 500 ? "#D4A017" : "#0F7A56"}
+                  color={engineHoursToTBO < 200 ? "#e24b4a" : engineHoursToTBO < 500 ? "#D4A017" : "#5dcaa5"}
                 />
                 <ReserveCard
                   label="Prop Reserve"
@@ -400,14 +400,14 @@ export default function OpexCalculator() {
                   annualCost={propReserveYr}
                   hoursRemaining={propHoursToTBO}
                   status={propHoursToTBO < 200 ? "Due Soon" : "Healthy"}
-                  color={propHoursToTBO < 200 ? "#C0392B" : "#0F7A56"}
+                  color={propHoursToTBO < 200 ? "#e24b4a" : "#5dcaa5"}
                 />
                 <ReserveCard
                   label="Inspection Reserve"
                   perHour={reserves.inspection}
                   annualCost={inspectionReserveYr}
                   status={annualOverdue ? "Overdue" : "On Track"}
-                  color={annualOverdue ? "#C0392B" : "#0F7A56"}
+                  color={annualOverdue ? "#e24b4a" : "#5dcaa5"}
                 />
               </div>
             </div>
@@ -433,8 +433,8 @@ export default function OpexCalculator() {
         </div>
 
         {/* Compliance controls (hidden in accordion) */}
-        <div className="mt-4 bg-white border border-black/[0.07] rounded-2xl p-4">
-          <p className="text-[10px] uppercase tracking-[0.15em] font-bold text-[#2563EB] mb-3">Certification Status</p>
+        <div className="mt-4 rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-[10px] uppercase tracking-[0.15em] font-bold mb-3" style={{ color: "#4e8ef7" }}>Certification Status</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {[
               { label: "ADS-B", state: adsb, setState: setAdsb },
@@ -449,9 +449,9 @@ export default function OpexCalculator() {
                   type="checkbox"
                   checked={item.state}
                   onChange={e => item.setState(e.target.checked)}
-                  className={`accent-${item.state ? "[#0F7A56]" : "[#C0392B]"}`}
+                  className={`accent-${item.state ? "[#5dcaa5]" : "[#e24b4a]"}`}
                 />
-                <span className="text-[11px] text-[#6B6560] font-medium">{item.label}</span>
+                <span className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>{item.label}</span>
               </label>
             ))}
           </div>
@@ -471,9 +471,9 @@ export default function OpexCalculator() {
           <div className="mt-5 space-y-2">
             {hints.map((h, i) => (
               <div key={i} className={`flex items-start gap-2 p-3 rounded-xl border text-sm ${
-                h.type === "alert" ? "bg-[rgba(192,57,43,0.06)] border-[rgba(192,57,43,0.2)] text-[#C0392B]" :
-                h.type === "warn" ? "bg-[rgba(232,168,58,0.08)] border-[rgba(232,168,58,0.25)] text-[#A67C00]" :
-                "bg-[rgba(24,95,165,0.06)] border-[rgba(24,95,165,0.2)] text-[#185FA5]"
+                h.type === "alert" ? "bg-[rgba(192,57,43,0.06)] border-[rgba(192,57,43,0.2)] text-[#e24b4a]" :
+                h.type === "warn" ? "bg-[rgba(232,168,58,0.08)] border-[rgba(232,168,58,0.25)] text-[#f5c242]" :
+                "bg-[rgba(24,95,165,0.06)] border-[rgba(24,95,165,0.2)] text-[#4e8ef7]"
               }`}>
                 <Info className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{h.text}</span>
@@ -484,21 +484,21 @@ export default function OpexCalculator() {
 
         {/* Buyer / Seller insight */}
         <div className="mt-5 grid md:grid-cols-2 gap-3">
-          <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
+          <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="w-4 h-4 text-[#0F7A56]" />
-              <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#0F7A56]">For the Buyer</p>
+              <ShieldCheck className="w-4 h-4" style={{ color: "#5dcaa5" }} />
+              <p className="text-[11px] uppercase tracking-[0.15em] font-bold" style={{ color: "#5dcaa5" }}>For the Buyer</p>
             </div>
-            <p className="text-[13px] text-[#4A4845] leading-relaxed">
+            <p className="text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.70)" }}>
               Understand the <b>real operating burden</b>. Beyond purchase price, factor in <b>${Math.round(reservesTotal).toLocaleString()}/yr in reserves</b> and near-term maintenance exposure.
             </p>
           </div>
-          <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
+          <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
             <div className="flex items-center gap-2 mb-2">
-              <Cpu className="w-4 h-4 text-[#2563EB]" />
-              <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-[#2563EB]">For the Seller</p>
+              <Cpu className="w-4 h-4" style={{ color: "#4e8ef7" }} />
+              <p className="text-[11px] uppercase tracking-[0.15em] font-bold" style={{ color: "#4e8ef7" }}>For the Seller</p>
             </div>
-            <p className="text-[13px] text-[#4A4845] leading-relaxed">
+            <p className="text-[13px] leading-relaxed" style={{ color: "rgba(255,255,255,0.70)" }}>
               Present the aircraft with <b>logic and credibility</b>. A <b>{clarity.label}</b> clarity score builds buyer confidence and defends asking price.
             </p>
           </div>
@@ -508,12 +508,12 @@ export default function OpexCalculator() {
         <CustomAircraftModal open={showCustomModal} onClose={() => setShowCustomModal(false)} onSave={handleAddCustom} />
 
         {/* CTA — Service finder */}
-        <div className="mt-5 bg-[#2563EB] text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
           <div>
             <GoldLabel>Need real quotes?</GoldLabel>
-            <p className="text-sm font-bold mt-1">Compare insurance, MRO & hangar rates from verified providers near you.</p>
+            <p className="text-sm font-bold mt-1" style={{ color: "rgba(255,255,255,0.90)" }}>Compare insurance, MRO & hangar rates from verified providers near you.</p>
           </div>
-          <a href="/service-finder" className="shrink-0 bg-[#D4A017] hover:bg-[#f5bb4e] text-[#2563EB] font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5">
+          <a href="/service-finder" className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-90" style={{ background: "#f5c242", color: "#04060a" }}>
             <FileText className="w-4 h-4" /> Find services
           </a>
         </div>

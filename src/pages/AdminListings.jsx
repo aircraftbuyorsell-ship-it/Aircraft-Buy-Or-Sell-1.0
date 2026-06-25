@@ -33,7 +33,7 @@ function StatusBadge({ status }) {
 }
 
 function ATIBadge({ score }) {
-  if (!score) return <span className="text-[#AAA49C] text-xs">—</span>;
+  if (!score) return <span className="text-[rgba(255,255,255,0.35)] text-xs">—</span>;
   const color = score >= 90 ? "#0F7A56" : score >= 72 ? "#185FA5" : score >= 54 ? "#D4A017" : "#C0392B";
   return <span className="text-xs font-black" style={{ color }}>{score}</span>;
 }

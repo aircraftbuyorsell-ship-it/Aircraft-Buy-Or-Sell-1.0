@@ -37,8 +37,20 @@ Deno.serve(async (req) => {
       return msg;
     };
 
+    // Query timeout — fail fast instead of hanging until the 504 platform timeout
+    const QUERY_TIMEOUT_MS = 12000;
+    const withTimeout = (promise, ms = QUERY_TIMEOUT_MS) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase query timed out after ' + ms + 'ms')), ms)
+        ),
+      ]);
+
     const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
-    const currentMode = mode || 'summary';
+    // Default to registry_sync for scheduled automations (no payload = sync 50 records).
+    // The UI page always passes an explicit mode, so this only affects automated calls.
+    const currentMode = mode || 'registry_sync';
     const currentPage = page || 1;
     const size = Math.min(pageSize || 100, 1000);
 
@@ -194,8 +206,9 @@ Deno.serve(async (req) => {
       const from = batch * BATCH;
       const to = from + BATCH - 1;
 
-      const { data: rows, error: syncErr } = await supabaseAdmin
-        .from('faa_registry').select('*').range(from, to);
+      const { data: rows, error: syncErr } = await withTimeout(
+        supabaseAdmin.from('faa_registry').select('*').range(from, to)
+      );
       if (syncErr) return Response.json({ error: supabaseErrMsg(syncErr) }, { status: 502 });
 
       // Collect n_numbers to check for existing records (single query, not per-record)
@@ -265,8 +278,9 @@ Deno.serve(async (req) => {
       }
 
       // Get total for batch tracking
-      const { count: realTotal } = await supabaseAdmin
-        .from('faa_registry').select('*', { count: 'exact', head: true });
+      const { count: realTotal } = await withTimeout(
+        supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true })
+      ).catch(() => ({ count: null }));
       const totalBatches = Math.ceil((realTotal || 308985) / BATCH);
       const nextBatch = (batch + 1 >= totalBatches) ? 0 : batch + 1;
 
@@ -630,6 +644,13 @@ Deno.serve(async (req) => {
       return Response.json(
         { error: 'Supabase returned an HTML error page — the project may be paused or the URL is incorrect. Check VITE_SUPABASE_URL and Supabase project status.' },
         { status: 502 }
+      );
+    }
+    // Detect query timeouts
+    if (msg.includes('timed out') || msg.includes('Timeout')) {
+      return Response.json(
+        { error: 'Supabase query timed out — the project may be overloaded or paused. Retrying on next scheduled run.' },
+        { status: 504 }
       );
     }
     return Response.json({ error: msg }, { status: 500 });

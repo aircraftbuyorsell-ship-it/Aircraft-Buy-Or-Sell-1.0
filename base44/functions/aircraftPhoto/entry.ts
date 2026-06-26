@@ -4,11 +4,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  * Fetches an aircraft photo linked to a tail number.
  *
  * Sources (in order):
- *   1. planespotters.net pub API — real photo matched by registration marking
+ *   1. planespotters.net pub API — by hex code (Mode S / ICAO 24-bit) if available, then by registration
  *   2. adsbdb.com API — real photo (also sourced from planespotters etc.)
  *   3. Hugging Face GenerateImage — AI-generated representative photo by make/model
  *
- * Input: { registration, make, model }
+ * Input: { registration, hex, make, model }
  * Returns: { photo_url, thumbnail_url, source, photographer, photo_link }
  */
 Deno.serve(async (req) => {
@@ -17,8 +17,11 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { registration, make, model } = await req.json().catch(() => ({}));
+    const { registration, hex, make, model } = await req.json().catch(() => ({}));
     const result = { photo_url: null, thumbnail_url: null, source: null, photographer: null, photo_link: null };
+
+    // Normalize hex: strip 0x prefix, uppercase, alphanumeric only
+    const hexCode = (hex || '').trim().replace(/^0x/i, '').replace(/[^a-fA-F0-9]/g, '').toUpperCase();
 
     // Use the registration as-is (caller normalizes prefix/dashes).
     // For US N-numbers the caller may pass "N12345" or "12345" — normalize to "N12345".
@@ -28,8 +31,31 @@ Deno.serve(async (req) => {
       fullReg = 'N' + fullReg;
     }
 
-    // ── SOURCE 1: planespotters.net pub API — match by registration marking ──
-    if (fullReg) {
+    // ── SOURCE 1a: planespotters.net pub API — match by hex code (most precise) ──
+    if (hexCode) {
+      try {
+        const psRes = await fetch(`https://api.planespotters.net/pub/photos/hex/${encodeURIComponent(hexCode)}`, {
+          headers: { 'Accept': 'application/json', 'User-Agent': 'ABOS-MarketSpace/1.0 (+https://abos-marketspace.com/contact)' },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (psRes.ok) {
+          try {
+            const psData = await psRes.json();
+            const photo = psData?.photos?.[0];
+            if (photo?.thumbnail_large?.src) {
+              result.photo_url = photo.thumbnail_large.src;
+              result.thumbnail_url = photo.thumbnail?.src || photo.thumbnail_large.src;
+              result.source = 'planespotters';
+              result.photographer = photo.photographer || null;
+              result.photo_link = photo.link || null;
+            }
+          } catch (_) { /* non-JSON response */ }
+        }
+      } catch (_) { /* non-critical */ }
+    }
+
+    // ── SOURCE 1b: planespotters.net pub API — match by registration marking ──
+    if (!result.photo_url && fullReg) {
       try {
         const psRes = await fetch(`https://api.planespotters.net/pub/photos/reg/${encodeURIComponent(fullReg)}`, {
           headers: { 'Accept': 'application/json', 'User-Agent': 'ABOS-MarketSpace/1.0 (+https://abos-marketspace.com/contact)' },

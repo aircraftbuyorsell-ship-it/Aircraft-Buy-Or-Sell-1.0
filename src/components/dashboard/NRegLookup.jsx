@@ -69,6 +69,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
       try {
         const photoRes = await base44.functions.invoke("aircraftPhoto", {
           registration: data.aircraft.registration || fullReg,
+          hex: data.aircraft.mode_s_hex,
           make: data.aircraft.make,
           model: data.aircraft.model,
         });

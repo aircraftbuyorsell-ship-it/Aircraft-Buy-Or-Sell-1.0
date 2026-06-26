@@ -29,8 +29,8 @@ Deno.serve(async (req) => {
     const { registration, enrich_listing_id } = await req.json().catch(() => ({}));
     if (!registration) return Response.json({ error: 'registration required' }, { status: 400 });
 
-    // Normalize: uppercase, keep dashes for international marks, trim
-    const fullReg = registration.trim().toUpperCase();
+    // Normalize: uppercase, strip spaces, ensure dash for international prefixes
+    const fullReg = normalizeRegistration(registration);
     const country = detectCountry(fullReg);
 
     const result = {
@@ -239,6 +239,24 @@ Deno.serve(async (req) => {
 
 // ── Helpers ──────────────────────────────────────────────
 
+// Prefixes that use a dash separator in their canonical form.
+// Used to auto-insert the dash when the user omits it (e.g. "OK2001" → "OK-2001").
+const DASH_PREFIXES = ['OK', 'D', 'G', 'F', 'I', 'EC', 'EA', 'SE', 'OO', 'PH', 'HB', 'OE', 'LN', 'OY', 'ZK', 'VH', 'CS', 'B', '9M'];
+
+function normalizeRegistration(raw) {
+  if (!raw) return '';
+  // Uppercase, strip all whitespace
+  let r = String(raw).toUpperCase().replace(/\s+/g, '');
+  // Auto-insert dash for international prefixes that use one
+  for (const p of DASH_PREFIXES) {
+    if (r.startsWith(p) && !r.startsWith(p + '-')) {
+      r = p + '-' + r.slice(p.length);
+      break;
+    }
+  }
+  return r;
+}
+
 function detectCountry(reg) {
   const r = reg.toUpperCase();
   if (/^N[A-Z0-9]{1,5}$/.test(r) || /^N\d/.test(r)) {
@@ -257,30 +275,34 @@ function detectCountry(reg) {
   if (r.startsWith('OE-')) return { code: 'AT', label: 'Austria' };
   if (r.startsWith('LN-')) return { code: 'NO', label: 'Norway' };
   if (r.startsWith('OY-')) return { code: 'DK', label: 'Denmark' };
-  if (r.startsWith('SE-')) return { code: 'SE', label: 'Sweden' };
+  if (r.startsWith('CS-')) return { code: 'PT', label: 'Portugal' };
   if (r.startsWith('C-F') || r.startsWith('C-G')) return { code: 'CA', label: 'Canada' };
   if (r.startsWith('VH-')) return { code: 'AU', label: 'Australia' };
   if (r.startsWith('ZK-')) return { code: 'NZ', label: 'New Zealand' };
   if (r.startsWith('JA')) return { code: 'JP', label: 'Japan' };
   if (r.startsWith('B-')) return { code: 'CN', label: 'China' };
   if (r.startsWith('A7')) return { code: 'QA', label: 'Qatar' };
+  if (r.startsWith('9M')) return { code: 'MY', label: 'Malaysia' };
   return { code: 'XX', label: 'International' };
 }
 
 async function fetchAdsbdb(fullReg) {
-  try {
-    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(fullReg)}`, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const ac = data?.response?.aircraft;
-    if (ac && ac.registration) return ac;
-    return null;
-  } catch (_) {
-    return null;
+  // Try the canonical form first, then a dashless variant as fallback
+  const variants = [fullReg];
+  if (fullReg.includes('-')) variants.push(fullReg.replace(/-/g, ''));
+  for (const v of variants) {
+    try {
+      const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(v)}`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const ac = data?.response?.aircraft;
+      if (ac && ac.registration) return ac;
+    } catch (_) { /* try next variant */ }
   }
+  return null;
 }
 
 function mapAdsbdb(ac, fullReg, country) {

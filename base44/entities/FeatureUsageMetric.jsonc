@@ -1,35 +1,38 @@
 {
+  "name": "FeatureUsageMetric",
+  "type": "object",
   "properties": {
     "ab_variant": {
+      "type": "string",
       "description": "A/B test variant (control, variant_a, variant_b, etc.)",
       "enum": [
         "control",
         "variant_a",
         "variant_b",
         "variant_c"
-      ],
-      "type": "string"
+      ]
     },
     "conversion_count": {
+      "type": "number",
       "default": 0,
-      "description": "Number of conversions (goal achieved)",
-      "type": "number"
+      "description": "Number of conversions (goal achieved)"
     },
     "feature_name": {
-      "description": "Feature being measured",
-      "type": "string"
+      "type": "string",
+      "description": "Feature being measured"
     },
     "interaction_count": {
+      "type": "number",
       "default": 0,
-      "description": "Number of user interactions with feature",
-      "type": "number"
+      "description": "Number of user interactions with feature"
     },
     "measured_at": {
-      "description": "When this metric was recorded",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When this metric was recorded"
     },
     "metric_type": {
+      "type": "string",
       "description": "Type of metric being tracked",
       "enum": [
         "adoption_rate",
@@ -38,44 +41,48 @@
         "error_rate",
         "performance",
         "user_satisfaction"
-      ],
-      "type": "string"
+      ]
     },
     "metric_value": {
-      "description": "Measured value (percentage, count, seconds, score)",
-      "type": "number"
+      "type": "number",
+      "description": "Measured value (percentage, count, seconds, score)"
     },
     "sample_size": {
+      "type": "number",
       "default": 0,
-      "description": "Number of users sampled for this metric",
-      "type": "number"
+      "description": "Number of users sampled for this metric"
     },
     "statistical_significance": {
+      "type": "number",
       "default": 0,
       "description": "P-value (0.0-1.0) for A/B test significance",
       "maximum": 1,
-      "minimum": 0,
-      "type": "number"
+      "minimum": 0
     },
     "tier": {
+      "type": "string",
       "description": "Tier being measured",
       "enum": [
         "free_explorer",
         "pro",
         "enterprise",
         "all"
-      ],
-      "type": "string"
+      ]
     },
     "user_segment": {
+      "type": "string",
       "description": "User segment being measured (new, active, churned, all)",
       "enum": [
         "new_users",
         "active_users",
         "churned_users",
         "all_users"
-      ],
-      "type": "string"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -107,7 +114,5 @@
         "role": "super_admin"
       }
     }
-  },
-  "type": "object",
-  "name": "FeatureUsageMetric"
+  }
 }

@@ -1,7 +1,9 @@
 {
+  "name": "AdminAuditTrail",
+  "type": "object",
   "properties": {
     "action_category": {
-      "description": "Type of admin action",
+      "type": "string",
       "enum": [
         "user_management",
         "tier_management",
@@ -12,59 +14,64 @@
         "system_config",
         "payment_adjustment"
       ],
-      "type": "string"
+      "description": "Type of admin action"
     },
     "action_detail": {
-      "description": "Detailed description of what was done",
+      "type": "string",
       "maxLength": 1000,
-      "type": "string"
+      "description": "Detailed description of what was done"
     },
     "actor_email": {
-      "description": "Admin who performed the action",
-      "type": "string"
+      "type": "string",
+      "description": "Admin who performed the action"
     },
     "actor_role": {
-      "description": "Role of the admin at time of action",
+      "type": "string",
       "enum": [
         "admin",
         "super_admin"
       ],
-      "type": "string"
+      "description": "Role of the admin at time of action"
     },
     "affected_entity_id": {
-      "description": "ID of the entity affected",
-      "type": "string"
+      "type": "string",
+      "description": "ID of the entity affected"
     },
     "affected_entity_type": {
-      "description": "Type of entity affected (User, AircraftListing, ATICard, etc.)",
-      "type": "string"
+      "type": "string",
+      "description": "Type of entity affected (User, AircraftListing, ATICard, etc.)"
     },
     "before_snapshot": {
-      "description": "State of entity before action (JSON)",
-      "type": "object"
+      "type": "object",
+      "description": "State of entity before action (JSON)"
     },
     "after_snapshot": {
-      "description": "State of entity after action (JSON)",
-      "type": "object"
+      "type": "object",
+      "description": "State of entity after action (JSON)"
     },
     "ip_address_hash": {
-      "description": "Hashed IP of the admin",
-      "type": "string"
+      "type": "string",
+      "description": "Hashed IP of the admin"
     },
     "risk_level": {
-      "description": "Severity of this action",
+      "type": "string",
       "enum": [
         "low",
         "medium",
         "high",
         "critical"
       ],
-      "type": "string"
+      "description": "Severity of this action"
     },
     "timestamp": {
-      "description": "When the action occurred",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When the action occurred"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -96,7 +103,5 @@
         "role": "super_admin"
       }
     }
-  },
-  "type": "object",
-  "name": "AdminAuditTrail"
+  }
 }

@@ -71,6 +71,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When this appearance was captured"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

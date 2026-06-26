@@ -1,6 +1,9 @@
 {
+  "name": "PermissionLog",
+  "type": "object",
   "properties": {
     "action": {
+      "type": "string",
       "description": "Type of permission action",
       "enum": [
         "role_granted",
@@ -14,45 +17,49 @@
         "permission_revoked",
         "editor_access_granted",
         "editor_access_revoked"
-      ],
-      "type": "string"
+      ]
     },
     "actor_email": {
-      "description": "Admin or user who took the action",
-      "type": "string"
+      "type": "string",
+      "description": "Admin or user who took the action"
     },
     "entity_id": {
-      "description": "ID of affected entity",
-      "type": "string"
+      "type": "string",
+      "description": "ID of affected entity"
     },
     "entity_type": {
-      "description": "Entity affected (User, AircraftListing, ATICard, etc.)",
-      "type": "string"
+      "type": "string",
+      "description": "Entity affected (User, AircraftListing, ATICard, etc.)"
     },
     "ip_hash": {
-      "description": "Hashed IP address of actor",
-      "type": "string"
+      "type": "string",
+      "description": "Hashed IP address of actor"
     },
     "new_value": {
-      "description": "State after action",
-      "type": "object"
+      "type": "object",
+      "description": "State after action"
     },
     "old_value": {
-      "description": "State before action",
-      "type": "object"
+      "type": "object",
+      "description": "State before action"
     },
     "reason": {
+      "type": "string",
       "description": "Why the action was taken",
-      "maxLength": 500,
-      "type": "string"
+      "maxLength": 500
     },
     "subject_email": {
-      "description": "User affected by the action",
-      "type": "string"
+      "type": "string",
+      "description": "User affected by the action"
     },
     "timestamp": {
-      "format": "date-time",
-      "type": "string"
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -85,7 +92,5 @@
         "role": "admin"
       }
     }
-  },
-  "type": "object",
-  "name": "PermissionLog"
+  }
 }

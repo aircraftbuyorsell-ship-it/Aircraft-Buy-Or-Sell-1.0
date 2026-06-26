@@ -35,6 +35,11 @@
       "type": "string",
       "maxLength": 4000,
       "description": "JSON string with detailed scoring breakdown"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

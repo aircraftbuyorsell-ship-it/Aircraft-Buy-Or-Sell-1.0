@@ -10,6 +10,11 @@
     "voter_email": {
       "type": "string",
       "description": "Email of the voter"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

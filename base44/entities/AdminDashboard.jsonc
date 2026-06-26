@@ -1,6 +1,9 @@
 {
+  "name": "AdminDashboard",
+  "type": "object",
   "properties": {
     "active_widgets": {
+      "type": "array",
       "default": [
         "user_management",
         "permission_audit",
@@ -8,6 +11,7 @@
       ],
       "description": "List of active dashboard widgets",
       "items": {
+        "type": "string",
         "enum": [
           "user_management",
           "permission_audit",
@@ -19,36 +23,35 @@
           "ati_quality",
           "feature_toggles",
           "system_health"
-        ],
-        "type": "string"
-      },
-      "type": "array"
+        ]
+      }
     },
     "admin_email": {
-      "description": "Email of the admin who owns this dashboard view",
-      "type": "string"
+      "type": "string",
+      "description": "Email of the admin who owns this dashboard view"
     },
     "created_at": {
-      "description": "When dashboard was created",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When dashboard was created"
     },
     "dashboard_name": {
-      "description": "Human-readable name for this dashboard config",
+      "type": "string",
       "maxLength": 100,
-      "type": "string"
+      "description": "Human-readable name for this dashboard config"
     },
     "feature_flags": {
+      "type": "object",
       "default": {},
-      "description": "Beta features enabled for this admin",
-      "type": "object"
+      "description": "Beta features enabled for this admin"
     },
     "last_accessed": {
-      "description": "Last time this dashboard was viewed",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "Last time this dashboard was viewed"
     },
     "layout_preference": {
+      "type": "string",
       "default": "default",
       "description": "Dashboard layout style",
       "enum": [
@@ -56,29 +59,33 @@
         "compact",
         "detailed",
         "custom"
-      ],
-      "type": "string"
+      ]
     },
     "refresh_interval_seconds": {
+      "type": "number",
       "default": 60,
       "description": "How often dashboard auto-refreshes (0 = manual)",
-      "minimum": 0,
-      "type": "number"
+      "minimum": 0
     },
     "theme": {
+      "type": "string",
       "default": "light",
       "description": "UI theme preference",
       "enum": [
         "light",
         "dark",
         "auto"
-      ],
-      "type": "string"
+      ]
     },
     "widget_config": {
+      "type": "object",
       "default": {},
-      "description": "Per-widget configuration (filters, sort order, limits)",
-      "type": "object"
+      "description": "Per-widget configuration (filters, sort order, limits)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -127,7 +134,5 @@
         }
       ]
     }
-  },
-  "type": "object",
-  "name": "AdminDashboard"
+  }
 }

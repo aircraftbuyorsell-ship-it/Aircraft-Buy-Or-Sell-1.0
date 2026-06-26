@@ -81,6 +81,11 @@
     "active_offer": {
       "type": "object",
       "description": "Current personalized offer { code, discount_pct, expires_at }"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

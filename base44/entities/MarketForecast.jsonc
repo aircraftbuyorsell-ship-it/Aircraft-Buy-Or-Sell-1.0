@@ -203,6 +203,11 @@
     "hf_forecast_change_pct": {
       "type": "number",
       "description": "Predicted % change over horizon"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

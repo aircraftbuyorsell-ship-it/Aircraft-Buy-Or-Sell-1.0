@@ -36,6 +36,11 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the dealer certificate is expired"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

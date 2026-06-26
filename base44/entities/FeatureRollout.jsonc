@@ -1,55 +1,58 @@
 {
+  "name": "FeatureRollout",
+  "type": "object",
   "properties": {
     "completed_at": {
-      "description": "When rollout was completed (100% reached)",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When rollout was completed (100% reached)"
     },
     "created_by": {
-      "description": "Admin who created this rollout",
-      "type": "string"
+      "type": "string",
+      "description": "Admin who created this rollout"
     },
     "current_percentage": {
+      "type": "number",
       "default": 0,
       "description": "Current rollout percentage (0-100)",
       "maximum": 100,
-      "minimum": 0,
-      "type": "number"
+      "minimum": 0
     },
     "feature_name": {
-      "description": "Reference to feature being rolled out",
-      "type": "string"
+      "type": "string",
+      "description": "Reference to feature being rolled out"
     },
     "halted_at": {
-      "description": "If rollout was halted, when it happened",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "If rollout was halted, when it happened"
     },
     "halt_reason": {
-      "description": "Why rollout was halted (bugs, performance, etc.)",
+      "type": "string",
       "maxLength": 500,
-      "type": "string"
+      "description": "Why rollout was halted (bugs, performance, etc.)"
     },
     "increments": {
+      "type": "array",
       "default": [],
       "description": "Rollout schedule: [{date: 2026-05-25, percentage: 10}, {date: 2026-05-26, percentage: 25}, ...]",
       "items": {
+        "type": "object",
         "properties": {
           "date": {
-            "format": "date-time",
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "percentage": {
+            "type": "number",
             "maximum": 100,
-            "minimum": 0,
-            "type": "number"
+            "minimum": 0
           }
-        },
-        "type": "object"
-      },
-      "type": "array"
+        }
+      }
     },
     "status": {
+      "type": "string",
       "description": "Rollout status",
       "enum": [
         "planning",
@@ -57,29 +60,33 @@
         "paused",
         "halted",
         "completed"
-      ],
-      "type": "string"
+      ]
     },
     "target_percentage": {
+      "type": "number",
       "default": 100,
       "description": "Final target percentage for rollout",
       "maximum": 100,
-      "minimum": 0,
-      "type": "number"
+      "minimum": 0
     },
     "tier": {
+      "type": "string",
       "description": "Tier being rolled out to",
       "enum": [
         "free_explorer",
         "pro",
         "enterprise"
-      ],
-      "type": "string"
+      ]
     },
     "updated_at": {
-      "description": "Last update to rollout",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "Last update to rollout"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -111,7 +118,5 @@
         "role": "super_admin"
       }
     }
-  },
-  "type": "object",
-  "name": "FeatureRollout"
+  }
 }

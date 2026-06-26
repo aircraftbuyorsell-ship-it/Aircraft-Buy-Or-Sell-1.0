@@ -59,6 +59,11 @@
       "type": "boolean",
       "default": false,
       "description": "True if fetched_at is older than 48 hours"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

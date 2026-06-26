@@ -102,6 +102,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When the Polygon anchor was confirmed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

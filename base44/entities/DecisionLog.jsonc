@@ -56,6 +56,11 @@
     "reasoning": {
       "type": "string",
       "description": "Optional explanation (AI summary, attribution reason, etc.)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

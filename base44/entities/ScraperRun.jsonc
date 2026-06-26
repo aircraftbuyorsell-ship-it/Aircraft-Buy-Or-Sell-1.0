@@ -1,5 +1,5 @@
 {
-  "name": "NewPlaneBrowser",
+  "name": "ScraperRun",
   "type": "object",
   "properties": {
     "platform": {
@@ -49,6 +49,11 @@
       "type": "string",
       "format": "date",
       "description": "Completion timestamp"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [],

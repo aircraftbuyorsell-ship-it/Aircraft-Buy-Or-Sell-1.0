@@ -1,10 +1,13 @@
 {
+  "name": "TierChange",
+  "type": "object",
   "properties": {
     "billing_adjustment": {
-      "description": "Prorated refund/charge (USD)",
-      "type": "number"
+      "type": "number",
+      "description": "Prorated refund/charge (USD)"
     },
     "change_reason": {
+      "type": "string",
       "description": "Why the tier was changed",
       "enum": [
         "user_requested",
@@ -13,24 +16,24 @@
         "suspension_consequence",
         "promotion",
         "compliance_requirement"
-      ],
-      "type": "string"
+      ]
     },
     "confirmation_email": {
-      "description": "Email of super_admin who confirmed the change",
-      "type": "string"
+      "type": "string",
+      "description": "Email of super_admin who confirmed the change"
     },
     "confirmation_timestamp": {
-      "description": "When super_admin confirmed the change",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When super_admin confirmed the change"
     },
     "effective_date": {
-      "description": "When the tier change takes effect",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When the tier change takes effect"
     },
     "new_sub_tier": {
+      "type": "string",
       "description": "New sub-tier (starter, plus, premium, scale, elite)",
       "enum": [
         "starter",
@@ -39,19 +42,19 @@
         "scale",
         "elite",
         "none"
-      ],
-      "type": "string"
+      ]
     },
     "new_tier": {
+      "type": "string",
       "description": "New tier level",
       "enum": [
         "free_explorer",
         "pro",
         "enterprise"
-      ],
-      "type": "string"
+      ]
     },
     "old_sub_tier": {
+      "type": "string",
       "description": "Previous sub-tier",
       "enum": [
         "starter",
@@ -60,33 +63,33 @@
         "scale",
         "elite",
         "none"
-      ],
-      "type": "string"
+      ]
     },
     "old_tier": {
+      "type": "string",
       "description": "Previous tier level",
       "enum": [
         "free_explorer",
         "pro",
         "enterprise"
-      ],
-      "type": "string"
+      ]
     },
     "processing_notes": {
+      "type": "string",
       "description": "Notes from processing (e.g., refund details)",
-      "maxLength": 500,
-      "type": "string"
+      "maxLength": 500
     },
     "request_email": {
-      "description": "Email of admin who initiated the change",
-      "type": "string"
+      "type": "string",
+      "description": "Email of admin who initiated the change"
     },
     "request_timestamp": {
-      "description": "When the change was requested",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When the change was requested"
     },
     "status": {
+      "type": "string",
       "description": "Change status",
       "enum": [
         "pending_confirmation",
@@ -95,12 +98,16 @@
         "completed",
         "failed",
         "rolled_back"
-      ],
-      "type": "string"
+      ]
     },
     "user_email": {
-      "description": "Email of user whose tier is changing",
-      "type": "string"
+      "type": "string",
+      "description": "Email of user whose tier is changing"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -134,7 +141,5 @@
         "role": "super_admin"
       }
     }
-  },
-  "type": "object",
-  "name": "TierChange"
+  }
 }

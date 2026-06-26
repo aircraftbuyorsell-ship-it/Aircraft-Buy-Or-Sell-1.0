@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { TrendingUp, Coins, History, AlertCircle, Sparkles } from "lucide-react";
+import { TrendingUp, Coins, History, AlertCircle, Sparkles, Brain } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import ScopeCard from "@/components/market-reports/ScopeCard";
 import ReportView from "@/components/market-reports/ReportView";
 import ReportVisualizations from "@/components/market-reports/ReportVisualizations";
 import PersonalizationPanel from "@/components/market-reports/PersonalizationPanel";
+import HFIntelligencePanel from "@/components/market-reports/HFIntelligencePanel";
 
 const SCOPES = ["hourly", "daily", "weekly", "monthly"];
 
@@ -206,6 +207,20 @@ export default function MarketReports() {
             <p style={{ fontSize: 13, color: "#5dcaa5", margin: 0 }}>{cacheNotice}</p>
           </div>
         )}
+
+        {/* AI Forecast Engine */}
+        <div style={{ marginBottom: 32 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <Brain className="w-4 h-4" style={{ color: "#00f5ff" }} />
+            <h2 className="text-sm font-black uppercase tracking-wide" style={{ color: "#fff" }}>
+              AI Forecast Engine
+            </h2>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ color: "#00f5ff", background: "rgba(0,245,255,0.08)", border: "0.5px solid rgba(0,245,255,0.2)" }}>
+              HF · Chronos + FinBERT
+            </span>
+          </div>
+          <HFIntelligencePanel />
+        </div>
 
         {/* Personalization */}
         <div style={{ marginBottom: 24 }}>

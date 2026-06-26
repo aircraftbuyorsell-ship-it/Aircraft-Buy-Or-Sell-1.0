@@ -107,6 +107,102 @@
       "type": "string",
       "default": "gemini_3_1_pro",
       "description": "LLM model pou\u017eit\u00fd pro generov\u00e1n\u00ed"
+    },
+    "cache_key": {
+      "type": "string",
+      "description": "HF Intelligence cache key: ${make}_${model}_${horizon}"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this cached HF forecast expires (now + 6h)"
+    },
+    "hf_make": {
+      "type": "string",
+      "description": "Aircraft make for this HF forecast"
+    },
+    "hf_model": {
+      "type": "string",
+      "description": "Aircraft model for this HF forecast"
+    },
+    "hf_horizon_days": {
+      "type": "number",
+      "description": "Forecast horizon in days (30/60/90)"
+    },
+    "hf_forecast": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number"
+          },
+          "price_low": {
+            "type": "number"
+          },
+          "price_mid": {
+            "type": "number"
+          },
+          "price_high": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Chronos forecast: predicted prices per day with confidence band"
+    },
+    "hf_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Historical price series used as Chronos context"
+    },
+    "hf_sentiment": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "neutral",
+            "negative"
+          ]
+        },
+        "score": {
+          "type": "number"
+        }
+      },
+      "description": "FinBERT sentiment result"
+    },
+    "hf_signal": {
+      "type": "string",
+      "enum": [
+        "BUY",
+        "HOLD",
+        "WATCH"
+      ],
+      "description": "Combined trading signal derived from forecast + sentiment"
+    },
+    "hf_ai_commentary": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "AI-generated explanation of the forecast and signal"
+    },
+    "hf_current_price": {
+      "type": "number",
+      "description": "Latest historical price at forecast time"
+    },
+    "hf_forecast_change_pct": {
+      "type": "number",
+      "description": "Predicted % change over horizon"
     }
   },
   "required": [

@@ -15,6 +15,7 @@ import EngineDealer from "@/components/dashboard/sections/EngineDealer";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import WhyAbos from "@/components/dashboard/sections/WhyAbos";
 import EnterpriseCTA from "@/components/dashboard/sections/EnterpriseCTA";
+import HFMarketWidget from "@/components/dashboard/HFMarketWidget";
 
 export default function Dashboard() {
   const { data: listings = [] } = useQuery({
@@ -82,6 +83,15 @@ export default function Dashboard() {
         atiCards={atiCards}
         activeAti={activeAti}
       />
+      <SectionShell
+        eyebrow="AI Market Intelligence · Hugging Face"
+        title="Market Signal Dashboard"
+        subtitle="Chronos-Bolt price forecasting combined with FinBERT sentiment analysis. Cached forecasts for the most-tracked aircraft types on the platform."
+      >
+        <div style={{ maxWidth: 560, margin: "0 auto" }}>
+          <HFMarketWidget />
+        </div>
+      </SectionShell>
       <AircraftFinance />
       <FeaturedTools />
       <EngineDealer />

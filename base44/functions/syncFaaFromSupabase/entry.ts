@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
+  let activeMode = null;
   try {
     const base44 = createClientFromRequest(req);
     // Scheduled automations have no user context — allow them to proceed.
@@ -47,10 +48,39 @@ Deno.serve(async (req) => {
         ),
       ]);
 
+    // Retry wrapper with exponential backoff for transient Supabase timeouts/errors.
+    // maxAttempts=3, base delay 2s → delays: 2s, 4s. Total worst case ~36-42s.
+    const withRetry = async (fn, opts = {}) => {
+      const { maxAttempts = 3, delayMs = 2000 } = opts;
+      let lastError;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          return await fn(attempt);
+        } catch (err) {
+          lastError = err;
+          if (attempt < maxAttempts) {
+            const delay = delayMs * Math.pow(2, attempt - 1);
+            await new Promise(r => setTimeout(r, delay));
+          }
+        }
+      }
+      throw lastError;
+    };
+
+    // Graceful skip response (HTTP 200) for scheduled registry_sync runs
+    const skipResponse = (reason) => Response.json({
+      mode: 'registry_sync',
+      skipped: true,
+      reason,
+      timestamp: new Date().toISOString(),
+      retryAt: 'next scheduled run',
+    });
+
     const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
     // Default to registry_sync for scheduled automations (no payload = sync 50 records).
     // The UI page always passes an explicit mode, so this only affects automated calls.
     const currentMode = mode || 'registry_sync';
+    activeMode = currentMode;
     const currentPage = page || 1;
     const size = Math.min(pageSize || 100, 1000);
 
@@ -188,6 +218,21 @@ Deno.serve(async (req) => {
     if (currentMode === 'registry_sync') {
       const BATCH = 50;
 
+      // ── Connectivity pre-check (5s timeout) ──
+      // If Supabase is unreachable (paused/HTML error), skip immediately
+      // WITHOUT touching the AppConfig batch offset — so the pointer is not lost.
+      try {
+        const preCheck = await withTimeout(
+          supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true }),
+          5000
+        );
+        if (preCheck.error) {
+          return skipResponse(supabaseErrMsg(preCheck.error));
+        }
+      } catch (preCheckErr) {
+        return skipResponse(supabaseErrMsg(preCheckErr));
+      }
+
       // Determine which batch to process
       let batch;
       if (page !== undefined && pageSize && pageSize > 0) {
@@ -206,10 +251,20 @@ Deno.serve(async (req) => {
       const from = batch * BATCH;
       const to = from + BATCH - 1;
 
-      const { data: rows, error: syncErr } = await withTimeout(
-        supabaseAdmin.from('faa_registry').select('*').range(from, to)
-      );
-      if (syncErr) return Response.json({ error: supabaseErrMsg(syncErr) }, { status: 502 });
+      // ── Main range query with retry + exponential backoff (3 attempts, 2s base) ──
+      let rows = null;
+      try {
+        rows = await withRetry(async () => {
+          const r = await withTimeout(
+            supabaseAdmin.from('faa_registry').select('*').range(from, to)
+          );
+          if (r.error) throw r.error;
+          return r.data;
+        });
+      } catch (retryErr) {
+        // All 3 attempts exhausted — return 200 skipped (not 504)
+        return skipResponse(`Supabase timeout after 3 attempts: ${supabaseErrMsg(retryErr)}`);
+      }
 
       // Collect n_numbers to check for existing records (single query, not per-record)
       const nNumbers = (rows || [])
@@ -639,15 +694,26 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
     const msg = error.message || String(error);
-    // Detect HTML error pages from Supabase (paused project, wrong URL, rate limit)
-    if (msg.includes('<!DOCTYPE') || msg.includes('<html')) {
+    const isSupabaseDown = msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out');
+    const isTimeout = msg.includes('timed out') || msg.includes('Timeout');
+
+    // For scheduled registry_sync runs, return 200 skipped so the automation stays green
+    if (activeMode === 'registry_sync' && (isSupabaseDown || isTimeout)) {
+      return skipResponse(
+        isSupabaseDown
+          ? 'Supabase unreachable (HTML error page — project may be paused)'
+          : 'Supabase query timed out'
+      );
+    }
+
+    // For UI-driven modes, return error responses so admins see the failure
+    if (isSupabaseDown) {
       return Response.json(
         { error: 'Supabase returned an HTML error page — the project may be paused or the URL is incorrect. Check VITE_SUPABASE_URL and Supabase project status.' },
         { status: 502 }
       );
     }
-    // Detect query timeouts
-    if (msg.includes('timed out') || msg.includes('Timeout')) {
+    if (isTimeout) {
       return Response.json(
         { error: 'Supabase query timed out — the project may be overloaded or paused. Retrying on next scheduled run.' },
         { status: 504 }

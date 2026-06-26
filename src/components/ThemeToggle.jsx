@@ -11,7 +11,7 @@ function isNightHour() {
 export default function ThemeToggle() {
   const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "auto");
 
-  const isDark = mode === "dark" || (mode === "auto" && isNightHour());
+  const isDark = mode === "dark" || (mode === "auto" && true);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);

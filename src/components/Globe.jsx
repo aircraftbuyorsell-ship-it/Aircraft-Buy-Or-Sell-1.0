@@ -646,7 +646,7 @@ export default function Globe({
     const acGeo = new THREE.BufferGeometry();
     acGeoRef.current = acGeo;
     const acMat = new THREE.PointsMaterial({
-      size: 0.14,
+      size: 0.20,
       map: aircraftSilhouetteTexture(),
       vertexColors: false,
       color: 0x00d4ff,
@@ -662,7 +662,7 @@ export default function Globe({
     const lGeo = new THREE.BufferGeometry();
     lGeoRef.current = lGeo;
     const lMat = new THREE.PointsMaterial({
-      size: 0.16,
+      size: 0.22,
       map: dotTexture(),
       vertexColors: true,
       transparent: true,
@@ -677,7 +677,7 @@ export default function Globe({
     const liveGeo = new THREE.BufferGeometry();
     liveGeoRef.current = liveGeo;
     const liveMat = new THREE.PointsMaterial({
-      size: 0.14,
+      size: 0.18,
       map: liveTrafficTexture(),
       vertexColors: true,
       transparent: true,
@@ -692,7 +692,7 @@ export default function Globe({
     const faaGeo = new THREE.BufferGeometry();
     faaGeoRef.current = faaGeo;
     const faaMat = new THREE.PointsMaterial({
-      size: 0.22,
+      size: 0.28,
       map: faaClusterTexture(),
       vertexColors: false,
       color: 0xD4A017,

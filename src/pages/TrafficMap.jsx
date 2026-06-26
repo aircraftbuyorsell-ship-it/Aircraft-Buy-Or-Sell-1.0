@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Radar, RefreshCw, Loader2, Search, X, Info, Filter, ChevronDown } from "lucide-react";
-import TrafficGlobe from "@/components/live-traffic/TrafficGlobe";
-import AircraftInfoPanel from "@/components/live-traffic/AircraftInfoPanel";
+import { Radar, RefreshCw, Loader2, Search, X, Info, ChevronDown } from "lucide-react";
+import SkyBossGlobe from "@/components/dashboard/SkyBossGlobe";
+import GlobeLayerFilter, { DEFAULT_FILTER } from "@/components/dashboard/GlobeLayerFilter";
 
 const C = {
   ink: "#0B1220",
@@ -10,7 +10,6 @@ const C = {
   amber: "#D4A017",
   amberDim: "rgba(212,160,23,0.10)",
   amberBdr: "rgba(212,160,23,0.22)",
-  teal: "#5dcaa5",
   red: "#e24b4a",
   w1: "rgba(255,255,255,0.90)",
   w2: "rgba(255,255,255,0.50)",
@@ -19,23 +18,7 @@ const C = {
   borderMd: "rgba(255,255,255,0.12)",
 };
 
-const WORLD = { key: "world", label: "Global", lamin: -60, lamax: 72, lomin: -130, lomax: 50 };
-
-const CATEGORY_FILTERS = [
-  { key: "all",       label: "All",        test: () => true },
-  { key: "ga",        label: "GA",         test: (a) => a.category >= 1 && a.category <= 3 },
-  { key: "turboprop", label: "Turboprop",  test: (a) => a.category === 4 },
-  { key: "jet",       label: "Jet",        test: (a) => a.category === 5 || a.category === 6 },
-  { key: "heli",      label: "Helicopter", test: (a) => a.category === 8 || a.category === 9 },
-  { key: "other",     label: "Other",      test: (a) => a.category === 0 || a.category >= 10 },
-];
-
-const LEGEND = [
-  { color: "#e24b4a", label: "0–5k ft" },
-  { color: "#D4A017", label: "5–15k ft" },
-  { color: "#5dcaa5", label: "15–30k ft" },
-  { color: "#4e8ef7", label: "30k+ ft" },
-];
+const WORLD = { key: "world", label: "Global" };
 
 export default function TrafficMap() {
   const [aircraft, setAircraft] = useState([]);
@@ -47,10 +30,9 @@ export default function TrafficMap() {
   const [search, setSearch] = useState("");
   const [searchError, setSearchError] = useState(null);
   const [snapshots, setSnapshots] = useState([]);
-  const [catFilter, setCatFilter] = useState("all");
-  const [selected, setSelected] = useState(null);
-  const [scoringMap, setScoringMap] = useState({});
   const [snapOpen, setSnapOpen] = useState(false);
+  const [filter, setFilter] = useState(DEFAULT_FILTER);
+  const [focusLocation, setFocusLocation] = useState(null);
 
   const loadSnapshots = useCallback(async () => {
     try {
@@ -62,7 +44,6 @@ export default function TrafficMap() {
   const fetchTraffic = useCallback(async (force = false) => {
     force ? setRefreshing(true) : setLoading(true);
     setError(null);
-    setSelected(null);
     try {
       const res = await base44.functions.invoke("cachedTraffic", {
         region_key: WORLD.key,
@@ -95,7 +76,6 @@ export default function TrafficMap() {
       setAircraft(ac);
       setDataTime(snap.refreshed_at ? new Date(snap.refreshed_at) : null);
       setDataSource(`snapshot:${snap.region_label || snap.region_key}`);
-      setSelected(null);
       setSnapOpen(false);
     } catch (_) {}
   };
@@ -111,54 +91,28 @@ export default function TrafficMap() {
       return reg === q || icao === q || reg.includes(q) || cs === q || cs.includes(q);
     });
     if (!found) { setSearchError(`"${search.trim()}" not found in current snapshot`); return; }
-    setSelected(found);
-  };
-
-  const clearSearch = () => { setSearch(""); setSearchError(null); };
-
-  const handleScoreAircraft = async (ac) => {
-    const reg = ac.registration || (ac.faa?.n_number || "").replace(/^N/, "").trim();
-    if (!reg) return;
-    setScoringMap(prev => ({ ...prev, [ac.icao24]: "loading" }));
-    try {
-      const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: reg.replace(/^N/i, "").trim() });
-      if (res.data?.listingId) {
-        setScoringMap(prev => ({ ...prev, [ac.icao24]: "success" }));
-        setAircraft(prev => prev.map(a => a.icao24 === ac.icao24 ? {
-          ...a,
-          listing: { id: res.data.listingId, ati_score: res.data.atiScore, card_code: res.data.cardCode }
-        } : a));
-        setSelected(prev => prev && prev.icao24 === ac.icao24 ? {
-          ...prev,
-          listing: { id: res.data.listingId, ati_score: res.data.atiScore, card_code: res.data.cardCode }
-        } : prev);
-      } else {
-        setScoringMap(prev => ({ ...prev, [ac.icao24]: res.data?.error || "No data found" }));
-      }
-    } catch (e) {
-      setScoringMap(prev => ({ ...prev, [ac.icao24]: e?.response?.data?.error || e.message || "Scoring failed" }));
+    if (found.latitude != null && found.longitude != null) {
+      setFocusLocation({ lat: found.latitude, lon: found.longitude });
     }
   };
 
-  const catDef = CATEGORY_FILTERS.find(f => f.key === catFilter) || CATEGORY_FILTERS[0];
-  const visibleAircraft = aircraft.filter(catDef.test);
-  const airborne = visibleAircraft.filter((a) => !a.on_ground);
-  const withListing = visibleAircraft.filter((a) => a.listing).length;
+  const clearSearch = () => { setSearch(""); setSearchError(null); setFocusLocation(null); };
 
   const sourceLabel = dataSource === "live" ? "🟢 Live" : dataSource === "cache" ? "🔵 Cache" : dataSource?.startsWith("snapshot:") ? `📁 ${dataSource.replace("snapshot:", "")}` : dataSource || "—";
 
   const stats = [
-    { label: "Airborne", value: airborne.length },
     { label: "Total loaded", value: aircraft.length },
-    { label: "ABOS matched", value: withListing },
     { label: "Source", value: sourceLabel },
     { label: "Updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
   ];
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: C.ink, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* ── Stats / control bar ── */}
-      <div style={{ background: "rgba(13,17,23,0.85)", borderBottom: `0.5px solid ${C.border}`, flexShrink: 0, zIndex: 30 }}>
+    <div style={{ position: "fixed", inset: 0, background: C.ink, overflow: "hidden" }}>
+      {/* ── Globe (full height) ── */}
+      <SkyBossGlobe className="w-full h-full" filter={filter} focusLocation={focusLocation} />
+
+      {/* ── Top overlay bar ── */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 30, background: "rgba(13,17,23,0.85)", backdropFilter: "blur(12px)", borderBottom: `0.5px solid ${C.border}` }}>
         <div style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
           {/* Title */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -182,6 +136,9 @@ export default function TrafficMap() {
           </div>
 
           <div style={{ flex: 1 }} />
+
+          {/* Layer filter */}
+          <GlobeLayerFilter filter={filter} onChange={setFilter} />
 
           {/* Search */}
           <div style={{ display: "flex", gap: "6px" }}>
@@ -243,25 +200,6 @@ export default function TrafficMap() {
           </button>
         </div>
 
-        {/* Category filters */}
-        <div style={{ padding: "0 18px 12px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-          <Filter size={13} color={C.w3} />
-          {CATEGORY_FILTERS.map((f) => {
-            const active = catFilter === f.key;
-            return (
-              <button key={f.key} onClick={() => setCatFilter(f.key)}
-                style={{
-                  padding: "5px 12px", borderRadius: "7px", fontSize: "11px", fontWeight: 600, cursor: "pointer",
-                  background: active ? C.amberDim : "transparent",
-                  border: `0.5px solid ${active ? C.amberBdr : C.border}`,
-                  color: active ? C.amber : C.w2, transition: "all 0.15s",
-                }}>
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
-
         {searchError && (
           <div style={{ margin: "0 18px 12px", display: "flex", alignItems: "center", gap: "8px", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", background: C.amberDim, border: `0.5px solid ${C.amberBdr}`, color: C.amber }}>
             <Info size={14} /> {searchError}
@@ -272,43 +210,17 @@ export default function TrafficMap() {
         )}
       </div>
 
-      {/* ── Globe ── */}
-      <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-        <TrafficGlobe aircraft={visibleAircraft} onSelect={setSelected} selected={selected} />
-
-        {loading && (
-          <div style={{ position: "absolute", inset: 0, zIndex: 25, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", background: "rgba(4,6,10,0.7)", backdropFilter: "blur(4px)" }}>
-            <Loader2 size={28} className="animate-spin" color={C.amber} />
-            <p style={{ fontSize: "13px", color: C.w2 }}>Loading global traffic…</p>
-          </div>
-        )}
-
-        {/* Legend */}
-        <div style={{ position: "absolute", left: "18px", bottom: "18px", zIndex: 15, background: "rgba(13,17,23,0.85)", border: `0.5px solid ${C.border}`, borderRadius: "10px", padding: "12px 14px" }}>
-          <p style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "0.10em", textTransform: "uppercase", color: C.w3, margin: "0 0 8px" }}>Altitude</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            {LEGEND.map((l) => (
-              <div key={l.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: l.color, flexShrink: 0 }} />
-                <span style={{ fontSize: "11px", color: C.w2 }}>{l.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Hint */}
-        <div style={{ position: "absolute", right: selected ? "296px" : "18px", bottom: "18px", zIndex: 15, fontSize: "10px", color: C.w3, transition: "right 0.2s" }}>
-          Drag to rotate · click an aircraft for details
-        </div>
-
-        {/* Info panel */}
-        <AircraftInfoPanel
-          ac={selected}
-          onClose={() => setSelected(null)}
-          onScore={handleScoreAircraft}
-          scoreState={selected ? scoringMap[selected.icao24] : null}
-        />
+      {/* Hint */}
+      <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", bottom: "18px", zIndex: 15, fontSize: "10px", color: C.w3, pointerEvents: "none" }}>
+        Drag to rotate · hover for labels · click for details
       </div>
+
+      {loading && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 25, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", background: "rgba(4,6,10,0.7)", backdropFilter: "blur(4px)" }}>
+          <Loader2 size={28} className="animate-spin" color={C.amber} />
+          <p style={{ fontSize: "13px", color: C.w2 }}>Loading global traffic…</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -101,6 +101,25 @@ function atiColor(score) {
   return [1.0, 0.3, 0.43];
 }
 
+function buildHoverLabel(meta, type) {
+  if (type === "adsb") {
+    const id = (meta.callsign && meta.callsign.trim()) || meta.registration || meta.icao24 || "Unknown";
+    return "Flight " + id + " (ADS-B)";
+  }
+  if (type === "live") {
+    const id = meta.n_number || (meta.callsign && meta.callsign.trim()) || meta.icao24 || "Unknown";
+    return id + " (Live DB)";
+  }
+  if (type === "faa") {
+    return "FAA · " + meta.state + " (" + meta.count + ")";
+  }
+  if (type === "listing") {
+    const label = [meta.year, meta.make, meta.model].filter(Boolean).join(" ").trim();
+    return (label || "Listing") + " (Listing)";
+  }
+  return "";
+}
+
 function altColorM(altM) {
   if (altM == null) return "#999";
   const ft = altM * 3.28084;
@@ -292,6 +311,10 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const filterRef = useRef(filter);
   const adsbCache = useRef([]);
   const liveCache = useRef([]);
+  const arcsGroupRef = useRef(null);
+  const arcMaterialRef = useRef(null);
+  const hoveredPointsRef = useRef([]);
+  const labelElsRef = useRef([]);
 
   useEffect(() => {listingsRef.current = listings;}, [listings]);
   useEffect(() => {filterRef.current = filter;}, [filter]);
@@ -754,7 +777,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const acGeo = new THREE.BufferGeometry();
     acGeoRef.current = acGeo;
     const acMat = new THREE.PointsMaterial({
-      size: 0.14,
+      size: 0.20,
       map: aircraftSilhouetteTexture(),
       vertexColors: false,
       color: 0x00d4ff,
@@ -771,7 +794,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const lGeo = new THREE.BufferGeometry();
     lGeoRef.current = lGeo;
     const lMat = new THREE.PointsMaterial({
-      size: 0.16,
+      size: 0.22,
       map: dotTexture(),
       vertexColors: true,
       transparent: true,
@@ -787,7 +810,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const liveGeo = new THREE.BufferGeometry();
     liveGeoRef.current = liveGeo;
     const liveMat = new THREE.PointsMaterial({
-      size: 0.14,
+      size: 0.18,
       map: liveTrafficTexture(),
       vertexColors: true,
       transparent: true,
@@ -803,7 +826,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const faaGeo = new THREE.BufferGeometry();
     faaGeoRef.current = faaGeo;
     const faaMat = new THREE.PointsMaterial({
-      size: 0.22,
+      size: 0.28,
       map: faaClusterTexture(),
       vertexColors: false,
       color: 0xD4A017,
@@ -815,6 +838,36 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     const faaPoints = new THREE.Points(faaGeo, faaMat);
     faaPointsRef.current = faaPoints;
     globe.add(faaPoints);
+
+    // Flight path arcs — animated cyan bezier curves between ADS-B points
+    const arcMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uAlpha: { value: 0.35 } },
+      vertexShader: `
+        attribute float aProgress;
+        varying float vProgress;
+        void main() {
+          vProgress = aProgress;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uAlpha;
+        varying float vProgress;
+        void main() {
+          float dash = fract(vProgress * 18.0 - uTime * 0.6);
+          float a = step(0.45, dash) * uAlpha;
+          gl_FragColor = vec4(0.0, 0.83, 1.0, a);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    arcMaterialRef.current = arcMat;
+    const arcsGroup = new THREE.Group();
+    arcsGroupRef.current = arcsGroup;
+    globe.add(arcsGroup);
 
     // Animation with slow autorotation + UTC day/night sun
     const loop = () => {
@@ -844,6 +897,33 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       globe.rotation.y = rotRef.current.y;
       globe.rotation.x = rotRef.current.x;
       renderer.render(scene, camera);
+
+      // Animate flight path arc dash flow
+      if (arcMaterialRef.current) {
+        arcMaterialRef.current.uniforms.uTime.value += 0.016;
+      }
+
+      // Project hovered points to screen for inline labels
+      const cvEl = canvasRef.current;
+      if (cvEl && labelElsRef.current.length > 0) {
+        const cw = cvEl.clientWidth, ch = cvEl.clientHeight;
+        globe.updateMatrixWorld();
+        const hovered = hoveredPointsRef.current;
+        for (let i = 0; i < 3; i++) {
+          const el = labelElsRef.current[i];
+          if (!el) continue;
+          const hp = hovered[i];
+          if (!hp) { el.style.display = "none"; continue; }
+          const world = hp.localPos.clone().applyMatrix4(globe.matrixWorld);
+          if (world.z < 0.0) { el.style.display = "none"; continue; }
+          const proj = world.clone().project(camera);
+          const x = (proj.x * 0.5 + 0.5) * cw;
+          const y = (-proj.y * 0.5 + 0.5) * ch;
+          el.style.display = "block";
+          el.style.left = x + "px";
+          el.style.top = y + "px";
+        }
+      }
     };
     loop();
 
@@ -874,12 +954,63 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       canvas.classList.remove("cursor-grabbing");
     };
     const onMove = (e) => {
-      if (!dragRef.current.active) return;
-      rotRef.current.y += (e.clientX - dragRef.current.px) * 0.006;
-      rotRef.current.x += (e.clientY - dragRef.current.py) * 0.006;
-      rotRef.current.x = Math.max(-1.3, Math.min(1.3, rotRef.current.x));
-      dragRef.current.px = e.clientX;
-      dragRef.current.py = e.clientY;
+      if (dragRef.current.active) {
+        rotRef.current.y += (e.clientX - dragRef.current.px) * 0.006;
+        rotRef.current.x += (e.clientY - dragRef.current.py) * 0.006;
+        rotRef.current.x = Math.max(-1.3, Math.min(1.3, rotRef.current.x));
+        dragRef.current.px = e.clientX;
+        dragRef.current.py = e.clientY;
+        return;
+      }
+      // Hover detection for inline labels
+      const cv = canvasRef.current;
+      if (!cv) return;
+      const r = cv.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+        hoveredPointsRef.current = [];
+        return;
+      }
+      const mouse = new THREE.Vector2(
+        (e.clientX - r.left) / r.width * 2 - 1,
+        -((e.clientY - r.top) / r.height) * 2 + 1
+      );
+      const ray = new THREE.Raycaster();
+      ray.params.Points.threshold = 0.035;
+      const hits = [];
+      const checkCloud = (points, meta, type) => {
+        if (!points || !points.geometry.attributes.position || !points.geometry.attributes.position.count) return;
+        ray.setFromCamera(mouse, cameraRef.current);
+        const h = ray.intersectObject(points);
+        for (const hit of h) {
+          const m = meta[hit.index];
+          if (m) {
+            const localPos = new THREE.Vector3().fromBufferAttribute(points.geometry.attributes.position, hit.index);
+            hits.push({ localPos, meta: m, type, dist: hit.distanceToRay != null ? hit.distanceToRay : hit.distance });
+          }
+        }
+      };
+      checkCloud(acPointsRef.current, metaRef.current, "adsb");
+      checkCloud(livePointsRef.current, liveMetaRef.current, "live");
+      checkCloud(faaPointsRef.current, faaMetaRef.current, "faa");
+      checkCloud(lPointsRef.current, lMetaRef.current, "listing");
+      hits.sort((a, b) => a.dist - b.dist);
+      hoveredPointsRef.current = hits.slice(0, 3).map(h => ({
+        localPos: h.localPos,
+        label: buildHoverLabel(h.meta, h.type),
+        type: h.type,
+      }));
+      for (let i = 0; i < 3; i++) {
+        const el = labelElsRef.current[i];
+        if (!el) continue;
+        const hp = hoveredPointsRef.current[i];
+        if (hp) {
+          el.textContent = hp.label;
+          if (hp.type === "faa") { el.style.borderColor = "rgba(212,160,23,0.6)"; el.style.color = "#D4A017"; }
+          else if (hp.type === "live") { el.style.borderColor = "rgba(34,197,94,0.6)"; el.style.color = "#22c55e"; }
+          else if (hp.type === "listing") { el.style.borderColor = "rgba(0,245,255,0.6)"; el.style.color = "#00f5ff"; }
+          else { el.style.borderColor = "rgba(0,212,255,0.6)"; el.style.color = "#00d4ff"; }
+        }
+      }
     };
     const onWheel = (e) => {
       e.preventDefault();
@@ -904,6 +1035,61 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     };
   }, [isDark, pick]);
 
+  // ─── Flight path arcs: regenerate every 15s ───
+  const regenerateArcs = useCallback(() => {
+    const group = arcsGroupRef.current;
+    const mat = arcMaterialRef.current;
+    if (!group || !mat) return;
+    while (group.children.length > 0) {
+      const child = group.children[0];
+      child.geometry.dispose();
+      group.remove(child);
+    }
+    const ac = adsbCache.current.filter(a => a.latitude != null && a.longitude != null);
+    if (ac.length < 2) return;
+    const maxArcs = 30;
+    const used = new Set();
+    let count = 0, attempts = 0;
+    while (count < maxArcs && attempts < maxArcs * 3) {
+      attempts++;
+      const ai = Math.floor(Math.random() * ac.length);
+      const bi = Math.floor(Math.random() * ac.length);
+      if (ai === bi) continue;
+      const key = [ai, bi].sort().join("-");
+      if (used.has(key)) continue;
+      used.add(key);
+      const a = ac[ai], b = ac[bi];
+      const va = latLonToVec3(a.latitude, a.longitude, 1.012);
+      const vb = latLonToVec3(b.latitude, b.longitude, 1.012);
+      const mid = va.clone().add(vb).multiplyScalar(0.5);
+      const ctrl = mid.normalize().multiplyScalar(1.3 + Math.random() * 0.2);
+      const curve = new THREE.QuadraticBezierCurve3(va, ctrl, vb);
+      const pts = curve.getPoints(50);
+      const positions = new Float32Array(pts.length * 3);
+      const progress = new Float32Array(pts.length);
+      for (let j = 0; j < pts.length; j++) {
+        positions[j * 3] = pts[j].x;
+        positions[j * 3 + 1] = pts[j].y;
+        positions[j * 3 + 2] = pts[j].z;
+        progress[j] = j / (pts.length - 1);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute("aProgress", new THREE.Float32BufferAttribute(progress, 1));
+      group.add(new THREE.Line(geo, mat));
+      count++;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (trafficCount > 0) regenerateArcs();
+  }, [trafficCount, regenerateArcs]);
+
+  useEffect(() => {
+    const arcTimer = setInterval(regenerateArcs, 15000);
+    return () => clearInterval(arcTimer);
+  }, [regenerateArcs]);
+
   // Auto-refresh traffic every 30s
   useEffect(() => {
     fetchTraffic();
@@ -919,6 +1105,25 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
       <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
+
+      {/* Inline hover labels — projected from 3D each frame */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 15 }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} ref={el => { labelElsRef.current[i] = el; }}
+            className="absolute -translate-x-1/2 -translate-y-[140%] px-2 py-1 rounded-md whitespace-nowrap"
+            style={{
+              display: "none",
+              border: "1px solid rgba(0,212,255,0.6)",
+              background: "rgba(4,6,10,0.85)",
+              color: "#00d4ff",
+              fontFamily: "'Courier Prime', monospace",
+              fontSize: "10px",
+              lineHeight: "1.2",
+              pointerEvents: "none",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            }} />
+        ))}
+      </div>
 
       {/* UTC Clock */}
       <div className="absolute top-3 left-3 z-20">

@@ -691,18 +691,18 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     globeRef.current = globe;
     scene.add(globe);
 
-    // Earth core — Phong material responds to day/night lighting
+    // Earth core — ink-black surface matching Privacy Policy aesthetic
     const coreMat = new THREE.MeshPhongMaterial({
-      color: isDark ? 0x16213f : 0xc8dcee,
-      emissive: isDark ? 0x020510 : 0x101828,
-      shininess: isDark ? 6 : 18,
-      specular: isDark ? 0x102844 : 0x88aacc
+      color: isDark ? 0x05070B : 0xc8dcee,
+      emissive: isDark ? 0x000000 : 0x101828,
+      shininess: isDark ? 2 : 18,
+      specular: isDark ? 0x0a0f1a : 0x88aacc
     });
     const core = new THREE.Mesh(new THREE.SphereGeometry(1, 72, 72), coreMat);
     globe.add(core);
-    new THREE.TextureLoader().load(EARTH_BLUE, (t) => {
+    new THREE.TextureLoader().load(isDark ? EARTH_DARK : EARTH_BLUE, (t) => {
       coreMat.map = t;
-      coreMat.color.set(isDark ? 0x8899bb : 0xe8f0ff);
+      coreMat.color.set(isDark ? 0x0a0f1a : 0xe8f0ff);
       coreMat.needsUpdate = true;
     });
 
@@ -711,7 +711,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       map: null,
       blending: THREE.AdditiveBlending,
       transparent: true,
-      opacity: isDark ? 0.9 : 0.75,
+      opacity: isDark ? 0.5 : 0.75,
       depthWrite: false
     });
     const nightLights = new THREE.Mesh(new THREE.SphereGeometry(1.006, 72, 72), nightLightsMat);
@@ -737,9 +737,9 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     dgGeo.setAttribute("position", new THREE.Float32BufferAttribute(dgPos, 3));
     const dgMat = new THREE.PointsMaterial({
       size: 0.011,
-      color: isDark ? 0x4a6a9a : 0x5a7aaa,
+      color: isDark ? 0x2a2f38 : 0x5a7aaa,
       transparent: true,
-      opacity: isDark ? 0.55 : 0.40,
+      opacity: isDark ? 0.35 : 0.40,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true,
@@ -748,14 +748,14 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     globe.add(dotGrid);
 
     // Day/night cycle lighting — sun position driven by UTC time
-    const ambient = new THREE.AmbientLight(isDark ? 0x1a2a44 : 0x334466, isDark ? 0.22 : 0.28);
+    const ambient = new THREE.AmbientLight(isDark ? 0x0a0f1a : 0x334466, isDark ? 0.15 : 0.28);
     scene.add(ambient);
-    const sunLight = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xfff8e8, isDark ? 2.0 : 1.8);
+    const sunLight = new THREE.DirectionalLight(isDark ? 0xfff1d6 : 0xfff8e8, isDark ? 1.2 : 1.8);
     sunLight.position.set(3, 1.5, 2.5);
     sunRef.current = sunLight;
     scene.add(sunLight);
     // Night-side subtle fill
-    const nightFill = new THREE.DirectionalLight(isDark ? 0x1a3366 : 0x334488, isDark ? 0.08 : 0.06);
+    const nightFill = new THREE.DirectionalLight(isDark ? 0x0a0f1a : 0x334488, isDark ? 0.05 : 0.06);
     nightFill.position.set(-3, -0.5, -2.5);
     nightFillRef.current = nightFill;
     scene.add(nightFill);

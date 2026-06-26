@@ -109,6 +109,20 @@
       "type": "string",
       "description": "Original listing URL"
     },
+    "photo_url": {
+      "type": "string",
+      "description": "Aircraft photo URL (from adsbdb real photo or HF-generated representative photo)"
+    },
+    "photo_source": {
+      "type": "string",
+      "enum": [
+        "adsbdb",
+        "hf_generated",
+        "none"
+      ],
+      "default": "none",
+      "description": "Source of the aircraft photo"
+    },
     "owner": {
       "type": "string",
       "relationType": "User",

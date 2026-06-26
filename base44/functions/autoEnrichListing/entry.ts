@@ -56,11 +56,30 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'registry lookup found nothing' });
     }
 
+    // ── Also fetch aircraft photo (adsbdb real photo or HF-generated) ──
+    let photoResult = null;
+    try {
+      const photoRes = await base44.functions.invoke('aircraftPhoto', {
+        registration,
+        make: lookupData.aircraft.make || data.make,
+        model: lookupData.aircraft.model || data.model,
+      });
+      photoResult = photoRes.data;
+      if (photoResult?.photo_url) {
+        await base44.asServiceRole.entities.AircraftListing.update(listingId, {
+          photo_url: photoResult.photo_url,
+          photo_source: photoResult.source || 'none',
+        });
+      }
+    } catch (_) { /* non-critical — photo is optional */ }
+
     return Response.json({
       enriched: true,
       listing_id: listingId,
       source: lookupData.source,
       enrichedFields: lookupData.enrichedFields || [],
+      photo: photoResult?.photo_url || null,
+      photoSource: photoResult?.source || null,
       aircraft: {
         make: lookupData.aircraft.make,
         model: lookupData.aircraft.model,

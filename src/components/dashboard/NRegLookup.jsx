@@ -40,6 +40,8 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [areaServices, setAreaServices] = useState(null);
   const [areaState, setAreaState] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [photoLoading, setPhotoLoading] = useState(false);
 
   const textColor = isDark ? "#e2e8f0" : "#1e293b";
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
@@ -71,11 +73,25 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
       }
 
       setResult(data.aircraft);
+      setPhoto(null);
+      setPhotoLoading(true);
 
       // Focus globe on aircraft location
       if (data.aircraft.state && onFocusLocation) {
         const coords = US_STATE_CENTROIDS[data.aircraft.state.toUpperCase()];
         if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: data.aircraft.state });
+      }
+
+      // Fetch aircraft photo (adsbdb real photo or HF-generated)
+      try {
+        const photoRes = await base44.functions.invoke("aircraftPhoto", {
+          registration: `N${nNumber}`,
+          make: data.aircraft.make,
+          model: data.aircraft.model,
+        });
+        if (photoRes.data?.photo_url) setPhoto(photoRes.data);
+      } catch (_) {} finally {
+        setPhotoLoading(false);
       }
 
       // Area services
@@ -238,6 +254,28 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               {statusStyle?.label || result.status_code || "Unknown"}
             </span>
           </div>
+
+          {/* Aircraft Photo */}
+          {(photoLoading || photo) && (
+            <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9", background: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.04)" }}>
+              {photoLoading ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: mutedColor }} />
+                </div>
+              ) : photo?.photo_url ? (
+                <>
+                  <img src={photo.photo_url} alt={`N${result.n_number}`} className="w-full h-full object-cover" />
+                  <span className="absolute bottom-2 right-2 text-[8px] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
+                    style={{
+                      background: photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
+                      color: "#fff",
+                    }}>
+                    {photo.source === "adsbdb" ? "Real Photo" : "AI Generated"}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          )}
 
           {/* Key data grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

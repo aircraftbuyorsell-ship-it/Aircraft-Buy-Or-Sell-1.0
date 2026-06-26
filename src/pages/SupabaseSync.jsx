@@ -6,6 +6,7 @@ import {
   AlertTriangle, CheckCircle2
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import SupabaseProjectsPanel from "@/components/supabase/SupabaseProjectsPanel";
 
 /* ── Table definitions ─────────────────────────────────── */
 const TABLES = [
@@ -250,6 +251,9 @@ export default function SupabaseSync() {
 
       {/* Content */}
       <div className="px-4 md:px-8 py-6 max-w-7xl mx-auto space-y-5">
+        {/* Supabase Projects Overview */}
+        <SupabaseProjectsPanel />
+
         {/* Error banner */}
         {error && (
           <div className="bg-[rgba(226,75,74,0.06)] border border-[rgba(226,75,74,0.22)] text-[#e24b4a] rounded-xl px-4 py-3 text-sm flex items-center gap-2">

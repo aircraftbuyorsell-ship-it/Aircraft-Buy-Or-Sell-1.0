@@ -316,10 +316,8 @@ export default function Layout() {
       </header>
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="relative z-10 flex-1 overflow-auto" style={{ background: "transparent" }}>
-        <div className="mx-auto w-full max-w-[1600px]">
+      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
           <Outlet />
-        </div>
       </main>
 
       <SiteFooter />

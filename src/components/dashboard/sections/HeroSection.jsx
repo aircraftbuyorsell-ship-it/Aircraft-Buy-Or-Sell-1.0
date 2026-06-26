@@ -16,7 +16,7 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
         flexDirection: "column",
       }}
     >
-      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "100vw", transform: "translateX(-50%)", zIndex: 0 }}>
+      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
         <SkyBossGlobe className="w-full h-full" listings={listings} />
       </div>
       <div

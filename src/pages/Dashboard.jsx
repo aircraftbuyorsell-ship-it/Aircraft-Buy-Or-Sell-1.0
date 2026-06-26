@@ -45,7 +45,6 @@ export default function Dashboard() {
       style={{
         background: "transparent",
         color: "#fff",
-        overflowY: "auto",
         minHeight: "100vh",
         fontFamily: "Inter, -apple-system, sans-serif",
       }}

@@ -10,46 +10,40 @@ Deno.serve(async (req) => {
 
     const normalized = n_number.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-    // 1. Query FAAAircraft entity
-    const faaResults = await base44.asServiceRole.entities.FAAAircraft.filter(
-      { n_number: normalized },
-      '-created_date',
-      1
-    );
+    // Use multi-source registryLookup (FAAAircraft entity → adsbdb API → Supabase)
+    const lookupRes = await base44.functions.invoke('registryLookup', { n_number: normalized });
+    const lookup = lookupRes.data;
 
-    const notFound = { error: `No FAA registry record found for N${normalized}.`, found: false };
-
-    if (faaResults.length === 0) {
-      // Try Supabase directly as fallback
-      try {
-        const supabaseRes = await base44.functions.invoke('syncFaaFromSupabase', {
-          mode: 'registry_import_single',
-          n_number: normalized
-        });
-        if (supabaseRes.data?.success) {
-          const retry = await base44.asServiceRole.entities.FAAAircraft.filter(
-            { n_number: normalized },
-            '-created_date',
-            1
-          );
-          if (retry.length === 0) return Response.json(notFound);
-        } else {
-          return Response.json(notFound);
-        }
-      } catch {
-        return Response.json(notFound);
-      }
+    if (!lookup?.found) {
+      return Response.json({
+        error: `No FAA registry record found for N${normalized}.`,
+        found: false,
+      });
     }
 
-    // Re-fetch after possible sync
-    const freshResults = await base44.asServiceRole.entities.FAAAircraft.filter(
-      { n_number: normalized },
-      '-created_date',
-      1
-    );
-    if (freshResults.length === 0) return Response.json(notFound);
-
-    const faa = freshResults[0];
+    const faa = {
+      n_number: lookup.aircraft.n_number,
+      serial_number: lookup.aircraft.serial_number || null,
+      mfr_mdl_code: lookup.aircraft.mfr_mdl_code || null,
+      year_mfr: lookup.aircraft.year_mfr || null,
+      state: lookup.aircraft.state || null,
+      country: lookup.aircraft.country || null,
+      status_code: lookup.aircraft.status_code || null,
+      type_aircraft: lookup.aircraft.type_aircraft || null,
+      type_engine: lookup.aircraft.type_engine || null,
+      mode_s_hex: lookup.aircraft.mode_s_hex || null,
+      cert_issue_date: lookup.aircraft.cert_issue_date || null,
+      expiration_date: lookup.aircraft.expiration_date || null,
+      air_worth_date: lookup.aircraft.air_worth_date || null,
+      last_action_date: lookup.aircraft.last_action_date || null,
+      engine_mfr: lookup.aircraft.engine_mfr || null,
+      engine_model: lookup.aircraft.engine_model || null,
+      engine_type: lookup.aircraft.engine_type || null,
+      horsepower: lookup.aircraft.horsepower || null,
+      thrust: lookup.aircraft.thrust || null,
+      make: lookup.aircraft.make || null,
+      model: lookup.aircraft.model || null,
+    };
 
     // 2. Strip owner privacy fields — NEVER expose name, city, or other PII
     const aircraft = {

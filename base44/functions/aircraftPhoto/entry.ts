@@ -31,6 +31,22 @@ Deno.serve(async (req) => {
       fullReg = 'N' + fullReg;
     }
 
+    // ── CACHE CHECK: return cached photo instantly if recently fetched ──
+    if (fullReg || hexCode) {
+      try {
+        const filter = fullReg ? { registration: fullReg } : { mode_s_hex: hexCode };
+        const cached = await base44.asServiceRole.entities.GlobalRegistry.filter(filter, '-created_date', 1);
+        if (cached.length > 0) {
+          const c = cached[0];
+          const ageMs = Date.now() - new Date(c.last_verified_at || c.updated_date || c.created_date).getTime();
+          const PHOTO_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+          if (ageMs < PHOTO_CACHE_TTL_MS && c.raw_data?.photo?.photo_url) {
+            return Response.json(c.raw_data.photo);
+          }
+        }
+      } catch (_) { /* cache miss is fine */ }
+    }
+
     // ── SOURCE 1a: planespotters.net pub API — match by hex code (most precise) ──
     if (hexCode) {
       try {
@@ -120,6 +136,37 @@ Deno.serve(async (req) => {
         ...result,
         error: 'No photo available for this aircraft.',
       }, { status: 404 });
+    }
+
+    // ── CACHE WRITE: store photo for instant repeat lookups ──
+    if (fullReg) {
+      try {
+        const existing = await base44.asServiceRole.entities.GlobalRegistry.filter(
+          { registration: fullReg }, '-created_date', 1
+        );
+        const photoData = {
+          photo_url: result.photo_url,
+          thumbnail_url: result.thumbnail_url,
+          source: result.source,
+          photographer: result.photographer,
+          photo_link: result.photo_link,
+        };
+        if (existing.length > 0) {
+          const c = existing[0];
+          await base44.asServiceRole.entities.GlobalRegistry.update(c.id, {
+            raw_data: { ...c.raw_data, photo: photoData },
+            last_verified_at: new Date().toISOString(),
+          });
+        } else {
+          await base44.asServiceRole.entities.GlobalRegistry.create({
+            registration: fullReg,
+            mode_s_hex: hexCode || null,
+            source: 'photo_cache',
+            raw_data: { photo: photoData },
+            last_verified_at: new Date().toISOString(),
+          });
+        }
+      } catch (_) { /* cache write is non-critical */ }
     }
 
     return Response.json(result);

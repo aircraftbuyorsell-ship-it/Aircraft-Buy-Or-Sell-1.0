@@ -44,28 +44,40 @@ Deno.serve(async (req) => {
       searchedAt: new Date().toISOString(),
     };
 
-    // ── 1. Check GlobalRegistry cache (skip for US — FAA has its own fast path) ──
-    if (country.code !== 'US') {
-      try {
-        const cached = await base44.asServiceRole.entities.GlobalRegistry.filter(
-          { registration: fullReg },
-          '-created_date',
-          1
-        );
-        if (cached.length > 0) {
-          const c = cached[0];
-          const ageMs = Date.now() - new Date(c.last_verified_at || c.updated_date || c.created_date).getTime();
-          const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-          if (ageMs < CACHE_TTL_MS) {
-            result.found = true;
-            result.source = 'cache';
-            result.aircraft = mapCached(c);
-          } else {
-            // Stale — refresh in background by continuing to live lookup
-          }
+    // ── 1. Check GlobalRegistry cache (all countries — instant for recently checked) ──
+    try {
+      const cached = await base44.asServiceRole.entities.GlobalRegistry.filter(
+        { registration: fullReg },
+        '-created_date',
+        1
+      );
+      if (cached.length > 0) {
+        const c = cached[0];
+        const ageMs = Date.now() - new Date(c.last_verified_at || c.updated_date || c.created_date).getTime();
+        const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — "recently checked" instant cache
+        if (ageMs < CACHE_TTL_MS && c.raw_data?.full_result) {
+          // Full cache hit — return everything instantly, zero external API calls
+          const fr = c.raw_data.full_result;
+          return Response.json({
+            found: true,
+            source: 'cache',
+            origin_country: c.country_code || fr.origin_country,
+            origin_label: fr.origin_label,
+            aircraft: fr.aircraft,
+            listing: fr.listing || null,
+            areaServices: fr.areaServices || null,
+            searchedAt: new Date().toISOString(),
+            cached: true,
+          });
         }
-      } catch (_) { /* cache miss is fine */ }
-    }
+        // Stale cache — use cached aircraft data but refresh listing/areaServices live
+        if (c.raw_data?.full_result?.aircraft) {
+          result.found = true;
+          result.source = 'cache';
+          result.aircraft = c.raw_data.full_result.aircraft;
+        }
+      }
+    } catch (_) { /* cache miss is fine */ }
 
     // ── 2. US (N-) → inline FAA lookup (FAAAircraft entity → adsbdb → Supabase) ──
     // Inlined (not delegated) because function-to-function invocation does not
@@ -231,6 +243,17 @@ Deno.serve(async (req) => {
       }, { status: 404 });
     }
 
+    // ── 6. Write to cache for instant repeat lookups ──
+    if (result.aircraft && result.source !== 'cache') {
+      try {
+        await cacheGlobalRegistry(base44, result.aircraft, result.source, {
+          listing: result.listing,
+          areaServices: result.areaServices,
+          origin_label: country.label,
+        });
+      } catch (_) { /* cache write is non-critical */ }
+    }
+
     return Response.json(result);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
@@ -374,7 +397,7 @@ function mapCached(c) {
   };
 }
 
-async function cacheGlobalRegistry(base44, aircraft, source) {
+async function cacheGlobalRegistry(base44, aircraft, source, extras = {}) {
   try {
     const record = {
       registration: aircraft.registration,
@@ -394,6 +417,12 @@ async function cacheGlobalRegistry(base44, aircraft, source) {
         url_photo_thumbnail: aircraft.url_photo_thumbnail || null,
         registered_owner: aircraft.registered_owner || null,
         country: aircraft.country || null,
+        full_result: {
+          aircraft,
+          listing: extras.listing || null,
+          areaServices: extras.areaServices || null,
+          origin_label: extras.origin_label || null,
+        },
       },
       last_verified_at: new Date().toISOString(),
     };

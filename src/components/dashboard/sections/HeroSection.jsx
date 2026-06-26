@@ -16,18 +16,9 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
         flexDirection: "column",
       }}
     >
-      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "100vw", transform: "translateX(-50%)", zIndex: 0 }}>
         <SkyBossGlobe className="w-full h-full" listings={listings} />
       </div>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
-          background:
-            "linear-gradient(to right, rgba(11,18,32,0.85) 0%, rgba(11,18,32,0.45) 38%, rgba(11,18,32,0.12) 65%, rgba(11,18,32,0.55) 100%)",
-        }}
-      />
       <div
         style={{
           position: "relative",
@@ -43,7 +34,15 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
           flex: 1,
         }}
       >
-        <div style={{ maxWidth: 520 }}>
+        <div style={{ maxWidth: 520, position: "relative" }}>
+          <div style={{
+            position: "absolute",
+            inset: "-24px -48px -24px -48px",
+            zIndex: -1,
+            background: "linear-gradient(to right, rgba(4,6,10,0.45) 0%, rgba(4,6,10,0.20) 70%, transparent 100%)",
+            borderRadius: "20px",
+            pointerEvents: "none",
+          }} />
           <p
             style={{
               fontSize: 10,
@@ -96,7 +95,15 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
           width: "100%",
         }}
       >
-        <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 32, flexWrap: "wrap", position: "relative" }}>
+          <div style={{
+            position: "absolute",
+            inset: "-12px -24px -12px -24px",
+            zIndex: -1,
+            background: "linear-gradient(to right, rgba(4,6,10,0.40) 0%, transparent 80%)",
+            borderRadius: "12px",
+            pointerEvents: "none",
+          }} />
           {counters.map((c) => (
             <div key={c.label}>
               <div

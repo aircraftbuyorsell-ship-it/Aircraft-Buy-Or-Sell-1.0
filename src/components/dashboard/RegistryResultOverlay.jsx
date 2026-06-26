@@ -177,7 +177,13 @@ export default function RegistryResultOverlay({
                 </div>
               ) : photo?.photo_url ? (
                 <>
-                  <img src={photo.photo_url} alt={result.registration} className="w-full h-full object-cover" />
+                  {photo.source === "planespotters" && photo.photo_link ? (
+                    <a href={photo.photo_link} target="_blank" className="block w-full h-full">
+                      <img src={photo.photo_url} alt={result.registration} className="w-full h-full object-cover" />
+                    </a>
+                  ) : (
+                    <img src={photo.photo_url} alt={result.registration} className="w-full h-full object-cover" />
+                  )}
                   <span className="absolute bottom-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{
                       background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)"

@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     if (fullReg) {
       try {
         const psRes = await fetch(`https://api.planespotters.net/pub/photos/reg/${encodeURIComponent(fullReg)}`, {
-          headers: { 'Accept': 'application/json', 'User-Agent': 'ABOS-MarketSpace/1.0 (aviation registry lookup)' },
+          headers: { 'Accept': 'application/json', 'User-Agent': 'ABOS-MarketSpace/1.0 (+https://abos-marketspace.com/contact)' },
           signal: AbortSignal.timeout(4000),
         });
         if (psRes.ok) {

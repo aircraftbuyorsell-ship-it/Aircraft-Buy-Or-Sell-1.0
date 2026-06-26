@@ -180,11 +180,18 @@ export default function RegistryResultOverlay({
                   <img src={photo.photo_url} alt={result.registration} className="w-full h-full object-cover" />
                   <span className="absolute bottom-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{
-                      background: photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
+                      background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)"
+                        : photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
                       color: "#fff",
                     }}>
-                    {photo.source === "adsbdb" ? "Real Photo" : "AI Generated"}
+                    {photo.source === "planespotters" ? "PlaneSpotters" : photo.source === "adsbdb" ? "Real Photo" : "AI Generated"}
                   </span>
+                  {photo.source === "planespotters" && photo.photographer && (
+                    <span className="absolute bottom-3 left-3 text-[9px] font-medium px-2.5 py-1 rounded-full max-w-[60%] truncate"
+                      style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.85)" }}>
+                      © {photo.photographer}
+                    </span>
+                  )}
                 </>
               ) : null}
             </div>

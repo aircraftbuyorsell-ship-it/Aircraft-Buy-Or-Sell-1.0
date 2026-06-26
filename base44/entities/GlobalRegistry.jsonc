@@ -1,0 +1,125 @@
+{
+  "name": "GlobalRegistry",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Full registration mark including prefix (e.g. N12345, OK-2001, G-BOAC, D-AIBL)"
+    },
+    "country_code": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2 country code of the registering authority (US, CZ, DE, GB, ...)"
+    },
+    "make": {
+      "type": "string",
+      "description": "Aircraft manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model / type"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year of manufacture (if known)"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Aircraft serial number"
+    },
+    "mode_s_hex": {
+      "type": "string",
+      "description": "ICAO 24-bit address (hex) \u2014 for ADS-B / Mode S correlation"
+    },
+    "icao_type": {
+      "type": "string",
+      "description": "ICAO aircraft type designator (e.g. C172, A320)"
+    },
+    "type_aircraft": {
+      "type": "string",
+      "description": "Aircraft category (Glider, Airplane, Helicopter, Balloon, ...)"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type (piston, turboprop, jet, ...)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Registration status (active, deregistered, expired, ...)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "faa",
+        "adsbdb",
+        "ucl",
+        "lba",
+        "ginfo",
+        "manual",
+        "cache"
+      ],
+      "default": "adsbdb",
+      "description": "Where this record was sourced from"
+    },
+    "raw_data": {
+      "type": "object",
+      "description": "Full raw payload from the source (technical fields only \u2014 no owner PII)"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this cached record was last verified against its source"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "registration"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "id": {
+              "$exists": true
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "id": {
+              "$exists": true
+            }
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

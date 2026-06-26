@@ -21,6 +21,7 @@ const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", mainten
 
 const FAA_STATUS_STYLE = {
   active: { bg: "rgba(34,197,94,0.12)", color: "#22c55e", border: "rgba(34,197,94,0.3)", label: "Active" },
+  V: { bg: "rgba(34,197,94,0.12)", color: "#22c55e", border: "rgba(34,197,94,0.3)", label: "Valid" },
   expired: { bg: "rgba(239,68,68,0.12)", color: "#ef4444", border: "rgba(239,68,68,0.3)", label: "Expired" },
   cancelled: { bg: "rgba(239,68,68,0.12)", color: "#ef4444", border: "rgba(239,68,68,0.3)", label: "Cancelled" },
   deregistered: { bg: "rgba(239,68,68,0.12)", color: "#ef4444", border: "rgba(239,68,68,0.3)", label: "Deregistered" },
@@ -50,11 +51,12 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
   const panelBg = isDark ? "rgba(15,15,28,0.82)" : "rgba(255,255,255,0.82)";
   const panelBorder = isDark ? "1px solid rgba(255,255,255,0.10)" : "1px solid rgba(0,0,0,0.08)";
 
-  const normalizeN = (s) => s.replace(/^N/i, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  // Keep the full registration (with prefix) — global lookup handles all countries
+  const normalizeReg = (s) => s.trim().toUpperCase();
 
   const search = useCallback(async () => {
-    const nNumber = normalizeN(query);
-    if (!nNumber) return;
+    const fullReg = normalizeReg(query);
+    if (!fullReg) return;
     setSearching(true);
     setError("");
     setResult(null);
@@ -63,20 +65,21 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
     setDamageUnlocked(false);
 
     try {
-      const res = await base44.functions.invoke("nregSearch", { n_number: nNumber });
+      const res = await base44.functions.invoke("globalAircraftLookup", { registration: fullReg });
       const data = res.data;
 
       if (!data.found) {
-        setError(data.error || `No FAA registry record found for N${nNumber}.`);
+        setError(data.error || `No registry record found for ${fullReg}.`);
         setSearching(false);
         return;
       }
 
-      setResult(data.aircraft);
+      // Attach origin metadata for the UI
+      setResult({ ...data.aircraft, _origin: data.origin_label, _source: data.source });
       setPhoto(null);
       setPhotoLoading(true);
 
-      // Focus globe on aircraft location
+      // Focus globe on aircraft location (US only — has state)
       if (data.aircraft.state && onFocusLocation) {
         const coords = US_STATE_CENTROIDS[data.aircraft.state.toUpperCase()];
         if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: data.aircraft.state });
@@ -85,7 +88,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
       // Fetch aircraft photo (adsbdb real photo or HF-generated)
       try {
         const photoRes = await base44.functions.invoke("aircraftPhoto", {
-          registration: `N${nNumber}`,
+          registration: data.aircraft.registration || fullReg,
           make: data.aircraft.make,
           model: data.aircraft.model,
         });
@@ -107,7 +110,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
         setListingMatch(data.listing);
       }
     } catch (e) {
-      setError("Failed to search FAA registry. Please try again.");
+      setError("Failed to search registry. Please try again.");
     }
     setSearching(false);
   }, [query]);
@@ -148,8 +151,10 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
   };
 
   const createAtiPassport = async () => {
-    const nNumber = normalizeN(query);
-    if (!nNumber) return;
+    const fullReg = normalizeReg(query);
+    // ATI Passport creation is FAA-only (syncFaaToAtiCard reads the FAA registry)
+    const nNumber = fullReg.replace(/^N/i, "").replace(/[^a-zA-Z0-9]/g, "");
+    if (!nNumber || !/^N/i.test(fullReg)) return;
     setAtiCreating(true);
     try {
       const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: nNumber });
@@ -164,14 +169,14 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
     setAtiCreating(false);
   };
 
-  const statusStyle = result ? FAA_STATUS_STYLE[result.status_code] || FAA_STATUS_STYLE.expired : null;
+  const statusStyle = result ? FAA_STATUS_STYLE[result.status] || FAA_STATUS_STYLE.expired : null;
   const isOwnerOrBroker = userProfile && listingMatch && (
     listingMatch.owner === userProfile.id ||
     userProfile.role === "admin" ||
     userProfile.role === "super_admin" ||
     userProfile.role === "broker"
   );
-  const isActive = result?.status_code === "active";
+  const isActive = result?.status === "active" || result?.status === "V";
 
   // Compute AD count from faa_ad if available, else placeholder
   const adCount = adstcUnlocked ? (result?.ad_count ?? "—") : null;
@@ -195,7 +200,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter N-Number (e.g. N12345)…"
+            placeholder="Enter registration (N12345, OK-2001, G-BOAC, D-AIBL)…"
             className="flex-1 py-2.5 text-sm font-medium bg-transparent border-none outline-none"
             style={{
               color: textColor,
@@ -205,7 +210,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           />
           <button
             onClick={search}
-            disabled={searching || !normalizeN(query)}
+            disabled={searching || !normalizeReg(query)}
             className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-30"
             style={{
               background: searching ? "transparent" : `linear-gradient(135deg, ${accentCyan}, #0ea5e9)`,
@@ -237,12 +242,14 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           {/* Header row */}
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <p className="text-[10px] tracking-[0.15em] font-black uppercase" style={{ color: accentGold }}>FAA Registry Result</p>
+              <p className="text-[10px] tracking-[0.15em] font-black uppercase" style={{ color: accentGold }}>
+                {result._origin || "Registry Result"}
+              </p>
               <h2 className="text-lg md:text-xl font-black mt-1" style={{ color: textColor }}>
-                N{result.n_number}
+                {result.registration || query.toUpperCase()}
               </h2>
               <p className="text-sm font-semibold" style={{ color: mutedColor }}>
-                {result.year_mfr || "—"} {result.make || result.mfr_mdl_code || ""} {result.model || ""}
+                {result.year || result.year_mfr || "—"} {result.make || result.mfr_mdl_code || ""} {result.model || ""}
               </p>
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full"
@@ -251,7 +258,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
                 color: statusStyle?.color || "#888",
                 border: `1px solid ${statusStyle?.border || "rgba(100,100,100,0.2)"}`,
               }}>
-              {statusStyle?.label || result.status_code || "Unknown"}
+              {statusStyle?.label || result.status || "Unknown"}
             </span>
           </div>
 
@@ -264,7 +271,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
                 </div>
               ) : photo?.photo_url ? (
                 <>
-                  <img src={photo.photo_url} alt={`N${result.n_number}`} className="w-full h-full object-cover" />
+                  <img src={photo.photo_url} alt={result.registration || query} className="w-full h-full object-cover" />
                   <span className="absolute bottom-2 right-2 text-[8px] font-bold uppercase tracking-wider px-2 py-1 rounded-full"
                     style={{
                       background: photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
@@ -285,9 +292,9 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               { label: "Expiration", value: result.expiration_date || "—" },
               { label: "AW Cert Date", value: result.air_worth_date || "—" },
               { label: "Mode S (ICAO)", value: result.mode_s_hex || "—" },
-              { label: "Engine", value: result.engine_mfr ? `${result.engine_mfr} ${result.engine_model || ""}` : "—" },
-              { label: "Year", value: result.year_mfr || "—" },
-              { label: "State", value: result.state || "—" },
+              { label: "Engine", value: result.engine_mfr ? `${result.engine_mfr} ${result.engine_model || ""}` : (result.engine_type || "—") },
+              { label: "Year", value: result.year || result.year_mfr || "—" },
+              { label: "State", value: result.state || (result.country_iso && result.country_iso !== "US" ? result.country_iso : "—") },
             ].map((d) => (
               <div key={d.label}>
                 <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: mutedColor }}>{d.label}</p>
@@ -435,8 +442,8 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
             </button>
           )}
 
-          {/* ── Owner/Broker CTA ── */}
-          {isOwnerOrBroker && isActive && (
+          {/* ── Owner/Broker CTA (FAA only — ATI Passport reads the FAA registry) ── */}
+          {isOwnerOrBroker && isActive && result?.origin_country === "US" && (
             <button onClick={createAtiPassport} disabled={atiCreating}
               className="w-full rounded-xl py-3.5 px-5 flex items-center justify-center gap-2 text-sm font-black uppercase tracking-wider transition-all hover:scale-[1.01] cursor-pointer"
               style={{ background: "linear-gradient(135deg, #0B2D5B, #1A4A8A)", color: "#fff" }}>
@@ -451,7 +458,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
               <div>
                 <p className="text-xs font-bold text-red-500">Registration not active — ATI Passport creation blocked</p>
-                <p className="text-[10px]" style={{ color: mutedColor }}>Status: {result.status_code || "Unknown"}</p>
+                <p className="text-[10px]" style={{ color: mutedColor }}>Status: {result.status || "Unknown"}</p>
               </div>
             </div>
           )}
@@ -472,7 +479,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           {/* ── OMVM & Opex Quick Actions ── */}
           <div className="grid grid-cols-2 gap-2 pt-1">
             <Link
-              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
               className="rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{
                 background: "rgba(168,85,247,0.10)",
@@ -482,7 +489,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
               <TrendingUp className="w-3.5 h-3.5" /> OMVM Estimate
             </Link>
             <Link
-              to={`/opex-calculator?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&state=${encodeURIComponent(result.state || "")}`}
+              to={`/opex-calculator?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&state=${encodeURIComponent(result.state || "")}`}
               className="rounded-xl py-2.5 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{
                 background: "rgba(249,115,22,0.10)",
@@ -527,12 +534,12 @@ function LeadContactModal({ listing, result, onClose, isDark, textColor, mutedCo
         name,
         email,
         phone,
-        aircraft_preference: `${result?.year_mfr || ""} ${result?.make || result?.mfr_mdl_code || ""} ${result?.model || ""}`,
+        aircraft_preference: `${result?.year || result?.year_mfr || ""} ${result?.make || result?.mfr_mdl_code || ""} ${result?.model || ""}`,
         budget: listing?.asking_price ? `$${listing.asking_price.toLocaleString()}` : "",
         source: "nreg_lookup",
         notes,
         listing: listing.id,
-        listing_label: `${listing.year} ${listing.make} ${listing.model} N${result?.n_number || ""}`,
+        listing_label: `${listing.year} ${listing.make} ${listing.model} ${result?.registration || ""}`,
       });
       setDone(true);
     } catch (_) {}
@@ -558,7 +565,7 @@ function LeadContactModal({ listing, result, onClose, isDark, textColor, mutedCo
           <>
             <h3 className="text-base font-black" style={{ color: textColor }}>Contact Owner / Broker</h3>
             <p className="text-xs mt-1" style={{ color: mutedColor }}>
-              About: {listing.year} {listing.make} {listing.model} N{result?.n_number}
+              About: {listing.year} {listing.make} {listing.model} {result?.registration}
             </p>
             <div className="space-y-3 mt-4">
               <input placeholder="Your name *" value={name} onChange={(e) => setName(e.target.value)}

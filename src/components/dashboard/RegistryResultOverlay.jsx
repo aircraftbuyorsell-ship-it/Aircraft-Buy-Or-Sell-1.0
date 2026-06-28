@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   X, Loader2, Lock, CheckCircle2, Clock, BadgeCheck, AlertTriangle,
   Zap, User, ArrowRight, TrendingUp, Gauge, MapPin, Cog, ShoppingCart,
-  Building, Wrench, Plane, ExternalLink, ShieldCheck,
+  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -371,9 +371,21 @@ export default function RegistryResultOverlay({
           {/* ── Quick actions ── */}
           <div className="grid grid-cols-2 gap-3">
             <Link
-              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              to={`/ati-quick-score?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}`}
+              className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{ background: "rgba(37,99,235,0.10)", border: "1px solid rgba(37,99,235,0.25)", color: "#3b82f6" }}>
+              <Shield className="w-4 h-4" /> ATI Score
+            </Link>
+            <Link
+              to={`/ati-full-report?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&serial=${encodeURIComponent(result.serial_number || "")}`}
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.25)", color: "#a855f7" }}>
+              <FileBarChart className="w-4 h-4" /> ATI Full Report
+            </Link>
+            <Link
+              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{ background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>
               <TrendingUp className="w-4 h-4" /> OMVM Estimate
             </Link>
             <Link

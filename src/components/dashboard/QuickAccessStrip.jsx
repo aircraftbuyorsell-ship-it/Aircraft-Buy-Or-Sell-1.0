@@ -1,4 +1,4 @@
-import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins } from "lucide-react";
+import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 
@@ -35,6 +35,14 @@ const ITEMS = [
     color: "#f97316",
     credits: 8,
   },
+  {
+    icon: Landmark,
+    label: "Leasing Calculator",
+    desc: "Monthly lease payments, residual value, and total cost of financing.",
+    link: "/leasing-calculator",
+    color: "#3b82f6",
+    credits: 0,
+  },
 ];
 
 export default function QuickAccessStrip() {
@@ -46,7 +54,7 @@ export default function QuickAccessStrip() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {ITEMS.map((item) => (
           <Link key={item.label} to={item.link}>
             <div

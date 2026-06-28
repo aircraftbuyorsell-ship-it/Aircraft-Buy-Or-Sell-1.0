@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   X, Loader2, Lock, CheckCircle2, Clock, BadgeCheck, AlertTriangle,
   Zap, User, ArrowRight, TrendingUp, Gauge, MapPin, Cog, ShoppingCart,
-  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart,
+  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart, Landmark,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -369,7 +369,7 @@ export default function RegistryResultOverlay({
           )}
 
           {/* ── Quick actions ── */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <Link
               to={`/ati-quick-score?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}`}
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
@@ -393,6 +393,12 @@ export default function RegistryResultOverlay({
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ background: "rgba(249,115,22,0.10)", border: "1px solid rgba(249,115,22,0.25)", color: "#f97316" }}>
               <Gauge className="w-4 h-4" /> Opex Calculator
+            </Link>
+            <Link
+              to={`/leasing-calculator?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
+              style={{ background: "rgba(59,130,246,0.10)", border: "1px solid rgba(59,130,246,0.25)", color: "#3b82f6" }}>
+              <Landmark className="w-4 h-4" /> Leasing Calculator
             </Link>
           </div>
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronDown, Mail, Lock, Unlock, Plane } from "lucide-react";
+import { ChevronDown, Mail, Lock, Unlock, Plane, Sparkles } from "lucide-react";
+import LeadMatchModal from "@/components/leads/LeadMatchModal";
 
 const STATUS_CONFIG = {
   new:         { label: "New",         bg: "rgba(24,95,165,0.1)",   text: "#185FA5",  border: "rgba(24,95,165,0.2)" },
@@ -41,8 +42,11 @@ export { STATUS_CONFIG };
 
 export default function LeadRow({ lead, unlocked, onUnlock, onStatusChange, unlockCost = 10 }) {
   const [open, setOpen] = useState(false);
+  const [matchOpen, setMatchOpen] = useState(false);
 
   return (
+    <>
+    <LeadMatchModal open={matchOpen} onClose={() => setMatchOpen(false)} lead={lead} />
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 md:px-6 py-4 hover:bg-[#F7F4EF] transition-colors border-b border-black/[0.05] last:border-0">
       {/* Avatar */}
       <div className={`w-9 h-9 rounded-full border flex items-center justify-center shrink-0 ${unlocked ? "bg-[#0F7A56]/10 border-[#0F7A56]/20" : "bg-black/5 border-black/10"}`}>
@@ -107,13 +111,22 @@ export default function LeadRow({ lead, unlocked, onUnlock, onStatusChange, unlo
 
       {/* Action */}
       {unlocked ? (
-        <a
-          href={`mailto:${lead.email}`}
-          className="shrink-0 flex items-center gap-1 text-[#0F7A56] hover:text-[#0B2D5B] transition-colors"
-          onClick={e => e.stopPropagation()}
-        >
-          <Mail className="w-4 h-4" />
-        </a>
+        <div className="shrink-0 flex items-center gap-2">
+          <button
+            onClick={() => setMatchOpen(true)}
+            title="Find matching aircraft"
+            className="flex items-center justify-center text-[#4e8ef7] hover:text-[#0B2D5B] transition-colors"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+          <a
+            href={`mailto:${lead.email}`}
+            className="flex items-center gap-1 text-[#0F7A56] hover:text-[#0B2D5B] transition-colors"
+            onClick={e => e.stopPropagation()}
+          >
+            <Mail className="w-4 h-4" />
+          </a>
+        </div>
       ) : (
         <button
           onClick={() => onUnlock(lead)}
@@ -124,5 +137,6 @@ export default function LeadRow({ lead, unlocked, onUnlock, onStatusChange, unlo
         </button>
       )}
     </div>
+    </>
   );
 }

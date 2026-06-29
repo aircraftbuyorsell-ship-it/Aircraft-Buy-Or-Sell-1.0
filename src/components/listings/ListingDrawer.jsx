@@ -1,7 +1,7 @@
-import { X, ExternalLink, CheckCircle2, ArrowUpRight, UserPlus, TrendingDown, TrendingUp, Zap, FileText } from "lucide-react";
+import { X, ExternalLink, CheckCircle2, ArrowUpRight, Heart, TrendingDown, TrendingUp, Zap, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AddLeadModal from "@/components/leads/AddLeadModal";
+import BuyerInterestModal from "@/components/leads/BuyerInterestModal";
 
 function scoreColor(score) {
   if (!score) return "#AAA49C";
@@ -39,7 +39,7 @@ function Row({ label, value }) {
 }
 
 export default function ListingDrawer({ listing: l, onClose }) {
-  const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const [interestOpen, setInterestOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -215,22 +215,21 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 </button>
               </div>
               <button
-                onClick={() => setAddLeadOpen(true)}
-                className="w-full bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#1A1814] font-bold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-black/[0.07]"
+                onClick={() => setInterestOpen(true)}
+                className="w-full bg-[#0F7A56] hover:bg-[#0d6b48] text-white font-black text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                <UserPlus className="w-4 h-4 text-[#D4A017]" />
-                Capture Buyer Lead
+                <Heart className="w-4 h-4 text-[#E8A83A]" />
+                I'm Interested
               </button>
             </div>
           </>
         )}
       </div>
 
-      <AddLeadModal
-        open={addLeadOpen}
-        onClose={() => setAddLeadOpen(false)}
+      <BuyerInterestModal
+        open={interestOpen}
+        onClose={() => setInterestOpen(false)}
         listing={l}
-        onSaved={() => {}}
       />
     </>
   );

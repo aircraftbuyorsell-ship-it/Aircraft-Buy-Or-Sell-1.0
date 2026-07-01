@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark, Shield } from "lucide-react";
+import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark, Shield, Radio, Paintbrush, Armchair, GitCompare, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 import LeasingCalculatorModal from "@/components/leasing/LeasingCalculatorModal";
@@ -45,6 +45,46 @@ const ITEMS = [
     color: "#4e8ef7",
     credits: 0,
   },
+  {
+    icon: Radio,
+    label: "Avionics Upgrade",
+    desc: "Parts and labor for GPS, transponders, autopilots, and glass panels by model.",
+    link: "/avionics-upgrade-calculator",
+    color: "#f5c242",
+    credits: 0,
+  },
+  {
+    icon: Paintbrush,
+    label: "Exterior Refurb",
+    desc: "Strip & paint, polish, deice boots, and corrosion treatment by model.",
+    link: "/exterior-refurbishment-calculator",
+    color: "#5dcaa5",
+    credits: 0,
+  },
+  {
+    icon: Armchair,
+    label: "Interior Refurb",
+    desc: "Seats, carpet, headliner, and cabin restoration by material grade.",
+    link: "/interior-refurbishment-calculator",
+    color: "#c88cff",
+    credits: 0,
+  },
+  {
+    icon: GitCompare,
+    label: "Upgrade Comparison",
+    desc: "Compare avionics, exterior, and interior costs side by side for planning.",
+    link: "/upgrade-comparison",
+    color: "#4e8ef7",
+    credits: 0,
+  },
+  {
+    icon: Sparkles,
+    label: "Aircraft Detailing",
+    desc: "Wash, wax, ceramic coating, and interior detailing by aircraft model.",
+    link: "/aircraft-detailing-calculator",
+    color: "#4ec8ff",
+    credits: 0,
+  },
 ];
 
 export default function QuickAccessStrip() {
@@ -85,7 +125,7 @@ export default function QuickAccessStrip() {
 
   return (
     <div className="w-full mx-auto px-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         {ITEMS.map((item) => (
           <Link key={item.label} to={item.link}>
             <Card item={item}>

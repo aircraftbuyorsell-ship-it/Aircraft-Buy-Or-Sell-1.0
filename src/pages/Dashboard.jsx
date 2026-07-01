@@ -7,6 +7,7 @@ import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligenc
 import SiteFooter from "@/components/SiteFooter";
 import SectionShell from "@/components/dashboard/sections/SectionShell";
 import HeroSection from "@/components/dashboard/sections/HeroSection";
+import JourneySections from "@/components/dashboard/sections/JourneySections";
 import PlatformStats from "@/components/dashboard/sections/PlatformStats";
 import MarketCounters from "@/components/dashboard/sections/MarketCounters";
 import AircraftFinance from "@/components/dashboard/sections/AircraftFinance";
@@ -52,6 +53,7 @@ export default function Dashboard() {
     >
       <NotificationStack />
       <HeroSection listings={listings} atiCards={atiCards} activeAti={activeAti} />
+      <JourneySections />
       <PlatformStats />
       <SectionShell
         eyebrow="ABOS Market Intelligence · Live"

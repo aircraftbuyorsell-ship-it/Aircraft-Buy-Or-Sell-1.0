@@ -54,8 +54,11 @@ export default function LeadMatchModal({ open, onClose, lead }) {
     <>
       <div className="fixed inset-0 bg-black/60 z-[70]" onClick={onClose} />
       <div className="fixed inset-0 z-[71] flex items-end sm:items-center justify-center p-0 sm:p-4 pointer-events-none">
-        <div className="pointer-events-auto w-full sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl safe-bottom overflow-hidden max-h-[92vh] flex flex-col"
+        <div className="pointer-events-auto w-full sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl safe-bottom overflow-hidden max-h-[92dvh] flex flex-col animate-slide-up"
           style={{ background: "#0B0F1A", border: `0.5px solid ${BORDER}` }}>
+          <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full" style={{ background: W3 }} />
+          </div>
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-2">
@@ -69,7 +72,7 @@ export default function LeadMatchModal({ open, onClose, lead }) {
                 </p>
               </div>
             </div>
-            <button onClick={onClose} style={{ color: W3 }} className="hover:opacity-80">
+            <button onClick={onClose} style={{ color: W3 }} className="hover:opacity-80 min-w-[44px] min-h-[44px] flex items-center justify-center">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -149,8 +152,8 @@ export default function LeadMatchModal({ open, onClose, lead }) {
                       )}
                       {m.listing?.id && (
                         <Link to={`/ati-passport/${m.listing.id}`} onClick={onClose}
-                          className="inline-flex items-center gap-1 text-[10px] font-bold mt-3 hover:opacity-80" style={{ color: BLUE }}>
-                          View ATI Passport <ArrowUpRight className="w-3 h-3" />
+                          className="inline-flex items-center gap-1 text-[11px] font-bold mt-3 min-h-[44px] px-3 rounded-lg hover:opacity-80" style={{ color: BLUE, background: "rgba(78,142,247,0.08)" }}>
+                          View ATI Passport <ArrowUpRight className="w-3.5 h-3.5" />
                         </Link>
                       )}
                     </div>
@@ -164,13 +167,13 @@ export default function LeadMatchModal({ open, onClose, lead }) {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-4 border-t flex gap-2" style={{ borderColor: BORDER }}>
-            <button onClick={onClose} className="flex-1 text-sm font-bold py-3 rounded-xl transition-colors"
+          <div className="px-5 py-4 border-t flex flex-col-reverse sm:flex-row gap-2 safe-bottom" style={{ borderColor: BORDER }}>
+            <button onClick={onClose} className="flex-1 min-h-[48px] text-sm font-bold py-3 rounded-xl transition-colors"
               style={{ color: W2, background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
               Close
             </button>
             <button onClick={runMatch} disabled={loading}
-              className="flex-1 text-sm font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
+              className="flex-1 min-h-[48px] text-sm font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
               style={{ background: BLUE, color: "#04060a" }}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
               Re-run Match

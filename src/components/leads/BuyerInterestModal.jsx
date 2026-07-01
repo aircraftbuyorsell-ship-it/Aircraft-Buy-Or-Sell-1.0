@@ -75,7 +75,7 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
               <p className="text-sm text-[#6B6560] leading-relaxed mb-6">
                 An ABOS broker will review your inquiry and reach out within 24 hours. Your contact details have been shared securely with our team.
               </p>
-              <button onClick={onClose} className="bg-[#0B2D5B] hover:bg-[#143C75] text-white font-bold text-sm px-8 py-3 rounded-xl transition-colors">
+              <button onClick={onClose} className="bg-[#0B2D5B] hover:bg-[#143C75] text-white font-bold text-sm px-8 py-3 min-h-[48px] rounded-xl transition-colors">
                 Done
               </button>
             </div>
@@ -91,7 +91,7 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
                     <p className="text-[10px] text-[#6B6560]">Express your interest — a broker will contact you</p>
                   </div>
                 </div>
-                <button onClick={() => !saving && onClose()} disabled={saving} className="text-[#6B6560] hover:text-[#1A1814]">
+                <button onClick={() => !saving && onClose()} disabled={saving} className="text-[#6B6560] hover:text-[#1A1814] min-w-[44px] min-h-[44px] flex items-center justify-center">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -112,15 +112,15 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Name *"><Input v={form.name} set={v => setField("name", v)} placeholder="John Doe" /></Field>
                   <Field label="Email *"><Input v={form.email} set={v => setField("email", v)} type="email" placeholder="john@email.com" /></Field>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Phone (optional)"><Input v={form.phone} set={v => setField("phone", v)} placeholder="+1 555…" /></Field>
                   <Field label="Budget">
                     <select value={form.budget} onChange={e => setField("budget", e.target.value)}
-                      className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B]">
+                      className="w-full px-3 py-3 min-h-[44px] bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B]">
                       <option value="">—</option>
                       {BUDGETS.map(b => <option key={b} value={b}>{b}</option>)}
                     </select>
@@ -130,12 +130,12 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
                 <Field label="Message to the broker (optional)">
                   <textarea value={form.message} onChange={e => setField("message", e.target.value)} rows={3}
                     placeholder="I'm seriously looking for a well-maintained SR22 with G1000…"
-                    className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B] resize-none" />
+                    className="w-full px-3 py-3 min-h-[44px] bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B] resize-none" />
                 </Field>
 
-                <label className="flex items-start gap-2.5 cursor-pointer">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={form.rules_agreed} onChange={e => setField("rules_agreed", e.target.checked)}
-                    className="mt-0.5 w-4 h-4 accent-[#0B2D5B] shrink-0" />
+                    className="mt-0.5 w-5 h-5 min-w-[20px] accent-[#0B2D5B] shrink-0" />
                   <span className="text-[11px] text-[#6B6560] leading-relaxed">
                     I agree to be contacted by an ABOS broker regarding this aircraft and accept the platform's{" "}
                     <Link to="/terms-of-service" className="text-[#0B2D5B] font-semibold underline" onClick={e => e.stopPropagation()}>Terms of Service</Link>.
@@ -150,13 +150,13 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
                 )}
               </div>
 
-              <div className="flex gap-2 p-5 border-t border-black/[0.06]">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 p-5 border-t border-black/[0.06] safe-bottom">
                 <button onClick={onClose} disabled={saving}
-                  className="flex-1 bg-white border border-black/10 hover:bg-[#F7F4EF] text-[#1A1814] font-bold text-sm py-3 rounded-xl">
+                  className="flex-1 min-h-[48px] bg-white border border-black/10 hover:bg-[#F7F4EF] text-[#1A1814] font-bold text-sm py-3 rounded-xl">
                   Cancel
                 </button>
                 <button onClick={submit} disabled={saving || !form.rules_agreed}
-                  className="flex-[2] bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-40 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                  className="flex-1 sm:flex-[2] min-h-[48px] bg-[#0B2D5B] hover:bg-[#143C75] disabled:opacity-40 text-white font-bold text-sm py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {saving ? "Submitting…" : "Submit Interest"}
                 </button>
@@ -180,6 +180,6 @@ function Field({ label, children }) {
 function Input({ v, set, type = "text", placeholder }) {
   return (
     <input type={type} value={v} onChange={e => set(e.target.value)} placeholder={placeholder}
-      className="w-full px-3 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B]" />
+      className="w-full px-3 py-3 min-h-[44px] bg-[#F7F4EF] border border-black/10 rounded-xl text-sm focus:outline-none focus:border-[#0B2D5B]" />
   );
 }

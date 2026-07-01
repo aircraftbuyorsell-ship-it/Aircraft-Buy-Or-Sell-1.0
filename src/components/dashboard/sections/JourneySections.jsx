@@ -2,10 +2,16 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { NAV_TREE } from "@/components/layout/navConfig";
 
+const SECTION_TITLE = {
+  Discover: "Browse Aircraft",
+  Transact: "Buy Securely",
+  Manage: "Your Dashboard",
+};
+
 const SECTION_DESC = {
-  Discover: "Browse live listings, track market data, and value any aircraft with AI-powered tools.",
-  Transact: "Execute deals with escrow, pre-buy inspection, and the full ATI verification suite.",
-  Manage: "Your account, community, developer platform, and admin controls in one place.",
+  Discover: "Search thousands of aircraft listings, compare models, track live market prices, and get AI valuations — all in one place.",
+  Transact: "Close deals securely with escrow protection, pre-buy inspections, and verified aircraft identity reports.",
+  Manage: "Your dashboard for account settings, community access, developer tools, and platform administration.",
 };
 
 const SECTION_ACCENT = {
@@ -19,10 +25,10 @@ export default function JourneySections() {
     <section className="relative z-10 w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="text-center mb-8">
         <p className="text-[10px] tracking-[0.18em] uppercase text-white/40 font-medium mb-2">
-          Choose Your Path
+          Buy · Verify · Manage Aircraft Online
         </p>
         <h2 className="text-[clamp(22px,3.5vw,34px)] font-bold tracking-[-0.02em] text-white">
-          Three Journeys. One Platform.
+          Find, Buy &amp; Own Aircraft with Confidence
         </h2>
       </div>
 
@@ -65,7 +71,7 @@ export default function JourneySections() {
 
               {/* Title */}
               <h3 className="text-[20px] font-bold tracking-[-0.01em] text-white mb-2">
-                {section.label}
+                {SECTION_TITLE[section.label]}
               </h3>
               <p className="text-[12px] leading-[1.6] text-white/45 mb-5">
                 {SECTION_DESC[section.label]}
@@ -100,7 +106,7 @@ export default function JourneySections() {
                 className="flex items-center gap-1.5 mt-5 text-[12px] font-bold"
                 style={{ color: accent }}
               >
-                Enter {section.label}
+                {section.label === "Discover" ? "Start Browsing" : section.label === "Transact" ? "Start Buying" : "Go to Dashboard"}
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>

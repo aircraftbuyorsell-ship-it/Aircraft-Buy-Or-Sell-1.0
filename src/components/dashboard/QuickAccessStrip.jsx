@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark } from "lucide-react";
+import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 import LeasingCalculatorModal from "@/components/leasing/LeasingCalculatorModal";
@@ -36,6 +36,14 @@ const ITEMS = [
     link: "/opex-calculator",
     color: "#f97316",
     credits: 8,
+  },
+  {
+    icon: Shield,
+    label: "Insurance Calc",
+    desc: "Estimate aircraft insurance premiums by value, usage, and pilot profile.",
+    link: "/insurance-calculator",
+    color: "#4e8ef7",
+    credits: 0,
   },
 ];
 
@@ -77,7 +85,7 @@ export default function QuickAccessStrip() {
 
   return (
     <div className="w-full mx-auto px-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {ITEMS.map((item) => (
           <Link key={item.label} to={item.link}>
             <Card item={item}>

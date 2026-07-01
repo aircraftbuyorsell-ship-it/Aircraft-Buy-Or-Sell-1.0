@@ -36,6 +36,8 @@ export const NAV_TREE = [
         items: [
           { path: "/valuation", label: "Valuation", icon: TrendingUp },
           { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+          { path: "/insurance-calculator", label: "Insurance Calculator", icon: Shield },
+          { path: "/leasing-calculator", label: "Leasing Calculator", icon: Calculator },
         ],
       },
     ],

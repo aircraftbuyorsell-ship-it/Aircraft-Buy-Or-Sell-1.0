@@ -66,6 +66,7 @@ import ATICenter from "./pages/ATICenter";
 import StartupHub from "./pages/StartupHub";
 import GrowthCenter from "./pages/GrowthCenter";
 import LeasingCalculator from "./pages/LeasingCalculator";
+import InsuranceCalculator from "./pages/InsuranceCalculator";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -148,6 +149,7 @@ const AuthenticatedApp = () => {
         <Route path="/startup-center" element={<StartupHub />} />
         <Route path="/growth-center" element={<GrowthCenter />} />
         <Route path="/leasing-calculator" element={<LeasingCalculator />} />
+        <Route path="/insurance-calculator" element={<InsuranceCalculator />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Zap, Globe, Database, Plane, TrendingUp, CheckCircle, GitCompare } from "lucide-react";
+import { Zap, Globe, Database, Plane, TrendingUp, CheckCircle, GitCompare, Sparkles } from "lucide-react";
 import CoreCard from "@/components/core/CoreCard";
 import SectionShell from "./SectionShell";
 
@@ -52,6 +52,13 @@ const TOOLS = [
     to: "/upgrade-comparison",
     color: "#4e8ef7",
     Icon: GitCompare,
+  },
+  {
+    label: "Aircraft Detailing",
+    desc: "Exterior wash, wax, ceramic coating, and interior detailing costs by aircraft model.",
+    to: "/aircraft-detailing-calculator",
+    color: "#4ec8ff",
+    Icon: Sparkles,
   },
 ];
 

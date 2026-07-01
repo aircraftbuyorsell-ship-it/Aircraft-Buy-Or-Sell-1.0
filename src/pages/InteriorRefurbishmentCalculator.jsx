@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Armchair, DollarSign, Plus, Minus, Check } from "lucide-react";
+import { GA_AIRCRAFT } from "@/lib/aircraftModels";
 
 const SEAT_TYPES = [
   { label: "Crew / Passenger (Standard)", price: 2200, value: "standard" },
@@ -28,11 +29,17 @@ const SERVICES = [
   { id: "usb_power", label: "USB / Power Outlets Installation", basePrice: 750, hours: 6 },
 ];
 
+const LABOR_RATE = 95;
+
 export default function InteriorRefurbishmentCalculator() {
-  const [seats, setSeats] = useState(4);
+  const [aircraft, setAircraft] = useState("c172");
+  const [seatOverride, setSeatOverride] = useState(null);
   const [seatType, setSeatType] = useState("standard");
   const [material, setMaterial] = useState("Standard (leather / wool carpet)");
   const [selected, setSelected] = useState({ carpet: true, headliner: true });
+
+  const ac = GA_AIRCRAFT.find((a) => a.value === aircraft);
+  const seats = seatOverride !== null ? seatOverride : ac.interiorSeats;
 
   const result = useMemo(() => {
     const seat = SEAT_TYPES.find((s) => s.value === seatType);
@@ -41,31 +48,29 @@ export default function InteriorRefurbishmentCalculator() {
     let laborHours = 0;
     const lineItems = [];
 
-    // Seats
     const seatParts = seat.price * seats;
-    const seatLabor = 12 * seats; // ~12h per seat
-    const seatLaborCost = seatLabor * 95;
+    const seatLabor = 12 * seats;
+    const seatLaborCost = seatLabor * LABOR_RATE;
     const seatTotal = seatParts + seatLaborCost;
     partsTotal += seatParts;
     laborHours += seatLabor;
     lineItems.push({ label: `${seat.label} ×${seats}`, lineTotal: Math.round(seatTotal) });
 
-    // Services
     SERVICES.filter((s) => selected[s.id]).forEach((s) => {
       const qty = s.perSeat ? seats : 1;
-      const parts = Math.round(s.basePrice * mat.factor * qty);
+      const parts = Math.round(s.basePrice * mat.factor * ac.interiorMult * qty);
       const labor = s.hours * qty;
-      const laborCost = labor * 95;
+      const laborCost = labor * LABOR_RATE;
       const lineTotal = parts + laborCost;
       partsTotal += parts;
       laborHours += labor;
       lineItems.push({ label: s.perSeat ? `${s.label} ×${qty}` : s.label, lineTotal: Math.round(lineTotal) });
     });
 
-    const laborTotal = laborHours * 95;
+    const laborTotal = laborHours * LABOR_RATE;
     const grandTotal = partsTotal + laborTotal;
     return { lineItems, partsTotal: Math.round(partsTotal), laborHours, laborTotal: Math.round(laborTotal), grandTotal: Math.round(grandTotal) };
-  }, [seats, seatType, material, selected]);
+  }, [aircraft, seats, seatType, material, selected, ac]);
 
   const toggle = (id) => setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -77,22 +82,30 @@ export default function InteriorRefurbishmentCalculator() {
         </div>
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white">Interior Refurbishment Calculator</h1>
-          <p className="text-sm text-white/50">Estimate seats, carpet, panels, and cabin restoration costs by material grade and seat count.</p>
+          <p className="text-sm text-white/50">Estimate seats, carpet, panels, and cabin restoration costs scaled by aircraft model.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">
-          {/* Seat count + type */}
           <div className="glass-card p-5 space-y-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Number of Seats</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Aircraft Model</label>
+              <select value={aircraft} onChange={(e) => { setAircraft(e.target.value); setSeatOverride(null); }}
+                className="w-full px-3 py-3 min-h-[44px] bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#c88cff]">
+                {GA_AIRCRAFT.map((a) => (
+                  <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label} ({a.category})</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Number of Seats <span className="text-white/30 normal-case font-normal">(auto-set from model, override if needed)</span></label>
               <div className="flex items-center gap-3">
-                <button onClick={() => setSeats((s) => Math.max(1, s - 1))} className="w-12 h-12 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20">
+                <button onClick={() => setSeatOverride((s) => Math.max(1, (s ?? ac.interiorSeats) - 1))} className="w-12 h-12 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20">
                   <Minus className="w-5 h-5" />
                 </button>
                 <span className="text-2xl font-black text-white tabular-nums w-12 text-center">{seats}</span>
-                <button onClick={() => setSeats((s) => Math.min(20, s + 1))} className="w-12 h-12 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-[#c88cff]/20 text-[#c88cff] hover:bg-[#c88cff]/30">
+                <button onClick={() => setSeatOverride((s) => Math.min(20, (s ?? ac.interiorSeats) + 1))} className="w-12 h-12 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-[#c88cff]/20 text-[#c88cff] hover:bg-[#c88cff]/30">
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
@@ -119,7 +132,6 @@ export default function InteriorRefurbishmentCalculator() {
             </div>
           </div>
 
-          {/* Services */}
           <div className="glass-card p-5">
             <h3 className="text-sm font-black uppercase tracking-wider text-white/70 mb-3">Additional Cabin Services</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -139,12 +151,16 @@ export default function InteriorRefurbishmentCalculator() {
           </div>
         </div>
 
-        {/* Summary */}
         <div>
           <div className="glass-card p-6 sticky top-24">
             <div className="flex items-center gap-2 mb-4">
               <DollarSign className="w-4 h-4 text-[#c88cff]" />
               <h3 className="text-sm font-black uppercase tracking-wider text-white/80">Cost Breakdown</h3>
+            </div>
+            <div className="mb-3 pb-3 border-b border-white/10">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">Aircraft</p>
+              <p className="text-sm font-bold text-white">{ac.label}</p>
+              <p className="text-[11px] text-white/40">Cabin size factor: {ac.interiorMult}× · {ac.interiorSeats} seats default</p>
             </div>
 
             {result.lineItems.length === 0 ? (
@@ -161,7 +177,7 @@ export default function InteriorRefurbishmentCalculator() {
                 </div>
                 <div className="border-t border-white/10 pt-3 space-y-1.5">
                   <Row label="Materials" value={result.partsTotal} />
-                  <Row label={`Labor (${result.laborHours}h @ $95/hr)`} value={result.laborTotal} />
+                  <Row label={`Labor (${result.laborHours}h @ $${LABOR_RATE}/hr)`} value={result.laborTotal} />
                   <div className="border-t border-white/10 pt-2 mt-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-black text-white">Total Estimate</span>

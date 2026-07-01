@@ -1,14 +1,6 @@
 import { useState, useMemo } from "react";
 import { Paintbrush, DollarSign, Check } from "lucide-react";
-
-const AIRCRAFT_SIZE = [
-  { label: "Small SEP (C172, PA28)", baseMultiplier: 1.0, value: "small" },
-  { label: "Large SEP / MEP (C210, Baron)", baseMultiplier: 1.4, value: "large_sep" },
-  { label: "Turboprop (King Air, PC-12)", baseMultiplier: 2.2, value: "turboprop" },
-  { label: "Light Jet (Citation Mustang)", baseMultiplier: 3.0, value: "light_jet" },
-  { label: "Mid/Heavy Jet", baseMultiplier: 5.5, value: "heavy_jet" },
-  { label: "Helicopter (R44 / Bell 206)", baseMultiplier: 1.6, value: "helicopter" },
-];
+import { GA_AIRCRAFT } from "@/lib/aircraftModels";
 
 const CONDITION = [
   { label: "Good (minor work)", factor: 0.85 },
@@ -17,34 +9,34 @@ const CONDITION = [
 ];
 
 const SERVICES = [
-  { id: "strip_paint", label: "Full Strip & Paint", basePrice: 22500, hours: 80, value: "service" },
-  { id: "partial_repaint", label: "Partial Repaint / Touch-Up", basePrice: 5500, hours: 24, value: "service" },
-  { id: "polish", label: "Bare Metal Polishing", basePrice: 4000, hours: 32, value: "service" },
-  { id: "deice_boots", label: "Deice Boot Replacement", basePrice: 6000, hours: 16, value: "service" },
-  { id: "windshield", label: "Windshield / Window Replacement", basePrice: 2800, hours: 10, value: "service" },
-  { id: "corrosion", label: "Corrosion Treatment & Prevention", basePrice: 4000, hours: 20, value: "service" },
-  { id: "reg_repaint", label: "Registration Markings Repaint", basePrice: 1000, hours: 4, value: "service" },
-  { id: "control_surf", label: "Control Surface Recovering", basePrice: 3500, hours: 18, value: "service" },
-  { id: "striping", label: "Custom Striping / Livery Design", basePrice: 2200, hours: 12, value: "service" },
-  { id: "leading_edge", label: "Leading Edge Polish / Protection", basePrice: 1500, hours: 8, value: "service" },
+  { id: "strip_paint", label: "Full Strip & Paint", basePrice: 22500, hours: 80 },
+  { id: "partial_repaint", label: "Partial Repaint / Touch-Up", basePrice: 5500, hours: 24 },
+  { id: "polish", label: "Bare Metal Polishing", basePrice: 4000, hours: 32 },
+  { id: "deice_boots", label: "Deice Boot Replacement", basePrice: 6000, hours: 16 },
+  { id: "windshield", label: "Windshield / Window Replacement", basePrice: 2800, hours: 10 },
+  { id: "corrosion", label: "Corrosion Treatment & Prevention", basePrice: 4000, hours: 20 },
+  { id: "reg_repaint", label: "Registration Markings Repaint", basePrice: 1000, hours: 4 },
+  { id: "control_surf", label: "Control Surface Recovering", basePrice: 3500, hours: 18 },
+  { id: "striping", label: "Custom Striping / Livery Design", basePrice: 2200, hours: 12 },
+  { id: "leading_edge", label: "Leading Edge Polish / Protection", basePrice: 1500, hours: 8 },
 ];
 
-const LABOR_RATE = 95; // exterior shops typically $85-110/hr
+const LABOR_RATE = 95;
 
 export default function ExteriorRefurbishmentCalculator() {
-  const [size, setSize] = useState("small");
+  const [aircraft, setAircraft] = useState("c172");
   const [condition, setCondition] = useState("Fair (standard)");
   const [selected, setSelected] = useState({ strip_paint: true });
 
   const result = useMemo(() => {
-    const sz = AIRCRAFT_SIZE.find((a) => a.value === size);
+    const ac = GA_AIRCRAFT.find((a) => a.value === aircraft);
     const cond = CONDITION.find((c) => c.label === condition);
     let partsTotal = 0;
     let laborHours = 0;
 
     const lineItems = SERVICES.filter((s) => selected[s.id]).map((s) => {
-      const parts = Math.round(s.basePrice * sz.baseMultiplier);
-      const labor = Math.round(s.hours * sz.baseMultiplier);
+      const parts = Math.round(s.basePrice * ac.exteriorMult);
+      const labor = Math.round(s.hours * ac.exteriorMult);
       const laborCost = labor * LABOR_RATE * cond.factor;
       const lineTotal = parts + laborCost;
       partsTotal += parts;
@@ -54,8 +46,8 @@ export default function ExteriorRefurbishmentCalculator() {
 
     const laborTotal = laborHours * LABOR_RATE * cond.factor;
     const grandTotal = partsTotal + laborTotal;
-    return { lineItems, partsTotal, laborHours, laborTotal: Math.round(laborTotal), grandTotal: Math.round(grandTotal) };
-  }, [size, condition, selected]);
+    return { lineItems, partsTotal, laborHours, laborTotal: Math.round(laborTotal), grandTotal: Math.round(grandTotal), ac };
+  }, [aircraft, condition, selected]);
 
   const toggle = (id) => setSelected((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -67,20 +59,19 @@ export default function ExteriorRefurbishmentCalculator() {
         </div>
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white">Exterior Refurbishment Calculator</h1>
-          <p className="text-sm text-white/50">Estimate paint, polish, and exterior restoration costs based on aircraft size and condition.</p>
+          <p className="text-sm text-white/50">Estimate paint, polish, and exterior restoration costs scaled by aircraft model and condition.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">
-          {/* Selectors */}
           <div className="glass-card p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Aircraft Size</label>
-              <select value={size} onChange={(e) => setSize(e.target.value)}
+              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Aircraft Model</label>
+              <select value={aircraft} onChange={(e) => setAircraft(e.target.value)}
                 className="w-full px-3 py-3 min-h-[44px] bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#5dcaa5]">
-                {AIRCRAFT_SIZE.map((a) => (
-                  <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label}</option>
+                {GA_AIRCRAFT.map((a) => (
+                  <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label} ({a.category})</option>
                 ))}
               </select>
             </div>
@@ -95,7 +86,6 @@ export default function ExteriorRefurbishmentCalculator() {
             </div>
           </div>
 
-          {/* Services */}
           <div className="glass-card p-5">
             <h3 className="text-sm font-black uppercase tracking-wider text-white/70 mb-3">Select Services</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -107,7 +97,7 @@ export default function ExteriorRefurbishmentCalculator() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{s.label}</p>
-                    <p className="text-[11px] text-white/40">from ${s.basePrice.toLocaleString()} · {s.hours}h</p>
+                    <p className="text-[11px] text-white/40">from ${s.basePrice.toLocaleString()} · {s.hours}h base</p>
                   </div>
                 </button>
               ))}
@@ -115,12 +105,16 @@ export default function ExteriorRefurbishmentCalculator() {
           </div>
         </div>
 
-        {/* Summary */}
         <div>
           <div className="glass-card p-6 sticky top-24">
             <div className="flex items-center gap-2 mb-4">
               <DollarSign className="w-4 h-4 text-[#5dcaa5]" />
               <h3 className="text-sm font-black uppercase tracking-wider text-white/80">Cost Breakdown</h3>
+            </div>
+            <div className="mb-3 pb-3 border-b border-white/10">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">Aircraft</p>
+              <p className="text-sm font-bold text-white">{result.ac.label}</p>
+              <p className="text-[11px] text-white/40">Surface area factor: {result.ac.exteriorMult}×</p>
             </div>
 
             {result.lineItems.length === 0 ? (

@@ -1,14 +1,6 @@
 import { useState, useMemo } from "react";
 import { GitCompare, Radio, Paintbrush, Armchair, Check, Plane } from "lucide-react";
-
-const AIRCRAFT_SIZE = [
-  { label: "Small SEP (C172, PA28)", value: "small", avionicsMult: 1.0, exteriorMult: 1.0, interiorSeats: 4 },
-  { label: "Large SEP / MEP (C210, Baron)", value: "large_sep", avionicsMult: 1.3, exteriorMult: 1.4, interiorSeats: 6 },
-  { label: "Turboprop (King Air, PC-12)", value: "turboprop", avionicsMult: 1.6, exteriorMult: 2.2, interiorSeats: 9 },
-  { label: "Light Jet (Citation Mustang)", value: "light_jet", avionicsMult: 2.0, exteriorMult: 3.0, interiorSeats: 6 },
-  { label: "Mid/Heavy Jet", value: "heavy_jet", avionicsMult: 2.8, exteriorMult: 5.5, interiorSeats: 12 },
-  { label: "Helicopter (R44 / Bell 206)", value: "helicopter", avionicsMult: 1.8, exteriorMult: 1.6, interiorSeats: 4 },
-];
+import { GA_AIRCRAFT } from "@/lib/aircraftModels";
 
 const AVIONICS_ITEMS = [
   { id: "gps_nav", label: "GPS Navigator (GTN 650)", price: 14500, hours: 16 },
@@ -46,18 +38,19 @@ const CATEGORIES = [
 ];
 
 export default function UpgradeComparison() {
-  const [aircraft, setAircraft] = useState("small");
+  const [aircraft, setAircraft] = useState("c172");
   const [selected, setSelected] = useState({
     avionics: { gps_nav: true, adsb: true },
     exterior: { strip_paint: true },
     interior: { seats: true, carpet: true },
   });
 
-  const ac = AIRCRAFT_SIZE.find((a) => a.value === aircraft);
+  const ac = GA_AIRCRAFT.find((a) => a.value === aircraft);
 
   const results = useMemo(() => {
+    const multMap = { avionics: ac.avionicsMult, exterior: ac.exteriorMult, interior: ac.interiorMult };
     return CATEGORIES.map((cat) => {
-      const mult = cat.key === "avionics" ? ac.avionicsMult : cat.key === "exterior" ? ac.exteriorMult : 1.0;
+      const mult = multMap[cat.key];
       let parts = 0;
       let labor = 0;
       const lineItems = [];
@@ -73,17 +66,7 @@ export default function UpgradeComparison() {
       });
 
       const laborCost = labor * LABOR_RATE;
-      return {
-        key: cat.key,
-        label: cat.label,
-        icon: cat.icon,
-        color: cat.color,
-        lineItems,
-        parts,
-        laborHours: labor,
-        laborCost,
-        total: parts + laborCost,
-      };
+      return { key: cat.key, label: cat.label, icon: cat.icon, color: cat.color, lineItems, parts, laborHours: labor, laborCost, total: parts + laborCost };
     });
   }, [aircraft, selected, ac]);
 
@@ -103,20 +86,18 @@ export default function UpgradeComparison() {
         </div>
       </div>
 
-      {/* Aircraft selector */}
       <div className="glass-card p-5 mb-6">
         <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block flex items-center gap-2">
-          <Plane className="w-3.5 h-3.5" /> Aircraft Category
+          <Plane className="w-3.5 h-3.5" /> Aircraft Model
         </label>
         <select value={aircraft} onChange={(e) => setAircraft(e.target.value)}
           className="w-full sm:w-auto px-3 py-3 min-h-[44px] bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#4e8ef7]">
-          {AIRCRAFT_SIZE.map((a) => (
-            <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label}</option>
+          {GA_AIRCRAFT.map((a) => (
+            <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label} ({a.category})</option>
           ))}
         </select>
       </div>
 
-      {/* Three columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
         {results.map((cat) => (
           <div key={cat.key} className="glass-card p-5 flex flex-col">
@@ -163,11 +144,10 @@ export default function UpgradeComparison() {
         ))}
       </div>
 
-      {/* Grand total bar */}
       <div className="glass-card p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wider text-white/50 font-bold">Combined Project Total</p>
-          <p className="text-[11px] text-white/40 mt-0.5">{ac.label} · Labor rate ${LABOR_RATE}/hr</p>
+          <p className="text-xs uppercase tracking-wider text-white/50 font-bold">{ac.label} · Combined Project Total</p>
+          <p className="text-[11px] text-white/40 mt-0.5">Avionics {ac.avionicsMult}× · Exterior {ac.exteriorMult}× · Interior {ac.interiorMult}× · Labor rate ${LABOR_RATE}/hr</p>
         </div>
         <div className="flex items-center gap-6">
           {results.map((r) => (

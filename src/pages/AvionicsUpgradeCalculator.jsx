@@ -1,14 +1,6 @@
 import { useState, useMemo } from "react";
-import { Radio, Wrench, DollarSign, Plus, Minus, CheckCircle2 } from "lucide-react";
-
-const AIRCRAFT_LABOR = [
-  { label: "Single-Engine Piston", laborHours: 1.0, value: "sep" },
-  { label: "Multi-Engine Piston", laborHours: 1.3, value: "mep" },
-  { label: "Turboprop", laborHours: 1.6, value: "turboprop" },
-  { label: "Light Jet", laborHours: 2.0, value: "light_jet" },
-  { label: "Mid/Heavy Jet", laborHours: 2.8, value: "heavy_jet" },
-  { label: "Helicopter", laborHours: 1.8, value: "helicopter" },
-];
+import { Radio, Wrench, DollarSign, Plus, Minus } from "lucide-react";
+import { GA_AIRCRAFT } from "@/lib/aircraftModels";
 
 const LABOR_RATES = [
   { label: "Regional Shop ($85/hr)", rate: 85 },
@@ -33,14 +25,14 @@ const UPGRADES = [
 ];
 
 export default function AvionicsUpgradeCalculator() {
-  const [aircraft, setAircraft] = useState("sep");
+  const [aircraft, setAircraft] = useState("c172");
   const [laborIdx, setLaborIdx] = useState(1);
   const [items, setItems] = useState(
     Object.fromEntries(UPGRADES.map((u) => [u.id, u.defaultQty]))
   );
 
   const result = useMemo(() => {
-    const ac = AIRCRAFT_LABOR.find((a) => a.value === aircraft);
+    const ac = GA_AIRCRAFT.find((a) => a.value === aircraft);
     const laborRate = LABOR_RATES[laborIdx].rate;
     let partsTotal = 0;
     let laborHours = 0;
@@ -49,7 +41,7 @@ export default function AvionicsUpgradeCalculator() {
       const qty = items[u.id] || 0;
       if (qty === 0) return null;
       const parts = u.unitPrice * qty;
-      const labor = u.installHours * ac.laborHours * qty;
+      const labor = u.installHours * ac.avionicsMult * qty;
       const lineTotal = parts + labor * laborRate;
       partsTotal += parts;
       laborHours += labor;
@@ -58,7 +50,7 @@ export default function AvionicsUpgradeCalculator() {
 
     const laborTotal = laborHours * laborRate;
     const grandTotal = partsTotal + laborTotal;
-    return { lineItems, partsTotal, laborHours, laborTotal, grandTotal };
+    return { lineItems, partsTotal, laborHours, laborTotal, grandTotal, ac };
   }, [aircraft, laborIdx, items]);
 
   const setQty = (id, delta) =>
@@ -72,7 +64,7 @@ export default function AvionicsUpgradeCalculator() {
         </div>
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white">Avionics Upgrade Calculator</h1>
-          <p className="text-sm text-white/50">Estimate parts and labor costs for panel upgrades based on current market pricing.</p>
+          <p className="text-sm text-white/50">Estimate parts and labor costs scaled by specific GA aircraft model.</p>
         </div>
       </div>
 
@@ -81,11 +73,11 @@ export default function AvionicsUpgradeCalculator() {
           {/* Selectors */}
           <div className="glass-card p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Aircraft Category</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-white/60 mb-1.5 block">Aircraft Model</label>
               <select value={aircraft} onChange={(e) => setAircraft(e.target.value)}
                 className="w-full px-3 py-3 min-h-[44px] bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-[#f5c242]">
-                {AIRCRAFT_LABOR.map((a) => (
-                  <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label}</option>
+                {GA_AIRCRAFT.map((a) => (
+                  <option key={a.value} value={a.value} className="bg-[#0B0F1A] text-white">{a.label} ({a.category})</option>
                 ))}
               </select>
             </div>
@@ -108,7 +100,7 @@ export default function AvionicsUpgradeCalculator() {
                 <div key={u.id} className={`flex items-center gap-3 rounded-xl p-3 transition-all ${items[u.id] > 0 ? "bg-[#f5c242]/8 border border-[#f5c242]/20" : "bg-white/5 border border-white/10"}`}>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{u.label}</p>
-                    <p className="text-[11px] text-white/40 mt-0.5">${u.unitPrice.toLocaleString()} · {u.installHours}h install</p>
+                    <p className="text-[11px] text-white/40 mt-0.5">${u.unitPrice.toLocaleString()} · {u.installHours}h base install</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => setQty(u.id, -1)} className="w-8 h-8 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20">
@@ -132,6 +124,11 @@ export default function AvionicsUpgradeCalculator() {
               <Wrench className="w-4 h-4 text-[#5dcaa5]" />
               <h3 className="text-sm font-black uppercase tracking-wider text-white/80">Cost Breakdown</h3>
             </div>
+            <div className="mb-3 pb-3 border-b border-white/10">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">Aircraft</p>
+              <p className="text-sm font-bold text-white">{result.ac.label}</p>
+              <p className="text-[11px] text-white/40">Panel complexity factor: {result.ac.avionicsMult}×</p>
+            </div>
 
             {result.lineItems.length === 0 ? (
               <p className="text-sm text-white/40 py-8 text-center">Select upgrades to see estimate</p>
@@ -140,14 +137,11 @@ export default function AvionicsUpgradeCalculator() {
                 <div className="space-y-2 mb-4">
                   {result.lineItems.map((li) => (
                     <div key={li.id} className="flex items-start justify-between text-[12px]">
-                      <div className="flex-1 min-w-0 pr-2">
-                        <p className="text-white/70">{li.label} ×{li.qty}</p>
-                      </div>
-                      <p className="text-white font-semibold tabular-nums shrink-0">${li.lineTotal.toLocaleString()}</p>
+                      <span className="text-white/70 pr-2">{li.label} ×{li.qty}</span>
+                      <span className="text-white font-semibold tabular-nums shrink-0">${li.lineTotal.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
-
                 <div className="border-t border-white/10 pt-3 space-y-1.5">
                   <Row label="Parts Subtotal" value={result.partsTotal} />
                   <Row label={`Labor (${result.laborHours.toFixed(1)}h)`} value={result.laborTotal} />

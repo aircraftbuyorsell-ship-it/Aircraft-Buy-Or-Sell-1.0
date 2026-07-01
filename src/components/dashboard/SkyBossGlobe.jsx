@@ -936,32 +936,16 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     window.addEventListener("resize", onResize);
 
     const onDown = (e) => {
-      dragRef.current.active = true;
-      autoRotateRef.current = false;
-      dragRef.current.px = e.clientX;
-      dragRef.current.py = e.clientY;
       downRef.current = [e.clientX, e.clientY];
-      canvas.classList.add("cursor-grabbing");
     };
     const onUp = (e) => {
-      setTimeout(() => { autoRotateRef.current = true; }, 2000);
       if (downRef.current) {
         const moved = Math.abs(e.clientX - downRef.current[0]) + Math.abs(e.clientY - downRef.current[1]);
         if (moved < 5) pick(e);
         downRef.current = null;
       }
-      dragRef.current.active = false;
-      canvas.classList.remove("cursor-grabbing");
     };
     const onMove = (e) => {
-      if (dragRef.current.active) {
-        rotRef.current.y += (e.clientX - dragRef.current.px) * 0.006;
-        rotRef.current.x += (e.clientY - dragRef.current.py) * 0.006;
-        rotRef.current.x = Math.max(-1.3, Math.min(1.3, rotRef.current.x));
-        dragRef.current.px = e.clientX;
-        dragRef.current.py = e.clientY;
-        return;
-      }
       // Hover detection for inline labels
       const cv = canvasRef.current;
       if (!cv) return;
@@ -1012,15 +996,9 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
         }
       }
     };
-    const onWheel = (e) => {
-      e.preventDefault();
-      camera.position.z = Math.max(1.5, Math.min(7, camera.position.z + e.deltaY * 0.0018));
-    };
-
     canvas.addEventListener("pointerdown", onDown);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointermove", onMove);
-    canvas.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       cancelAnimationFrame(rafRef.current);
@@ -1029,7 +1007,6 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       canvas.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointermove", onMove);
-      canvas.removeEventListener("wheel", onWheel);
       renderer.dispose();
       scene.clear();
     };
@@ -1104,7 +1081,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
   return (
     <div ref={containerRef} className={`relative ${className}`} style={{ background: "transparent" }}>
-      <canvas ref={canvasRef} className="block w-full h-full cursor-grab opacity-100" />
+      <canvas ref={canvasRef} className="block w-full h-full opacity-100" />
 
       {/* Inline hover labels — projected from 3D each frame */}
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 15 }}>

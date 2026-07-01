@@ -8,7 +8,7 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
   { value: activeAti.length, label: "Active ATI" }];
 
   return (
-    <section className="relative flex flex-col items-center justify-center min-h-[auto] lg:min-h-screen px-4 sm:px-6 py-10 sm:py-16 lg:py-20">
+    <section className="relative flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 py-10 sm:py-16 lg:py-20">
       {/* Globe background */}
       <div className="absolute inset-0 z-0">
         <SkyBossGlobe className="w-full h-full" listings={listings} />

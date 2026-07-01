@@ -67,6 +67,9 @@ import StartupHub from "./pages/StartupHub";
 import GrowthCenter from "./pages/GrowthCenter";
 import LeasingCalculator from "./pages/LeasingCalculator";
 import InsuranceCalculator from "./pages/InsuranceCalculator";
+import AvionicsUpgradeCalculator from "./pages/AvionicsUpgradeCalculator";
+import ExteriorRefurbishmentCalculator from "./pages/ExteriorRefurbishmentCalculator";
+import InteriorRefurbishmentCalculator from "./pages/InteriorRefurbishmentCalculator";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -150,6 +153,9 @@ const AuthenticatedApp = () => {
         <Route path="/growth-center" element={<GrowthCenter />} />
         <Route path="/leasing-calculator" element={<LeasingCalculator />} />
         <Route path="/insurance-calculator" element={<InsuranceCalculator />} />
+        <Route path="/avionics-upgrade-calculator" element={<AvionicsUpgradeCalculator />} />
+        <Route path="/exterior-refurbishment-calculator" element={<ExteriorRefurbishmentCalculator />} />
+        <Route path="/interior-refurbishment-calculator" element={<InteriorRefurbishmentCalculator />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

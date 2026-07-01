@@ -1,69 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-
-const SECTIONS = [
-  { label: "Home", path: "/" },
-  {
-    label: "Marketplace",
-    items: [
-      { path: "/listings", label: "Aircraft Listings" },
-      { path: "/compare", label: "Compare Aircraft" },
-      { path: "/deal-radar", label: "Deal Radar" },
-      { path: "/escrow", label: "Escrow" },
-      { path: "/pre-buy-inspection", label: "Pre-buy Inspection" },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { path: "/analytics", label: "Analytics" },
-      { path: "/market-reports", label: "Market Reports" },
-      { path: "/traffic", label: "Traffic Maps" },
-      { path: "/faa-map", label: "FAA Registry" },
-    ],
-  },
-  {
-    label: "ATI",
-    items: [
-      { path: "/ati-quick-score", label: "Quick Score" },
-      { path: "/ati-standard", label: "Standard" },
-      { path: "/ati-full-report", label: "Full Report" },
-      { path: "/ati-verify", label: "Verification" },
-      { path: "/ati-passport", label: "Passport" },
-    ],
-  },
-  {
-    label: "Tools",
-    items: [
-      { path: "/opex-calculator", label: "OPEX Calculator" },
-      { path: "/valuation", label: "Valuation" },
-    ],
-  },
-  {
-    label: "Community",
-    items: [
-      { path: "/community", label: "ABOS Community" },
-      { path: "/weekly-briefing", label: "Weekly Briefings" },
-      { path: "/feature-requests", label: "Feature Requests" },
-    ],
-  },
-  { label: "Developers", path: "/developers" },
-  {
-    label: "Account",
-    items: [
-      { path: "/my-account", label: "Profile & Settings" },
-      { path: "/pricing", label: "Credits & Benefits" },
-    ],
-  },
-  {
-    label: "Admin",
-    items: [
-      { path: "/admin/settings", label: "Admin Settings" },
-      { path: "/admin/listings", label: "Admin Listings" },
-    ],
-  },
-];
+import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 
 export default function PillCommandBar() {
   const { pathname } = useLocation();
@@ -84,13 +22,6 @@ export default function PillCommandBar() {
     navigate(path);
   };
 
-  const isSectionActive = (section) => {
-    if (section.path) return pathname === section.path;
-    return section.items?.some(
-      (i) => pathname === i.path || pathname.startsWith(i.path + "/")
-    );
-  };
-
   return (
     <div ref={barRef} className="hidden lg:flex items-center gap-1" style={{ height: 48 }}>
       <div
@@ -107,35 +38,9 @@ export default function PillCommandBar() {
         }}
         className="mx-auto"
       >
-        {SECTIONS.map((section) => {
-          const active = isSectionActive(section);
+        {NAV_TREE.map((section) => {
+          const active = isPathInSection(section, pathname);
           const open = openSection === section.label;
-          const hasDropdown = !!section.items;
-
-          if (!hasDropdown) {
-            return (
-              <button
-                key={section.label}
-                onClick={() => handleNav(section.path)}
-                style={{
-                  fontSize: 13,
-                  fontWeight: active ? 600 : 500,
-                  color: active ? "#0B1220" : "rgba(255,255,255,0.65)",
-                  background: active ? "#D4A017" : "transparent",
-                  border: "none",
-                  borderRadius: 999,
-                  padding: "8px 16px",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "color 150ms ease, background 150ms ease",
-                }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
-              >
-                {section.label}
-              </button>
-            );
-          }
 
           return (
             <div key={section.label} style={{ position: "relative" }}>
@@ -169,48 +74,74 @@ export default function PillCommandBar() {
                     position: "absolute",
                     top: "calc(100% + 8px)",
                     left: 0,
-                    minWidth: 220,
+                    display: "flex",
+                    gap: 0,
                     background: "#111827",
                     border: "1px solid rgba(212,160,23,0.15)",
                     borderRadius: 12,
                     boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                    padding: 6,
+                    padding: 12,
                     zIndex: 100,
                   }}
                 >
-                  {section.items.map((item) => {
-                    const itemActive = pathname === item.path;
-                    return (
-                      <button
-                        key={item.path}
-                        onClick={() => handleNav(item.path)}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          textAlign: "left",
-                          fontSize: 13,
-                          fontWeight: itemActive ? 600 : 500,
-                          color: itemActive ? "#D4A017" : "rgba(255,255,255,0.75)",
-                          background: "transparent",
-                          border: "none",
-                          borderRadius: 8,
-                          padding: "10px 16px",
-                          cursor: "pointer",
-                          transition: "background 150ms ease, color 150ms ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "rgba(212,160,23,0.07)";
-                          e.currentTarget.style.color = "#fff";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "transparent";
-                          e.currentTarget.style.color = itemActive ? "#D4A017" : "rgba(255,255,255,0.75)";
-                        }}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
+                  {section.categories.map((cat, ci) => (
+                    <div
+                      key={cat.label}
+                      style={{
+                        minWidth: 180,
+                        paddingRight: ci < section.categories.length - 1 ? 14 : 0,
+                        marginRight: ci < section.categories.length - 1 ? 14 : 0,
+                        borderRight: ci < section.categories.length - 1 ? "0.5px solid rgba(255,255,255,0.08)" : "none",
+                      }}
+                    >
+                      <div style={{
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "rgba(212,160,23,0.70)",
+                        padding: "4px 10px 8px",
+                      }}>
+                        {cat.label}
+                      </div>
+                      {cat.items.map((item) => {
+                        const itemActive = pathname === item.path || pathname.startsWith(item.path + "/");
+                        return (
+                          <button
+                            key={item.path}
+                            onClick={() => handleNav(item.path)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              width: "100%",
+                              textAlign: "left",
+                              fontSize: 13,
+                              fontWeight: itemActive ? 600 : 500,
+                              color: itemActive ? "#D4A017" : "rgba(255,255,255,0.75)",
+                              background: "transparent",
+                              border: "none",
+                              borderRadius: 8,
+                              padding: "9px 10px",
+                              cursor: "pointer",
+                              transition: "background 150ms ease, color 150ms ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = "rgba(212,160,23,0.07)";
+                              e.currentTarget.style.color = "#fff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = "transparent";
+                              e.currentTarget.style.color = itemActive ? "#D4A017" : "rgba(255,255,255,0.75)";
+                            }}
+                          >
+                            {item.icon && <item.icon size={13} style={{ opacity: 0.6, flexShrink: 0 }} />}
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

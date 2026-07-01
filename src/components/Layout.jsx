@@ -3,11 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  LayoutDashboard, Zap, Plane, Map,
-  Sparkles, Menu, ChevronLeft, ArrowLeft, LogIn, LogOut,
-  BarChart2, FileBarChart, Shield, User, CheckCircle, Radar, FileText, GitBranch, Search, Brain,
-  Calculator, Users, TrendingUp, Code, Scale } from
-"lucide-react";
+  ChevronLeft, ArrowLeft, LogIn, LogOut,
+  LayoutDashboard } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
@@ -18,72 +15,12 @@ import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
 import PragueClock from "@/components/layout/PragueClock";
 import DotGrid from "@/components/layout/DotGrid";
+import { NAV_TREE } from "@/components/layout/navConfig";
 
 const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
 
-// ── Full nav list for mobile drawer ──
-const NAV_SECTIONS = [
-{
-  label: "Home",
-  items: [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard }]
-},
-{
-  label: "Marketplace",
-  items: [
-  { path: "/listings", label: "Aircraft Listings", icon: Plane },
-  { path: "/compare", label: "Compare Aircraft", icon: Scale },
-  { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-  { path: "/escrow", label: "Escrow", icon: Shield },
-  { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle }]
-},
-{
-  label: "Intelligence",
-  items: [
-  { path: "/analytics", label: "Analytics", icon: BarChart2 },
-  { path: "/market-reports", label: "Market Reports", icon: FileText },
-  { path: "/traffic", label: "Traffic Maps", icon: Plane },
-  { path: "/faa-map", label: "FAA Registry", icon: Map }]
-},
-{
-  label: "ATI",
-  items: [
-  { path: "/ati-quick-score", label: "Quick Score", icon: Zap },
-  { path: "/ati-standard", label: "Standard", icon: Shield },
-  { path: "/ati-full-report", label: "Full Report", icon: FileBarChart },
-  { path: "/ati-verify", label: "Verification", icon: CheckCircle },
-  { path: "/ati-passport", label: "Passport", icon: Shield }]
-},
-{
-  label: "Tools",
-  items: [
-  { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
-  { path: "/valuation", label: "Valuation", icon: TrendingUp }]
-},
-{
-  label: "Community",
-  items: [
-  { path: "/community", label: "ABOS Community", icon: Users },
-  { path: "/weekly-briefing", label: "Weekly Briefings", icon: FileText },
-  { path: "/feature-requests", label: "Feature Requests", icon: GitBranch }]
-},
-{
-  label: "Developers",
-  items: [
-  { path: "/developers", label: "API & SDK", icon: Code }]
-},
-{
-  label: "Account",
-  items: [
-  { path: "/my-account", label: "Profile & Settings", icon: User },
-  { path: "/pricing", label: "Credits & Benefits", icon: Shield }]
-},
-{
-  label: "Admin",
-  items: [
-  { path: "/admin/settings", label: "Admin Settings", icon: Shield },
-  { path: "/admin/listings", label: "Admin Listings", icon: Shield }]
-}];
+// Home link for the drawer
+const HOME_ITEM = { path: "/", label: "Dashboard", icon: LayoutDashboard };
 
 
 function initials(user) {
@@ -101,29 +38,52 @@ function DrawerContent({ pathname, user, onNavigate }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {NAV_SECTIONS.map((section) =>
-        <div key={section.label}>
+        {/* Home shortcut */}
+        <div style={{ marginBottom: 4 }}>
+          <NavItem
+            to={HOME_ITEM.path}
+            icon={HOME_ITEM.icon}
+            label={HOME_ITEM.label}
+            active={pathname === "/"}
+            onClick={onNavigate} />
+        </div>
+
+        {NAV_TREE.map((section) =>
+          <div key={section.label}>
             <div style={{
-            fontSize: "9px",
-            fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.25)",
-            padding: "16px 16px 6px",
-            marginTop: "4px"
-          }}>
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "rgba(212,160,23,0.55)",
+              padding: "16px 16px 4px",
+              marginTop: 4,
+            }}>
               {section.label}
             </div>
-            {section.items.map((item) =>
-          <NavItem
-            key={item.path}
-            to={item.path}
-            icon={item.icon}
-            label={item.label}
-            active={pathname === item.path}
-            onClick={onNavigate} />
-
-          )}
+            {section.categories.map((cat) =>
+              <div key={cat.label} style={{ marginBottom: 2 }}>
+                <div style={{
+                  fontSize: "8px",
+                  fontWeight: 600,
+                  letterSpacing: "0.10em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.25)",
+                  padding: "8px 16px 2px",
+                }}>
+                  {cat.label}
+                </div>
+                {cat.items.map((item) =>
+                  <NavItem
+                    key={item.path}
+                    to={item.path}
+                    icon={item.icon}
+                    label={item.label}
+                    active={pathname === item.path || pathname.startsWith(item.path + "/")}
+                    onClick={onNavigate} />
+                )}
+              </div>
+            )}
           </div>
         )}
       </nav>

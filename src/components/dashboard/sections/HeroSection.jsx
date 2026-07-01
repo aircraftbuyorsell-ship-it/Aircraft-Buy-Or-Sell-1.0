@@ -16,7 +16,7 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
 
       {/* Frosted glass card */}
       <div
-        className="relative z-10 w-full max-w-[680px] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 flex flex-col items-center text-center opacity-15"
+        className="relative z-10 w-full max-w-[680px] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 flex flex-col items-center text-center opacity-45"
         style={{
           background: "rgba(0, 0, 0, 0.4)",
           backdropFilter: "blur(20px)",

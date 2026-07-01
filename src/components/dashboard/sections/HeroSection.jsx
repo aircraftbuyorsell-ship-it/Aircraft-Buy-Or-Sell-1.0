@@ -8,44 +8,57 @@ export default function HeroSection({ listings = [], atiCards = [], activeAti = 
     { value: activeAti.length, label: "Active ATI" },
   ];
   return (
-    <section className="relative flex flex-col min-h-[auto] lg:min-h-screen">
+    <section className="relative flex flex-col items-center justify-center min-h-[auto] lg:min-h-screen px-4 sm:px-6 py-10 sm:py-16 lg:py-20">
+      {/* Globe background */}
       <div className="absolute inset-0 z-0">
         <SkyBossGlobe className="w-full h-full" listings={listings} />
       </div>
+
+      {/* Frosted glass card */}
       <div
-        className="relative z-2 w-full max-w-[1280px] mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-12 px-4 sm:px-8 lg:px-16 pt-8 sm:pt-12 lg:pt-24 flex-1"
+        className="relative z-10 w-full max-w-[680px] rounded-2xl px-6 sm:px-10 py-8 sm:py-10 flex flex-col items-center text-center"
+        style={{
+          background: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          boxShadow: "0 0 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+        }}
       >
-        <div className="relative max-w-[520px] w-full lg:w-auto">
-          <div className="absolute -inset-x-6 -inset-y-6 -z-10 hidden lg:block"
-            style={{ background: "linear-gradient(to right, rgba(4,6,10,0.45) 0%, rgba(4,6,10,0.20) 70%, transparent 100%)", borderRadius: "20px", pointerEvents: "none" }} />
-          <p className="text-[10px] tracking-[0.18em] uppercase text-[#D4A017] mb-4">
-            Global Aircraft Identity &amp; Intelligence
-          </p>
-          <h1 className="text-[clamp(32px,4.5vw,56px)] font-medium tracking-[-0.04em] leading-[1.08] text-white mb-5">
-            Aircraft Intelligence,
-            <br />
-            Verified by Data.
-          </h1>
-          <p className="text-[15px] text-white/50 leading-[1.6] max-w-[440px]">
-            The operating system for aircraft transactions. Identity, valuation,
-            and market intelligence — trusted by dealers, brokers, and owners
-            worldwide.
-          </p>
-        </div>
-        <div className="w-full max-w-[360px] lg:shrink-0">
+        <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-white/70 font-medium mb-4">
+          Global Aircraft Identity &amp; Intelligence
+        </p>
+        <h1 className="text-[clamp(28px,5vw,52px)] font-bold tracking-[-0.03em] leading-[1.08] text-white mb-4">
+          Aircraft Intelligence,{" "}
+          <span style={{ color: "#FFB300" }}>Verified by Data.</span>
+        </h1>
+        <p className="text-[14px] sm:text-[15px] text-white/60 leading-[1.6] max-w-[480px] mb-6">
+          The operating system for aircraft transactions. Identity, valuation,
+          and market intelligence — trusted by dealers, brokers, and owners
+          worldwide.
+        </p>
+        <div className="w-full max-w-[420px]">
           <NRegLookup />
         </div>
       </div>
-      <div className="relative z-2 w-full max-w-[1280px] mx-auto px-4 sm:px-8 lg:px-16 pb-6 lg:pb-10">
-        <div className="relative flex gap-8 flex-wrap">
-          <div className="absolute -inset-x-6 -inset-y-3 -z-10 hidden lg:block"
-            style={{ background: "linear-gradient(to right, rgba(4,6,10,0.40) 0%, transparent 80%)", borderRadius: "12px", pointerEvents: "none" }} />
-          {counters.map((c) => (
-            <div key={c.label}>
-              <div className="text-[36px] font-medium tracking-[-0.04em] text-[#D4A017] leading-none tabular-nums">
-                {c.value}
+
+      {/* Stats bar with gold separator line */}
+      <div className="relative z-10 w-full max-w-[680px] mt-8">
+        <div className="w-full h-[2px] mb-6" style={{ background: "#FFB300" }} />
+        <div className="flex items-center justify-center gap-0">
+          {counters.map((c, i) => (
+            <div
+              key={c.label}
+              className={`flex-1 flex flex-col items-center px-2 sm:px-4 ${
+                i < counters.length - 1
+                  ? "border-r border-white/20"
+                  : ""
+              }`}
+            >
+              <div className="text-[clamp(20px,3vw,32px)] font-bold tabular-nums leading-none" style={{ color: "#FFB300" }}>
+                {c.value.toLocaleString()}
               </div>
-              <div className="text-[10px] tracking-[0.12em] uppercase text-white/40 mt-1">
+              <div className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-white/60 mt-1.5 font-medium text-center">
                 {c.label}
               </div>
             </div>

@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 
 export default function SidebarLogo() {
   return (
-    <Link to="/" style={{ display: "block", textDecoration: "none" }} className="text-6xl">
-      <svg width="88" height="24" viewBox="0 0 172 40" style={{ display: "block" }}>
-        <polyline points="2,36 26,8 34,36" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <polyline points="34,36 42,18 50,28 60,6 68,30 74,22" fill="none" stroke="#f5c242" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        <polygon points="72,17 81,21.5 72,26" fill="#f5c242" />
-        <text x="90" y="28" fill="rgba(255,255,255,0.90)" fontSize="18" fontWeight="500" letterSpacing="-0.03em" fontFamily="-apple-system,sans-serif">ABOS</text>
-      </svg>
-      <p style={{ margin: "6px 0 0", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
-        Marketspace
-      </p>
+    <Link to="/" style={{ display: "flex", alignItems: "center", gap: "7px", textDecoration: "none" }}>
+      <div style={{ width: "3px", height: "22px", borderRadius: "2px", background: "linear-gradient(180deg, #ffffff 0%, #f5c242 100%)", flexShrink: 0 }} />
+      <div style={{ lineHeight: 1 }}>
+        <span style={{ display: "block", fontSize: "18px", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(255,255,255,0.90)", fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, sans-serif" }}>
+          ABOS
+        </span>
+        <span style={{ display: "block", marginTop: "2px", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>
+          Marketspace
+        </span>
+      </div>
     </Link>);
 
 }

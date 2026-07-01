@@ -41,6 +41,7 @@ export const NAV_TREE = [
           { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap },
           { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: TrendingUp },
           { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Calculator },
+          { path: "/upgrade-comparison", label: "Upgrade Comparison", icon: Shield },
         ],
       },
     ],

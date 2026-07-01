@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Zap, Globe, Database, Plane, TrendingUp, CheckCircle } from "lucide-react";
+import { Zap, Globe, Database, Plane, TrendingUp, CheckCircle, GitCompare } from "lucide-react";
 import CoreCard from "@/components/core/CoreCard";
 import SectionShell from "./SectionShell";
 
@@ -45,6 +45,13 @@ const TOOLS = [
     to: "/pre-buy-inspection",
     color: "#2563EB",
     Icon: CheckCircle,
+  },
+  {
+    label: "Upgrade Cost Comparison",
+    desc: "Compare avionics, exterior, and interior refurbishment costs side by side for project planning.",
+    to: "/upgrade-comparison",
+    color: "#4e8ef7",
+    Icon: GitCompare,
   },
 ];
 

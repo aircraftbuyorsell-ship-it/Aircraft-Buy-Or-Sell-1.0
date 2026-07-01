@@ -60,9 +60,13 @@ export default function ListingDrawer({ listing: l, onClose }) {
     <>
       {l && <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={onClose} />}
 
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 ${l ? "translate-x-0" : "translate-x-full"}`}>
+      <div className={`fixed bottom-0 inset-x-0 sm:inset-x-auto sm:top-0 sm:right-0 sm:bottom-0 w-full sm:w-[420px] max-h-[92dvh] sm:max-h-full bg-white z-50 flex flex-col shadow-2xl rounded-t-2xl sm:rounded-none transition-transform duration-300 ${l ? "translate-y-0 sm:translate-x-0" : "translate-y-full sm:translate-x-full"}`}>
         {l && (
           <>
+            {/* ── Drag handle (mobile) ── */}
+            <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-black/15" />
+            </div>
             {/* ── Header (navy band) ── */}
             <div className="bg-[#0B2D5B] px-5 pt-5 pb-4">
               <div className="flex items-start justify-between gap-3">
@@ -198,7 +202,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 {l.ati_score ? "View Full ATI Score Card" : "Issue ATI Score Card"}
                 <ArrowUpRight className="w-4 h-4" />
               </button>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   onClick={() => { onClose(); navigate(`/ati-quick-score?listing=${l.id}`); }}
                   className="flex items-center justify-center gap-1.5 bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#0B2D5B] font-bold text-xs py-2.5 rounded-xl transition-colors border border-black/[0.07]"

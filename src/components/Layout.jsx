@@ -15,6 +15,7 @@ import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
+import MobilePillNav from "@/components/layout/MobilePillNav";
 import PragueClock from "@/components/layout/PragueClock";
 import DotGrid from "@/components/layout/DotGrid";
 
@@ -252,8 +253,8 @@ export default function Layout() {
       }}>
         <div className="flex justify-end px-3 pt-3">
           <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <ChevronLeft size={15} />
+          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <ChevronLeft size={18} />
           </button>
         </div>
         <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
@@ -309,9 +310,13 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Row 2: floating pill command bar — lower */}
+        {/* Row 2: floating pill command bar — lower (desktop) */}
         <div className="hidden lg:flex items-center justify-center pb-2.5 opacity-100">
           <PillCommandBar />
+        </div>
+        {/* Row 2 mobile: compact icon pill nav */}
+        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
+          <MobilePillNav />
         </div>
       </header>
 

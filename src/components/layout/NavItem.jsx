@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export default function NavItem({ to, icon: Icon, label, active, onClick }) {
   const base = {
     display: "flex", alignItems: "center", gap: "8px",
-    fontSize: "13px", padding: "8px 16px", borderRadius: "8px",
+    fontSize: "13px", padding: "12px 16px", borderRadius: "8px", minHeight: 44,
     cursor: "pointer", textDecoration: "none", transition: "background 150ms ease-out, color 150ms ease-out",
     marginBottom: "2px",
   };

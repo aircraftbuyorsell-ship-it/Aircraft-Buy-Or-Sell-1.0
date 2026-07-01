@@ -76,8 +76,8 @@ export default function QuickAccessStrip() {
   );
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="w-full mx-auto px-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {ITEMS.map((item) => (
           <Link key={item.label} to={item.link}>
             <Card item={item}>

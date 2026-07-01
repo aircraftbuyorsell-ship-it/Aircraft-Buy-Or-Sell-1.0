@@ -62,7 +62,10 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
     <>
       <div className="fixed inset-0 bg-black/50 z-[70]" onClick={() => !saving && onClose()} />
       <div className="fixed inset-0 z-[71] flex items-end sm:items-center justify-center p-0 sm:p-4 pointer-events-none">
-        <div className="pointer-events-auto w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl safe-bottom overflow-hidden max-h-[92vh] flex flex-col">
+        <div className="pointer-events-auto w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl safe-bottom overflow-hidden max-h-[92dvh] flex flex-col animate-slide-up">
+          <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-black/15" />
+          </div>
           {done ? (
             <div className="p-8 text-center">
               <div className="w-14 h-14 rounded-full bg-[#0F7A56]/10 flex items-center justify-center mx-auto mb-4">

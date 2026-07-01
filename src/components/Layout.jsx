@@ -246,14 +246,14 @@ export default function Layout() {
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
       }
-      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300"
+      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
-        width: 220, background: "#111827", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        background: "#111827", borderRight: "0.5px solid rgba(255,255,255,0.08)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
-        <div className="flex justify-end px-3 pt-3">
+        <div className="flex justify-end px-3 pt-3 safe-top">
           <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChevronLeft size={18} />
           </button>
         </div>
@@ -264,47 +264,39 @@ export default function Layout() {
       <header className="sticky top-0 z-40"
       style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         {/* Row 1: logo | theme + datetime + user */}
-        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 h-[54px]">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6 h-[54px] safe-left safe-right">
           {/* Left: logo (desktop) / hamburger + logo (mobile) */}
-          <div className="flex items-center gap-2.5 flex-shrink-0">
-            {showBack ?
+          <div className="flex items-center gap-2 min-w-0">
+            {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "6px 12px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600 }}>
-                <ArrowLeft size={15} /> <span className="hidden sm:inline">Back</span>
-              </button> : null
-
-
-
-
-
+            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
+                <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
+              </button>
             }
-            <Link to="/" className="hidden lg:block">
-              <SidebarLogo />
-            </Link>
-            <Link to="/" className="lg:hidden">
+            <Link to="/" className="min-w-0">
               <SidebarLogo />
             </Link>
           </div>
 
           {/* Right: theme toggle + Prague date/time + user */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <ThemeToggle />
-            {/* Prague date/time — under logout, upper right */}
             <PragueClock />
             {currentUser ?
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <Link to="/my-account"
+                  style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, textDecoration: "none" }}>
                   <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
-                </div>
+                </Link>
                 <button onClick={() => base44.auth.logout()} aria-label="Log out" title="Log out"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
-                  <LogOut size={14} />
+              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "8px", flexShrink: 0 }}>
+                  <LogOut size={16} />
                 </button>
               </div> :
 
             <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "6px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
-                <LogIn size={13} /> Log In
+            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
+                <LogIn size={14} /> <span>Log In</span>
               </button>
             }
           </div>

@@ -45,7 +45,7 @@ export default function ServiceFilterBar({
             value={region}
             onChange={(e) => setRegion(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onEnrich?.()}
-            placeholder="Search region — state, city, or country (e.g. California, Texas, Florida)…"
+            placeholder="Search worldwide — city, region, or country (e.g. London, Dubai, São Paulo, Japan)…"
             className="w-full"
             style={{
               background: "rgba(255,255,255,0.04)",

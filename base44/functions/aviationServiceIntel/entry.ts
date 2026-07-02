@@ -61,9 +61,11 @@ Deno.serve(async (req) => {
       const catLabel = catMap[category] || category || "aviation services";
       const locationDesc = icao
         ? `at or near ${icao.toUpperCase()} airport`
-        : (lat != null && lon != null)
-          ? `near coordinates ${lat}, ${lon}`
-          : "across the United States";
+        : region
+          ? `in ${region}`
+          : (lat != null && lon != null)
+            ? `near coordinates ${lat}, ${lon}`
+            : "worldwide";
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Find real, verified ${catLabel} ${locationDesc}. For each business, provide: name, full address, city, state, phone number, website URL, certifications (FAA Part 145, EASA, A&P, IA, Part 141, etc.), services offered, and any available rating. Return at least 5-10 real businesses with accurate contact information. Do not fabricate businesses — only return real, verifiable companies.`,
@@ -152,10 +154,10 @@ Deno.serve(async (req) => {
         paint_shop: "aircraft paint shops and refinishing specialists"
       };
       const catLabel = category ? (catMap[category] || category) : "aviation service providers";
-      const regionDesc = region || "United States";
+      const regionDesc = region || "worldwide";
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find real, verified ${catLabel} in ${regionDesc}. For each business, provide: name, full address, city, state, country, phone number, website URL, email if available, certifications (FAA Part 145, EASA, A&P, IA, Part 141, etc.), services offered, fuel types available (for FBOs only: 100LL, Jet-A, Jet-A1, Mogas), and any available rating (0-5). Return at least 8-15 real businesses with accurate contact information. Do not fabricate businesses — only return real, verifiable companies.`,
+        prompt: `Find real, verified ${catLabel} ${region === "worldwide" || !region ? "worldwide across multiple continents" : `in ${regionDesc}`}. For each business, provide: name, full address, city, state or province, country, phone number (with international dialing code), website URL, email if available, certifications (relevant to the country: FAA Part 145 / A&P / IA in the US, EASA Part 145 / Part 66 in Europe, CAA approvals in the UK, CASA in Australia, Transport Canada, etc.), services offered, fuel types available (for FBOs only: 100LL, Jet-A, Jet-A1, Mogas), and any available rating (0-5). Return at least 8-15 real businesses with accurate contact information from diverse geographic regions. Do not fabricate businesses — only return real, verifiable companies.`,
         add_context_from_internet: true,
         model: "gemini_3_flash",
         response_json_schema: {
@@ -206,7 +208,7 @@ Deno.serve(async (req) => {
                 description: s.description || existing[0].description,
                 address: s.address || existing[0].address,
                 state: s.state || existing[0].state,
-                country: s.country || existing[0].country || "US",
+                country: s.country || existing[0].country,
                 phone: s.phone || existing[0].phone,
                 email: s.email || existing[0].email,
                 website: s.website || existing[0].website,
@@ -227,7 +229,7 @@ Deno.serve(async (req) => {
                 address: s.address,
                 city: s.city,
                 state: s.state,
-                country: s.country || "US",
+                country: s.country,
                 phone: s.phone,
                 email: s.email,
                 website: s.website,

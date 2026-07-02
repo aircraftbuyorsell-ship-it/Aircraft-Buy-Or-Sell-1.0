@@ -17,8 +17,6 @@ import PragueClock from "@/components/layout/PragueClock";
 import DotGrid from "@/components/layout/DotGrid";
 import { NAV_TREE } from "@/components/layout/navConfig";
 
-const BACK_BUTTON_ROUTES = [/^\/ati-passport\/[^/]+$/];
-
 // Home link for the drawer
 const HOME_ITEM = { path: "/", label: "Dashboard", icon: LayoutDashboard };
 
@@ -156,7 +154,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const touchStartX = useRef(null);
 
-  const showBack = BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
+  const showBack = !isHomepage;
   const isHomepage = pathname === "/";
 
   const { data: currentUser } = useQuery({

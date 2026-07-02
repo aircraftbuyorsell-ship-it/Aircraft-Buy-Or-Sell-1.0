@@ -75,10 +75,21 @@ function Select({ value, onChange, options, placeholder }) {
   );
 }
 
+const STORAGE_KEY = "faamap_state_v1";
+
+function loadPersistedState() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
 export default function FAAMap() {
-  const [view, setView] = useState("map");
+  const persisted = useRef(loadPersistedState());
+  const [view, setView] = useState(persisted.current?.view || "map");
   const [filtersOpen, setFiltersOpen] = useState(true);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState(persisted.current?.filters || {
     nNumber: "", type: "", engine: "", status: "V",
     category: "", yearFrom: "", yearTo: "", limit: 500,
   });
@@ -87,6 +98,11 @@ export default function FAAMap() {
   const [selected, setSelected] = useState(null);
   const canvasRef = useRef(null);
   const totalCount = useRef(0);
+
+  // Persist state to sessionStorage so search survives back-navigation
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ view, filters }));
+  }, [view, filters]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Plane, Scale, Radar, Map, BarChart2, FileText,
   TrendingUp, Calculator, Shield, Zap, FileBarChart, CheckCircle,
-  User, Users, GitBranch, Code
+  User, Users, GitBranch, Code, Globe
 } from "lucide-react";
 
 /**
@@ -76,6 +76,12 @@ export const NAV_TREE = [
     path: "/my-account",
     icon: User,
     categories: [
+      {
+        label: "Cross-Border",
+        items: [
+          { path: "/cross-border-bridge", label: "Bureaucratic Bridges", icon: Globe },
+        ],
+      },
       {
         label: "My Account",
         items: [

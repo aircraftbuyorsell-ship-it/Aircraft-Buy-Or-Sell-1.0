@@ -72,6 +72,7 @@ import ExteriorRefurbishmentCalculator from "./pages/ExteriorRefurbishmentCalcul
 import InteriorRefurbishmentCalculator from "./pages/InteriorRefurbishmentCalculator";
 import UpgradeComparison from "./pages/UpgradeComparison";
 import AircraftDetailingCalculator from "./pages/AircraftDetailingCalculator";
+import CrossBorderBridge from "./pages/CrossBorderBridge";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -160,6 +161,7 @@ const AuthenticatedApp = () => {
         <Route path="/interior-refurbishment-calculator" element={<InteriorRefurbishmentCalculator />} />
         <Route path="/upgrade-comparison" element={<UpgradeComparison />} />
         <Route path="/aircraft-detailing-calculator" element={<AircraftDetailingCalculator />} />
+        <Route path="/cross-border-bridge" element={<CrossBorderBridge />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

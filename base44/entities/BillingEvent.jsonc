@@ -1,34 +1,37 @@
 {
+  "name": "BillingEvent",
+  "type": "object",
   "properties": {
     "amount": {
-      "description": "Amount in USD (positive=charge, negative=refund)",
-      "type": "number"
+      "type": "number",
+      "description": "Amount in USD (positive=charge, negative=refund)"
     },
     "billing_period_end": {
-      "description": "End of billing period",
+      "type": "string",
       "format": "date",
-      "type": "string"
+      "description": "End of billing period"
     },
     "billing_period_start": {
-      "description": "Start of billing period",
+      "type": "string",
       "format": "date",
-      "type": "string"
+      "description": "Start of billing period"
     },
     "currency": {
+      "type": "string",
       "default": "USD",
       "description": "Currency",
       "enum": [
         "USD",
         "EUR"
-      ],
-      "type": "string"
+      ]
     },
     "description": {
-      "description": "Human-readable description",
+      "type": "string",
       "maxLength": 200,
-      "type": "string"
+      "description": "Human-readable description"
     },
     "event_type": {
+      "type": "string",
       "description": "Type of billing event",
       "enum": [
         "subscription_charge",
@@ -38,29 +41,29 @@
         "overuse_charge",
         "manual_adjustment",
         "refund"
-      ],
-      "type": "string"
+      ]
     },
     "invoice_number": {
-      "description": "Invoice/receipt number",
-      "type": "string"
+      "type": "string",
+      "description": "Invoice/receipt number"
     },
     "next_billing_date": {
-      "description": "When next charge is due",
+      "type": "string",
       "format": "date",
-      "type": "string"
+      "description": "When next charge is due"
     },
     "payment_method": {
+      "type": "string",
       "description": "How payment was made",
       "enum": [
         "stripe_card",
         "stripe_bank",
         "manual_invoice",
         "credit"
-      ],
-      "type": "string"
+      ]
     },
     "payment_status": {
+      "type": "string",
       "description": "Status of payment",
       "enum": [
         "pending",
@@ -68,25 +71,24 @@
         "succeeded",
         "failed",
         "refunded"
-      ],
-      "type": "string"
+      ]
     },
     "processed_at": {
-      "description": "When payment was processed",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When payment was processed"
     },
     "related_tier_change": {
-      "description": "Reference to TierChange entity (if applicable)",
-      "type": "string"
+      "type": "string",
+      "description": "Reference to TierChange entity (if applicable)"
     },
     "stripe_charge_id": {
-      "description": "Stripe charge ID (for lookups)",
-      "type": "string"
+      "type": "string",
+      "description": "Stripe charge ID (for lookups)"
     },
     "user_email": {
-      "description": "Email of user",
-      "type": "string"
+      "type": "string",
+      "description": "Email of user"
     }
   },
   "required": [
@@ -101,11 +103,6 @@
         "role": "admin"
       }
     },
-    "delete": {
-      "user_condition": {
-        "role": "super_admin"
-      }
-    },
     "read": {
       "$or": [
         {
@@ -113,10 +110,12 @@
         },
         {
           "user_condition": {
-            "role": [
-              "admin",
-              "super_admin"
-            ]
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
           }
         }
       ]
@@ -125,8 +124,11 @@
       "user_condition": {
         "role": "super_admin"
       }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
     }
-  },
-  "type": "object",
-  "name": "BillingEvent"
+  }
 }

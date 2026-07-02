@@ -35,7 +35,7 @@
     "increments": {
       "type": "array",
       "default": [],
-      "description": "Rollout schedule: [{date: 2026-05-25, percentage: 10}, {date: 2026-05-26, percentage: 25}, ...]",
+      "description": "Rollout schedule",
       "items": {
         "type": "object",
         "properties": {
@@ -100,20 +100,26 @@
         "role": "super_admin"
       }
     },
-    "delete": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
       "user_condition": {
         "role": "super_admin"
       }
     },
-    "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
-    },
-    "update": {
+    "delete": {
       "user_condition": {
         "role": "super_admin"
       }

@@ -1,0 +1,167 @@
+{
+  "name": "PartnerConfig",
+  "type": "object",
+  "properties": {
+    "partner_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Company or organization name"
+    },
+    "partner_email": {
+      "type": "string",
+      "description": "Partner contact email (matches ABOS user email for RLS)"
+    },
+    "embed_token": {
+      "type": "string",
+      "description": "Unique token for widget authentication (generated on creation)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Partner logo URL displayed in widget header"
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "Display name shown in widget header (short brand name)"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#f5c242",
+      "description": "Hex color for widget accent elements"
+    },
+    "revenue_share_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 1.5,
+      "description": "ABOS revenue share percentage of sale amount"
+    },
+    "stripe_connect_id": {
+      "type": "string",
+      "description": "Partner Stripe Connect account ID for payouts"
+    },
+    "allowed_steps": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "listing",
+          "validation",
+          "valuation",
+          "offer",
+          "escrow",
+          "close"
+        ]
+      },
+      "description": "Wizard steps to display in the widget"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "cs",
+          "en"
+        ]
+      },
+      "description": "Supported widget languages"
+    },
+    "default_language": {
+      "type": "string",
+      "enum": [
+        "cs",
+        "en"
+      ],
+      "default": "cs",
+      "description": "Default widget language"
+    },
+    "allowed_payment_methods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "stripe",
+          "usdc"
+        ]
+      },
+      "description": "Enabled payment methods in widget escrow step"
+    },
+    "widget_height": {
+      "type": "string",
+      "default": "720px",
+      "description": "Recommended widget iframe height"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the partner widget is active"
+    },
+    "total_volume": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative closed transaction volume"
+    },
+    "total_transactions": {
+      "type": "number",
+      "default": 0,
+      "description": "Total closed transactions count"
+    },
+    "revenue_share_owed": {
+      "type": "number",
+      "default": 0,
+      "description": "Current outstanding ABOS revenue share"
+    },
+    "total_paid_out": {
+      "type": "number",
+      "default": 0,
+      "description": "Total amount paid out to partner (net of revenue share)"
+    }
+  },
+  "required": [
+    "partner_name",
+    "partner_email",
+    "embed_token"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

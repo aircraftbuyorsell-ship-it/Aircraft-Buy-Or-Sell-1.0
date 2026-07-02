@@ -1,57 +1,60 @@
 {
+  "name": "SuspensionEvent",
+  "type": "object",
   "properties": {
     "appeal_deadline": {
-      "description": "Deadline for user to appeal suspension",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "Deadline for user to appeal suspension"
     },
     "appeal_submitted_at": {
-      "description": "When user submitted an appeal",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When user submitted an appeal"
     },
     "appeal_text": {
-      "description": "User's appeal message (max 1000 chars)",
+      "type": "string",
       "maxLength": 1000,
-      "type": "string"
+      "description": "User's appeal message"
     },
     "automatic_reactivation": {
-      "description": "Whether account auto-reactivates after period (e.g., 30 days)",
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Whether account auto-reactivates after period"
     },
     "decision_timestamp": {
-      "description": "When decision was made (on appeal)",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When decision was made (on appeal)"
     },
     "is_permanent": {
-      "description": "Whether suspension is permanent (no auto-reactivation)",
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Whether suspension is permanent"
     },
     "notes": {
-      "description": "Admin notes about the suspension",
+      "type": "string",
       "maxLength": 500,
-      "type": "string"
+      "description": "Admin notes about the suspension"
     },
     "reactivated_by_email": {
-      "description": "Email of admin who reactivated account",
-      "type": "string"
+      "type": "string",
+      "description": "Email of admin who reactivated account"
     },
     "reactivation_reason": {
-      "description": "Reason for reactivation (appeal_approved, compliance_cleared, etc.)",
-      "type": "string"
+      "type": "string",
+      "description": "Reason for reactivation"
     },
     "reactivation_timestamp": {
-      "description": "When account was reactivated",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When account was reactivated"
     },
     "scheduled_reactivation": {
-      "description": "Date account will auto-reactivate (if automatic_reactivation=true)",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "Date account will auto-reactivate"
     },
     "status": {
+      "type": "string",
       "description": "Current suspension status",
       "enum": [
         "active",
@@ -60,14 +63,14 @@
         "appeal_rejected",
         "reactivated",
         "expired"
-      ],
-      "type": "string"
+      ]
     },
     "suspended_by_email": {
-      "description": "Email of admin who suspended account",
-      "type": "string"
+      "type": "string",
+      "description": "Email of admin who suspended account"
     },
     "suspended_reason": {
+      "type": "string",
       "description": "Reason for suspension",
       "enum": [
         "terms_violation",
@@ -76,17 +79,16 @@
         "manual_admin",
         "compliance_hold",
         "appeal_process"
-      ],
-      "type": "string"
+      ]
     },
     "suspension_timestamp": {
-      "description": "When account was suspended",
+      "type": "string",
       "format": "date-time",
-      "type": "string"
+      "description": "When account was suspended"
     },
     "user_email": {
-      "description": "Email of suspended user",
-      "type": "string"
+      "type": "string",
+      "description": "Email of suspended user"
     }
   },
   "required": [
@@ -102,11 +104,6 @@
         "role": "admin"
       }
     },
-    "delete": {
-      "user_condition": {
-        "role": "super_admin"
-      }
-    },
     "read": {
       "$or": [
         {
@@ -114,23 +111,34 @@
         },
         {
           "user_condition": {
-            "role": [
-              "admin",
-              "super_admin"
-            ]
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
           }
         }
       ]
     },
     "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
       "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
+        "role": "super_admin"
       }
     }
-  },
-  "type": "object",
-  "name": "SuspensionEvent"
+  }
 }

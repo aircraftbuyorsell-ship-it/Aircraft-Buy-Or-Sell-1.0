@@ -85,20 +85,26 @@
         "role": "admin"
       }
     },
-    "delete": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
       "user_condition": {
         "role": "super_admin"
       }
     },
-    "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
-    },
-    "update": {
+    "delete": {
       "user_condition": {
         "role": "super_admin"
       }

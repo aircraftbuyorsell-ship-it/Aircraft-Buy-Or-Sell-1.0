@@ -8,6 +8,7 @@ import {
   ShieldCheck, Camera, Plane, AlertTriangle, CheckCircle,
   Download, FileText, RefreshCw,
 } from "lucide-react";
+import ExpertCrossCheckResult from "@/components/expert/ExpertCrossCheckResult";
 
 function SubScoreBar({ score, max, color }) {
   const pct = (score / max) * 100;
@@ -262,6 +263,9 @@ export default function GCRFullReport({ report, registration, userEmail }) {
           ))}
         </ul>
       </div>
+
+      {/* Expert CrossCheck Result */}
+      <ExpertCrossCheckResult registration={registration} />
     </div>
   );
 }

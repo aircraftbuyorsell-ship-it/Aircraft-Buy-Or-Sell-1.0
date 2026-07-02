@@ -1,0 +1,125 @@
+{
+  "name": "ExpertBid",
+  "type": "object",
+  "properties": {
+    "crosscheck_id": {
+      "type": "string",
+      "relationType": "ExpertCrossCheck",
+      "description": "The crosscheck request being bid on"
+    },
+    "expert_id": {
+      "type": "string",
+      "description": "User ID of the bidding expert"
+    },
+    "expert_email": {
+      "type": "string",
+      "description": "Email of the bidding expert"
+    },
+    "expert_name": {
+      "type": "string",
+      "description": "Name of the bidding expert"
+    },
+    "expert_certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Certifications of the bidding expert"
+    },
+    "expert_rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Expert rating at time of bid"
+    },
+    "price_eur": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Offered price in EUR"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Estimated hours to complete"
+    },
+    "message": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Expert's message to the requester"
+    },
+    "requester_email": {
+      "type": "string",
+      "description": "Email of the crosscheck requester (for RLS)"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (denormalized for lookup)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Bid status"
+    }
+  },
+  "required": [
+    "crosscheck_id",
+    "expert_id",
+    "expert_email",
+    "price_eur",
+    "requester_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.expert_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.expert_email": "{{user.email}}"
+        },
+        {
+          "data.requester_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.requester_email": "{{user.email}}"
+        },
+        {
+          "data.expert_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

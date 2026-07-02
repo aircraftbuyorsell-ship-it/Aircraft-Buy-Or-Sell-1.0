@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Plane, Scale, Radar, Map, BarChart2, FileText,
   TrendingUp, Calculator, Shield, Zap, FileBarChart, CheckCircle,
-  User, Users, GitBranch, Code, Globe
+  User, Users, GitBranch, Code, Globe, BadgeCheck
 } from "lucide-react";
 
 /**
@@ -87,6 +87,7 @@ export const NAV_TREE = [
         label: "My Account",
         items: [
           { path: "/my-account", label: "Profile & Settings", icon: User },
+          { path: "/expert-dashboard", label: "Expert Dashboard", icon: BadgeCheck },
           { path: "/pricing", label: "Credits & Benefits", icon: Shield },
         ],
       },

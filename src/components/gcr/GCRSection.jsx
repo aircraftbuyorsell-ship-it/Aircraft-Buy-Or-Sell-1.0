@@ -5,6 +5,8 @@ import { useGCRUnlock, useGCRFullReport } from "@/hooks/useGCR";
 import ComplianceBadge from "./ComplianceBadge";
 import GCRFullReport from "./GCRFullReport";
 import GCRPaywallModal from "./GCRPaywallModal";
+import ExpertCrossCheckPanel from "@/components/expert/ExpertCrossCheckPanel";
+import { useExpertAssignmentForReg } from "@/hooks/useExpert";
 import { ShieldCheck, Lock, Unlock, Loader2 } from "lucide-react";
 
 export default function GCRSection({ registration, listing }) {
@@ -21,6 +23,10 @@ export default function GCRSection({ registration, listing }) {
   // Check if already unlocked (30-day de-dup)
   const { data: unlockStatus } = useGCRUnlock(registration, user?.email);
   const isUnlocked = unlockStatus?.unlocked || false;
+
+  // Check if user is an assigned expert for this registration (bypasses paywall)
+  const { data: expertAssignment } = useExpertAssignmentForReg(registration, user?.id);
+  const isExpert = !!expertAssignment;
 
   // Fetch full report only if unlocked
   const { data: fullReport, isLoading: reportLoading } = useGCRFullReport(registration, isUnlocked);
@@ -78,14 +84,20 @@ export default function GCRSection({ registration, listing }) {
           <Loader2 size={20} className="animate-spin" style={{ color: "#f5c242" }} />
           <span className="text-[12px] text-[rgba(255,255,255,0.50)] ml-2">Confirming payment…</span>
         </div>
-      ) : isUnlocked ? (
+      ) : isUnlocked || isExpert ? (
         reportLoading ? (
           <div className="flex items-center justify-center py-12 rounded-xl" style={{ background: "rgba(4,6,10,0.40)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
             <Loader2 size={20} className="animate-spin" style={{ color: "#f5c242" }} />
-            <span className="text-[12px] text-[rgba(255,255,255,0.50)] ml-2">Computing triple-check report…</span>
+            <span className="text-[12px] text-[rgba(255,255,255,0.50)] ml-2">{isExpert ? "Loading report for expert review…" : "Computing triple-check report…"}</span>
           </div>
         ) : fullReport ? (
-          <GCRFullReport report={fullReport} registration={registration} userEmail={user?.email} />
+          <>
+            <GCRFullReport report={fullReport} registration={registration} userEmail={user?.email} />
+            {/* Expert CrossCheck panel — only for the buyer who unlocked the report */}
+            {isUnlocked && user?.email && (
+              <ExpertCrossCheckPanel registration={registration} listing={listing} userEmail={user.email} />
+            )}
+          </>
         ) : null
       ) : (
         <div

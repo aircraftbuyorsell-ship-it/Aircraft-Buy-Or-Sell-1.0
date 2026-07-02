@@ -1,4 +1,6 @@
 import { useComplianceBadge } from "@/hooks/useGCR";
+import { useExpertVerified } from "@/hooks/useExpert";
+import { BadgeCheck } from "lucide-react";
 
 const GREEN = "#22c55e";
 const AMBER = "#f5c242";
@@ -13,12 +15,14 @@ export function gcrColor(score) {
 
 export default function ComplianceBadge({ registration, size = "sm" }) {
   const { data, isLoading } = useComplianceBadge(registration);
+  const { data: expertVerified } = useExpertVerified(registration);
 
   if (!registration) return null;
 
   const fontSize = size === "lg" ? 11 : 10;
   const dotSize = size === "lg" ? 7 : 6;
   const padding = size === "lg" ? "3px 8px" : "2px 7px";
+  const iconSize = size === "lg" ? 12 : 10;
 
   // Skeleton while loading
   if (isLoading || !data) {
@@ -62,6 +66,15 @@ export default function ComplianceBadge({ registration, size = "sm" }) {
       <span style={{ fontSize, fontWeight: 800, color, letterSpacing: "0.02em" }}>
         GCR: {score}
       </span>
+      {expertVerified && (
+        <span
+          className="inline-flex items-center gap-0.5 ml-0.5 pl-1"
+          style={{ borderLeft: "0.5px solid rgba(34,197,94,0.25)" }}
+          title="Independently verified by a certified aviation professional"
+        >
+          <BadgeCheck size={iconSize} style={{ color: "#22c55e" }} />
+        </span>
+      )}
     </span>
   );
 }

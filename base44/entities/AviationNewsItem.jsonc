@@ -47,6 +47,11 @@
     "batch_id": {
       "type": "string",
       "description": "Batch identifier for grouping news runs"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -59,13 +64,7 @@
         "role": "admin"
       }
     },
-    "read": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
-      }
-    },
+    "read": true,
     "update": {
       "user_condition": {
         "role": "admin"

@@ -23,12 +23,12 @@ export default function PillCommandBar() {
   };
 
   return (
-    <div ref={barRef} className="hidden lg:flex items-center gap-1" style={{ height: 48 }}>
+    <div ref={barRef} className="hidden lg:flex items-center gap-2" style={{ height: 48 }}>
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: 4,
           height: 48,
           padding: 4,
           background: "#111827",
@@ -56,7 +56,7 @@ export default function PillCommandBar() {
                   background: active && !open ? "#D4A017" : "transparent",
                   border: "none",
                   borderRadius: 999,
-                  padding: "8px 16px",
+                  padding: "8px 18px",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   transition: "color 150ms ease, background 150ms ease",

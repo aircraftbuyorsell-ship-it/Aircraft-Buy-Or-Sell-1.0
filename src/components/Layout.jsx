@@ -223,10 +223,10 @@ export default function Layout() {
       {/* ── Top header bar ── */}
       <header className="sticky top-0 z-40"
       style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
-        {/* Single row: logo (dominant) | pill bar (desktop) | controls */}
-        <div className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 h-[62px] safe-left safe-right">
-          {/* Left: back + dominant logo */}
-          <div className="flex items-center gap-2 min-w-0 shrink-0">
+        {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
+        <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
+          {/* Left: back + dominant logo — centered with equal flex */}
+          <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
             style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
@@ -242,13 +242,13 @@ export default function Layout() {
             </div>
           </div>
 
-          {/* Center: pill command bar (desktop only, same row) */}
+          {/* Center: pill command bar (desktop only, truly centered) */}
           <div className="hidden lg:flex items-center justify-center flex-1 min-w-0">
             <PillCommandBar />
           </div>
 
-          {/* Right: theme toggle + Prague date/time + user */}
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
             <ThemeToggle />
             <PragueClock />
             {currentUser ?

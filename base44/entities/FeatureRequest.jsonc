@@ -78,7 +78,11 @@
         }
       ]
     },
-    "read": true,
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
     "update": {
       "user_condition": {
         "role": "admin"

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, AlertTriangle, FileText, Clock, ArrowRight } from "lucide-react";
+import { CheckCircle2, AlertTriangle, FileText, Clock, ArrowRight, ExternalLink } from "lucide-react";
 
 /* ═══════════════════════════════════════
    BILATERAL BRIDGE DATA
@@ -21,6 +21,12 @@ const BRIDGES = [
       { phase: "UK Registration", action: "Apply for G- registration mark and CofA", authority: "UK CAA Registration Section", timeline: "15–30 days", docs: ["Form CA1", "Ownership proof", "Fee payment"] },
     ],
     notes: "Post-Brexit bilateral. UK CAA no longer accepts EASA Form 52 — requires direct validation.",
+    sourceLinks: [
+      { label: "FAA AC 8050-64 (Deregistration)", url: "https://www.faa.gov/documentLibrary/media/Advisory_Circular/AC_8050-64.pdf" },
+      { label: "FAA Form 8130-4 (Export CofA)", url: "https://www.faa.gov/documentLibrary/media/Form/FAA_Form_8130-4.pdf" },
+      { label: "UK CAA Registration Forms", url: "https://www.caa.co.uk/aircraft/aircraft-registration/apply-for-registration/" },
+      { label: "UK CAA A8-21 (Org Approvals)", url: "https://www.caa.co.uk/aircraft/airworthiness/engineering-and-organisational-approvals/cap-562-civil-aircraft-airworthiness-information-and-procedures/" },
+    ],
   },
   {
     id: "faa-easa",
@@ -36,6 +42,13 @@ const BRIDGES = [
       { phase: "EASA Registration", action: "Register under national mark (OK-, D-, F-, etc.)", authority: "National Aircraft Registry", timeline: "15–30 days", docs: ["Registration application", "Ownership proof", "Insurance"] },
     ],
     notes: "BASA covers type-certified aircraft. Non-TC aircraft require individual validation (EASA Form 20).",
+    sourceLinks: [
+      { label: "FAA AC 8050-64 (Deregistration)", url: "https://www.faa.gov/documentLibrary/media/Advisory_Circular/AC_8050-64.pdf" },
+      { label: "FAA Form 8130-4 (Export CofA)", url: "https://www.faa.gov/documentLibrary/media/Form/FAA_Form_8130-4.pdf" },
+      { label: "EASA Form 20 (Import Application)", url: "https://www.easa.europa.eu/en/document-library/forms" },
+      { label: "EU–US BASA & Implementation Procedures", url: "https://www.easa.europa.eu/en/document-library/implementing-rules/bilateral-agreements" },
+      { label: "EASA Part-21 Subpart H", url: "https://www.easa.europa.eu/en/document-library/regulations/regulation-eu-no-7482012" },
+    ],
   },
   {
     id: "ukcaa-easa",
@@ -51,6 +64,13 @@ const BRIDGES = [
       { phase: "EASA Registration", action: "Register under national mark", authority: "National Aircraft Registry", timeline: "15–30 days", docs: ["Registration application", "Ownership proof", "Insurance"] },
     ],
     notes: "Post-Brexit TCA. UK-issued EASA Form 27 still accepted by EU CAAs for transition-period aircraft.",
+    sourceLinks: [
+      { label: "UK CAA Form CA1 (Registration)", url: "https://www.caa.co.uk/aircraft/aircraft-registration/apply-for-registration/" },
+      { label: "EASA Form 27 (Export CofA)", url: "https://www.easa.europa.eu/en/document-library/forms" },
+      { label: "EASA Form 20 (Import Application)", url: "https://www.easa.europa.eu/en/document-library/forms" },
+      { label: "EU–UK TCA Aviation Safety Annex", url: "https://www.easa.europa.eu/en/document-library/implementing-rules/bilateral-agreements" },
+      { label: "EASA Part-21 Subpart H", url: "https://www.easa.europa.eu/en/document-library/regulations/regulation-eu-no-7482012" },
+    ],
   },
 ];
 
@@ -190,6 +210,26 @@ function BridgeCard({ bridge }) {
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.60)", lineHeight: 1.4 }}>
                   {bridge.notes}
                 </p>
+              </div>
+            )}
+            {bridge.sourceLinks?.length > 0 && (
+              <div className="rounded-lg p-3"
+                style={{ background: "rgba(78,142,247,0.05)", border: "0.5px solid rgba(78,142,247,0.15)" }}>
+                <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#4e8ef7", marginBottom: 8 }}>
+                  Official Document Sources
+                </p>
+                <div className="flex flex-col gap-2">
+                  {bridge.sourceLinks.map((link, li) => (
+                    <a key={li} href={link.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 transition-all"
+                      style={{ fontSize: 10, color: "rgba(255,255,255,0.70)", textDecoration: "none" }}>
+                      <ExternalLink size={11} style={{ color: "#4e8ef7", flexShrink: 0 }} />
+                      <span style={{ textDecoration: "underline", textDecorationColor: "rgba(78,142,247,0.30)" }}>
+                        {link.label}
+                      </span>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>

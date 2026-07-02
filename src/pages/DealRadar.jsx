@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Zap, TrendingDown, BarChart2, Radar, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import CoreCard from "@/components/core/CoreCard";
+import ComplianceBadge from "@/components/gcr/ComplianceBadge";
 
 function StatCard({ label, value, icon: Icon, sub, loading }) {
   return (
@@ -133,14 +134,17 @@ function DealCard({ deal }) {
         className="px-5 py-3 flex items-center justify-between border-t"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}
       >
-        {deal.ati_score && (
-          <span
-            className="text-[10px] font-medium"
-            style={{ color: "rgba(255,255,255,0.35)" }}
-          >
-            ATI {deal.ati_score}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {deal.ati_score && (
+            <span
+              className="text-[10px] font-medium"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              ATI {deal.ati_score}
+            </span>
+          )}
+          <ComplianceBadge registration={deal.registration} />
+        </div>
         <Link
           to={`/ati-passport/${deal.id}`}
           className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-80"

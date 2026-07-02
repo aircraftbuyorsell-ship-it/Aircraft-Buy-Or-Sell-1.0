@@ -19,9 +19,21 @@ Deno.serve(async (req) => {
     const { registration, enrich_listing_id } = await req.json().catch(() => ({}));
     if (!registration) return Response.json({ error: 'registration required' }, { status: 400 });
 
-    // Normalize: strip N prefix, keep alphanumeric, uppercase
-    const normalized = registration.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    const fullReg = `N${normalized}`;
+    // ── International prefix detection ──
+    const INTL_PREFIXES = ['G-', 'C-', 'D-', 'F-', 'I-', 'EC-', 'VH-', 'SP-', 'OK-', 'HA-', 'LV-', 'PP-', 'PT-', 'XA-', 'XB-', 'XC-', 'ZK-', 'ZL-', '9V-', 'A7-', 'B-', 'JA-', 'RP-', 'PH-', 'OO-', 'SE-', 'LN-', 'OY-', 'OH-', 'SX-', 'UR-', 'RA-', 'RF-'];
+    const cleanedReg = registration.trim().toUpperCase();
+    const isIntl = INTL_PREFIXES.some(p => cleanedReg.startsWith(p));
+
+    let normalized, fullReg;
+    if (isIntl) {
+      // International registration — keep full mark with dashes
+      fullReg = cleanedReg;
+      normalized = cleanedReg;
+    } else {
+      // US N-number — strip N prefix, keep alphanumeric
+      normalized = cleanedReg.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '');
+      fullReg = `N${normalized}`;
+    }
 
     const result = {
       found: false,
@@ -32,8 +44,8 @@ Deno.serve(async (req) => {
       searchedAt: new Date().toISOString(),
     };
 
-    // ── SOURCE 1: FAAAircraft entity (already synced — works when Supabase is down) ──
-    try {
+    // ── SOURCE 1: FAAAircraft entity (US only — already synced) ──
+    if (!isIntl) try {
       const faaResults = await base44.asServiceRole.entities.FAAAircraft.filter(
         { n_number: normalized },
         '-created_date',
@@ -73,7 +85,7 @@ Deno.serve(async (req) => {
     // ── SOURCE 2: adsbdb.com API (free, no key — live backup) ──
     if (!result.found) {
       try {
-        const adsbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${fullReg}`, {
+        const adsbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(fullReg)}`, {
           headers: { 'Accept': 'application/json' },
           signal: AbortSignal.timeout(8000),
         });
@@ -101,8 +113,48 @@ Deno.serve(async (req) => {
       } catch (_) { /* non-critical — network/timeout */ }
     }
 
-    // ── SOURCE 3: Supabase via syncFaaFromSupabase (last resort) ──
-    if (!result.found) {
+    // ── SOURCE 2b: LLM web lookup (international registrations without adsbdb) ──
+    if (!result.found && isIntl) {
+      try {
+        const llmRes = await base44.integrations.Core.InvokeLLM({
+          prompt: `Find aircraft registry information for aircraft registration ${fullReg}. Look up the aircraft type, manufacturer, model, ICAO type designator, country of registration, and current registration status from official aviation registries. Return only factual, verified data.`,
+          add_context_from_internet: true,
+          model: 'gemini_3_flash',
+          response_json_schema: {
+            type: 'object',
+            properties: {
+              registration: { type: 'string' },
+              make: { type: 'string' },
+              model: { type: 'string' },
+              icao_type: { type: 'string' },
+              country: { type: 'string' },
+              status: { type: 'string' },
+              mode_s_hex: { type: 'string' },
+              serial_number: { type: 'string' },
+              year_mfr: { type: 'number' },
+            },
+          },
+        });
+        if (llmRes?.registration) {
+          result.found = true;
+          result.source = 'llm_fallback';
+          result.aircraft = {
+            registration: llmRes.registration,
+            make: llmRes.make || null,
+            model: llmRes.model || null,
+            icao_type: llmRes.icao_type || null,
+            country: llmRes.country || null,
+            status_code: llmRes.status || null,
+            mode_s_hex: llmRes.mode_s_hex || null,
+            serial_number: llmRes.serial_number || null,
+            year_mfr: llmRes.year_mfr || null,
+          };
+        }
+      } catch (_) { /* non-critical — LLM unavailable */ }
+    }
+
+    // ── SOURCE 3: Supabase via syncFaaFromSupabase (last resort — US only) ──
+    if (!result.found && !isIntl) {
       try {
         const supabaseRes = await base44.functions.invoke('syncFaaFromSupabase', {
           mode: 'registry_import_single',

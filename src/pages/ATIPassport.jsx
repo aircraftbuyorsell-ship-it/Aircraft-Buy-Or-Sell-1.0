@@ -26,6 +26,7 @@ import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
 import ATIGuideChat from "@/components/ati/ATIGuideChat";
+import GCRSection from "@/components/gcr/GCRSection";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -566,6 +567,9 @@ Return ONLY raw JSON:
 
             {/* ── Trust Block ───────────────────────────── */}
             <ATITrustBlock passport={passport} card={card} ownershipEvents={ownershipEvents} listing={listing} />
+
+            {/* ── Global Compliance Report ─────────────── */}
+            {listing?.registration && <GCRSection registration={listing.registration} listing={listing} />}
 
             {/* ── Specs + Valuation ─────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

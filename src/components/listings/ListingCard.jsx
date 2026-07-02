@@ -1,4 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
+import ComplianceBadge from "@/components/gcr/ComplianceBadge";
 
 function ATIBadge({ score }) {
   if (score == null) return null;
@@ -61,7 +62,10 @@ export default function ListingCard({ listing: l, onClick }) {
             <span className="font-mono">{l.registration || "—"}</span>
           </p>
         </div>
-        <ATIBadge score={l.ati_score} />
+        <div className="flex items-center gap-1.5">
+          <ATIBadge score={l.ati_score} />
+          <ComplianceBadge registration={l.registration} />
+        </div>
       </div>
 
       {/* Price */}

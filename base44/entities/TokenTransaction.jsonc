@@ -12,7 +12,8 @@
         "purchase",
         "consumption",
         "bonus",
-        "refund"
+        "refund",
+        "gcr_unlock"
       ],
       "description": "Transaction type"
     },
@@ -22,7 +23,7 @@
     },
     "feature": {
       "type": "string",
-      "description": "Feature that consumed tokens (e.g. ati_passport, bulk_import)"
+      "description": "Feature that consumed tokens (e.g. ati_passport, bulk_import, gcr_unlock)"
     },
     "pack": {
       "type": "string",
@@ -39,6 +40,10 @@
     "balance_after": {
       "type": "number",
       "description": "Token balance after this transaction"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional structured metadata (e.g. { registration: 'N12345' } for GCR unlocks)"
     },
     "description": {
       "type": "string",

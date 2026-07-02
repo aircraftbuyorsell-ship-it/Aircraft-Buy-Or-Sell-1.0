@@ -104,9 +104,9 @@ export default function HomepageHeader() {
               onClick={handleSearchClick}
               aria-label="Search"
               className="flex items-center justify-center transition-colors"
-              style={{ width: 36, height: 36, color: "rgba(255,255,255,0.6)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+              style={{ width: 36, height: 36, color: "rgba(255,255,255,0.60)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.90)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.60)"; }}
             >
               <Search size={18} />
             </button>

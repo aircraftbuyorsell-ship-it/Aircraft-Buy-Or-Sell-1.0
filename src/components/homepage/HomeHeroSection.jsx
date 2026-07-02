@@ -123,7 +123,7 @@ export default function HomeHeroSection() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(201,168,77,0.12) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)",
         }}
       />
 
@@ -131,7 +131,7 @@ export default function HomeHeroSection() {
         className="lg:hidden absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, rgba(5,7,11,0.35) 0%, rgba(5,7,11,0.55) 50%, rgba(5,7,11,0.85) 100%)",
+            "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)",
         }}
       />
 
@@ -139,8 +139,8 @@ export default function HomeHeroSection() {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(201,168,77,0.15) 0.5px, transparent 0.5px)",
-          backgroundSize: "32px 32px",
+            "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
           opacity: 0.06,
         }}
       />
@@ -150,17 +150,17 @@ export default function HomeHeroSection() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 sm:mb-8"
             style={{
-              background: "rgba(201,168,77,0.08)",
-              border: "1px solid rgba(201,168,77,0.22)",
+              background: "rgba(245,194,66,0.09)",
+              border: "0.5px solid rgba(245,194,66,0.22)",
             }}
           >
             <span
               className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ background: "#C9A84D" }}
+              style={{ background: "#f5c242" }}
             />
             <span
               className="text-[10px] font-bold tracking-[0.16em] uppercase"
-              style={{ color: "#C9A84D" }}
+              style={{ color: "#f5c242" }}
             >
               Global Aviation Intelligence Platform
             </span>
@@ -174,10 +174,10 @@ export default function HomeHeroSection() {
             <br />
             IDENTITY &amp;
             <br />
-            <span style={{ color: "#C9A84D" }}>INTELLIGENCE</span> PLATFORM
+            <span style={{ color: "#f5c242" }}>INTELLIGENCE</span> PLATFORM
           </h1>
 
-          <p className="text-[14px] sm:text-[17px] text-white/55 leading-relaxed max-w-[540px] mb-8 sm:mb-10">
+          <p className="text-[14px] sm:text-[17px] leading-relaxed max-w-[540px] mb-8 sm:mb-10" style={{ color: "rgba(255,255,255,0.60)" }}>
             Search, verify, value and transact aircraft through a unified
             aviation data ecosystem.
           </p>
@@ -187,9 +187,7 @@ export default function HomeHeroSection() {
               className="flex items-stretch w-full rounded-2xl overflow-hidden"
               style={{
                 background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(201,168,77,0.28)",
-                backdropFilter: "blur(24px)",
-                WebkitBackdropFilter: "blur(24px)",
+                border: "0.5px solid rgba(245,194,66,0.22)",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                 height: 56,
               }}
@@ -197,7 +195,7 @@ export default function HomeHeroSection() {
               <div className="flex items-center pl-4 pr-2">
                 <Search
                   className="w-4 h-4"
-                  style={{ color: "rgba(201,168,77,0.6)" }}
+                  style={{ color: "rgba(245,194,66,0.60)" }}
                 />
               </div>
               <input
@@ -218,7 +216,7 @@ export default function HomeHeroSection() {
                 onClick={search}
                 disabled={searching || !normalizeReg(query)}
                 className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
-                style={{ background: "#C9A84D", color: "#05070B" }}
+                style={{ background: "#f5c242", color: "#04060a" }}
               >
                 {searching ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -241,7 +239,7 @@ export default function HomeHeroSection() {
               className="w-full h-[1px] mb-5"
               style={{
                 background:
-                  "linear-gradient(90deg, transparent, rgba(201,168,77,0.4), transparent)",
+                  "linear-gradient(90deg, transparent, rgba(245,194,66,0.4), transparent)",
               }}
             />
             <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:justify-center lg:gap-0">
@@ -250,17 +248,17 @@ export default function HomeHeroSection() {
                   key={s.label}
                   className={`flex flex-col items-center px-3 py-2 lg:flex-1 lg:min-w-[140px] ${
                     i < STATS.length - 1
-                      ? "lg:border-r lg:border-[rgba(201,168,77,0.15)]"
+                      ? "lg:border-r lg:border-[rgba(245,194,66,0.22)]"
                       : ""
                   }`}
                 >
                   <div
                     className="text-[clamp(18px,3vw,28px)] font-black tabular-nums leading-none"
-                    style={{ color: "#C9A84D" }}
+                    style={{ color: "#f5c242" }}
                   >
                     {s.value}
                   </div>
-                  <div className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-white/40 mt-2 font-semibold text-center">
+                  <div className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase mt-2 font-semibold text-center" style={{ color: "rgba(255,255,255,0.35)" }}>
                     {s.label}
                   </div>
                 </div>
@@ -271,14 +269,14 @@ export default function HomeHeroSection() {
       </div>
 
       <div className="absolute bottom-20 lg:bottom-8 left-1/2 -translate-x-1/2 z-10 hidden sm:flex flex-col items-center gap-2 pointer-events-none">
-        <span className="text-[9px] tracking-[0.2em] uppercase text-white/30">
+        <span className="text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>
           Scroll
         </span>
         <div
           className="w-[1px] h-8"
           style={{
             background:
-              "linear-gradient(180deg, rgba(201,168,77,0.4), transparent)",
+              "linear-gradient(180deg, rgba(245,194,66,0.4), transparent)",
           }}
         />
       </div>

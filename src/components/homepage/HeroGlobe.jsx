@@ -48,7 +48,7 @@ export default function HeroGlobe() {
     scene.add(globe);
 
     const SPHERE_R = 1.8;
-    const GOLD = 0xC9A84D;
+    const GOLD = 0xf5c242;
 
     const sphereMat = new THREE.MeshPhongMaterial({
       color: 0x0A0E14,
@@ -113,8 +113,8 @@ export default function HeroGlobe() {
       const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       g.addColorStop(0, "rgba(255,255,255,1)");
       g.addColorStop(0.25, "rgba(255,255,255,0.85)");
-      g.addColorStop(0.55, "rgba(201,168,77,0.35)");
-      g.addColorStop(1, "rgba(201,168,77,0)");
+      g.addColorStop(0.55, "rgba(245,194,66,0.35)");
+      g.addColorStop(1, "rgba(245,194,66,0)");
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.arc(32, 32, 32, 0, Math.PI * 2);

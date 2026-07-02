@@ -78,13 +78,7 @@
         }
       ]
     },
-    "read": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
-      }
-    },
+    "read": true,
     "update": {
       "user_condition": {
         "role": "admin"

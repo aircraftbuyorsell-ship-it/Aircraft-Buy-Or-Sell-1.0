@@ -29,6 +29,7 @@ export const NAV_TREE = [
           { path: "/faa-map", label: "FAA Registry", icon: Map },
           { path: "/analytics", label: "Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
+          { path: "/service-intelligence", label: "Service Intelligence", icon: Zap },
         ],
       },
       {

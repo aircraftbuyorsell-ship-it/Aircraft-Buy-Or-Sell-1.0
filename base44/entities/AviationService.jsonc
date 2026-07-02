@@ -1,0 +1,193 @@
+{
+  "name": "AviationService",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Service provider or business name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "mechanic",
+        "ap_mechanic",
+        "flight_school",
+        "refueling_fbo",
+        "dealer",
+        "broker",
+        "paint_shop"
+      ],
+      "description": "Service category"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Business description and services overview"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street address"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "description": "US state or region"
+    },
+    "country": {
+      "type": "string",
+      "default": "US"
+    },
+    "latitude": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "icao_code": {
+      "type": "string",
+      "maxLength": 4,
+      "description": "Nearest airport ICAO code"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Average rating (0-5)"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "FAA Part 145, EASA Part 145, Part 141, Part 61, A&P, IA, etc."
+    },
+    "fuel_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "100LL",
+          "Jet-A",
+          "Jet-A1",
+          "Mogas",
+          "TS-A"
+        ]
+      },
+      "description": "Available fuel types (FBOs only)"
+    },
+    "fuel_prices": {
+      "type": "object",
+      "properties": {
+        "100LL": {
+          "type": "number",
+          "description": "Price per gallon USD"
+        },
+        "Jet-A": {
+          "type": "number",
+          "description": "Price per gallon USD"
+        },
+        "Jet-A1": {
+          "type": "number",
+          "description": "Price per gallon USD"
+        },
+        "Mogas": {
+          "type": "number",
+          "description": "Price per gallon USD"
+        }
+      },
+      "description": "Current fuel prices per gallon (FBOs only)"
+    },
+    "services_offered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of services offered"
+    },
+    "price_range": {
+      "type": "string",
+      "enum": [
+        "budget",
+        "mid",
+        "premium",
+        "luxury"
+      ],
+      "description": "Price tier"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "managed",
+        "api",
+        "hybrid"
+      ],
+      "default": "managed",
+      "description": "Data source: managed by user, API-sourced, or hybrid"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was last verified"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { action, icao, category, lat, lon } = body;
+    const { action, icao, category, lat, lon, region } = body;
 
     /* ── FUEL PRICES: live lookup by airport ICAO ── */
     if (action === "fuel_prices") {
@@ -140,7 +140,123 @@ Deno.serve(async (req) => {
       return Response.json(result);
     }
 
-    return Response.json({ error: "Unknown action. Use: fuel_prices, search_services, or market_intel" }, { status: 400 });
+    /* ── ENRICH DIRECTORY: discover + upsert providers via Google Search ── */
+    if (action === "enrich_directory") {
+      const catMap = {
+        mechanic: "certified aircraft mechanics and maintenance repair organizations (MROs)",
+        ap_mechanic: "FAA-certified A&P (Airframe & Powerplant) mechanics and Inspection Authorization (IA) holders",
+        flight_school: "flight schools (Part 61 and Part 141) offering pilot training",
+        refueling_fbo: "FBOs (Fixed Base Operators) providing refueling and ground services",
+        dealer: "aircraft dealers and sales organizations",
+        broker: "aircraft brokers and brokerage firms",
+        paint_shop: "aircraft paint shops and refinishing specialists"
+      };
+      const catLabel = category ? (catMap[category] || category) : "aviation service providers";
+      const regionDesc = region || "United States";
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find real, verified ${catLabel} in ${regionDesc}. For each business, provide: name, full address, city, state, country, phone number, website URL, email if available, certifications (FAA Part 145, EASA, A&P, IA, Part 141, etc.), services offered, fuel types available (for FBOs only: 100LL, Jet-A, Jet-A1, Mogas), and any available rating (0-5). Return at least 8-15 real businesses with accurate contact information. Do not fabricate businesses — only return real, verifiable companies.`,
+        add_context_from_internet: true,
+        model: "gemini_3_flash",
+        response_json_schema: {
+          type: "object",
+          properties: {
+            region_searched: { type: "string" },
+            services: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  category: { type: "string" },
+                  description: { type: "string" },
+                  address: { type: "string" },
+                  city: { type: "string" },
+                  state: { type: "string" },
+                  country: { type: "string" },
+                  phone: { type: "string" },
+                  email: { type: "string" },
+                  website: { type: "string" },
+                  certifications: { type: "array", items: { type: "string" } },
+                  services_offered: { type: "array", items: { type: "string" } },
+                  fuel_types: { type: "array", items: { type: "string" } },
+                  rating: { type: "number" },
+                  icao_code: { type: "string" }
+                }
+              }
+            },
+            total_found: { type: "number" }
+          }
+        }
+      });
+
+      // Upsert discovered providers into AviationService entity
+      const upserted = [];
+      if (result?.services?.length > 0) {
+        for (const s of result.services) {
+          if (!s.name) continue;
+          try {
+            const existing = await base44.asServiceRole.entities.AviationService.filter({
+              name: s.name,
+              city: s.city || "",
+            });
+            if (existing && existing.length > 0) {
+              const updated = await base44.asServiceRole.entities.AviationService.update(existing[0].id, {
+                category: category || s.category || existing[0].category,
+                description: s.description || existing[0].description,
+                address: s.address || existing[0].address,
+                state: s.state || existing[0].state,
+                country: s.country || existing[0].country || "US",
+                phone: s.phone || existing[0].phone,
+                email: s.email || existing[0].email,
+                website: s.website || existing[0].website,
+                certifications: s.certifications?.length ? s.certifications : existing[0].certifications,
+                services_offered: s.services_offered?.length ? s.services_offered : existing[0].services_offered,
+                fuel_types: s.fuel_types?.length ? s.fuel_types : existing[0].fuel_types,
+                rating: s.rating || existing[0].rating,
+                icao_code: s.icao_code || existing[0].icao_code,
+                source: "hybrid",
+                last_verified_at: new Date().toISOString(),
+              });
+              upserted.push(updated);
+            } else {
+              const created = await base44.asServiceRole.entities.AviationService.create({
+                name: s.name,
+                category: category || s.category || "mechanic",
+                description: s.description,
+                address: s.address,
+                city: s.city,
+                state: s.state,
+                country: s.country || "US",
+                phone: s.phone,
+                email: s.email,
+                website: s.website,
+                certifications: s.certifications || [],
+                services_offered: s.services_offered || [],
+                fuel_types: s.fuel_types || [],
+                rating: s.rating,
+                icao_code: s.icao_code,
+                source: "api",
+                is_active: false,
+                last_verified_at: new Date().toISOString(),
+              });
+              upserted.push(created);
+            }
+          } catch (upsertErr) {
+            // Skip individual failures, continue processing
+          }
+        }
+      }
+
+      return Response.json({
+        region_searched: result?.region_searched || regionDesc,
+        total_found: result?.total_found || 0,
+        upserted_count: upserted.length,
+        services: upserted,
+      });
+    }
+
+    return Response.json({ error: "Unknown action. Use: fuel_prices, search_services, market_intel, or enrich_directory" }, { status: 400 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

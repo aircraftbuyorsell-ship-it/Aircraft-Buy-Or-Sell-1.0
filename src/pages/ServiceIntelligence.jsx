@@ -13,7 +13,7 @@ const TABS = [
 ];
 
 export default function ServiceIntelligence() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("directory");
 
   return (
     <div className="min-h-screen" style={{ background: "transparent", color: "rgba(255,255,255,0.90)" }}>

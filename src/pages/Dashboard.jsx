@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import SiteFooter from "@/components/SiteFooter";
 import SectionShell from "@/components/dashboard/sections/SectionShell";
-import NewHero from "@/components/dashboard/sections/NewHero";
+import HomepageHeader from "@/components/homepage/HomepageHeader";
+import HomeHeroSection from "@/components/homepage/HomeHeroSection";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import AircraftSearch from "@/components/dashboard/sections/AircraftSearch";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
@@ -34,10 +35,11 @@ export default function Dashboard() {
         fontFamily: "Inter, -apple-system, sans-serif",
       }}
     >
+      <HomepageHeader />
       <NotificationStack />
 
       {/* 1. Hero */}
-      <NewHero listings={listings} />
+      <HomeHeroSection />
 
       {/* 2. Featured Aircraft */}
       <ListingsShowcase

@@ -157,6 +157,7 @@ export default function Layout() {
   const touchStartX = useRef(null);
 
   const showBack = BACK_BUTTON_ROUTES.some((re) => re.test(pathname));
+  const isHomepage = pathname === "/";
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
@@ -202,10 +203,11 @@ export default function Layout() {
       </a>
 
       {/* ── Mobile drawer ── */}
-      {mobileOpen &&
+      {!isHomepage && mobileOpen &&
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
       }
+      {!isHomepage && (
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
         background: "#111827", borderRight: "0.5px solid rgba(255,255,255,0.08)",
@@ -219,8 +221,10 @@ export default function Layout() {
         </div>
         <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
       </aside>
+      )}
 
-      {/* ── Top header bar ── */}
+      {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
+      {!isHomepage && (
       <header className="sticky top-0 z-40"
       style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
@@ -276,12 +280,14 @@ export default function Layout() {
           <MobilePillNav />
         </div>
       </header>
+      )}
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
+      <main id="main-content" className={`relative z-10 flex-1 overflow-y-auto overflow-x-hidden ${isHomepage ? "pb-14 lg:pb-0" : ""}`} style={{ background: "transparent" }}>
           <Outlet />
       </main>
 
+      {isHomepage && <div className="h-14 lg:hidden shrink-0" />}
       <SiteFooter />
       <ABOSTour />
     </div>);

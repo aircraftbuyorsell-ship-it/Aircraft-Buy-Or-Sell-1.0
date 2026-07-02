@@ -34,7 +34,7 @@
     },
     "new_sub_tier": {
       "type": "string",
-      "description": "New sub-tier (starter, plus, premium, scale, elite)",
+      "description": "New sub-tier",
       "enum": [
         "starter",
         "plus",
@@ -76,7 +76,7 @@
     },
     "processing_notes": {
       "type": "string",
-      "description": "Notes from processing (e.g., refund details)",
+      "description": "Notes from processing",
       "maxLength": 500
     },
     "request_email": {
@@ -123,20 +123,26 @@
         "role": "admin"
       }
     },
-    "delete": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
       "user_condition": {
         "role": "super_admin"
       }
     },
-    "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
-    },
-    "update": {
+    "delete": {
       "user_condition": {
         "role": "super_admin"
       }

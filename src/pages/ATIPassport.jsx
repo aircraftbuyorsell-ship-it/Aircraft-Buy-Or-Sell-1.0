@@ -21,6 +21,7 @@ import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
+import ATITrustBlock from "@/components/ati/ATITrustBlock";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
@@ -438,6 +439,11 @@ Return ONLY raw JSON:
                   </div>
                 ))}
               </div>
+
+              {/* Trust Block — pre-generation placeholder */}
+              <div className="mb-8">
+                <ATITrustBlock passport={null} card={card} ownershipEvents={ownershipEvents} listing={listing} />
+              </div>
               {error && (
                 <div className="bg-[rgba(192,57,43,0.07)] border border-[rgba(192,57,43,0.2)] text-[#e24b4a] text-sm rounded-xl px-4 py-3 mb-5">
                   {error}
@@ -557,6 +563,9 @@ Return ONLY raw JSON:
                 )}
               </div>
             </div>
+
+            {/* ── Trust Block ───────────────────────────── */}
+            <ATITrustBlock passport={passport} card={card} ownershipEvents={ownershipEvents} listing={listing} />
 
             {/* ── Specs + Valuation ─────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -154,8 +154,8 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const touchStartX = useRef(null);
 
-  const showBack = !isHomepage;
   const isHomepage = pathname === "/";
+  const showBack = !isHomepage;
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],

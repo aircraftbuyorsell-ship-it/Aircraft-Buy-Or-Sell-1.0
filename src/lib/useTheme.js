@@ -11,8 +11,8 @@ function isNightHour() {
 function resolveIsDark(stored) {
   if (stored === "dark") return true;
   if (stored === "light") return false;
-  // "auto" or no preference → dark by default (Legal Ink design system)
-  return true;
+  // "auto" or no preference → time-based (dark 18:00–06:00)
+  return isNightHour();
 }
 
 function applyClass(isDark) {

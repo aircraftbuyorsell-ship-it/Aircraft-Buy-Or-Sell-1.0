@@ -27,6 +27,9 @@ Deno.serve(async (req) => {
     const fullReg = (registration || '').trim().toUpperCase();
     const hexCode = (hex || '').trim().replace(/^0x/i, '').toUpperCase();
 
+    // ── ACCESS CHECK ──
+    const hasAccess = await checkGcrAccess(base44, user, fullReg);
+
     // ── CACHE CHECK (unless force=true) ──
     if (!force && fullReg) {
       try {
@@ -37,7 +40,10 @@ Deno.serve(async (req) => {
           const gcr = cached[0].raw_data?.gcr;
           if (gcr && gcr.expires_at) {
             if (Date.now() < new Date(gcr.expires_at).getTime()) {
-              return Response.json({ ...gcr, cached: true });
+              if (!hasAccess) {
+                return Response.json(gateGcrResponse(gcr, true));
+              }
+              return Response.json({ ...gcr, cached: true, is_premium: true });
             }
           }
         }
@@ -173,11 +179,64 @@ Deno.serve(async (req) => {
       } catch (_) { /* non-critical */ }
     }
 
-    return Response.json({ ...result, cached: false });
+    if (!hasAccess) {
+      return Response.json(gateGcrResponse(result, false));
+    }
+    return Response.json({ ...result, cached: false, is_premium: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+// ════════════════════════════════════════════════════════════════
+// HELPER: Check if user has paid access to full GCR data
+// ════════════════════════════════════════════════════════════════
+async function checkGcrAccess(base44, user, registration) {
+  if (!user || !registration) return false;
+  // Admins always have access
+  if (user.role === 'admin' || user.role === 'super_admin') return true;
+  // Check for GCR unlock TokenTransaction (30-day validity)
+  try {
+    const records = await base44.asServiceRole.entities.TokenTransaction.filter(
+      { user_email: user.email, type: 'gcr_unlock' },
+      '-created_date', 50
+    );
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const unlocked = records.some(r =>
+      r.metadata?.registration === registration &&
+      new Date(r.created_date).getTime() > thirtyDaysAgo
+    );
+    if (unlocked) return true;
+  } catch (_) { /* non-critical */ }
+  // Check if user is an assigned expert for this registration
+  try {
+    const assignments = await base44.asServiceRole.entities.ExpertCrossCheck.filter(
+      { registration, expert_id: user.id, status: 'in_progress' },
+      '-created_date', 5
+    );
+    if (assignments.length > 0) return true;
+  } catch (_) { /* non-critical */ }
+  return false;
+}
+
+// ════════════════════════════════════════════════════════════════
+// HELPER: Gate GCR response — return only basic preview for unpaid users
+// ════════════════════════════════════════════════════════════════
+function gateGcrResponse(data, cached) {
+  return {
+    registration: data.registration,
+    mode_s_hex: data.mode_s_hex || null,
+    score: data.score,
+    score_label: data.score_label,
+    basic_aircraft: {
+      make: data.registry_data?.make || null,
+      model: data.registry_data?.model || null,
+      year_mfr: data.registry_data?.year_mfr || null,
+    },
+    is_premium: false,
+    cached,
+  };
+}
 
 // ════════════════════════════════════════════════════════════════
 // HELPER: Registry lookup (inlined — no function-to-function call)

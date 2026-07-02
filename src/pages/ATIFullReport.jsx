@@ -111,6 +111,56 @@ function DimRow({ label, score, reason }) {
   );
 }
 
+function DimAnalyticsRow({ label, score, reason, strengths, risks, missing }) {
+  const [expanded, setExpanded] = useState(false);
+  const color = dimColor(score);
+  const pct = (score / 15) * 100;
+  const hasDetails = (strengths?.length || risks?.length || missing?.length);
+  return (
+    <div style={{ marginBottom: "12px", padding: "10px 0", borderBottom: `0.5px solid ${T.border}` }}>
+      <div
+        style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px", cursor: hasDetails ? "pointer" : "default" }}
+        onClick={() => hasDetails && setExpanded(v => !v)}
+      >
+        <span style={{ fontSize: "11px", color: T.w2, display: "flex", alignItems: "center", gap: "6px" }}>
+          {hasDetails && (expanded ? <ChevronUp size={11} color={T.w3} /> : <ChevronDown size={11} color={T.w3} />)}
+          {label}
+        </span>
+        <span style={{ fontSize: "12px", fontWeight: 700, color, fontVariantNumeric: "tabular-nums" }}>
+          {score}<span style={{ color: T.w3, fontWeight: 400 }}>/15</span>
+        </span>
+      </div>
+      <div style={{ height: "3px", borderRadius: "99px", background: T.w4, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: "99px", transition: "width 0.4s cubic-bezier(0.16,1,0.3,1)" }} />
+      </div>
+      {reason && !expanded && <p style={{ fontSize: "10px", color: T.w3, marginTop: "4px", lineHeight: 1.5 }}>{reason}</p>}
+      {expanded && hasDetails && (
+        <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
+          {reason && <p style={{ fontSize: "10px", color: T.w2, lineHeight: 1.6, margin: 0 }}>{reason}</p>}
+          {strengths?.length > 0 && (
+            <div>
+              <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: T.teal, margin: "0 0 4px" }}>Strengths</p>
+              {strengths.map((s, i) => <p key={i} style={{ fontSize: "10px", color: T.w2, lineHeight: 1.5, margin: "2px 0", paddingLeft: "10px", borderLeft: `1.5px solid ${T.teal}` }}>{s}</p>)}
+            </div>
+          )}
+          {risks?.length > 0 && (
+            <div>
+              <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: T.red, margin: "0 0 4px" }}>Risks</p>
+              {risks.map((r, i) => <p key={i} style={{ fontSize: "10px", color: T.w2, lineHeight: 1.5, margin: "2px 0", paddingLeft: "10px", borderLeft: `1.5px solid ${T.red}` }}>{r}</p>)}
+            </div>
+          )}
+          {missing?.length > 0 && (
+            <div>
+              <p style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: T.amber, margin: "0 0 4px" }}>Missing Data</p>
+              {missing.map((m, i) => <p key={i} style={{ fontSize: "10px", color: T.w3, lineHeight: 1.5, margin: "2px 0", paddingLeft: "10px", borderLeft: `1.5px solid ${T.amber}` }}>{m}</p>)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BulletList({ items, color = T.teal }) {
   if (!items?.length) return <p style={{ color: T.w3, fontSize: "12px", margin: 0 }}>None identified.</p>;
   return (
@@ -169,87 +219,39 @@ export default function ATIFullReport() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are ABOS — Aircraft Buy Or Sell — an expert aviation appraisal engine. Generate a professional ATI Full Report for the following aircraft.
-
-AIRCRAFT DATA:
-${input}
-
-Score each of 8 dimensions 0–15 and write a professional narrative report. Be precise, concise, and actionable. Write like a senior aviation appraiser.
-
-Return ONLY valid JSON with this exact schema:
-{
-  "documentation": number,
-  "technical": number,
-  "transparency": number,
-  "transaction_ready": number,
-  "usage_mission": number,
-  "storage_exposure": number,
-  "config_clarity": number,
-  "market_readiness": number,
-  "reasons": {
-    "documentation": "one-line reason",
-    "technical": "one-line reason",
-    "transparency": "one-line reason",
-    "transaction_ready": "one-line reason",
-    "usage_mission": "one-line reason",
-    "storage_exposure": "one-line reason",
-    "config_clarity": "one-line reason",
-    "market_readiness": "one-line reason"
-  },
-  "identity_rows": [
-    { "label": "Registration", "value": "..." },
-    { "label": "Year", "value": "..." },
-    { "label": "Make / Model", "value": "..." },
-    { "label": "Airframe TT", "value": "..." },
-    { "label": "Engine SMOH", "value": "..." },
-    { "label": "TBO", "value": "..." },
-    { "label": "Last Annual", "value": "..." },
-    { "label": "Avionics", "value": "..." },
-    { "label": "Asking Price", "value": "..." }
-  ],
-  "omvm_low": number,
-  "omvm_high": number,
-  "asking_price": number or null,
-  "summary": "3–4 sentence executive summary of the aircraft and transaction opportunity",
-  "strengths": ["bullet 1", "bullet 2", "bullet 3"],
-  "risks": ["bullet 1", "bullet 2"],
-  "recommendations": ["bullet 1", "bullet 2", "bullet 3"],
-  "registration_extracted": "N-number or registration extracted from data"
-}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            documentation: { type: "number" },
-            technical: { type: "number" },
-            transparency: { type: "number" },
-            transaction_ready: { type: "number" },
-            usage_mission: { type: "number" },
-            storage_exposure: { type: "number" },
-            config_clarity: { type: "number" },
-            market_readiness: { type: "number" },
-            reasons: { type: "object" },
-            identity_rows: { type: "array" },
-            omvm_low: { type: "number" },
-            omvm_high: { type: "number" },
-            asking_price: {},
-            summary: { type: "string" },
-            strengths: { type: "array" },
-            risks: { type: "array" },
-            recommendations: { type: "array" },
-            registration_extracted: { type: "string" },
-          },
-        },
+      // Call the 8-dimension LLM analytics backend function
+      const response = await base44.functions.invoke("atiFullReportScore", {
+        aircraft_data: input,
+        registration: regExtracted || undefined,
       });
 
-      const total =
-        (res.documentation || 0) + (res.technical || 0) + (res.transparency || 0) +
-        (res.transaction_ready || 0) + (res.usage_mission || 0) + (res.storage_exposure || 0) +
-        (res.config_clarity || 0) + (res.market_readiness || 0);
+      const res = response.data || response;
+
+      // Flatten dimension scores + justifications for the existing UI
+      const flatResult = {
+        total: res.total,
+        identity_rows: res.identity_rows,
+        omvm_low: res.omvm_low,
+        omvm_high: res.omvm_high,
+        asking_price: res.asking_price,
+        summary: res.summary,
+        strengths: res.strengths,
+        risks: res.risks,
+        recommendations: res.recommendations,
+        registration_extracted: res.registration_extracted,
+        // Full per-dimension analytics (score, justification, strengths, risks, missing)
+        dimensions: res.dimensions,
+        // Flatten dimension scores to top-level keys (documentation, technical, etc.)
+        ...res.dimension_scores,
+        // Build reasons map from dimension justifications
+        reasons: Object.fromEntries(
+          Object.entries(res.dimensions || {}).map(([k, v]) => [k, v.justification])
+        ),
+      };
 
       const reg = regExtracted || res.registration_extracted || "NREG";
-      const code = genCode(reg, total);
-      setResult({ ...res, total });
+      const code = genCode(reg, res.total);
+      setResult(flatResult);
       setReportCode(code);
     } catch (e) {
       console.error(e);
@@ -375,7 +377,7 @@ Return ONLY valid JSON with this exact schema:
             onMouseLeave={(e) => { if (canGenerate) e.currentTarget.style.background = T.amber; }}
           >
             <FileText size={15} />
-            {loading ? "Generating Report…" : "Generate ATI Full Report"}
+            {loading ? "Scoring 8 dimensions via LLM…" : "Generate ATI Full Report"}
           </button>
         </div>
 
@@ -499,12 +501,23 @@ Return ONLY valid JSON with this exact schema:
                 </div>
               )}
 
-              {/* Dimension scores */}
+              {/* Dimension scores — 8-dimension LLM analytics */}
               <div style={{ padding: "16px 22px", borderBottom: `0.5px solid ${T.border}` }}>
-                <Label style={{ marginBottom: "14px" }}>Dimension Scores · 15 pts each</Label>
-                {DIMS.map(d => (
-                  <DimRow key={d.key} label={d.label} score={result[d.key] || 0} reason={result.reasons?.[d.key]} />
-                ))}
+                <Label style={{ marginBottom: "14px" }}>Dimension Analytics · 8 Dimensions · LLM-Scored · 15 pts each</Label>
+                {DIMS.map(d => {
+                  const dimData = result.dimensions?.[d.key];
+                  return (
+                    <DimAnalyticsRow
+                      key={d.key}
+                      label={d.label}
+                      score={result[d.key] || 0}
+                      reason={result.reasons?.[d.key]}
+                      strengths={dimData?.strengths}
+                      risks={dimData?.risks}
+                      missing={dimData?.missing}
+                    />
+                  );
+                })}
               </div>
 
               {/* Executive summary */}

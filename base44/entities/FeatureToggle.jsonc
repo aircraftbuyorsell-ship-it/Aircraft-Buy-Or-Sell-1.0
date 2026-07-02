@@ -5,7 +5,7 @@
     "feature_name": {
       "type": "string",
       "maxLength": 100,
-      "description": "Unique feature identifier (e.g., 'escrow_v2', 'market_reports_ai')"
+      "description": "Unique feature identifier"
     },
     "status": {
       "type": "string",
@@ -21,7 +21,7 @@
     "enabled_for_tiers": {
       "type": "object",
       "default": {},
-      "description": "Per-tier status: {pro: true, enterprise: true, free_explorer: false}"
+      "description": "Per-tier status"
     },
     "is_beta": {
       "type": "boolean",
@@ -102,28 +102,46 @@
   ],
   "rls": {
     "create": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "update": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "super_admin"
-        ]
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
     },
     "delete": {
       "user_condition": {

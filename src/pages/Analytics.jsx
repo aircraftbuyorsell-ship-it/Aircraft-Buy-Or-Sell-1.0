@@ -1,14 +1,13 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   BarChart3, TrendingUp, TrendingDown, Minus, Plane, Database, Store, Cpu, Radar, Globe, AlertTriangle,
 } from "lucide-react";
-import { avgPriceByMonth, topModels, daysOnMarketByModel, priceDelta, summary } from "@/lib/analytics";
 import StatTile from "@/components/analytics/StatTile";
 import PriceTrendChart from "@/components/analytics/PriceTrendChart";
 import DaysOnMarketChart from "@/components/analytics/DaysOnMarketChart";
 import TopModelsTable from "@/components/analytics/TopModelsTable";
+import MarketInsightCard from "@/components/analytics/MarketInsightCard";
 import RocketMetrics from "@/components/dashboard/RocketMetrics";
 import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
 import FaaRegistryPanel from "@/components/dashboard/FaaRegistryPanel";
@@ -19,9 +18,14 @@ const GOLD = "#D4A017";
 export default function Analytics() {
   const isDark = useTheme();
 
-  const { data: listings = [], isLoading } = useQuery({
-    queryKey: ["analytics-listings"],
-    queryFn: () => base44.entities.AircraftListing.list("-created_date", 1000),
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ["market-analytics"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("computeMarketAnalytics", {});
+      return res.data || res;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: faaAircraft = [] } = useQuery({
@@ -51,22 +55,20 @@ export default function Analytics() {
   const faaDealersTotal = faaSummary?.faaDealersTotal || 12507;
   const faaEngineTotal = faaSummary?.faaEngineTotal || 4743;
 
-  const totalListings = listings.length;
-  const activeListings = listings.filter((l) => l.status === "active").length;
+  const sum = analytics?.summary || { total: 0, active: 0, sold: 0, avgAti: null, medianPrice: null };
+  const monthly = analytics?.monthly || [];
+  const models = analytics?.topModels || [];
+  const dom = analytics?.daysOnMarket || [];
+  const delta = analytics?.delta || null;
+
+  const totalListings = sum.total;
+  const activeListings = sum.active;
   const faaSynced = faaSummary?.abosFaaAircraftCount || faaAircraft.length;
   const dealerCount = dealers.length;
-  const matchedToFaa = listings.filter((l) => l.registration && /^N/i.test(l.registration)).length;
-  const avgAti = listings.length > 0
-    ? Math.round(listings.reduce((s, l) => s + (l.ati_score || 0), 0) / listings.length)
-    : 0;
-  const evaluated = listings.filter((l) => l.ati_score).length;
+  const matchedToFaa = faaAircraft.filter((f) => f.n_number).length;
+  const avgAti = sum.avgAti || 0;
+  const evaluated = faaAircraft.filter((f) => f.engine_mfr).length;
   const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
-
-  const monthly = useMemo(() => avgPriceByMonth(listings, 12), [listings]);
-  const models = useMemo(() => topModels(listings, 10), [listings]);
-  const dom = useMemo(() => daysOnMarketByModel(listings, 8), [listings]);
-  const delta = useMemo(() => priceDelta(monthly), [monthly]);
-  const sum = useMemo(() => summary(listings), [listings]);
 
   const deltaIcon = !delta ? Minus : delta.pct > 0 ? TrendingUp : delta.pct < 0 ? TrendingDown : Minus;
   const deltaColor = !delta
@@ -129,7 +131,6 @@ export default function Analytics() {
           >
             <DatabaseCharts
               faaAircraft={faaAircraft}
-              listings={listings}
               matchedCount={matchedToFaa}
               faaTotalRegistry={faaRegistryTotal}
               faaAcftrefTotal={faaAcftrefTotal}
@@ -209,8 +210,10 @@ export default function Analytics() {
             <TopModelsTable rows={models} isDark={isDark} />
           </div>
 
+          <MarketInsightCard isDark={isDark} />
+
           <p className="text-[10px] uppercase tracking-wider text-center pt-2" style={{ color: mutedColor }}>
-            Computed live from {sum.total.toLocaleString()} listings · updates with every new record
+            Computed {analytics?.cached ? "from cache" : "live"} from {sum.total.toLocaleString()} listings · {analytics?.cached ? "refreshes every 5 min" : "updates with every new record"}
           </p>
         </div>
       )}

@@ -82,13 +82,71 @@
       "type": "string",
       "enum": [
         "internal",
-        "escrow_com"
+        "escrow_com",
+        "stripe",
+        "usdc"
       ],
       "default": "internal"
     },
     "escrow_external_id": {
       "type": "string",
-      "description": "Escrow.com transaction ID"
+      "description": "Escrow.com transaction ID or Stripe session ID"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "usdc",
+        "internal"
+      ],
+      "default": "internal",
+      "description": "Payment method for escrow deposit"
+    },
+    "escrow_wallet_address": {
+      "type": "string",
+      "description": "Dedicated Ethereum wallet address for USDC deposits"
+    },
+    "escrow_wallet_encrypted_key": {
+      "type": "string",
+      "description": "AES-GCM encrypted private key for the escrow wallet"
+    },
+    "blockchain_tx_hash": {
+      "type": "string",
+      "description": "On-chain transaction hash for USDC deposit confirmation"
+    },
+    "usdc_amount_required": {
+      "type": "number",
+      "description": "USDC amount required to fund the escrow"
+    },
+    "usdc_amount_received": {
+      "type": "number",
+      "description": "USDC amount received on-chain"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "Stripe checkout session ID for escrow deposit"
+    },
+    "partner_id": {
+      "type": "string",
+      "relationType": "PartnerConfig",
+      "description": "Partner config for widget-originated transactions"
+    },
+    "partner_email": {
+      "type": "string",
+      "description": "Denormalized partner email for RLS"
+    },
+    "partner_revenue_share_pct": {
+      "type": "number",
+      "description": "Snapshot of partner revenue share percentage at transaction time"
+    },
+    "partner_revenue_share_amount": {
+      "type": "number",
+      "description": "Calculated ABOS revenue share amount"
+    },
+    "widget_origin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this transaction originated from a partner widget"
     },
     "inspection_date": {
       "type": "string",
@@ -125,6 +183,9 @@
           "data.broker_email": "{{user.email}}"
         },
         {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -143,6 +204,9 @@
           "data.broker_email": "{{user.email}}"
         },
         {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -159,6 +223,9 @@
         },
         {
           "data.broker_email": "{{user.email}}"
+        },
+        {
+          "data.partner_email": "{{user.email}}"
         },
         {
           "user_condition": {

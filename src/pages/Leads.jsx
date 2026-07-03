@@ -60,13 +60,18 @@ export default function Leads() {
     }
     const newBalance = Math.max(0, tokens - tokensNeeded);
     await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: newBalance });
-    await base44.entities.TokenTransaction.create({
-      user_email: behavior.user_email,
-      type: "consumption",
-      amount: -tokensNeeded,
-      feature,
-      balance_after: newBalance,
-    });
+    try {
+      await base44.entities.TokenTransaction.create({
+        user_email: behavior.user_email,
+        type: "consumption",
+        amount: -tokensNeeded,
+        feature,
+        balance_after: newBalance,
+      });
+    } catch (txErr) {
+      await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: tokens });
+      return false;
+    }
     queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
     return true;
   };
@@ -85,7 +90,9 @@ export default function Leads() {
   const handleBuyPack = async (pack) => {
     if (pack.id === "single") {
       const firstLocked = leads.find(l => !unlocked.has(l.id));
-      if (firstLocked) handleUnlockOne(firstLocked);
+      if (firstLocked) {
+        try { await handleUnlockOne(firstLocked); } catch (_) {}
+      }
       return;
     }
     const ok = await consumeCredits(pack.credits, `lead_pack_${pack.id}`);

@@ -75,6 +75,7 @@ export default function Escrow() {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["escrow-transactions"],
     queryFn: () => base44.entities.EscrowTransaction.list("-created_date", 200),
+    staleTime: 60_000,
   });
 
   const filtered = useMemo(() => transactions.filter(t => {

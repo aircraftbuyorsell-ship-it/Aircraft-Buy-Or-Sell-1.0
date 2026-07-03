@@ -28,6 +28,9 @@ const GLASS_INPUT = {
 
 const LABEL = { display: "block", fontSize: "9px", color: W3, marginBottom: 4, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" };
 
+const FONT_11PX = "11px -apple-system, sans-serif";
+const FONT_7PX = "7px -apple-system, sans-serif";
+
 const AIRCRAFT_TYPES = [
   { value: "", label: "All" },
   { value: "4", label: "Fixed Wing" },
@@ -121,6 +124,7 @@ export default function FAAMap() {
     setLoading(false);
   }, [filters]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchData(); }, []);
 
   // Canvas map rendering
@@ -163,12 +167,12 @@ export default function FAAMap() {
 
     // Count overlay
     ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "11px -apple-system, sans-serif";
+    ctx.font = FONT_11PX;
     ctx.fillText(`${totalCount.current.toLocaleString()} aircraft`, W - 160, H - 16);
 
     // States labels
     ctx.fillStyle = "rgba(255,255,255,0.15)";
-    ctx.font = "7px -apple-system, sans-serif";
+    ctx.font = FONT_7PX;
     for (const [st, [lat, lon]] of Object.entries(US_CENTROIDS)) {
       const x = usCenterX + ((lon + 125) / 59) * usW;
       const y = usCenterY + ((50 - lat) / 26) * usH;

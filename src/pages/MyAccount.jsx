@@ -92,8 +92,12 @@ export default function MyAccount() {
     queryKey: ["account-user", authUser?.email],
     enabled: !!authUser?.email,
     queryFn: async () => {
-      const users = await base44.entities.User.filter({ email: authUser.email }, "-created_date", 1);
-      return users[0] || null;
+      try {
+        const users = await base44.entities.User.filter({ email: authUser.email }, "-created_date", 1);
+        return users[0] || authUser;
+      } catch (_) {
+        return authUser;
+      }
     },
   });
 
@@ -116,6 +120,7 @@ export default function MyAccount() {
   const { data: escrows = [], isLoading: loadingEscrow } = useQuery({
     queryKey: ["my-escrow", authUser?.email],
     enabled: !!authUser?.email,
+    staleTime: 60_000,
     queryFn: async () => {
       const [buyer, seller, broker] = await Promise.all([
         base44.entities.EscrowTransaction.filter({ buyer_email: authUser.email }, "-created_date", 50),
@@ -207,7 +212,7 @@ export default function MyAccount() {
                       </span>
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full capitalize"
                         style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)" }}>
-                        {currentUser?.plan || "free"}
+                        {authUser?.tier || "free"}
                       </span>
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
                         style={{ background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.20)", color: "#D4A017" }}>
@@ -252,7 +257,7 @@ export default function MyAccount() {
             <div className="px-5 py-5">
               {isLoading ? (
                 <div className="h-10 bg-white/05 rounded animate-pulse" />
-              ) : currentUser?.plan === "pro" ? (
+              ) : (authUser?.tier === "pro" || authUser?.tier === "enterprise") ? (
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="w-5 h-5 text-[#D4A017]" />
                   <div>

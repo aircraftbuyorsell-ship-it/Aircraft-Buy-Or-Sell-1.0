@@ -38,8 +38,6 @@ function parseList(str) {
 function scoreColor(score) {
   if (score >= 108) return "#5dcaa5";
   if (score >= 90) return "#4e8ef7";
-  if (score >= 72) return "#f5c242";
-  if (score >= 54) return "#f5c242";
   if (score >= 36) return "#f5c242";
   return "#e24b4a";
 }

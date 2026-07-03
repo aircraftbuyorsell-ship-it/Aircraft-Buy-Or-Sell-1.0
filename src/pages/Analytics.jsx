@@ -67,7 +67,6 @@ export default function Analytics() {
   const dealerCount = dealers.length;
   const matchedToFaa = faaAircraft.filter((f) => f.n_number).length;
   const avgAti = sum.avgAti || 0;
-  const evaluated = faaAircraft.filter((f) => f.engine_mfr).length;
   const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
 
   const deltaIcon = !delta ? Minus : delta.pct > 0 ? TrendingUp : delta.pct < 0 ? TrendingDown : Minus;
@@ -115,7 +114,7 @@ export default function Analytics() {
           </p>
           <RocketMetrics
             metrics={[
-              { icon: Plane, label: "Aircraft Register", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${evaluated} ATI scored · avg ${avgAti}`, link: "/listings", color: "#f48120" },
+              { icon: Plane, label: "Aircraft Register", value: activeListings.toLocaleString(), sub: `${totalListings.toLocaleString()} total · ${engineEnriched} ATI scored · avg ${avgAti}`, link: "/listings", color: "#f48120" },
               { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: GOLD },
               { icon: Store, label: "Dealer Network", value: dealerCount.toLocaleString(), sub: `ABOS sync · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
               { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
@@ -198,7 +197,7 @@ export default function Analytics() {
               label="Average ATI Score"
               value={sum.avgAti ?? "—"}
               sub={sum.avgAti ? (sum.avgAti >= 85 ? "Strong market" : sum.avgAti >= 65 ? "Fair market" : "Caution") : "No scores yet"}
-              accent={sum.avgAti >= 85 ? "#5dcaa5" : sum.avgAti >= 65 ? GOLD : "#e24b4a"}
+              accent={sum.avgAti != null && sum.avgAti >= 85 ? "#5dcaa5" : sum.avgAti != null && sum.avgAti >= 65 ? GOLD : "#e24b4a"}
               isDark={isDark}
             />
           </div>

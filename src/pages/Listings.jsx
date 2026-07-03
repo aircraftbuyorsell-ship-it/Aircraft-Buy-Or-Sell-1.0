@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Search, SlidersHorizontal, X, RefreshCw } from "lucide-react";
 import { useBehavior, useAutoTrack } from "@/lib/useBehavior";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
@@ -29,7 +29,7 @@ export default function Listings() {
 
   const toggleSelect = (id) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   const clearSelection = () => setSelectedIds([]);
-  const selectAll = () => setSelectedIds(filtered.map((l) => l.id));
+  const selectAll = useCallback(() => setSelectedIds(filtered.map((l) => l.id)), [filtered]);
 
   useAutoTrack("listings");
   const { tokens, tier, isVerified, track } = useBehavior();

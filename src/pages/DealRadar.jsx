@@ -165,6 +165,7 @@ export default function DealRadar() {
     queryKey: ["deal-radar"],
     queryFn: () =>
       base44.entities.AircraftListing.filter({ status: "active" }, "-deal_score", 100),
+    staleTime: 60_000,
   });
 
   const dealsWithScore = useMemo(
@@ -183,7 +184,7 @@ export default function DealRadar() {
   const avg_discount = useMemo(() => {
     const w = dealsWithScore.filter((d) => d.discount_pct != null);
     if (!w.length) return null;
-    return Math.round(w.reduce((s, d) => s + d.discount_pct, 0) / w.length);
+    return Math.round(Math.abs(w.reduce((s, d) => s + d.discount_pct, 0) / w.length));
   }, [dealsWithScore]);
 
   const filtered = useMemo(() => {
@@ -217,7 +218,7 @@ export default function DealRadar() {
               </p>
             </div>
             <button
-              onClick={() => setHotOnly((v) => !v)}
+              onClick={() => setHotOnly((v) => { if (v) setMinScore(6.0); return !v; })}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-black transition-colors whitespace-nowrap ${
                 hotOnly ? "border-[#D4A017]" : "border-white/20"
               }`}
@@ -250,10 +251,10 @@ export default function DealRadar() {
             loading={isLoading}
           />
           <StatCard
-            label="Avg Savings"
+            label="Avg vs OMVM"
             value={isLoading || avg_discount == null ? null : `${avg_discount}%`}
             icon={BarChart2}
-            sub="below OMVM valuation"
+            sub="average % vs OMVM valuation"
             loading={isLoading}
           />
         </div>

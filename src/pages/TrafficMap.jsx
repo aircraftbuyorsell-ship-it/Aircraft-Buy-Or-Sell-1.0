@@ -48,7 +48,7 @@ export default function TrafficMap() {
       const res = await base44.functions.invoke("cachedTraffic", {
         region_key: WORLD.key,
         region_label: WORLD.label,
-        force_refresh: true,
+        force_refresh: force,
         limit: 1000,
         allow_heavy: true,
       });
@@ -67,7 +67,6 @@ export default function TrafficMap() {
 
   useEffect(() => {
     fetchTraffic(false);
-    loadSnapshots();
   }, []);
 
   const loadSnapshot = (snap) => {

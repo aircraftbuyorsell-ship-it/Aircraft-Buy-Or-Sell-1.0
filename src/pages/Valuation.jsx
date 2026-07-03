@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { ShieldCheck } from "lucide-react";
 import ValuationForm from "@/components/valuation/ValuationForm";
@@ -31,14 +31,7 @@ export default function Valuation() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
-
-  const hasPrefill = !!(readParam("make") || readParam("model"));
-
-  useEffect(() => {
-    if (hasPrefill && formData.make && formData.model) {
-      // Auto-trigger if URL params are present
-    }
-  }, []);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -55,10 +48,17 @@ export default function Valuation() {
       asking_price: toNumber(formData.asking_price),
     };
 
-    const response = await base44.functions.invoke("omvmV5Score", payload);
-    setResult(response.data);
-    setAircraft(payload);
-    setLoading(false);
+    try {
+      const response = await base44.functions.invoke("omvmV5Score", payload);
+      setResult(response.data);
+      setAircraft(payload);
+      setError(null);
+    } catch (e) {
+      setResult(null);
+      setError(e?.message || "Valuation failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,6 +84,11 @@ export default function Valuation() {
 
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <ValuationForm formData={formData} onChange={setFormData} onSubmit={handleSubmit} loading={loading} />
+          {error && (
+            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(226,75,74,0.10)", border: "0.5px solid rgba(226,75,74,0.22)", color: "#e24b4a" }}>
+              {error}
+            </div>
+          )}
           <ValuationReport result={result} aircraft={aircraft || formData} />
         </div>
       </div>

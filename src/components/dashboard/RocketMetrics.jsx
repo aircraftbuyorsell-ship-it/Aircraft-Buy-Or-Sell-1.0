@@ -1,38 +1,54 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const DISPLAY_MS = 4000; // how long each card stays visible
 
 /**
- * RocketMetrics — Core Platform dark rotating metric strip.
- * #111827 panel, no glassmorphism, accent trail.
+ * RocketMetrics — dark neon-pill rotating metric carousel.
+ * Auto-advances, pauses on hover, and supports click-to-jump dots.
  */
 export default function RocketMetrics({ metrics = [] }) {
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const trajectory = useRef({ entryY: 0, exitY: 0 });
 
-  const mutedColor = "rgba(255,255,255,0.45)";
+  // Guard: reset index if it falls outside the metrics range
+  useEffect(() => {
+    if (index >= metrics.length && metrics.length > 0) {
+      setIndex(0);
+    }
+  }, [index, metrics.length]);
 
   const advance = useCallback(() => {
     setIndex((i) => (i + 1) % metrics.length);
   }, [metrics.length]);
 
+  // Recompute trajectory once per index change (not during render)
   useEffect(() => {
-    if (metrics.length === 0) return;
+    trajectory.current = {
+      entryY: (Math.random() - 0.5) * 30,
+      exitY: (Math.random() - 0.5) * 30,
+    };
+  }, [index]);
+
+  useEffect(() => {
+    if (metrics.length === 0 || paused) return;
     const t = setTimeout(advance, DISPLAY_MS);
     return () => clearTimeout(t);
-  }, [index, metrics.length, advance]);
+  }, [index, metrics.length, paused, advance]);
 
   if (metrics.length === 0) return null;
 
   const m = metrics[index];
-
-  // Randomize entry trajectory slightly
-  const entryY = (Math.random() - 0.5) * 30;
-  const exitY = (Math.random() - 0.5) * 30;
+  const { entryY, exitY } = trajectory.current;
 
   return (
-    <div className="relative h-28 overflow-hidden flex items-center justify-center">
+    <div
+      className="relative h-28 overflow-hidden flex items-center justify-center"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -48,7 +64,7 @@ export default function RocketMetrics({ metrics = [] }) {
           }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <Link to={m.link} className="no-underline w-full max-w-md">
+          <Link to={m.link} className="no-underline w-full max-w-md" aria-label={`${m.label}: ${m.value}`}>
             <div
               className="rounded-full px-8 py-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer"
               style={{
@@ -67,19 +83,27 @@ export default function RocketMetrics({ metrics = [] }) {
                 {m.value}
               </p>
 
-              {/* Progress dots — bottom center */}
+              {/* Progress dots — bottom center, click to jump */}
               <div className="flex gap-1.5 mt-0.5">
                 {metrics.map((_, i) => (
-                  <div
+                  <button
                     key={i}
-                    className="rounded-full transition-all"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIndex(i);
+                    }}
+                    className="rounded-full transition-all cursor-pointer"
                     style={{
                       width: 5,
                       height: 5,
                       background: m.color,
                       opacity: i === index ? 1 : 0.25,
                       boxShadow: i === index ? `0 0 6px ${m.color}` : "none",
+                      border: "none",
+                      padding: 0,
                     }}
+                    aria-label={`Go to metric ${i + 1}`}
                   />
                 ))}
               </div>

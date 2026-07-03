@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import {
   RefreshCw, Database, Search, ChevronLeft, ChevronRight,
   Plane, FileCode, Store, Cpu, Download, ArrowRight,
-  AlertTriangle, CheckCircle2
+  AlertTriangle, CheckCircle2, CheckSquare, Square, X, Layers
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SupabaseProjectsPanel from "@/components/supabase/SupabaseProjectsPanel";
@@ -130,12 +130,78 @@ export default function SupabaseSync() {
   const [error, setError] = useState(null);
   const [perRowLoading, setPerRowLoading] = useState(null);
   const [perRowResult, setPerRowResult] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
 
   const table = TABLES.find((t) => t.id === activeTab) || TABLES[0];
+
+  const browseRows = data?.data || data?.sample || [];
+  const rowIdKey = table.rowActions[0]?.idField || "id";
+
+  const toggleRow = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const visibleIds = browseRows.map((r) => r[rowIdKey]);
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visibleIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        visibleIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const triggerBulkAction = async () => {
+    if (selectedIds.size === 0) return;
+    const action = table.rowActions[0];
+    if (!action) return;
+    setBulkLoading(true);
+    setBulkResult(null);
+    let success = 0;
+    let failed = 0;
+    for (const id of selectedIds) {
+      try {
+        await base44.functions.invoke("syncFaaFromSupabase", {
+          mode: action.mode,
+          [action.idField]: id,
+        });
+        success++;
+      } catch (_) {
+        failed++;
+      }
+    }
+    setBulkResult({ success, failed, total: selectedIds.size, action: action.label });
+    setBulkLoading(false);
+    clearSelection();
+    fetchSummary();
+  };
 
   // Auto-load summary on mount & tab change
   useEffect(() => {
     fetchSummary();
+  }, [activeTab]);
+
+  // Clear selection on tab change
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setBulkResult(null);
   }, [activeTab]);
 
   const fetchSummary = async () => {
@@ -276,6 +342,16 @@ export default function SupabaseSync() {
           </div>
         )}
 
+        {/* Bulk result toast */}
+        {bulkResult && (
+          <div className="rounded-xl px-4 py-3 text-sm flex items-center gap-2 bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5]">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span className="font-bold">{bulkResult.action}:</span>
+            {bulkResult.success} succeeded{bulkResult.failed > 0 ? `, ${bulkResult.failed} failed` : ""} of {bulkResult.total} selected
+            <button onClick={() => setBulkResult(null)} className="ml-auto text-[#5dcaa5]/60 hover:text-[#5dcaa5] font-bold text-[11px]">Dismiss</button>
+          </div>
+        )}
+
         {/* Stats strip */}
         <div className="flex items-center gap-4 flex-wrap">
           <StatPill label="Supabase Total" value={supabaseTotal} color={table.color} />
@@ -355,6 +431,13 @@ export default function SupabaseSync() {
               <table className="w-full text-[12px]">
                 <thead>
                   <tr className="text-left text-[rgba(255,255,255,0.35)] border-b border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)]">
+                    <th className="pb-2.5 pt-3 px-4 w-8">
+                      <button onClick={toggleSelectAll} className="text-[rgba(255,255,255,0.45)] hover:text-[#f5c242] transition-colors" aria-label="Select all visible rows">
+                        {browseRows.length > 0 && browseRows.every((r) => selectedIds.has(r[rowIdKey]))
+                          ? <CheckSquare className="w-4 h-4 text-[#f5c242]" />
+                          : <Square className="w-4 h-4" />}
+                      </button>
+                    </th>
                     {table.columns.map((col) => (
                       <th key={col.key} className="pb-2.5 pt-3 px-4 font-bold text-[10px] uppercase tracking-wider">{col.label}</th>
                     ))}
@@ -362,8 +445,16 @@ export default function SupabaseSync() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(data.data || data.sample || []).map((row, i) => (
-                    <tr key={row.n_number || row.code || row.cert_num || i} className="border-b border-[rgba(255,255,255,0.06)] hover:bg-[rgba(255,255,255,0.03)] transition-colors">
+                  {browseRows.map((row, i) => {
+                    const rowId = row[rowIdKey];
+                    const isSelected = selectedIds.has(rowId);
+                    return (
+                    <tr key={row.n_number || row.code || row.cert_num || i} className={`border-b border-[rgba(255,255,255,0.06)] transition-colors ${isSelected ? "bg-[rgba(245,194,66,0.05)]" : "hover:bg-[rgba(255,255,255,0.03)]"}`}>
+                      <td className="py-2.5 px-4">
+                        <button onClick={() => toggleRow(rowId)} className="text-[rgba(255,255,255,0.45)] hover:text-[#f5c242] transition-colors" aria-label={`Select row ${rowId}`}>
+                          {isSelected ? <CheckSquare className="w-4 h-4 text-[#f5c242]" /> : <Square className="w-4 h-4" />}
+                        </button>
+                      </td>
                       {table.columns.map((col) => {
                         let val = col.format ? col.format(row) : row[col.key];
                         if (val === undefined || val === null || val === "") val = "—";
@@ -416,7 +507,8 @@ export default function SupabaseSync() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -444,6 +536,33 @@ export default function SupabaseSync() {
                 Showing {(data.data || data.sample || []).length} of {data.total?.toLocaleString?.() || supabaseTotal?.toLocaleString?.() || "?"} {table.label} records
               </div>
             )}
+          </div>
+        )}
+
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div className="sticky bottom-4 z-20 mx-auto max-w-fit">
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl" style={{ background: "rgba(13,17,23,0.98)", border: "1px solid rgba(245,194,66,0.35)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+              <Layers className="w-4 h-4 text-[#f5c242] shrink-0" />
+              <span className="text-[12px] font-bold text-white whitespace-nowrap">
+                {selectedIds.size} selected
+              </span>
+              <button
+                onClick={triggerBulkAction}
+                disabled={bulkLoading}
+                className="text-[11px] font-black px-4 py-1.5 rounded-lg flex items-center gap-1.5 transition-all bg-[#f5c242] text-[#0d1117] hover:bg-[#f5bb4e] disabled:opacity-50"
+              >
+                {bulkLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                {bulkLoading ? "Processing..." : `${table.rowActions[0]?.label || "Run"} (All)`}
+              </button>
+              <button
+                onClick={clearSelection}
+                className="text-[rgba(255,255,255,0.40)] hover:text-white p-1 transition-colors"
+                aria-label="Clear selection"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
 

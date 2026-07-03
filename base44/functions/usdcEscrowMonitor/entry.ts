@@ -33,6 +33,14 @@ Deno.serve(async (req) => {
 
     if (action === 'check_balance') {
       if (!escrow_id) return Response.json({ error: 'escrow_id required' }, { status: 400 });
+
+      // Require either authenticated user or valid embed_token
+      const hasEmbedToken = !!embed_token;
+      if (!hasEmbedToken) {
+        const user = await base44.auth.me();
+        if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
       const tx = await base44.asServiceRole.entities.EscrowTransaction.get(escrow_id);
       if (!tx) return Response.json({ error: 'Transaction not found' }, { status: 404 });
       if (!tx.escrow_wallet_address) return Response.json({ error: 'No wallet address on transaction' }, { status: 400 });

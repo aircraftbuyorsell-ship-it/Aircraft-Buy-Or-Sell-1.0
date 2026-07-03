@@ -143,7 +143,7 @@ export default function SupabaseSync() {
     setError(null);
     try {
       const res = await base44.functions.invoke("syncFaaFromSupabase", { mode: table.summaryMode });
-      setData({ mode: table.summaryMode, ...res.data });
+      setData({ ...res.data, mode: table.summaryMode });
     } catch (err) {
       setError(err.message || "Failed to fetch");
     } finally {
@@ -154,6 +154,7 @@ export default function SupabaseSync() {
   const browseData = async (p = 1) => {
     setLoading(true);
     setError(null);
+    setData(null);
     setPage(p);
     try {
       const res = await base44.functions.invoke("syncFaaFromSupabase", {
@@ -162,7 +163,7 @@ export default function SupabaseSync() {
         pageSize: 50,
         search: search || undefined,
       });
-      setData({ mode: table.browseMode, ...res.data });
+      setData({ ...res.data, mode: table.browseMode });
     } catch (err) {
       setError(err.message || "Failed to browse");
     } finally {
@@ -295,7 +296,7 @@ export default function SupabaseSync() {
             </div>
             <button
               onClick={() => browseData(1)}
-              className="text-[11px] font-bold bg-[#4e8ef7] text-white px-4 py-2 rounded-lg hover:bg-[#4e8ef7] transition-colors"
+              className="text-[11px] font-bold bg-[#4e8ef7] text-white px-4 py-2 rounded-lg hover:bg-[#3d7ae0] transition-colors"
             >
               Search
             </button>
@@ -389,7 +390,7 @@ export default function SupabaseSync() {
                               key={action.mode}
                               onClick={() => triggerPerRowAction(row, action.mode, action.idField)}
                               disabled={perRowLoading === `${action.mode}:${row[action.idField]}`}
-                              className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.60)] hover:border-[#4e8ef7] hover:text-[#4e8ef7] hover:bg-[#4e8ef7]/04 transition-all flex items-center gap-1 disabled:opacity-40"
+                              className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.60)] hover:border-[#4e8ef7] hover:text-[#4e8ef7] hover:bg-[#4e8ef7]/5 transition-all flex items-center gap-1 disabled:opacity-40"
                             >
                               {perRowLoading === `${action.mode}:${row[action.idField]}` ? (
                                 <RefreshCw className="w-3 h-3 animate-spin" />
@@ -406,7 +407,7 @@ export default function SupabaseSync() {
                               <Link
                                 key={link.label}
                                 to={`${link.linkPrefix}${linked.id}`}
-                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[#5dcaa5]/20 text-[#5dcaa5] hover:bg-[#5dcaa5]/05 transition-all flex items-center gap-1"
+                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg border border-[#5dcaa5]/20 text-[#5dcaa5] hover:bg-[#5dcaa5]/5 transition-all flex items-center gap-1"
                               >
                                 {link.label} <ArrowRight className="w-3 h-3" />
                               </Link>
@@ -421,7 +422,7 @@ export default function SupabaseSync() {
             </div>
 
             {/* Empty state */}
-            {(!data.data && !data.sample) || (data.data?.length === 0 && data.sample?.length === 0) ? (
+            {(data.data || data.sample || []).length === 0 ? (
               <div className="py-12 text-center">
                 <Plane className="w-8 h-8 mx-auto mb-2 opacity-15" />
                 <p className="text-sm text-[rgba(255,255,255,0.35)]">

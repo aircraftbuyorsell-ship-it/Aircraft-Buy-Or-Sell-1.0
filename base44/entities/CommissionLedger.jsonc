@@ -5,7 +5,7 @@
     "ati_card": {
       "type": "string",
       "relationType": "ATICard",
-      "description": "Card the commission belongs to"
+      "description": "Card the commission belongs to (optional for widget transactions)"
     },
     "public_card_code": {
       "type": "string",
@@ -82,6 +82,15 @@
       "relationType": "Settlement",
       "description": "Settlement batch this entry belongs to"
     },
+    "partner_id": {
+      "type": "string",
+      "relationType": "PartnerConfig",
+      "description": "Partner config for widget-originated commission entries"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Denormalized partner name for display"
+    },
     "attribution_reason": {
       "type": "string",
       "description": "Why this payee won attribution (e.g. first_verified_source_locked)"
@@ -99,7 +108,6 @@
     }
   },
   "required": [
-    "ati_card",
     "role",
     "amount"
   ],
@@ -108,6 +116,9 @@
       "$or": [
         {
           "data.payee_email": "{{user.email}}"
+        },
+        {
+          "data.partner_id": "{{user.partner_id}}"
         },
         {
           "user_condition": {

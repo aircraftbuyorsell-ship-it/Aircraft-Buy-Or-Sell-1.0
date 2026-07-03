@@ -32,7 +32,7 @@ export default function RocketMetrics({ metrics = [] }) {
   const exitY = (Math.random() - 0.5) * 30;
 
   return (
-    <div className="relative h-16 overflow-hidden flex items-center justify-center">
+    <div className="relative h-28 overflow-hidden flex items-center justify-center">
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
@@ -50,47 +50,35 @@ export default function RocketMetrics({ metrics = [] }) {
         >
           <Link to={m.link} className="no-underline w-full max-w-md">
             <div
-              className="rounded-xl px-4 py-2.5 flex items-center gap-3 cursor-pointer"
+              className="rounded-full px-8 py-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer"
               style={{
-                background: "#111827",
-                border: "1px solid rgba(255,255,255,0.08)",
-                boxShadow: `0 1px 2px rgba(0,0,0,0.2), 0 0 0 1px ${m.color}20`,
+                background: "#1a1a1a",
+                border: `1.5px solid ${m.color}40`,
+                boxShadow: `0 0 24px ${m.color}30, 0 0 48px ${m.color}15, inset 0 0 12px rgba(0,0,0,0.5)`,
               }}
             >
-              {/* Accent trail on the left */}
-              <div
-                className="w-1 h-10 rounded-full shrink-0 animate-pulse"
-                style={{ background: m.color, boxShadow: `0 0 8px ${m.color}60` }}
-              />
+              {/* Label — top center */}
+              <p className="text-[9px] font-semibold tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.55)" }}>
+                {m.label}
+              </p>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <m.icon className="w-3.5 h-3.5 shrink-0" style={{ color: m.color }} />
-                  <p className="text-[8px] font-semibold tracking-wider uppercase" style={{ color: mutedColor }}>
-                    {m.label}
-                  </p>
-                </div>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <p className="text-sm font-black tracking-tight leading-none" style={{ color: m.color }}>
-                    {m.value}
-                  </p>
-                  <p className="text-[9px] leading-tight truncate" style={{ color: mutedColor }}>
-                    {m.sub}
-                  </p>
-                </div>
-              </div>
+              {/* Large value — center */}
+              <p className="text-2xl font-black tracking-tight leading-none" style={{ color: "#ffffff" }}>
+                {m.value}
+              </p>
 
-              {/* Progress dot indicator */}
-              <div className="flex gap-1 shrink-0">
+              {/* Progress dots — bottom center */}
+              <div className="flex gap-1.5 mt-0.5">
                 {metrics.map((_, i) => (
                   <div
                     key={i}
                     className="rounded-full transition-all"
                     style={{
-                      width: i === index ? 5 : 3,
-                      height: i === index ? 5 : 3,
-                      background: i === index ? m.color : mutedColor,
-                      opacity: i === index ? 1 : 0.3,
+                      width: 5,
+                      height: 5,
+                      background: m.color,
+                      opacity: i === index ? 1 : 0.25,
+                      boxShadow: i === index ? `0 0 6px ${m.color}` : "none",
                     }}
                   />
                 ))}

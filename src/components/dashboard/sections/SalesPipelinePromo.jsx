@@ -3,44 +3,44 @@ import { ArrowRight, ShieldCheck, FileText, Scale, PenTool, Flag } from "lucide-
 import SectionShell from "./SectionShell";
 
 const STEPS = [
-  { icon: ShieldCheck, label: "Digital Twin", desc: "Registry, ADS-B & engine data from a single N-Number", color: "#4e8ef7" },
-  { icon: FileText, label: "AI Document Review", desc: "Logbooks, damage history and AD/SB compliance", color: "#f5c242" },
-  { icon: Scale, label: "Valuation & Contract", desc: "OMVM pricing and auto-generated purchase agreement", color: "#a78bfa" },
-  { icon: PenTool, label: "E-Signatures & Escrow", desc: "Digital signing with Stripe or USDC escrow", color: "#5dcaa5" },
-  { icon: Flag, label: "Closing", desc: "Bill of Sale, registration transfer and handover", color: "#e2a44b" },
-];
+{ icon: ShieldCheck, label: "Digital Twin", desc: "Registry, ADS-B & engine data from a single N-Number", color: "#4e8ef7" },
+{ icon: FileText, label: "AI Document Review", desc: "Logbooks, damage history and AD/SB compliance", color: "#f5c242" },
+{ icon: Scale, label: "Valuation & Contract", desc: "OMVM pricing and auto-generated purchase agreement", color: "#a78bfa" },
+{ icon: PenTool, label: "E-Signatures ", desc: "Digital signing with Stripe or USDC escrow", color: "#5dcaa5" },
+{ icon: Flag, label: "Closing", desc: "Bill of Sale, registration transfer and handover", color: "#e2a44b" }];
+
 
 export default function SalesPipelinePromo() {
   return (
     <SectionShell
       eyebrow="Sales Pipeline · Autonomous"
       title="Sell an Aircraft End-to-End, in One Workflow"
-      subtitle="From Digital Twin verification to closing — AI handles document review, contracts and scheduling while you keep control of every milestone."
-    >
+      subtitle="From Digital Twin verification to closing — AI handles document review, contracts and scheduling while you keep control of every milestone.">
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        {STEPS.map((s, i) => (
-          <div key={s.label} className="relative rounded-xl p-4"
-            style={{ background: `${s.color}08`, border: `0.5px solid ${s.color}25` }}>
+        {STEPS.map((s, i) =>
+        <div key={s.label} className="relative rounded-xl p-4"
+        style={{ background: `${s.color}08`, border: `0.5px solid ${s.color}25` }}>
             <span className="absolute top-3 right-3 text-[10px] font-black" style={{ color: `${s.color}80` }}>
               {i + 1}
             </span>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
-              style={{ background: `${s.color}15` }}>
+          style={{ background: `${s.color}15` }}>
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
             <p className="text-[12px] font-bold text-[rgba(255,255,255,0.9)] mb-1">{s.label}</p>
             <p className="text-[10.5px] leading-relaxed text-[rgba(255,255,255,0.45)]">{s.desc}</p>
           </div>
-        ))}
+        )}
       </div>
 
       <div className="flex justify-center">
         <Link to="/sales-pipeline"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-black transition-transform hover:scale-[1.02]"
-          style={{ background: "#f5c242", color: "#04060a" }}>
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-black transition-transform hover:scale-[1.02]"
+        style={{ background: "#f5c242", color: "#04060a" }}>
           Start a Deal Pipeline <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    </SectionShell>
-  );
+    </SectionShell>);
+
 }

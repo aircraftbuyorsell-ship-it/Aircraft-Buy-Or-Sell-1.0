@@ -1,0 +1,117 @@
+{
+  "name": "EngineSpec",
+  "type": "object",
+  "properties": {
+    "engine_code": {
+      "type": "string",
+      "description": "FAA eng_mfr_mdl code (primary lookup key matching FAAAircraft.eng_mfr_mdl)"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Engine manufacturer (Lycoming, Continental, Pratt & Whitney, Rolls-Royce, etc.)"
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Engine model name (e.g. O-320-D2J, IO-540-AB1A, PT6A-42)"
+    },
+    "tbo_hours": {
+      "type": "number",
+      "description": "Official Time Between Overhaul in hours (from manufacturer)"
+    },
+    "tbo_years": {
+      "type": "number",
+      "description": "Calendar TBO in years (if applicable)"
+    },
+    "hp": {
+      "type": "number",
+      "description": "Rated horsepower (reciprocating engines)"
+    },
+    "thrust": {
+      "type": "string",
+      "description": "Rated thrust (turbine engines, e.g. '4600 lbf')"
+    },
+    "fuel_type": {
+      "type": "string",
+      "enum": [
+        "100LL",
+        "Jet-A",
+        "Jet-A1",
+        "Mogas",
+        "TS-A",
+        "Mixed"
+      ],
+      "description": "Primary fuel type"
+    },
+    "engine_type": {
+      "type": "string",
+      "enum": [
+        "Reciprocating",
+        "Turboprop",
+        "Turbofan",
+        "Turboshaft",
+        "Turbojet",
+        "Electric",
+        "Hybrid"
+      ],
+      "description": "Engine category"
+    },
+    "cylinders": {
+      "type": "number",
+      "description": "Number of cylinders (reciprocating engines)"
+    },
+    "compression_ratio": {
+      "type": "string",
+      "description": "Compression ratio (e.g. '8.5:1')"
+    },
+    "dry_weight": {
+      "type": "number",
+      "description": "Dry weight in lbs"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "faa_engine_table",
+        "manufacturer",
+        "admin_manual"
+      ],
+      "default": "faa_engine_table",
+      "description": "Where the TBO data was sourced from"
+    },
+    "verified_by_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether an admin has manually verified the TBO data"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "engine_code",
+    "manufacturer",
+    "model_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "name": "BrokerProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User ID of the broker"
+    },
+    "broker_id": {
+      "type": "string",
+      "description": "Unique ABOS broker identifier (ABOS-BKR-XXXX)"
+    },
+    "full_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email (matches ABOS user email for RLS)"
+    },
+    "license_number": {
+      "type": "string",
+      "description": "Broker/dealer license number"
+    },
+    "brokerage_name": {
+      "type": "string",
+      "description": "Brokerage or company name"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "verified_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Admin verification status"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_by_admin": {
+      "type": "string",
+      "description": "Admin email who verified"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "agreement_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total active broker agreements"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id",
+    "broker_id",
+    "full_name",
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

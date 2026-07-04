@@ -21,11 +21,11 @@ function normalizeReg(raw) {
 
 const PLACEHOLDERS = ["N-Number", "Registration", "Serial Number", "ATI ID", "Owner"];
 const STATS = [
-  { value: "312,845", label: "Aircraft" },
-  { value: "18,423", label: "ATI Passports" },
-  { value: "4,891", label: "Verified Listings" },
-  { value: "2,341", label: "Verified Dealers" },
-];
+{ value: "312,845", label: "Aircraft" },
+{ value: "280,000", label: "ATI Passports" },
+{ value: "4,891", label: "Verified Listings" },
+{ value: "2,341", label: "Verified Dealers" }];
+
 
 export default function HomeHeroSection() {
   const [query, setQuery] = useState("");
@@ -47,7 +47,7 @@ export default function HomeHeroSection() {
         charIdx++;
         setPlaceholder(full.slice(0, charIdx));
         if (charIdx === full.length) {
-          timeout = setTimeout(() => { isDeleting = true; type(); }, 1800);
+          timeout = setTimeout(() => {isDeleting = true;type();}, 1800);
           return;
         }
       } else {
@@ -95,7 +95,7 @@ export default function HomeHeroSection() {
           registration: data.aircraft.registration || fullReg,
           hex: data.aircraft.mode_s_hex,
           make: data.aircraft.make,
-          model: data.aircraft.model,
+          model: data.aircraft.model
         });
         if (photoRes.data?.photo_url) photo = photoRes.data;
       } catch (_) {}
@@ -104,9 +104,9 @@ export default function HomeHeroSection() {
       let passport = null;
       try {
         const [cards, passports] = await Promise.all([
-          base44.entities.ATICard.filter({ aircraft_registration: fullReg }, "-created_date", 1),
-          base44.entities.ATIPassport.filter({ registration: fullReg }, "-created_date", 1),
-        ]);
+        base44.entities.ATICard.filter({ aircraft_registration: fullReg }, "-created_date", 1),
+        base44.entities.ATIPassport.filter({ registration: fullReg }, "-created_date", 1)]
+        );
         atiCard = cards[0] || null;
         passport = passports[0] || null;
       } catch (_) {}
@@ -118,7 +118,7 @@ export default function HomeHeroSection() {
         photoLoading: false,
         listingMatch: data.listing || null,
         areaServices: data.areaServices?.byRole || null,
-        areaState: data.areaServices?.state || "",
+        areaState: data.areaServices?.state || ""
       });
     } catch (_) {
       setError("Failed to search registry. Please try again.");
@@ -129,35 +129,35 @@ export default function HomeHeroSection() {
   return (
     <section
       className="relative w-full"
-      style={{ height: "100vh", minHeight: "600px", overflow: "hidden" }}
-    >
+      style={{ height: "100vh", minHeight: "600px", overflow: "hidden" }}>
+      
       <HeroGlobe />
 
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)",
-        }}
-      />
+          "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)"
+        }} />
+      
 
       <div
         className="lg:hidden absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)",
-        }}
-      />
+          "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)"
+        }} />
+      
 
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)",
+          "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
-          opacity: 0.06,
-        }}
-      />
+          opacity: 0.06
+        }} />
+      
 
       {/* n8n-style left-aligned hero layout */}
       <div className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-8">
@@ -167,25 +167,25 @@ export default function HomeHeroSection() {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
               style={{
                 background: "rgba(245,194,66,0.09)",
-                border: "0.5px solid rgba(245,194,66,0.22)",
-              }}
-            >
+                border: "0.5px solid rgba(245,194,66,0.22)"
+              }}>
+              
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ background: "#f5c242" }}
-              />
+                style={{ background: "#f5c242" }} />
+              
               <span
                 className="text-[10px] font-bold tracking-[0.16em] uppercase"
-                style={{ color: "#f5c242" }}
-              >
+                style={{ color: "#f5c242" }}>
+                
                 Global Aviation Intelligence Platform
               </span>
             </div>
 
             <h1
               className="tracking-[-0.03em] leading-[1.04] text-white mb-6"
-              style={{ fontSize: "clamp(36px, 5.5vw, 62px)", fontWeight: 500 }}
-            >
+              style={{ fontSize: "clamp(36px, 5.5vw, 62px)", fontWeight: 500 }}>
+              
               Aircraft identity &amp; deals
               <br />
               you can <span style={{ color: "#f5c242", fontWeight: 700 }}>see and trust</span>
@@ -196,8 +196,8 @@ export default function HomeHeroSection() {
               <Link
                 to="/sales-pipeline"
                 className="px-6 py-3 rounded-xl text-[13px] font-bold transition-all hover:scale-[1.02]"
-                style={{ background: "#f5c242", color: "#04060a", textDecoration: "none" }}
-              >
+                style={{ background: "#f5c242", color: "#04060a", textDecoration: "none" }}>
+                
                 Start a sales pipeline
               </Link>
               <Link
@@ -207,9 +207,9 @@ export default function HomeHeroSection() {
                   background: "rgba(255,255,255,0.05)",
                   border: "0.5px solid rgba(255,255,255,0.14)",
                   color: "rgba(255,255,255,0.85)",
-                  textDecoration: "none",
-                }}
-              >
+                  textDecoration: "none"
+                }}>
+                
                 Browse listings
               </Link>
             </div>
@@ -226,14 +226,14 @@ export default function HomeHeroSection() {
                   background: "rgba(255,255,255,0.04)",
                   border: "0.5px solid rgba(245,194,66,0.22)",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                  height: 56,
-                }}
-              >
+                  height: 56
+                }}>
+                
                 <div className="flex items-center pl-4 pr-2">
                   <Search
                     className="w-4 h-4"
-                    style={{ color: "rgba(245,194,66,0.60)" }}
-                  />
+                    style={{ color: "rgba(245,194,66,0.60)" }} />
+                  
                 </div>
                 <input
                   ref={inputRef}
@@ -246,29 +246,29 @@ export default function HomeHeroSection() {
                   style={{
                     color: "#fff",
                     background: "transparent !important",
-                    border: "none !important",
-                  }}
-                />
+                    border: "none !important"
+                  }} />
+                
                 <button
                   onClick={search}
                   disabled={searching || !normalizeReg(query)}
                   className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
-                  style={{ background: "#f5c242", color: "#04060a" }}
-                >
-                  {searching ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
+                  style={{ background: "#f5c242", color: "#04060a" }}>
+                  
+                  {searching ?
+                  <Loader2 className="w-4 h-4 animate-spin" /> :
+
+                  <>
                       Search <ArrowRight className="w-3.5 h-3.5" />
                     </>
-                  )}
+                  }
                 </button>
               </div>
-              {error && (
-                <p className="text-[11px] text-red-400 mt-2 text-left pl-1">
+              {error &&
+              <p className="text-[11px] text-red-400 mt-2 text-left pl-1">
                   {error}
                 </p>
-              )}
+              }
             </div>
 
             {/* Trusted-by strip — n8n style bottom row */}
@@ -277,8 +277,8 @@ export default function HomeHeroSection() {
                 <span className="text-[11px] leading-snug max-w-[190px]" style={{ color: "rgba(255,255,255,0.40)" }}>
                   The global aircraft identity &amp; sales network
                 </span>
-                {STATS.map((s) => (
-                  <div key={s.label} className="flex items-baseline gap-1.5">
+                {STATS.map((s) =>
+                <div key={s.label} className="flex items-baseline gap-1.5">
                     <span className="text-[16px] sm:text-[19px] font-black tabular-nums" style={{ color: "#f5c242" }}>
                       {s.value}
                     </span>
@@ -286,7 +286,7 @@ export default function HomeHeroSection() {
                       {s.label}
                     </span>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -301,24 +301,24 @@ export default function HomeHeroSection() {
           className="w-[1px] h-8"
           style={{
             background:
-              "linear-gradient(180deg, rgba(245,194,66,0.4), transparent)",
-          }}
-        />
+            "linear-gradient(180deg, rgba(245,194,66,0.4), transparent)"
+          }} />
+        
       </div>
 
-      {overlayData && (
-        <RegistryResultOverlay
-          result={overlayData.result}
-          atiCard={overlayData.atiCard}
-          passport={overlayData.passport}
-          photo={overlayData.photo}
-          photoLoading={overlayData.photoLoading}
-          listingMatch={overlayData.listingMatch}
-          areaServices={overlayData.areaServices}
-          areaState={overlayData.areaState}
-          onClose={() => setOverlayData(null)}
-        />
-      )}
-    </section>
-  );
+      {overlayData &&
+      <RegistryResultOverlay
+        result={overlayData.result}
+        atiCard={overlayData.atiCard}
+        passport={overlayData.passport}
+        photo={overlayData.photo}
+        photoLoading={overlayData.photoLoading}
+        listingMatch={overlayData.listingMatch}
+        areaServices={overlayData.areaServices}
+        areaState={overlayData.areaState}
+        onClose={() => setOverlayData(null)} />
+
+      }
+    </section>);
+
 }

@@ -7,6 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
+import ATICardBlock from "@/components/dashboard/ATICardBlock";
 
 const ROLE_ICONS = { dealer: ShoppingCart, broker: Building, fbo: MapPin, maintenance: Wrench, other: Cog };
 const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", maintenance: "maintenance shops", other: "services" };
@@ -21,7 +22,7 @@ const FAA_STATUS_STYLE = {
 
 export default function RegistryResultOverlay({
   result, photo, photoLoading, listingMatch, areaServices, areaState,
-  userProfile, onClose,
+  atiCard, passport, userProfile, onClose,
 }) {
   const isDark = useTheme();
   const [adstcUnlocked, setAdstcUnlocked] = useState(false);
@@ -167,8 +168,11 @@ export default function RegistryResultOverlay({
             </span>
           </div>
 
+          {/* ── ABOS ATI Card identity + Sales Pipeline CTA ── */}
+          <ATICardBlock registration={result.registration} atiCard={atiCard} passport={passport} />
+
           {/* ── Aircraft photo ── */}
-          {(photoLoading || photo) && (
+          {(photoLoading || photo || atiCard?.image_attachments?.[0]) && (
             <div className="relative w-full rounded-2xl overflow-hidden"
               style={{ aspectRatio: "16/9", background: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.04)", border: cardBorder }}>
               {photoLoading ? (
@@ -198,6 +202,14 @@ export default function RegistryResultOverlay({
                       © {photo.photographer}
                     </span>
                   )}
+                </>
+              ) : atiCard?.image_attachments?.[0] ? (
+                <>
+                  <img src={atiCard.image_attachments[0]} alt={result.registration} className="w-full h-full object-cover" />
+                  <span className="absolute bottom-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
+                    style={{ background: "rgba(212,160,23,0.85)", color: "#fff" }}>
+                    Owner Uploaded
+                  </span>
                 </>
               ) : null}
             </div>

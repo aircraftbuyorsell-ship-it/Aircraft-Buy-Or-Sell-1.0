@@ -98,8 +98,21 @@ export default function HomeHeroSection() {
         });
         if (photoRes.data?.photo_url) photo = photoRes.data;
       } catch (_) {}
+      // ABOS ATI Card + passport lookup (public data)
+      let atiCard = null;
+      let passport = null;
+      try {
+        const [cards, passports] = await Promise.all([
+          base44.entities.ATICard.filter({ aircraft_registration: fullReg }, "-created_date", 1),
+          base44.entities.ATIPassport.filter({ registration: fullReg }, "-created_date", 1),
+        ]);
+        atiCard = cards[0] || null;
+        passport = passports[0] || null;
+      } catch (_) {}
       setOverlayData({
         result: { ...data.aircraft, _origin: data.origin_label, _source: data.source },
+        atiCard,
+        passport,
         photo,
         photoLoading: false,
         listingMatch: data.listing || null,
@@ -284,6 +297,8 @@ export default function HomeHeroSection() {
       {overlayData && (
         <RegistryResultOverlay
           result={overlayData.result}
+          atiCard={overlayData.atiCard}
+          passport={overlayData.passport}
           photo={overlayData.photo}
           photoLoading={overlayData.photoLoading}
           listingMatch={overlayData.listingMatch}

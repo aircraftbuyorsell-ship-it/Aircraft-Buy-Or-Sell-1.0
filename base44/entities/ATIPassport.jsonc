@@ -5,7 +5,24 @@
     "listing": {
       "type": "string",
       "relationType": "AircraftListing",
-      "description": "Related aircraft listing"
+      "description": "Related aircraft listing (optional \u2014 Digital Twin can exist without a listing)"
+    },
+    "faa_aircraft_id": {
+      "type": "string",
+      "relationType": "FAAAircraft",
+      "description": "Direct link to FAA registry record (Digital Twin anchor \u2014 decoupled from Listing)"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (N-Number or international marking) \u2014 primary Digital Twin identifier"
+    },
+    "icao_hex": {
+      "type": "string",
+      "description": "ICAO 24-bit hex address (ADS-B identifier)"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Aircraft serial number"
     },
     "triggered_by": {
       "type": "string",
@@ -89,6 +106,13 @@
       "type": "string",
       "maxLength": 2000
     },
+    "data_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Federated provider skip logs (e.g. 'Engine spec not mapped for code: 17026')"
+    },
     "deal_radar_eligible": {
       "type": "boolean"
     },
@@ -121,20 +145,16 @@
       "default": "v2"
     },
     "live_market_avg": {
-      "type": "number",
-      "description": "Live/cached market average price from ABOS Market Intelligence feed"
+      "type": "number"
     },
     "live_min_price": {
-      "type": "number",
-      "description": "Live/cached market minimum price"
+      "type": "number"
     },
     "live_max_price": {
-      "type": "number",
-      "description": "Live/cached market maximum price"
+      "type": "number"
     },
     "live_listings_count": {
-      "type": "number",
-      "description": "Number of live market listings found for this aircraft type"
+      "type": "number"
     },
     "market_data_source": {
       "type": "string",
@@ -142,18 +162,71 @@
         "live",
         "cached",
         "none"
-      ],
-      "description": "Whether market data came from live API, cache fallback, or was unavailable"
+      ]
     },
     "stripe_payment_id": {
       "type": "string"
     },
     "pdf_url": {
       "type": "string"
+    },
+    "broker_id": {
+      "type": "string",
+      "description": "User ID of the assigned broker (after agreement is signed)"
+    },
+    "broker_agreement_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "pending",
+        "active"
+      ],
+      "default": "none",
+      "description": "Broker agreement lifecycle status"
+    },
+    "agreement_doc_url": {
+      "type": "string",
+      "description": "Signed broker agreement PDF URL"
+    },
+    "broker_signed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "owner_signed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_for_sale": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this aircraft has an active marketplace listing"
+    },
+    "engine_spec_id": {
+      "type": "string",
+      "relationType": "EngineSpec",
+      "description": "Linked engine specification (TBO, HP, fuel type)"
+    },
+    "engine_tbo_hours": {
+      "type": "number",
+      "description": "Denormalized TBO from EngineSpec for quick access"
+    },
+    "engine_remaining_pct": {
+      "type": "number",
+      "description": "Engine life remaining percentage (if engine_hours and TBO are known)"
+    },
+    "twin_initialized_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the Digital Twin was first created"
+    },
+    "twin_last_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When federated data was last refreshed"
     }
   },
   "required": [
-    "listing"
+    "registration"
   ],
   "rls": {
     "create": {
@@ -174,6 +247,9 @@
           "data.triggered_by": "{{user.id}}"
         },
         {
+          "data.broker_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -184,6 +260,9 @@
       "$or": [
         {
           "data.triggered_by": "{{user.id}}"
+        },
+        {
+          "data.broker_id": "{{user.id}}"
         },
         {
           "user_condition": {

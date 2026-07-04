@@ -2,17 +2,17 @@ import { BarChart3, Clock, Eye, Globe2, MessageSquare, ShieldCheck, TrendingUp, 
 import { C } from "@/theme/community";
 
 const METRICS = [
-  { label: "Total Members", value: "270,928", note: "100+ countries", icon: Users },
-  { label: "12-Month Views", value: "10.65M", note: "Premium aviation reach", icon: Eye },
-  { label: "Avg Daily Views", value: "29,259", note: "Consistent buyer attention", icon: TrendingUp },
-  { label: "Posts / Year", value: "9,287", note: "Active marketplace flow", icon: MessageSquare },
+  { label: "Total Members", value: "274,021", note: "100+ countries", icon: Users },
+  { label: "12-Month Views", value: "11.33M", note: "Premium aviation reach", icon: Eye },
+  { label: "Avg Daily Views", value: "31,119", note: "Consistent buyer attention", icon: TrendingUp },
+  { label: "Posts / Year", value: "9,840", note: "Active marketplace flow", icon: MessageSquare },
 ];
 
 const AUDIENCE = [
-  { label: "United States", value: "111,689 members", pct: "41.2%" },
-  { label: "Canada", value: "12,229 members", pct: "4.5%" },
-  { label: "India", value: "9,386 members", pct: "3.5%" },
-  { label: "South Africa", value: "9,225 members", pct: "3.4%" },
+  { label: "United States", value: "114,395 members", pct: "41.7%" },
+  { label: "Canada", value: "12,519 members", pct: "4.6%" },
+  { label: "India", value: "9,370 members", pct: "3.4%" },
+  { label: "South Africa", value: "9,235 members", pct: "3.4%" },
 ];
 
 export default function CommunityInsights() {
@@ -25,7 +25,7 @@ export default function CommunityInsights() {
             <h2 className="mt-1 text-2xl font-black tracking-[-0.05em] md:text-3xl" style={{ color: C.text }}>Community reach advertisers can buy into</h2>
           </div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-[11px] font-bold" style={{ border: `1px solid ${C.borderMd}`, color: C.goldLight }}>
-            <Clock className="h-3.5 w-3.5" /> Data: May 2025 – May 2026
+            <Clock className="h-3.5 w-3.5" /> Data: Jul 2025 – Jul 2026
           </div>
         </div>
 

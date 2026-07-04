@@ -6,6 +6,7 @@ import { Search, Sparkles, ArrowLeft, RefreshCw } from "lucide-react";
 import { getTemplate, detectAircraftClass } from "@/lib/salesBlueprints";
 import CommandCard from "@/components/pipeline/CommandCard";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
+import PipelineSchema from "@/components/pipeline/PipelineSchema";
 
 export default function SalesPipeline() {
   const { registration: urlReg } = useParams();
@@ -212,6 +213,16 @@ export default function SalesPipeline() {
                 <p className="text-[#e24b4a] text-[12px] mt-3">{error}</p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Visual schema — shown on the start screen */}
+        {!normalizedReg && (
+          <div className="mt-4">
+            <p className="text-center text-[11px] uppercase tracking-[0.2em] font-black text-[rgba(255,255,255,0.35)] mb-3">
+              Jak pipeline funguje
+            </p>
+            <PipelineSchema />
           </div>
         )}
 

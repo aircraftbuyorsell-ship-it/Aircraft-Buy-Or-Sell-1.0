@@ -1,7 +1,7 @@
 // Generate a paid market report with macro/political/regional depth + personalization + prediction tracking.
 // Token cost: hourly=2, daily=5, weekly=10, monthly=20
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const SCOPE_COSTS = { hourly: 2, daily: 5, weekly: 10, monthly: 20 };
 const SCOPE_LABEL = {
@@ -217,10 +217,21 @@ Return strict JSON only.`;
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const body = await req.json();
+    // Detect scheduled automation context (no user auth).
+    // System-generated reports are free — no token charge.
+    let user = null;
+    let isScheduled = false;
+    try {
+      user = await base44.auth.me();
+    } catch (_) {
+      isScheduled = true;
+    }
+    if (!user && !isScheduled) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
     const { scope = "daily", filters = {} } = body;
 
     if (!SCOPE_COSTS[scope]) {
@@ -228,17 +239,21 @@ Deno.serve(async (req) => {
     }
 
     const cost = SCOPE_COSTS[scope];
+    const userEmail = user?.email || "system@abos-marketspace.com";
 
     // Cache check (skipped for personalized reports)
     const cached = await findFreshCachedReport(base44, scope, filters);
     if (cached) {
-      const balanceNow = await getBalance(base44, user.email);
+      const balanceNow = isScheduled ? 0 : await getBalance(base44, userEmail);
       return Response.json({ report: cached, balance: balanceNow, cost: 0, cached: true });
     }
 
-    const balance = await getBalance(base44, user.email);
-    if (balance < cost) {
-      return Response.json({ error: "Insufficient tokens", required: cost, balance }, { status: 402 });
+    // Token check — only for user-driven requests (not scheduled system runs)
+    if (!isScheduled) {
+      const balance = await getBalance(base44, userEmail);
+      if (balance < cost) {
+        return Response.json({ error: "Insufficient tokens", required: cost, balance }, { status: 402 });
+      }
     }
 
     const [appConfig, snapshot] = await Promise.all([
@@ -249,17 +264,22 @@ Deno.serve(async (req) => {
     const freezeAbosData = appConfig.freezeAbosDataInfluence === true;
     const narrative = await generateNarrative(base44, scope, snapshot, filters, freezeAbosData);
 
-    const newBalance = balance - cost;
-    await base44.asServiceRole.entities.TokenTransaction.create({
-      user_email: user.email,
-      type: "consumption",
-      amount: -cost,
-      feature: `market_report_${scope}`,
-      balance_after: newBalance,
-    });
+    // Token deduction — only for user-driven requests
+    let newBalance = 0;
+    if (!isScheduled) {
+      const balance = await getBalance(base44, userEmail);
+      newBalance = balance - cost;
+      await base44.asServiceRole.entities.TokenTransaction.create({
+        user_email: userEmail,
+        type: "consumption",
+        amount: -cost,
+        feature: `market_report_${scope}`,
+        balance_after: newBalance,
+      });
+    }
 
     const report = await base44.asServiceRole.entities.MarketReport.create({
-      user_email: user.email,
+      user_email: userEmail,
       scope,
       title: narrative.title || SCOPE_LABEL[scope],
       overall_sentiment: narrative.overall_sentiment,
@@ -281,8 +301,9 @@ Deno.serve(async (req) => {
     return Response.json({
       report,
       balance: newBalance,
-      cost,
+      cost: isScheduled ? 0 : cost,
       cached: false,
+      scheduled: isScheduled,
       abos_data_frozen: freezeAbosData,
       freeze_message: freezeAbosData ? appConfig.abosDataFreezeMessage : null,
     });

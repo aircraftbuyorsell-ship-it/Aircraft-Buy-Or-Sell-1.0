@@ -29,17 +29,19 @@ export default function PipelineNodeCanvas({ pipeline, passport }) {
       <div className="relative w-full" style={{ height: 320 }}>
 
         {/* Connections layer */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {nodes.map(n => (
-            <g key={n.id}>
-              <path d={elbowPath(n.x, n.y)} fill="none" stroke="rgba(255,255,255,0.12)"
-                strokeWidth="0.35" strokeDasharray="1.4 1.4" vectorEffect="non-scaling-stroke" />
-              <circle r="0.9" fill={n.color} opacity="0.9">
-                <animateMotion dur={`${3 + (n.x % 3)}s`} repeatCount="indefinite" path={elbowPath(n.x, n.y)} />
-              </circle>
-            </g>
-          ))}
-        </svg>
+        <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black -z-10">
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {nodes.map(n => (
+              <g key={n.id}>
+                <path d={elbowPath(n.x, n.y)} fill="none" stroke="rgba(255,255,255,0.12)"
+                  strokeWidth="0.35" strokeDasharray="1.4 1.4" vectorEffect="non-scaling-stroke" />
+                <circle r="0.9" fill={n.color} opacity="0.9">
+                  <animateMotion dur={`${3 + (n.x % 3)}s`} repeatCount="indefinite" path={elbowPath(n.x, n.y)} />
+                </circle>
+              </g>
+            ))}
+          </svg>
+        </div>
 
         {/* Central hub node */}
         <div className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"

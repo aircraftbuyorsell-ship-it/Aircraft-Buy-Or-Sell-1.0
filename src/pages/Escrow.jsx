@@ -108,7 +108,7 @@ export default function Escrow() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase" style={{ color: W1 }}>
-              Escrow & Hustle Contracts
+              Decentralized Transaction Options
             </h1>
             <p className="text-sm mt-0.5" style={{ color: W2 }}>
               Lock in finder's fee %, secure funds, protect every professional in the deal.

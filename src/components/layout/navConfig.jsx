@@ -92,7 +92,7 @@ export const NAV_TREE = [
         label: "Deal Flow",
         items: [
           { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
-          { path: "/escrow", label: "Escrow", icon: Landmark },
+          { path: "/escrow", label: "Decentralized Transactions", icon: Landmark },
           { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
           { path: "/leads", label: "Leads", icon: Users },
         ],

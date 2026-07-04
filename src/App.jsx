@@ -80,6 +80,7 @@ import DigitalTwin from "./pages/DigitalTwin";
 import IntegrationKit from "./pages/IntegrationKit";
 import Experts from "./pages/Experts";
 import SalesPipeline from "./pages/SalesPipeline";
+import Workflows from "./pages/Workflows";
 import Skills from "./pages/Skills";
 import IPNotice from "./pages/IPNotice";
 
@@ -181,6 +182,7 @@ const AuthenticatedApp = () => {
         <Route path="/skills" element={<Skills />} />
         <Route path="/sales-pipeline" element={<SalesPipeline />} />
         <Route path="/sales-pipeline/:registration" element={<SalesPipeline />} />
+        <Route path="/workflows" element={<Workflows />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

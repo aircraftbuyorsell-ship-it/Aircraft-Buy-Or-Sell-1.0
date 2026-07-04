@@ -1,0 +1,107 @@
+{
+  "name": "Workflow",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Workflow display name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "entity",
+        "connector",
+        "in_app_agent"
+      ],
+      "description": "Workflow trigger type"
+    },
+    "function_name": {
+      "type": "string",
+      "description": "Backend function executed by this workflow"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "error",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "schedule_label": {
+      "type": "string",
+      "description": "Human-readable schedule (e.g. 'Every Monday 9am', 'On every Lead create')"
+    },
+    "trigger_label": {
+      "type": "string",
+      "description": "Human-readable trigger description"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Entity watched (for entity workflows)"
+    },
+    "last_run_status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "null",
+        "running"
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "description": "Lucide icon name for display"
+    },
+    "color": {
+      "type": "string",
+      "description": "Accent color hex for the workflow card"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 100
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "function_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

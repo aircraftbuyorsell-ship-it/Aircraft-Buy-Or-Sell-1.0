@@ -585,6 +585,50 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── MODE: enginespec_sync ── populate EngineSpec registry from faa_engine table
+    if (currentMode === 'enginespec_sync') {
+      const { data: rows, error: syncErr } = await supabaseAdmin
+        .from('faa_engine').select('*').limit(10000);
+      if (syncErr) return Response.json({ error: syncErr.message }, { status: 500 });
+
+      const typeMap = { '1': 'Reciprocating', '2': 'Turboprop', '3': 'Turboshaft', '5': 'Turbojet', '6': 'Turbofan', '8': 'Electric' };
+
+      const existing = await base44.asServiceRole.entities.EngineSpec.filter({}, '-created_date', 10000);
+      const existingByCode = new Map(existing.map(e => [e.engine_code, e]));
+
+      const toCreate = [];
+      let specSkipped = 0;
+      for (const r of (rows || [])) {
+        const code = r.code?.trim();
+        if (!code || existingByCode.has(code)) { specSkipped++; continue; }
+        toCreate.push({
+          engine_code: code,
+          manufacturer: r.mfr || 'Unknown',
+          model_name: r.model || code,
+          hp: r.horsepower ? Number(r.horsepower) || null : null,
+          thrust: r.thrust ? String(r.thrust) : null,
+          engine_type: typeMap[String(r.type || '').trim()] || null,
+          source: 'faa_engine_table',
+          verified_by_admin: false,
+        });
+      }
+      let specCreated = 0;
+      // bulkCreate in chunks of 500
+      for (let i = 0; i < toCreate.length; i += 500) {
+        const chunk = toCreate.slice(i, i + 500);
+        await base44.asServiceRole.entities.EngineSpec.bulkCreate(chunk);
+        specCreated += chunk.length;
+      }
+
+      return Response.json({
+        mode: 'enginespec_sync',
+        totalSourceRows: rows?.length || 0,
+        created: specCreated,
+        skippedExisting: specSkipped,
+        note: 'TBO hours must be enriched from manufacturer data or admin manual entry',
+      });
+    }
+
     // ── MODE: registry_import_single ──
     if (currentMode === 'registry_import_single') {
       const { n_number } = await req.json().catch(() => ({}));

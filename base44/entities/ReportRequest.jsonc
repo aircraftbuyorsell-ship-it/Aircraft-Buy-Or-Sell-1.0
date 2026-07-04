@@ -1,0 +1,72 @@
+{
+  "name": "ReportRequest",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (N-Number) for the requested report"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email of the requester (email-first funnel, no account required)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "email_captured",
+        "pending_payment",
+        "paid",
+        "delivered",
+        "failed"
+      ],
+      "default": "email_captured",
+      "description": "Funnel status"
+    },
+    "price_eur": {
+      "type": "number",
+      "default": 29
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "passport_id": {
+      "type": "string",
+      "relationType": "ATIPassport",
+      "description": "Digital Twin passport this report covers"
+    },
+    "pdf_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivery_error": {
+      "type": "string",
+      "maxLength": 500
+    }
+  },
+  "required": [
+    "registration",
+    "email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

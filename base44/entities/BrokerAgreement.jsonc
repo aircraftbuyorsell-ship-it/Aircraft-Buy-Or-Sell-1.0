@@ -1,0 +1,147 @@
+{
+  "name": "BrokerAgreement",
+  "type": "object",
+  "properties": {
+    "passport_id": {
+      "type": "string",
+      "relationType": "ATIPassport",
+      "description": "Digital Twin passport this agreement covers"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration"
+    },
+    "aircraft_label": {
+      "type": "string",
+      "description": "Human readable aircraft summary (year make model)"
+    },
+    "broker_id": {
+      "type": "string",
+      "description": "User ID of the broker"
+    },
+    "broker_name": {
+      "type": "string"
+    },
+    "broker_email": {
+      "type": "string"
+    },
+    "broker_license": {
+      "type": "string",
+      "description": "ABOS broker ID / license number"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Registered owner name from FAA registry"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Owner email for signature request"
+    },
+    "exclusivity_days": {
+      "type": "number",
+      "default": 90
+    },
+    "commission_pct": {
+      "type": "number",
+      "default": 2
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "broker_signed",
+        "fully_signed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "broker_signature": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string"
+        }
+      },
+      "description": "Broker e-signature audit record (name + user ID + timestamp)"
+    },
+    "owner_signature": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string"
+        }
+      },
+      "description": "Owner e-signature audit record"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "Generated agreement PDF URL"
+    }
+  },
+  "required": [
+    "registration",
+    "broker_id",
+    "broker_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.broker_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.broker_id": "{{user.id}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.broker_id": "{{user.id}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Plane, Scale, Radar, Map, BarChart2, FileText,
   TrendingUp, Calculator, Shield, Zap, FileBarChart, CheckCircle,
-  User, Users, GitBranch, Code, Globe, BadgeCheck
+  User, Users, GitBranch, Code, Globe, BadgeCheck, Search
 } from "lucide-react";
 
 /**
@@ -63,6 +63,7 @@ export const NAV_TREE = [
       {
         label: "ATI Suite",
         items: [
+          { path: "/n-lookup", label: "N-Number Lookup", icon: Search },
           { path: "/ati-quick-score", label: "Quick Score", icon: Zap },
           { path: "/ati-standard", label: "Standard", icon: Shield },
           { path: "/ati-full-report", label: "Full Report", icon: FileBarChart },

@@ -75,6 +75,8 @@ import AircraftDetailingCalculator from "./pages/AircraftDetailingCalculator";
 import CrossBorderBridge from "./pages/CrossBorderBridge";
 import ServiceIntelligence from "./pages/ServiceIntelligence";
 import ExpertDashboard from "./pages/ExpertDashboard";
+import NLookup from "./pages/NLookup";
+import DigitalTwin from "./pages/DigitalTwin";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -166,6 +168,8 @@ const AuthenticatedApp = () => {
         <Route path="/cross-border-bridge" element={<CrossBorderBridge />} />
         <Route path="/service-intelligence" element={<ServiceIntelligence />} />
         <Route path="/expert-dashboard" element={<ExpertDashboard />} />
+        <Route path="/n-lookup" element={<NLookup />} />
+        <Route path="/twin/:registration" element={<DigitalTwin />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

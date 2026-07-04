@@ -271,22 +271,35 @@ export default function HomeHeroSection() {
               }
             </div>
 
-            {/* Trusted-by strip — n8n style bottom row */}
+            {/* Trusted-by strip — neon pill capsules */}
             <div className="w-full">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                <span className="text-[11px] leading-snug max-w-[190px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span
+                  className="text-[10px] font-bold tracking-[0.14em] uppercase leading-snug px-3.5 py-2 rounded-full whitespace-nowrap"
+                  style={{
+                    color: "rgba(245,194,66,0.70)",
+                    background: "rgba(245,194,66,0.06)",
+                    border: "0.5px solid rgba(245,194,66,0.18)"
+                  }}>
                   The global aircraft identity &amp; sales network
                 </span>
-                {STATS.map((s) =>
-                <div key={s.label} className="flex items-baseline gap-1.5">
-                    <span className="text-[16px] sm:text-[19px] font-black tabular-nums" style={{ color: "#f5c242" }}>
+                {STATS.map((s, i) => (
+                  <div
+                    key={s.label}
+                    className="flex items-baseline gap-1.5 px-3.5 py-2 rounded-full transition-all hover:scale-[1.03]"
+                    style={{
+                      background: "rgba(255,255,255,0.03)",
+                      border: "0.5px solid rgba(245,194,66,0.16)",
+                      boxShadow: `0 0 18px rgba(245,194,66,${0.04 + i * 0.015}), inset 0 1px 0 rgba(255,255,255,0.04)`
+                    }}>
+                    <span className="text-[15px] sm:text-[18px] font-black tabular-nums leading-none" style={{ color: "#f5c242" }}>
                       {s.value}
                     </span>
-                    <span className="text-[9px] tracking-[0.1em] uppercase font-semibold" style={{ color: "rgba(255,255,255,0.40)" }}>
+                    <span className="text-[8px] tracking-[0.12em] uppercase font-semibold leading-none" style={{ color: "rgba(255,255,255,0.42)" }}>
                       {s.label}
                     </span>
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>

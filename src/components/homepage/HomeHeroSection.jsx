@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { Search, Loader2, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
@@ -158,124 +159,135 @@ export default function HomeHeroSection() {
         }}
       />
 
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6">
-        <div className="w-full max-w-[820px] flex flex-col items-center text-center">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 sm:mb-8"
-            style={{
-              background: "rgba(245,194,66,0.09)",
-              border: "0.5px solid rgba(245,194,66,0.22)",
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ background: "#f5c242" }}
-            />
-            <span
-              className="text-[10px] font-bold tracking-[0.16em] uppercase"
-              style={{ color: "#f5c242" }}
-            >
-              Global Aviation Intelligence Platform
-            </span>
-          </div>
-
-          <h1
-            className="font-black tracking-[-0.04em] leading-[0.95] text-white mb-5"
-            style={{ fontSize: "clamp(38px, 7vw, 68px)" }}
-          >
-            GLOBAL AIRCRAFT
-            <br />
-            IDENTITY &amp;
-            <br />
-            <span style={{ color: "#f5c242" }}>INTELLIGENCE</span> PLATFORM
-          </h1>
-
-          <p className="text-[14px] sm:text-[17px] leading-relaxed max-w-[540px] mb-8 sm:mb-10" style={{ color: "rgba(255,255,255,0.60)" }}>
-            Search, verify, value and transact aircraft through a unified
-            aviation data ecosystem.
-          </p>
-
-          <div className="w-full max-w-[580px] mb-8">
+      {/* n8n-style left-aligned hero layout */}
+      <div className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-8">
+        <div className="w-full max-w-[1240px] mx-auto">
+          <div className="w-full max-w-[680px] flex flex-col items-start text-left pt-16">
             <div
-              className="flex items-stretch w-full rounded-2xl overflow-hidden"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
               style={{
-                background: "rgba(255,255,255,0.04)",
+                background: "rgba(245,194,66,0.09)",
                 border: "0.5px solid rgba(245,194,66,0.22)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                height: 56,
               }}
             >
-              <div className="flex items-center pl-4 pr-2">
-                <Search
-                  className="w-4 h-4"
-                  style={{ color: "rgba(245,194,66,0.60)" }}
-                />
-              </div>
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && search()}
-                placeholder={placeholder}
-                className="flex-1 text-[15px] font-semibold bg-transparent border-none outline-none"
-                style={{
-                  color: "#fff",
-                  background: "transparent !important",
-                  border: "none !important",
-                }}
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: "#f5c242" }}
               />
-              <button
-                onClick={search}
-                disabled={searching || !normalizeReg(query)}
-                className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
-                style={{ background: "#f5c242", color: "#04060a" }}
+              <span
+                className="text-[10px] font-bold tracking-[0.16em] uppercase"
+                style={{ color: "#f5c242" }}
               >
-                {searching ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    Search <ArrowRight className="w-3.5 h-3.5" />
-                  </>
-                )}
-              </button>
+                Global Aviation Intelligence Platform
+              </span>
             </div>
-            {error && (
-              <p className="text-[11px] text-red-400 mt-2 text-left pl-1">
-                {error}
-              </p>
-            )}
-          </div>
 
-          <div className="w-full max-w-[680px]">
-            <div
-              className="w-full h-[1px] mb-5"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent, rgba(245,194,66,0.4), transparent)",
-              }}
-            />
-            <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:justify-center lg:gap-0">
-              {STATS.map((s, i) => (
-                <div
-                  key={s.label}
-                  className={`flex flex-col items-center px-3 py-2 lg:flex-1 lg:min-w-[140px] ${
-                    i < STATS.length - 1
-                      ? "lg:border-r lg:border-[rgba(245,194,66,0.22)]"
-                      : ""
-                  }`}
-                >
-                  <div
-                    className="text-[clamp(18px,3vw,28px)] font-black tabular-nums leading-none"
-                    style={{ color: "#f5c242" }}
-                  >
-                    {s.value}
-                  </div>
-                  <div className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase mt-2 font-semibold text-center" style={{ color: "rgba(255,255,255,0.35)" }}>
-                    {s.label}
-                  </div>
+            <h1
+              className="tracking-[-0.03em] leading-[1.04] text-white mb-6"
+              style={{ fontSize: "clamp(36px, 5.5vw, 62px)", fontWeight: 500 }}
+            >
+              Aircraft identity &amp; deals
+              <br />
+              you can <span style={{ color: "#f5c242", fontWeight: 700 }}>see and trust</span>
+            </h1>
+
+            {/* CTA row — n8n style: filled + ghost */}
+            <div className="flex flex-wrap items-center gap-3 mb-7">
+              <Link
+                to="/sales-pipeline"
+                className="px-6 py-3 rounded-xl text-[13px] font-bold transition-all hover:scale-[1.02]"
+                style={{ background: "#f5c242", color: "#04060a", textDecoration: "none" }}
+              >
+                Start a sales pipeline
+              </Link>
+              <Link
+                to="/listings"
+                className="px-6 py-3 rounded-xl text-[13px] font-bold transition-colors"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "0.5px solid rgba(255,255,255,0.14)",
+                  color: "rgba(255,255,255,0.85)",
+                  textDecoration: "none",
+                }}
+              >
+                Browse listings
+              </Link>
+            </div>
+
+            <p className="text-[14px] sm:text-[16px] leading-relaxed max-w-[480px] mb-8" style={{ color: "rgba(255,255,255,0.60)" }}>
+              Search any registration, verify against registry and ADS-B data,
+              value with market comparatives — and close the deal end-to-end.
+            </p>
+
+            <div className="w-full max-w-[560px] mb-10">
+              <div
+                className="flex items-stretch w-full rounded-2xl overflow-hidden"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "0.5px solid rgba(245,194,66,0.22)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                  height: 56,
+                }}
+              >
+                <div className="flex items-center pl-4 pr-2">
+                  <Search
+                    className="w-4 h-4"
+                    style={{ color: "rgba(245,194,66,0.60)" }}
+                  />
                 </div>
-              ))}
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && search()}
+                  placeholder={placeholder}
+                  className="flex-1 text-[15px] font-semibold bg-transparent border-none outline-none"
+                  style={{
+                    color: "#fff",
+                    background: "transparent !important",
+                    border: "none !important",
+                  }}
+                />
+                <button
+                  onClick={search}
+                  disabled={searching || !normalizeReg(query)}
+                  className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
+                  style={{ background: "#f5c242", color: "#04060a" }}
+                >
+                  {searching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      Search <ArrowRight className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              </div>
+              {error && (
+                <p className="text-[11px] text-red-400 mt-2 text-left pl-1">
+                  {error}
+                </p>
+              )}
+            </div>
+
+            {/* Trusted-by strip — n8n style bottom row */}
+            <div className="w-full">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <span className="text-[11px] leading-snug max-w-[190px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  The global aircraft identity &amp; sales network
+                </span>
+                {STATS.map((s) => (
+                  <div key={s.label} className="flex items-baseline gap-1.5">
+                    <span className="text-[16px] sm:text-[19px] font-black tabular-nums" style={{ color: "#f5c242" }}>
+                      {s.value}
+                    </span>
+                    <span className="text-[9px] tracking-[0.1em] uppercase font-semibold" style={{ color: "rgba(255,255,255,0.40)" }}>
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

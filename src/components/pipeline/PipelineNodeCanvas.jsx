@@ -44,7 +44,7 @@ export default function PipelineNodeCanvas({ pipeline, passport }) {
         style={{ background: "radial-gradient(ellipse 45% 55% at 50% 50%, rgba(245,194,66,0.10), transparent 70%)" }} />
 
         {/* Connections layer — dashed elbow connectors with animated pulse dots */}
-        <svg className="absolute inset-0 w-full h-full opacity-85" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <svg className="absolute inset-0 w-full h-full opacity-85 mx-auto" viewBox="0 0 100 100" preserveAspectRatio="none">
           {nodes.map((n) =>
           <g key={n.id}>
               <path d={elbowPath(n.x, n.y)} fill="none" stroke="rgba(255,255,255,0.12)"

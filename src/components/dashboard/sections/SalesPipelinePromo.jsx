@@ -6,7 +6,7 @@ const STEPS = [
 { icon: ShieldCheck, label: "Digital Twin", desc: "Registry, ADS-B & engine data from a single N-Number", color: "#4e8ef7" },
 { icon: FileText, label: "AI Document Review", desc: "Logbooks, damage history and AD/SB compliance", color: "#f5c242" },
 { icon: Scale, label: "Valuation & Contract", desc: "OMVM pricing and auto-generated purchase agreement", color: "#a78bfa" },
-{ icon: PenTool, label: "E-Signatures ", desc: "Digital signing with Stripe or USDC escrow", color: "#5dcaa5" },
+{ icon: PenTool, label: "E-Signatures &  USDC ", desc: "Digital signing with Stripe or USDC escrow", color: "#5dcaa5" },
 { icon: Flag, label: "Closing", desc: "Bill of Sale, registration transfer and handover", color: "#e2a44b" }];
 
 

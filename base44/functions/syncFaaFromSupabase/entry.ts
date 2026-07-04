@@ -1,6 +1,54 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+// ── Helpers (defined before try block so they're in scope in catch) ──
+
+// Detect Supabase HTML error pages (522/503 — project paused or down)
+const supabaseErrMsg = (err) => {
+  const msg = err?.message || String(err);
+  if (msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out')) {
+    return 'Supabase project is unreachable (522/503). Check if the Supabase project is paused or down.';
+  }
+  return msg;
+};
+
+// Query timeout — fail fast instead of hanging until the platform 504 timeout.
+// Uses AbortController to actually cancel the fetch, not just race.
+const QUERY_TIMEOUT_MS = 8000;
+const withTimeout = (promise, ms = QUERY_TIMEOUT_MS) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timed out after ' + ms + 'ms')), ms)
+    ),
+  ]);
+
+// Retry wrapper — 2 attempts, 1s base delay. Total worst case ~18s (well within platform limits).
+const withRetry = async (fn, opts = {}) => {
+  const { maxAttempts = 2, delayMs = 1000 } = opts;
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn(attempt);
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, delayMs * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  throw lastError;
+};
+
+// Graceful skip response (HTTP 200) for scheduled registry_sync runs
+const skipResponse = (reason) => Response.json({
+  mode: 'registry_sync',
+  skipped: true,
+  reason,
+  timestamp: new Date().toISOString(),
+  retryAt: 'next scheduled run',
+});
+
 Deno.serve(async (req) => {
   let activeMode = null;
   try {
@@ -28,53 +76,6 @@ Deno.serve(async (req) => {
 
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
-
-    // Helper: detect Supabase HTML error pages (522/503 — project paused or down)
-    const supabaseErrMsg = (err) => {
-      const msg = err?.message || String(err);
-      if (msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out')) {
-        return 'Supabase project is unreachable (522/503). Check if the Supabase project is paused or down.';
-      }
-      return msg;
-    };
-
-    // Query timeout — fail fast instead of hanging until the 504 platform timeout
-    const QUERY_TIMEOUT_MS = 12000;
-    const withTimeout = (promise, ms = QUERY_TIMEOUT_MS) =>
-      Promise.race([
-        promise,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Supabase query timed out after ' + ms + 'ms')), ms)
-        ),
-      ]);
-
-    // Retry wrapper with exponential backoff for transient Supabase timeouts/errors.
-    // maxAttempts=3, base delay 2s → delays: 2s, 4s. Total worst case ~36-42s.
-    const withRetry = async (fn, opts = {}) => {
-      const { maxAttempts = 3, delayMs = 2000 } = opts;
-      let lastError;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          return await fn(attempt);
-        } catch (err) {
-          lastError = err;
-          if (attempt < maxAttempts) {
-            const delay = delayMs * Math.pow(2, attempt - 1);
-            await new Promise(r => setTimeout(r, delay));
-          }
-        }
-      }
-      throw lastError;
-    };
-
-    // Graceful skip response (HTTP 200) for scheduled registry_sync runs
-    const skipResponse = (reason) => Response.json({
-      mode: 'registry_sync',
-      skipped: true,
-      reason,
-      timestamp: new Date().toISOString(),
-      retryAt: 'next scheduled run',
-    });
 
     const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
     // Default to registry_sync for scheduled automations (no payload = sync 50 records).

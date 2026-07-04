@@ -5,6 +5,7 @@ import {
   AreaChart, Area, ReferenceLine,
 } from "recharts";
 import { Activity, TrendingUp, Database, BarChart3 } from "lucide-react";
+import SectionShell from "@/components/dashboard/sections/SectionShell";
 
 const MAKES = ["Cessna", "Piper", "Beechcraft", "Cirrus", "Mooney"];
 
@@ -85,15 +86,23 @@ export default function LiveMarketIntelligence() {
     staleTime: 60000,
   });
 
+  const shell = (children) => (
+    <SectionShell
+      eyebrow="Market Intelligence · Live"
+      title="Real-Time Market Data Feed"
+      subtitle="Live market pricing and availability across top manufacturers. Data automatically recalibrates OMVM valuations and ATI scoring."
+    >
+      {children}
+    </SectionShell>
+  );
+
   if (isLoading) {
-    return (
-      <div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+    return shell(
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
       </div>
     );
   }
@@ -151,23 +160,10 @@ export default function LiveMarketIntelligence() {
     }))
     .sort((a, b) => (b.avg_price || 0) - (a.avg_price || 0));
 
-  if (market.length === 0) {
-    return (
-      <div style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "0.5px solid rgba(255,255,255,0.06)",
-        borderRadius: 12,
-        padding: 40,
-        textAlign: "center",
-        color: "rgba(255,255,255,0.3)",
-        fontSize: 13,
-      }}>
-        Market intelligence data temporarily unavailable. Cached data will appear when the feed reconnects.
-      </div>
-    );
-  }
+  // Feed unavailable — hide the whole section rather than showing an error card
+  if (market.length === 0) return null;
 
-  return (
+  return shell(
     <div>
       {/* Stale indicator + last updated */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>

@@ -5,12 +5,16 @@ import SectionShell from "./SectionShell";
 
 export default function ListingsShowcase({
   listings = [],
+  isLoading = false,
   eyebrow,
   title,
   layout = "grid",
   actionTo,
   actionLabel,
 }) {
+  // Nothing to show — hide the whole section instead of an empty shell
+  if (!isLoading && listings.length === 0) return null;
+
   const action = actionTo ? (
     <Link
       to={actionTo}
@@ -62,16 +66,26 @@ export default function ListingsShowcase({
       ) : (
         <div
           style={{
-            background: "#111827",
-            border: "0.5px solid rgba(255,255,255,0.08)",
-            borderRadius: 12,
-            padding: 40,
-            textAlign: "center",
-            color: "rgba(255,255,255,0.3)",
-            fontSize: 13,
+            display: "flex",
+            gap: 16,
+            overflowX: "hidden",
+            paddingBottom: 16,
           }}
         >
-          Loading listings…
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              style={{
+                minWidth: 280,
+                height: 300,
+                flexShrink: 0,
+                background: "rgba(255,255,255,0.03)",
+                border: "0.5px solid rgba(255,255,255,0.06)",
+                borderRadius: 12,
+              }}
+              className="animate-pulse"
+            />
+          ))}
         </div>
       )}
     </SectionShell>

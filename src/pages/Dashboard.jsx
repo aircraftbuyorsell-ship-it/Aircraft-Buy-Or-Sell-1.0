@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import NotificationStack from "@/components/notifications/NotificationStack";
-import SiteFooter from "@/components/SiteFooter";
-import SectionShell from "@/components/dashboard/sections/SectionShell";
 import HomepageHeader from "@/components/homepage/HomepageHeader";
 import HomeHeroSection from "@/components/homepage/HomeHeroSection";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
-import AircraftSearch from "@/components/dashboard/sections/AircraftSearch";
+import SalesPipelinePromo from "@/components/dashboard/sections/SalesPipelinePromo";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
 import ValueEstimator from "@/components/dashboard/sections/ValueEstimator";
 import TrustedBrokers from "@/components/dashboard/sections/TrustedBrokers";
@@ -15,7 +13,7 @@ import Testimonials from "@/components/dashboard/sections/Testimonials";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 
 export default function Dashboard() {
-  const { data: listings = [] } = useQuery({
+  const { data: listings = [], isLoading: listingsLoading } = useQuery({
     queryKey: ["listings-hub"],
     queryFn: () =>
       base44.entities.AircraftListing.filter(
@@ -44,6 +42,7 @@ export default function Dashboard() {
       {/* 2. Featured Aircraft */}
       <ListingsShowcase
         listings={listings}
+        isLoading={listingsLoading}
         eyebrow="Featured Aircraft"
         title="Handpicked Aircraft from Verified Sellers"
         layout="carousel"
@@ -51,11 +50,11 @@ export default function Dashboard() {
         actionLabel="View all"
       />
 
-      {/* 3. Aircraft Search */}
-      <AircraftSearch />
-
-      {/* 4. ATI Passport Verification */}
+      {/* 3. ATI Passport Verification */}
       <ATIPassportVerification />
+
+      {/* 4. Sales Pipeline */}
+      <SalesPipelinePromo />
 
       {/* 5. Aircraft Value Estimator */}
       <ValueEstimator />
@@ -69,17 +68,8 @@ export default function Dashboard() {
       {/* 8. Testimonials */}
       <Testimonials />
 
-      {/* 9. Market Intelligence */}
-      <SectionShell
-        eyebrow="Market Intelligence · Live"
-        title="Real-Time Market Data Feed"
-        subtitle="Live market pricing and availability across top manufacturers. Data automatically recalibrates OMVM valuations and ATI scoring."
-      >
-        <LiveMarketIntelligence />
-      </SectionShell>
-
-      {/* 10. Footer */}
-      <SiteFooter />
+      {/* 9. Market Intelligence — hides itself when the feed is unavailable */}
+      <LiveMarketIntelligence />
     </div>
   );
 }

@@ -6,14 +6,15 @@ import { Search, Home, Shield, BarChart2, User, LogIn, LogOut } from "lucide-rea
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 
+// Mirrors the platform IA: Discover → Verify → Transact → Manage
 const NAV_LINKS = [
   { label: "Marketplace", path: "/listings" },
-  { label: "ATI Passport", path: "/ati-passport" },
-  { label: "OMVM", path: "/valuation" },
-  { label: "Finance", path: "/leasing-calculator" },
+  { label: "Verify", path: "/n-lookup" },
+  { label: "Sales Pipeline", path: "/sales-pipeline" },
+  { label: "Valuation", path: "/valuation" },
   { label: "Analytics", path: "/analytics" },
-  { label: "API", path: "/developers" },
-  { label: "Enterprise", path: "/pricing" },
+  { label: "Experts", path: "/experts" },
+  { label: "Pricing", path: "/pricing" },
 ];
 
 const MOBILE_TABS = [

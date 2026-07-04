@@ -108,6 +108,9 @@ function DrawerContent({ pathname, user, onNavigate }) {
           <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
             AI Disclosure
           </a>
+          <a href="/legal/ip-notice" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+            IP & Trademark Notice
+          </a>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
             style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}>

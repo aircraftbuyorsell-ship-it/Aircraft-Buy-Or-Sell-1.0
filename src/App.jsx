@@ -81,6 +81,7 @@ import IntegrationKit from "./pages/IntegrationKit";
 import Experts from "./pages/Experts";
 import SalesPipeline from "./pages/SalesPipeline";
 import Skills from "./pages/Skills";
+import IPNotice from "./pages/IPNotice";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -156,6 +157,7 @@ const AuthenticatedApp = () => {
         <Route path="/demo" element={<IntraZoneDemo />} />
         <Route path="/legal/dsa" element={<DSAPolicy />} />
         <Route path="/legal/ai-transparency" element={<AITransparency />} />
+        <Route path="/legal/ip-notice" element={<IPNotice />} />
         <Route path="/funnels" element={<FunnelDashboard />} />
         <Route path="/search-console" element={<SearchConsoleDashboard />} />
         <Route path="/deal-intelligence" element={<DealIntelligence />} />

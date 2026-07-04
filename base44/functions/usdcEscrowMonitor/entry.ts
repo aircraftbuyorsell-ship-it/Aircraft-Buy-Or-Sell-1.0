@@ -2,16 +2,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { ethers } from 'npm:ethers@6.13.4';
 
 /**
- * USDC Escrow Monitor — generates dedicated Ethereum wallets for escrow
- * deposits and monitors on-chain USDC balance.
+ * USDC Escrow Monitor — generates dedicated EVM wallets for escrow
+ * deposits and monitors on-chain USDC balance on POLYGON (per ARCH-004,
+ * chosen over Ethereum mainnet for negligible gas fees).
  *
  * Actions:
- *   generate_wallet — creates a new Ethereum wallet, encrypts private key, returns address
- *   check_balance   — queries USDC balance for an escrow's wallet, updates status if funded
+ *   generate_wallet — creates a new EVM wallet, encrypts private key, returns address
+ *   check_balance   — queries Polygon USDC balance for an escrow's wallet, updates status if funded
  */
-const USDC_CONTRACT = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+// Native USDC on Polygon PoS (Circle-issued)
+const USDC_CONTRACT = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
 const USDC_ABI = ['function balanceOf(address) view returns (uint256)'];
-const RPC_URL = Deno.env.get('ALCHEMY_RPC_URL') || 'https://rpc.ankr.com/eth';
+const RPC_URL = Deno.env.get('ALCHEMY_RPC_URL') || 'https://polygon-rpc.com';
 
 Deno.serve(async (req) => {
   try {

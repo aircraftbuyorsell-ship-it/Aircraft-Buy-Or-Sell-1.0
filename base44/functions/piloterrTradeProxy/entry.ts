@@ -12,8 +12,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  * cached MarketComparable record matching make+model. If no cache exists
  * either, returns null — all callers handle null gracefully.
  *
- * The external source name is NEVER exposed; all data is branded
- * "ABOS Market Intelligence".
+ * TRANSPARENCY POLICY (R1): market data is aggregated from public
+ * third-party listings. The source is disclosed in source_label —
+ * "Aggregated market data · Source: Trade-A-Plane (via Piloterr)".
+ * ABOS never rebrands third-party data as its own.
  */
 
 const STALE_THRESHOLD_MS = 48 * 60 * 60 * 1000; // 48 hours
@@ -91,7 +93,7 @@ function buildComparable(make, model, year, prices, rawListings, fetchedAt) {
     listings_count: count,
     price_samples: samples,
     raw_listings: listings,
-    source_label: 'ABOS Market Intelligence',
+    source_label: 'Aggregated market data · Source: Trade-A-Plane (via Piloterr)',
     fetched_at: fetchedAt,
     is_stale: false,
   };
@@ -212,7 +214,7 @@ Deno.serve(async (req) => {
             listings_count: liveData.listings_count,
             price_samples: liveData.price_samples,
             raw_listings: liveData.raw_listings,
-            source_label: 'ABOS Market Intelligence',
+            source_label: 'Aggregated market data · Source: Trade-A-Plane (via Piloterr)',
             fetched_at: fetchedAt,
             is_stale: false,
           });

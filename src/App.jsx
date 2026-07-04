@@ -77,6 +77,7 @@ import ServiceIntelligence from "./pages/ServiceIntelligence";
 import ExpertDashboard from "./pages/ExpertDashboard";
 import NLookup from "./pages/NLookup";
 import DigitalTwin from "./pages/DigitalTwin";
+import IntegrationKit from "./pages/IntegrationKit";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -170,6 +171,7 @@ const AuthenticatedApp = () => {
         <Route path="/expert-dashboard" element={<ExpertDashboard />} />
         <Route path="/n-lookup" element={<NLookup />} />
         <Route path="/twin/:registration" element={<DigitalTwin />} />
+        <Route path="/integration-kit" element={<IntegrationKit />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

@@ -104,6 +104,7 @@ export const NAV_TREE = [
         label: "Platform",
         items: [
           { path: "/developers", label: "API & SDK", icon: Code },
+          { path: "/integration-kit", label: "Integration Kit", icon: Code },
           { path: "/admin/settings", label: "Admin Settings", icon: Shield },
           { path: "/admin/listings", label: "Admin Listings", icon: Shield },
         ],

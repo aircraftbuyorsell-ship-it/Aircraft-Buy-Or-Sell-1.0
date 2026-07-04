@@ -6,6 +6,7 @@ import TwinProviderBlock from "@/components/twin/TwinProviderBlock";
 import BrokerAssignPanel from "@/components/twin/BrokerAssignPanel";
 import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
 import DataConflictAlert from "@/components/twin/DataConflictAlert";
+import { maskOwnerName } from "@/lib/privacy";
 
 const AMBER = "#f5c242";
 
@@ -89,7 +90,7 @@ export default function DigitalTwin() {
               title="FAA Registry"
               status={p?.faa_registry?.status}
               rows={p?.faa_registry?.status === "ok" ? [
-                ["Registered Owner", p.faa_registry.owner],
+                ["Registered Owner", maskOwnerName(p.faa_registry.owner)],
                 ["Year", p.faa_registry.year],
                 ["Status", p.faa_registry.status_code === "V" ? "Valid" : p.faa_registry.status_code],
               ] : []}

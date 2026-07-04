@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import ATICardBlock from "@/components/dashboard/ATICardBlock";
+import { maskOwnerName } from "@/lib/privacy";
 
 const ROLE_ICONS = { dealer: ShoppingCart, broker: Building, fbo: MapPin, maintenance: Wrench, other: Cog };
 const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", maintenance: "maintenance shops", other: "services" };
@@ -154,7 +155,8 @@ export default function RegistryResultOverlay({
               </p>
               {result.registered_owner && (
                 <p className="text-xs mt-1" style={{ color: mutedColor }}>
-                  Operator: {result.registered_owner}
+                  Operator: {maskOwnerName(result.registered_owner)}
+                  <span className="ml-1 opacity-60">(name masked for privacy)</span>
                 </p>
               )}
             </div>

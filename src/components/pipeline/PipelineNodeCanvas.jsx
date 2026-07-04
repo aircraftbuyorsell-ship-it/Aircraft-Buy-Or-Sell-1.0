@@ -24,24 +24,37 @@ export default function PipelineNodeCanvas({ pipeline, passport }) {
   const nodes = NODES(pipeline, passport, completed, steps.length);
 
   return (
-    <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at 50% 40%, rgba(245,194,66,0.04), transparent 60%), rgba(255,255,255,0.02)" }}>
-      <div className="relative w-full" style={{ height: 320 }}>
+    <div className="rounded-2xl overflow-hidden"
+      style={{
+        background: "#07090f",
+        border: "1px solid rgba(245,194,66,0.14)",
+        boxShadow: "0 0 60px rgba(245,194,66,0.06), 0 20px 50px rgba(0,0,0,0.5)",
+      }}>
+      <div className="relative w-full" style={{ height: 340 }}>
 
-        {/* Connections layer */}
-        <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black -z-10">
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {nodes.map(n => (
-              <g key={n.id}>
-                <path d={elbowPath(n.x, n.y)} fill="none" stroke="rgba(255,255,255,0.12)"
-                  strokeWidth="0.35" strokeDasharray="1.4 1.4" vectorEffect="non-scaling-stroke" />
-                <circle r="0.9" fill={n.color} opacity="0.9">
-                  <animateMotion dur={`${3 + (n.x % 3)}s`} repeatCount="indefinite" path={elbowPath(n.x, n.y)} />
-                </circle>
-              </g>
-            ))}
-          </svg>
-        </div>
+        {/* n8n-style dot grid background */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.22) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+            opacity: 0.10,
+          }} />
+        {/* Duvo-style ambient glow behind hub */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 45% 55% at 50% 50%, rgba(245,194,66,0.10), transparent 70%)" }} />
+
+        {/* Connections layer — dashed elbow connectors with animated pulse dots */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {nodes.map(n => (
+            <g key={n.id}>
+              <path d={elbowPath(n.x, n.y)} fill="none" stroke="rgba(255,255,255,0.12)"
+                strokeWidth="0.35" strokeDasharray="1.4 1.4" vectorEffect="non-scaling-stroke" />
+              <circle r="0.9" fill={n.color} opacity="0.9">
+                <animateMotion dur={`${3 + (n.x % 3)}s`} repeatCount="indefinite" path={elbowPath(n.x, n.y)} />
+              </circle>
+            </g>
+          ))}
+        </svg>
 
         {/* Central hub node */}
         <div className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
@@ -63,14 +76,22 @@ export default function PipelineNodeCanvas({ pipeline, passport }) {
         {nodes.map(n => (
           <div key={n.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
             style={{ left: `${n.x}%`, top: `${n.y}%` }}>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+            <div className="relative w-12 h-12 rounded-xl flex items-center justify-center"
               style={{
-                background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${n.color}40`,
-                boxShadow: `0 0 18px ${n.color}22`,
+                background: "rgba(14,17,25,0.92)",
+                border: `1px solid ${n.color}55`,
+                boxShadow: `0 0 22px ${n.color}2e, inset 0 1px 0 rgba(255,255,255,0.08)`,
                 backdropFilter: "blur(8px)",
               }}>
               <n.icon className="w-5 h-5" style={{ color: n.color }} />
+              {/* n8n-style connection port dot */}
+              <span className="absolute -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                style={{
+                  top: "50%",
+                  [n.x < 50 ? "right" : "left"]: -3,
+                  background: n.color,
+                  boxShadow: `0 0 6px ${n.color}`,
+                }} />
             </div>
             <span className="mt-1 text-[9px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.5)] whitespace-nowrap">{n.label}</span>
             <span className="text-[10px] font-black whitespace-nowrap" style={{ color: n.color }}>{n.value}</span>

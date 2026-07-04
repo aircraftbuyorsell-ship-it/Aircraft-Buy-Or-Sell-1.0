@@ -1,8 +1,19 @@
 import { useCompletedCrossCheck } from "@/hooks/useExpert";
-import { BadgeCheck, AlertTriangle, Quote } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { BadgeCheck, AlertTriangle, Quote, Users } from "lucide-react";
 
 export default function ExpertCrossCheckResult({ registration }) {
   const { data: crosscheck } = useCompletedCrossCheck(registration);
+
+  const { data: expertProfile } = useQuery({
+    queryKey: ["expert-fb-badge", crosscheck?.expert_id],
+    enabled: !!crosscheck?.expert_id,
+    queryFn: async () => {
+      const r = await base44.entities.ExpertProfile.filter({ user_id: crosscheck.expert_id }, "", 1);
+      return r[0] || null;
+    },
+  });
 
   if (!crosscheck) return null;
 
@@ -46,6 +57,15 @@ export default function ExpertCrossCheckResult({ registration }) {
             {crosscheck.expert_name || "Certified Expert"}
           </p>
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {expertProfile?.fb_community_verified && (
+              <span
+                className="inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                style={{ background: "rgba(78,142,247,0.08)", color: "#4e8ef7", border: "0.5px solid rgba(78,142,247,0.30)" }}
+              >
+                <Users size={9} />
+                {expertProfile.fb_community_tag || "Aircraft Buy or Sell Community Verified"}
+              </span>
+            )}
             {(crosscheck.expert_certifications || []).map(c => (
               <span
                 key={c}

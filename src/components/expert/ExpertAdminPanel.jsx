@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, XCircle, Loader2, BadgeCheck, Clock, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, BadgeCheck, Clock, FileText, Users } from "lucide-react";
 
 export default function ExpertAdminPanel({ profiles }) {
   const [processing, setProcessing] = useState(null);
@@ -34,6 +34,22 @@ export default function ExpertAdminPanel({ profiles }) {
       qc.invalidateQueries({ queryKey: ["expert-pending-profiles"] });
     } catch (e) {
       console.error("Reject failed:", e);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleFbToggle = async (profile) => {
+    setProcessing(profile.id);
+    try {
+      const next = !profile.fb_community_verified;
+      await base44.entities.ExpertProfile.update(profile.id, {
+        fb_community_verified: next,
+        fb_community_tag: next ? "Aircraft Buy or Sell Community Verified" : null,
+      });
+      qc.invalidateQueries({ queryKey: ["expert-pending-profiles"] });
+    } catch (e) {
+      console.error("FB toggle failed:", e);
     } finally {
       setProcessing(null);
     }
@@ -136,6 +152,19 @@ export default function ExpertAdminPanel({ profiles }) {
                     </button>
                   </>
                 ) : (
+                  <>
+                  <button
+                    onClick={() => handleFbToggle(p)}
+                    disabled={processing === p.id}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-30"
+                    style={p.fb_community_verified
+                      ? { background: "rgba(78,142,247,0.15)", color: "#4e8ef7", border: "0.5px solid rgba(78,142,247,0.35)" }
+                      : { background: "rgba(78,142,247,0.06)", color: "rgba(78,142,247,0.60)", border: "0.5px solid rgba(78,142,247,0.15)" }}
+                    title="Toggle 'Aircraft Buy or Sell Community Verified' badge"
+                  >
+                    <Users size={11} />
+                    {p.fb_community_verified ? "FB Verified ✓" : "FB Verify"}
+                  </button>
                   <button
                     onClick={() => handleBlock(p)}
                     disabled={processing === p.id || p.is_blocked}
@@ -144,6 +173,7 @@ export default function ExpertAdminPanel({ profiles }) {
                   >
                     {p.is_blocked ? "Blocked" : "Block"}
                   </button>
+                  </>
                 )}
               </div>
             </div>

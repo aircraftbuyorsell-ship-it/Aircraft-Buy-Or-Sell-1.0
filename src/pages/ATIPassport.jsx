@@ -28,6 +28,8 @@ import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
 import ATIGuideChat from "@/components/ati/ATIGuideChat";
 import GCRSection from "@/components/gcr/GCRSection";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
+import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
+import DataConflictAlert from "@/components/twin/DataConflictAlert";
 
 // ─── Helpers ────────────────────────────────────────────────────
 function parseList(str) {
@@ -469,6 +471,9 @@ Return ONLY raw JSON:
               <ATIPaymentGate listing={listing} onClose={() => setPaymentGateOpen(false)} onUnlock={handleGenerate} />
             )}
 
+            {/* ── Data Integrity Shield warning ── */}
+            {passport.data_conflict && <DataConflictAlert fields={passport.data_conflict_fields || []} />}
+
             {/* ── Report header — clean document style ── */}
             <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] overflow-hidden shadow-sm">
               <div className="px-6 md:px-10 pt-10 pb-8">
@@ -507,6 +512,13 @@ Return ONLY raw JSON:
                     </span>
                     <span className="text-[rgba(255,255,255,0.35)] text-[11px] ml-2">(normalized 0–10; not a buy/sell recommendation)</span>
                   </div>
+
+                  {/* Data Confidence — cross-source verification */}
+                  {passport.data_confidence && (
+                    <div className="mt-4">
+                      <ConfidenceBadge confidence={passport.data_confidence} sourcesMatched={passport.data_sources_matched} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Dimension score bars */}

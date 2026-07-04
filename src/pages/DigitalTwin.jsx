@@ -4,6 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import TwinProviderBlock from "@/components/twin/TwinProviderBlock";
 import BrokerAssignPanel from "@/components/twin/BrokerAssignPanel";
+import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
+import DataConflictAlert from "@/components/twin/DataConflictAlert";
 
 const AMBER = "#f5c242";
 
@@ -12,6 +14,14 @@ export default function DigitalTwin() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [passport, setPassport] = useState(null);
+
+  useEffect(() => {
+    if (!data?.passportId) { setPassport(null); return; }
+    base44.entities.ATIPassport.filter({ id: data.passportId }, "", 1)
+      .then((r) => setPassport(r[0] || null))
+      .catch(() => setPassport(null));
+  }, [data?.passportId]);
 
   const loadTwin = useCallback(async () => {
     setLoading(true);
@@ -42,6 +52,11 @@ export default function DigitalTwin() {
             <h1 className="text-2xl md:text-3xl font-black text-[rgba(255,255,255,0.92)] font-mono tracking-wider">
               {registration?.toUpperCase()}
             </h1>
+            {passport?.data_confidence && (
+              <div className="mt-2">
+                <ConfidenceBadge confidence={passport.data_confidence} sourcesMatched={passport.data_sources_matched} />
+              </div>
+            )}
           </div>
           <button onClick={loadTwin} disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold disabled:opacity-40"
@@ -68,6 +83,7 @@ export default function DigitalTwin() {
 
         {data && !loading && (
           <div className="space-y-4">
+            {passport?.data_conflict && <DataConflictAlert fields={passport.data_conflict_fields || []} />}
             {/* Federated provider blocks — each has data OR a graceful "unavailable" state */}
             <TwinProviderBlock
               title="FAA Registry"

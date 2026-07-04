@@ -91,6 +91,15 @@
       "type": "string",
       "maxLength": 500
     },
+    "fb_community_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin-verified member of the Aircraft Buy or Sell FB community (280k members)"
+    },
+    "fb_community_tag": {
+      "type": "string",
+      "description": "Community badge label, e.g. 'Aircraft Buy or Sell Community Verified'"
+    },
     "rating": {
       "type": "number",
       "minimum": 0,

@@ -96,6 +96,7 @@ export const NAV_TREE = [
         label: "Community",
         items: [
           { path: "/community", label: "ABOS Community", icon: Users },
+          { path: "/experts", label: "Verified Experts", icon: BadgeCheck },
           { path: "/weekly-briefing", label: "Weekly Briefings", icon: FileText },
           { path: "/feature-requests", label: "Feature Requests", icon: GitBranch },
         ],

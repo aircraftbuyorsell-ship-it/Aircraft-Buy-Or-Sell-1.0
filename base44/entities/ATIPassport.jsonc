@@ -113,6 +113,36 @@
       },
       "description": "Federated provider skip logs (e.g. 'Engine spec not mapped for code: 17026')"
     },
+    "data_conflict": {
+      "type": "boolean",
+      "default": false,
+      "description": "Data Integrity Shield: true when \u22652 fields mismatch between FAA cache, adsbdb, and ADS-B traffic sources"
+    },
+    "data_confidence": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "caution",
+        "unverified"
+      ],
+      "description": "Data Confidence badge: verified = 3 agreeing sources, caution = 2, unverified = 1 or disagreement"
+    },
+    "data_conflict_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fields that disagree between data sources (e.g. icao_hex, serial_number)"
+    },
+    "data_sources_matched": {
+      "type": "number",
+      "description": "Number of independent data sources agreeing on core identity fields"
+    },
+    "integrity_checked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the Data Integrity Shield last ran for this passport"
+    },
     "deal_radar_eligible": {
       "type": "boolean"
     },

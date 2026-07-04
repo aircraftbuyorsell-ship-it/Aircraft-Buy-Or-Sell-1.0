@@ -198,6 +198,14 @@ export default function Layout() {
           <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
+        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "Inter, -apple-system, sans-serif" }}>
+          <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
+            ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
+          </span>
+          <span style={{ display: "block", fontSize: 15, fontWeight: 700, letterSpacing: "0.35em", textTransform: "uppercase", marginTop: 6 }}>
+            Marketspace<span style={{ fontSize: 10, verticalAlign: "super", marginLeft: 2 }}>™</span>
+          </span>
+        </div>
       </div>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content

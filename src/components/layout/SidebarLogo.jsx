@@ -11,7 +11,7 @@ export default function SidebarLogo({ compact = false }) {
           <polygon points="31,7 35,10 31,13" fill="#f5c242" />
         </svg>
         <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }}>
-          ABOS
+          ABOS<span style={{ fontSize: 8, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
       </Link>
     );
@@ -44,7 +44,7 @@ export default function SidebarLogo({ compact = false }) {
           letterSpacing: "-0.03em",
           fontFamily: "Inter, -apple-system, sans-serif",
         }}>
-          ABOS
+          ABOS<span style={{ fontSize: 10, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
         <span style={{
           fontSize: 9,
@@ -54,7 +54,7 @@ export default function SidebarLogo({ compact = false }) {
           fontWeight: 700,
           marginTop: 3,
         }}>
-          Marketspace
+          Marketspace<span style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>™</span>
         </span>
       </div>
     </Link>

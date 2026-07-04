@@ -1,14 +1,16 @@
-import { Plane, ShieldCheck, TrendingUp, FileText, Mail, CalendarDays, Landmark } from "lucide-react";
+import { Plane, ShieldCheck, TrendingUp, FileText, Mail, CalendarDays, Landmark, Wrench } from "lucide-react";
 
 // n8n / Duvo-style node canvas — central hub with connected tool nodes,
 // dashed elbow connectors and animated pulse dots.
 
 const NODES = (pipeline, passport, completed, total) => [
-{ id: "ati", icon: ShieldCheck, label: "ATI Score", value: passport?.ati_total ? `${passport.ati_total}/120` : "—", color: "#4e8ef7", x: 12, y: 22 },
-{ id: "val", icon: TrendingUp, label: "Valuation", value: passport?.omvm_value ? `$${(passport.omvm_value / 1000).toFixed(0)}K` : "—", color: "#f5c242", x: 8, y: 58 },
+{ id: "ati", icon: ShieldCheck, label: "ATI Score", value: passport?.ati_total ? `${passport.ati_total}/120` : "—", color: "#4e8ef7", x: 12, y: 26 },
+{ id: "val", icon: TrendingUp, label: "OMVM Valuation", value: passport?.omvm_value ? `$${(passport.omvm_value / 1000).toFixed(0)}K` : "—", color: "#f5c242", x: 8, y: 60 },
 { id: "docs", icon: FileText, label: "Google Docs", value: "Contract", color: "#a78bfa", x: 22, y: 88 },
-{ id: "gmail", icon: Mail, label: "Gmail", value: "Notify", color: "#5dcaa5", x: 88, y: 20 },
-{ id: "cal", icon: CalendarDays, label: "Calendar", value: "Inspection", color: "#4e8ef7", x: 92, y: 56 },
+{ id: "vref", icon: TrendingUp, label: "Vref", value: "Connect", color: "#8b9bb4", x: 34, y: 10 },
+{ id: "crewchief", icon: Wrench, label: "CrewChief Logs", value: "Connect", color: "#8b9bb4", x: 66, y: 10 },
+{ id: "gmail", icon: Mail, label: "Gmail", value: "Notify", color: "#5dcaa5", x: 88, y: 26 },
+{ id: "cal", icon: CalendarDays, label: "Calendar", value: "Inspection", color: "#4e8ef7", x: 92, y: 60 },
 { id: "escrow", icon: Landmark, label: "Escrow", value: `${completed}/${total}`, color: "#e2a44b", x: 80, y: 88 }];
 
 
@@ -66,7 +68,8 @@ export default function PipelineNodeCanvas({ pipeline, passport }) {
           }}>
             <Plane className="w-9 h-9 text-[#04060a]" />
           </div>
-          <p className="mt-2 text-[13px] font-black font-mono tracking-wider text-[rgba(255,255,255,0.92)]">
+          <p className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#f5c242]">ATI Card™</p>
+          <p className="text-[13px] font-black font-mono tracking-wider text-[rgba(255,255,255,0.92)]">
             {pipeline.registration?.toUpperCase()}
           </p>
           <p className="text-[10px] font-bold text-[#f5c242]">{pipeline.progress_pct || 0}% complete</p>

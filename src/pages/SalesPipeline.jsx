@@ -7,6 +7,7 @@ import { getTemplate, detectAircraftClass } from "@/lib/salesBlueprints";
 import CommandCard from "@/components/pipeline/CommandCard";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
+import IntegrationHub from "@/components/pipeline/IntegrationHub";
 
 export default function SalesPipeline() {
   const { registration: urlReg } = useParams();
@@ -262,6 +263,8 @@ export default function SalesPipeline() {
             )}
 
             <CommandCard pipeline={pipeline} passport={passport} />
+
+            <IntegrationHub pipeline={pipeline} />
 
             {/* Document upload area for verification steps */}
             {pipeline.steps?.some(s => s.ai_driven && !s.function_name && s.status === "pending") && (

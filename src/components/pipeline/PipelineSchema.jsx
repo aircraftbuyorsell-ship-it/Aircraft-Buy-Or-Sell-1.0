@@ -1,11 +1,11 @@
 import React from "react";
 import {
   Upload, Sparkles, UserCheck, PenTool, ShieldCheck,
-  FileText, TrendingUp, Scale, CheckCircle, Flag, DollarSign, ArrowDown,
+  FileText, TrendingUp, Scale, CheckCircle, Flag, DollarSign,
 } from "lucide-react";
 
 // Visual schema of the Sales Pipeline "spider" —
-// steps grouped by WHO acts: user uploads, AI processes, expert verifies, signatures.
+// vertical timeline layout: gold spine, phase nodes, actor-colored step rows.
 
 const ACTOR_META = {
   user:   { label: "Vy — nahrajete / doplníte", color: "#a78bfa", icon: Upload },
@@ -16,14 +16,14 @@ const ACTOR_META = {
 
 const SCHEMA = [
   {
-    phase: "1 · Data & Dokumentace",
+    phase: "Data & Dokumentace",
     steps: [
       { actor: "ai",   icon: ShieldCheck, label: "Digital Twin", detail: "Registry + ADS-B + specifikace motoru — automaticky z N-čísla" },
       { actor: "user", icon: Upload,      label: "Nahrání dokumentace", detail: "Logbooky, airworthiness, registrace, W&B — foto nebo PDF" },
     ],
   },
   {
-    phase: "2 · AI Ověření",
+    phase: "AI Ověření",
     steps: [
       { actor: "ai", icon: FileText,    label: "Logbook Review", detail: "Kontrola úplnosti záznamů, mezer v historii, konzistence hodin" },
       { actor: "ai", icon: ShieldCheck, label: "Damage History", detail: "Form 337, NTSB, nehody a opravy — křížová kontrola" },
@@ -31,20 +31,20 @@ const SCHEMA = [
     ],
   },
   {
-    phase: "3 · Ocenění",
+    phase: "Ocenění",
     steps: [
       { actor: "ai", icon: TrendingUp, label: "ATI Scoring + Valuace", detail: "8 dimenzí transparentnosti + tržní odhad z komparativ" },
     ],
   },
   {
-    phase: "4 · Smlouva & Podpis",
+    phase: "Smlouva & Podpis",
     steps: [
       { actor: "ai",   icon: Scale,   label: "Generování smlouvy", detail: "Agent vyplní oficiální šablonu (FAA / EASA / CAA) z dat Twin" },
       { actor: "sign", icon: PenTool, label: "Digitální podpis", detail: "E-podpis všech stran s auditní stopou — bez tisku a skenování" },
     ],
   },
   {
-    phase: "5 · Inspekce & Uzavření",
+    phase: "Inspekce & Uzavření",
     steps: [
       { actor: "expert", icon: UserCheck,  label: "Pre-buy prohlídka", detail: "Certifikovaný A&P / IA z expertní sítě — objednání jedním klikem" },
       { actor: "user",   icon: DollarSign, label: "Escrow platba", detail: "Stripe nebo USDC — prostředky v úschově do předání" },
@@ -69,45 +69,60 @@ export default function PipelineSchema() {
         ))}
       </div>
 
-      {/* Phases */}
-      <div className="space-y-1">
-        {SCHEMA.map((phase, pi) => (
-          <React.Fragment key={pi}>
-            <div className="relative">
-              {/* Phase label */}
-              <p className="text-[10px] uppercase tracking-[0.2em] font-black text-[rgba(255,255,255,0.35)] mb-2">
+      {/* Timeline */}
+      <div className="relative pl-8">
+        {/* Spine */}
+        <div className="absolute left-[13px] top-2 bottom-2 w-px"
+          style={{ background: "linear-gradient(to bottom, rgba(245,194,66,0.5), rgba(245,194,66,0.08))" }} />
+
+        <div className="space-y-6">
+          {SCHEMA.map((phase, pi) => (
+            <div key={pi} className="relative">
+              {/* Phase node on the spine */}
+              <div className="absolute -left-8 top-0 w-[27px] flex justify-center">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
+                  style={{
+                    background: "rgba(245,194,66,0.12)",
+                    border: "1px solid rgba(245,194,66,0.45)",
+                    color: "#f5c242",
+                  }}>
+                  {pi + 1}
+                </div>
+              </div>
+
+              <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[rgba(255,255,255,0.55)] mb-2 leading-6">
                 {phase.phase}
               </p>
 
-              {/* Steps grid */}
-              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(phase.steps.length, 3)}, minmax(0, 1fr))` }}>
+              {/* Step rows */}
+              <div className="space-y-1.5">
                 {phase.steps.map((step, si) => {
                   const actor = ACTOR_META[step.actor];
                   return (
-                    <div key={si} className="rounded-xl p-3 border"
-                      style={{ background: `${actor.color}08`, borderColor: `${actor.color}25` }}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ background: `${actor.color}15` }}>
-                          <step.icon className="w-3.5 h-3.5" style={{ color: actor.color }} />
-                        </div>
-                        <span className="text-[12px] font-bold text-[rgba(255,255,255,0.88)] leading-tight">{step.label}</span>
+                    <div key={si} className="flex items-start gap-3 rounded-lg px-3 py-2"
+                      style={{
+                        background: "rgba(255,255,255,0.025)",
+                        borderLeft: `2px solid ${actor.color}`,
+                      }}>
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                        style={{ background: `${actor.color}14` }}>
+                        <step.icon className="w-3.5 h-3.5" style={{ color: actor.color }} />
                       </div>
-                      <p className="text-[10px] text-[rgba(255,255,255,0.45)] leading-relaxed">{step.detail}</p>
+                      <div className="min-w-0">
+                        <p className="text-[12px] font-bold text-[rgba(255,255,255,0.88)] leading-tight">
+                          {step.label}
+                        </p>
+                        <p className="text-[10px] text-[rgba(255,255,255,0.45)] leading-relaxed mt-0.5">
+                          {step.detail}
+                        </p>
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-
-            {/* Connector arrow between phases */}
-            {pi < SCHEMA.length - 1 && (
-              <div className="flex justify-center py-1.5">
-                <ArrowDown className="w-4 h-4 text-[rgba(255,255,255,0.20)]" />
-              </div>
-            )}
-          </React.Fragment>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

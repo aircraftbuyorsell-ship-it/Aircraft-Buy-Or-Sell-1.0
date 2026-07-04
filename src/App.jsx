@@ -80,6 +80,7 @@ import DigitalTwin from "./pages/DigitalTwin";
 import IntegrationKit from "./pages/IntegrationKit";
 import Experts from "./pages/Experts";
 import SalesPipeline from "./pages/SalesPipeline";
+import Skills from "./pages/Skills";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -175,6 +176,7 @@ const AuthenticatedApp = () => {
         <Route path="/twin/:registration" element={<DigitalTwin />} />
         <Route path="/integration-kit" element={<IntegrationKit />} />
         <Route path="/experts" element={<Experts />} />
+        <Route path="/skills" element={<Skills />} />
         <Route path="/sales-pipeline" element={<SalesPipeline />} />
         <Route path="/sales-pipeline/:registration" element={<SalesPipeline />} />
       </Route>

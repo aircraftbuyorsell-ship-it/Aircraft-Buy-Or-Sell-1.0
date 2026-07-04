@@ -64,6 +64,7 @@ export const NAV_TREE = [
         label: "ATI Suite",
         items: [
           { path: "/sales-pipeline", label: "Sales Pipeline", icon: Zap },
+          { path: "/skills", label: "Skills Library", icon: Zap },
           { path: "/n-lookup", label: "N-Number Lookup", icon: Search },
           { path: "/ati-quick-score", label: "Quick Score", icon: Zap },
           { path: "/ati-standard", label: "Standard", icon: Shield },

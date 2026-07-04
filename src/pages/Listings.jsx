@@ -29,7 +29,6 @@ export default function Listings() {
 
   const toggleSelect = (id) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   const clearSelection = () => setSelectedIds([]);
-  const selectAll = useCallback(() => setSelectedIds(filtered.map((l) => l.id)), [filtered]);
 
   useAutoTrack("listings");
   const { tokens, tier, isVerified, track } = useBehavior();
@@ -65,6 +64,8 @@ export default function Listings() {
     }
     return true;
   }), [listings, search, makeFilter, minATI, regRegion]);
+
+  const selectAll = useCallback(() => setSelectedIds(filtered.map((l) => l.id)), [filtered]);
 
   // Stats
   const scoredCount = listings.filter((l) => l.ati_score).length;

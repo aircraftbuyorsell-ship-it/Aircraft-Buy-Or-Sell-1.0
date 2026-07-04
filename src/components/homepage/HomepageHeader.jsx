@@ -1,29 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Search, Home, Shield, BarChart2, User, LogIn, LogOut } from "lucide-react";
+import { Search, LogIn, LogOut } from "lucide-react";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import ThemeToggle from "@/components/ThemeToggle";
-
-// Mirrors the platform IA: Discover → Verify → Transact → Manage
-const NAV_LINKS = [
-  { label: "Marketplace", path: "/listings" },
-  { label: "Verify", path: "/n-lookup" },
-  { label: "Sales Pipeline", path: "/sales-pipeline" },
-  { label: "Valuation", path: "/valuation" },
-  { label: "Analytics", path: "/analytics" },
-  { label: "Experts", path: "/experts" },
-  { label: "Pricing", path: "/pricing" },
-];
-
-const MOBILE_TABS = [
-  { label: "Home", path: "/", icon: Home },
-  { label: "Search", path: "/listings", icon: Search },
-  { label: "ATI", path: "/ati-quick-score", icon: Shield },
-  { label: "Analytics", path: "/analytics", icon: BarChart2 },
-  { label: "Account", path: "/my-account", icon: User },
-];
+import PillCommandBar from "@/components/layout/PillCommandBar";
+import MobilePillNav from "@/components/layout/MobilePillNav";
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -31,7 +14,6 @@ function initials(user) {
 }
 
 export default function HomepageHeader() {
-  const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
   const { data: currentUser } = useQuery({
@@ -82,23 +64,10 @@ export default function HomepageHeader() {
             </div>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-7">
-            {NAV_LINKS.map((link) => {
-              const active = pathname === link.path;
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="text-[13px] font-medium transition-colors duration-150"
-                  style={{ color: active ? "#C9A84D" : "rgba(255,255,255,0.6)" }}
-                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
-                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Unified platform navigation — same as inner pages */}
+          <div className="hidden lg:flex items-center justify-center flex-1 min-w-0">
+            <PillCommandBar />
+          </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
@@ -154,46 +123,12 @@ export default function HomepageHeader() {
             )}
           </div>
         </div>
-      </header>
 
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around safe-bottom"
-        style={{
-          background: "#05070B",
-          borderTop: "1px solid rgba(201,168,77,0.15)",
-          height: 56,
-        }}
-      >
-        {MOBILE_TABS.map((tab) => {
-          const active = pathname === tab.path;
-          const Icon = tab.icon;
-          return (
-            <Link
-              key={tab.path}
-              to={tab.path}
-              className="relative flex flex-col items-center justify-center gap-0.5 transition-colors"
-              style={{
-                minWidth: 44, minHeight: 44,
-                color: active ? "#C9A84D" : "rgba(255,255,255,0.5)",
-              }}
-            >
-              {active && (
-                <div
-                  style={{
-                    position: "absolute", top: 0, width: 24, height: 2,
-                    background: "#C9A84D", borderRadius: 1,
-                    boxShadow: "0 0 8px rgba(201,168,77,0.6)",
-                  }}
-                />
-              )}
-              <Icon size={20} />
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500 }}>
-                {tab.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Mobile: unified pill nav — same as inner pages */}
+        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
+          <MobilePillNav />
+        </div>
+      </header>
     </>
   );
 }

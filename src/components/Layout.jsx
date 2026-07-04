@@ -281,11 +281,10 @@ export default function Layout() {
       )}
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className={`relative z-10 flex-1 overflow-y-auto overflow-x-hidden ${isHomepage ? "pb-14 lg:pb-0" : ""}`} style={{ background: "transparent" }}>
+      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
           <Outlet />
       </main>
 
-      {isHomepage && <div className="h-14 lg:hidden shrink-0" />}
       <SiteFooter />
       <ABOSTour />
     </div>);

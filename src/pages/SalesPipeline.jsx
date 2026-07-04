@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Sparkles, ArrowLeft, RefreshCw } from "lucide-react";
 import { getTemplate, detectAircraftClass } from "@/lib/salesBlueprints";
 import CommandCard from "@/components/pipeline/CommandCard";
+import PipelineNodeCanvas from "@/components/pipeline/PipelineNodeCanvas";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
 import IntegrationHub from "@/components/pipeline/IntegrationHub";
@@ -261,6 +262,8 @@ export default function SalesPipeline() {
                 <button onClick={() => setError(null)} className="ml-2 underline">Dismiss</button>
               </div>
             )}
+
+            <PipelineNodeCanvas pipeline={pipeline} passport={passport} />
 
             <CommandCard pipeline={pipeline} passport={passport} />
 

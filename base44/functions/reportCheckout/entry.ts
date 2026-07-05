@@ -18,8 +18,30 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const reg = normalizeReg(body.registration);
-    const email = String(body.email || '').trim().toLowerCase();
-    const returnUrl = String(body.returnUrl || '').split('?')[0];
+    const email = String(body.email || '').trim().toLowerCase().slice(0, 254);
+    const rawReturnUrl = String(body.returnUrl || '').split('?')[0];
+
+    // Validate returnUrl — must be same-origin (prevent open redirect / phishing after payment)
+    const ALLOWED_HOSTS = ['abos.app', 'abos-marketspace.com', 'localhost'];
+    let returnUrl = '';
+    if (rawReturnUrl) {
+      try {
+        if (rawReturnUrl.startsWith('/')) {
+          // Relative path — resolve against the request's origin
+          const reqOrigin = new URL(req.url).origin;
+          returnUrl = reqOrigin + rawReturnUrl;
+        } else {
+          const parsed = new URL(rawReturnUrl);
+          if (ALLOWED_HOSTS.some(h => parsed.hostname === h || parsed.hostname.endsWith(`.${h}`))) {
+            returnUrl = parsed.origin + parsed.pathname + (parsed.search || '');
+          } else {
+            return Response.json({ error: 'returnUrl must be same-origin' }, { status: 400 });
+          }
+        }
+      } catch (_) {
+        return Response.json({ error: 'invalid returnUrl' }, { status: 400 });
+      }
+    }
 
     if (!reg) return Response.json({ error: 'registration required' }, { status: 400 });
     if (!EMAIL_RE.test(email)) return Response.json({ error: 'valid email required' }, { status: 400 });

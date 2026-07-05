@@ -1,7 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 // PUBLIC endpoint — anonymous N-Number / registration / serial lookup (CarVertical model).
-// Returns masked metadata: confirms an ATI record exists, teases the score, hides details.
+// SECURITY: Returns ONLY non-sensitive, intentionally-public data:
+//   - Registration, year, make/model (public FAA registry data)
+//   - Owner name is MASKED (first letter + asterisks)
+//   - Serial number is MASKED (first 3 chars + asterisks)
+//   - ATI numeric score is LOCKED (not returned — requires payment)
+//   - No email, no internal IDs, no financial data, no broker/owner contact info
 
 function normalizeReg(input) {
   const clean = String(input || '').trim().toUpperCase().replace(/^N/, '');

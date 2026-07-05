@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.25.0';
 
 // Map Stripe price IDs → token grants + tier
@@ -212,6 +212,9 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
 
 Deno.serve(async (req) => {
   try {
+    // Establish platform context FIRST — before any signature verification or business logic.
+    const base44 = createClientFromRequest(req);
+
     const stripe        = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
 
@@ -231,8 +234,6 @@ Deno.serve(async (req) => {
     }
 
     console.log(`📡 Webhook received: ${event.type} (${event.id})`);
-
-    const base44 = createClientFromRequest(req);
 
     switch (event.type) {
       case 'checkout.session.completed':

@@ -5,6 +5,10 @@ import { createMimeMessage } from 'npm:mimetext@3.0.27';
 
 // After Stripe payment: verify session → generate ATI Report PDF → email via Gmail.
 // Idempotent: already-delivered requests return delivered=true without re-sending.
+// SECURITY: This endpoint is called from the client success-URL redirect (not a Stripe webhook).
+//   - Payment status is verified server-side via Stripe API (never trusts client claim)
+//   - All entity operations use base44.asServiceRole (no user-scoped reads/writes)
+//   - No sensitive data is exposed beyond the payer's own report
 
 function normalizeReg(input) {
   const clean = String(input || '').trim().toUpperCase().replace(/^N/, '');

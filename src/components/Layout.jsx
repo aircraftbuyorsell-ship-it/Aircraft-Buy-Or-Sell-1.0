@@ -11,11 +11,11 @@ import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
-import PillCommandBar from "@/components/layout/PillCommandBar";
-import MobilePillNav from "@/components/layout/MobilePillNav";
+import PipelineSidebar from "@/components/layout/PipelineSidebar";
+import MobilePipelineNav from "@/components/layout/MobilePipelineNav";
 import PragueClock from "@/components/layout/PragueClock";
 import DotGrid from "@/components/layout/DotGrid";
-import { NAV_TREE } from "@/components/layout/navConfig";
+import { PIPELINE_PHASES as NAV_TREE } from "@/components/layout/pipelineNavConfig";
 
 // Home link for the drawer
 const HOME_ITEM = { path: "/", label: "Dashboard", icon: LayoutDashboard };
@@ -46,17 +46,26 @@ function DrawerContent({ pathname, user, onNavigate }) {
             onClick={onNavigate} />
         </div>
 
-        {NAV_TREE.map((section) =>
+        {NAV_TREE.map((section) => {
+          const PhaseIcon = section.icon;
+          const sectionActive = section.categories.some((cat) =>
+            cat.items.some((item) => pathname === item.path || (item.path !== "/" && pathname.startsWith(item.path + "/")))
+          );
+          return (
           <div key={section.label}>
             <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
               fontSize: "10px",
               fontWeight: 700,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "rgba(212,160,23,0.55)",
+              color: sectionActive ? section.color : "rgba(212,160,23,0.55)",
               padding: "16px 16px 4px",
               marginTop: 4,
             }}>
+              <PhaseIcon size={11} style={{ color: sectionActive ? section.color : "rgba(212,160,23,0.55)" }} />
               {section.label}
             </div>
             {section.categories.map((cat) =>
@@ -77,13 +86,14 @@ function DrawerContent({ pathname, user, onNavigate }) {
                     to={item.path}
                     icon={item.icon}
                     label={item.label}
-                    active={pathname === item.path || pathname.startsWith(item.path + "/")}
+                    active={pathname === item.path || (item.path !== "/" && pathname.startsWith(item.path + "/"))}
                     onClick={onNavigate} />
                 )}
               </div>
             )}
           </div>
-        )}
+          );
+        })}
       </nav>
 
       {/* Legal Footer */}
@@ -255,13 +265,8 @@ export default function Layout() {
             </div>
           </div>
 
-          {/* Center: pill command bar (desktop only, truly centered) */}
-          <div className="hidden lg:flex items-center justify-center flex-1 min-w-0">
-            <PillCommandBar />
-          </div>
-
-          {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
+          {/* Right: theme toggle + Prague date/time + user — pushed right (sidebar handles nav) */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end lg:ml-auto">
             <ThemeToggle />
             <PragueClock />
             {currentUser ?
@@ -284,17 +289,25 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Mobile only: compact icon pill nav on second row */}
-        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
-          <MobilePillNav />
+        {/* Mobile only: n8n-style pipeline node chain on second row */}
+        <div className="lg:hidden flex items-center justify-center pb-2 px-4 overflow-hidden">
+          <MobilePipelineNav />
         </div>
       </header>
       )}
 
-      {/* ── Content ── full width ── */}
-      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
+      {/* ── Content ── sidebar + main ── */}
+      <div className="relative z-10 flex flex-1 overflow-hidden">
+        {/* Desktop n8n pipeline sidebar */}
+        {!isHomepage && (
+          <div className="hidden lg:block flex-shrink-0">
+            <PipelineSidebar />
+          </div>
+        )}
+        <main id="main-content" className="flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
           <Outlet />
-      </main>
+        </main>
+      </div>
 
       <SiteFooter />
       <ABOSTour />

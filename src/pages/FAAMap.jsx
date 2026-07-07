@@ -2,34 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
-  Map, SlidersHorizontal, Table, Globe, Search, ChevronDown,
-  ExternalLink, Zap, ShieldCheck, X, Filter
+  Map, SlidersHorizontal, Table, Zap, ShieldCheck, X, Filter
 } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
-
-const INK   = "#0B1220";
-const INK1  = "#111827";
-const AMBER = "#D4A017";
-const TEAL  = "#5dcaa5";
-const W1    = "rgba(255,255,255,0.90)";
-const W2    = "rgba(255,255,255,0.60)";
-const W3    = "rgba(255,255,255,0.35)";
-const BORDER = "rgba(255,255,255,0.08)";
-
-const GLASS_CARD = {
-  background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, borderRadius: "12px",
-};
-
-const GLASS_INPUT = {
-  background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`,
-  borderRadius: "8px", color: W1, outline: "none", padding: "11px 14px",
-  fontSize: "13px", width: "100%", boxSizing: "border-box",
-};
-
-const LABEL = { display: "block", fontSize: "9px", color: W3, marginBottom: 4, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" };
-
-const FONT_11PX = "11px -apple-system, sans-serif";
-const FONT_7PX = "7px -apple-system, sans-serif";
 
 const AIRCRAFT_TYPES = [
   { value: "", label: "All" },
@@ -64,15 +39,14 @@ const CATEGORY_OPTIONS = [
   { value: "3", label: "Amphibian" },
 ];
 
-function Select({ value, onChange, options, placeholder }) {
+const INPUT_CLS = "w-full rounded-lg px-3 py-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-gold-official/40";
+const LABEL_CLS = "block text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1";
+
+function Select({ value, onChange, options }) {
   return (
-    <select value={value} onChange={e => onChange(e.target.value)}
-      style={GLASS_INPUT}>
-      {placeholder && <option value="">{placeholder}</option>}
+    <select value={value} onChange={e => onChange(e.target.value)} className={INPUT_CLS}>
       {options.map(o => (
-        <option key={o.value || o.label} value={o.value} style={{ color: "#000" }}>
-          {o.label}
-        </option>
+        <option key={o.value || o.label} value={o.value}>{o.label}</option>
       ))}
     </select>
   );
@@ -127,7 +101,7 @@ export default function FAAMap() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchData(); }, []);
 
-  // Canvas map rendering
+  // Canvas map rendering (fixed dark instrument panel — same in both modes)
   useEffect(() => {
     if (view !== "map") return;
     const cv = canvasRef.current;
@@ -167,12 +141,12 @@ export default function FAAMap() {
 
     // Count overlay
     ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = FONT_11PX;
+    ctx.font = "11px -apple-system, sans-serif";
     ctx.fillText(`${totalCount.current.toLocaleString()} aircraft`, W - 160, H - 16);
 
     // States labels
     ctx.fillStyle = "rgba(255,255,255,0.15)";
-    ctx.font = FONT_7PX;
+    ctx.font = "7px -apple-system, sans-serif";
     for (const [st, [lat, lon]] of Object.entries(US_CENTROIDS)) {
       const x = usCenterX + ((lon + 125) / 59) * usW;
       const y = usCenterY + ((50 - lat) / 26) * usH;
@@ -184,149 +158,133 @@ export default function FAAMap() {
     setFilters({ nNumber: "", type: "", engine: "", status: "V", category: "", yearFrom: "", yearTo: "", limit: 500 });
   };
 
+  const viewBtnCls = (active) =>
+    `flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer ${
+      active
+        ? "border-gold-official/40 bg-gold-bg text-gold-official"
+        : "border-border bg-card text-muted-foreground hover:text-foreground"
+    }`;
+
   return (
-    <div style={{ minHeight: "100vh", background: INK, backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.09) 1.5px, transparent 1.5px)", backgroundSize: "40px 40px", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
-      <div style={{ position: "fixed", top: "-200px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse, rgba(212,160,23,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
-      {/* Top bar */}
-      <div style={{ background: INK1, borderBottom: `0.5px solid ${BORDER}`, padding: "12px 18px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(212,160,23,0.09)", display: "flex", alignItems: "center", justifyContent: "center", border: `0.5px solid rgba(212,160,23,0.22)` }}>
-            <Map size={16} color={AMBER} />
+    <div className="min-h-screen dot-grid bg-canvas text-foreground">
+      {/* Official header band */}
+      <div className="border-b border-border glass-navbar relative z-10">
+        <div className="px-4 md:px-5 py-3 flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center border border-gold-official/30 bg-gold-bg shrink-0">
+              <Map className="w-5 h-5 text-gold-official" />
+            </div>
+            <div>
+              <p className="text-[10px] tracking-[0.2em] font-bold text-gold-official uppercase">FAA Registry™</p>
+              <h1 className="text-base font-bold tracking-tight leading-tight">Aircraft Registry Map</h1>
+            </div>
           </div>
-          <div>
-            <h1 style={{ fontSize: 15, fontWeight: 600, margin: 0, letterSpacing: "-0.03em", color: W1 }}>FAA Aircraft Registry</h1>
-            <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Map View</span>
-          </div>
-        </div>
 
-        <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
-        {loading && <MiniGlobe size={24} color={AMBER} inline={true} />}
+          {loading && <MiniGlobe size={24} color="#D4A017" inline={true} />}
 
-        <span style={{ fontSize: 12, color: W2, fontWeight: 600 }}>
-          {totalCount.current.toLocaleString()} records
-        </span>
+          <span className="text-[12px] font-semibold tabular-nums text-muted-foreground">
+            {totalCount.current.toLocaleString()} records
+          </span>
 
-        <div style={{ display: "flex", gap: 4 }}>
-          {[
-            { v: "map", icon: Map, label: "Map" },
-            { v: "list", icon: Table, label: "List" },
-          ].map(({ v, icon: Icon, label }) => (
-            <button key={v} onClick={() => setView(v)}
-              style={{
-                display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-                borderRadius: 8, border: view === v ? `0.5px solid rgba(212,160,23,0.22)` : `0.5px solid ${BORDER}`,
-                background: view === v ? "rgba(212,160,23,0.09)" : "rgba(255,255,255,0.04)",
-                color: view === v ? AMBER : W2,
-                fontSize: 11, fontWeight: 600, cursor: "pointer",
-              }}>
-              <Icon size={13} /> {label}
+          <div className="flex gap-1.5">
+            {[
+              { v: "map", icon: Map, label: "Map" },
+              { v: "list", icon: Table, label: "List" },
+            ].map(({ v, icon: Icon, label }) => (
+              <button key={v} onClick={() => setView(v)} className={viewBtnCls(view === v)}>
+                <Icon className="w-3.5 h-3.5" /> {label}
+              </button>
+            ))}
+            <button onClick={() => setFiltersOpen(v => !v)} className={viewBtnCls(filtersOpen)}>
+              <Filter className="w-3.5 h-3.5" /> Filters
             </button>
-          ))}
-          <button onClick={() => setFiltersOpen(v => !v)}
-            style={{
-              display: "flex", alignItems: "center", gap: 4, padding: "6px 12px",
-              borderRadius: 8, border: filtersOpen ? `0.5px solid rgba(212,160,23,0.22)` : `0.5px solid ${BORDER}`,
-              background: filtersOpen ? "rgba(212,160,23,0.09)" : "rgba(255,255,255,0.04)",
-              color: filtersOpen ? AMBER : W2,
-              fontSize: 11, fontWeight: 600, cursor: "pointer",
-            }}>
-            <Filter size={13} /> Filters
-          </button>
+          </div>
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ display: "flex", gap: 0, height: "calc(100vh - 60px)", position: "relative", zIndex: 1 }}>
-        {/* Filter panel */}
+      <div className="flex h-[calc(100vh-64px)] relative z-10">
+        {/* Filter panel — record module */}
         {filtersOpen && (
-          <div style={{ width: 260, flexShrink: 0, padding: 16, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, background: INK1, borderRight: `0.5px solid ${BORDER}` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-              <SlidersHorizontal size={14} color={W3} />
-              <span style={{ fontSize: 9, fontWeight: 600, color: W3, textTransform: "uppercase", letterSpacing: "0.12em" }}>Filters</span>
+          <div className="w-[260px] shrink-0 p-4 overflow-y-auto flex flex-col gap-3 bg-card border-r border-border">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Filters</span>
             </div>
 
             <div>
-              <label style={LABEL}>N-Number</label>
+              <label className={LABEL_CLS}>N-Number</label>
               <input value={filters.nNumber} onChange={e => setFilters(f => ({ ...f, nNumber: e.target.value }))}
-                placeholder="e.g. N12345" style={{ ...GLASS_INPUT, fontFamily: "'Courier New', monospace" }} />
+                placeholder="e.g. N12345" className={`${INPUT_CLS} font-mono`} />
             </div>
 
             <div>
-              <label style={LABEL}>Aircraft Type</label>
+              <label className={LABEL_CLS}>Aircraft Type</label>
               <Select value={filters.type} onChange={v => setFilters(f => ({ ...f, type: v }))} options={AIRCRAFT_TYPES} />
             </div>
 
             <div>
-              <label style={LABEL}>Engine Type</label>
+              <label className={LABEL_CLS}>Engine Type</label>
               <Select value={filters.engine} onChange={v => setFilters(f => ({ ...f, engine: v }))} options={ENGINE_TYPES} />
             </div>
 
             <div>
-              <label style={LABEL}>Registration Status</label>
+              <label className={LABEL_CLS}>Registration Status</label>
               <Select value={filters.status} onChange={v => setFilters(f => ({ ...f, status: v }))} options={STATUS_OPTIONS} />
             </div>
 
             <div>
-              <label style={LABEL}>Category</label>
+              <label className={LABEL_CLS}>Category</label>
               <Select value={filters.category} onChange={v => setFilters(f => ({ ...f, category: v }))} options={CATEGORY_OPTIONS} />
             </div>
 
-            <div style={{ display: "flex", gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <label style={LABEL}>Year From</label>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className={LABEL_CLS}>Year From</label>
                 <input type="number" value={filters.yearFrom} onChange={e => setFilters(f => ({ ...f, yearFrom: e.target.value }))}
-                  placeholder="1960" style={GLASS_INPUT} />
+                  placeholder="1960" className={INPUT_CLS} />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={LABEL}>Year To</label>
+              <div className="flex-1">
+                <label className={LABEL_CLS}>Year To</label>
                 <input type="number" value={filters.yearTo} onChange={e => setFilters(f => ({ ...f, yearTo: e.target.value }))}
-                  placeholder="2026" style={GLASS_INPUT} />
+                  placeholder="2026" className={INPUT_CLS} />
               </div>
             </div>
 
             <div>
-              <label style={LABEL}>Max Results: {filters.limit}</label>
+              <label className={LABEL_CLS}>Max Results: {filters.limit}</label>
               <input type="range" min="50" max="5000" step="50" value={filters.limit}
                 onChange={e => setFilters(f => ({ ...f, limit: parseInt(e.target.value) }))}
-                style={{ width: "100%", accentColor: AMBER }} />
+                className="w-full accent-[#D4A017]" />
             </div>
 
             <button onClick={fetchData}
-              style={{
-                background: AMBER, border: "none",
-                borderRadius: 8, color: INK, cursor: "pointer", fontWeight: 600,
-                padding: "10px 20px", fontSize: 13, letterSpacing: "-0.01em", marginTop: 4,
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#fdd05a"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = AMBER; }}>
+              className="mt-1 py-2.5 rounded-lg text-[13px] font-bold bg-gold-official text-white hover:opacity-90 transition-opacity cursor-pointer">
               Apply Filters
             </button>
 
             <button onClick={resetFilters}
-              style={{
-                background: "transparent", border: `0.5px solid ${BORDER}`,
-                borderRadius: 8, color: W2, cursor: "pointer",
-                padding: "10px 20px", fontSize: 13, fontWeight: 600,
-              }}>
+              className="py-2.5 rounded-lg text-[13px] font-semibold border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
               Reset
             </button>
           </div>
         )}
 
         {/* Main area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, padding: 12, minWidth: 0 }}>
-          {/* Map / List view */}
-          <div style={{ ...GLASS_CARD, flex: 1, overflow: "hidden", position: "relative", background: view === "map" ? INK : "rgba(255,255,255,0.04)" }}>
+        <div className="flex-1 flex flex-col gap-3 p-3 min-w-0">
+          {/* Map / List view — record module */}
+          <div className={`flex-1 overflow-hidden relative rounded-xl border border-border ${view === "map" ? "bg-[#0B1220]" : "bg-card"}`}>
             {view === "map" ? (
-              <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", background: INK }} />
+              <canvas ref={canvasRef} className="w-full h-full block" style={{ background: "#0B1220" }} />
             ) : (
-              <div style={{ overflow: "auto", height: "100%", padding: 0 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <div className="overflow-auto h-full">
+                <table className="w-full border-collapse text-[12px]">
                   <thead>
-                    <tr style={{ borderBottom: `0.5px solid ${BORDER}`, background: "rgba(255,255,255,0.03)" }}>
+                    <tr className="border-b border-border bg-muted/60">
                       {["N-Number", "Make", "Model", "Year", "Type", "Engine", "Status"].map(h => (
-                        <th key={h} style={{ padding: "9px 14px", textAlign: "left", color: W3, fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                        <th key={h} className="px-3.5 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                           {h}
                         </th>
                       ))}
@@ -335,29 +293,23 @@ export default function FAAMap() {
                   <tbody>
                     {aircraft.map((ac, i) => (
                       <tr key={ac.id || i} onClick={() => setSelected(ac)}
-                        style={{
-                          borderBottom: `0.5px solid ${BORDER}`,
-                          borderLeft: `3px solid ${ac.status_code === "V" ? TEAL : "#e24b4a"}`,
-                          cursor: "pointer",
-                          background: selected?.id === ac.id ? "rgba(212,160,23,0.06)" : "transparent",
-                        }}
-                        onMouseEnter={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                        onMouseLeave={e => { if (selected?.id !== ac.id) e.currentTarget.style.background = "transparent"; }}
+                        className={`border-b border-border cursor-pointer transition-colors ${
+                          selected?.id === ac.id ? "bg-gold-bg" : "hover:bg-muted/60"
+                        }`}
+                        style={{ borderLeft: `3px solid ${ac.status_code === "V" ? "#22c55e" : "#ef4444"}` }}
                       >
-                        <td style={{ padding: "10px 14px", fontFamily: "'Courier New', monospace", fontWeight: 600, fontSize: 12, letterSpacing: "0.06em", color: AMBER }}>N{ac.n_number}</td>
-                        <td style={{ padding: "10px 14px", color: W1 }}>{ac.mfr_mdl_code || "—"}</td>
-                        <td style={{ padding: "10px 14px", color: W2 }}>—</td>
-                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.year_mfr || "—"}</td>
-                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.type_aircraft || "—"}</td>
-                        <td style={{ padding: "10px 14px", color: W2 }}>{ac.type_engine || "—"}</td>
-                        <td style={{ padding: "10px 14px" }}>
-                          <span style={{
-                            display: "inline-block", padding: "2px 10px", borderRadius: 9999,
-                            background: ac.status_code === "V" ? "rgba(93,202,165,0.09)" : "rgba(226,75,74,0.10)",
-                            border: `0.5px solid ${ac.status_code === "V" ? "rgba(93,202,165,0.20)" : "rgba(226,75,74,0.22)"}`,
-                            color: ac.status_code === "V" ? TEAL : "#e24b4a",
-                            fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
-                          }}>
+                        <td className="px-3.5 py-2.5 font-mono font-semibold tracking-wider text-gold-official">N{ac.n_number}</td>
+                        <td className="px-3.5 py-2.5 text-foreground">{ac.mfr_mdl_code || "—"}</td>
+                        <td className="px-3.5 py-2.5 text-muted-foreground">—</td>
+                        <td className="px-3.5 py-2.5 text-muted-foreground tabular-nums">{ac.year_mfr || "—"}</td>
+                        <td className="px-3.5 py-2.5 text-muted-foreground">{ac.type_aircraft || "—"}</td>
+                        <td className="px-3.5 py-2.5 text-muted-foreground">{ac.type_engine || "—"}</td>
+                        <td className="px-3.5 py-2.5">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-md border text-[9px] font-bold uppercase tracking-wider ${
+                            ac.status_code === "V"
+                              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
+                              : "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/25"
+                          }`}>
                             {ac.status_code === "V" ? "Valid" : ac.status_code || "N/A"}
                           </span>
                         </td>
@@ -370,50 +322,36 @@ export default function FAAMap() {
 
             {/* Count overlay for map */}
             {view === "map" && (
-              <div style={{
-                position: "absolute", bottom: 12, right: 12, padding: "6px 14px",
-                borderRadius: 8, background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`,
-                fontSize: 11, fontWeight: 600, color: W2,
-              }}>
+              <div className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10 bg-white/5 text-white/60">
                 {totalCount.current.toLocaleString()} aircraft
               </div>
             )}
           </div>
 
-          {/* Selected aircraft strip */}
+          {/* Selected aircraft strip — official record module */}
           {selected && (
-            <div style={{ background: "rgba(212,160,23,0.06)", border: `0.5px solid rgba(212,160,23,0.22)`, borderRadius: 12, boxShadow: "0 0 0 0.5px rgba(212,160,23,0.10)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div className="rounded-xl border border-gold-official/30 bg-gold-bg px-5 py-3.5 flex items-center gap-4 flex-wrap">
               <div>
-                <span style={{ fontSize: 9, color: AMBER, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" }}>Selected</span>
-                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 600, letterSpacing: "-0.02em", color: W1 }}>
+                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-gold-official">Selected Record</span>
+                <p className="text-sm font-bold tracking-tight mt-0.5">
                   N{selected.n_number} — {selected.mfr_mdl_code || "Aircraft"} ({selected.year_mfr || "—"})
                 </p>
-                <p style={{ margin: 0, fontSize: 11, color: W3 }}>
+                <p className="text-[11px] text-muted-foreground">
                   {selected.city || ""}{selected.city && selected.state ? ", " : ""}{selected.state || ""}
                 </p>
               </div>
-              <div style={{ flex: 1 }} />
+              <div className="flex-1" />
               <Link to={`/ati-quick-score?nreg=N${selected.n_number}`}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  borderRadius: 8, background: AMBER, color: INK,
-                  fontWeight: 600, fontSize: 12, textDecoration: "none", letterSpacing: "-0.01em",
-                }}>
-                <Zap size={13} /> ATI Score
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold bg-gold-official text-white hover:opacity-90 transition-opacity">
+                <Zap className="w-3.5 h-3.5" /> ATI Score
               </Link>
               <Link to={`/ati-verify?nreg=N${selected.n_number}`}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  borderRadius: 8, background: "rgba(93,202,165,0.09)", border: `0.5px solid rgba(93,202,165,0.20)`,
-                  color: TEAL, fontWeight: 600, fontSize: 12, textDecoration: "none", letterSpacing: "-0.01em",
-                }}>
-                <ShieldCheck size={13} /> Verify
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:opacity-80 transition-opacity">
+                <ShieldCheck className="w-3.5 h-3.5" /> Verify
               </Link>
               <button onClick={() => setSelected(null)}
-                style={{
-                  background: "transparent", border: "none", color: W3, cursor: "pointer", padding: 4,
-                }}>
-                <X size={16} />
+                className="text-muted-foreground hover:text-foreground transition-colors p-1 cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}

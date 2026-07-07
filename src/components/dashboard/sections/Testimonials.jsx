@@ -53,25 +53,36 @@ export default function Testimonials() {
       title="Trusted by Professionals Worldwide"
       subtitle="Dealers, brokers, and owners rely on ABOS for every aircraft transaction."
     >
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
         {TESTIMONIALS.map((t, i) => (
-          <div key={i} className="glass-card p-6 flex flex-col">
-            <Quote size={24} className="text-gold-official/40 mb-3" />
-            <div className="flex gap-0.5 mb-3.5">
+          <div key={i} style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "0.5px solid rgba(255,255,255,0.07)",
+            borderRadius: 12, padding: 24,
+            display: "flex", flexDirection: "column",
+          }}>
+            <Quote size={24} style={{ color: "rgba(212,160,23,0.4)", marginBottom: 12 }} />
+            <div style={{ display: "flex", gap: 2, marginBottom: 14 }}>
               {Array.from({ length: t.rating }).map((_, j) => (
-                <Star key={j} size={13} fill="#D4A017" className="text-gold-official" />
+                <Star key={j} size={13} fill="#D4A017" style={{ color: "#D4A017" }} />
               ))}
             </div>
-            <p className="text-[13px] text-foreground/80 leading-[1.7] mb-5 flex-1">
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, marginBottom: 20, flex: 1 }}>
               "{t.quote}"
             </p>
-            <div className="flex items-center gap-3 pt-4 border-t border-border">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border border-gold-official/25 bg-gold-bg text-gold-official">
+            <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 16, borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: "50%",
+                background: "rgba(212,160,23,0.10)",
+                border: "1px solid rgba(212,160,23,0.22)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 14, fontWeight: 700, color: "#D4A017",
+              }}>
                 {t.name.split(" ").map(n => n[0]).join("")}
               </div>
               <div>
-                <div className="text-[13px] font-semibold text-foreground">{t.name}</div>
-                <div className="text-[11px] text-muted-foreground/70">{t.role} · {t.company}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{t.name}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{t.role} · {t.company}</div>
               </div>
             </div>
           </div>

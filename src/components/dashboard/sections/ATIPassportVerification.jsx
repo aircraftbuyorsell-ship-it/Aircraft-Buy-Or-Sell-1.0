@@ -36,25 +36,37 @@ export default function ATIPassportVerification() {
       title="Verify Before You Buy"
       subtitle="The Aircraft Transaction Intelligence Passport is the industry standard for pre-purchase verification — trusted by dealers, brokers, and owners across 150+ countries."
     >
-      <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
         {FEATURES.map(({ icon: Icon, title, desc, color }) => (
-          <div key={title} className="glass-card p-6">
-            <div
-              className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-4"
-              style={{ background: `${color}12`, border: `1px solid ${color}28` }}
-            >
+          <div key={title}
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "0.5px solid rgba(255,255,255,0.07)",
+              borderRadius: 12,
+              padding: 24,
+            }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: `${color}12`,
+              border: `1px solid ${color}28`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              marginBottom: 16,
+            }}>
               <Icon size={18} style={{ color }} />
             </div>
-            <h3 className="text-sm font-semibold text-foreground mb-2">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 8 }}>{title}</h3>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{desc}</p>
           </div>
         ))}
       </div>
-      <div className="text-center">
-        <Link
-          to="/ati-verify"
-          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-[10px] text-sm font-bold bg-gold-official text-white hover:opacity-90 transition-opacity"
-        >
+      <div style={{ textAlign: "center" }}>
+        <Link to="/ati-verify"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "#D4A017", color: "#0B1220",
+            padding: "14px 28px", borderRadius: 10,
+            fontSize: 14, fontWeight: 700, textDecoration: "none",
+          }}>
           <ShieldCheck size={16} /> Start Verification <ArrowRight size={16} />
         </Link>
       </div>

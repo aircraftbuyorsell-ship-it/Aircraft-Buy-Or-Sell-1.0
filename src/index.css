@@ -25,6 +25,12 @@
     --navbar-bg:     rgba(255, 255, 255, 0.85);
     --navbar-border: rgba(0, 0, 0, 0.08);
 
+    /* Official Infrastructure tokens */
+    --grid-color: rgba(0, 0, 0, 0.04);
+    --bg-canvas: #fbfaf7;
+    --gold-official: #D4A017;
+    --gold-bg: rgba(212, 160, 23, 0.08);
+
     /* Gold / Amber */
     --gold:       #D4A017;
     --gold-bright:#F5C842;
@@ -85,6 +91,12 @@
 
     --navbar-bg:     rgba(10, 8, 30, 0.85);
     --navbar-border: rgba(0, 245, 255, 0.12);
+
+    /* Official Infrastructure tokens */
+    --grid-color: rgba(255, 255, 255, 0.03);
+    --bg-canvas: #0B1220;
+    --gold-official: #D4A017;
+    --gold-bg: rgba(212, 160, 23, 0.12);
 
     --gold:       #D4A017;
     --gold-bright:#F5C842;
@@ -311,6 +323,14 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
 .dark .glass-pill-tinted {
   background: rgba(59,130,246,0.08);
   border: 1px solid rgba(59,130,246,0.2);
+}
+
+/* ═══════════════════════════════════════════
+   DOT GRID — official infrastructure background
+═══════════════════════════════════════════ */
+.dot-grid {
+  background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

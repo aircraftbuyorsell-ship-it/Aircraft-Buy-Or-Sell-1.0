@@ -8,47 +8,47 @@ import {
 // vertical timeline layout: gold spine, phase nodes, actor-colored step rows.
 
 const ACTOR_META = {
-  user:   { label: "Vy — nahrajete / doplníte", color: "#a78bfa", icon: Upload },
-  ai:     { label: "AI — zpracuje automaticky", color: "#f5c242", icon: Sparkles },
-  expert: { label: "Certifikovaný expert", color: "#4e8ef7", icon: UserCheck },
-  sign:   { label: "Digitální podpis", color: "#5dcaa5", icon: PenTool },
+  user:   { label: "You — upload / provide", color: "#a78bfa", icon: Upload },
+  ai:     { label: "AI — processed automatically", color: "#f5c242", icon: Sparkles },
+  expert: { label: "Certified expert", color: "#4e8ef7", icon: UserCheck },
+  sign:   { label: "Digital signature", color: "#5dcaa5", icon: PenTool },
 };
 
 const SCHEMA = [
   {
-    phase: "Data & Dokumentace",
+    phase: "Data & Documentation",
     steps: [
-      { actor: "ai",   icon: ShieldCheck, label: "Digital Twin", detail: "Registry + ADS-B + specifikace motoru — automaticky z N-čísla" },
-      { actor: "user", icon: Upload,      label: "Nahrání dokumentace", detail: "Logbooky, airworthiness, registrace, W&B — foto nebo PDF" },
+      { actor: "ai",   icon: ShieldCheck, label: "Digital Twin", detail: "Registry + ADS-B + engine specs — automatically from the N-number" },
+      { actor: "user", icon: Upload,      label: "Document Upload", detail: "Logbooks, airworthiness, registration, W&B — photo or PDF" },
     ],
   },
   {
-    phase: "AI Ověření",
+    phase: "AI Verification",
     steps: [
-      { actor: "ai", icon: FileText,    label: "Logbook Review", detail: "Kontrola úplnosti záznamů, mezer v historii, konzistence hodin" },
-      { actor: "ai", icon: ShieldCheck, label: "Damage History", detail: "Form 337, NTSB, nehody a opravy — křížová kontrola" },
-      { actor: "ai", icon: CheckCircle, label: "AD / SB / STC", detail: "Compliance check směrnic a bulletinů, propadlé položky" },
+      { actor: "ai", icon: FileText,    label: "Logbook Review", detail: "Record completeness, gaps in history, hour consistency checks" },
+      { actor: "ai", icon: ShieldCheck, label: "Damage History", detail: "Form 337, NTSB, accidents and repairs — cross-checked" },
+      { actor: "ai", icon: CheckCircle, label: "AD / SB / STC", detail: "Compliance check of directives and bulletins, overdue items" },
     ],
   },
   {
-    phase: "Ocenění",
+    phase: "Valuation",
     steps: [
-      { actor: "ai", icon: TrendingUp, label: "ATI Scoring + Valuace", detail: "8 dimenzí transparentnosti + tržní odhad z komparativ" },
+      { actor: "ai", icon: TrendingUp, label: "ATI Scoring + Valuation", detail: "8 transparency dimensions + market estimate from comparables" },
     ],
   },
   {
-    phase: "Smlouva & Podpis",
+    phase: "Contract & Signature",
     steps: [
-      { actor: "ai",   icon: Scale,   label: "Generování smlouvy", detail: "Agent vyplní oficiální šablonu (FAA / EASA / CAA) z dat Twin" },
-      { actor: "sign", icon: PenTool, label: "Digitální podpis", detail: "E-podpis všech stran s auditní stopou — bez tisku a skenování" },
+      { actor: "ai",   icon: Scale,   label: "Contract Generation", detail: "Agent fills the official template (FAA / EASA / CAA) from Twin data" },
+      { actor: "sign", icon: PenTool, label: "Digital Signature", detail: "E-signature by all parties with audit trail — no printing or scanning" },
     ],
   },
   {
-    phase: "Inspekce & Uzavření",
+    phase: "Inspection & Closing",
     steps: [
-      { actor: "expert", icon: UserCheck,  label: "Pre-buy prohlídka", detail: "Certifikovaný A&P / IA z expertní sítě — objednání jedním klikem" },
-      { actor: "user",   icon: DollarSign, label: "Escrow platba", detail: "Stripe nebo USDC — prostředky v úschově do předání" },
-      { actor: "sign",   icon: Flag,       label: "Převod & uzavření", detail: "Bill of Sale, změna registrace, finální podpisy" },
+      { actor: "expert", icon: UserCheck,  label: "Pre-buy Inspection", detail: "Certified A&P / IA from the expert network — booked in one click" },
+      { actor: "user",   icon: DollarSign, label: "Escrow Payment", detail: "Stripe or USDC — funds held in escrow until handover" },
+      { actor: "sign",   icon: Flag,       label: "Transfer & Closing", detail: "Bill of Sale, registration change, final signatures" },
     ],
   },
 ];

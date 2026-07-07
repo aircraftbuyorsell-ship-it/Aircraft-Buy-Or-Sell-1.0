@@ -241,7 +241,7 @@ export default function SalesPipeline() {
         {!normalizedReg && (
           <div className="mt-4">
             <p className="text-center text-[11px] uppercase tracking-[0.2em] font-black text-[rgba(255,255,255,0.35)] mb-3">
-              Jak pipeline funguje
+              How the pipeline works
             </p>
             <PipelineSchema />
           </div>

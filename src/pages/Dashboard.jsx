@@ -25,14 +25,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div
-      style={{
-        background: "transparent",
-        color: "#fff",
-        minHeight: "100vh",
-        fontFamily: "Inter, -apple-system, sans-serif",
-      }}
-    >
+    <div className="min-h-screen dot-grid bg-canvas text-foreground font-sans">
       <HomepageHeader />
       <NotificationStack />
 

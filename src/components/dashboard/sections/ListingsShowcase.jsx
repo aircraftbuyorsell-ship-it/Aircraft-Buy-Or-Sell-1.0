@@ -75,15 +75,8 @@ export default function ListingsShowcase({
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              style={{
-                minWidth: 280,
-                height: 300,
-                flexShrink: 0,
-                background: "rgba(255,255,255,0.03)",
-                border: "0.5px solid rgba(255,255,255,0.06)",
-                borderRadius: 12,
-              }}
-              className="animate-pulse"
+              style={{ minWidth: 280, height: 300, flexShrink: 0 }}
+              className="animate-pulse bg-muted border border-border rounded-xl"
             />
           ))}
         </div>

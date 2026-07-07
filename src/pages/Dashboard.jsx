@@ -11,6 +11,7 @@ import TrustedBrokers from "@/components/dashboard/sections/TrustedBrokers";
 import CommunitySection from "@/components/dashboard/sections/CommunitySection";
 import Testimonials from "@/components/dashboard/sections/Testimonials";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
+import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsSection";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -58,6 +59,9 @@ export default function Dashboard() {
 
       {/* 5. Aircraft Value Estimator */}
       <ValueEstimator />
+
+      {/* 5b. Featured Developer Tools — hides itself when no active tools */}
+      <FeaturedToolsSection />
 
       {/* 6. Trusted Brokers */}
       <TrustedBrokers />

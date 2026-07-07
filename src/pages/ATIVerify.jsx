@@ -4,23 +4,22 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import {
   ShieldCheck, Plus, Search, Video, FileText,
-  CheckCircle2, AlertTriangle, Clock, ChevronRight, Download
+  CheckCircle2, AlertTriangle, Clock, ChevronRight
 } from "lucide-react";
 import NewSessionModal from "@/components/ati-verify/NewSessionModal";
 
 function StatusBadge({ status }) {
   const config = {
-    draft: { bg: "rgba(100,116,139,0.12)", color: "#94a3b8", label: "Draft" },
-    invited: { bg: "rgba(59,130,246,0.1)", color: "#60a5fa", label: "Invited" },
-    in_progress: { bg: "rgba(234,179,8,0.12)", color: "#facc15", label: "In Progress" },
-    completed: { bg: "rgba(34,197,94,0.1)", color: "#4ade80", label: "Completed" },
-    rejected: { bg: "rgba(239,68,68,0.1)", color: "#f87171", label: "Rejected" },
-    expired: { bg: "rgba(100,116,139,0.1)", color: "#64748b", label: "Expired" },
+    draft: { cls: "text-slate-500 bg-slate-500/10 border-slate-500/25", label: "Draft" },
+    invited: { cls: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/25", label: "Invited" },
+    in_progress: { cls: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/25", label: "In Progress" },
+    completed: { cls: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25", label: "Completed" },
+    rejected: { cls: "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/25", label: "Rejected" },
+    expired: { cls: "text-slate-500 bg-slate-500/10 border-slate-500/25", label: "Expired" },
   };
   const c = config[status] || config.draft;
   return (
-    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border"
-      style={{ color: c.color, backgroundColor: c.bg, borderColor: `${c.color}30` }}>
+    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${c.cls}`}>
       {c.label}
     </span>
   );
@@ -29,16 +28,15 @@ function StatusBadge({ status }) {
 function VfyBadge({ status }) {
   if (!status) return null;
   const config = {
-    verified: { bg: "rgba(34,197,94,0.1)", color: "#4ade80", icon: CheckCircle2, label: "Verified" },
-    review_required: { bg: "rgba(234,179,8,0.12)", color: "#facc15", icon: AlertTriangle, label: "Review Required" },
-    rejected: { bg: "rgba(239,68,68,0.1)", color: "#f87171", icon: AlertTriangle, label: "Rejected" },
+    verified: { cls: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25", icon: CheckCircle2, label: "Verified" },
+    review_required: { cls: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/25", icon: AlertTriangle, label: "Review Required" },
+    rejected: { cls: "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/25", icon: AlertTriangle, label: "Rejected" },
   };
   const c = config[status];
   if (!c) return null;
   const Icon = c.icon;
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border"
-      style={{ color: c.color, backgroundColor: c.bg, borderColor: `${c.color}30` }}>
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border ${c.cls}`}>
       <Icon className="w-3 h-3" /> {c.label}
     </span>
   );
@@ -70,77 +68,85 @@ export default function ATIVerify() {
   const pending = sessions.filter(s => s.status === "invited" || s.status === "in_progress").length;
   const review = sessions.filter(s => s.verification_status === "review_required").length;
 
+  const stats = [
+    { label: "Total Sessions", value: total, icon: FileText, accent: "text-foreground" },
+    { label: "Verified", value: verified, icon: CheckCircle2, accent: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Pending", value: pending, icon: Clock, accent: "text-amber-600 dark:text-amber-400" },
+    { label: "Needs Review", value: review, icon: AlertTriangle, accent: "text-red-600 dark:text-red-400" },
+  ];
+
   return (
-    <div className="min-h-screen text-white" style={{ background: "linear-gradient(135deg,#0a1628 0%,#1B2A4A 40%,#0d1f3c 100%)" }}>
-      {/* Header */}
-      <div className="border-b sticky top-0 z-10" style={{ background: "rgba(10,22,40,0.95)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="min-h-screen dot-grid bg-canvas text-foreground">
+      {/* Official header band */}
+      <div className="border-b border-border sticky top-0 z-20 glass-navbar">
         <div className="px-4 md:px-8 py-4 max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <p className="text-[10px] tracking-[0.2em] font-black text-[#60a5fa] uppercase">ATI Verify</p>
-            <h1 className="text-xl font-bold mt-0.5">Remote Verification Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center border border-gold-official/30 bg-gold-bg shrink-0">
+              <ShieldCheck className="w-5 h-5 text-gold-official" />
+            </div>
+            <div>
+              <p className="text-[10px] tracking-[0.2em] font-bold text-gold-official uppercase">ATI Verify™</p>
+              <h1 className="text-xl font-bold mt-0.5 tracking-tight">Remote Verification Dashboard</h1>
+            </div>
           </div>
           <button onClick={() => setShowNew(true)}
-            className="flex items-center gap-2 text-white font-bold text-sm px-4 py-2.5 rounded-lg transition-colors" style={{ background: "linear-gradient(135deg, #D4A017, #f48120)" }}>
+            className="flex items-center gap-2 font-bold text-sm px-4 py-2.5 rounded-lg bg-gold-official text-white hover:opacity-90 transition-opacity cursor-pointer">
             <Plus className="w-4 h-4" /> New Session
           </button>
         </div>
       </div>
 
       <div className="px-4 md:px-8 py-6 max-w-6xl mx-auto space-y-6">
-        {/* Stats */}
+        {/* Stats — official record modules */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Total Sessions", value: total, icon: FileText, color: "#60a5fa" },
-            { label: "Verified", value: verified, icon: CheckCircle2, color: "#4ade80" },
-            { label: "Pending", value: pending, icon: Clock, color: "#facc15" },
-            { label: "Needs Review", value: review, icon: AlertTriangle, color: "#f87171" },
-          ].map(s => (
-            <div key={s.label} className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+          {stats.map(s => (
+            <div key={s.label} className="glass-card p-4">
               <div className="flex items-center gap-2 mb-3">
-                <s.icon className="w-4 h-4" style={{ color: s.color }} />
-                <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">{s.label}</p>
+                <s.icon className={`w-4 h-4 ${s.accent}`} />
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{s.label}</p>
               </div>
-              <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
+              <p className={`text-2xl font-black tabular-nums ${s.accent}`}>{s.value}</p>
             </div>
           ))}
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "rgba(255,255,255,0.3)" }} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <input
-            placeholder="Search by session ID, registration, or name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none transition-colors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)" }} placeholder="Search by session ID, registration, or name..."
+            className="w-full rounded-lg py-3 pl-10 pr-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-gold-official/40"
+            placeholder="Search by session ID, registration, or name…"
+            aria-label="Search verification sessions"
           />
         </div>
 
-        {/* Sessions table */}
+        {/* Sessions register */}
         {isLoading ? (
-          <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.07)" }} />)}
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl animate-pulse bg-muted" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <ShieldCheck className="w-12 h-12 mx-auto text-white/10 mb-4" />
-            <p className="text-white/30 text-sm">No verification sessions yet.</p>
-            <button onClick={() => setShowNew(true)} className="text-[#60a5fa] text-sm font-bold mt-2 hover:underline">
+          <div className="glass-card text-center py-16">
+            <ShieldCheck className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground text-sm">No verification sessions yet.</p>
+            <button onClick={() => setShowNew(true)} className="text-gold-official text-sm font-bold mt-2 hover:underline cursor-pointer">
               Create your first session
             </button>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="glass-card overflow-hidden divide-y divide-border">
             {filtered.map(s => (
-              <Link key={s.id} to={`/ati-verify/${s.id}`}>
-                <div className="rounded-xl px-5 py-4 transition-all flex items-center justify-between gap-4" style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: "1px solid rgba(255,255,255,0.11)" }}>
+              <Link key={s.id} to={`/ati-verify/${s.id}`} className="block">
+                <div className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-muted/60 transition-colors cursor-pointer">
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.10)" }}>
-                      <Video className="w-4 h-4 text-[#60a5fa]" />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-gold-official/25 bg-gold-bg">
+                      <Video className="w-4 h-4 text-gold-official" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: "#fff" }}>{s.session_code}</p>
-                      <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <p className="text-sm font-bold truncate">{s.session_code}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
                         {s.seller_name || "—"} · {s.aircraft_registration || "—"} · {s.aircraft_type || "—"}
                       </p>
                     </div>
@@ -148,7 +154,7 @@ export default function ATIVerify() {
                   <div className="flex items-center gap-3 shrink-0">
                     <StatusBadge status={s.status} />
                     <VfyBadge status={s.verification_status} />
-                    <ChevronRight className="w-4 h-4 text-white/20" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                   </div>
                 </div>
               </Link>

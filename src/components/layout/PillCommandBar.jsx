@@ -29,6 +29,39 @@ export default function PillCommandBar() {
         const active = isPathInSection(section, pathname);
         const open = openSection === section.label;
 
+        if (section.direct) {
+          return (
+            <div key={section.label} style={{ position: "relative" }}>
+              <button
+                onClick={() => handleNav(section.path)}
+                style={{
+                  fontSize: 13,
+                  fontWeight: active ? 700 : 500,
+                  color: active ? "#D4A017" : "rgba(255,255,255,0.65)",
+                  background: "transparent",
+                  border: "none",
+                  padding: "8px 2px",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  letterSpacing: "0.01em",
+                  transition: "color 150ms ease",
+                }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+              >
+                {section.label}
+              </button>
+              {active && (
+                <div style={{
+                  position: "absolute", bottom: 2, left: 2, right: 2, height: 2,
+                  background: "#D4A017", borderRadius: 1,
+                  boxShadow: "0 0 8px rgba(212,160,23,0.5)",
+                }} />
+              )}
+            </div>
+          );
+        }
+
         return (
           <div key={section.label} style={{ position: "relative" }}>
             <button

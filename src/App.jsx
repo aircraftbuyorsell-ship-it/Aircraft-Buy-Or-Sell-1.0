@@ -83,6 +83,10 @@ import SalesPipeline from "./pages/SalesPipeline";
 import Workflows from "./pages/Workflows";
 import Skills from "./pages/Skills";
 import IPNotice from "./pages/IPNotice";
+import SolutionsBuyers from "./pages/solutions/SolutionsBuyers";
+import SolutionsSellers from "./pages/solutions/SolutionsSellers";
+import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
+import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -183,6 +187,10 @@ const AuthenticatedApp = () => {
         <Route path="/sales-pipeline" element={<SalesPipeline />} />
         <Route path="/sales-pipeline/:registration" element={<SalesPipeline />} />
         <Route path="/workflows" element={<Workflows />} />
+        <Route path="/solutions/buyers" element={<SolutionsBuyers />} />
+        <Route path="/solutions/sellers" element={<SolutionsSellers />} />
+        <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
+        <Route path="/solutions/lenders" element={<SolutionsLenders />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

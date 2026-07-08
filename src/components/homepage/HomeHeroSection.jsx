@@ -178,7 +178,7 @@ export default function HomeHeroSection() {
                 className="text-[10px] font-bold tracking-[0.16em] uppercase"
                 style={{ color: "#f5c242" }}>
                 
-                Global Aviation Intelligence Platform
+                ABOS™ Platform
               </span>
             </div>
 
@@ -186,22 +186,22 @@ export default function HomeHeroSection() {
               className="tracking-[-0.03em] leading-[1.04] text-white mb-6"
               style={{ fontSize: "clamp(36px, 5.5vw, 62px)", fontWeight: 500 }}>
               
-              Aircraft identity &amp; deals
+              The Aviation
               <br />
-              you can <span style={{ color: "#f5c242", fontWeight: 700 }}>see and trust</span>
+              <span style={{ color: "#f5c242", fontWeight: 700 }}>Intelligence</span> Platform
             </h1>
 
             {/* CTA row — n8n style: filled + ghost */}
             <div className="flex flex-wrap items-center gap-3 mb-7">
               <Link
-                to="/sales-pipeline"
+                to="/listings"
                 className="px-6 py-3 rounded-xl text-[13px] font-bold transition-all hover:scale-[1.02]"
                 style={{ background: "#f5c242", color: "#04060a", textDecoration: "none" }}>
                 
-                Start a sales pipeline
+                Browse Aircraft
               </Link>
               <Link
-                to="/listings"
+                to="/ati-center"
                 className="px-6 py-3 rounded-xl text-[13px] font-bold transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.05)",
@@ -210,13 +210,13 @@ export default function HomeHeroSection() {
                   textDecoration: "none"
                 }}>
                 
-                Browse listings
+                Explore ABOS Intelligence
               </Link>
             </div>
 
             <p className="text-[14px] sm:text-[16px] leading-relaxed max-w-[480px] mb-8" style={{ color: "rgba(255,255,255,0.60)" }}>
-              Search any registration, verify against registry and ADS-B data,
-              value with market comparatives — and close the deal end-to-end.
+              Search. Analyze. Negotiate. Buy. Sell. — verified aircraft identity,
+              AI valuations and end-to-end deal tools in one platform.
             </p>
 
             <div className="w-full max-w-[560px] mb-10">

@@ -32,7 +32,7 @@ export default function MobilePillNav() {
           return (
             <button
               key={section.label}
-              onClick={() => setOpenSection(open ? null : section.label)}
+              onClick={() => section.direct ? handleNav(section.path) : setOpenSection(open ? null : section.label)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 transition-all"
               style={{
                 height: 52,
@@ -54,7 +54,7 @@ export default function MobilePillNav() {
             >
               {Icon && <Icon size={15} style={{ opacity: open ? 1 : 0.7 }} />}
               <span style={{ fontSize: 10, fontWeight: open ? 700 : 600, letterSpacing: "0.03em" }}>
-                {section.label}
+                {section.mobileLabel || section.label}
               </span>
             </button>
           );

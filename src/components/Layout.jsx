@@ -14,6 +14,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
 import PragueClock from "@/components/layout/PragueClock";
+import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import { NAV_TREE } from "@/components/layout/navConfig";
 
@@ -47,6 +48,15 @@ function DrawerContent({ pathname, user, onNavigate }) {
         </div>
 
         {NAV_TREE.map((section) =>
+          section.direct ?
+          <div key={section.label} style={{ marginTop: 8 }}>
+            <NavItem
+              to={section.path}
+              icon={section.icon}
+              label={section.label}
+              active={pathname === section.path}
+              onClick={onNavigate} />
+          </div> :
           <div key={section.label}>
             <div style={{
               fontSize: "10px",
@@ -265,16 +275,7 @@ export default function Layout() {
             <ThemeToggle />
             <PragueClock />
             {currentUser ?
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                <Link to="/my-account"
-                  style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, textDecoration: "none" }}>
-                  <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(currentUser)}</span>
-                </Link>
-                <button onClick={() => base44.auth.logout()} aria-label="Log out" title="Log out"
-              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "8px", flexShrink: 0 }}>
-                  <LogOut size={16} />
-                </button>
-              </div> :
+            <AccountMenu user={currentUser} /> :
 
             <button onClick={() => base44.auth.redirectToLogin()}
             style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>

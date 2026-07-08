@@ -7,6 +7,7 @@ import SidebarLogo from "@/components/layout/SidebarLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
+import AccountMenu from "@/components/layout/AccountMenu";
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -80,32 +81,7 @@ export default function HomepageHeader() {
               </button>
               <ThemeToggle />
               {currentUser ? (
-                <div className="flex items-center gap-1.5">
-                  <Link
-                    to="/my-account"
-                    style={{
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(245,194,66,0.09)",
-                      border: "0.5px solid rgba(245,194,66,0.22)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      textDecoration: "none",
-                    }}
-                  >
-                    <span style={{ color: "#f5c242", fontSize: 11, fontWeight: 600 }}>
-                      {initials(currentUser)}
-                    </span>
-                  </Link>
-                  <button
-                    onClick={() => base44.auth.logout()}
-                    aria-label="Log out"
-                    style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      color: "rgba(255,255,255,0.35)", display: "flex", padding: 8,
-                    }}
-                  >
-                    <LogOut size={16} />
-                  </button>
-                </div>
+                <AccountMenu user={currentUser} />
               ) : (
                 <button
                   onClick={() => base44.auth.redirectToLogin()}

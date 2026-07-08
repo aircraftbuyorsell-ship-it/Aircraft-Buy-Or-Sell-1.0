@@ -32,6 +32,16 @@
       },
       "description": "Granted API scopes"
     },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "pro",
+        "enterprise"
+      ],
+      "default": "free",
+      "description": "Rate limit plan: free 20/min 500/day, pro 300/min 20k/day, enterprise custom"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -54,6 +64,28 @@
     "last_used_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "rate_minute_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the current per-minute rate window"
+    },
+    "rate_minute_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Requests in the current per-minute window"
+    },
+    "rate_day_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the current per-day rate window"
+    },
+    "rate_day_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Requests in the current per-day window"
     }
   },
   "required": [

@@ -1,0 +1,72 @@
+{
+  "name": "ApiRequestLog",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Unique request UUID (returned as X-Request-ID header)"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Gateway endpoint invoked (e.g. search, valuate, listings.list)"
+    },
+    "caller_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "api_key",
+        "anonymous"
+      ],
+      "description": "How the caller authenticated"
+    },
+    "api_key_id": {
+      "type": "string",
+      "description": "ApiKey record id (for api_key callers)"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the calling user / API key owner"
+    },
+    "status": {
+      "type": "number",
+      "description": "HTTP response status code"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Request duration in milliseconds"
+    }
+  },
+  "required": [
+    "request_id",
+    "endpoint"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

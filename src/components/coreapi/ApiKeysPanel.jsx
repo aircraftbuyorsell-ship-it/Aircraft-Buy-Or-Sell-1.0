@@ -137,7 +137,7 @@ export default function ApiKeysPanel() {
                   </span>
                 </div>
                 <p className="text-[10px] m-0 mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  {(k.scopes || []).join(" · ")} — {k.request_count} requests
+                  {(k.plan || "free").toUpperCase()} plan · {(k.scopes || []).join(" · ")} — {k.request_count} requests
                 </p>
               </div>
               {k.status === "active" && (

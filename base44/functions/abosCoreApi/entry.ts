@@ -37,13 +37,50 @@ function mapListing(l) {
   };
 }
 
+const PLAN_LIMITS = {
+  free: { rpm: 20, rpd: 500 },
+  pro: { rpm: 300, rpd: 20000 },
+  enterprise: { rpm: 10000, rpd: 1000000 },
+};
+
 Deno.serve(async (req) => {
+  const requestId = crypto.randomUUID();
+  const started = Date.now();
+  const ctx = {};
+  let res;
   try {
+    res = await handleRequest(req, ctx);
+  } catch (error) {
+    res = Response.json({ status: 'error', error: { code: 'internal_error', message: error.message } }, { status: 500 });
+  }
+  // ── Audit log — fire-and-forget, never breaks the response ──
+  try {
+    if (ctx.base44) {
+      await ctx.base44.asServiceRole.entities.ApiRequestLog.create({
+        request_id: requestId,
+        endpoint: ctx.endpoint || 'unknown',
+        caller_type: ctx.callerType || 'anonymous',
+        api_key_id: ctx.apiKeyId || undefined,
+        owner_email: ctx.email || undefined,
+        status: res.status,
+        duration_ms: Date.now() - started,
+      });
+    }
+  } catch (_e) { /* audit logging must never fail the request */ }
+  const headers = new Headers(res.headers);
+  headers.set('X-Request-ID', requestId);
+  return new Response(res.body, { status: res.status, headers });
+});
+
+async function handleRequest(req, ctx) {
     const base44 = createClientFromRequest(req);
+    ctx.base44 = base44;
     let body = {};
     try { body = await req.json(); } catch (_e) { body = {}; }
-    const endpoint = body.endpoint;
+    // API versioning: 'v1.' prefix is optional — v1 is the current contract.
+    const endpoint = String(body.endpoint || '').replace(/^v1\./, '') || null;
     const params = body.params || {};
+    ctx.endpoint = endpoint;
     if (!endpoint) return apiError(400, 'missing_endpoint', "Request body must include 'endpoint'.");
 
     // ── Resolve caller: API key (external) or logged-in user (in-app console) ──
@@ -66,15 +103,43 @@ Deno.serve(async (req) => {
       caller = { type: 'user', user, scopes: ['*'], email: user.email };
     }
 
+    ctx.callerType = caller.type;
+    ctx.email = caller.email;
+    if (caller.type === 'api_key') ctx.apiKeyId = caller.key.id;
+
+    // ── Rate limiting (API key callers, per plan) ──
+    if (caller.type === 'api_key') {
+      const plan = PLAN_LIMITS[caller.key.plan] || PLAN_LIMITS.free;
+      const now = Date.now();
+      let mStart = caller.key.rate_minute_start ? Date.parse(caller.key.rate_minute_start) : 0;
+      let mCount = caller.key.rate_minute_count || 0;
+      if (!mStart || now - mStart >= 60000) { mStart = now; mCount = 0; }
+      let dStart = caller.key.rate_day_start ? Date.parse(caller.key.rate_day_start) : 0;
+      let dCount = caller.key.rate_day_count || 0;
+      if (!dStart || now - dStart >= 86400000) { dStart = now; dCount = 0; }
+      if (mCount >= plan.rpm) {
+        return apiError(429, 'rate_limited', `Rate limit exceeded: ${plan.rpm} requests/minute on the '${caller.key.plan || 'free'}' plan.`);
+      }
+      if (dCount >= plan.rpd) {
+        return apiError(429, 'daily_limit_exceeded', `Daily limit exceeded: ${plan.rpd} requests/day on the '${caller.key.plan || 'free'}' plan.`);
+      }
+      caller.rate = { mStart, mCount, dStart, dCount };
+    }
+
     const hasScope = (s) => caller.scopes.includes('*') || caller.scopes.includes(s);
     const requireScope = (s) => (hasScope(s) ? null : apiError(403, 'insufficient_scope', `This endpoint requires the '${s}' scope.`));
 
     const trackUsage = async () => {
       if (caller.type !== 'api_key') return;
       try {
+        const r = caller.rate || { mStart: Date.now(), mCount: 0, dStart: Date.now(), dCount: 0 };
         await base44.asServiceRole.entities.ApiKey.update(caller.key.id, {
           request_count: (caller.key.request_count || 0) + 1,
           last_used_at: new Date().toISOString(),
+          rate_minute_start: new Date(r.mStart).toISOString(),
+          rate_minute_count: r.mCount + 1,
+          rate_day_start: new Date(r.dStart).toISOString(),
+          rate_day_count: r.dCount + 1,
         });
       } catch (_e) { /* usage tracking must never break the response */ }
     };
@@ -105,6 +170,7 @@ Deno.serve(async (req) => {
           key_prefix: plaintext.slice(0, 16) + '…',
           key_hash: hash,
           scopes,
+          plan: 'free',
           status: 'active',
           expires_at: expiresAt || undefined,
           request_count: 0,
@@ -124,6 +190,7 @@ Deno.serve(async (req) => {
         return apiSuccess({
           keys: keys.map((k) => ({
             id: k.id, name: k.name, key_prefix: k.key_prefix, scopes: k.scopes || [],
+            plan: k.plan || 'free',
             status: k.status, expires_at: k.expires_at || null,
             request_count: k.request_count || 0, last_used_at: k.last_used_at || null,
             created_at: k.created_date,
@@ -336,7 +403,4 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
 
     return apiError(404, 'unknown_endpoint',
       "Unknown endpoint. Valid: search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
-  } catch (error) {
-    return Response.json({ status: 'error', error: { code: 'internal_error', message: error.message } }, { status: 500 });
-  }
-});
+}

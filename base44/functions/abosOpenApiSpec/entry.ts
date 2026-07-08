@@ -23,7 +23,9 @@ Deno.serve(async (req) => {
         description:
           'Aviation Intelligence Platform API — chat-first search, OMVM valuation, listing extraction and marketplace listings. ' +
           'All calls go through a single gateway endpoint (abosCoreApi) with an `endpoint` discriminator in the JSON body. ' +
-          'Authenticate with the `x-abos-key` header (API key with scopes) or a logged-in ABOS user session.',
+          'Authenticate with the `x-abos-key` header (API key with scopes) or a logged-in ABOS user session. ' +
+          'Every response carries an `X-Request-ID` header for audit tracing. Endpoint names accept an optional `v1.` version prefix (e.g. `v1.search`). ' +
+          'Rate limits per plan: free 20/min & 500/day, pro 300/min & 20,000/day, enterprise custom.',
       },
       servers: [{ url: '/functions', description: 'ABOS platform function gateway' }],
       security: [{ ApiKeyAuth: [] }],
@@ -89,6 +91,7 @@ Deno.serve(async (req) => {
               },
               '401': { description: 'Missing/invalid/expired API key' },
               '403': { description: 'Insufficient scope' },
+              '429': { description: 'Rate limit exceeded (per-minute or daily plan limit)' },
             },
           },
         },

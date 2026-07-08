@@ -1,14 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-// ── AI safety guardrails (ai_config in Supabase, seeded by setupDatabase) ──
-const AI_SAFETY_DEFAULTS = {
-  confidence_threshold: 0.75,
-  daily_ai_steps_cap: 10,
-  require_human_approval_above_usd: 500000,
-  ai_audit_enabled: true,
-};
-
+// ── AI Governance Layer (ai_config + feature_toggles in Supabase, seeded by setupDatabase) ──
 function getSupabaseAdmin() {
   const url = Deno.env.get('VITE_SUPABASE_URL');
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -16,12 +9,24 @@ function getSupabaseAdmin() {
   return createClient(url, key);
 }
 
-async function loadAiConfig(supabase) {
-  if (!supabase) return AI_SAFETY_DEFAULTS;
+// loadAiConfig — per-key runtime config via get_ai_config RPC (versioned, audited)
+async function loadAiConfig(key, sb, defaultValue = null) {
+  if (!sb) return defaultValue;
   try {
-    const { data } = await supabase.from('ai_config').select('*').limit(1);
-    return (data && data[0]) || AI_SAFETY_DEFAULTS;
-  } catch (_e) { return AI_SAFETY_DEFAULTS; }
+    const { data, error } = await sb.rpc('get_ai_config', { p_key: key });
+    if (error || data === null) return defaultValue;
+    return data;
+  } catch (_e) { return defaultValue; }
+}
+
+// isFeatureEnabled — role-aware feature flag check via check_feature_flag RPC
+async function isFeatureEnabled(key, role, sb) {
+  if (!sb) return false;
+  try {
+    const { data, error } = await sb.rpc('check_feature_flag', { p_key: key, p_role: role || null });
+    if (error) return false;
+    return data === true;
+  } catch (_e) { return false; }
 }
 
 async function logStepEvent(supabase, pipelineId, stepId, eventType, payload) {
@@ -136,7 +141,18 @@ Deno.serve(async (req) => {
     let aiConfig = null;
     if (isAiAction) {
       supabaseAdmin = getSupabaseAdmin();
-      aiConfig = await loadAiConfig(supabaseAdmin);
+      const [confidenceThreshold, dailyCap, approvalAbove, auditEnabled] = await Promise.all([
+        loadAiConfig('confidence_threshold', supabaseAdmin, 0.75),
+        loadAiConfig('daily_ai_steps_cap', supabaseAdmin, 10),
+        loadAiConfig('require_human_approval_above_usd', supabaseAdmin, 500000),
+        loadAiConfig('ai_audit_enabled', supabaseAdmin, true),
+      ]);
+      aiConfig = {
+        confidence_threshold: confidenceThreshold,
+        daily_ai_steps_cap: dailyCap,
+        require_human_approval_above_usd: approvalAbove,
+        ai_audit_enabled: auditEnabled,
+      };
 
       // Gate 1: human approval for high-value deals
       const approvalLimit = Number(aiConfig.require_human_approval_above_usd ?? 500000);

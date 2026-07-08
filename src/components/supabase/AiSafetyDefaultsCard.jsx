@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { ShieldCheck, RefreshCw, AlertTriangle } from "lucide-react";
 
+const val = (rows, key, fallback) => {
+  const row = (rows || []).find((r) => r.key === key);
+  return row ? row.value : fallback;
+};
+
 export default function AiSafetyDefaultsCard() {
-  const [state, setState] = useState({ loading: true, error: null, defaults: null });
+  const [state, setState] = useState({ loading: true, error: null, gov: null });
 
   useEffect(() => {
     let mounted = true;
@@ -11,16 +16,20 @@ export default function AiSafetyDefaultsCard() {
       .invoke("setupDatabase", {})
       .then((res) => {
         if (!mounted) return;
-        setState({ loading: false, error: null, defaults: res.data?.ai_config?.defaults || null });
+        setState({ loading: false, error: null, gov: res.data?.governance || null });
       })
       .catch((err) => {
         if (!mounted) return;
-        setState({ loading: false, error: err?.message || "Failed to initialize AI safety defaults", defaults: null });
+        setState({ loading: false, error: err?.message || "Failed to initialize AI governance layer", gov: null });
       });
     return () => { mounted = false; };
   }, []);
 
-  const d = state.defaults;
+  const cfg = state.gov?.ai_config;
+  const flags = state.gov?.feature_toggles || [];
+  const enabledFlags = flags.filter((f) => f.is_enabled).length;
+  const maxVersion = Math.max(1, ...(cfg || []).map((r) => Number(r.version) || 1));
+
   return (
     <div className="glass-card" style={{ border: "1px solid rgba(212,160,23,0.45)", padding: "14px 18px" }}>
       <div className="flex items-center gap-3 flex-wrap">
@@ -33,17 +42,18 @@ export default function AiSafetyDefaultsCard() {
         </div>
         <div className="min-w-0">
           <p className="text-[9px] uppercase tracking-[0.18em] font-bold m-0" style={{ color: "#D4A017" }}>
-            AI Safety Defaults {state.error ? "— Unavailable" : "Active"}
+            AI Governance Layer {state.error ? "— Unavailable" : `Active · config v${maxVersion}`}
           </p>
           {state.loading ? (
-            <p className="text-[12px] m-0 mt-0.5 opacity-60">Verifying ai_config…</p>
+            <p className="text-[12px] m-0 mt-0.5 opacity-60">Verifying ai_config, feature_toggles, change log…</p>
           ) : state.error ? (
             <p className="text-[12px] m-0 mt-0.5 text-[#e24b4a]">{state.error}</p>
           ) : (
             <p className="text-[12px] font-semibold m-0 mt-0.5">
-              Confidence: {Math.round((Number(d?.confidence_threshold) || 0.75) * 100)}%
-              {" · "}Daily cap: {d?.daily_ai_steps_cap ?? 10} steps
-              {" · "}Human approval above: ${Number(d?.require_human_approval_above_usd ?? 500000).toLocaleString()}
+              Confidence: {Math.round((Number(val(cfg, "confidence_threshold", 0.75)) || 0.75) * 100)}%
+              {" · "}Daily cap: {val(cfg, "daily_ai_steps_cap", 10)} steps
+              {" · "}Human approval above: ${Number(val(cfg, "require_human_approval_above_usd", 500000)).toLocaleString()}
+              {" · "}Flags: {enabledFlags}/{flags.length} enabled
             </p>
           )}
         </div>

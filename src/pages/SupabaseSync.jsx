@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SupabaseProjectsPanel from "@/components/supabase/SupabaseProjectsPanel";
+import AiSafetyDefaultsCard from "@/components/supabase/AiSafetyDefaultsCard";
 
 /* ── Table definitions ─────────────────────────────────── */
 const TABLES = [
@@ -320,6 +321,9 @@ export default function SupabaseSync() {
       <div className="px-4 md:px-8 py-6 max-w-7xl mx-auto space-y-5">
         {/* Supabase Projects Overview */}
         <SupabaseProjectsPanel />
+
+        {/* AI Safety Defaults (ai_config) */}
+        <AiSafetyDefaultsCard />
 
         {/* Error banner */}
         {error && (

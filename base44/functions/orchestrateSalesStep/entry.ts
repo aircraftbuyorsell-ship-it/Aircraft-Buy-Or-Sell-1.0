@@ -1,4 +1,50 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+// ── AI safety guardrails (ai_config in Supabase, seeded by setupDatabase) ──
+const AI_SAFETY_DEFAULTS = {
+  confidence_threshold: 0.75,
+  daily_ai_steps_cap: 10,
+  require_human_approval_above_usd: 500000,
+  ai_audit_enabled: true,
+};
+
+function getSupabaseAdmin() {
+  const url = Deno.env.get('VITE_SUPABASE_URL');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+async function loadAiConfig(supabase) {
+  if (!supabase) return AI_SAFETY_DEFAULTS;
+  try {
+    const { data } = await supabase.from('ai_config').select('*').limit(1);
+    return (data && data[0]) || AI_SAFETY_DEFAULTS;
+  } catch (_e) { return AI_SAFETY_DEFAULTS; }
+}
+
+async function logStepEvent(supabase, pipelineId, stepId, eventType, payload) {
+  if (!supabase) return;
+  try {
+    await supabase.from('pipeline_step_logs').insert({
+      pipeline_id: pipelineId, step_id: stepId, event_type: eventType, payload: payload || null,
+    });
+  } catch (_e) { /* event logging must never break execution */ }
+}
+
+async function countAiEventsToday(supabase, pipelineId) {
+  if (!supabase) return 0;
+  try {
+    const since = new Date(Date.now() - 86400000).toISOString();
+    const { count } = await supabase.from('pipeline_step_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('pipeline_id', pipelineId)
+      .like('event_type', 'ai_%')
+      .gte('created_at', since);
+    return count || 0;
+  } catch (_e) { return 0; }
+}
 
 // Sales Pipeline Orchestrator — the "spider" execution engine.
 // Actions:
@@ -84,6 +130,42 @@ Deno.serve(async (req) => {
 
     const step = { ...steps[stepIdx] };
 
+    // ── AI SAFETY GATES (ai_config) — apply to AI-driven actions ──
+    const isAiAction = action === 'ai_review' || (action === 'execute' && step.ai_driven === true);
+    let supabaseAdmin = null;
+    let aiConfig = null;
+    if (isAiAction) {
+      supabaseAdmin = getSupabaseAdmin();
+      aiConfig = await loadAiConfig(supabaseAdmin);
+
+      // Gate 1: human approval for high-value deals
+      const approvalLimit = Number(aiConfig.require_human_approval_above_usd ?? 500000);
+      if (pipeline.sale_amount && Number(pipeline.sale_amount) > approvalLimit) {
+        step.status = 'blocked';
+        step.blocked_reason = `Human approval required: deal value exceeds $${approvalLimit.toLocaleString()}`;
+        steps[stepIdx] = step;
+        await base44.entities.SalesPipeline.update(pipelineId, { steps });
+        await logStepEvent(supabaseAdmin, pipelineId, stepId, 'human_approval_required', {
+          sale_amount: pipeline.sale_amount, limit: approvalLimit,
+        });
+        return Response.json({ ok: false, blocked: true, reason: step.blocked_reason, step });
+      }
+
+      // Gate 2: daily AI invocation cap per pipeline
+      const cap = Number(aiConfig.daily_ai_steps_cap ?? 10);
+      const aiEventsToday = await countAiEventsToday(supabaseAdmin, pipelineId);
+      if (aiEventsToday >= cap) {
+        step.status = 'blocked';
+        step.blocked_reason = `Daily AI step cap reached (${cap}/day) — admin override required`;
+        steps[stepIdx] = step;
+        await base44.entities.SalesPipeline.update(pipelineId, { steps });
+        await logStepEvent(supabaseAdmin, pipelineId, stepId, 'daily_cap_reached', {
+          cap, count: aiEventsToday,
+        });
+        return Response.json({ ok: false, blocked: true, reason: step.blocked_reason, step });
+      }
+    }
+
     // ── EXECUTE: run the mapped backend function ──
     if (action === 'execute') {
       if (!step.function_name) {
@@ -111,6 +193,12 @@ Deno.serve(async (req) => {
         step.completed_at = new Date().toISOString();
         step.completed_by = user.id;
         step.blocked_reason = null;
+
+        if (isAiAction && aiConfig?.ai_audit_enabled !== false) {
+          await logStepEvent(supabaseAdmin, pipelineId, stepId, 'ai_step_executed', {
+            function_name: step.function_name,
+          });
+        }
       } catch (fnErr) {
         step.status = 'blocked';
         step.blocked_reason = fnErr?.message || 'Function execution failed';
@@ -156,9 +244,31 @@ Analyze the documents and provide your structured review.`,
               findings: { type: 'array', items: { type: 'string' } },
               red_flags: { type: 'array', items: { type: 'string' } },
               recommendation: { type: 'string' },
+              confidence: { type: 'number', description: 'Your confidence in this review, 0 to 1' },
             },
           },
         });
+
+        // Gate 3: AI confidence threshold — block instead of auto-complete
+        const threshold = Number(aiConfig?.confidence_threshold ?? 0.75);
+        const aiConfidence = typeof llmResult.confidence === 'number' ? llmResult.confidence : null;
+        if (aiConfidence !== null && aiConfidence < threshold) {
+          step.status = 'blocked';
+          step.result_data = llmResult;
+          step.blocked_reason = `AI confidence ${Math.round(aiConfidence * 100)}% below threshold ${Math.round(threshold * 100)}%`;
+          steps[stepIdx] = step;
+          await base44.entities.SalesPipeline.update(pipelineId, { steps });
+          await logStepEvent(supabaseAdmin, pipelineId, stepId, 'ai_confidence_blocked', {
+            confidence: aiConfidence, threshold,
+          });
+          return Response.json({ ok: false, blocked: true, reason: step.blocked_reason, step });
+        }
+
+        if (aiConfig?.ai_audit_enabled !== false) {
+          await logStepEvent(supabaseAdmin, pipelineId, stepId, 'ai_review_completed', {
+            confidence: aiConfidence, risk_level: llmResult.risk_level || null,
+          });
+        }
 
         step.status = 'completed';
         step.result_data = llmResult;

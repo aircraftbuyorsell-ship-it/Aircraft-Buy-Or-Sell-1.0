@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, Loader2, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
-import AviationIntelligenceGlobe from "@/components/homepage/AviationIntelligenceGlobe";
+import HeroGlobe from "@/components/homepage/HeroGlobe";
 
 const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
 
@@ -129,14 +129,25 @@ export default function HomeHeroSection() {
   return (
     <section
       className="relative w-full"
-      style={{ minHeight: "100vh", overflow: "hidden" }}>
+      style={{ height: "100vh", minHeight: "600px", overflow: "hidden" }}>
+      
+      <HeroGlobe />
 
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-          "radial-gradient(ellipse 70% 50% at 72% 40%, rgba(245,194,66,0.10) 0%, transparent 70%)"
+          "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)"
         }} />
+      
+
+      <div
+        className="lg:hidden absolute inset-0 pointer-events-none"
+        style={{
+          background:
+          "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)"
+        }} />
+      
 
       <div
         className="absolute inset-0 pointer-events-none"
@@ -146,52 +157,51 @@ export default function HomeHeroSection() {
           backgroundSize: "24px 24px",
           opacity: 0.06
         }} />
+      
 
-      {/* Two-column hero: content left · signature globe right */}
-      <div className="relative z-10 min-h-screen flex flex-col justify-center px-4 sm:px-8 pt-28 pb-16 lg:py-0">
-        <div className="w-full max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,640px)_minmax(0,1fr)] items-center gap-10 lg:gap-6">
-
-          {/* ── Left: headline · CTAs · value prop · search ── */}
-          <div className="w-full flex flex-col items-start text-left lg:pt-10">
+      {/* n8n-style left-aligned hero layout */}
+      <div className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-8">
+        <div className="w-full max-w-[1240px] mx-auto">
+          <div className="w-full max-w-[680px] flex flex-col items-start text-left pt-16">
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
               style={{
                 background: "rgba(245,194,66,0.09)",
                 border: "0.5px solid rgba(245,194,66,0.22)"
               }}>
-
+              
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#f5c242" }} />
-
+              
               <span
                 className="text-[10px] font-bold tracking-[0.16em] uppercase"
                 style={{ color: "#f5c242" }}>
-
+                
                 ABOS™ Platform
               </span>
             </div>
 
             <h1
               className="tracking-[-0.03em] leading-[1.04] text-white mb-6"
-              style={{ fontSize: "clamp(36px, 5vw, 58px)", fontWeight: 500 }}>
-
+              style={{ fontSize: "clamp(36px, 5.5vw, 62px)", fontWeight: 500 }}>
+              
               The Aviation
               <br />
               <span style={{ color: "#f5c242", fontWeight: 700 }}>Intelligence</span> Platform
             </h1>
 
-            {/* CTA row — filled + ghost */}
+            {/* CTA row — n8n style: filled + ghost */}
             <div className="flex flex-wrap items-center gap-3 mb-7">
               <Link
                 to="/listings"
                 className="px-6 py-3 rounded-xl text-[13px] font-bold transition-all hover:scale-[1.02]"
                 style={{ background: "#f5c242", color: "#04060a", textDecoration: "none" }}>
-
+                
                 Browse Aircraft
               </Link>
               <Link
-                to="/ati-verify"
+                to="/ati-center"
                 className="px-6 py-3 rounded-xl text-[13px] font-bold transition-colors"
                 style={{
                   background: "rgba(255,255,255,0.05)",
@@ -199,13 +209,13 @@ export default function HomeHeroSection() {
                   color: "rgba(255,255,255,0.85)",
                   textDecoration: "none"
                 }}>
-
-                Verify an Aircraft
+                
+                Explore ABOS Intelligence
               </Link>
             </div>
 
             <p className="text-[14px] sm:text-[16px] leading-relaxed max-w-[480px] mb-8" style={{ color: "rgba(255,255,255,0.60)" }}>
-              Trust before transaction — verified aircraft identity,
+              Search. Analyze. Negotiate. Buy. Sell. — verified aircraft identity,
               AI valuations and end-to-end deal tools in one platform.
             </p>
 
@@ -218,12 +228,12 @@ export default function HomeHeroSection() {
                   boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                   height: 56
                 }}>
-
+                
                 <div className="flex items-center pl-4 pr-2">
                   <Search
                     className="w-4 h-4"
                     style={{ color: "rgba(245,194,66,0.60)" }} />
-
+                  
                 </div>
                 <input
                   ref={inputRef}
@@ -238,13 +248,13 @@ export default function HomeHeroSection() {
                     background: "transparent !important",
                     border: "none !important"
                   }} />
-
+                
                 <button
                   onClick={search}
                   disabled={searching || !normalizeReg(query)}
                   className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
                   style={{ background: "#f5c242", color: "#04060a" }}>
-
+                  
                   {searching ?
                   <Loader2 className="w-4 h-4 animate-spin" /> :
 
@@ -293,21 +303,10 @@ export default function HomeHeroSection() {
               </div>
             </div>
           </div>
-
-          {/* ── Right: Aviation Intelligence Globe — the ABOS visual signature ── */}
-          <div className="hidden lg:flex items-center justify-center relative">
-            <AviationIntelligenceGlobe size={560} />
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-none">
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#5dcaa5" }} />
-              <span className="text-[9px] tracking-[0.18em] uppercase font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>
-                Live aviation intelligence
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden sm:flex flex-col items-center gap-2 pointer-events-none">
+      <div className="absolute bottom-20 lg:bottom-8 left-1/2 -translate-x-1/2 z-10 hidden sm:flex flex-col items-center gap-2 pointer-events-none">
         <span className="text-[9px] tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>
           Scroll
         </span>
@@ -317,7 +316,7 @@ export default function HomeHeroSection() {
             background:
             "linear-gradient(180deg, rgba(245,194,66,0.4), transparent)"
           }} />
-
+        
       </div>
 
       {overlayData &&

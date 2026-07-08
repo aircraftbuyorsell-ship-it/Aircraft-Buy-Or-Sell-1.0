@@ -1,6 +1,6 @@
 # ABOS Domain Glossary
 
-> **Status: DRAFT — pending approval.** Once approved, this document is the single source of truth
+> **Status: APPROVED — Refactor complete (2026-07-08).** This document is the single source of truth
 > for all terminology used in code, database schemas, the Core API, SDKs, documentation,
 > legal texts, AI prompts, and marketing materials. Any deviation is a bug.
 

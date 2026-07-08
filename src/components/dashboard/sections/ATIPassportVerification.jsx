@@ -34,7 +34,7 @@ export default function ATIPassportVerification() {
     <SectionShell
       eyebrow="ATI Passport"
       title="Verify Before You Buy"
-      subtitle="The Aircraft Transaction Intelligence Passport is the industry standard for pre-purchase verification — trusted by dealers, brokers, and owners across 150+ countries."
+      subtitle="The Aircraft Transparency Index Passport is the industry standard for pre-purchase verification — trusted by dealers, brokers, and owners across 150+ countries."
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
         {FEATURES.map(({ icon: Icon, title, desc, color }) => (

@@ -136,7 +136,7 @@ export default function Pricing() {
 
         <header className="text-center py-12 px-6">
           <p style={{ ...eyebrow, color: AMBER }} className="mb-2">INTRAZONE — ATI PRICING</p>
-          <h1 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 500, letterSpacing: "-0.04em", color: W1, margin: 0 }}>Aircraft Transaction Intelligence</h1>
+          <h1 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 500, letterSpacing: "-0.04em", color: W1, margin: 0 }}>Aircraft Transparency Index</h1>
           <p className="text-[14px] max-w-xl mx-auto mt-3" style={{ color: W2 }}>
             Compliance, valuation, and fraud prevention for aviation marketplaces and individual aircraft buyers &amp; sellers.
           </p>

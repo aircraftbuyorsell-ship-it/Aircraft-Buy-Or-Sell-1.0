@@ -627,7 +627,7 @@ export default function ListingsBody({
               {[
                 {
                   q: "What is an ATI Score Card?",
-                  a: "The ABOS Transaction Intelligence (ATI) Score Card is an 8-dimension evaluation of an aircraft's documentation, maintenance, avionics, usage history, and market readiness — scored 0–120.",
+                  a: "The ABOS Transparency Index (ATI) Score Card is an 8-dimension evaluation of an aircraft's documentation, maintenance, avionics, usage history, and market readiness — scored 0–120.",
                 },
                 {
                   q: "What's the minimum info needed?",

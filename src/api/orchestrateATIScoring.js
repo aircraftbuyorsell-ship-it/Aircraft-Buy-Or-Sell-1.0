@@ -35,7 +35,7 @@ export async function orchestrateATIScoring({ input, nReg }) {
   const omvmConfidence = getOMVMConfidence(make, model);
 
   const res = await base44.integrations.Core.InvokeLLM({
-    prompt: `You are an aviation transaction intelligence engine. Analyse the following aircraft listing text and return a structured ATI Quick Score.
+    prompt: `You are an Aircraft Transparency Index scoring engine. Analyse the following aircraft listing text and return a structured ATI Quick Score.
 
 AIRCRAFT DATA:
 ${input}

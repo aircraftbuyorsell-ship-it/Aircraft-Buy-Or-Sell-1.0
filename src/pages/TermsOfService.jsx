@@ -23,9 +23,9 @@ These Terms apply to all users including free users (Free Explorer), paid subscr
   },
   {
     id: "2", title: "2. Platform Description",
-    content: `ABOS Marketspace is an aviation transaction intelligence platform providing:
+    content: `ABOS Marketspace is an aviation transparency and market intelligence platform providing:
 • Aircraft listing discovery and market data
-• ATI (Aircraft Transaction Intelligence) scoring and analysis
+• ATI (Aircraft Transparency Index) scoring and analysis
 • OMVM (Off-Market Valuation Model) estimates
 • Aircraft ownership and registration verification
 • Document and compliance status checks

@@ -56,7 +56,7 @@ const PROGRAM_TRACKS = [
 ];
 
 const BENEFITS = [
-  { icon: Database, title: "ATI API Access", desc: "Full access to the ATI scoring engine, market data, and transaction intelligence — the same tools used by European marketplaces." },
+  { icon: Database, title: "ATI API Access", desc: "Full access to the ATI scoring engine, market data, and market intelligence — the same tools used by European marketplaces." },
   { icon: Users, title: "Mentor Network", desc: "Direct access to 40+ aviation industry veterans — dealers, brokers, financiers, and regulators who've shaped the market." },
   { icon: TrendingUp, title: "Investor Pipeline", desc: "Curated introductions to aviation-focused angel investors, family offices, and venture funds actively seeking aviation tech exposure." },
   { icon: CreditCard, title: "Platform Credits", desc: "Up to €50,000 in ABOS platform credits — covering ATI scoring, market data, API calls, and hosting for your first year." },
@@ -364,7 +364,7 @@ export default function SoarStartupHub() {
             </div>
           </div>
           <p className="text-[10px]" style={{ color: muted }}>
-            SOAR Startup Hub is an initiative of ABOS MarketSpace — the European standard for aircraft transaction intelligence.
+            SOAR Startup Hub is an initiative of ABOS MarketSpace — the European standard for aircraft transparency.
           </p>
         </div>
       </section>

@@ -93,7 +93,7 @@ export default function ATIStandard() {
           </h1>
           <p className="text-base md:text-lg max-w-2xl mx-auto mb-8 leading-relaxed text-muted-foreground">
             ATI Score, ATI Report, and ATI Card are being adopted by European marketplaces and
-            top aircraft sales companies as the unified language of transaction intelligence.
+            top aircraft sales companies as the unified language of aircraft transparency.
             Join the professionals shaping the future of secondary market transparency.
           </p>
           <div className="flex flex-wrap justify-center gap-3">

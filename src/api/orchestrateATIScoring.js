@@ -11,12 +11,20 @@ function parseAircraftIdentity(text) {
     "MAULE", "COLUMBIA", "ROBIN", "ZLIN", "LET",
   ];
   const upper = t.toUpperCase();
-  const make = KNOWN_MAKES.find((m) => upper.includes(m)) || "";
+  let make = KNOWN_MAKES.find((m) => upper.includes(m)) || "";
   // Model = token(s) right after the make
   let model = "";
   if (make) {
     const after = upper.split(make)[1] || "";
     model = (after.trim().match(/^[A-Z0-9-]+(\s?[A-Z0-9-]+)?/) || [""])[0].trim();
+  }
+  // Cessna shorthand: "C150", "C-172", "C182T" (avoid matching N-numbers)
+  if (!make) {
+    const cShort = upper.match(/\bC-?(1[0-9]{2}[A-Z]{0,2}|2[0-9]{2}[A-Z]{0,2}|3[0-9]{2}|4[0-9]{2})\b/);
+    if (cShort) {
+      make = "CESSNA";
+      model = cShort[1];
+    }
   }
   return { make, model, year };
 }
@@ -81,11 +89,18 @@ Return ONLY valid JSON.`,
     },
   });
 
-  // Anchor OMVM range around the deterministic per-make/model market base
-  // (fixes BUG-001: prior values relied solely on the LLM with no market floor).
-  if (omvmBase > 0) {
+  // Anchor OMVM range around the deterministic per-make/model market base —
+  // but ONLY on an exact model match ("high" confidence). A make-only match
+  // uses a generic make average (e.g. all Cessnas ≈ $110k+) which produces
+  // nonsense values for specific models (C150 shown at $180k). With make-only
+  // or no match, trust the LLM's listing-aware estimate instead.
+  if (omvmBase > 0 && omvmConfidence === "high") {
     res.omvm_low = Math.round(omvmBase * 0.85);
     res.omvm_high = Math.round(omvmBase * 1.15);
+  } else if (!res.omvm_low || !res.omvm_high || res.omvm_low <= 0 || res.omvm_high <= res.omvm_low) {
+    // LLM returned no usable range — fall back to the deterministic base
+    res.omvm_low = Math.round(omvmBase * 0.8);
+    res.omvm_high = Math.round(omvmBase * 1.2);
   }
   res.omvm_base = omvmBase;
   res.omvm_confidence = omvmConfidence;

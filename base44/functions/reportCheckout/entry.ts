@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     const rawReturnUrl = String(body.returnUrl || '').split('?')[0];
 
     // Validate returnUrl — must be same-origin (prevent open redirect / phishing after payment)
-    const ALLOWED_HOSTS = ['abos.app', 'abos-marketspace.com', 'localhost'];
+    const ALLOWED_HOSTS = ['aircraftbuyorsell.com', 'abos.app', 'abos-marketspace.com', 'base44.app', 'base44.com', 'localhost'];
     let returnUrl = '';
     if (rawReturnUrl) {
       try {

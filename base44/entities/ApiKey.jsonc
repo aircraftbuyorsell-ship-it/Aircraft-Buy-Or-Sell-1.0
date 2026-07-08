@@ -1,0 +1,93 @@
+{
+  "name": "ApiKey",
+  "type": "object",
+  "properties": {
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the ABOS user who owns this API key"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Friendly key name (e.g. 'Production ChatGPT App')"
+    },
+    "key_prefix": {
+      "type": "string",
+      "description": "First characters of the key for display (e.g. abos_live_3f9a...)"
+    },
+    "key_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the full API key (plaintext is never stored)"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "listing:read",
+          "listing:write",
+          "search:read",
+          "intelligence:read"
+        ]
+      },
+      "description": "Granted API scopes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ],
+      "default": "active"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional expiry timestamp"
+    },
+    "request_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Total successful API requests made with this key"
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_email",
+    "name",
+    "key_hash"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

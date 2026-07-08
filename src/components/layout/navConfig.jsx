@@ -104,6 +104,7 @@ export const NAV_TREE = [
         label: "Platform",
         items: [
           { path: "/developers", label: "API & SDK", icon: Code },
+          { path: "/developers/core-api", label: "Core API v1", icon: Zap },
           { path: "/integration-kit", label: "Integration Kit", icon: Globe },
           { path: "/skills", label: "Skills Library", icon: Sparkles },
         ],

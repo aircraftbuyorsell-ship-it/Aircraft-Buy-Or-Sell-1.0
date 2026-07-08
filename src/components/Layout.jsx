@@ -3,8 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  ChevronLeft, ArrowLeft, LogIn, LogOut,
-  LayoutDashboard } from "lucide-react";
+  ChevronLeft, ArrowLeft, LogIn, LogOut } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
@@ -16,10 +15,8 @@ import MobilePillNav from "@/components/layout/MobilePillNav";
 import PragueClock from "@/components/layout/PragueClock";
 import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
+import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import { NAV_TREE } from "@/components/layout/navConfig";
-
-// Home link for the drawer
-const HOME_ITEM = { path: "/", label: "Dashboard", icon: LayoutDashboard };
 
 
 function initials(user) {
@@ -37,16 +34,6 @@ function DrawerContent({ pathname, user, onNavigate }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {/* Home shortcut */}
-        <div style={{ marginBottom: 4 }}>
-          <NavItem
-            to={HOME_ITEM.path}
-            icon={HOME_ITEM.icon}
-            label={HOME_ITEM.label}
-            active={pathname === "/"}
-            onClick={onNavigate} />
-        </div>
-
         {NAV_TREE.map((section) =>
           section.direct ?
           <div key={section.label} style={{ marginTop: 8 }}>
@@ -272,6 +259,7 @@ export default function Layout() {
 
           {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
+            <UniversalSearchBar compact />
             <ThemeToggle />
             <PragueClock />
             {currentUser ?

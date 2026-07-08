@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Search, LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import SidebarLogo from "@/components/layout/SidebarLogo";
+import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
@@ -29,13 +30,6 @@ export default function HomepageHeader() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const handleSearchClick = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("abos:focus-hero-search"));
-    }, 600);
-  };
 
   // n8n-style floating pill navbar — detached rounded container with border + blur
   const pillStyle = {
@@ -69,16 +63,7 @@ export default function HomepageHeader() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <button
-                onClick={handleSearchClick}
-                aria-label="Search"
-                className="flex items-center justify-center transition-colors"
-                style={{ width: 36, height: 36, color: "rgba(255,255,255,0.60)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.90)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.60)"; }}
-              >
-                <Search size={18} />
-              </button>
+              <UniversalSearchBar compact />
               <ThemeToggle />
               {currentUser ? (
                 <AccountMenu user={currentUser} />

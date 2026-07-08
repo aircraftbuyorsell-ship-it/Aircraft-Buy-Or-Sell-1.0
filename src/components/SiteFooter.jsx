@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 
 const FOOTER_LINKS = [
+  { to: "/developers", label: "Developers" },
+  { to: "/developers/core-api", label: "Core API" },
+  { to: "/integration-kit", label: "Integration Kit" },
+  { to: "/skills", label: "Skills Library" },
   { to: "/privacy-policy", label: "Privacy Policy" },
   { to: "/cookie-policy", label: "Cookie Policy" },
   { to: "/gdpr-compliance", label: "GDPR" },

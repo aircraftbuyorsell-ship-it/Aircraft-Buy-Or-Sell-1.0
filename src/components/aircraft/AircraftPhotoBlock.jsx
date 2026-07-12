@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plane, Camera, ExternalLink, Search } from "lucide-react";
+import { Camera, ExternalLink } from "lucide-react";
 
 // External photo / spotting databases — lookup by registration
 function lookupLinks(registration, make, model) {
@@ -49,7 +49,7 @@ export default function AircraftPhotoBlock({ registration, make, model, year, ph
   const [activeIdx, setActiveIdx] = useState(0);
 
   // Only query external DB when no uploaded photos and we have a registration
-  const { data: extPhoto, isLoading: lookingUp } = useQuery({
+  const { data: extPhoto } = useQuery({
     queryKey: ["planespotters-photo", registration],
     queryFn: () => fetchPlanespottersPhoto(registration),
     enabled: photos.length === 0 && !!registration,
@@ -102,36 +102,6 @@ export default function AircraftPhotoBlock({ registration, make, model, year, ph
     );
   }
 
-  // ── Mode 3: standard placeholder card (no photos anywhere) ──
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-black/[0.07] shadow-sm"
-      style={{ background: "linear-gradient(150deg, #122F5E 0%, #0B2D5B 55%, #081D3D 100%)" }}>
-      {/* Blueprint grid */}
-      <div className="absolute inset-0 opacity-[0.07] pointer-events-none"
-        style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-      <div className="relative flex flex-col sm:flex-row items-center gap-5 px-6 py-7">
-        <div className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ background: "rgba(232,168,58,0.12)", border: "1px solid rgba(232,168,58,0.35)" }}>
-          {lookingUp ? (
-            <Search className="w-8 h-8 text-[#E8A83A] animate-pulse" />
-          ) : (
-            <Plane className="w-9 h-9 text-[#E8A83A]" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0 text-center sm:text-left">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-[#E8A83A] mb-1">
-            {lookingUp ? "Searching photo databases…" : "No Photos On File"}
-          </p>
-          <p className="text-base font-black text-white leading-tight">{title}</p>
-          {registration && <p className="text-[11px] font-mono text-white/40 mt-0.5">{registration}</p>}
-          <p className="text-[11px] text-white/55 mt-2 leading-relaxed">
-            Photos can be added to this card, or looked up in public aircraft photo databases below.
-          </p>
-          <div className="mt-3 flex justify-center sm:justify-start">
-            <LookupLinksRow registration={registration} make={make} model={model} light />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // No verified photo found — omit the section entirely.
+  return null;
 }

@@ -64,7 +64,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
         if (coords) onFocusLocation({ lat: coords[0], lon: coords[1], state: data.aircraft.state });
       }
 
-      // Fetch aircraft photo (adsbdb real photo or HF-generated)
+      // Fetch a real photo of this specific aircraft when available.
       let photo = null;
       try {
         const photoRes = await base44.functions.invoke("aircraftPhoto", {
@@ -73,7 +73,7 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
           make: data.aircraft.make,
           model: data.aircraft.model,
         });
-        if (photoRes.data?.photo_url) photo = photoRes.data;
+        if (photoRes.data?.photo_url && photoRes.data.source !== "hf_generated") photo = photoRes.data;
       } catch (_) {}
 
       // Open the full-screen overlay with all data

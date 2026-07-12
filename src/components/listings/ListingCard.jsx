@@ -36,16 +36,13 @@ export default function ListingCard({ listing: l, onClick }) {
       className="group rounded-xl border border-slate-700/60 bg-slate-900/70 hover:border-sky-500/40 hover:bg-slate-800/70 transition-all cursor-pointer p-5 flex flex-col gap-4"
     >
       {/* Aircraft Photo */}
-      {l.photo_url && (
+      {l.photo_url && l.photo_source !== "hf_generated" && (
         <div className="relative w-full rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
           <img src={l.photo_url} alt={`${l.make} ${l.model}`} className="w-full h-full object-cover" loading="lazy" />
           {l.photo_source && l.photo_source !== "none" && (
             <span className="absolute bottom-1.5 right-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-              style={{
-                background: l.photo_source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
-                color: "#fff",
-              }}>
-              {l.photo_source === "adsbdb" ? "Real" : "AI"}
+              style={{ background: "rgba(34,197,94,0.85)", color: "#fff" }}>
+              Real
             </span>
           )}
         </div>

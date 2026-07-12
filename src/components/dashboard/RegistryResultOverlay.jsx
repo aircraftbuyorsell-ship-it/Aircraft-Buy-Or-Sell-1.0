@@ -174,14 +174,14 @@ export default function RegistryResultOverlay({
           <ATICardBlock registration={result.registration} atiCard={atiCard} passport={passport} />
 
           {/* ── Aircraft photo ── */}
-          {(photoLoading || photo || atiCard?.image_attachments?.[0]) && (
+          {(photoLoading || (photo?.photo_url && photo.source !== "hf_generated") || atiCard?.image_attachments?.[0]) && (
             <div className="relative w-full rounded-2xl overflow-hidden"
               style={{ aspectRatio: "16/9", background: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.04)", border: cardBorder }}>
               {photoLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin" style={{ color: mutedColor }} />
                 </div>
-              ) : photo?.photo_url ? (
+              ) : photo?.photo_url && photo.source !== "hf_generated" ? (
                 <>
                   {photo.source === "planespotters" && photo.photo_link ? (
                     <a href={photo.photo_link} target="_blank" className="block w-full h-full">
@@ -192,11 +192,10 @@ export default function RegistryResultOverlay({
                   )}
                   <span className="absolute bottom-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{
-                      background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)"
-                        : photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
+                      background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)" : "rgba(34,197,94,0.85)",
                       color: "#fff",
                     }}>
-                    {photo.source === "planespotters" ? "PlaneSpotters" : photo.source === "adsbdb" ? "Real Photo" : "AI Generated"}
+                    {photo.source === "planespotters" ? "PlaneSpotters" : "Real Photo"}
                   </span>
                   {photo.source === "planespotters" && photo.photographer && (
                     <span className="absolute bottom-3 left-3 text-[9px] font-medium px-2.5 py-1 rounded-full max-w-[60%] truncate"

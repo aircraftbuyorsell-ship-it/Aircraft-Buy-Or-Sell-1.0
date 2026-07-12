@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
+import IntelligenceDropdown from "@/components/layout/IntelligenceDropdown";
 
 // Flat text nav (homepage style) + card-grid dropdown (chip style)
 export default function PillCommandBar() {
@@ -114,62 +115,17 @@ export default function PillCommandBar() {
                   zIndex: 100,
                 }}
               >
-                {section.categories.map((cat) => (
+                {section.label === "Intelligence" ? (
+                  <IntelligenceDropdown section={section} onNavigate={handleNav} />
+                ) : section.categories.map((cat) => (
                   <div key={cat.label} style={{ minWidth: 230 }}>
-                    <div style={{
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      letterSpacing: "0.14em",
-                      textTransform: "uppercase",
-                      color: "rgba(212,160,23,0.65)",
-                      padding: "2px 4px 8px",
-                    }}>
-                      {cat.label}
-                    </div>
-                    {/* 2-column grid of icon card chips */}
+                    <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,160,23,0.65)", padding: "2px 4px 8px" }}>{cat.label}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                      {cat.items.map((item) => {
-                        const itemActive = pathname === item.path || pathname.startsWith(item.path + "/");
-                        const ItemIcon = item.icon;
-                        return (
-                          <button
-                            key={item.path}
-                            onClick={() => handleNav(item.path)}
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 6,
-                              textAlign: "center",
-                              minHeight: 64,
-                              width: 112,
-                              borderRadius: 12,
-                              padding: "10px 6px",
-                              background: itemActive ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.03)",
-                              border: itemActive ? "1px solid rgba(212,160,23,0.35)" : "1px solid rgba(255,255,255,0.06)",
-                              color: itemActive ? "#D4A017" : "rgba(255,255,255,0.72)",
-                              cursor: "pointer",
-                              transition: "background 150ms ease, border-color 150ms ease, color 150ms ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = "rgba(212,160,23,0.10)";
-                              e.currentTarget.style.borderColor = "rgba(212,160,23,0.30)";
-                              e.currentTarget.style.color = "#fff";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = itemActive ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.03)";
-                              e.currentTarget.style.borderColor = itemActive ? "rgba(212,160,23,0.35)" : "rgba(255,255,255,0.06)";
-                              e.currentTarget.style.color = itemActive ? "#D4A017" : "rgba(255,255,255,0.72)";
-                            }}
-                          >
-                            {ItemIcon && <ItemIcon size={16} style={{ opacity: 0.85 }} />}
-                            <span style={{ fontSize: 10.5, fontWeight: itemActive ? 700 : 600, lineHeight: 1.15 }}>
-                              {item.label}
-                            </span>
-                          </button>
-                        );
-                      })}
+                      {cat.items.map((item) => { const ItemIcon = item.icon; const itemActive = pathname === item.path || pathname.startsWith(item.path + "/"); return (
+                        <button key={item.path} onClick={() => handleNav(item.path)} className="flex min-h-16 w-28 flex-col items-center justify-center gap-1.5 rounded-xl px-1.5 py-2.5 text-center transition-colors hover:border-gold/30 hover:bg-gold/10 hover:text-white" style={{ background: itemActive ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.03)", border: itemActive ? "1px solid rgba(212,160,23,0.35)" : "1px solid rgba(255,255,255,0.06)", color: itemActive ? "#D4A017" : "rgba(255,255,255,0.72)" }}>
+                          {ItemIcon && <ItemIcon size={16} className="opacity-85" />}<span className="text-[10.5px] font-semibold leading-tight">{item.label}</span>
+                        </button>
+                      ); })}
                     </div>
                   </div>
                 ))}

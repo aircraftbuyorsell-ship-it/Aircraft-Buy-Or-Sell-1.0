@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  BarChart3, Plane, Database, Store, Cpu, Radar, Globe, AlertTriangle, TrendingUp, ShieldCheck, DollarSign, Activity,
+  BarChart3, Plane, Database, TrendingUp, ShieldCheck, DollarSign, Activity, ChevronDown, Server,
 } from "lucide-react";
 import PriceTrendChart from "@/components/analytics/PriceTrendChart";
 import DaysOnMarketChart from "@/components/analytics/DaysOnMarketChart";
 import TopModelsTable from "@/components/analytics/TopModelsTable";
 import MarketInsightCard from "@/components/analytics/MarketInsightCard";
-import RocketMetrics from "@/components/dashboard/RocketMetrics";
 import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
 import FaaRegistryPanel from "@/components/dashboard/FaaRegistryPanel";
 import HeroHeader from "@/components/intelligence/HeroHeader";
@@ -21,6 +21,7 @@ const GOLD = "#D4A017";
 
 export default function Analytics() {
   const isDark = useTheme();
+  const [showInfra, setShowInfra] = useState(false);
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["market-analytics"],
@@ -85,7 +86,7 @@ export default function Analytics() {
         {isLoading ? (
           <LoadingSkeleton variant="cards" count={6} />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <SummaryCard icon={Plane} label="Total Listings" value={sum.total.toLocaleString()} sub={`${sum.active} active · ${sum.sold} sold`} />
             <SummaryCard icon={Activity} label="Active Market" value={sum.active.toLocaleString()} accent="text-emerald-600 dark:text-emerald-400" sub="Live inventory" />
             <SummaryCard icon={DollarSign} label="Median Price" value={sum.medianPrice ? `$${(sum.medianPrice / 1000).toFixed(0)}k` : "—"} accent="text-gold-official" sub="Across all listings" />
@@ -96,8 +97,6 @@ export default function Analytics() {
             <SummaryCard icon={ShieldCheck} label="Avg Transparency" value={sum.avgAti ?? "—"}
               accent={avgAti >= 85 ? "text-emerald-600 dark:text-emerald-400" : avgAti >= 65 ? "text-gold-official" : "text-red-600 dark:text-red-400"}
               sub={sum.avgAti ? (avgAti >= 85 ? "Strong market" : avgAti >= 65 ? "Fair market" : "Caution") : "No scores yet"} />
-            <SummaryCard icon={Database} label="FAA Synced" value={faaSynced.toLocaleString()}
-              sub={`${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% of registry`} accent="text-gold-official" />
           </div>
         )}
 
@@ -123,34 +122,48 @@ export default function Analytics() {
           </div>
         )}
 
-        {/* Database & registry intelligence */}
+        {/* Data Infrastructure — collapsible (admin/devops) */}
         {!isLoading && (
-          <div className="space-y-5">
-            <SectionHeader eyebrow="Data Infrastructure" title="Database & Registry Intelligence" sub="Registry coverage, enrichment and sync health" />
-            <RocketMetrics
-              metrics={[
-                { icon: Plane, label: "Aircraft Register", value: sum.active.toLocaleString(), sub: `${sum.total.toLocaleString()} total · ${engineEnriched} ATI scored · avg ${avgAti}`, link: "/listings", color: "#f48120" },
-                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: GOLD },
-                { icon: Store, label: "Dealer Network", value: dealers.length.toLocaleString(), sub: `ABOS sync · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
-                { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
-                { icon: TrendingUp, label: "ACFTREF Database", value: faaAcftrefTotal.toLocaleString(), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
-                { icon: Radar, label: "FAA Engine Specs", value: faaEngineTotal.toLocaleString(), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
-                { icon: AlertTriangle, label: "Airworthiness Dir.", value: faaAdTotal.toLocaleString(), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
-                { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
-              ]}
-            />
-            <div className="glass-card p-5">
-              <DatabaseCharts
-                faaAircraft={faaAircraft}
-                matchedCount={matchedToFaa}
-                faaTotalRegistry={faaRegistryTotal}
-                faaAcftrefTotal={faaAcftrefTotal}
-                faaAdTotal={faaAdTotal}
-                faaDealersTotal={faaDealersTotal}
-                faaEngineTotal={faaEngineTotal}
-              />
-            </div>
-            <FaaRegistryPanel />
+          <div className="space-y-4">
+            <button
+              onClick={() => setShowInfra((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-gold-bg border border-gold/20">
+                  <Server className="w-4 h-4 text-gold-official" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-foreground">Data Infrastructure (Admin)</p>
+                  <p className="text-[11px] text-muted-foreground">Registry coverage, engine enrichment & sync health</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                  {faaSynced.toLocaleString()} FAA synced
+                </span>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showInfra ? "rotate-180" : ""}`} />
+              </div>
+            </button>
+
+            {showInfra && (
+              <div className="space-y-5 animate-accordion-down">
+                <SummaryCard icon={Database} label="FAA Synced" value={faaSynced.toLocaleString()}
+                  sub={`${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% of registry`} accent="text-gold-official" />
+                <div className="glass-card p-5">
+                  <DatabaseCharts
+                    faaAircraft={faaAircraft}
+                    matchedCount={matchedToFaa}
+                    faaTotalRegistry={faaRegistryTotal}
+                    faaAcftrefTotal={faaAcftrefTotal}
+                    faaAdTotal={faaAdTotal}
+                    faaDealersTotal={faaDealersTotal}
+                    faaEngineTotal={faaEngineTotal}
+                  />
+                </div>
+                <FaaRegistryPanel />
+              </div>
+            )}
           </div>
         )}
 

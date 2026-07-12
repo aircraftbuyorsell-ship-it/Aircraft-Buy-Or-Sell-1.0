@@ -144,7 +144,7 @@ export default function FAAMap() {
         const state = (ac.state || "").trim().toUpperCase();
         const [lat, lon] = US_CENTROIDS[state] || [39.8, -98.5];
         const [x, y] = project(state, lat, lon);
-        const color = ac.status_code === "V" ? "#00e990" : "#ef4444";
+        const color = ac.status_code === "V" ? "#E5B82E" : "#F4F4F5";
         ctx.shadowColor = color;
         ctx.shadowBlur = 6;
         ctx.fillStyle = color;
@@ -169,16 +169,16 @@ export default function FAAMap() {
     `flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer ${
       active
         ? "border-gold-official/40 bg-gold-bg text-gold-official"
-        : "border-border bg-card text-muted-foreground hover:text-foreground"
+        : "border-white/15 bg-[#1c1c1f] text-white/60 hover:text-white"
     }`;
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#06101b] text-white">
+    <div className="min-h-screen overflow-hidden bg-[#050505] text-white">
       {/* Floating registry command bar */}
-      <div className="relative z-20 mx-2 mt-2 rounded-2xl border border-[#8b7a2c] bg-[#123d3b]/90 shadow-[0_8px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <div className="relative z-20 mx-2 mt-2 rounded-2xl border border-[#8b7a2c] bg-[#111113]/95 shadow-[0_8px_30px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <div className="flex min-h-[40px] items-center gap-2.5 px-3 py-1">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8b7a2c] bg-[#4b481d]/60">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8b7a2c] bg-[#2A2618]">
               <Map className="h-4 w-4 text-[#e2bd32]" />
             </div>
             <div>
@@ -200,7 +200,7 @@ export default function FAAMap() {
               { v: "map", icon: Map, label: "Map" },
               { v: "list", icon: Table, label: "List" },
             ].map(({ v, icon: Icon, label }) => (
-              <button key={v} onClick={() => setView(v)} className={`${viewBtnCls(view === v)} ${v === "list" ? "hidden" : ""}`}>
+              <button key={v} onClick={() => setView(v)} className={viewBtnCls(view === v)}>
                 <Icon className="w-3.5 h-3.5" /> {label}
               </button>
             ))}
@@ -215,7 +215,7 @@ export default function FAAMap() {
       <div className="relative z-10 h-[calc(100dvh-56px)] overflow-hidden p-2">
         {/* Filter panel — record module */}
         {filtersOpen && (
-          <aside className="absolute right-4 top-4 z-30 flex max-h-[345px] w-[240px] flex-col gap-2 overflow-y-auto rounded-xl border border-white/15 bg-[#101625]/95 p-3 shadow-2xl backdrop-blur-xl max-md:left-4 max-md:w-auto">
+          <aside className="faa-map-controls absolute right-4 top-4 z-30 flex max-h-[345px] w-[240px] flex-col gap-2 overflow-y-auto rounded-xl border border-white/15 bg-[#151517]/95 p-3 shadow-2xl backdrop-blur-xl max-md:left-4 max-md:w-auto">
             <div className="flex items-center gap-1.5 mb-0.5">
               <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Filters</span>
@@ -283,11 +283,14 @@ export default function FAAMap() {
         <div className="h-full min-w-0">
           {/* Map / List view — record module */}
           <div
-            className={`relative h-full overflow-hidden rounded-xl border border-white/10 ${view === "map" ? "bg-[#07131f]" : "bg-card"}`}
+            className={`relative h-full overflow-hidden rounded-xl border border-white/10 ${view === "map" ? "bg-[#090909]" : "bg-card"}`}
             style={view === "map" ? {
-              backgroundImage: "linear-gradient(rgba(1,9,17,0.10),rgba(1,9,17,0.28)), url('https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/fe066565d_generated_image.png')",
+              backgroundColor: "#121212",
+              backgroundImage: "linear-gradient(#1a1a1a,#1a1a1a), url('https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/fe066565d_generated_image.png')",
+              backgroundBlendMode: "color, normal",
               backgroundPosition: "center",
-              backgroundSize: "100% 100%",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
             } : undefined}
           >
             {view === "map" ? (
@@ -310,7 +313,7 @@ export default function FAAMap() {
                         className={`border-b border-border cursor-pointer transition-colors ${
                           selected?.id === ac.id ? "bg-gold-bg" : "hover:bg-muted/60"
                         }`}
-                        style={{ borderLeft: `3px solid ${ac.status_code === "V" ? "#22c55e" : "#ef4444"}` }}
+                        style={{ borderLeft: `3px solid ${ac.status_code === "V" ? "#D4A017" : "#A1A1AA"}` }}
                       >
                         <td className="px-3.5 py-2.5 font-mono font-semibold tracking-wider text-gold-official">N{ac.n_number}</td>
                         <td className="px-3.5 py-2.5 text-foreground">{ac.mfr_mdl_code || "—"}</td>
@@ -321,8 +324,8 @@ export default function FAAMap() {
                         <td className="px-3.5 py-2.5">
                           <span className={`inline-block px-2.5 py-0.5 rounded-md border text-[9px] font-bold uppercase tracking-wider ${
                             ac.status_code === "V"
-                              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
-                              : "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/25"
+                              ? "border-gold-official/30 bg-gold-bg text-gold-official"
+                              : "border-white/20 bg-white/5 text-white/70"
                           }`}>
                             {ac.status_code === "V" ? "Valid" : ac.status_code || "N/A"}
                           </span>
@@ -336,7 +339,7 @@ export default function FAAMap() {
 
             {/* Count overlay for map */}
             {view === "map" && (
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl border border-white/15 bg-[#0d1422]/90 px-5 py-2.5 text-[10px] text-white/55 shadow-xl backdrop-blur-md">
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl border border-white/15 bg-[#111113]/92 px-5 py-2.5 text-[10px] text-white/55 shadow-xl backdrop-blur-md">
                 <span>{totalCount.current.toLocaleString()} aircraft plotted</span>
                 <span className="rounded-full border border-white/15 px-3 py-1 text-white/70">{totalCount.current.toLocaleString()} aircraft</span>
               </div>
@@ -345,7 +348,7 @@ export default function FAAMap() {
 
           {/* Selected aircraft strip — official record module */}
           {selected && (
-            <div className="absolute bottom-16 left-4 right-4 z-20 flex flex-wrap items-center gap-4 rounded-xl border border-[#8b7a2c]/50 bg-[#101625]/95 px-5 py-3.5 shadow-2xl backdrop-blur-xl">
+            <div className="absolute bottom-16 left-4 right-4 z-20 flex flex-wrap items-center gap-4 rounded-xl border border-[#8b7a2c]/50 bg-[#111113]/95 px-5 py-3.5 shadow-2xl backdrop-blur-xl">
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-gold-official">Selected Record</span>
                 <p className="text-sm font-bold tracking-tight mt-0.5">
@@ -361,7 +364,7 @@ export default function FAAMap() {
                 <Zap className="w-3.5 h-3.5" /> ATI Score
               </Link>
               <Link to={`/ati-verify?nreg=N${selected.n_number}`}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:opacity-80 transition-opacity">
+                className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-[12px] font-semibold text-white/80 transition-opacity hover:opacity-80">
                 <ShieldCheck className="w-3.5 h-3.5" /> Verify
               </Link>
               <button onClick={() => setSelected(null)}

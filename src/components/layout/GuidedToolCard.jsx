@@ -23,7 +23,7 @@ export default function GuidedToolCard({ item, description, featured = false, on
       <div className="mb-2 flex items-center gap-2">
         {Icon && <Icon size={16} className="text-gold" />}
         <span className="text-[11px] font-bold leading-tight text-white">{item.label}</span>
-        {featured && <span className="ml-auto rounded-full bg-gold/10 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-gold">Start here</span>}
+        {featured && <span className="ml-auto rounded-full bg-gold/10 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-gold">Recommended</span>}
       </div>
       <p className="m-0 text-[9px] leading-[1.45] text-white/45">{description}</p>
     </button>

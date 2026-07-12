@@ -2,13 +2,20 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
-import IntelligenceDropdown from "@/components/layout/IntelligenceDropdown";
+import GuidedDropdown from "@/components/layout/GuidedDropdown";
 
 // Flat text nav (homepage style) + card-grid dropdown (chip style)
 export default function PillCommandBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [openSection, setOpenSection] = useState(null);
+  const [usage, setUsage] = useState(() => {
+    const counts = {};
+    NAV_TREE.flatMap((section) => section.categories?.flatMap((category) => category.items) || []).forEach((item) => {
+      counts[item.path] = Number(localStorage.getItem(`abos-nav-use:${item.path}`) || 0);
+    });
+    return counts;
+  });
   const barRef = useRef(null);
 
   useEffect(() => {
@@ -20,6 +27,9 @@ export default function PillCommandBar() {
   }, []);
 
   const handleNav = (path) => {
+    const nextCount = (usage[path] || 0) + 1;
+    localStorage.setItem(`abos-nav-use:${path}`, String(nextCount));
+    setUsage((current) => ({ ...current, [path]: nextCount }));
     setOpenSection(null);
     navigate(path);
   };
@@ -113,22 +123,11 @@ export default function PillCommandBar() {
                   boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
                   padding: 14,
                   zIndex: 100,
+                  maxHeight: "72vh",
+                  overflowY: "auto",
                 }}
               >
-                {section.label === "Intelligence" ? (
-                  <IntelligenceDropdown section={section} onNavigate={handleNav} />
-                ) : section.categories.map((cat) => (
-                  <div key={cat.label} style={{ minWidth: 230 }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(212,160,23,0.65)", padding: "2px 4px 8px" }}>{cat.label}</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                      {cat.items.map((item) => { const ItemIcon = item.icon; const itemActive = pathname === item.path || pathname.startsWith(item.path + "/"); return (
-                        <button key={item.path} onClick={() => handleNav(item.path)} className="flex min-h-16 w-28 flex-col items-center justify-center gap-1.5 rounded-xl px-1.5 py-2.5 text-center transition-colors hover:border-gold/30 hover:bg-gold/10 hover:text-white" style={{ background: itemActive ? "rgba(212,160,23,0.12)" : "rgba(255,255,255,0.03)", border: itemActive ? "1px solid rgba(212,160,23,0.35)" : "1px solid rgba(255,255,255,0.06)", color: itemActive ? "#D4A017" : "rgba(255,255,255,0.72)" }}>
-                          {ItemIcon && <ItemIcon size={16} className="opacity-85" />}<span className="text-[10.5px] font-semibold leading-tight">{item.label}</span>
-                        </button>
-                      ); })}
-                    </div>
-                  </div>
-                ))}
+                <GuidedDropdown section={section} usage={usage} onNavigate={handleNav} />
               </div>
             )}
           </div>

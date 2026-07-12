@@ -9,7 +9,6 @@ import ATIPassportVerification from "@/components/dashboard/sections/ATIPassport
 import ValueEstimator from "@/components/dashboard/sections/ValueEstimator";
 import TrustedBrokers from "@/components/dashboard/sections/TrustedBrokers";
 import CommunitySection from "@/components/dashboard/sections/CommunitySection";
-import Testimonials from "@/components/dashboard/sections/Testimonials";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsSection";
 
@@ -69,10 +68,7 @@ export default function Dashboard() {
       {/* 7. Community */}
       <CommunitySection />
 
-      {/* 8. Testimonials */}
-      <Testimonials />
-
-      {/* 9. Market Intelligence — hides itself when the feed is unavailable */}
+      {/* 8. Market Intelligence — hides itself when the feed is unavailable */}
       <LiveMarketIntelligence />
     </div>
   );

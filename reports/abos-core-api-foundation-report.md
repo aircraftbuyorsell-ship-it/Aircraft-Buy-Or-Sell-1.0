@@ -83,5 +83,8 @@ No deployed system changed. Revert the feature branch commits. If the gateway is
 - Diagnose the GitHub Actions startup failure and obtain passing route/build checks.
 - Verify and deploy the Stripe entitlement fix; add a durable atomic idempotency primitive for concurrent webhook delivery.
 - Legacy FAA sync and legacy Core API exposure guards were also added with regression tests.
+- `supabase/schema-proposals/stripe-webhook-idempotency.sql` documents an unexecuted unique-event/transactional grant design.
 - Verify Supabase listing ownership and policy posture before cutover.
 - Obtain the confirmed production hostname and scoped Cloudflare credentials.
+- Add repository dependency/secret/security scanning once the CI runner is operational.
+- Review the existing Base44 URL-token handoff; the new Core API must never inherit it.

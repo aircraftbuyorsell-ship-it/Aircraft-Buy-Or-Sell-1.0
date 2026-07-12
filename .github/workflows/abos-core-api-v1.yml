@@ -25,6 +25,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test test/abosCoreApiV1.test.mjs test/stripe-entitlement-guard.test.mjs
+      - run: node --test test/abosCoreApiV1.test.mjs test/stripe-entitlement-guard.test.mjs test/legacy-security-guards.test.mjs
       - run: node scripts/validate-abos-core-openapi.mjs
       - run: npm run build

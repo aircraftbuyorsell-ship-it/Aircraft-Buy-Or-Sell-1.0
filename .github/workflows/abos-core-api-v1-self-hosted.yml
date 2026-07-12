@@ -1,0 +1,26 @@
+name: ABOS Local Runner Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: [self-hosted, windows, x64, abos]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Run Core API and security guards
+        run: node --test test/abosCoreApiV1.test.mjs test/stripe-entitlement-guard.test.mjs test/legacy-security-guards.test.mjs test/legacy-core-api-guards.test.mjs
+      - name: Validate OpenAPI contract
+        run: node scripts/validate-abos-core-openapi.mjs
+      - name: Build existing application
+        run: npm run build

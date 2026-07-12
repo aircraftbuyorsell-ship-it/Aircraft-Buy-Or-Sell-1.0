@@ -54,71 +54,69 @@ async function resolveEmailFromCustomer(stripe, customerId) {
   return customer?.email || null;
 }
 
-async function hasProcessedPayment(base44, paymentId) {
+async function hasProcessedPayment(base44, paymentId, eventId) {
   if (!paymentId) return false;
   const existing = await base44.asServiceRole.entities.TokenTransaction.filter(
     { type: 'purchase', stripe_payment_id: paymentId }, '-created_date', 1
   );
-  return existing.length > 0;
+  if (existing.length > 0) return true;
+  if (!eventId) return false;
+  const eventRecords = await base44.asServiceRole.entities.TokenTransaction.filter(
+    { type: 'purchase', stripe_event_id: eventId }, '-created_date', 1
+  );
+  return eventRecords.length > 0;
 }
 
-async function handleCheckoutCompleted(session, base44) {
-  console.log('✅ checkout.session.completed:', session.id);
-
-  const meta        = session.metadata || {};
-  const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
-  const packName    = meta.pack_name  || '';
-  const paymentId   = session.payment_intent || session.id;
-
-  if (await hasProcessedPayment(base44, paymentId)) {
+async function handleCheckoutCompleted(session, base44, stripe, eventId) {
+  console.log('checkout.session.completed:', session.id);
+  const paymentId = session.payment_intent || session.id;
+  const expanded = session.line_items?.data?.length
+    ? session
+    : await stripe.checkout.sessions.retrieve(session.id, { expand: ['line_items.data.price'] });
+  const priceId = expanded.line_items?.data?.[0]?.price?.id;
+  const mapped = PRICE_TOKEN_MAP[priceId];
+  if (!mapped) {
+    console.warn('Unsupported Stripe price; entitlement skipped:', priceId);
+    return;
+  }
+  if (await hasProcessedPayment(base44, paymentId, eventId)) {
     console.log(`Duplicate checkout payment ignored: ${paymentId}`);
     return;
   }
 
-  // Resolve tokens from metadata (set by stripeCreateCheckout) or fall back to price map
-  let tokens  = parseInt(meta.tokens   || '0', 10);
-  let priceUsd = parseFloat(meta.price_usd || '0');
-  let tier    = meta.tier || 'pro';
-
-  // If metadata is sparse, look up via line items price
-  let subTier = meta.sub_tier || '';
-  if (!tokens) {
-    const priceId = session.line_items?.data?.[0]?.price?.id;
-    const mapped  = PRICE_TOKEN_MAP[priceId];
-    if (mapped) { tokens = mapped.tokens; tier = mapped.tier; subTier = mapped.sub_tier; priceUsd = mapped.price_usd; }
+  const userEmail = session.customer_email || session.customer_details?.email;
+  if (!userEmail) {
+    console.warn('No verified customer email found; entitlement skipped');
+    return;
   }
-
-  if (!userEmail) { console.warn('No email found in session, skipping grant'); return; }
-  if (!tokens)    { console.warn('No tokens resolved, skipping grant'); return; }
-
+  const { tokens, tier, sub_tier: subTier, price_usd: priceUsd, pack } = mapped;
   const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
-  const behavior  = behaviors[0];
-  if (!behavior)  { console.warn(`UserBehavior not found for ${userEmail}`); return; }
+  const behavior = behaviors[0];
+  if (!behavior) {
+    console.warn('UserBehavior not found; entitlement skipped');
+    return;
+  }
 
   const newBalance = (behavior.tokens_remaining || 0) + tokens;
   await base44.asServiceRole.entities.UserBehavior.update(behavior.id, {
     tier,
-    tokens_remaining:       newBalance,
+    tokens_remaining: newBalance,
     tokens_purchased_total: (behavior.tokens_purchased_total || 0) + tokens,
-    active_offer:           null,
+    active_offer: null,
   });
-
   await base44.asServiceRole.entities.TokenTransaction.create({
-    user_email:        userEmail,
-    type:              'purchase',
-    amount:            tokens,
-    pack:              packName || tier,
-    price_usd:         priceUsd,
+    user_email: userEmail,
+    type: 'purchase',
+    amount: tokens,
+    pack,
+    price_usd: priceUsd,
     stripe_payment_id: paymentId,
-    balance_after:     newBalance,
+    stripe_event_id: eventId,
+    balance_after: newBalance,
   });
-
-  // Sync UserProfile tier
   await syncUserProfileTier(base44, userEmail, tier, subTier);
-
-  console.log(`✓ Granted ${tokens} tokens to ${userEmail} (tier: ${tier}, sub_tier: ${subTier}), balance: ${newBalance}`);
+  console.log(`Granted ${tokens} tokens to ${userEmail} (tier: ${tier}, sub_tier: ${subTier})`);
 }
-
 async function handleChargeSucceeded(charge) {
   console.log(`💳 charge.succeeded: ${charge.id} — ${charge.receipt_email} — ${charge.amount / 100} ${charge.currency.toUpperCase()}`);
   // Audit log — extend here to write to a Payments entity if needed
@@ -256,7 +254,7 @@ Deno.serve(async (req) => {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object, base44);
+        await handleCheckoutCompleted(event.data.object, base44, stripe, event.id);
         break;
       case 'charge.succeeded':
         await handleChargeSucceeded(event.data.object);
@@ -284,6 +282,6 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 });

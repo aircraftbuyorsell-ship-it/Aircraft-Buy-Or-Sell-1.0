@@ -1,6 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 
 export default function SidebarLogo({ compact = false }) {
+  const { pathname } = useLocation();
+  const currentSection = NAV_TREE.find((section) => isPathInSection(section, pathname))?.label || "Dashboard";
+
   if (compact) {
     return (
       <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
@@ -54,7 +58,7 @@ export default function SidebarLogo({ compact = false }) {
           fontWeight: 700,
           marginTop: 3,
         }}>
-          Marketspace<span style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>™</span>
+          {currentSection}{currentSection === "Marketspace" && <span style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>™</span>}
         </span>
       </div>
     </Link>

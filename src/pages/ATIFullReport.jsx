@@ -14,6 +14,22 @@ import EmptyState from "@/components/intelligence/EmptyState";
 import DimensionAnalyticsRow from "@/components/report/DimensionAnalyticsRow";
 
 const TABS = ["Overview", "Identity", "Dimensions", "Market", "Risk"];
+const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
+
+function buildInitialReportInput() {
+  if (readParam("aircraft_data")) return readParam("aircraft_data");
+  return [
+    [readParam("year"), readParam("make"), readParam("model")].filter(Boolean).join(" "),
+    readParam("registration") && `Registration: ${readParam("registration")}`,
+    readParam("serial") && `Serial number: ${readParam("serial")}`,
+    readParam("total_time") && `Airframe Total Time: ${readParam("total_time")} hrs`,
+    readParam("engine_hours") && `Engine SMOH: ${readParam("engine_hours")} hrs`,
+    readParam("tbo") && `TBO: ${readParam("tbo")} hrs`,
+    readParam("engine_mfr") && `Engine: ${readParam("engine_mfr")} ${readParam("engine_model")}`.trim(),
+    readParam("avionics") && `Avionics: ${readParam("avionics")}`,
+    readParam("asking_price") && `Asking Price: $${readParam("asking_price")}`,
+  ].filter(Boolean).join("\n");
+}
 
 function BulletList({ items, colorCls = "text-emerald-500" }) {
   if (!items?.length) return <p className="text-xs text-muted-foreground">None identified.</p>;
@@ -46,12 +62,13 @@ function AINotice() {
 }
 
 export default function ATIFullReport() {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(buildInitialReportInput);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
   const [reportCode, setReportCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [regExtracted, setRegExtracted] = useState("");
+  const [regExtracted, setRegExtracted] = useState(() => readParam("registration"));
   const [tab, setTab] = useState("Overview");
   const [copied, setCopied] = useState(false);
 
@@ -84,6 +101,7 @@ export default function ATIFullReport() {
     if (!input.trim()) return;
     setLoading(true);
     setResult(null);
+    setError("");
     try {
       const response = await base44.functions.invoke("atiFullReportScore", {
         aircraft_data: input,
@@ -107,13 +125,41 @@ export default function ATIFullReport() {
           Object.entries(res.dimensions || {}).map(([k, v]) => [k, v.justification])
         ),
       };
+
+      const make = readParam("make");
+      const model = readParam("model");
+      const year = Number(readParam("year"));
+      if (make && model && year) {
+        try {
+          const omvmResponse = await base44.functions.invoke("omvmV5Score", {
+            make,
+            model,
+            year,
+            total_time: Number(readParam("total_time")) || undefined,
+            engine_hours: Number(readParam("engine_hours")) || undefined,
+            tbo: Number(readParam("tbo")) || undefined,
+            avionics: readParam("avionics"),
+            asking_price: Number(readParam("asking_price")) || undefined,
+          });
+          const omvmValue = omvmResponse.data?.omvm_value;
+          if (omvmValue) {
+            flatResult.omvm_low = Math.round(omvmValue * 0.9 / 1000) * 1000;
+            flatResult.omvm_high = Math.round(omvmValue * 1.1 / 1000) * 1000;
+          }
+        } catch (_) {}
+      }
+
       const reg = regExtracted || res.registration_extracted || "NREG";
       const code = genCode(reg, res.total);
       setResult(flatResult);
       setReportCode(code);
       setTab("Overview");
     } catch (e) {
-      console.error(e);
+      if ([401, 403].includes(e?.response?.status || e?.status)) {
+        base44.auth.redirectToLogin(window.location.href);
+        return;
+      }
+      setError(e?.response?.data?.error || e.message || "Report generation failed. Please try again.");
     }
     setLoading(false);
   }
@@ -180,6 +226,11 @@ export default function ATIFullReport() {
             <FileText className="w-4 h-4" />
             {loading ? "Scoring 8 dimensions via LLM…" : "Generate ATI Full Report"}
           </button>
+          {error && (
+            <p className="mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* ── Report output ── */}

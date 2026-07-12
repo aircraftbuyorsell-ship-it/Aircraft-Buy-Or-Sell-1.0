@@ -25,7 +25,10 @@ export default function Valuation() {
     make: readParam("make"),
     model: readParam("model"),
     year: readParam("year"),
+    total_time: readParam("total_time"),
     engine_hours: readParam("engine_hours"),
+    tbo: readParam("tbo") || "2000",
+    avionics: readParam("avionics"),
     asking_price: readParam("asking_price"),
   }));
   const [loading, setLoading] = useState(false);
@@ -54,8 +57,12 @@ export default function Valuation() {
       setAircraft(payload);
       setError(null);
     } catch (e) {
+      if ([401, 403].includes(e?.response?.status || e?.status)) {
+        base44.auth.redirectToLogin(window.location.href);
+        return;
+      }
       setResult(null);
-      setError(e?.message || "Valuation failed. Please try again.");
+      setError(e?.response?.data?.error || e?.message || "Valuation failed. Please try again.");
     } finally {
       setLoading(false);
     }

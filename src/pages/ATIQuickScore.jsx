@@ -4,6 +4,7 @@ import {
   Zap, FileText, TrendingUp, ShieldCheck, RotateCw,
 } from "lucide-react";
 import { orchestrateATIScoring } from "@/api/orchestrateATIScoring";
+import { base44 } from "@/api/base44Client";
 import TierBadge   from "@/components/TierBadge";
 import MiniGlobe   from "@/components/MiniGlobe";
 import {
@@ -16,6 +17,22 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIERS = ["free_explorer", "starter", "pro", "enterprise"];
+const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
+
+function buildPrefillText() {
+  const lines = [
+    [readParam("year"), readParam("make"), readParam("model")].filter(Boolean).join(" "),
+    readParam("registration") && `Registration: ${readParam("registration")}`,
+    readParam("serial") && `Serial number: ${readParam("serial")}`,
+    readParam("total_time") && `Airframe Total Time: ${readParam("total_time")} hrs`,
+    readParam("engine_hours") && `Engine SMOH: ${readParam("engine_hours")} hrs`,
+    readParam("tbo") && `TBO: ${readParam("tbo")} hrs`,
+    readParam("engine_mfr") && `Engine: ${readParam("engine_mfr")} ${readParam("engine_model")}`.trim(),
+    readParam("avionics") && `Avionics: ${readParam("avionics")}`,
+    readParam("asking_price") && `Asking Price: $${readParam("asking_price")}`,
+  ].filter(Boolean);
+  return lines.join("\n");
+}
 
 // ATI Premium shared styles (isolated in theme/atiPremium.js)
 const card = atiCard;
@@ -42,7 +59,7 @@ export function calcATITotal(result) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function InputField({ value, onChange, placeholder, as = "input", rows, ...rest }) {
+function InputField({ value, onChange, placeholder, as = "input", rows, style, ...rest }) {
   const [focused, setFocused] = useState(false);
   const baseStyle = {
     width:          "100%",
@@ -57,8 +74,9 @@ function InputField({ value, onChange, placeholder, as = "input", rows, ...rest 
     lineHeight:     1.65,
     fontFamily:     "inherit",
     resize:         as === "textarea" ? "vertical" : undefined,
-    transition:     "border-color 0.15s, background 0.15s",
-  };
+    transition:    "border-color 0.15s, background 0.15s",
+    ...style,
+    };
 
   return as === "textarea"
     ? <textarea
@@ -134,8 +152,8 @@ function UpgradeRow({ to, icon: Icon, iconColor = T.amber, title, desc }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ATIQuickScore() {
-  const [input,     setInput]     = useState("");
-  const [nReg,      setNReg]      = useState("");
+  const [input,     setInput]     = useState(buildPrefillText);
+  const [nReg,      setNReg]      = useState(() => readParam("registration"));
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [result,    setResult]    = useState(null);
@@ -155,6 +173,10 @@ export default function ATIQuickScore() {
       const res = await orchestrateATIScoring({ input, nReg: nReg || detected });
       setResult(res);
     } catch (e) {
+      if ([401, 403].includes(e?.response?.status || e?.status)) {
+        base44.auth.redirectToLogin(window.location.href);
+        return;
+      }
       setError(e?.response?.data?.error || e.message || "Scoring failed. Please try again.");
     }
     setLoading(false);
@@ -171,6 +193,9 @@ export default function ATIQuickScore() {
   const canSubmit = input.trim().length >= 20 && !loading;
   const total     = calcATITotal(result);
   const band      = atiBand(total);
+  const fullReportParams = new URLSearchParams(window.location.search);
+  fullReportParams.set("registration", nReg);
+  fullReportParams.set("aircraft_data", input);
 
   return (
     <div
@@ -536,7 +561,7 @@ export default function ATIQuickScore() {
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
                   <UpgradeRow
-                    to="/ati-full-report"
+                    to={`/ati-full-report?${fullReportParams.toString()}`}
                     icon={FileText}
                     iconColor={T.amber}
                     title="Full ATI Report"

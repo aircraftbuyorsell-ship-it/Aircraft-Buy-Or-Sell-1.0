@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 import { Search, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
@@ -48,8 +49,7 @@ export default function NLookup() {
     setError(null);
 
     try {
-      const res = await base44.functions.invoke("globalAircraftLookup", { registration });
-      const data = res.data;
+      const data = await lookupAircraft(registration);
       if (!data.found) {
         setError(data.error || `No registry record found for ${registration}.`);
         return;

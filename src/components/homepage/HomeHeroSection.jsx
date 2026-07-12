@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Search, Loader2, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 
@@ -82,8 +83,7 @@ export default function HomeHeroSection() {
     setSearching(true);
     setError("");
     try {
-      const res = await base44.functions.invoke("globalAircraftLookup", { registration: fullReg });
-      const data = res.data;
+      const data = await lookupAircraft(fullReg);
       if (!data.found) {
         setError(data.error || `No registry record found for ${fullReg}.`);
         setSearching(false);

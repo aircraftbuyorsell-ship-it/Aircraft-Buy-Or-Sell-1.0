@@ -102,8 +102,27 @@ Return ONLY valid JSON.`,
     res.omvm_low = Math.round(omvmBase * 0.8);
     res.omvm_high = Math.round(omvmBase * 1.2);
   }
-  res.omvm_base = omvmBase;
-  res.omvm_confidence = omvmConfidence;
+  try {
+    const omvmResponse = await base44.functions.invoke("omvmV5Score", {
+      make,
+      model,
+      year: year ? Number(year) : undefined,
+      engine_hours: Number((input.match(/Engine SMOH:\s*([\d,.]+)/i) || [])[1]?.replace(/,/g, "")) || undefined,
+      tbo: Number((input.match(/TBO:\s*([\d,.]+)/i) || [])[1]?.replace(/,/g, "")) || undefined,
+      asking_price: res.asking_price || undefined,
+    });
+    const omvm = omvmResponse.data;
+    if (omvm?.omvm_value) {
+      res.omvm_low = Math.round(omvm.omvm_value * 0.9 / 1000) * 1000;
+      res.omvm_high = Math.round(omvm.omvm_value * 1.1 / 1000) * 1000;
+      res.omvm_base = omvm.omvm_value;
+      res.omvm_confidence = omvm.confidence;
+      res.omvm_comp_sample = omvm.comp_sample;
+    }
+  } catch (_) {
+    res.omvm_base = omvmBase;
+    res.omvm_confidence = omvmConfidence;
+  }
 
   return res;
 }

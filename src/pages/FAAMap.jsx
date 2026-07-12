@@ -39,8 +39,8 @@ const CATEGORY_OPTIONS = [
   { value: "3", label: "Amphibian" },
 ];
 
-const INPUT_CLS = "w-full rounded-lg px-3 py-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-gold-official/40";
-const LABEL_CLS = "block text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1";
+const INPUT_CLS = "w-full rounded-lg px-3 py-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-gold-official/40";
+const LABEL_CLS = "mb-0.5 block text-[8px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
 
 function Select({ value, onChange, options }) {
   return (
@@ -119,31 +119,15 @@ export default function FAAMap() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      const map = { x: width * 0.06, y: height * 0.08, w: width * 0.88, h: height * 0.78 };
+      const map = { x: width * 0.06, y: height * 0.2, w: width * 0.86, h: height * 0.62 };
       const project = (state, lat, lon) => {
-        if (state === "AK") return [map.x + map.w * 0.12, map.y + map.h * 0.82];
-        if (state === "HI") return [map.x + map.w * 0.25, map.y + map.h * 0.88];
+        if (state === "AK") return [map.x + map.w * 0.08, map.y + map.h * 0.08];
+        if (state === "HI") return [map.x + map.w * 0.15, map.y + map.h * 0.86];
         return [
           map.x + ((lon + 125) / 59) * map.w,
           map.y + ((50 - lat) / 26) * map.h,
         ];
       };
-
-      // Visible plotting field and coordinate grid.
-      ctx.fillStyle = "rgba(255,255,255,0.025)";
-      ctx.strokeStyle = "rgba(212,160,23,0.16)";
-      ctx.lineWidth = 1;
-      ctx.fillRect(map.x, map.y, map.w, map.h);
-      ctx.strokeRect(map.x, map.y, map.w, map.h);
-      ctx.strokeStyle = "rgba(255,255,255,0.045)";
-      for (let i = 1; i < 8; i += 1) {
-        const x = map.x + (map.w / 8) * i;
-        ctx.beginPath(); ctx.moveTo(x, map.y); ctx.lineTo(x, map.y + map.h); ctx.stroke();
-      }
-      for (let i = 1; i < 5; i += 1) {
-        const y = map.y + (map.h / 5) * i;
-        ctx.beginPath(); ctx.moveTo(map.x, y); ctx.lineTo(map.x + map.w, y); ctx.stroke();
-      }
 
       // State labels establish the geographic shape before aircraft are plotted.
       ctx.fillStyle = "rgba(255,255,255,0.34)";
@@ -160,20 +144,15 @@ export default function FAAMap() {
         const state = (ac.state || "").trim().toUpperCase();
         const [lat, lon] = US_CENTROIDS[state] || [39.8, -98.5];
         const [x, y] = project(state, lat, lon);
-        const color = ac.status_code === "V" ? "#22c55e" : "#ef4444";
+        const color = ac.status_code === "V" ? "#00e990" : "#ef4444";
         ctx.shadowColor = color;
-        ctx.shadowBlur = 5;
+        ctx.shadowBlur = 6;
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+        ctx.arc(x, y, 2.1, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.shadowBlur = 0;
-
-      ctx.fillStyle = "rgba(255,255,255,0.6)";
-      ctx.font = "600 11px -apple-system, sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(`${totalCount.current.toLocaleString()} aircraft plotted`, map.x, height - 22);
     };
 
     draw();
@@ -194,17 +173,17 @@ export default function FAAMap() {
     }`;
 
   return (
-    <div className="min-h-screen dot-grid bg-canvas text-foreground">
-      {/* Official header band */}
-      <div className="border-b border-border glass-navbar relative z-10">
-        <div className="px-4 md:px-5 py-3 flex items-center gap-3 flex-wrap">
+    <div className="min-h-screen overflow-hidden bg-[#06101b] text-white">
+      {/* Floating registry command bar */}
+      <div className="relative z-20 mx-2 mt-2 rounded-2xl border border-[#8b7a2c] bg-[#123d3b]/90 shadow-[0_8px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+        <div className="flex min-h-[40px] items-center gap-2.5 px-3 py-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center border border-gold-official/30 bg-gold-bg shrink-0">
-              <Map className="w-5 h-5 text-gold-official" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8b7a2c] bg-[#4b481d]/60">
+              <Map className="h-4 w-4 text-[#e2bd32]" />
             </div>
             <div>
-              <p className="text-[10px] tracking-[0.2em] font-bold text-gold-official uppercase">FAA Registry™</p>
-              <h1 className="text-base font-bold tracking-tight leading-tight">Aircraft Registry Map</h1>
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#e2bd32]">FAA Registry™</p>
+              <h1 className="text-sm font-semibold leading-tight text-white">Aircraft Registry Map</h1>
             </div>
           </div>
 
@@ -212,16 +191,16 @@ export default function FAAMap() {
 
           {loading && <MiniGlobe size={24} color="#D4A017" inline={true} />}
 
-          <span className="text-[12px] font-semibold tabular-nums text-muted-foreground">
+          <span className="hidden text-[11px] font-medium tabular-nums text-white/70 sm:inline">
             {totalCount.current.toLocaleString()} records
           </span>
 
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             {[
               { v: "map", icon: Map, label: "Map" },
               { v: "list", icon: Table, label: "List" },
             ].map(({ v, icon: Icon, label }) => (
-              <button key={v} onClick={() => setView(v)} className={viewBtnCls(view === v)}>
+              <button key={v} onClick={() => setView(v)} className={`${viewBtnCls(view === v)} ${v === "list" ? "hidden" : ""}`}>
                 <Icon className="w-3.5 h-3.5" /> {label}
               </button>
             ))}
@@ -232,11 +211,11 @@ export default function FAAMap() {
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex h-[calc(100vh-64px)] relative z-10">
+      {/* Full-bleed map workspace */}
+      <div className="relative z-10 h-[calc(100dvh-56px)] overflow-hidden p-2">
         {/* Filter panel — record module */}
         {filtersOpen && (
-          <div className="w-[260px] shrink-0 p-4 overflow-y-auto flex flex-col gap-3 bg-card border-r border-border">
+          <aside className="absolute right-4 top-4 z-30 flex max-h-[345px] w-[240px] flex-col gap-2 overflow-y-auto rounded-xl border border-white/15 bg-[#101625]/95 p-3 shadow-2xl backdrop-blur-xl max-md:left-4 max-md:w-auto">
             <div className="flex items-center gap-1.5 mb-0.5">
               <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Filters</span>
@@ -297,15 +276,22 @@ export default function FAAMap() {
               className="py-2.5 rounded-lg text-[13px] font-semibold border border-border text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
               Reset
             </button>
-          </div>
+          </aside>
         )}
 
         {/* Main area */}
-        <div className="flex-1 flex flex-col gap-3 p-3 min-w-0">
+        <div className="h-full min-w-0">
           {/* Map / List view — record module */}
-          <div className={`flex-1 overflow-hidden relative rounded-xl border border-border ${view === "map" ? "bg-[#0B1220]" : "bg-card"}`}>
+          <div
+            className={`relative h-full overflow-hidden rounded-xl border border-white/10 ${view === "map" ? "bg-[#07131f]" : "bg-card"}`}
+            style={view === "map" ? {
+              backgroundImage: "linear-gradient(rgba(1,9,17,0.10),rgba(1,9,17,0.28)), url('https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/fe066565d_generated_image.png')",
+              backgroundPosition: "center",
+              backgroundSize: "100% 100%",
+            } : undefined}
+          >
             {view === "map" ? (
-              <canvas ref={canvasRef} className="w-full h-full block" style={{ background: "#0B1220" }} />
+              <canvas ref={canvasRef} className="block h-full w-full" />
             ) : (
               <div className="overflow-auto h-full">
                 <table className="w-full border-collapse text-[12px]">
@@ -350,15 +336,16 @@ export default function FAAMap() {
 
             {/* Count overlay for map */}
             {view === "map" && (
-              <div className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10 bg-white/5 text-white/60">
-                {totalCount.current.toLocaleString()} aircraft
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-xl border border-white/15 bg-[#0d1422]/90 px-5 py-2.5 text-[10px] text-white/55 shadow-xl backdrop-blur-md">
+                <span>{totalCount.current.toLocaleString()} aircraft plotted</span>
+                <span className="rounded-full border border-white/15 px-3 py-1 text-white/70">{totalCount.current.toLocaleString()} aircraft</span>
               </div>
             )}
           </div>
 
           {/* Selected aircraft strip — official record module */}
           {selected && (
-            <div className="rounded-xl border border-gold-official/30 bg-gold-bg px-5 py-3.5 flex items-center gap-4 flex-wrap">
+            <div className="absolute bottom-16 left-4 right-4 z-20 flex flex-wrap items-center gap-4 rounded-xl border border-[#8b7a2c]/50 bg-[#101625]/95 px-5 py-3.5 shadow-2xl backdrop-blur-xl">
               <div>
                 <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-gold-official">Selected Record</span>
                 <p className="text-sm font-bold tracking-tight mt-0.5">

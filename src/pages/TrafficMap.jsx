@@ -27,7 +27,7 @@ export default function TrafficMap() {
   const [error, setError] = useState(null);
   const [dataTime, setDataTime] = useState(null);
   const [dataSource, setDataSource] = useState(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("registration") || "");
   const [searchError, setSearchError] = useState(null);
   const [snapshots, setSnapshots] = useState([]);
   const [snapOpen, setSnapOpen] = useState(false);

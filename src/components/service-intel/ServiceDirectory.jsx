@@ -13,8 +13,9 @@ const WHITE = "rgba(255,255,255,0.90)";
 const PAGE_SIZE = 20;
 
 export default function ServiceDirectory() {
-  const [activeCat, setActiveCat] = useState("all");
-  const [region, setRegion] = useState("");
+  const params = new URLSearchParams(window.location.search);
+  const [activeCat, setActiveCat] = useState(() => params.get("category") || "all");
+  const [region, setRegion] = useState(() => params.get("query") || "");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [selected, setSelected] = useState(null);
   const [enriching, setEnriching] = useState(false);

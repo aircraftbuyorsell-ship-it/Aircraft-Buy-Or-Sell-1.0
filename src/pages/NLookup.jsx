@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { lookupAircraft } from "@/lib/aircraftLookup";
-import { Search, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
 
@@ -21,7 +22,10 @@ function normalizeReg(raw) {
 }
 
 export default function NLookup() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("registration") || params.get("serial") || params.get("owner") || "";
+  });
   const [loading, setLoading] = useState(false);
   const [overlayData, setOverlayData] = useState(null);
   const [error, setError] = useState(null);
@@ -41,14 +45,22 @@ export default function NLookup() {
     }
   }, []);
 
-  const handleSearch = async (e) => {
+  const handleSearch = async (e, directQuery = query) => {
     e?.preventDefault();
-    const registration = normalizeReg(query);
+    let registration = normalizeReg(directQuery);
     if (!registration) return;
     setLoading(true);
     setError(null);
 
     try {
+      const mode = new URLSearchParams(window.location.search).get("mode");
+      if (mode === "serial" || mode === "owner") {
+        const value = directQuery.replace(/^(s\/n|sn|serial|owner)[:\s-]*/i, "").trim();
+        const filter = mode === "serial" ? { serial_number: value } : { name: value.toUpperCase() };
+        const matches = await base44.entities.FAAAircraft.filter(filter, "-created_date", 1);
+        if (!matches.length) { setError(`No FAA record found for ${directQuery}.`); return; }
+        registration = `N${matches[0].n_number}`;
+      }
       const data = await lookupAircraft(registration);
       if (!data.found) {
         setError(data.error || `No registry record found for ${registration}.`);
@@ -113,41 +125,10 @@ export default function NLookup() {
           </p>
         </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="w-full mb-8">
-          <div
-            className="flex items-stretch w-full rounded-2xl overflow-hidden"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "0.5px solid rgba(245,194,66,0.22)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-              height: 56,
-            }}
-          >
-            <div className="flex items-center pl-4 pr-2">
-              <Search className="w-4 h-4" style={{ color: "rgba(245,194,66,0.60)" }} />
-            </div>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="N-Number, registration or serial number"
-              className="flex-1 min-w-0 text-[15px] font-semibold bg-transparent border-none outline-none"
-              style={{ color: "#fff", background: "transparent !important", border: "none !important" }}
-            />
-            <button
-              type="submit"
-              disabled={loading || !normalizeReg(query)}
-              className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
-              style={{ background: AMBER, color: "#04060a" }}
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>Search <ArrowRight className="w-3.5 h-3.5" /></>
-              )}
-            </button>
-          </div>
-        </form>
+        {/* Unified smart search */}
+        <div className="flex justify-center mb-8">
+          <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={(value) => handleSearch(null, value)} loading={loading} />
+        </div>
 
         {fulfillment && <ReportDeliveredBanner fulfillment={fulfillment} />}
 

@@ -81,7 +81,7 @@ export default function OpexCalculator() {
 
   // --- Prefill from URL params ---
   const urlMake = readParam("make");
-  const urlModel = readParam("model");
+  const urlModel = readParam("model") || readParam("engine_model");
   const urlEngineHours = readParam("engine_hours");
   const urlState = readParam("state");
 

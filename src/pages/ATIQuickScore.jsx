@@ -114,7 +114,7 @@ export default function ATIQuickScore() {
   const [input,     setInput]     = useState(() => readParam("aircraft_data"));
   const [nReg,      setNReg]      = useState(() => readParam("registration"));
   const [details,   setDetails]   = useState(buildInitialDetails);
-  const [lookupStatus, setLookupStatus] = useState(() => readParam("registration") ? "found" : "idle");
+  const [lookupStatus, setLookupStatus] = useState(() => readParam("registration") && readParam("year") && readParam("make") && readParam("model") ? "found" : "idle");
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState("");
   const [scorePayload, setScorePayload] = useState("");

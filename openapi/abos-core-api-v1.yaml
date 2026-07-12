@@ -1,0 +1,321 @@
+openapi: 3.1.0
+info:
+  title: ABOS Core API
+  version: 1.0.0-draft
+  description: Public, vendor-neutral ABOS Core API boundary. Internal Base44 and Supabase models are not part of this contract.
+servers:
+  - url: https://sandbox-api.example.invalid
+    description: Sandbox placeholder
+  - url: https://api.example.invalid
+    description: Production placeholder; deployment requires separate approval
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+paths:
+  /api/v1/search:
+    post:
+      operationId: searchListings
+      summary: Retrieve authoritative listings after deterministic retrieval
+      security:
+        - BearerAuth: [search:read]
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchRequest' }
+      responses:
+        '200':
+          description: Search results
+          headers:
+            X-Request-ID: { $ref: '#/components/headers/RequestId' }
+            X-RateLimit-Limit: { $ref: '#/components/headers/RateLimitLimit' }
+            X-RateLimit-Remaining: { $ref: '#/components/headers/RateLimitRemaining' }
+            X-RateLimit-Reset: { $ref: '#/components/headers/RateLimitReset' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResponse' }
+        '400': { $ref: '#/components/responses/APIError' }
+        '401': { $ref: '#/components/responses/APIError' }
+        '403': { $ref: '#/components/responses/APIError' }
+        '429': { $ref: '#/components/responses/APIError' }
+  /api/v1/aircraft/{aircraft_id}:
+    get:
+      operationId: getAircraft
+      summary: Get one public aircraft identity and specification
+      security:
+        - BearerAuth: [listings:read]
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AircraftId'
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Aircraft
+          headers:
+            X-Request-ID: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Aircraft' }
+        '401': { $ref: '#/components/responses/APIError' }
+        '403': { $ref: '#/components/responses/APIError' }
+        '404': { $ref: '#/components/responses/APIError' }
+  /api/v1/listings/{listing_id}:
+    get:
+      operationId: getListing
+      summary: Get one public aircraft listing
+      security:
+        - BearerAuth: [listings:read]
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ListingId'
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Listing
+          headers:
+            X-Request-ID: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AircraftListing' }
+        '401': { $ref: '#/components/responses/APIError' }
+        '403': { $ref: '#/components/responses/APIError' }
+        '404': { $ref: '#/components/responses/APIError' }
+  /api/v1/intelligence/valuate:
+    post:
+      operationId: requestValuation
+      summary: Request a traceable valuation result
+      description: Returns insufficient_data until a traceable comparable set and approved valuation engine are configured.
+      security:
+        - BearerAuth: [intelligence:request]
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema: { type: string, maxLength: 255 }
+          description: Reserved for future write-safe valuation persistence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ValuationRequest' }
+      responses:
+        '200':
+          description: Valuation response or an explicit insufficient-data result
+          headers:
+            X-Request-ID: { $ref: '#/components/headers/RequestId' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValuationResult' }
+        '400': { $ref: '#/components/responses/APIError' }
+        '401': { $ref: '#/components/responses/APIError' }
+        '403': { $ref: '#/components/responses/APIError' }
+        '429': { $ref: '#/components/responses/APIError' }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: ABOS API key
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-ABOS-API-Key
+  parameters:
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      schema: { type: string, maxLength: 128 }
+    AircraftId:
+      name: aircraft_id
+      in: path
+      required: true
+      schema: { type: string, pattern: '^ac_[a-f0-9]{24}$' }
+    ListingId:
+      name: listing_id
+      in: path
+      required: true
+      schema: { type: string, pattern: '^lst_[a-f0-9]{24}$' }
+  headers:
+    RequestId: { schema: { type: string }, description: Correlation identifier }
+    RateLimitLimit: { schema: { type: integer, minimum: 0 } }
+    RateLimitRemaining: { schema: { type: integer, minimum: 0 } }
+    RateLimitReset: { schema: { type: integer, minimum: 0 }, description: Unix timestamp }
+  responses:
+    APIError:
+      description: Sanitized API error
+      headers:
+        X-Request-ID: { $ref: '#/components/headers/RequestId' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/APIError' }
+  schemas:
+    AircraftIdentity:
+      type: object
+      additionalProperties: false
+      properties:
+        registration: { type: [string, 'null'] }
+        serial_number: { type: [string, 'null'] }
+        registry_country: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+    Aircraft:
+      type: object
+      additionalProperties: false
+      required: [aircraft_id, identity, manufacturer, model, source_provenance]
+      properties:
+        aircraft_id: { type: string, pattern: '^ac_[a-f0-9]{24}$' }
+        identity: { $ref: '#/components/schemas/AircraftIdentity' }
+        manufacturer: { type: [string, 'null'] }
+        model: { type: [string, 'null'] }
+        year: { type: [integer, 'null'], minimum: 1903 }
+        total_time_hours: { type: [number, 'null'], minimum: 0 }
+        engine_hours: { type: [number, 'null'], minimum: 0 }
+        source_provenance:
+          type: array
+          items: { $ref: '#/components/schemas/SourceProvenance' }
+    Price:
+      type: object
+      additionalProperties: false
+      required: [value, currency]
+      properties:
+        value: { type: number, minimum: 0 }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+    Location:
+      type: object
+      additionalProperties: false
+      properties:
+        country: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+        region: { type: [string, 'null'] }
+        city: { type: [string, 'null'] }
+    SourceProvenance:
+      type: object
+      additionalProperties: false
+      required: [source, source_record_id, observed_at, retrieval_method]
+      properties:
+        source: { type: string }
+        source_record_id: { type: ['null', string], description: Never an internal implementation ID }
+        observed_at: { type: ['null', string], format: date-time }
+        retrieval_method: { type: string }
+    IntelligenceMetadata:
+      type: object
+      additionalProperties: false
+      required: [ati_score, observed_market_value, deal_score, deal_label, generated_at, engine_version, limitations]
+      properties:
+        ati_score: { type: [number, 'null'] }
+        observed_market_value: { oneOf: [{ $ref: '#/components/schemas/Price' }, { type: 'null' }] }
+        deal_score: { type: [number, 'null'] }
+        deal_label: { type: [string, 'null'] }
+        generated_at: { type: [string, 'null'], format: date-time }
+        engine_version: { type: [string, 'null'] }
+        limitations: { type: array, items: { type: string } }
+    AircraftListing:
+      type: object
+      additionalProperties: false
+      required: [listing_id, aircraft, asking_price, location, status, intelligence, source_provenance, created_at, updated_at]
+      properties:
+        listing_id: { type: string, pattern: '^lst_[a-f0-9]{24}$' }
+        aircraft: { $ref: '#/components/schemas/Aircraft' }
+        asking_price: { oneOf: [{ $ref: '#/components/schemas/Price' }, { type: 'null' }] }
+        location: { oneOf: [{ $ref: '#/components/schemas/Location' }, { type: 'null' }] }
+        status: { type: string }
+        summary: { type: [string, 'null'] }
+        primary_image_url: { type: [string, 'null'], format: uri }
+        intelligence: { $ref: '#/components/schemas/IntelligenceMetadata' }
+        source_provenance: { type: array, items: { $ref: '#/components/schemas/SourceProvenance' } }
+        created_at: { type: [string, 'null'], format: date-time }
+        updated_at: { type: [string, 'null'], format: date-time }
+    SearchIntent:
+      type: object
+      additionalProperties: false
+      required: [intent, interpretation_status, constraints]
+      properties:
+        intent: { type: string }
+        interpretation_status: { type: string, enum: [deterministic, unavailable] }
+        constraints:
+          type: object
+          additionalProperties: false
+          properties:
+            terms: { type: array, items: { type: string } }
+    SearchRequest:
+      type: object
+      additionalProperties: false
+      required: [query]
+      properties:
+        query: { type: string, minLength: 1, maxLength: 500 }
+        page_size: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        cursor: { type: [string, 'null'] }
+    SearchResponse:
+      type: object
+      additionalProperties: false
+      required: [query, intent, results, page, explanation]
+      properties:
+        query: { type: string }
+        intent: { $ref: '#/components/schemas/SearchIntent' }
+        results: { type: array, items: { $ref: '#/components/schemas/AircraftListing' } }
+        page:
+          type: object
+          additionalProperties: false
+          required: [page_size, next_cursor, has_more]
+          properties:
+            page_size: { type: integer }
+            next_cursor: { type: [string, 'null'] }
+            has_more: { type: boolean }
+        explanation: { type: string }
+    ValuationRequest:
+      type: object
+      additionalProperties: false
+      required: [manufacturer, model]
+      properties:
+        manufacturer: { type: string, minLength: 1 }
+        model: { type: string, minLength: 1 }
+        year: { type: [integer, 'null'], minimum: 1903 }
+        total_time_hours: { type: [number, 'null'], minimum: 0 }
+        engine_hours: { type: [number, 'null'], minimum: 0 }
+    ValuationResult:
+      type: object
+      additionalProperties: false
+      required: [valuation_id, status, estimated_value, range, confidence, data_completeness, generated_at, engine_version, source_provenance, limitations]
+      properties:
+        valuation_id: { type: string, pattern: '^val_' }
+        status: { type: string, enum: [complete, insufficient_data] }
+        estimated_value: { oneOf: [{ $ref: '#/components/schemas/Price' }, { type: 'null' }] }
+        range:
+          type: object
+          additionalProperties: false
+          required: [minimum, maximum, currency]
+          properties:
+            minimum: { type: [number, 'null'] }
+            maximum: { type: [number, 'null'] }
+            currency: { type: string, pattern: '^[A-Z]{3}$' }
+        confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+        data_completeness: { type: number, minimum: 0, maximum: 1 }
+        generated_at: { type: string, format: date-time }
+        engine_version: { type: [string, 'null'] }
+        source_provenance: { type: array, items: { $ref: '#/components/schemas/SourceProvenance' } }
+        limitations: { type: array, items: { type: string } }
+    APIError:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, request_id, details, documentation_url]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            request_id: { type: [string, 'null'] }
+            details: { type: object, additionalProperties: true }
+            documentation_url: { type: [string, 'null'], format: uri }
+    RequestContext:
+      type: object
+      additionalProperties: false
+      required: [request_id]
+      properties:
+        request_id: { type: string }
+        idempotency_key: { type: [string, 'null'] }

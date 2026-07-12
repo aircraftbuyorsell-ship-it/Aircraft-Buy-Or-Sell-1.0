@@ -3,10 +3,10 @@ import HeroGlobe from "@/components/homepage/HeroGlobe";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 
 const STATS = [
-  { value: "312,845", label: "Aircraft" },
-  { value: "280,000", label: "ATI Passports" },
-  { value: "4,891", label: "Verified Listings" },
-  { value: "2,341", label: "Verified Dealers" },
+  { value: "8", label: "ATI Dimensions" },
+  { value: "9", label: "Tools From One Search" },
+  { value: "3+", label: "Sources Cross-Checked" },
+  { value: "0", label: "Repeat Lookup Steps" },
 ];
 
 export default function HomeHeroSection() {

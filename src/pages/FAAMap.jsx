@@ -106,52 +106,80 @@ export default function FAAMap() {
     if (view !== "map") return;
     const cv = canvasRef.current;
     if (!cv) return;
-    const ctx = cv.getContext("2d");
-    const W = cv.width = cv.offsetWidth * (window.devicePixelRatio || 1);
-    const H = cv.height = cv.offsetHeight * (window.devicePixelRatio || 1);
-    const usCenterX = 0.22, usCenterY = 0.55;
-    const usW = 0.65, usH = 0.5;
 
-    ctx.clearRect(0, 0, W, H);
+    const draw = () => {
+      const ctx = cv.getContext("2d");
+      const width = cv.clientWidth;
+      const height = cv.clientHeight;
+      if (!width || !height) return;
 
-    // Map background outline
-    ctx.fillStyle = "rgba(255,255,255,0.03)";
-    ctx.beginPath();
-    ctx.rect(usCenterX * W, usCenterY * H, usW * W, usH * H);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+      const dpr = window.devicePixelRatio || 1;
+      cv.width = Math.round(width * dpr);
+      cv.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
 
-    // Draw aircraft as dots
-    const dotR = 1.8;
-    for (const ac of aircraft) {
-      const state = (ac.state || "").trim().toUpperCase();
-      const centroid = US_CENTROIDS[state] || [39.8, -98.5];
-      const x = usCenterX + ((centroid[1] + 125) / 59) * usW;
-      const y = usCenterY + ((50 - centroid[0]) / 26) * usH;
-      const cx = x * W, cy = y * H;
+      const map = { x: width * 0.06, y: height * 0.08, w: width * 0.88, h: height * 0.78 };
+      const project = (state, lat, lon) => {
+        if (state === "AK") return [map.x + map.w * 0.12, map.y + map.h * 0.82];
+        if (state === "HI") return [map.x + map.w * 0.25, map.y + map.h * 0.88];
+        return [
+          map.x + ((lon + 125) / 59) * map.w,
+          map.y + ((50 - lat) / 26) * map.h,
+        ];
+      };
 
-      const color = ac.status_code === "V" ? "#22c55e" : "#ef4444";
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
-      ctx.fill();
-    }
+      // Visible plotting field and coordinate grid.
+      ctx.fillStyle = "rgba(255,255,255,0.025)";
+      ctx.strokeStyle = "rgba(212,160,23,0.16)";
+      ctx.lineWidth = 1;
+      ctx.fillRect(map.x, map.y, map.w, map.h);
+      ctx.strokeRect(map.x, map.y, map.w, map.h);
+      ctx.strokeStyle = "rgba(255,255,255,0.045)";
+      for (let i = 1; i < 8; i += 1) {
+        const x = map.x + (map.w / 8) * i;
+        ctx.beginPath(); ctx.moveTo(x, map.y); ctx.lineTo(x, map.y + map.h); ctx.stroke();
+      }
+      for (let i = 1; i < 5; i += 1) {
+        const y = map.y + (map.h / 5) * i;
+        ctx.beginPath(); ctx.moveTo(map.x, y); ctx.lineTo(map.x + map.w, y); ctx.stroke();
+      }
 
-    // Count overlay
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "11px -apple-system, sans-serif";
-    ctx.fillText(`${totalCount.current.toLocaleString()} aircraft`, W - 160, H - 16);
+      // State labels establish the geographic shape before aircraft are plotted.
+      ctx.fillStyle = "rgba(255,255,255,0.34)";
+      ctx.font = "600 9px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const [state, [lat, lon]] of Object.entries(US_CENTROIDS)) {
+        const [x, y] = project(state, lat, lon);
+        ctx.fillText(state, x, y);
+      }
 
-    // States labels
-    ctx.fillStyle = "rgba(255,255,255,0.15)";
-    ctx.font = "7px -apple-system, sans-serif";
-    for (const [st, [lat, lon]] of Object.entries(US_CENTROIDS)) {
-      const x = usCenterX + ((lon + 125) / 59) * usW;
-      const y = usCenterY + ((50 - lat) / 26) * usH;
-      ctx.fillText(st, x * W, y * H);
-    }
+      // Draw aircraft as crisp, visible status points.
+      for (const ac of aircraft) {
+        const state = (ac.state || "").trim().toUpperCase();
+        const [lat, lon] = US_CENTROIDS[state] || [39.8, -98.5];
+        const [x, y] = project(state, lat, lon);
+        const color = ac.status_code === "V" ? "#22c55e" : "#ef4444";
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 5;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      ctx.font = "600 11px -apple-system, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`${totalCount.current.toLocaleString()} aircraft plotted`, map.x, height - 22);
+    };
+
+    draw();
+    const observer = new ResizeObserver(draw);
+    observer.observe(cv);
+    return () => observer.disconnect();
   }, [view, aircraft]);
 
   const resetFilters = () => {

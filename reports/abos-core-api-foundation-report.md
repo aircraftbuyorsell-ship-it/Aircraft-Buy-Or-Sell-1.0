@@ -51,13 +51,13 @@ Project `bsvrcnyslqrotpllwfzm` is active and healthy (Postgres 17). Public table
 
 ## Stripe findings
 
-Webhook signature verification uses the raw request body and environment-held secrets, which is correct. A critical payment-integrity issue remains: checkout accepts client-controlled token/tier/price metadata and the webhook uses it for entitlement grants. Additional risks are unvalidated return URLs, check-then-create idempotency races, and raw error propagation. No Stripe products, prices, subscriptions, or webhook configuration were changed.
+Webhook signature verification uses the raw request body and environment-held secrets, which is correct. The branch now fixes the critical entitlement issue: checkout accepts only allowlisted existing Stripe Price IDs, validates return origins, and emits no client-controlled entitlement metadata; the webhook derives grants from the verified Stripe line item price. Stripe products, prices, subscriptions, and webhook configuration were not changed. A durable atomic idempotency primitive is still required to fully eliminate concurrent duplicate grants.
 
 ## Security findings and scan limitation
 
 Manual Codex Security review identified:
 
-1. Critical: Stripe entitlement metadata tampering.
+1. Critical (fixed in this branch): Stripe entitlement metadata tampering; review and deploy the code fix before relying on it.
 2. High: `syncFaaToAtiCard` can create or overwrite public listings for any authenticated user.
 3. High: legacy `abosCoreApi` can disclose private listings to logged-in users and returns Base44 IDs.
 4. High: concurrent webhook deliveries can double-grant entitlements.
@@ -81,6 +81,6 @@ No deployed system changed. Revert the feature branch commits. If the gateway is
 
 - Complete the exhaustive Codex Security scan with a functioning local checkout.
 - Diagnose the GitHub Actions startup failure and obtain passing route/build checks.
-- Fix or explicitly disposition the Stripe entitlement and idempotency findings.
+- Verify and deploy the Stripe entitlement fix; add a durable atomic idempotency primitive for concurrent webhook delivery.
 - Verify Supabase listing ownership and policy posture before cutover.
 - Obtain the confirmed production hostname and scoped Cloudflare credentials.

@@ -67,7 +67,7 @@ An exhaustive repository-wide Codex Security artifact scan could not be complete
 
 ## Tests and CI
 
-The branch adds Node tests for all four routes, public DTO isolation, sanitized errors, scope enforcement, and insufficient-data valuation. It adds an OpenAPI 3.1 contract guard and GitHub Actions workflow running `npm ci`, route tests, contract validation, and the existing application build. CI results are pending the draft PR workflow.
+The branch adds Node tests for all four routes, public DTO isolation, sanitized errors, scope enforcement, and insufficient-data valuation. It adds an OpenAPI 3.1 contract guard and GitHub Actions workflow running `npm ci`, route tests, contract validation, and the existing application build. The observed GitHub Actions run for the latest PR commit ended in `startup_failure` with no jobs, so passing test/build results are not claimed; this is an unresolved CI blocker.
 
 ## Cloudflare requirements
 
@@ -80,6 +80,7 @@ No deployed system changed. Revert the feature branch commits. If the gateway is
 ## Unresolved blockers
 
 - Complete the exhaustive Codex Security scan with a functioning local checkout.
+- Diagnose the GitHub Actions startup failure and obtain passing route/build checks.
 - Fix or explicitly disposition the Stripe entitlement and idempotency findings.
 - Verify Supabase listing ownership and policy posture before cutover.
 - Obtain the confirmed production hostname and scoped Cloudflare credentials.

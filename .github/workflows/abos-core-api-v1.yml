@@ -1,0 +1,30 @@
+name: ABOS Core API Boundary
+
+on:
+  pull_request:
+    paths:
+      - "base44/functions/abosCoreApiV1/**"
+      - "openapi/abos-core-api-v1.yaml"
+      - "gateway/cloudflare/**"
+      - "test/abosCoreApiV1.test.mjs"
+      - "scripts/validate-abos-core-openapi.mjs"
+      - ".github/workflows/abos-core-api-v1.yml"
+  push:
+    branches: [feat/abos-core-api-v1-boundary]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test test/abosCoreApiV1.test.mjs
+      - run: node scripts/validate-abos-core-openapi.mjs
+      - run: npm run build

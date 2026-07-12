@@ -97,7 +97,7 @@ export default function HomeHeroSection() {
           make: data.aircraft.make,
           model: data.aircraft.model
         });
-        if (photoRes.data?.photo_url) photo = photoRes.data;
+        if (photoRes.data?.photo_url && photoRes.data.source !== "hf_generated") photo = photoRes.data;
       } catch (_) {}
       // ABOS ATI Card + passport lookup (public data)
       let atiCard = null;

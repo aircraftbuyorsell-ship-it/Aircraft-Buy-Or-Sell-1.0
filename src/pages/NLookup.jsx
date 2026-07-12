@@ -1,18 +1,29 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Search, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
-import TwinResultCard from "@/components/twin/TwinResultCard";
-import ReportEmailModal from "@/components/twin/ReportEmailModal";
+import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
 
 const AMBER = "#f5c242";
+const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
+
+function normalizeReg(raw) {
+  if (!raw) return "";
+  let registration = raw.toUpperCase().replace(/\s+/g, "");
+  for (const prefix of DASH_PREFIXES) {
+    if (registration.startsWith(prefix) && !registration.startsWith(`${prefix}-`)) {
+      registration = `${prefix}-${registration.slice(prefix.length)}`;
+      break;
+    }
+  }
+  return registration;
+}
 
 export default function NLookup() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [overlayData, setOverlayData] = useState(null);
   const [error, setError] = useState(null);
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [fulfillment, setFulfillment] = useState(null);
 
   // Handle return from Stripe checkout → trigger PDF delivery
@@ -31,15 +42,51 @@ export default function NLookup() {
 
   const handleSearch = async (e) => {
     e?.preventDefault();
-    if (!query.trim()) return;
+    const registration = normalizeReg(query);
+    if (!registration) return;
     setLoading(true);
     setError(null);
-    setResult(null);
+
     try {
-      const res = await base44.functions.invoke("publicTwinLookup", { query: query.trim() });
-      setResult(res.data);
+      const res = await base44.functions.invoke("globalAircraftLookup", { registration });
+      const data = res.data;
+      if (!data.found) {
+        setError(data.error || `No registry record found for ${registration}.`);
+        return;
+      }
+
+      let photo = null;
+      try {
+        const photoRes = await base44.functions.invoke("aircraftPhoto", {
+          registration: data.aircraft.registration || registration,
+          hex: data.aircraft.mode_s_hex,
+        });
+        if (photoRes.data?.photo_url && photoRes.data.source !== "hf_generated") photo = photoRes.data;
+      } catch (_) {}
+
+      let atiCard = null;
+      let passport = null;
+      try {
+        const [cards, passports] = await Promise.all([
+          base44.entities.ATICard.filter({ aircraft_registration: registration }, "-created_date", 1),
+          base44.entities.ATIPassport.filter({ registration }, "-created_date", 1),
+        ]);
+        atiCard = cards[0] || null;
+        passport = passports[0] || null;
+      } catch (_) {}
+
+      setOverlayData({
+        result: { ...data.aircraft, _origin: data.origin_label, _source: data.source },
+        atiCard,
+        passport,
+        photo,
+        photoLoading: false,
+        listingMatch: data.listing || null,
+        areaServices: data.areaServices?.byRole || null,
+        areaState: data.areaServices?.state || "",
+      });
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || "Lookup failed");
+      setError(err?.response?.data?.error || err.message || "Failed to search registry. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +136,7 @@ export default function NLookup() {
             />
             <button
               type="submit"
-              disabled={loading || !query.trim()}
+              disabled={loading || !normalizeReg(query)}
               className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
               style={{ background: AMBER, color: "#04060a" }}
             >
@@ -111,20 +158,6 @@ export default function NLookup() {
           </div>
         )}
 
-        {result && !result.found && (
-          <div className="rounded-xl px-5 py-6 text-center"
-            style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-            <p className="text-[rgba(255,255,255,0.75)] font-bold">No aircraft found for "{query}"</p>
-            <p className="text-[12px] text-[rgba(255,255,255,0.45)] mt-1">
-              Check the N-Number spelling. International registrations are being added progressively.
-            </p>
-          </div>
-        )}
-
-        {result?.found && (
-          <TwinResultCard result={result} onGetReport={() => setEmailModalOpen(true)} />
-        )}
-
         {/* Trust footer */}
         <div className="mt-12 grid grid-cols-3 gap-3 text-center">
           {[
@@ -141,8 +174,18 @@ export default function NLookup() {
         </div>
       </div>
 
-      {emailModalOpen && result?.found && (
-        <ReportEmailModal registration={result.registration} onClose={() => setEmailModalOpen(false)} />
+      {overlayData && (
+        <RegistryResultOverlay
+          result={overlayData.result}
+          atiCard={overlayData.atiCard}
+          passport={overlayData.passport}
+          photo={overlayData.photo}
+          photoLoading={overlayData.photoLoading}
+          listingMatch={overlayData.listingMatch}
+          areaServices={overlayData.areaServices}
+          areaState={overlayData.areaState}
+          onClose={() => setOverlayData(null)}
+        />
       )}
     </div>
   );

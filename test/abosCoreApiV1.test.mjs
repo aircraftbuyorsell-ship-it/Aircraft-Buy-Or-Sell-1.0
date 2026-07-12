@@ -6,19 +6,16 @@ const listing = {
   listing_id: "lst_0123456789abcdef01234567",
   aircraft: { aircraft_id: "ac_0123456789abcdef01234567", identity: { registration: "N123AB", serial_number: null, registry_country: null }, manufacturer: "Cessna", model: "172", year: 2000, total_time_hours: null, engine_hours: null },
   asking_price: { value: 100000, currency: "USD" },
-  location: null,
-  status: "active",
+  location: null, status: "active",
   intelligence: { ati_score: null, observed_market_value: null, deal_score: null, deal_label: null, generated_at: null, engine_version: null, limitations: [] },
-  source_provenance: [],
-  created_at: null,
-  updated_at: null,
+  source_provenance: [], created_at: null, updated_at: null,
 };
 
-function router(scopes = ["search:read", "listings:read", "intelligence:request"]) {
+function router(scopes = ["search:read", "listings:read", "intelligence:request"], aircraft = null) {
   return createRouter({
     authenticate: async () => ({ type: "api_key", scopes }),
     listingRepository: { search: async () => ({ items: [listing], nextCursor: null }), getByPublicId: async () => null },
-    aircraftRepository: { getByPublicId: async () => null },
+    aircraftRepository: { getByPublicId: async () => aircraft },
     intentInterpreter: { interpret: async () => ({ intent: "search", interpretation_status: "deterministic", constraints: { terms: [] } }) },
     valuationProvider: { valuate: async () => ({ status: "insufficient_data", estimated_value: null, range: { minimum: null, maximum: null, currency: "USD" }, confidence: null, data_completeness: 0, source_provenance: [], limitations: ["No traceable source."] }) },
     auditSink: { record: async () => {} },
@@ -32,6 +29,12 @@ test("search returns only public DTOs", async () => {
   assert.equal(body.results[0].listing_id, listing.listing_id);
   assert.equal("id" in body.results[0], false);
   assert.equal(response.headers.has("x-request-id"), true);
+});
+
+test("aircraft route returns a public aircraft DTO", async () => {
+  const response = await router(undefined, listing.aircraft)(new Request("https://example.test/api/v1/aircraft/ac_0123456789abcdef01234567"));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).aircraft_id, listing.aircraft.aircraft_id);
 });
 
 test("listing not found uses sanitized error contract", async () => {

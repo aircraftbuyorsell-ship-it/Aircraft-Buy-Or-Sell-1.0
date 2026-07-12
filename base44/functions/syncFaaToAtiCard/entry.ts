@@ -45,6 +45,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const isPrivileged = ['admin', 'super_admin', 'broker'].includes(user.role);
+    if (!isPrivileged) return Response.json({ error: 'Privileged role required' }, { status: 403 });
 
     const { n_number, icao24, registration, aircraft_type, callsign } = await req.json();
     const nNum = normalizeNNumber(n_number || registration || '');
@@ -195,6 +197,6 @@ Deno.serve(async (req) => {
       dimensions,
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'FAA sync failed' }, { status: 500 });
   }
 });

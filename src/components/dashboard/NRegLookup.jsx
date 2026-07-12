@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
-import { Search, Loader2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
+import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 
 // Auto-insert dash for international prefixes that use one (OK-, D-, G-, …)
 const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
@@ -42,8 +43,8 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";
 
-  const search = useCallback(async () => {
-    const fullReg = normalizeReg(query);
+  const search = useCallback(async (directQuery = query) => {
+    const fullReg = normalizeReg(directQuery);
     if (!fullReg) return;
     setSearching(true);
     setError("");
@@ -91,42 +92,10 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
     setSearching(false);
   }, [query]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter") search(); };
-
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto px-4">
-      {/* Hero Search Bar */}
-      <div className="w-full relative mb-4">
-        <div className="flex items-center gap-0 w-full rounded-xl overflow-hidden shadow-lg"
-          style={{
-            background: isDark ? "rgba(18,18,35,0.88)" : "rgba(255,255,255,0.88)",
-            border: isDark ? "1px solid rgba(0,245,255,0.15)" : "1px solid rgba(37,99,235,0.15)",
-            backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-          }}>
-          <div className="pl-4 pr-2">
-            <Search className="w-4 h-4" style={{ color: isDark ? "rgba(0,245,255,0.6)" : "rgba(37,99,235,0.6)" }} />
-          </div>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter registration (N12345, OK-2001, G-BOAC, D-AIBL)…"
-            className="flex-1 py-2.5 text-sm font-medium bg-transparent border-none outline-none"
-            style={{ color: textColor, background: "transparent !important", border: "none !important" }}
-          />
-          <button
-            onClick={search}
-            disabled={searching || !normalizeReg(query)}
-            className="px-5 py-2.5 text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-30"
-            style={{
-              background: searching ? "transparent" : `linear-gradient(135deg, ${accentCyan}, #0ea5e9)`,
-              color: searching ? mutedColor : "#fff",
-            }}
-          >
-            {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
-          </button>
-        </div>
+      <div className="mb-4 w-full">
+        <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={search} loading={searching} />
       </div>
 
       {/* Error */}

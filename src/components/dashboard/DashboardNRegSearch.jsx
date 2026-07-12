@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap, FileCheck } from "lucide-react";
+import { Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap, FileCheck } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
+import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 
 const ABOS_AMBER = "#D4A017";
 const NAVY = "#1A1F2B";
@@ -21,8 +22,8 @@ export default function DashboardNRegSearch() {
 
   const normalizeN = (s) => s.replace(/^N/i, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
-  const search = useCallback(async () => {
-    const nNumber = normalizeN(query);
+  const search = useCallback(async (directQuery = query) => {
+    const nNumber = normalizeN(directQuery);
     if (!nNumber) return;
     setSearching(true);
     setError("");
@@ -48,8 +49,6 @@ export default function DashboardNRegSearch() {
     setSearching(false);
   }, [query]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter") search(); };
-
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -62,35 +61,7 @@ export default function DashboardNRegSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl mx-auto">
-      {/* Hero Search Bar */}
-      <div className="flex items-center w-full rounded-2xl overflow-hidden"
-        style={{
-          background: CARD,
-          border: `1px solid rgba(0,0,0,0.08)`,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)",
-        }}>
-        <div className="pl-4 pr-2">
-          <Search className="w-4 h-4" style={{ color: MUTED }} />
-        </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => result && setShowDropdown(true)}
-          placeholder="Enter N-Number (e.g. N12345)…"
-          className="flex-1 py-2.5 text-sm font-medium bg-transparent border-none outline-none"
-          style={{ color: NAVY, background: "transparent !important", border: "none !important" }}
-        />
-        <button
-          onClick={search}
-          disabled={searching || !normalizeN(query)}
-          className="px-5 py-2.5 text-[11px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5"
-          style={{ background: `linear-gradient(135deg, ${ABOS_AMBER}, #D4A017)`, color: "#1a1208" }}
-        >
-          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Search <ArrowRight className="w-3.5 h-3.5" /></>}
-        </button>
-      </div>
+      <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={search} loading={searching} />
 
       {/* Dropdown Results — ATI Passport preview card */}
       <AnimatePresence>

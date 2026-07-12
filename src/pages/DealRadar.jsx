@@ -5,6 +5,7 @@ import { Zap, TrendingDown, BarChart2, Radar, ArrowUpRight } from "lucide-react"
 import { Link } from "react-router-dom";
 import CoreCard from "@/components/core/CoreCard";
 import ComplianceBadge from "@/components/gcr/ComplianceBadge";
+import ScoreHistogram from "@/components/deal-radar/ScoreHistogram";
 
 function StatCard({ label, value, icon: Icon, sub, loading }) {
   return (
@@ -53,7 +54,7 @@ function DealCard({ deal }) {
       : { text: "#e24b4a", barColor: "#e24b4a" };
 
   return (
-    <CoreCard className="overflow-hidden">
+    <CoreCard className="overflow-hidden h-full">
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-start justify-between mb-3">
           <div>
@@ -235,7 +236,7 @@ export default function DealRadar() {
       </div>
 
       <div className="px-4 md:px-8 pb-8 space-y-5 pt-5">
-        <div className="grid grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           <StatCard
             label="Exceptional Deals"
             value={isLoading ? null : hot_deals}
@@ -277,6 +278,7 @@ export default function DealRadar() {
                 {minScore.toFixed(1)}
               </span>
             </div>
+            <ScoreHistogram deals={dealsWithScore} minScore={minScore} />
             <input
               type="range"
               min={1}
@@ -326,7 +328,7 @@ export default function DealRadar() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-stretch">
             {filtered.map((deal) => (
               <DealCard key={deal.id} deal={deal} />
             ))}

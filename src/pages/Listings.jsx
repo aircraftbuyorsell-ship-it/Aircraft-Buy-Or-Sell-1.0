@@ -8,6 +8,7 @@ import { detectRegType } from "@/lib/regUtils";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import ListingsHeader from "@/components/listings/ListingsHeader";
 import ListingsBody from "@/components/listings/ListingsBody";
+import FilterDrawer from "@/components/listings/FilterDrawer";
 
 // ─── Page ────────────────────────────────────────────────────────
 export default function Listings() {
@@ -117,7 +118,7 @@ export default function Listings() {
             }
           </div>
           <button
-            onClick={() => setShowFilters((v) => !v)}
+            onClick={() => setShowFilters(true)}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[12px] font-semibold transition-colors ${showFilters ? "text-[#04060a] border-[#f5c242]" : "border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.55)] hover:border-[#f5c242] hover:text-[#f5c242]"}`} style={showFilters ? { background: "#f5c242" } : { background: "rgba(255,255,255,0.04)" }}>
 
             <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -126,51 +127,9 @@ export default function Listings() {
           </button>
         </div>
 
-        {showFilters &&
-        <div className="mt-2.5 rounded-xl p-4 flex flex-wrap gap-5 items-end" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-            <div className="min-w-[160px]">
-              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Registration</label>
-              <select
-              value={regRegion}
-              onChange={(e) => setRegRegion(e.target.value)}
-              className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", color: "#fff" }}>
-
-                <option value="all">All registrations</option>
-                <option value="faa">🇺🇸 FAA (N-Reg)</option>
-                <option value="easa">🇪🇺 EASA (EU)</option>
-              </select>
-            </div>
-            <div className="min-w-[180px]">
-              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Manufacturer</label>
-              <BottomSheetSelect
-              label="Filter by make"
-              value={makeFilter}
-              onChange={setMakeFilter}
-              options={[{ value: "", label: "All manufacturers" }, ...makes.map((m) => ({ value: m, label: m }))]}
-              placeholder="All manufacturers"
-              className="w-full" />
-
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Min ATI Score: <span className="text-[#f5c242] font-bold">{minATI}</span>
-              </label>
-              <input type="range" min={0} max={100} step={5} value={minATI}
-            onChange={(e) => setMinATI(+e.target.value)}
-            className="w-36 accent-[#f5c242] touch-target-compact" />
-            </div>
-            {(makeFilter || minATI > 0 || regRegion !== "all") &&
-          <button onClick={() => {setMakeFilter("");setMinATI(0);setRegRegion("all");}}
-          className="text-[11px] text-[#e24b4a] font-semibold hover:underline pb-1 touch-target-compact">
-                Clear filters
-              </button>
-          }
-          </div>
-        }
-
-        {/* Active filter pills */}
-        {(makeFilter || minATI > 0 || regRegion !== "all") && !showFilters &&
-        <div className="flex gap-1.5 mt-2 flex-wrap">
+        {/* Active filter pills — always visible */}
+        {(makeFilter || minATI > 0 || regRegion !== "all") &&
+        <div className="flex gap-1.5 mt-2 flex-wrap items-center">
             {regRegion !== "all" &&
           <span className="flex items-center gap-1 text-[10px] text-[#04060a] px-2.5 py-1 rounded-full font-semibold" style={{ background: "#f5c242" }}>
                 {regRegion === "faa" ? "🇺🇸 FAA" : "🇪🇺 EASA"} <button onClick={() => setRegRegion("all")}><X className="w-2.5 h-2.5" /></button>
@@ -186,9 +145,23 @@ export default function Listings() {
                 ATI ≥ {minATI} <button onClick={() => setMinATI(0)}><X className="w-2.5 h-2.5" /></button>
               </span>
           }
+            <button onClick={() => {setMakeFilter("");setMinATI(0);setRegRegion("all");}} className="text-[10px] font-semibold ml-1 transition-colors" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Clear all
+            </button>
           </div>
         }
       </div>
+
+      {/* ── Filter Drawer ── */}
+      <FilterDrawer
+        open={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={(f) => { setMakeFilter(f.makeFilter); setMinATI(f.minATI); setRegRegion(f.regRegion); setShowFilters(false); }}
+        makes={makes}
+        makeFilter={makeFilter}
+        minATI={minATI}
+        regRegion={regRegion}
+      />
 
       {/* ── Body ── */}
       <ListingsBody

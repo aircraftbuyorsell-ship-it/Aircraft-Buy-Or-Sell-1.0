@@ -88,7 +88,6 @@ import SolutionsSellers from "./pages/solutions/SolutionsSellers";
 import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
-import ProtocolHub from "./pages/ProtocolHub";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -105,11 +104,8 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      const publicPaths = ['/developers/protocol'];
-      if (!publicPaths.includes(window.location.pathname)) {
-        navigateToLogin();
-        return null;
-      }
+      navigateToLogin();
+      return null;
     }
   }
 
@@ -197,7 +193,6 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
-        <Route path="/developers/protocol" element={<ProtocolHub />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

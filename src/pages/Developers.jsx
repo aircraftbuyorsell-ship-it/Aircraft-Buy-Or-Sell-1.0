@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Code2, Plus, Coins, BookOpen } from "lucide-react";
+import { Code2, Plus, Coins } from "lucide-react";
 import { Link } from "react-router-dom";
 import DeveloperOnboarding from "@/components/developers/DeveloperOnboarding";
 import DeveloperDashboard from "@/components/developers/DeveloperDashboard";
@@ -74,15 +74,8 @@ export default function Developers() {
             Build and monetize aviation tools on the ABOS marketplace. Earn tokens on every invocation.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/developers/protocol"
-            className="flex items-center gap-2 h-10 px-4 rounded-xl text-xs font-black uppercase tracking-wide"
-            style={{ background: "rgba(78,142,247,0.09)", border: "0.5px solid rgba(78,142,247,0.20)", color: BLUE }}
-          >
-            <BookOpen className="w-4 h-4" /> Protocol Suite
-          </Link>
-          {devAccount?.status === "active" && (<>
+        {devAccount?.status === "active" && (
+          <div className="flex items-center gap-2">
             <Link
               to="/developer-earnings"
               className="flex items-center gap-2 h-10 px-4 rounded-xl text-xs font-black uppercase tracking-wide"
@@ -92,13 +85,13 @@ export default function Developers() {
             </Link>
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl text-xs font-black uppercase tracking-wide transition-opacity hover:opacity-90"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl text-white text-xs font-black uppercase tracking-wide transition-opacity hover:opacity-90"
               style={{ background: AMBER, color: "#04060a" }}
             >
               <Plus className="w-4 h-4" /> Submit Tool
             </button>
-          </>)}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* No account yet → onboarding */}

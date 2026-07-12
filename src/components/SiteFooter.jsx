@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 const FOOTER_LINKS = [
   { to: "/developers", label: "Developers" },
   { to: "/developers/core-api", label: "Core API" },
-  { to: "/developers/protocol", label: "Protocol Suite" },
   { to: "/integration-kit", label: "Integration Kit" },
   { to: "/skills", label: "Skills Library" },
   { to: "/privacy-policy", label: "Privacy Policy" },

@@ -16,9 +16,20 @@ Deno.serve(async (req) => {
 
     if (!email) return Response.json({ error: 'Email is required' }, { status: 400 });
 
+    const allowedRoles = user.role === 'super_admin'
+      ? ['user', 'admin', 'super_admin']
+      : ['user', 'admin'];
+    if (!allowedRoles.includes(role)) {
+      return Response.json({
+        error: user.role === 'super_admin'
+          ? 'Invalid role'
+          : 'Forbidden — only a super admin can assign the super_admin role',
+      }, { status: 403 });
+    }
+
     // Invite the user (platform only allows 'admin' or 'user' roles for invites;
     // we set the custom 'super_admin' role on the User entity below)
-    const inviteRole = role === 'admin' || role === 'user' ? role : 'admin';
+    const inviteRole = role === 'user' ? 'user' : 'admin';
     const inviteResult = await base44.users.inviteUser(email, inviteRole);
 
     // After invite, find the user and upgrade their tier to enterprise/elite (no limits)

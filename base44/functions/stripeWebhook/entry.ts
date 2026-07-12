@@ -54,6 +54,14 @@ async function resolveEmailFromCustomer(stripe, customerId) {
   return customer?.email || null;
 }
 
+async function hasProcessedPayment(base44, paymentId) {
+  if (!paymentId) return false;
+  const existing = await base44.asServiceRole.entities.TokenTransaction.filter(
+    { type: 'purchase', stripe_payment_id: paymentId }, '-created_date', 1
+  );
+  return existing.length > 0;
+}
+
 async function handleCheckoutCompleted(session, base44) {
   console.log('✅ checkout.session.completed:', session.id);
 
@@ -61,6 +69,11 @@ async function handleCheckoutCompleted(session, base44) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  if (await hasProcessedPayment(base44, paymentId)) {
+    console.log(`Duplicate checkout payment ignored: ${paymentId}`);
+    return;
+  }
 
   // Resolve tokens from metadata (set by stripeCreateCheckout) or fall back to price map
   let tokens  = parseInt(meta.tokens   || '0', 10);
@@ -158,6 +171,12 @@ async function handleInvoicePaid(invoice, stripe, base44) {
   const mapped  = PRICE_TOKEN_MAP[priceId];
   if (!mapped) { console.log(`No token map for price ${priceId}, skipping token grant`); return; }
 
+  const paymentId = invoice.payment_intent || invoice.id;
+  if (await hasProcessedPayment(base44, paymentId)) {
+    console.log(`Duplicate invoice payment ignored: ${paymentId}`);
+    return;
+  }
+
   const { tokens, tier, sub_tier: subTier, price_usd: priceUsd, pack } = mapped;
 
   // Grant tokens
@@ -175,7 +194,7 @@ async function handleInvoicePaid(invoice, stripe, base44) {
       amount:            tokens,
       pack:              pack,
       price_usd:         priceUsd,
-      stripe_payment_id: invoice.payment_intent || invoice.id,
+      stripe_payment_id: paymentId,
       balance_after:     newBalance,
     });
     console.log(`✓ Renewal: granted ${tokens} tokens to ${userEmail}`);

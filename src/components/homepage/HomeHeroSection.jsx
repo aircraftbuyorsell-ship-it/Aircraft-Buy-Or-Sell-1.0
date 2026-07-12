@@ -11,7 +11,7 @@ const STATS = [
 
 export default function HomeHeroSection() {
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: "100vh", minHeight: "600px" }}>
+    <section className="relative w-full h-[900px] lg:h-[max(100vh,780px)] overflow-visible">
       <HeroGlobe />
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)" }} />
       <div className="pointer-events-none absolute inset-0 lg:hidden" style={{ background: "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)" }} />

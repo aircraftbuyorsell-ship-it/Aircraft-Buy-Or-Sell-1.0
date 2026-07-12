@@ -57,7 +57,7 @@ Webhook signature verification uses the raw request body and environment-held se
 
 Manual Codex Security review identified:
 
-1. Critical (fixed in this branch): Stripe entitlement metadata tampering; review and deploy the code fix before relying on it.
+1. Critical (fixed in this branch): Stripe entitlement metadata tampering; checkout/webhook now use verified allowlisted prices and return-origin validation.
 2. High: `syncFaaToAtiCard` can create or overwrite public listings for any authenticated user.
 3. High: legacy `abosCoreApi` can disclose private listings to logged-in users and returns Base44 IDs.
 4. High: concurrent webhook deliveries can double-grant entitlements.
@@ -82,5 +82,6 @@ No deployed system changed. Revert the feature branch commits. If the gateway is
 - Complete the exhaustive Codex Security scan with a functioning local checkout.
 - Diagnose the GitHub Actions startup failure and obtain passing route/build checks.
 - Verify and deploy the Stripe entitlement fix; add a durable atomic idempotency primitive for concurrent webhook delivery.
+- Legacy FAA sync and legacy Core API exposure guards were also added with regression tests.
 - Verify Supabase listing ownership and policy posture before cutover.
 - Obtain the confirmed production hostname and scoped Cloudflare credentials.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import TwinResultCard from "@/components/twin/TwinResultCard";
 import ReportEmailModal from "@/components/twin/ReportEmailModal";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
@@ -67,20 +67,39 @@ export default function NLookup() {
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. N12345, registration or S/N"
-            className="flex-1 px-5 py-4 rounded-xl text-base font-mono tracking-wider"
-            style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.12)" }}
-          />
-          <button type="submit" disabled={loading || !query.trim()}
-            className="px-6 rounded-xl font-black text-sm flex items-center gap-2 disabled:opacity-40"
-            style={{ background: AMBER, color: "#0B1220" }}>
-            <Search className="w-4 h-4" />
-            {loading ? "Checking…" : "Check"}
-          </button>
+        <form onSubmit={handleSearch} className="w-full mb-8">
+          <div
+            className="flex items-stretch w-full rounded-2xl overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "0.5px solid rgba(245,194,66,0.22)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+              height: 56,
+            }}
+          >
+            <div className="flex items-center pl-4 pr-2">
+              <Search className="w-4 h-4" style={{ color: "rgba(245,194,66,0.60)" }} />
+            </div>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="N-Number, registration or serial number"
+              className="flex-1 min-w-0 text-[15px] font-semibold bg-transparent border-none outline-none"
+              style={{ color: "#fff", background: "transparent !important", border: "none !important" }}
+            />
+            <button
+              type="submit"
+              disabled={loading || !query.trim()}
+              className="px-6 m-1 rounded-xl text-[12px] font-bold tracking-wider uppercase transition-all disabled:opacity-30 flex items-center gap-1.5 shrink-0"
+              style={{ background: AMBER, color: "#04060a" }}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>Search <ArrowRight className="w-3.5 h-3.5" /></>
+              )}
+            </button>
+          </div>
         </form>
 
         {fulfillment && <ReportDeliveredBanner fulfillment={fulfillment} />}

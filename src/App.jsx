@@ -89,6 +89,7 @@ import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
 import InvestmentBrief from "./pages/InvestmentBrief";
+import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -195,6 +196,7 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
+        <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

@@ -224,6 +224,23 @@ export default function InvestmentBrief() {
           Powered by Llama 4 Maverick (narrative) + GPT o3 (tool calling) + pure math (deterministic).
         </p>
 
+        {/* Free-form chat CTA */}
+        <div className="mt-5 rounded-2xl p-4 flex items-center justify-between gap-3" style={{ background: "linear-gradient(135deg, rgba(245,194,66,0.06), rgba(168,85,247,0.04))", border: "0.5px solid rgba(245,194,66,0.18)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(245,194,66,0.12)" }}>
+              <Brain className="w-4.5 h-4.5 text-[#f5c242]" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white/90">Ask the Finance Advisor</p>
+              <p className="text-[11px] text-white/50">Free-form chat — the agent orchestrates Skills and answers in natural language</p>
+            </div>
+          </div>
+          <Link to="/finance-advisor" className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-opacity hover:opacity-90"
+            style={{ background: "#f5c242", color: "#04060a" }}>
+            <ChevronRight className="w-3.5 h-3.5" /> Open Chat
+          </Link>
+        </div>
+
         {/* Input panel */}
         <div className="mt-6 rounded-2xl p-5 space-y-4" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

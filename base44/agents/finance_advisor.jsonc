@@ -4,16 +4,58 @@
   "tool_configs": [
     {
       "function_name": "invokeSkill",
-      "description": "Universal gateway to invoke any ABOS Skill by skill_id with inputs. Returns standardized SkillResponse with result, confidence, evidence[], and model_used."
+      "description": "Universal Skill gateway \u2014 routes skill_id to backend function, logs audit trail, returns standardized SkillResponse"
     },
     {
       "function_name": "aircraftDataHub",
-      "description": "Load federated Digital Twin data for an aircraft by registration \u2014 FAA registry, engine specs, traffic, market context."
+      "description": "Load federated Digital Twin data for an aircraft by registration"
     },
     {
       "function_name": "initDigitalTwin",
-      "description": "Initialize or refresh a Digital Twin (ATIPassport) for an aircraft registration."
+      "description": "Initialize or refresh a Digital Twin (ATIPassport) for an aircraft registration"
+    },
+    {
+      "entity_name": "ATIPassport",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "EngineMaintenance",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "TrafficSnapshot",
+      "allowed_operations": [
+        "read"
+      ]
+    },
+    {
+      "entity_name": "SkillDefinition",
+      "allowed_operations": [
+        "read"
+      ]
     }
   ],
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "selected_skill_names": [],
+  "selected_workspace_skill_ids": [],
+  "model": "automatic",
+  "whatsapp_greeting": null,
+  "telegram_greeting": null,
+  "line_greeting": null,
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "include_other_conversation_context": false,
+    "instructions": null
+  },
+  "voice_config": {
+    "voice_id": null
+  },
+  "allow_anonymous_access": false,
   "name": "finance_advisor"
 }

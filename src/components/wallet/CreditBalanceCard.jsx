@@ -15,7 +15,7 @@ export default function CreditBalanceCard({ user }) {
     enabled: !!user?.email,
   });
 
-  const balance = transactions.length > 0 ? transactions[0].balance_after : 0;
+  const balance = transactions.length > 0 ? (transactions[0].balance_after ?? 0) : 0;
   const purchased = transactions
     .filter((t) => t.type === "purchase" || t.type === "bonus")
     .reduce((sum, t) => sum + t.amount, 0);

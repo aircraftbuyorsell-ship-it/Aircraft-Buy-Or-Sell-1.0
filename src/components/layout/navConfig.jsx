@@ -1,20 +1,20 @@
 import {
-  Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard,
+  Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard, Wallet,
   Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
   Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
+  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge,
 } from "lucide-react";
 
 /**
- * ABOS Navigation — 3 dropdown sections + 2 direct links:
+ * ABOS Navigation — Final Structure
  *
- *  1. Marketspace  → listings, deals, escrow, solutions by role
- *  2. Intelligence  → analytics, market data, calculators & finance
- *  3. Verify        → registry, compliance, ATI scoring, experts
+ *  3 Dropdowns (each with For Buyers / For Sellers):
+ *    1. Marketspace  → listings, deals, escrow, solutions
+ *    2. Intelligence  → analytics, market data, calculators & finance
+ *    3. Verify        → registry, compliance, ATI scoring, experts
  *
- *  + Pricing + Dashboard (direct links)
- *
- * Each dropdown has exactly 2 sub-categories.
+ *  + Direct links: Pricing, Home, Wallet
  */
 export const NAV_TREE = [
   {
@@ -24,24 +24,24 @@ export const NAV_TREE = [
     icon: Plane,
     categories: [
       {
-        label: "Listings & Deals",
+        label: "For Buyers",
         items: [
           { path: "/listings", label: "Aircraft Listings", icon: Plane },
           { path: "/compare", label: "Compare Aircraft", icon: Scale },
           { path: "/deal-radar", label: "Deal Radar", icon: Radar },
           { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
-          { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
-          { path: "/leads", label: "Leads", icon: Users },
+          { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
+          { path: "/solutions/buyers", label: "Buyer Solutions", icon: User },
         ],
       },
       {
-        label: "Solutions",
+        label: "For Sellers",
         items: [
-          { path: "/solutions/buyers", label: "For Buyers", icon: User },
-          { path: "/solutions/sellers", label: "For Sellers", icon: Plane },
-          { path: "/solutions/brokers", label: "For Brokers", icon: Briefcase },
-          { path: "/solutions/lenders", label: "For Lenders", icon: Banknote },
-          { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
+          { path: "/solutions/sellers", label: "Seller Solutions", icon: Plane },
+          { path: "/solutions/brokers", label: "Broker Solutions", icon: Briefcase },
+          { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
+          { path: "/leads", label: "Leads", icon: Users },
+          { path: "/community", label: "Community", icon: Users },
         ],
       },
     ],
@@ -53,24 +53,31 @@ export const NAV_TREE = [
     icon: BarChart2,
     categories: [
       {
-        label: "Analytics & Market",
+        label: "For Buyers",
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
-          { path: "/traffic", label: "Live Traffic Map", icon: Plane },
-          { path: "/faa-map", label: "FAA Registry Map", icon: Map },
           { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
-        ],
-      },
-      {
-        label: "Calculators & Finance",
-        items: [
+          { path: "/investment-brief", label: "Investment Brief", icon: Brain },
+          { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
           { path: "/calculators", label: "All Calculators", icon: Calculator },
           { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
           { path: "/insurance-calculator", label: "Insurance", icon: Shield },
           { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
-          { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },
+        ],
+      },
+      {
+        label: "For Sellers",
+        items: [
+          { path: "/traffic", label: "Live Traffic Map", icon: Plane },
+          { path: "/faa-map", label: "FAA Registry Map", icon: Map },
+          { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap },
+          { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket },
+          { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair },
+          { path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles },
+          { path: "/upgrade-comparison", label: "Upgrade Comparison", icon: TrendingUp },
+          { path: "/service-intelligence", label: "Service Intelligence", icon: Wrench },
         ],
       },
     ],
@@ -82,22 +89,23 @@ export const NAV_TREE = [
     icon: Shield,
     categories: [
       {
-        label: "Registry & Compliance",
+        label: "For Buyers",
         items: [
           { path: "/n-lookup", label: "Registry Lookup", icon: Search },
           { path: "/registry-comparator", label: "Registry Comparator", icon: Layers },
           { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
+          { path: "/ati-passport", label: "ATI Passport", icon: Shield },
+          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
+          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
         ],
       },
       {
-        label: "ATI & Experts",
+        label: "For Sellers",
         items: [
-          { path: "/ati-passport", label: "ATI Passport", icon: Shield },
           { path: "/ati-standard", label: "ATI Standard", icon: Award },
-          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
           { path: "/ati-verify", label: "Verification Center", icon: CheckCircle },
           { path: "/experts", label: "Verified Experts", icon: BadgeCheck },
+          { path: "/solutions/lenders", label: "Lender Solutions", icon: Banknote },
         ],
       },
     ],
@@ -109,10 +117,16 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Dashboard",
+    label: "Home",
     mobileLabel: "Home",
     path: "/",
     icon: LayoutDashboard,
+    direct: true,
+  },
+  {
+    label: "Wallet",
+    path: "/wallet",
+    icon: Wallet,
     direct: true,
   },
 ];

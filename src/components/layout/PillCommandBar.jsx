@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 import GuidedDropdown from "@/components/layout/GuidedDropdown";
+import { useTheme } from "@/lib/useTheme";
 
 // Flat text nav (homepage style) + card-grid dropdown (chip style)
 export default function PillCommandBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isDark = useTheme();
   const [openSection, setOpenSection] = useState(null);
   const [usage, setUsage] = useState(() => {
     const counts = {};
@@ -17,6 +19,14 @@ export default function PillCommandBar() {
     return counts;
   });
   const barRef = useRef(null);
+
+  const idleColor = isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.60)";
+  const hoverColor = isDark ? "#fff" : "#000";
+  const dropdownBg = isDark
+    ? "linear-gradient(180deg, rgba(28,28,38,0.97) 0%, rgba(16,16,24,0.97) 100%)"
+    : "linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(248,246,241,0.97) 100%)";
+  const dropdownBorder = isDark ? "rgba(212,160,23,0.18)" : "rgba(212,160,23,0.25)";
+  const dropdownShadow = isDark ? "0 12px 40px rgba(0,0,0,0.7)" : "0 12px 40px rgba(0,0,0,0.15)";
 
   useEffect(() => {
     const onClick = (e) => {
@@ -48,7 +58,7 @@ export default function PillCommandBar() {
                 style={{
                   fontSize: 13,
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#D4A017" : "rgba(255,255,255,0.65)",
+                  color: active ? "#D4A017" : idleColor,
                   background: "transparent",
                   border: "none",
                   padding: "8px 2px",
@@ -57,8 +67,8 @@ export default function PillCommandBar() {
                   letterSpacing: "0.01em",
                   transition: "color 150ms ease",
                 }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = hoverColor; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = idleColor; }}
               >
                 {section.label}
               </button>
@@ -83,7 +93,7 @@ export default function PillCommandBar() {
                 gap: 5,
                 fontSize: 13,
                 fontWeight: active || open ? 700 : 500,
-                color: open ? "#D4A017" : active ? "#D4A017" : "rgba(255,255,255,0.65)",
+                color: open ? "#D4A017" : active ? "#D4A017" : idleColor,
                 background: "transparent",
                 border: "none",
                 padding: "8px 2px",
@@ -92,8 +102,8 @@ export default function PillCommandBar() {
                 letterSpacing: "0.01em",
                 transition: "color 150ms ease",
               }}
-              onMouseEnter={(e) => { if (!active && !open) e.currentTarget.style.color = "#fff"; }}
-              onMouseLeave={(e) => { if (!active && !open) e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}
+              onMouseEnter={(e) => { if (!active && !open) e.currentTarget.style.color = hoverColor; }}
+              onMouseLeave={(e) => { if (!active && !open) e.currentTarget.style.color = idleColor; }}
             >
               {section.label}
               <ChevronDown size={13} style={{ transition: "transform 150ms ease", transform: open ? "rotate(180deg)" : "none", opacity: 0.7 }} />
@@ -115,12 +125,12 @@ export default function PillCommandBar() {
                   transform: "translateX(-50%)",
                   display: "flex",
                   gap: 18,
-                  background: "linear-gradient(180deg, rgba(28,28,38,0.97) 0%, rgba(16,16,24,0.97) 100%)",
+                  background: dropdownBg,
                   backdropFilter: "blur(20px)",
                   WebkitBackdropFilter: "blur(20px)",
-                  border: "1px solid rgba(212,160,23,0.18)",
+                  border: `1px solid ${dropdownBorder}`,
                   borderRadius: 16,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
+                  boxShadow: dropdownShadow,
                   padding: 14,
                   zIndex: 100,
                   maxHeight: "72vh",

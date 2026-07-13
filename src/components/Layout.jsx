@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  ChevronLeft, ArrowLeft, LogIn, LogOut } from "lucide-react";
+  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
@@ -17,6 +17,7 @@ import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import { NAV_TREE } from "@/components/layout/navConfig";
+import { useTheme } from "@/lib/useTheme";
 
 
 function initials(user) {
@@ -24,12 +25,35 @@ function initials(user) {
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function DrawerContent({ pathname, user, onNavigate }) {
+function DrawerContent({ pathname, user, onNavigate, isDark }) {
+  const tx = (darkVal, lightVal) => (isDark ? darkVal : lightVal);
+  const cardBg = tx("rgba(255,255,255,0.03)", "rgba(0,0,0,0.03)");
+  const border = tx("rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
+  const text = tx("rgba(255,255,255,0.75)", "rgba(0,0,0,0.75)");
+  const textDim = tx("rgba(255,255,255,0.35)", "rgba(0,0,0,0.40)");
+  const textFaint = tx("rgba(255,255,255,0.25)", "rgba(0,0,0,0.30)");
+
   return (
     <>
-      {/* Logo */}
-      <div style={{ padding: "18px 16px 16px", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      {/* Logo + status bar */}
+      <div style={{ padding: "14px 16px 12px", borderBottom: `0.5px solid ${border}` }}>
         <SidebarLogo />
+        {/* Time / Location / Theme status bar */}
+        <div
+          className="flex items-center justify-between gap-2 mt-3 px-3 py-2 rounded-xl"
+          style={{ background: cardBg, border: `0.5px solid ${border}` }}
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MapPin size={11} style={{ color: "#D4A017", flexShrink: 0 }} />
+            <PragueClock />
+          </div>
+          <ThemeToggle />
+        </div>
+      </div>
+
+      {/* Smart search */}
+      <div style={{ padding: "10px 12px 6px" }}>
+        <UniversalSearchBar />
       </div>
 
       {/* Nav */}
@@ -63,7 +87,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
                   fontWeight: 600,
                   letterSpacing: "0.10em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.25)",
+                  color: textDim,
                   padding: "8px 16px 2px",
                 }}>
                   {cat.label}
@@ -85,32 +109,32 @@ function DrawerContent({ pathname, user, onNavigate }) {
 
       {/* Legal Footer */}
       <div style={{
-        borderTop: "0.5px solid rgba(255,255,255,0.06)",
+        borderTop: `0.5px solid ${border}`,
         padding: "16px 16px 20px",
         marginTop: "auto"
       }}>
-        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0 0 8px", letterSpacing: "0.02em" }}>
+        <p style={{ fontSize: "10px", color: textFaint, margin: "0 0 8px", letterSpacing: "0.02em" }}>
           © 2026 ABOS s.r.o.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <a href="/terms" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+          <a href="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Terms of Service
           </a>
-          <a href="/privacy" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+          <a href="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Privacy Policy
           </a>
-          <a href="/legal/dsa" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+          <a href="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             DSA — Report Content
           </a>
-          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             AI Disclosure
           </a>
-          <a href="/legal/ip-notice" style={{ fontSize: "10px", color: "rgba(255,255,255,0.30)", textDecoration: "none", letterSpacing: "0.02em" }}>
+          <a href="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             IP & Trademark Notice
           </a>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
-            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: "rgba(255,255,255,0.30)", cursor: "pointer", letterSpacing: "0.02em" }}>
+            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: textDim, cursor: "pointer", letterSpacing: "0.02em" }}>
             
             Cookie Settings
           </button>
@@ -118,14 +142,14 @@ function DrawerContent({ pathname, user, onNavigate }) {
       </div>
 
       {/* User info */}
-      <div style={{ borderTop: "0.5px solid rgba(255,255,255,0.08)", padding: "12px 16px" }}>
+      <div style={{ borderTop: `0.5px solid ${border}`, padding: "12px 16px" }}>
         {user ?
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: "rgba(255,255,255,0.75)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user.full_name || user.email}
               </p>
               <div style={{ marginTop: "3px" }}>
@@ -133,7 +157,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
               </div>
             </div>
             <button onClick={() => base44.auth.logout()} aria-label="Log out"
-          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.35)", display: "flex", padding: "4px" }}>
+          style={{ background: "none", border: "none", cursor: "pointer", color: textDim, display: "flex", padding: "4px" }}>
               <LogOut size={14} />
             </button>
           </div> :
@@ -153,6 +177,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const touchStartX = useRef(null);
+  const isDark = useTheme();
 
   const isHomepage = pathname === "/";
   const showBack = !isHomepage;
@@ -179,11 +204,12 @@ export default function Layout() {
     return () => {document.removeEventListener("touchstart", onStart);document.removeEventListener("touchend", onEnd);};
   }, []);
 
+  const layoutBg = isDark
+    ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
+    : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+
   return (
-    <div className="relative flex flex-col min-h-screen font-sans" style={{
-      background: "#04060a",
-      backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)",
-    }}>
+    <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
       <DotGrid />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
@@ -211,28 +237,28 @@ export default function Layout() {
       {/* ── Mobile drawer ── */}
       {!isHomepage && mobileOpen &&
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }} />
       }
       {!isHomepage && (
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
-        background: "#111827", borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3 safe-top">
           <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          style={{ width: "44px", height: "44px", borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChevronLeft size={18} />
           </button>
         </div>
-        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
+        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} isDark={isDark} />
       </aside>
       )}
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && (
       <header className="sticky top-0 z-40"
-      style={{ background: "rgba(4,6,10,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(255,255,255,0.08)" }}>
+      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.92)", backdropFilter: "blur(16px)", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}

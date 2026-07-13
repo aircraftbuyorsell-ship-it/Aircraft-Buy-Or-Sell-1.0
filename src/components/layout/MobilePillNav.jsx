@@ -1,12 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
+import { useTheme } from "@/lib/useTheme";
 
 export default function MobilePillNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isDark = useTheme();
   const [openSection, setOpenSection] = useState(null);
   const barRef = useRef(null);
+
+  const idleBg = isDark ? "#1a1a1a" : "#f0ede6";
+  const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const idleColor = isDark ? "#a0a0a0" : "#666";
+  const dropdownBg = isDark
+    ? "linear-gradient(180deg, rgba(40,40,40,0.92) 0%, rgba(20,20,20,0.88) 70%, rgba(20,20,20,0.60) 100%)"
+    : "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,246,241,0.92) 70%, rgba(248,246,241,0.80) 100%)";
+  const dropdownBorder = isDark ? "rgba(212,160,23,0.18)" : "rgba(212,160,23,0.25)";
+  const itemBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)";
+  const itemBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+  const itemColor = isDark ? "rgba(255,255,255,0.70)" : "rgba(0,0,0,0.65)";
+  const catColor = isDark ? "rgba(212,160,23,0.55)" : "rgba(212,160,23,0.65)";
 
   useEffect(() => {
     const onClick = (e) => {
@@ -41,14 +55,14 @@ export default function MobilePillNav() {
                 padding: "6px 4px",
                 background: open
                   ? "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.20), rgba(26,26,26,0.95))"
-                  : "#1a1a1a",
+                  : idleBg,
                 border: open
                   ? "1px solid rgba(212,160,23,0.65)"
-                  : "1px solid rgba(255,255,255,0.06)",
+                  : `1px solid ${idleBorder}`,
                 boxShadow: open
                   ? "0 0 16px rgba(212,160,23,0.25), inset 0 0 12px rgba(212,160,23,0.06)"
                   : "none",
-                color: open ? "#D4A017" : "#a0a0a0",
+                color: open ? "#D4A017" : idleColor,
                 cursor: "pointer",
               }}
             >
@@ -69,12 +83,12 @@ export default function MobilePillNav() {
             top: "calc(100% + 8px)",
             left: 0,
             right: 0,
-            background: "linear-gradient(180deg, rgba(40,40,40,0.92) 0%, rgba(20,20,20,0.88) 70%, rgba(20,20,20,0.60) 100%)",
+            background: dropdownBg,
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(212,160,23,0.18)",
+            border: `1px solid ${dropdownBorder}`,
             borderRadius: 16,
-            boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
+            boxShadow: isDark ? "0 12px 40px rgba(0,0,0,0.7)" : "0 12px 40px rgba(0,0,0,0.15)",
             padding: 10,
             zIndex: 100,
             maxHeight: "72vh",
@@ -88,7 +102,7 @@ export default function MobilePillNav() {
                 fontWeight: 700,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
-                color: "rgba(212,160,23,0.55)",
+                color: catColor,
                 padding: "6px 6px 4px",
               }}>
                 {cat.label}
@@ -109,11 +123,11 @@ export default function MobilePillNav() {
                         minHeight: 60,
                         background: itemActive
                           ? "rgba(74,74,62,0.80)"
-                          : "rgba(255,255,255,0.03)",
+                          : itemBg,
                         border: itemActive
                           ? "1px solid rgba(212,160,23,0.25)"
-                          : "1px solid rgba(255,255,255,0.05)",
-                        color: itemActive ? "#D4A017" : "rgba(255,255,255,0.70)",
+                          : `1px solid ${itemBorder}`,
+                        color: itemActive ? "#D4A017" : itemColor,
                         cursor: "pointer",
                       }}
                     >

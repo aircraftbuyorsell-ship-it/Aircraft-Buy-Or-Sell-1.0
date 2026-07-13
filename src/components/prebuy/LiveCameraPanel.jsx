@@ -1,0 +1,8 @@
+import { useCallback } from 'react';
+import { Camera, Square } from 'lucide-react';
+import useLiveInspection from '@/hooks/useLiveInspection';
+export default function LiveCameraPanel({ onFinding }) {
+  const capture=useCallback(text=>onFinding({category:'maintenance',severity:/red flag|crack|corrosion|leak|damage/i.test(text)?'major':'observation',priority:'before_purchase',title:'AI camera observation',description:text,recommended_action:'Certified inspector verification required',source:'ai_camera'}),[onFinding]);
+  const {videoRef,canvasRef,status,start,stop}=useLiveInspection(capture);
+  return <div className="space-y-4"><div className="relative aspect-video overflow-hidden rounded-2xl bg-black"><video ref={videoRef} muted playsInline className="h-full w-full object-cover"/><canvas ref={canvasRef} className="hidden"/><span className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">{status==='live'?'LIVE AI ANALYSIS':status.toUpperCase()}</span></div><div className="flex gap-3">{status!=='live'?<button onClick={start} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 font-bold text-primary-foreground"><Camera className="h-4 w-4"/>Start camera</button>:<button onClick={stop} className="flex items-center gap-2 rounded-xl bg-destructive px-4 py-2 font-bold text-destructive-foreground"><Square className="h-4 w-4"/>End session</button>}</div><p className="text-xs text-muted-foreground">AI observations are automatically added as unverified findings and must be confirmed by a certified inspector.</p></div>;
+}

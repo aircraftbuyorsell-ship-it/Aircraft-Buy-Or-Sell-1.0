@@ -101,6 +101,23 @@ export default function FAAMap() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchData(); }, []);
 
+  const submitSearch = () => {
+    base44.analytics.track({
+      eventName: "faa_database_search_submit",
+      properties: {
+        has_n_number: Boolean(filters.nNumber.trim()),
+        aircraft_type: filters.type || "all",
+        engine_type: filters.engine || "all",
+        registration_status: filters.status || "all",
+        category: filters.category || "all",
+        has_year_range: Boolean(filters.yearFrom || filters.yearTo),
+        max_results: filters.limit,
+        view,
+      },
+    });
+    fetchData();
+  };
+
   // Canvas map rendering (fixed dark instrument panel — same in both modes)
   useEffect(() => {
     if (view !== "map") return;
@@ -267,7 +284,7 @@ export default function FAAMap() {
                 className="w-full accent-[#D4A017]" />
             </div>
 
-            <button onClick={fetchData}
+            <button onClick={submitSearch}
               className="mt-1 py-2.5 rounded-lg text-[13px] font-bold bg-gold-official text-white hover:opacity-90 transition-opacity cursor-pointer">
               Apply Filters
             </button>

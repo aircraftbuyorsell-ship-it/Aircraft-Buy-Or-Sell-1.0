@@ -88,6 +88,7 @@ import SolutionsSellers from "./pages/solutions/SolutionsSellers";
 import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
+import InvestmentBrief from "./pages/InvestmentBrief";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -193,6 +194,7 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
+        <Route path="/investment-brief" element={<InvestmentBrief />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

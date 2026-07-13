@@ -9,10 +9,10 @@ import {
 /**
  * ABOS Navigation — clean 4-step user flow:
  *
- *  1. DISCOVER  → find aircraft, market data
- *  2. VERIFY    → registry, ATI scoring, experts
- *  3. CALCULATE → financial tools (OPEX unlocks sub-calcs)
- *  4. TRANSACT  → escrow, pipeline, cross-border, leads
+ *  1. Marketspace Intelligence → find aircraft, market data
+ *  2. Verify                   → registry, ATI scoring, experts
+ *  3. Finance & Calculators     → financial tools (OPEX unlocks sub-calcs)
+ *  4. Deal Center              → escrow, pipeline, cross-border, leads
  *
  *  + Pricing + Dashboard (direct links)
  *
@@ -24,8 +24,8 @@ import {
  */
 export const NAV_TREE = [
   {
-    label: "Discover",
-    mobileLabel: "Discover",
+    label: "Marketspace Intelligence",
+    mobileLabel: "Intel",
     path: "/listings",
     icon: Plane,
     categories: [
@@ -76,7 +76,7 @@ export const NAV_TREE = [
     ],
   },
   {
-    label: "Calculate",
+    label: "Finance & Calculators",
     mobileLabel: "Calc",
     path: "/calculators",
     icon: Calculator,
@@ -105,8 +105,8 @@ export const NAV_TREE = [
     ],
   },
   {
-    label: "Transact",
-    mobileLabel: "Transact",
+    label: "Deal Center",
+    mobileLabel: "Deals",
     path: "/escrow",
     icon: Briefcase,
     categories: [

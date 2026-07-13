@@ -69,6 +69,18 @@
     {
       "function_name": "invokeSkillMroSchedule",
       "description": "Full MRO schedule + time calculator for all aircraft parts"
+    },
+    {
+      "function_name": "invokeSkillFractionalOwnership",
+      "description": "Fractional ownership cost calculator skill"
+    },
+    {
+      "function_name": "invokeSkillTimebuildingBuy",
+      "description": "Timebuilding aircraft buy vs rent calculator skill"
+    },
+    {
+      "function_name": "invokeSkillFleetChange",
+      "description": "Flight school fleet change JIT calculator skill"
     }
   ],
   "context_files": [],

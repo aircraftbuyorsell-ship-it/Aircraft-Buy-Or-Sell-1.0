@@ -38,7 +38,7 @@ export default function SmartAircraftSearch({ variant = "hero", value, onChange,
 
   return (
     <div ref={rootRef} className={`relative w-full ${compact ? "max-w-md" : "max-w-xl"}`}>
-      <form onSubmit={submit} className={`flex w-full items-stretch overflow-visible rounded-xl border border-primary/30 bg-background/95 shadow-xl ${compact ? "min-h-11" : "min-h-14"}`}>
+      <form onSubmit={submit} className={`flex w-full items-stretch overflow-visible rounded-xl border border-primary/30 bg-background/100 shadow-xl ${compact ? "min-h-11" : "min-h-14"}`}>
         <div className="flex items-center pl-4 pr-2"><Search className="h-4 w-4 text-primary" /></div>
         <input ref={inputRef} value={query} onChange={(event) => update(event.target.value)} onFocus={() => setOpen(Boolean(query.trim()))} placeholder="N-number, S/N, owner, activity, dealer, engine, costs…" aria-label="Search ABOS aircraft intelligence" className="min-w-0 flex-1 border-0 bg-transparent px-1 text-base text-foreground outline-none focus-visible:ring-0 opacity-55" />
         <button type="button" onClick={() => setOpen((current) => !current)} aria-label="Show search tools" className="flex min-h-11 items-center border-l border-border px-2 text-muted-foreground hover:text-foreground"><ChevronDown className="h-4 w-4" /></button>

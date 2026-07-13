@@ -107,7 +107,9 @@ export default function FAAMap() {
       properties: {
         n_number: filters.nNumber.trim().toUpperCase() || null,
         aircraft_type: filters.type || "all",
+        aircraft_type_label: AIRCRAFT_TYPES.find((item) => item.value === filters.type)?.label || "All",
         engine_type: filters.engine || "all",
+        engine_type_label: ENGINE_TYPES.find((item) => item.value === filters.engine)?.label || "All",
         registration_status: filters.status || "all",
         category: filters.category || "all",
         year_from: filters.yearFrom ? Number(filters.yearFrom) : null,

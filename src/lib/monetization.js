@@ -49,6 +49,9 @@ export const FEATURE_PRICING = {
   // ── PAID: Market Data ──
   market_report:          { free: false, credits: 8,  fiat_eur: 15,  label: 'Market Report',              desc: 'Make/model market analysis with comparables' },
   investment_brief:       { free: false, credits: 5,  fiat_eur: 9,   label: 'Investment Brief',           desc: 'AI-powered investment health analysis' },
+
+  // ── PAID: Newsletter ──
+  newsletter_subscription:{ free: false, credits: 0,  fiat_eur: 12,  label: 'Weekly Briefing Subscription', desc: 'Aviation market intelligence — 8 sectors, delivered weekly', recurring: true, recurring_interval: 'month' },
 };
 
 /**

@@ -47,6 +47,28 @@ async function downgradeUserProfile(base44, userEmail) {
   }
 }
 
+// Set newsletter subscription flag on UserProfile
+async function setNewsletterFlag(base44, userEmail, subscribed) {
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
+  if (profiles[0]) {
+    const existingFlags = profiles[0].feature_flags || {};
+    await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, {
+      feature_flags: { ...existingFlags, newsletter_subscribed: subscribed },
+    });
+    console.log(`✓ Newsletter flag set to ${subscribed} for ${userEmail}`);
+  } else {
+    await base44.asServiceRole.entities.UserProfile.create({
+      user_email: userEmail,
+      tier: 'free_explorer',
+      sub_tier: 'none',
+      role: 'buyer',
+      status: 'active',
+      feature_flags: { newsletter_subscribed: subscribed },
+    });
+    console.log(`✓ UserProfile created with newsletter=${subscribed} for ${userEmail}`);
+  }
+}
+
 // Resolve email from a Stripe customer ID
 async function resolveEmailFromCustomer(stripe, customerId) {
   if (!customerId || typeof customerId !== 'string') return null;
@@ -69,6 +91,12 @@ async function handleCheckoutCompleted(session, base44) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  // Newsletter subscription — set flag, no tokens
+  if (meta.product === 'newsletter_subscription') {
+    if (userEmail) await setNewsletterFlag(base44, userEmail, true);
+    return;
+  }
 
   if (await hasProcessedPayment(base44, paymentId)) {
     console.log(`Duplicate checkout payment ignored: ${paymentId}`);
@@ -134,6 +162,17 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   console.log(`🔄 subscription updated: ${subscription.id} status=${subscription.status}`);
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
+
+  // Newsletter subscription — manage flag, skip token logic
+  const subMeta = subscription.metadata || {};
+  if (subMeta.product === 'newsletter_subscription') {
+    if (subscription.status === 'active' || subscription.status === 'trialing') {
+      await setNewsletterFlag(base44, userEmail, true);
+    } else if (['canceled', 'unpaid', 'past_due'].includes(subscription.status)) {
+      await setNewsletterFlag(base44, userEmail, false);
+    }
+    return;
+  }
 
   const priceId = subscription.items?.data?.[0]?.price?.id;
   const mapped  = PRICE_TOKEN_MAP[priceId];
@@ -222,6 +261,14 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   console.log(`🗑️ subscription.deleted: ${subscription.id}`);
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) return;
+
+  // Newsletter subscription — clear flag only, don't touch tier
+  const subMeta = subscription.metadata || {};
+  if (subMeta.product === 'newsletter_subscription') {
+    await setNewsletterFlag(base44, userEmail, false);
+    return;
+  }
+
   await downgradeUserProfile(base44, userEmail);
   const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
   if (behaviors[0]) {

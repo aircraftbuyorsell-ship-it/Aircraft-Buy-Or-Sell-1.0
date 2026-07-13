@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
             source: 'cache',
             origin_country: c.country_code || fr.origin_country,
             origin_label: fr.origin_label,
-            aircraft: fr.aircraft,
+            aircraft: { ...fr.aircraft, registered_owner: fr.aircraft?.registered_owner ? '****' : null },
             listing: fr.listing || null,
             areaServices: fr.areaServices || null,
             searchedAt: new Date().toISOString(),
@@ -74,7 +74,10 @@ Deno.serve(async (req) => {
         if (c.raw_data?.full_result?.aircraft) {
           result.found = true;
           result.source = 'cache';
-          result.aircraft = c.raw_data.full_result.aircraft;
+          result.aircraft = {
+            ...c.raw_data.full_result.aircraft,
+            registered_owner: c.raw_data.full_result.aircraft.registered_owner ? '****' : null,
+          };
         }
       }
     } catch (_) { /* cache miss is fine */ }
@@ -342,7 +345,7 @@ function mapAdsbdb(ac, fullReg, country) {
     status: 'active',
     country: ac.registered_owner_country_name || country.label,
     country_iso: ac.registered_owner_country_iso_name || country.code,
-    registered_owner: ac.registered_owner || null,
+    registered_owner: ac.registered_owner ? '****' : null,
     url_photo: ac.url_photo || null,
     url_photo_thumbnail: ac.url_photo_thumbnail || null,
     origin_country: country.code,
@@ -415,7 +418,7 @@ async function cacheGlobalRegistry(base44, aircraft, source, extras = {}) {
       raw_data: {
         url_photo: aircraft.url_photo || null,
         url_photo_thumbnail: aircraft.url_photo_thumbnail || null,
-        registered_owner: aircraft.registered_owner || null,
+        registered_owner: aircraft.registered_owner ? '****' : null,
         country: aircraft.country || null,
         full_result: {
           aircraft,

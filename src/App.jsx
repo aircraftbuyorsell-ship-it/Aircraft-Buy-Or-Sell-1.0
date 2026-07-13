@@ -90,6 +90,7 @@ import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
 import InvestmentBrief from "./pages/InvestmentBrief";
 import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
+import FractionalCalculators from "./pages/FractionalCalculators";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -197,6 +198,7 @@ const AuthenticatedApp = () => {
         <Route path="/developers/core-api" element={<CoreAPI />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
         <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
+        <Route path="/fractional-calculators" element={<FractionalCalculators />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

@@ -37,6 +37,38 @@
       "allowed_operations": [
         "read"
       ]
+    },
+    {
+      "function_name": "invokeSkillAvionics",
+      "description": "Avionics upgrade cost calculator skill"
+    },
+    {
+      "function_name": "invokeSkillExterior",
+      "description": "Exterior refurbishment cost calculator skill"
+    },
+    {
+      "function_name": "invokeSkillInterior",
+      "description": "Interior refurbishment cost calculator skill"
+    },
+    {
+      "function_name": "invokeSkillDetailing",
+      "description": "Aircraft detailing cost calculator skill (free)"
+    },
+    {
+      "function_name": "invokeSkillUpgradeCompare",
+      "description": "Upgrade comparison aggregator skill"
+    },
+    {
+      "function_name": "invokeSkillEngineOverhaul",
+      "description": "Engine overhaul cost + time calculator skill"
+    },
+    {
+      "function_name": "invokeSkillPropOverhaul",
+      "description": "Propeller overhaul cost + time calculator skill"
+    },
+    {
+      "function_name": "invokeSkillMroSchedule",
+      "description": "Full MRO schedule + time calculator for all aircraft parts"
     }
   ],
   "context_files": [],

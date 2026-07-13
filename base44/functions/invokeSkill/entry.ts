@@ -24,6 +24,9 @@ const SKILL_ROUTING = {
   'abos.skill.engine_overhaul.v1':       { function: 'invokeSkillEngineOverhaul',    credit_cost: 2, task_type: 'deterministic' },
   'abos.skill.prop_overhaul.v1':         { function: 'invokeSkillPropOverhaul',      credit_cost: 2, task_type: 'deterministic' },
   'abos.skill.mro_schedule.v1':          { function: 'invokeSkillMroSchedule',       credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.fractional_ownership.v1':  { function: 'invokeSkillFractionalOwnership', credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.timebuilding_buy.v1':      { function: 'invokeSkillTimebuildingBuy',   credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.fleet_change.v1':          { function: 'invokeSkillFleetChange',       credit_cost: 3, task_type: 'deterministic' },
 };
 
 Deno.serve(async (req) => {

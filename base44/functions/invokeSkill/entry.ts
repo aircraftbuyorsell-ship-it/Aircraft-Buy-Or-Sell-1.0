@@ -16,6 +16,14 @@ const SKILL_ROUTING = {
   'abos.skill.tax_benefit.v1':           { function: 'invokeSkillTaxBenefit',        credit_cost: 2, task_type: 'deterministic' },
   'abos.skill.lease_rate.v1':            { function: 'invokeSkillLeaseRate',         credit_cost: 2, task_type: 'deterministic' },
   'abos.skill.investment_health.v1':     { function: 'invokeSkillInvestmentHealth',  credit_cost: 5, task_type: 'hybrid' },
+  'abos.skill.avionics_upgrade.v1':      { function: 'invokeSkillAvionics',          credit_cost: 1, task_type: 'deterministic' },
+  'abos.skill.exterior_refurb.v1':       { function: 'invokeSkillExterior',          credit_cost: 1, task_type: 'deterministic' },
+  'abos.skill.interior_refurb.v1':       { function: 'invokeSkillInterior',          credit_cost: 1, task_type: 'deterministic' },
+  'abos.skill.detailing.v1':             { function: 'invokeSkillDetailing',         credit_cost: 0, task_type: 'deterministic' },
+  'abos.skill.upgrade_compare.v1':       { function: 'invokeSkillUpgradeCompare',    credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.engine_overhaul.v1':       { function: 'invokeSkillEngineOverhaul',    credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.prop_overhaul.v1':         { function: 'invokeSkillPropOverhaul',      credit_cost: 2, task_type: 'deterministic' },
+  'abos.skill.mro_schedule.v1':          { function: 'invokeSkillMroSchedule',       credit_cost: 2, task_type: 'deterministic' },
 };
 
 Deno.serve(async (req) => {

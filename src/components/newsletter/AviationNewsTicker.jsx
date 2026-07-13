@@ -89,7 +89,7 @@ export default function AviationNewsTicker() {
           <div
             className="inline-flex items-center h-full whitespace-nowrap"
             style={{
-              animation: "marquee-ring 50s linear infinite",
+              animation: "marquee-ring 80s linear infinite",
               animationPlayState: "running",
             }}
           >
@@ -98,16 +98,16 @@ export default function AviationNewsTicker() {
               return (
                 <span key={i} className="inline-flex items-center gap-1.5 mx-4 group-hover:[animation-play-state:paused]">
                   <span
-                    className="text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                     style={{ color: accent, background: `${accent}14`, whiteSpace: "nowrap" }}
                   >
                     {h.category}
                   </span>
-                  <span className="text-[10px] leading-none flex items-center gap-1.5" style={{ color: textHeadline, whiteSpace: "nowrap" }}>
+                  <span className="text-[13px] leading-none flex items-center gap-1.5" style={{ color: textHeadline, whiteSpace: "nowrap" }}>
                     <span className="inline-block w-1 h-1 rounded-full shrink-0" style={{ background: sentColor }} />
                     {h.headline}
                   </span>
-                  <span className="text-[10px] opacity-15 mx-0.5" style={{ color: textMuted }}>•</span>
+                  <span className="text-[13px] opacity-15 mx-0.5" style={{ color: textMuted }}>•</span>
                 </span>
               );
             })}

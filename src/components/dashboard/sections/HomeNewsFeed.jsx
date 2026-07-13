@@ -12,24 +12,27 @@ const CATEGORY_META = {
   finance:    { icon: DollarSign, color: "#5dcaa5", label: "Finance" },
 };
 
-function NewsCard({ article }) {
+function NewsRow({ article }) {
   const meta = CATEGORY_META[article.category] || CATEGORY_META.market;
   const Icon = meta.icon;
-  const imageUrl = article.description; // image URL stored in description field
+  const imageUrl = article.description;
   const timeAgo = article.published_at
     ? new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
     : "";
 
   return (
     <article
-      className="group rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.01]"
+      className="group flex items-stretch gap-0 rounded-2xl overflow-hidden shrink-0 transition-all duration-300 hover:scale-[1.005]"
       style={{
         background: "rgba(255,255,255,0.04)",
         border: "0.5px solid rgba(255,255,255,0.08)",
       }}
     >
-      {/* Image */}
-      <div className="relative h-40 overflow-hidden" style={{ background: "rgba(0,0,0,0.3)" }}>
+      {/* Image — left side */}
+      <div
+        className="relative shrink-0 overflow-hidden"
+        style={{ background: "rgba(0,0,0,0.3)", width: "clamp(90px, 30%, 160px)" }}
+      >
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -40,46 +43,47 @@ function NewsCard({ article }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Newspaper className="w-8 h-8" style={{ color: "rgba(255,255,255,0.15)" }} />
+            <Newspaper className="w-6 h-6" style={{ color: "rgba(255,255,255,0.15)" }} />
           </div>
         )}
         {/* Category badge */}
         <div
-          className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md"
+          className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider backdrop-blur-md"
           style={{ background: `${meta.color}20`, color: meta.color, border: `0.5px solid ${meta.color}40` }}
         >
-          <Icon className="w-2.5 h-2.5" />
+          <Icon className="w-2 h-2" />
           {meta.label}
         </div>
-        {/* Source badge */}
-        {article.source_text && (
-          <div
-            className="absolute top-2 right-2 px-2 py-1 rounded-full text-[9px] font-semibold backdrop-blur-md"
-            style={{ background: "rgba(0,0,0,0.4)", color: "rgba(255,255,255,0.7)" }}
-          >
-            {article.source_text}
-          </div>
-        )}
       </div>
 
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
+      {/* Content — right side */}
+      <div className="flex flex-col justify-center p-3 md:p-4 flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          {article.source_text && (
+            <span
+              className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
+              style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.60)" }}
+            >
+              {article.source_text}
+            </span>
+          )}
+          <span className="text-[9px] flex items-center gap-0.5 shrink-0" style={{ color: "rgba(255,255,255,0.30)" }}>
+            <Clock className="w-2.5 h-2.5" />
+            {timeAgo}
+          </span>
+        </div>
         <h3
-          className="text-sm font-bold leading-snug mb-2 line-clamp-2"
+          className="text-xs md:text-sm font-bold leading-snug mb-1 line-clamp-2"
           style={{ color: "rgba(255,255,255,0.90)" }}
         >
           {article.headline}
         </h3>
         <p
-          className="text-xs leading-relaxed line-clamp-3 flex-1"
+          className="text-[11px] md:text-xs leading-relaxed line-clamp-2"
           style={{ color: "rgba(255,255,255,0.55)" }}
         >
           {article.summary}
         </p>
-        <div className="flex items-center gap-1 mt-3 pt-2" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-          <Clock className="w-2.5 h-2.5" style={{ color: "rgba(255,255,255,0.30)" }} />
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{timeAgo}</span>
-        </div>
       </div>
     </article>
   );
@@ -106,9 +110,9 @@ export default function HomeNewsFeed() {
             Aviation News
           </span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", height: "280px" }} />
+        <div className="flex flex-col gap-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-2xl animate-pulse flex" style={{ background: "rgba(255,255,255,0.03)", height: "90px" }} />
           ))}
         </div>
       </section>
@@ -128,16 +132,20 @@ export default function HomeNewsFeed() {
             <span className="text-[10px] uppercase tracking-[0.15em] font-bold block" style={{ color: "#f5c242" }}>
               Aviation News
             </span>
-            <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <span className="text-xs hidden sm:block" style={{ color: "rgba(255,255,255,0.45)" }}>
               Curated from FAA, AOPA & industry sources — rewritten by ABOS AI
             </span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {articles.slice(0, 4).map((article) => (
-          <NewsCard key={article.id} article={article} />
+      {/* Vertical scroll — one article per row */}
+      <div
+        className="flex flex-col gap-3 overflow-y-auto pr-1"
+        style={{ maxHeight: "min(70vh, 560px)" }}
+      >
+        {articles.map((article) => (
+          <NewsRow key={article.id} article={article} />
         ))}
       </div>
     </section>

@@ -3,7 +3,7 @@ import { appParams } from '@/lib/app-params';
 import { base44 } from '@/api/base44Client';
 
 const FRAME_INTERVAL_MS = 1000;
-const NVIDIA_FRAME_INTERVAL_MS = 5000;
+const NVIDIA_FRAME_INTERVAL_MS = 3000;
 const FRAME_MAX_WIDTH = 320;
 const captureFrame = (canvas, video) => {
   if (!canvas || !video?.videoWidth) return null;

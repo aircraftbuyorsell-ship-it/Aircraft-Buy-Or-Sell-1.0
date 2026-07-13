@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
 const NIM_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-const NIM_MODEL = "meta/llama-3.2-90b-vision-instruct";
+const NIM_MODEL = "nvidia/nemotron-nano-12b-v2-vl";
 
 const SYSTEM_INSTRUCTION = `You are Max, an expert aviation pre-buy inspection assistant for ABOS.
 

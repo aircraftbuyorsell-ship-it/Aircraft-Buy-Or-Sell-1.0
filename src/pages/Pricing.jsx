@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const INK   = "#0B1220";
@@ -81,6 +81,25 @@ const VERIFY_FLOW = [
   { label: "ABOS ATI engine",   sub: "N-reg extracted",         color: AMBER },
   { label: "FAA / EASA dataset",sub: "live cross-reference",    color: TEAL },
   { label: "Match result",      sub: "TRUE or FALSE",           color: W2 },
+];
+
+const CREDIT_BUNDLES = [
+  { id: 'starter',    credits: 50,   price: '€75',    per: '€1.50/cr', label: 'Starter Pack',    popular: false, desc: 'Perfect for occasional use' },
+  { id: 'pro',        credits: 200,  price: '€240',   per: '€1.20/cr', label: 'Pro Pack',        popular: true,  desc: 'Best value for active users' },
+  { id: 'business',   credits: 500,  price: '€500',   per: '€1.00/cr', label: 'Business Pack',   popular: false, desc: 'For brokers & small teams' },
+  { id: 'enterprise', credits: 2000, price: '€1,600', per: '€0.80/cr', label: 'Enterprise Pack', popular: false, desc: 'Volume pricing for fleets' },
+];
+
+const PAY_PER_USE = [
+  { feature: 'ATI Quick Score',       credits: 5,  fiat: '€9',   list: '€199', member: '€59',  free: false },
+  { feature: 'OPEX Calculator',       credits: 3,  fiat: '€5',   list: '€79',  member: '€49',  free: false, note: 'Unlocks avionics, exterior, interior & detailing calcs' },
+  { feature: 'ATI Full Report',       credits: 20, fiat: '€35',  list: '€499', member: '€249', free: false },
+  { feature: 'Insurance Calculator',  credits: 2,  fiat: '€4',   list: null,   member: null,   free: false },
+  { feature: 'Leasing + Tax Benefit', credits: 2,  fiat: '€4',   list: null,   member: null,   free: false },
+  { feature: 'Aircraft Tracking',     credits: 10, fiat: '€19',  list: null,   member: null,   free: false, note: 'Monthly — live ADS-B + history + alerts' },
+  { feature: 'Investment Brief',      credits: 5,  fiat: '€9',   list: null,   member: null,   free: false },
+  { feature: 'Market Report',         credits: 8,  fiat: '€15',  list: null,   member: null,   free: false },
+  { feature: 'Registry / OMVM Lookup',credits: 0,  fiat: 'Free', list: null,   member: null,   free: true },
 ];
 
 const AFFILIATE_ROWS = [
@@ -187,6 +206,74 @@ export default function Pricing() {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* Credit Bundles */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <p style={eyebrow} className="text-center mb-1">Credit bundles — pre-paid</p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Buy credits in bulk and save. Use them across any paid feature. Credits never expire.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {CREDIT_BUNDLES.map((bundle) => (
+              <div key={bundle.id} className="rounded-xl relative overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: bundle.popular ? `0.5px solid rgba(212,160,23,0.35)` : `0.5px solid ${BORDER}`, boxShadow: bundle.popular ? "0 8px 24px rgba(212,160,23,0.12)" : "none" }}>
+                <div style={{ height: "2px", background: bundle.popular ? AMBER : BORDER }} />
+                <div className="p-5 text-center">
+                  {bundle.popular && <span className="text-[9px] font-bold px-2.5 py-1 rounded-full mb-3 inline-block" style={{ background: "rgba(212,160,23,0.09)", color: AMBER, border: "0.5px solid rgba(212,160,23,0.22)" }}>Best Value</span>}
+                  <p style={eyebrow} className="mb-2">{bundle.label}</p>
+                  <p style={{ fontSize: "28px", fontWeight: 600, letterSpacing: "-0.03em", color: W1 }}>{bundle.credits}</p>
+                  <p className="text-[11px] mb-3" style={{ color: W3 }}>credits</p>
+                  <p style={{ fontSize: "22px", fontWeight: 600, color: AMBER, letterSpacing: "-0.03em" }} className="mb-1">{bundle.price}</p>
+                  <p className="text-[10px] mb-3" style={{ color: W3 }}>{bundle.per}</p>
+                  <p className="text-[11px]" style={{ color: W2 }}>{bundle.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Pay-per-use pricing table */}
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <p style={eyebrow} className="text-center mb-1">Pay-per-use — or use credits</p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/my-account" style={{ color: AMBER }}>Register free →</Link></p>
+          <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
+            <div style={{ height: "2px", background: `linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)` }} />
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: `0.5px solid ${BORDER}` }}>
+                    {["Feature","Credits","Fiat (1.3×)","List Price","Member Price","Status"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left" style={{ ...eyebrow }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PAY_PER_USE.map((row) => (
+                    <tr key={row.feature} style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+                      <td className="px-4 py-3" style={{ color: W1 }}>
+                        {row.feature}
+                        {row.note && <p className="text-[10px] mt-0.5" style={{ color: W3 }}>{row.note}</p>}
+                      </td>
+                      <td className="px-4 py-3 font-semibold" style={{ color: AMBER }}>{row.credits || '—'}</td>
+                      <td className="px-4 py-3" style={{ color: W2 }}>{row.fiat}</td>
+                      <td className="px-4 py-3" style={{ color: W3 }}>{row.list ? <span style={{ textDecoration: "line-through" }}>{row.list}</span> : '—'}</td>
+                      <td className="px-4 py-3 font-semibold" style={{ color: TEAL }}>{row.member || '—'}</td>
+                      <td className="px-4 py-3">
+                        {row.free
+                          ? <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "rgba(93,202,165,0.10)", color: TEAL }}>FREE</span>
+                          : <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "rgba(212,160,23,0.10)", color: AMBER }}>PAID</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: `0.5px solid rgba(78,142,247,0.20)"` }}>
+            <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: BLUE }} />
+            <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>
+              <strong style={{ color: W1 }}>How it works:</strong> Subscribers use credits (1 credit ≈ €0.15). Non-subscribers pay fiat at 1.3× the credit rate.
+              Buy a credit bundle or subscribe for monthly credits + member pricing. <strong style={{ color: AMBER }}>OPEX purchase unlocks all sub-calculators</strong> (avionics, exterior, interior, detailing) for the session.
+            </p>
           </div>
         </section>
 

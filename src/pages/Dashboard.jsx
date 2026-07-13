@@ -12,6 +12,8 @@ import CommunitySection from "@/components/dashboard/sections/CommunitySection";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsSection";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
+import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
+import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -23,6 +25,12 @@ export default function Dashboard() {
         10
       ),
     staleTime: 30000,
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ["auth-me-dashboard"],
+    queryFn: () => base44.auth.me().catch(() => null),
+    staleTime: 60000,
   });
 
   return (
@@ -63,7 +71,10 @@ export default function Dashboard() {
       {/* 5. Aircraft Value Estimator */}
       <ValueEstimator />
 
-      {/* 5b. Featured Developer Tools — hides itself when no active tools */}
+      {/* 5b. Monetization CTA — wraps featured tools with credit/fiat pricing */}
+      <MonetizationCTA user={user} />
+
+      {/* 5c. Featured Developer Tools — hides itself when no active tools */}
       <FeaturedToolsSection />
 
       {/* 6. Trusted Brokers */}
@@ -72,7 +83,10 @@ export default function Dashboard() {
       {/* 7. Community */}
       <CommunitySection />
 
-      {/* 8. Market Intelligence — hides itself when the feed is unavailable */}
+      {/* 8. Aviation News Feed — curated from FAA + AOPA */}
+      <HomeNewsFeed />
+
+      {/* 9. Market Intelligence — hides itself when the feed is unavailable */}
       <LiveMarketIntelligence />
     </div>
   );

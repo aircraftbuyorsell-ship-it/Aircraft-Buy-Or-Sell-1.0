@@ -36,7 +36,7 @@ export default function Dashboard() {
   return (
     <div
       style={{
-        background: "transparent",
+        background: "radial-gradient(ellipse 80% 60% at 50% 0%, #0d1118 0%, #080a0e 35%, #050608 70%, #030406 100%)",
         color: "#fff",
         minHeight: "100vh",
         fontFamily: "Inter, -apple-system, sans-serif",

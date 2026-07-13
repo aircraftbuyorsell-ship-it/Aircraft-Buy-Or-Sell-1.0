@@ -52,8 +52,8 @@ export default function useLiveInspection(onFinding) {
     await videoRef.current.play().catch(() => {});
     try {
       const ws = new WebSocket(wsUrl()); socketRef.current = ws;
-      ws.onopen = () => { setStatus('live'); timerRef.current = setInterval(() => { const c = canvasRef.current; if (!c || !videoRef.current || ws.readyState !== WebSocket.OPEN) return; c.width = 640; c.height = 480; c.getContext('2d').drawImage(videoRef.current, 0, 0, 640, 480); ws.send(JSON.stringify({ realtimeInput: { video: { mimeType: 'image/jpeg', data: c.toDataURL('image/jpeg', .7).split(',')[1] } } })); }, 2500); };
-      ws.onmessage = e => { const msg = JSON.parse(e.data); (msg?.serverContent?.modelTurn?.parts || []).forEach(p => p.text && onFinding(p.text)); };
+      ws.onopen = () => { setStatus('live'); timerRef.current = setInterval(() => { const c = canvasRef.current; if (!c || !videoRef.current || ws.readyState !== WebSocket.OPEN) return; c.width = 640; c.height = 480; c.getContext('2d').drawImage(videoRef.current, 0, 0, 640, 480); ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data: c.toDataURL('image/jpeg', .7).split(',')[1] }] } })); }, 2500); };
+      ws.onmessage = e => { const msg = JSON.parse(e.data); if (msg?.error) { setStatus('error'); setErrorMessage(msg.error); return; } (msg?.serverContent?.modelTurn?.parts || []).forEach(p => p.text && onFinding(p.text)); };
       ws.onerror = () => { setStatus('error'); setErrorMessage('The camera opened, but live AI analysis could not connect.'); };
       ws.onclose = () => { if (socketRef.current !== ws) return; clearInterval(timerRef.current); stream.getTracks().forEach(track => track.stop()); socketRef.current = null; streamRef.current = null; setStatus('error'); setErrorMessage(message => message || 'The live AI analysis connection closed. Please try again.'); };
     } catch (connectionError) {

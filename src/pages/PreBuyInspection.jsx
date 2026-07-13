@@ -7,6 +7,7 @@ import {
   ChevronRight, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 
 const PILOT_AVATAR = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/b544f2587_generated_image.png";
 
@@ -155,6 +156,9 @@ function LandingPage({ onStart }) {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="mt-4">
+            <FAAFormsLinks context="technical" compact />
           </div>
         </div>
       </div>

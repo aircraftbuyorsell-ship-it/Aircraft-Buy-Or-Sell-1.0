@@ -10,6 +10,7 @@ import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
 import IntegrationHub from "@/components/pipeline/IntegrationHub";
 import PipelinePlanBanner from "@/components/pipeline/PipelinePlanBanner";
+import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 
 export default function SalesPipeline() {
   const { registration: urlReg } = useParams();
@@ -287,6 +288,8 @@ export default function SalesPipeline() {
             <CommandCard pipeline={pipeline} passport={passport} />
 
             <IntegrationHub pipeline={pipeline} />
+
+            <FAAFormsLinks context="transaction" compact />
 
             {/* Document upload area for verification steps */}
             {pipeline.steps?.some(s => s.ai_driven && !s.function_name && s.status === "pending") && (

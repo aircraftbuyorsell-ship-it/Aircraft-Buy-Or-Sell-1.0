@@ -6,6 +6,7 @@ import TwinProviderBlock from "@/components/twin/TwinProviderBlock";
 import BrokerAssignPanel from "@/components/twin/BrokerAssignPanel";
 import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
 import DataConflictAlert from "@/components/twin/DataConflictAlert";
+import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 import { maskOwnerName } from "@/lib/privacy";
 
 const AMBER = "#f5c242";
@@ -124,6 +125,7 @@ export default function DigitalTwin() {
               ] : []}
               emptyText="No transactional documents indexed (Bill of Sale, Security Agreements)"
             />
+            <FAAFormsLinks context="technical" />
             <TwinProviderBlock
               title="Marketplace Status"
               status={p?.marketplace?.status}

@@ -14,6 +14,7 @@ import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsS
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
 import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
+import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -66,6 +67,8 @@ export default function Dashboard() {
 
       {/* 3. ATI Passport Verification */}
       <ATIPassportVerification />
+
+      <AutomationAdvantage />
 
       {/* 4. Sales Pipeline */}
       <SalesPipelinePromo />

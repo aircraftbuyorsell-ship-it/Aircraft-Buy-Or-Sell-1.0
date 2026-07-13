@@ -7,6 +7,7 @@ import EscrowDrawer from "@/components/escrow/EscrowDrawer";
 import EscrowStatusBadge from "@/components/escrow/EscrowStatusBadge";
 import EscrowPartnerBadge, { EscrowPartnerBadgeInline } from "@/components/escrow/EscrowPartnerBadge";
 import DealCalculator from "@/components/escrow/DealCalculator";
+import SettlementRoadmap from "@/components/escrow/SettlementRoadmap";
 import { formatMoney, ESCROW_STATUS } from "@/lib/escrow";
 
 const W1 = "rgba(255,255,255,0.90)";
@@ -128,6 +129,8 @@ export default function Escrow() {
       <div className="px-4 md:px-8 pb-8 space-y-5">
         {/* Partnership trust strip */}
         <EscrowPartnerBadge />
+
+        <SettlementRoadmap />
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

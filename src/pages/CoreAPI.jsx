@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Terminal, FileJson, Loader2 } from "lucide-react";
 import ApiKeysPanel from "@/components/coreapi/ApiKeysPanel";
 import EndpointDoc from "@/components/coreapi/EndpointDoc";
+import TrustScoreApi from "@/components/coreapi/TrustScoreApi";
 
 const ENDPOINTS = [
   {
@@ -159,6 +160,8 @@ export default function CoreAPI() {
             View OpenAPI Specification (JSON)
           </button>
         </div>
+
+        <TrustScoreApi />
 
         {/* API keys */}
         <div className="mb-10">

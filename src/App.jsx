@@ -93,6 +93,7 @@ import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
 import FractionalCalculators from "./pages/FractionalCalculators";
 import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
+import AbosWallet from "./pages/AbosWallet";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -203,6 +204,7 @@ const AuthenticatedApp = () => {
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
         <Route path="/registry-comparator" element={<RegistryComparator />} />
         <Route path="/calculators" element={<CalculatorsHub />} />
+        <Route path="/wallet" element={<AbosWallet />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

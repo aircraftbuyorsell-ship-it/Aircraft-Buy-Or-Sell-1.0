@@ -12,9 +12,22 @@ const CATEGORY_META = {
   finance:    { icon: DollarSign, color: "#5dcaa5", label: "Finance" },
 };
 
-function NewsCard({ article }) {
+function Tag({ label, color = "#f0b90b", solid = false }) {
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider whitespace-nowrap"
+      style={solid
+        ? { background: color, color: "#000000" }
+        : { background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)" }
+      }
+    >
+      {label}
+    </span>
+  );
+}
+
+function FeaturedCard({ article }) {
   const meta = CATEGORY_META[article.category] || CATEGORY_META.market;
-  const Icon = meta.icon;
   const imageUrl = article.description;
   const timeAgo = article.published_at
     ? new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
@@ -22,63 +35,81 @@ function NewsCard({ article }) {
 
   return (
     <article
-      className="group rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.01]"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "0.5px solid rgba(255,255,255,0.08)",
-      }}
+      className="group rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.005]"
+      style={{ background: "#0c0c0c", border: "1px solid rgba(255,255,255,0.06)" }}
     >
-      {/* Image — 16:9 desktop, square mobile */}
-      <div className="relative w-full overflow-hidden aspect-square md:aspect-video" style={{ background: "rgba(0,0,0,0.3)" }}>
+      <div className="relative w-full overflow-hidden aspect-video" style={{ background: "#111" }}>
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={article.headline}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
+          <img src={imageUrl} alt={article.headline} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Newspaper className="w-10 h-10" style={{ color: "rgba(255,255,255,0.15)" }} />
+            <Newspaper className="w-12 h-12" style={{ color: "rgba(255,255,255,0.12)" }} />
           </div>
         )}
-        {/* Category badge */}
-        <div
-          className="absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md"
-          style={{ background: `${meta.color}20`, color: meta.color, border: `0.5px solid ${meta.color}40` }}
-        >
-          <Icon className="w-2.5 h-2.5" />
-          {meta.label}
+        <div className="absolute top-3 left-3 flex gap-1.5">
+          <Tag label={meta.label} solid />
         </div>
-        {/* Source badge */}
         {article.source_text && (
-          <div
-            className="absolute top-2 right-2 px-2 py-1 rounded-full text-[9px] font-semibold backdrop-blur-md"
-            style={{ background: "rgba(0,0,0,0.4)", color: "rgba(255,255,255,0.7)" }}
-          >
-            {article.source_text}
+          <div className="absolute top-3 right-3">
+            <Tag label={article.source_text} />
           </div>
         )}
       </div>
-
-      {/* Content — H1 headline + article text below image */}
-      <div className="p-4 md:p-5 flex flex-col flex-1">
-        <h1
-          className="text-base md:text-lg font-black leading-tight mb-2"
-          style={{ color: "rgba(255,255,255,0.92)" }}
-        >
+      <div className="p-5 md:p-6 flex flex-col flex-1">
+        <h1 className="text-xl md:text-2xl font-black leading-tight mb-2 text-white">
           {article.headline}
         </h1>
-        <p
-          className="text-xs md:text-sm leading-relaxed flex-1"
-          style={{ color: "rgba(255,255,255,0.55)" }}
-        >
+        <p className="text-sm leading-relaxed flex-1" style={{ color: "#a0a0a0" }}>
           {article.summary}
         </p>
-        <div className="flex items-center gap-1 mt-3 pt-2" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
-          <Clock className="w-2.5 h-2.5" style={{ color: "rgba(255,255,255,0.30)" }} />
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>{timeAgo}</span>
+        <div className="flex items-center gap-1.5 mt-4">
+          <Clock className="w-3 h-3" style={{ color: "#666" }} />
+          <span className="text-[11px]" style={{ color: "#666" }}>{timeAgo}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CompactCard({ article }) {
+  const meta = CATEGORY_META[article.category] || CATEGORY_META.market;
+  const imageUrl = article.description;
+  const timeAgo = article.published_at
+    ? new Date(article.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "";
+
+  return (
+    <article
+      className="group rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.01]"
+      style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.05)" }}
+    >
+      <div className="relative w-full overflow-hidden aspect-video" style={{ background: "#111" }}>
+        {imageUrl ? (
+          <img src={imageUrl} alt={article.headline} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={(e) => { e.target.style.display = "none"; }} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Newspaper className="w-8 h-8" style={{ color: "rgba(255,255,255,0.12)" }} />
+          </div>
+        )}
+        <div className="absolute top-2 left-2 flex gap-1">
+          <Tag label={meta.label} solid />
+        </div>
+        {article.source_text && (
+          <div className="absolute top-2 right-2">
+            <Tag label={article.source_text} />
+          </div>
+        )}
+      </div>
+      <div className="p-3 md:p-4 flex flex-col flex-1">
+        <h3 className="text-sm font-bold leading-tight mb-1 text-white line-clamp-2">
+          {article.headline}
+        </h3>
+        <p className="text-xs leading-relaxed flex-1 line-clamp-2" style={{ color: "#a0a0a0" }}>
+          {article.summary}
+        </p>
+        <div className="flex items-center gap-1 mt-2">
+          <Clock className="w-2.5 h-2.5" style={{ color: "#555" }} />
+          <span className="text-[10px]" style={{ color: "#555" }}>{timeAgo}</span>
         </div>
       </div>
     </article>
@@ -106,10 +137,13 @@ export default function HomeNewsFeed() {
             Aviation News
           </span>
         </div>
-        <div className="flex flex-col gap-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl animate-pulse flex" style={{ background: "rgba(255,255,255,0.03)", height: "90px" }} />
-          ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", height: "320px" }} />
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", height: "96px" }} />
+            ))}
+          </div>
         </div>
       </section>
     );
@@ -135,11 +169,16 @@ export default function HomeNewsFeed() {
         </div>
       </div>
 
-      {/* Large cards — 16:9 desktop, square mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {articles.map((article) => (
-          <NewsCard key={article.id} article={article} />
-        ))}
+      {/* Featured + grid — large card left, stacked compact cards right */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          {articles[0] && <FeaturedCard article={articles[0]} />}
+        </div>
+        <div className="flex flex-col gap-4">
+          {articles.slice(1, 4).map((article) => (
+            <CompactCard key={article.id} article={article} />
+          ))}
+        </div>
       </div>
     </section>
   );

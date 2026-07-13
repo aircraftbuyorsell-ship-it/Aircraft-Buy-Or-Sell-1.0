@@ -23,6 +23,13 @@ function allowedOrigins() {
 async function toPublicListing(record) {
   const listingId = await opaqueId("lst", record.id);
   const aircraftId = await opaqueId("ac", record.registration || record.id);
+  const sourceProvenance = [{
+    source: "legacy_marketplace",
+    source_record_id: null,
+    observed_at: record.updated_date || record.created_date || null,
+    retrieval_method: "base44_adapter",
+  }];
+
   return {
     listing_id: listingId,
     aircraft: {
@@ -33,6 +40,7 @@ async function toPublicListing(record) {
       year: Number.isFinite(record.year) ? record.year : null,
       total_time_hours: Number.isFinite(record.total_time) ? record.total_time : null,
       engine_hours: Number.isFinite(record.engine_hours) ? record.engine_hours : null,
+      source_provenance: sourceProvenance,
     },
     asking_price: Number.isFinite(record.asking_price) ? { value: record.asking_price, currency: record.currency || "USD" } : null,
     location: null,
@@ -48,7 +56,7 @@ async function toPublicListing(record) {
       engine_version: null,
       limitations: ["Legacy intelligence values do not yet carry a complete calculation provenance record."],
     },
-    source_provenance: [{ source: "legacy_marketplace", source_record_id: null, observed_at: record.updated_date || record.created_date || null, retrieval_method: "base44_adapter" }],
+    source_provenance: sourceProvenance,
     created_at: record.created_date || null,
     updated_at: record.updated_date || null,
   };
@@ -81,7 +89,7 @@ function makeRepositories(base44) {
     aircraftRepository: {
       async getByPublicId(publicId) {
         const listing = (await readCandidates()).find((candidate) => candidate.aircraft.aircraft_id === publicId);
-        return listing ? { ...listing.aircraft, source_provenance: listing.source_provenance } : null;
+        return listing?.aircraft || null;
       },
     },
   };
@@ -97,7 +105,7 @@ async function authenticate(base44, request) {
     throw new ApiError(401, "INVALID_API_KEY", "The supplied API credential is invalid or inactive.");
   }
   const scopes = new Set(key.scopes || []);
-  if (scopes.has("listing:read")) scopes.add("listings:read"); // documented compatibility for existing Base44 keys
+  if (scopes.has("listing:read")) scopes.add("listings:read");
   return { type: "api_key", keyId: key.id, scopes: [...scopes], plan: key.plan || "free" };
 }
 
@@ -146,7 +154,6 @@ Deno.serve(async (request) => {
         } catch (_) { /* audit failures never change the public response */ }
       },
     },
-    rateLimiter: { async check() { return { limit: 0, remaining: 0, reset: 0 }; } },
     corsAllowlist: allowedOrigins(),
   });
 

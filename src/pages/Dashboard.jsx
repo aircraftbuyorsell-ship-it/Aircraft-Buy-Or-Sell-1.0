@@ -11,6 +11,7 @@ import TrustedBrokers from "@/components/dashboard/sections/TrustedBrokers";
 import CommunitySection from "@/components/dashboard/sections/CommunitySection";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsSection";
+import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -35,6 +36,9 @@ export default function Dashboard() {
     >
       <HomepageHeader />
       <NotificationStack />
+      <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
+        <AviationNewsTicker />
+      </div>
 
       {/* 1. Hero */}
       <HomeHeroSection />

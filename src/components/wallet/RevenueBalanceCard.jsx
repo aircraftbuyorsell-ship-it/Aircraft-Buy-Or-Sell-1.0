@@ -51,7 +51,7 @@ export default function RevenueBalanceCard({ user }) {
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>
               Affiliate Revenue
             </p>
-            <p className="text-2xl font-black" style={{ color: "#5dcaa5" }}>
+            <p className="text-2xl font-black chrome-text">
               €{totalEarned.toFixed(2)}
             </p>
           </div>
@@ -72,14 +72,14 @@ export default function RevenueBalanceCard({ user }) {
             <Clock className="w-3 h-3" style={{ color: "#f5c242" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Pending</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "#f5c242" }}>€{pending.toFixed(2)}</p>
+          <p className="text-sm font-black chrome-text">€{pending.toFixed(2)}</p>
         </div>
         <div className="rounded-xl p-3" style={{ background: "rgba(93,202,165,0.06)" }}>
           <div className="flex items-center gap-1.5 mb-1">
             <CheckCircle2 className="w-3 h-3" style={{ color: "#5dcaa5" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Paid Out</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "#5dcaa5" }}>€{paid.toFixed(2)}</p>
+          <p className="text-sm font-black chrome-text">€{paid.toFixed(2)}</p>
         </div>
       </div>
 
@@ -106,7 +106,7 @@ export default function RevenueBalanceCard({ user }) {
                   <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.40)" }}>
                     {link.click_count || 0} clicks
                   </span>
-                  <span className="text-[10px] font-bold" style={{ color: "#5dcaa5" }}>
+                  <span className="text-[10px] font-bold chrome-text">
                     {link.conversion_count || 0} conv
                   </span>
                 </div>
@@ -149,7 +149,7 @@ export default function RevenueBalanceCard({ user }) {
                   {c.status}
                 </p>
               </div>
-              <span className="text-sm font-black shrink-0" style={{ color: "#5dcaa5" }}>
+              <span className="text-sm font-black shrink-0 chrome-text">
                 +€{(c.amount || 0).toFixed(2)}
               </span>
             </div>

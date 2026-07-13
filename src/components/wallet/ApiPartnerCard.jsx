@@ -54,7 +54,7 @@ export default function ApiPartnerCard({ user }) {
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>
               API Partner Usage
             </p>
-            <p className="text-lg font-black" style={{ color: "#4e8ef7" }}>
+            <p className="text-lg font-black chrome-text">
               {totalRequests.toLocaleString()} <span className="text-xs font-normal" style={{ color: "rgba(255,255,255,0.40)" }}>total calls</span>
             </p>
           </div>
@@ -75,14 +75,14 @@ export default function ApiPartnerCard({ user }) {
             <Activity className="w-3 h-3" style={{ color: "#4e8ef7" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Last 24h</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "#4e8ef7" }}>{todayRequests}</p>
+          <p className="text-sm font-black chrome-text">{todayRequests}</p>
         </div>
         <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
           <div className="flex items-center gap-1.5 mb-1">
             <Zap className="w-3 h-3" style={{ color: "rgba(255,255,255,0.40)" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Active Keys</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "rgba(255,255,255,0.80)" }}>{keys.length}</p>
+          <p className="text-sm font-black chrome-text">{keys.length}</p>
         </div>
       </div>
 

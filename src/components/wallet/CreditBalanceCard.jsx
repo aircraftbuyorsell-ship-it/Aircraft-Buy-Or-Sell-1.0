@@ -40,7 +40,7 @@ export default function CreditBalanceCard({ user }) {
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>
               ABOS Credit Balance
             </p>
-            <p className="text-2xl font-black" style={{ color: "#f5c242" }}>
+            <p className="text-2xl font-black chrome-text">
               {balance.toLocaleString()} <span className="text-xs font-normal" style={{ color: "rgba(255,255,255,0.40)" }}>credits</span>
             </p>
           </div>
@@ -61,14 +61,14 @@ export default function CreditBalanceCard({ user }) {
             <TrendingUp className="w-3 h-3" style={{ color: "#5dcaa5" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Purchased</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "#5dcaa5" }}>+{purchased.toLocaleString()}</p>
+          <p className="text-sm font-black chrome-text">+{purchased.toLocaleString()}</p>
         </div>
         <div className="rounded-xl p-3" style={{ background: "rgba(226,75,74,0.06)" }}>
           <div className="flex items-center gap-1.5 mb-1">
             <TrendingDown className="w-3 h-3" style={{ color: "#e24b4a" }} />
             <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>Consumed</p>
           </div>
-          <p className="text-sm font-black" style={{ color: "#e24b4a" }}>-{consumed.toLocaleString()}</p>
+          <p className="text-sm font-black chrome-text">-{consumed.toLocaleString()}</p>
         </div>
       </div>
 
@@ -105,10 +105,7 @@ export default function CreditBalanceCard({ user }) {
                   {new Date(tx.created_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </p>
               </div>
-              <span
-                className="text-sm font-black shrink-0"
-                style={{ color: tx.amount >= 0 ? "#5dcaa5" : "#e24b4a" }}
-              >
+              <span className="text-sm font-black shrink-0 chrome-text">
                 {tx.amount >= 0 ? "+" : ""}{tx.amount}
               </span>
             </div>

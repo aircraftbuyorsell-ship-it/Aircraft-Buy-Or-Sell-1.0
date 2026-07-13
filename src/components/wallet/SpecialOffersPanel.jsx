@@ -88,7 +88,7 @@ export default function SpecialOffersPanel({ user }) {
           <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.40)" }}>
             Your Tier Benefits
           </p>
-          <p className="text-sm font-black capitalize" style={{ color: "#f5c242" }}>
+          <p className="text-sm font-black capitalize chrome-text">
             {currentTier.replace("_", " ")} Plan
           </p>
         </div>

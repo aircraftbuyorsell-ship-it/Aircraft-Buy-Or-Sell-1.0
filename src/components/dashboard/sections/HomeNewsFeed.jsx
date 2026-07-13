@@ -22,82 +22,67 @@ function NewsRow({ article }) {
 
   return (
     <article
-      className="group flex items-stretch gap-0 rounded-2xl overflow-hidden shrink-0 transition-all duration-300 hover:scale-[1.005]"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "0.5px solid rgba(255,255,255,0.08)",
-      }}
+      className="group relative w-full overflow-hidden rounded-2xl shrink-0 transition-transform duration-300 hover:scale-[1.01]"
+      style={{ height: "220px", background: "#1a1a1a", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}
     >
-      {/* Image — left side */}
-      <div
-        className="relative shrink-0 overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)", width: "clamp(90px, 30%, 160px)" }}
-      >
-        {imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt={article.headline}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              style={{ filter: "sepia(0.25) saturate(1.15) hue-rotate(-8deg) brightness(0.92) contrast(1.05)" }}
-              loading="lazy"
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-            {/* Stainless-gold tint overlay */}
-            <div
-              className="absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-30"
-              style={{
-                background: "linear-gradient(160deg, rgba(184,184,184,0.18) 0%, rgba(245,245,245,0.10) 22%, rgba(255,251,230,0.16) 38%, rgba(232,212,136,0.20) 50%, rgba(208,208,208,0.12) 58%, rgba(201,176,112,0.18) 72%, rgba(232,232,232,0.10) 86%, rgba(136,136,136,0.15) 100%)",
-                mixBlendMode: "overlay",
-                opacity: 0.45,
-              }}
-            />
-            {/* Subtle gold edge glow */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ boxShadow: "inset 0 0 12px rgba(212,160,23,0.15)" }}
-            />
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Newspaper className="w-6 h-6" style={{ color: "rgba(212,160,23,0.25)" }} />
-          </div>
-        )}
-        {/* Category badge */}
-        <div
-          className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider backdrop-blur-md"
-          style={{ background: `${meta.color}20`, color: meta.color, border: `0.5px solid ${meta.color}40` }}
-        >
-          <Icon className="w-2 h-2" />
-          {meta.label}
+      {/* Full-bleed background image */}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={article.headline}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)" }}>
+          <Newspaper className="w-8 h-8" style={{ color: "rgba(212,160,23,0.25)" }} />
         </div>
+      )}
+
+      {/* Dark gradient overlay — transparent to near-black from middle down */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0,0,0,0.6) 65%, rgba(0,0,0,0.95) 100%)" }}
+      />
+
+      {/* Top row — category badge (left) + source & date (right) */}
+      <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2 z-10">
+        <span
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider"
+          style={{ background: "rgba(51,51,51,0.85)", color: "#ffffff", backdropFilter: "blur(8px)" }}
+        >
+          <Icon className="w-2.5 h-2.5" />
+          {meta.label}
+        </span>
+        {(article.source_text || timeAgo) && (
+          <span
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-semibold whitespace-nowrap"
+            style={{ background: "rgba(51,51,51,0.70)", color: "#ffffff", backdropFilter: "blur(8px)" }}
+          >
+            {article.source_text && <span>{article.source_text}</span>}
+            {article.source_text && timeAgo && <span>•</span>}
+            {timeAgo && (
+              <span className="flex items-center gap-0.5">
+                <Clock className="w-2.5 h-2.5" />
+                {timeAgo}
+              </span>
+            )}
+          </span>
+        )}
       </div>
 
-      {/* Content — right side */}
-      <div className="flex flex-col justify-center p-3 md:p-4 flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          {article.source_text && (
-            <span
-              className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-              style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.60)" }}
-            >
-              {article.source_text}
-            </span>
-          )}
-          <span className="text-[9px] flex items-center gap-0.5 shrink-0" style={{ color: "rgba(255,255,255,0.30)" }}>
-            <Clock className="w-2.5 h-2.5" />
-            {timeAgo}
-          </span>
-        </div>
+      {/* Bottom content — headline + summary */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
         <h3
-          className="text-xs md:text-sm font-bold leading-snug mb-1 line-clamp-2"
-          style={{ color: "rgba(255,255,255,0.90)" }}
+          className="text-sm md:text-base font-bold leading-snug mb-1.5 line-clamp-2"
+          style={{ color: "#ffffff" }}
         >
           {article.headline}
         </h3>
         <p
           className="text-[11px] md:text-xs leading-relaxed line-clamp-2"
-          style={{ color: "rgba(255,255,255,0.55)" }}
+          style={{ color: "rgba(255,255,255,0.75)" }}
         >
           {article.summary}
         </p>
@@ -127,9 +112,9 @@ export default function HomeNewsFeed() {
             Aviation News
           </span>
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl animate-pulse flex" style={{ background: "rgba(255,255,255,0.03)", height: "90px" }} />
+            <div key={i} className="rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)", height: "220px" }} />
           ))}
         </div>
       </section>
@@ -158,8 +143,8 @@ export default function HomeNewsFeed() {
 
       {/* Vertical scroll — one article per row */}
       <div
-        className="flex flex-col gap-3 overflow-y-auto pr-1"
-        style={{ maxHeight: "min(70vh, 560px)" }}
+        className="flex flex-col gap-4 overflow-y-auto pr-1"
+        style={{ maxHeight: "min(80vh, 720px)" }}
       >
         {articles.map((article) => (
           <NewsRow key={article.id} article={article} />

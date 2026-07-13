@@ -31,19 +31,36 @@ function NewsRow({ article }) {
       {/* Image — left side */}
       <div
         className="relative shrink-0 overflow-hidden"
-        style={{ background: "rgba(0,0,0,0.3)", width: "clamp(90px, 30%, 160px)" }}
+        style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)", width: "clamp(90px, 30%, 160px)" }}
       >
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={article.headline}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => { e.target.style.display = "none"; }}
-          />
+          <>
+            <img
+              src={imageUrl}
+              alt={article.headline}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              style={{ filter: "sepia(0.25) saturate(1.15) hue-rotate(-8deg) brightness(0.92) contrast(1.05)" }}
+              loading="lazy"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
+            {/* Stainless-gold tint overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none transition-opacity duration-300 group-hover:opacity-30"
+              style={{
+                background: "linear-gradient(160deg, rgba(184,184,184,0.18) 0%, rgba(245,245,245,0.10) 22%, rgba(255,251,230,0.16) 38%, rgba(232,212,136,0.20) 50%, rgba(208,208,208,0.12) 58%, rgba(201,176,112,0.18) 72%, rgba(232,232,232,0.10) 86%, rgba(136,136,136,0.15) 100%)",
+                mixBlendMode: "overlay",
+                opacity: 0.45,
+              }}
+            />
+            {/* Subtle gold edge glow */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ boxShadow: "inset 0 0 12px rgba(212,160,23,0.15)" }}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Newspaper className="w-6 h-6" style={{ color: "rgba(255,255,255,0.15)" }} />
+            <Newspaper className="w-6 h-6" style={{ color: "rgba(212,160,23,0.25)" }} />
           </div>
         )}
         {/* Category badge */}

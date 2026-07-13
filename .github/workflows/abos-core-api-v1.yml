@@ -1,6 +1,7 @@
 name: ABOS Core API Boundary
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "base44/functions/abosCoreApiV1/**"
@@ -18,13 +19,18 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: node --test test/abosCoreApiV1.test.mjs test/stripe-entitlement-guard.test.mjs test/legacy-security-guards.test.mjs test/legacy-core-api-guards.test.mjs
-      - run: node scripts/validate-abos-core-openapi.mjs
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run Core API and security guards
+        run: node --test test/abosCoreApiV1.test.mjs test/stripe-entitlement-guard.test.mjs test/legacy-security-guards.test.mjs test/legacy-core-api-guards.test.mjs
+      - name: Validate OpenAPI contract
+        run: node scripts/validate-abos-core-openapi.mjs
+      - name: Build existing application
+        run: npm run build

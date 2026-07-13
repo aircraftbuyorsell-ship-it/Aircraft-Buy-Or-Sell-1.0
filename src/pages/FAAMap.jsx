@@ -105,12 +105,13 @@ export default function FAAMap() {
     base44.analytics.track({
       eventName: "faa_database_search_submit",
       properties: {
-        has_n_number: Boolean(filters.nNumber.trim()),
+        n_number: filters.nNumber.trim().toUpperCase() || null,
         aircraft_type: filters.type || "all",
         engine_type: filters.engine || "all",
         registration_status: filters.status || "all",
         category: filters.category || "all",
-        has_year_range: Boolean(filters.yearFrom || filters.yearTo),
+        year_from: filters.yearFrom ? Number(filters.yearFrom) : null,
+        year_to: filters.yearTo ? Number(filters.yearTo) : null,
         max_results: filters.limit,
         view,
       },

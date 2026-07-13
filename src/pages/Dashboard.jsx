@@ -35,21 +35,23 @@ export default function Dashboard() {
 
   return (
     <div
+      className="text-foreground"
       style={{
         background: "transparent",
-        color: "#fff",
         minHeight: "100vh",
         fontFamily: "Inter, -apple-system, sans-serif",
       }}
     >
       <HomepageHeader />
       <NotificationStack />
+
+      {/* 1. Hero (with Globe) */}
+      <HomeHeroSection />
+
+      {/* Running news bar — directly below the globe */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
         <AviationNewsTicker />
       </div>
-
-      {/* 1. Hero */}
-      <HomeHeroSection />
 
       {/* 2. Featured Aircraft */}
       <ListingsShowcase

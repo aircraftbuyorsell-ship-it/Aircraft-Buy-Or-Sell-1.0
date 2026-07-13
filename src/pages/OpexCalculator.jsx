@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Calculator, TrendingUp, Fuel, Wrench, FileText, Plane, Info, ShieldCheck, MapPin, Gauge, Cpu, Plus, Lock } from "lucide-react";
+import CalculatorPricingBadge from "@/components/calculators/CalculatorPricingBadge";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useAutoTrack } from "@/lib/useBehavior";
@@ -213,14 +214,22 @@ export default function OpexCalculator() {
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
       <div className="max-w-6xl mx-auto">
-        <GoldLabel>Cost Intelligence · Buyer & Seller Transparency</GoldLabel>
-        <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 uppercase" style={{ color: "rgba(255,255,255,0.90)" }}>
-          Aircraft Operational Cost Calculator
-        </h1>
-        <p className="text-sm mt-1 max-w-3xl" style={{ color: "rgba(255,255,255,0.60)" }}>
-          Not just what the aircraft costs to buy — <b>what it costs to own.</b> Combines flight hours, reserves,
-          inspections, maintenance exposure, and service availability into a transparent ownership picture.
-        </p>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <GoldLabel>Cost Intelligence · Buyer & Seller Transparency</GoldLabel>
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 uppercase" style={{ color: "rgba(255,255,255,0.90)" }}>
+              Aircraft Operational Cost Calculator
+            </h1>
+            <p className="text-sm mt-1 max-w-3xl" style={{ color: "rgba(255,255,255,0.60)" }}>
+              Not just what the aircraft costs to buy — <b>what it costs to own.</b> Combines flight hours, reserves,
+              inspections, maintenance exposure, and service availability into a transparent ownership picture.
+            </p>
+          </div>
+          <div className="shrink-0 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "rgba(255,255,255,0.40)" }}>Pricing</p>
+            <CalculatorPricingBadge featureId="opex_calculator" />
+          </div>
+        </div>
 
         {/* Ownership Clarity Summary — front & center */}
         <div className="mt-6">

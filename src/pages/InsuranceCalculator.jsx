@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Shield, Plane, Calculator, Info, DollarSign, TrendingUp } from "lucide-react";
+import CalculatorPricingBadge from "@/components/calculators/CalculatorPricingBadge";
 
 const AIRCRAFT_TYPES = [
   { label: "Single-Engine Piston (SEP)", value: "sep", baseRate: 0.012 },
@@ -68,13 +69,19 @@ export default function InsuranceCalculator() {
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(78,142,247,0.12)", border: "1px solid rgba(78,142,247,0.25)" }}>
-            <Shield className="w-5 h-5" style={{ color: "#4e8ef7" }} />
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(78,142,247,0.12)", border: "1px solid rgba(78,142,247,0.25)" }}>
+              <Shield className="w-5 h-5" style={{ color: "#4e8ef7" }} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-white">Aircraft Insurance Calculator</h1>
+              <p className="text-sm text-white/50">Estimate annual and monthly premiums based on aircraft value, usage, and pilot profile.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-black tracking-tight text-white">Aircraft Insurance Calculator</h1>
-            <p className="text-sm text-white/50">Estimate annual and monthly premiums based on aircraft value, usage, and pilot profile.</p>
+          <div className="shrink-0 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+            <p className="text-[10px] uppercase tracking-wider font-bold mb-1 text-white/40">Pricing</p>
+            <CalculatorPricingBadge featureId="insurance_calculator" />
           </div>
         </div>
       </div>

@@ -51,10 +51,10 @@ export default function HeroGlobe() {
     const GOLD = 0xf5c242;
 
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: 0x070a10,
-      emissive: 0x030508,
-      shininess: 110,
-      specular: 0xd4a017,
+      color: 0x0A0E14,
+      emissive: 0x05080c,
+      shininess: 4,
+      specular: 0x0a0f1a,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -78,9 +78,9 @@ export default function HeroGlobe() {
     const gridGeo = new THREE.BufferGeometry();
     gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(gridPts, 3));
     const grid = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({
-      color: 0xd4a017,
+      color: 0x2a3540,
       transparent: true,
-      opacity: 0.14,
+      opacity: 0.18,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }));
@@ -143,15 +143,12 @@ export default function HeroGlobe() {
       markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
     });
 
-    scene.add(new THREE.AmbientLight(0x080a0e, 0.4));
-    const dirLight = new THREE.DirectionalLight(0xf5c242, 0.9);
+    scene.add(new THREE.AmbientLight(0x1a2030, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xfff1d6, 1.1);
     dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const rimLight = new THREE.DirectionalLight(0xd4a017, 0.6);
-    rimLight.position.set(-4, 1, -2);
-    scene.add(rimLight);
-    const fillLight = new THREE.DirectionalLight(0x1a2a3a, 0.2);
-    fillLight.position.set(0, -3, 2);
+    const fillLight = new THREE.DirectionalLight(0x4a6a9a, 0.25);
+    fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 
     const sg = new THREE.BufferGeometry();
@@ -166,10 +163,10 @@ export default function HeroGlobe() {
     }
     sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
     scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
-      color: 0xd4c8a0,
+      color: 0x8fa8cc,
       size: 0.05,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.5,
     })));
 
     let rafId;

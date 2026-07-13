@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
+import { NAV_TREE, isPathInSection, navGradientWeight } from "@/components/layout/navConfig";
 import GuidedDropdown from "@/components/layout/GuidedDropdown";
 import { useTheme } from "@/lib/useTheme";
 
@@ -45,10 +45,14 @@ export default function PillCommandBar() {
   };
 
   return (
-    <div ref={barRef} className="hidden lg:flex items-center gap-8" style={{ height: 48 }}>
-      {NAV_TREE.map((section) => {
+    <div ref={barRef} className="hidden lg:flex items-center gap-6" style={{ height: 48 }}>
+      {NAV_TREE.map((section, idx) => {
         const active = isPathInSection(section, pathname);
         const open = openSection === section.label;
+        const w = navGradientWeight(idx);
+        const fontSize = 12 + w * 4;      // 12px → 16px at peak
+        const idleOpacity = 0.45 + w * 0.40; // 0.45 → 0.85 at peak
+        const fontWeight = active || open ? 800 : 400 + Math.round(w * 200);
 
         if (section.direct) {
           return (
@@ -56,19 +60,20 @@ export default function PillCommandBar() {
               <button
                 onClick={() => handleNav(section.path)}
                 style={{
-                  fontSize: 13,
-                  fontWeight: active ? 700 : 500,
-                  color: active ? "#D4A017" : idleColor,
+                  fontSize,
+                  fontWeight: active ? 800 : fontWeight,
+                  color: active ? "#D4A017" : `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`,
                   background: "transparent",
                   border: "none",
                   padding: "8px 2px",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   letterSpacing: "0.01em",
-                  transition: "color 150ms ease",
+                  textShadow: w > 0.6 ? `0 0 ${w * 12}px rgba(212,160,23,${w * 0.15})` : "none",
+                  transition: "color 150ms ease, text-shadow 150ms ease",
                 }}
                 onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = hoverColor; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = idleColor; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`; }}
               >
                 {section.label}
               </button>
@@ -91,19 +96,20 @@ export default function PillCommandBar() {
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
-                fontSize: 13,
-                fontWeight: active || open ? 700 : 500,
-                color: open ? "#D4A017" : active ? "#D4A017" : idleColor,
+                fontSize,
+                fontWeight: active || open ? 800 : fontWeight,
+                color: open ? "#D4A017" : active ? "#D4A017" : `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`,
                 background: "transparent",
                 border: "none",
                 padding: "8px 2px",
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 letterSpacing: "0.01em",
-                transition: "color 150ms ease",
+                textShadow: w > 0.6 ? `0 0 ${w * 12}px rgba(212,160,23,${w * 0.15})` : "none",
+                transition: "color 150ms ease, text-shadow 150ms ease",
               }}
               onMouseEnter={(e) => { if (!active && !open) e.currentTarget.style.color = hoverColor; }}
-              onMouseLeave={(e) => { if (!active && !open) e.currentTarget.style.color = idleColor; }}
+              onMouseLeave={(e) => { if (!active && !open) e.currentTarget.style.color = `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`; }}
             >
               {section.label}
               <ChevronDown size={13} style={{ transition: "transform 150ms ease", transform: open ? "rotate(180deg)" : "none", opacity: 0.7 }} />

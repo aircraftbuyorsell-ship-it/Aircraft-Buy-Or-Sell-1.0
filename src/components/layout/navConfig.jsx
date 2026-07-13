@@ -18,6 +18,13 @@ import {
  */
 export const NAV_TREE = [
   {
+    label: "Home",
+    mobileLabel: "Home",
+    path: "/",
+    icon: LayoutDashboard,
+    direct: true,
+  },
+  {
     label: "Marketspace",
     mobileLabel: "Market",
     path: "/listings",
@@ -117,19 +124,24 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Home",
-    mobileLabel: "Home",
-    path: "/",
-    icon: LayoutDashboard,
-    direct: true,
-  },
-  {
     label: "Wallet",
     path: "/wallet",
     icon: Wallet,
     direct: true,
   },
 ];
+
+/**
+ * Gradient weight — Intelligence (index 2) is the peak (1.0),
+ * items to its left and right gradually diminish toward 0.
+ * Used for font-size and opacity scaling across the nav bar.
+ */
+export function navGradientWeight(index, total = NAV_TREE.length) {
+  const peakIndex = 2; // Intelligence
+  const maxDist = Math.max(peakIndex, total - 1 - peakIndex);
+  const dist = Math.abs(index - peakIndex);
+  return Math.max(0, 1 - dist / maxDist);
+}
 
 /** Flatten all leaf paths for active-state matching. */
 export function isPathInSection(section, pathname) {

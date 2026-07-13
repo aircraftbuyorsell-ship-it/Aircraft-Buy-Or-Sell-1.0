@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
+import { NAV_TREE, isPathInSection, navGradientWeight } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
 
 export default function MobilePillNav() {
@@ -38,21 +38,26 @@ export default function MobilePillNav() {
   return (
     <div ref={barRef} className="w-full max-w-sm mx-auto" style={{ position: "relative" }}>
       {/* ── Chip row ── */}
-      <div className="flex items-center justify-center gap-2 w-full">
-        {NAV_TREE.map((section) => {
+      <div className="flex items-end justify-center gap-1.5 w-full">
+        {NAV_TREE.map((section, idx) => {
           const active = isPathInSection(section, pathname);
           const open = openSection === section.label;
           const Icon = section.icon;
+          const w = navGradientWeight(idx);
+          const iconSize = 12 + Math.round(w * 6);  // 12px → 18px at peak
+          const chipHeight = 44 + Math.round(w * 14); // 44px → 58px at peak
+          const labelSize = 9 + w * 2;                 // 9px → 11px at peak
+          const idleOpacity = 0.5 + w * 0.35;
           return (
             <button
               key={section.label}
               onClick={() => section.direct ? handleNav(section.path) : setOpenSection(open ? null : section.label)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 transition-all"
               style={{
-                height: 52,
-                minWidth: 44,
+                height: chipHeight,
+                minWidth: 38 + Math.round(w * 8),
                 borderRadius: 14,
-                padding: "6px 4px",
+                padding: "4px 2px",
                 background: open
                   ? "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.20), rgba(26,26,26,0.95))"
                   : idleBg,
@@ -61,13 +66,14 @@ export default function MobilePillNav() {
                   : `1px solid ${idleBorder}`,
                 boxShadow: open
                   ? "0 0 16px rgba(212,160,23,0.25), inset 0 0 12px rgba(212,160,23,0.06)"
-                  : "none",
-                color: open ? "#D4A017" : idleColor,
+                  : w > 0.6 ? `0 0 ${w * 10}px rgba(212,160,23,${w * 0.06})` : "none",
+                color: open ? "#D4A017" : `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`,
                 cursor: "pointer",
+                opacity: open ? 1 : (0.65 + w * 0.35),
               }}
             >
-              {Icon && <Icon size={15} style={{ opacity: open ? 1 : 0.7 }} />}
-              <span style={{ fontSize: 10, fontWeight: open ? 700 : 600, letterSpacing: "0.03em" }}>
+              {Icon && <Icon size={iconSize} style={{ opacity: open ? 1 : (0.5 + w * 0.4) }} />}
+              <span style={{ fontSize: labelSize, fontWeight: open ? 700 : 500 + Math.round(w * 150), letterSpacing: "0.03em" }}>
                 {section.mobileLabel || section.label}
               </span>
             </button>

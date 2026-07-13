@@ -2,21 +2,50 @@ import {
   Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard,
   Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
   Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
-  DollarSign, Wrench, PaintBucket, Armchair, Sparkles, Landmark,
-  GitBranch, User, Banknote, Award, Layers,
+  DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
 } from "lucide-react";
 
 /**
- * ABOS Navigation — 4 core sections:
+ * ABOS Navigation — 3 dropdown sections + 2 direct links:
  *
- *  1. Intelligence       → market data, analytics, registry, ATI scoring
- *  2. Buyer Seller       → listings, compare, deal radar, solutions by role
- *  3. Financial Services → OPEX, insurance, leasing, investment, fractional
- *  4. MRO/CFO            → upgrades, refurb, pre-buy, escrow, pipeline
+ *  1. Marketspace  → listings, deals, escrow, solutions by role
+ *  2. Intelligence  → analytics, market data, calculators & finance
+ *  3. Verify        → registry, compliance, ATI scoring, experts
  *
  *  + Pricing + Dashboard (direct links)
+ *
+ * Each dropdown has exactly 2 sub-categories.
  */
 export const NAV_TREE = [
+  {
+    label: "Marketspace",
+    mobileLabel: "Market",
+    path: "/listings",
+    icon: Plane,
+    categories: [
+      {
+        label: "Listings & Deals",
+        items: [
+          { path: "/listings", label: "Aircraft Listings", icon: Plane },
+          { path: "/compare", label: "Compare Aircraft", icon: Scale },
+          { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+          { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
+          { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
+          { path: "/leads", label: "Leads", icon: Users },
+        ],
+      },
+      {
+        label: "Solutions",
+        items: [
+          { path: "/solutions/buyers", label: "For Buyers", icon: User },
+          { path: "/solutions/sellers", label: "For Sellers", icon: Plane },
+          { path: "/solutions/brokers", label: "For Brokers", icon: Briefcase },
+          { path: "/solutions/lenders", label: "For Lenders", icon: Banknote },
+          { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
+        ],
+      },
+    ],
+  },
   {
     label: "Intelligence",
     mobileLabel: "Intel",
@@ -24,74 +53,22 @@ export const NAV_TREE = [
     icon: BarChart2,
     categories: [
       {
-        label: "Market & Traffic",
+        label: "Analytics & Market",
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
-          { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
           { path: "/traffic", label: "Live Traffic Map", icon: Plane },
           { path: "/faa-map", label: "FAA Registry Map", icon: Map },
+          { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
         ],
       },
       {
-        label: "Registry & ATI",
-        items: [
-          { path: "/n-lookup", label: "Registry Lookup", icon: Search },
-          { path: "/registry-comparator", label: "Registry Comparator", icon: Layers },
-          { path: "/ati-passport", label: "ATI Passport", icon: Shield },
-          { path: "/ati-standard", label: "ATI Standard", icon: Award },
-          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
-          { path: "/ati-verify", label: "Verification Center", icon: CheckCircle },
-          { path: "/experts", label: "Verified Experts", icon: BadgeCheck },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Buyer Seller",
-    mobileLabel: "Buy/Sell",
-    path: "/listings",
-    icon: Plane,
-    categories: [
-      {
-        label: "Browse & Compare",
-        items: [
-          { path: "/listings", label: "Aircraft Listings", icon: Plane },
-          { path: "/compare", label: "Compare Aircraft", icon: Scale },
-          { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-        ],
-      },
-      {
-        label: "By Role",
-        items: [
-          { path: "/solutions/buyers", label: "For Buyers", icon: User },
-          { path: "/solutions/sellers", label: "For Sellers", icon: Plane },
-          { path: "/solutions/brokers", label: "For Brokers", icon: Briefcase },
-          { path: "/solutions/lenders", label: "For Lenders", icon: Banknote },
-          { path: "/leads", label: "Leads", icon: Users },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Financial Services",
-    mobileLabel: "Finance",
-    path: "/calculators",
-    icon: Calculator,
-    categories: [
-      {
-        label: "Ownership Calculators",
+        label: "Calculators & Finance",
         items: [
           { path: "/calculators", label: "All Calculators", icon: Calculator },
           { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
           { path: "/insurance-calculator", label: "Insurance", icon: Shield },
           { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
-        ],
-      },
-      {
-        label: "Investment",
-        items: [
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },
         ],
@@ -99,28 +76,28 @@ export const NAV_TREE = [
     ],
   },
   {
-    label: "MRO/CFO",
-    mobileLabel: "MRO/CFO",
-    path: "/avionics-upgrade-calculator",
-    icon: Wrench,
+    label: "Verify",
+    mobileLabel: "Verify",
+    path: "/n-lookup",
+    icon: Shield,
     categories: [
       {
-        label: "MRO & Upgrades",
+        label: "Registry & Compliance",
         items: [
-          { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap },
-          { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket },
-          { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair },
-          { path: "/aircraft-detailing-calculator", label: "Detailing (Free)", icon: Sparkles },
-          { path: "/upgrade-comparison", label: "Upgrade Compare", icon: Scale },
+          { path: "/n-lookup", label: "Registry Lookup", icon: Search },
+          { path: "/registry-comparator", label: "Registry Comparator", icon: Layers },
+          { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
         ],
       },
       {
-        label: "Deal & Transaction",
+        label: "ATI & Experts",
         items: [
-          { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
-          { path: "/cross-border-bridge", label: "Cross-Border", icon: Globe },
-          { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
-          { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
+          { path: "/ati-passport", label: "ATI Passport", icon: Shield },
+          { path: "/ati-standard", label: "ATI Standard", icon: Award },
+          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
+          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
+          { path: "/ati-verify", label: "Verification Center", icon: CheckCircle },
+          { path: "/experts", label: "Verified Experts", icon: BadgeCheck },
         ],
       },
     ],

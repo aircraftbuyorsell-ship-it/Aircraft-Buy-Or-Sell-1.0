@@ -47,6 +47,7 @@ export const NAV_TREE = [
           { path: "/solutions/sellers", label: "Seller Solutions", icon: Plane },
           { path: "/solutions/brokers", label: "Broker Solutions", icon: Briefcase },
           { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
+          { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
           { path: "/leads", label: "Leads", icon: Users },
           { path: "/community", label: "Community", icon: Users },
         ],

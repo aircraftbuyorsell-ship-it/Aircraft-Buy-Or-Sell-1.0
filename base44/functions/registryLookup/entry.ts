@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
           thrust: faa.thrust || null,
           make: faa.make || null,
           model: faa.model || null,
+          registered_owner: faa.name || null,
         };
       }
     } catch (_) { /* non-critical */ }

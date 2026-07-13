@@ -1,0 +1,8 @@
+import { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { Upload, Loader2 } from "lucide-react";
+export default function OwnershipUpload({ urls = [], onChange }) {
+  const [loading, setLoading] = useState(false), [error, setError] = useState("");
+  const upload = async (event) => { const file = event.target.files?.[0]; if (!file) return; setLoading(true); setError(""); try { const result = await base44.integrations.Core.UploadFile({ file }); onChange([...(urls || []), result.file_url]); } catch (e) { setError(e.message || "Upload failed."); } finally { setLoading(false); } };
+  return <section className="rounded-2xl border border-border bg-card p-5"><h2 className="font-bold text-card-foreground">Chain of ownership</h2><p className="mb-3 text-sm text-muted-foreground">Required when the seller is not the last FAA registered owner.</p><label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold text-card-foreground">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Attach document<input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={upload} disabled={loading} /></label>{urls.length > 0 && <p className="mt-2 text-xs text-emerald-600">{urls.length} document(s) attached</p>}{error && <p className="mt-2 text-xs text-red-600">{error}</p>}</section>;
+}

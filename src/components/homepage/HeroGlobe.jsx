@@ -207,11 +207,7 @@ export default function HeroGlobe() {
 
   return (
     <div ref={containerRef} className="absolute inset-0" style={{ pointerEvents: "none" }}>
-      {/* Always-dark backdrop so the globe stays visible in light mode */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 80% 70% at 50% 45%, #0a0e14 0%, #050709 70%, transparent 100%)",
-      }} />
-      <canvas ref={canvasRef} className="block w-full h-full relative" />
+      <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );
 }

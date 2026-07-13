@@ -124,6 +124,8 @@ Deno.serve(async (req) => {
     // 4) Create ATIPassport
     const passport = await base44.entities.ATIPassport.create({
       listing: listing.id,
+      registration: reg,
+      faa_aircraft_id: faaRecord.id,
       triggered_by: user.id,
       ati_total: total,
       ...dimensions,
@@ -182,6 +184,13 @@ Deno.serve(async (req) => {
       issued_at: new Date().toISOString(),
     });
 
+    const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
+      registration: reg,
+      listing_id: listing.id,
+      passport_id: passport.id,
+    });
+    const maintenance = maintenanceResponse.data?.results?.[0] || null;
+
     return Response.json({
       ok: true,
       action: 'created',
@@ -193,6 +202,7 @@ Deno.serve(async (req) => {
       registration: reg,
       aircraftLabel,
       dimensions,
+      maintenance,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

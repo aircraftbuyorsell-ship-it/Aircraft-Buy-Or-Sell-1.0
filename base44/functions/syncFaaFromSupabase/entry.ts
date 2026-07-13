@@ -333,6 +333,17 @@ Deno.serve(async (req) => {
         updated = toUpdate.length;
       }
 
+      const maintenanceRegistrations = [...new Set([...toCreate, ...toUpdate]
+        .filter((item) => item.eng_mfr_mdl)
+        .map((item) => `N${item.n_number}`))];
+      let maintenanceProcessed = 0;
+      if (maintenanceRegistrations.length) {
+        const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
+          registrations: maintenanceRegistrations,
+        });
+        maintenanceProcessed = maintenanceResponse.data?.processed || 0;
+      }
+
       // Get total for batch tracking
       const { count: realTotal } = await withTimeout(
         supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true })
@@ -357,6 +368,7 @@ Deno.serve(async (req) => {
         processed: (rows || []).length,
         created,
         updated,
+        maintenanceProcessed,
       });
     }
 

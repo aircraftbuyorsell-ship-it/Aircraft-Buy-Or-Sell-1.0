@@ -40,6 +40,13 @@ Deno.serve(async (req) => {
       return Response.json({ skipped: true, reason: 'no N-registration' });
     }
 
+    const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
+      registration,
+      engine_hours: data.engine_hours,
+      listing_id: listingId,
+    });
+    const maintenance = maintenanceResponse.data?.results?.[0] || null;
+
     // Skip if make and model are already filled — nothing to enrich, prevents loops
     if (data.make && data.model && data.make !== 'Unknown' && data.model !== 'Unknown') {
       return Response.json({ skipped: true, reason: 'make and model already set' });
@@ -80,6 +87,7 @@ Deno.serve(async (req) => {
       enrichedFields: lookupData.enrichedFields || [],
       photo: photoResult?.photo_url || null,
       photoSource: photoResult?.source || null,
+      maintenance,
       aircraft: {
         make: lookupData.aircraft.make,
         model: lookupData.aircraft.model,

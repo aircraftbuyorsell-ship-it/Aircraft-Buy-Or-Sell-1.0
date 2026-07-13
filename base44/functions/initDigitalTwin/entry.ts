@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     const dataGaps = [];
 
     // ── OPTIONAL providers — federated, skip-if-missing ──
-    const [engineRes, trafficRes, docRes, listingRes, escrowRes] = await Promise.allSettled([
+    const [engineRes, trafficRes, docRes, listingRes, escrowRes, maintenanceRes] = await Promise.allSettled([
       faa.eng_mfr_mdl
         ? svc.EngineSpec.filter({ engine_code: faa.eng_mfr_mdl.trim() }, '-created_date', 1)
         : Promise.resolve([]),
@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
       svc.FAADocIndex.filter({ n_number: nLookup }, '-created_date', 1),
       svc.AircraftListing.filter({ registration: reg }, '-created_date', 1),
       svc.EscrowTransaction.filter({ aircraft_label: { $regex: reg } }, '-created_date', 10),
+      base44.functions.invoke('calculateEngineMaintenance', { registration: reg }),
     ]);
 
     // Engine spec
@@ -94,11 +95,12 @@ Deno.serve(async (req) => {
     const existing = await svc.ATIPassport.filter({ registration: reg }, '-created_date', 1);
     const now = new Date().toISOString();
 
-    const engineHours = listing?.engine_hours ?? null;
-    const tboHours = engineSpec?.tbo_hours ?? null;
-    const remainingPct = (engineHours != null && tboHours)
+    const maintenance = maintenanceRes.status === 'fulfilled' ? maintenanceRes.value?.data?.results?.[0] : null;
+    const engineHours = maintenance?.current_engine_hours ?? listing?.engine_hours ?? null;
+    const tboHours = maintenance?.tbo_hours ?? engineSpec?.tbo_hours ?? null;
+    const remainingPct = maintenance?.remaining_pct ?? ((engineHours != null && tboHours)
       ? Math.max(0, Math.round(((tboHours - engineHours) / tboHours) * 100))
-      : null;
+      : null);
 
     const twinData = {
       registration: reg,

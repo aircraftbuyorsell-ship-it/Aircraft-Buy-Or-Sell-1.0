@@ -58,9 +58,28 @@ Deno.serve(async (req) => {
       return Response.json({ found: false, registration }, { status: 404 });
     }
 
-    const make = catalog?.manufacturer || passport?.make || card?.make || listing?.manufacturer || null;
-    const model = catalog?.model || passport?.model || card?.model || listing?.model || null;
+    const aircraftCode = registry?.mfr_mdl_code || catalog?.mfr_mdl_code || null;
     const engineCode = registry?.eng_mfr_mdl || catalog?.engine_mfr_mdl_code || null;
+    const [aircraftRefRows, engineRefRows, atiSignalRows, operatorAircraftRows, dealerRows, scoreRows, marketRows] = await Promise.all([
+      aircraftCode ? rest('faa_acftref', `select=*&code=eq.${encodeURIComponent(aircraftCode.trim())}&limit=1`) : [],
+      engineCode ? rest('faa_engine', `select=*&code=eq.${encodeURIComponent(engineCode.trim())}&limit=1`) : [],
+      rest('faa_ati_signals', `select=*&n_number=eq.${encodeURIComponent(nNumber)}&limit=1`),
+      rest('faa_operator_aircraft', `select=*&n_number=eq.${encodeURIComponent(registration)}&limit=1`),
+      registry?.state ? rest('faa_dealers', `select=cert_num,name,city,state,ownership_type,cert_date,expiration_date,is_active&state=eq.${encodeURIComponent(registry.state)}&is_active=eq.true&limit=25`) : [],
+      passport?.id ? rest('score_runs', `select=*&passport_id=eq.${encodeURIComponent(passport.id)}&order=created_at.desc&limit=1`) : [],
+      rest('market_pulse', 'select=*&order=period_end.desc&limit=12'),
+    ]);
+    const operatorRows = operatorAircraftRows[0]?.operator_id
+      ? await rest('faa_certificated_operators', `select=id,cfr,chdo,designator,name,source_updated_at&id=eq.${encodeURIComponent(operatorAircraftRows[0].operator_id)}&limit=1`)
+      : [];
+    const aircraftRef = aircraftRefRows[0] || null;
+    const engineRef = engineRefRows[0] || null;
+    const atiSignal = atiSignalRows[0] || null;
+    const operatorAircraft = operatorAircraftRows[0] || null;
+    const operator = operatorRows[0] || null;
+    const scoreRun = scoreRows[0] || null;
+    const make = catalog?.manufacturer || aircraftRef?.mfr || passport?.make || card?.make || listing?.manufacturer || null;
+    const model = catalog?.model || aircraftRef?.model || passport?.model || card?.model || listing?.model || null;
 
     let unlocked = ['admin', 'super_admin'].includes(user?.role);
     if (!unlocked && user?.email) {
@@ -110,9 +129,24 @@ Deno.serve(async (req) => {
       prop_time: card?.prop_spoh ?? null,
       damage_history: card?.damage_history ?? null,
       service_bulletins: card?.documents || null,
-      ati_score: card?.ati_score ?? null,
-      ati_breakdown: card?.ati_breakdown ?? null,
-      capex_preview: card?.capex_preview ?? null,
+      ati_score: scoreRun?.total_score ?? card?.ati_score ?? null,
+      ati_breakdown: scoreRun ? {
+        market_fit: scoreRun.dim_market_fit,
+        pricing: scoreRun.dim_pricing,
+        condition: scoreRun.dim_condition,
+        demand: scoreRun.dim_demand,
+        history: scoreRun.dim_history,
+        liquidity: scoreRun.dim_liquidity,
+        confidence_pct: scoreRun.confidence_pct,
+      } : card?.ati_breakdown ?? null,
+      valuation: scoreRun ? {
+        low: scoreRun.price_range_low,
+        mid: scoreRun.price_range_mid,
+        high: scoreRun.price_range_high,
+        currency: scoreRun.price_currency,
+        verdict: scoreRun.price_verdict,
+      } : null,
+      capex_preview: scoreRun?.capex_preview ?? card?.capex_preview ?? null,
     };
     const premiumFields = Object.entries(privateData).filter(([, value]) => value !== null).map(([key]) => key);
 
@@ -139,9 +173,13 @@ Deno.serve(async (req) => {
         air_worth_date: registry?.air_worth_date || catalog?.air_worth_date || null,
         last_action_date: registry?.last_action_date || catalog?.last_action_date || passport?.last_activity_date || null,
         engine_code: engineCode,
-        engine_mfr: engineSpec?.manufacturer || catalog?.engine_manufacturer || null,
-        engine_model: engineSpec?.model_name || catalog?.engine_model || null,
-        engine_type: engineSpec?.engine_type || catalog?.type_engine || card?.engine_type || null,
+        engine_mfr: engineSpec?.manufacturer || engineRef?.mfr || catalog?.engine_manufacturer || null,
+        engine_model: engineSpec?.model_name || engineRef?.model || catalog?.engine_model || null,
+        engine_type: engineSpec?.engine_type || engineRef?.type || aircraftRef?.type_engine || catalog?.type_engine || card?.engine_type || null,
+        horsepower: engineRef?.horsepower || catalog?.horsepower || null,
+        thrust: engineRef?.thrust || catalog?.thrust || null,
+        seats: aircraftRef?.no_seats || catalog?.seat_count || null,
+        cruise_speed_mph: aircraftRef?.speed_mph || catalog?.cruise_speed_mph || null,
         engine_tbo_hours: engineSpec?.tbo_hours || card?.engine_tbo || null,
       },
       certificates: {
@@ -157,13 +195,43 @@ Deno.serve(async (req) => {
         latest: trafficRows[0] || null,
         history: trafficRows,
       },
+      registry_filings: atiSignal ? {
+        bill_of_sale_count: atiSignal.bos_count,
+        security_agreement_count: atiSignal.sa_count,
+        release_count: atiSignal.rel_count,
+        total_documents: atiSignal.total_docs,
+        latest_filing: atiSignal.latest_filing,
+        ati_signal: atiSignal.ati_signal,
+      } : null,
+      commercial_operator: operator ? {
+        name: operator.name,
+        cfr: operator.cfr,
+        designator: operator.designator,
+        certificate_office: operator.chdo,
+        aircraft_reference: operatorAircraft?.aircraft_mms || null,
+        source_updated_at: operator.source_updated_at,
+      } : null,
+      service_network: { state: registry?.state || null, active_dealers: dealerRows },
+      market_context: marketRows,
       listing,
       premium: {
         unlocked,
         fields_available: premiumFields,
         data: unlocked ? privateData : null,
       },
-      data_sources: ['FAA Registry', catalog ? 'Aircraft Catalog' : null, passport ? 'Digital Twin' : null, trafficRows.length ? 'Live Traffic' : null, listing ? 'Marketplace' : null].filter(Boolean),
+      data_sources: [
+        'FAA Registry',
+        (catalog || aircraftRef) ? 'Aircraft Reference' : null,
+        engineRef ? 'FAA Engine Reference' : null,
+        atiSignal ? 'FAA Filing Signals' : null,
+        operator ? 'FAA Certificated Operators' : null,
+        dealerRows.length ? 'FAA Dealer Network' : null,
+        scoreRun ? 'ATI Score Runs' : null,
+        marketRows.length ? 'Market Pulse' : null,
+        passport ? 'Digital Twin' : null,
+        trafficRows.length ? 'Live Traffic' : null,
+        listing ? 'Marketplace' : null,
+      ].filter(Boolean),
       searchedAt: new Date().toISOString(),
     });
   } catch (error) {

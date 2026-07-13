@@ -4,7 +4,7 @@
  * keeping the API key server-side.
  */
 
-const GEMINI_MODEL = "gemini-2.0-flash-live-001";
+const GEMINI_MODEL = "gemini-3.1-flash-live-preview";
 const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent`;
 
 const SYSTEM_INSTRUCTION = `You are Max, an expert aviation pre-buy inspection assistant for ABOS.
@@ -71,15 +71,8 @@ Deno.serve(async (req) => {
     const setup = {
       setup: {
         model: `models/${GEMINI_MODEL}`,
-        generation_config: {
-          response_modalities: ["AUDIO"],
-          speech_config: {
-            voice_config: {
-              prebuilt_voice_config: { voice_name: "Charon" }
-            }
-          }
-        },
-        system_instruction: {
+        responseModalities: ["TEXT"],
+        systemInstruction: {
           parts: [{ text: SYSTEM_INSTRUCTION }]
         }
       }

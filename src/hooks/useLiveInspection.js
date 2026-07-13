@@ -21,7 +21,7 @@ export default function useLiveInspection(onFinding) {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
       streamRef.current = stream; videoRef.current.srcObject = stream; await videoRef.current.play();
       const ws = new WebSocket(wsUrl()); socketRef.current = ws;
-      ws.onopen = () => { setStatus('live'); timerRef.current = setInterval(() => { const c = canvasRef.current; c.width = 640; c.height = 480; c.getContext('2d').drawImage(videoRef.current, 0, 0, 640, 480); ws.send(JSON.stringify({ realtime_input: { media_chunks: [{ mime_type: 'image/jpeg', data: c.toDataURL('image/jpeg', .7).split(',')[1] }] } })); }, 2500); };
+      ws.onopen = () => { setStatus('live'); timerRef.current = setInterval(() => { const c = canvasRef.current; c.width = 640; c.height = 480; c.getContext('2d').drawImage(videoRef.current, 0, 0, 640, 480); ws.send(JSON.stringify({ realtimeInput: { video: { mimeType: 'image/jpeg', data: c.toDataURL('image/jpeg', .7).split(',')[1] } } })); }, 2500); };
       ws.onmessage = e => { const msg = JSON.parse(e.data); (msg?.serverContent?.modelTurn?.parts || []).forEach(p => p.text && onFinding(p.text)); };
       ws.onerror = () => setStatus('error'); ws.onclose = () => setStatus(s => s === 'idle' ? s : 'error');
     } catch { setStatus('denied'); }

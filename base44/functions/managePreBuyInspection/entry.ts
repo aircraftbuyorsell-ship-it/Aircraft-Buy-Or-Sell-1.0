@@ -57,6 +57,15 @@ async function syncPipeline(entities, record, user) {
   const created = await entities.SalesPipeline.create({ registration: record.aircraft?.registration, aircraft_label: `${record.aircraft?.year || ''} ${record.aircraft?.make || ''} ${record.aircraft?.model || ''}`.trim(), aircraft_class: record.aircraft?.aircraft_class || 'sep', status: 'active', current_step_id: 'buyer_decision', progress_pct: 33, steps });
   return created.id;
 }
+async function sendInvitation(base44, record, participant, appUrl) {
+  const safeOrigin = /^https:\/\/[a-z0-9.-]+$/i.test(String(appUrl || '')) ? appUrl : 'https://app.base44.com';
+  const link = `${safeOrigin}/pre-buy-inspection?id=${record.id}`;
+  await base44.asServiceRole.integrations.Core.SendEmail({
+    to: participant.email,
+    subject: `ABOS inspection invitation — ${record.aircraft?.registration}`,
+    body: `<h2>You have been invited to an ABOS Inspection Workspace</h2><p><strong>Aircraft:</strong> ${record.aircraft?.registration || ''} ${record.aircraft?.make || ''} ${record.aircraft?.model || ''}</p><p><strong>Your role:</strong> ${participant.role}</p><p><a href="${link}">Open secure inspection workspace</a></p><p style="color:#777;font-size:12px">Sign in with this email address. Access is permission controlled.</p>`
+  });
+}
 async function sendSummary(base44, record, appUrl) {
   const counts = reportCounts(record.findings);
   const recipients = [...new Set([record.buyer?.email, record.inspector?.email, ...(record.participants || []).map(p => p.email)].filter(Boolean))];
@@ -80,7 +89,10 @@ Deno.serve(async (req) => {
     if (action === 'create') {
       const id = crypto.randomUUID().slice(0, 8).toUpperCase();
       const created = await entities.PreBuyInspection.create({ report_id: `ABOS-PBI-${id}`, version: 1, status: 'requested', aircraft: body.aircraft, buyer: { id: user.id, name: user.full_name || user.email, email: user.email }, inspector: { ...(body.inspector || {}), selection: body.inspectorSelection || 'later' }, participants: body.participants || [], checklist: body.checklist || [], findings: [], media: [], shared_sections: ['summary'], decision_guidance: 'Pending', verification_status: 'unverified', audit_history: [audit(user, 'inspection_created')] });
-      return Response.json({ inspection: visible(created, user) });
+      const invitees = [...(body.participants || []), ...(body.inspector?.email ? [{ ...body.inspector, role: 'inspector' }] : [])];
+      const deliveries = await Promise.allSettled(invitees.map(p => sendInvitation(base44, created, p, body.appUrl)));
+      const warning = deliveries.some(d => d.status === 'rejected') ? 'Workspace created, but one or more invitation emails could not be delivered.' : null;
+      return Response.json({ inspection: visible(created, user), warning });
     }
     const record = await entities.PreBuyInspection.get(body.id);
     const role = roleFor(record, user);
@@ -126,6 +138,7 @@ Deno.serve(async (req) => {
     } else return Response.json({ error: 'Unknown action' }, { status: 400 });
     patch.audit_history = [...(record.audit_history || []), audit(user, action, body.details || '')];
     let updated = await entities.PreBuyInspection.update(record.id, patch);
+    if (action === 'invite') await sendInvitation(base44, updated, body.participant, body.appUrl);
     if (action === 'finalize') {
       const pipelineId = await syncPipeline(entities, updated, user);
       updated = await entities.PreBuyInspection.update(record.id, { pipeline_id: pipelineId });

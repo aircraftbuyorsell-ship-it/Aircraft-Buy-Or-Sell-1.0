@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { appParams } from '@/lib/app-params';
+import { base44 } from '@/api/base44Client';
 
 const FRAME_INTERVAL_MS = 1000;
+const NVIDIA_FRAME_INTERVAL_MS = 5000;
 const FRAME_MAX_WIDTH = 320;
+const captureFrame = (canvas, video) => {
+  if (!canvas || !video?.videoWidth) return null;
+  const width = Math.min(FRAME_MAX_WIDTH, video.videoWidth);
+  const height = Math.max(1, Math.round(video.videoHeight * width / video.videoWidth));
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+  return canvas.toDataURL('image/jpeg', .6).split(',')[1];
+};
 const wsUrl = () => {
   const base = (appParams.appBaseUrl || location.origin).replace(/\/$/, '').replace(/^https/, 'wss').replace(/^http(?!s)/, 'ws');
   return `${base}/api/apps/${appParams.appId}/functions/geminiLiveProxy${appParams.token ? `?token=${encodeURIComponent(appParams.token)}` : ''}`;
 };
-export default function useLiveInspection(onFinding) {
+export default function useLiveInspection(onFinding, provider = 'gemini') {
   const videoRef = useRef(null), canvasRef = useRef(null), streamRef = useRef(null), socketRef = useRef(null), timerRef = useRef(null);
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -52,6 +63,27 @@ export default function useLiveInspection(onFinding) {
     streamRef.current = stream;
     videoRef.current.srcObject = stream;
     await videoRef.current.play().catch(() => {});
+    if (provider === 'nvidia') {
+      setStatus('live');
+      let inFlight = false;
+      timerRef.current = setInterval(async () => {
+        if (inFlight) return;
+        const data = captureFrame(canvasRef.current, videoRef.current);
+        if (!data) return;
+        inFlight = true;
+        try {
+          const response = await base44.functions.invoke('nvidiaFrameAnalysis', { frame: data });
+          if (response.data?.finding) onFinding(response.data.finding);
+        } catch (analysisError) {
+          setStatus('error');
+          setErrorMessage(analysisError?.response?.data?.error || 'NVIDIA analysis failed.');
+          clearInterval(timerRef.current);
+        } finally {
+          inFlight = false;
+        }
+      }, NVIDIA_FRAME_INTERVAL_MS);
+      return;
+    }
     try {
       const ws = new WebSocket(wsUrl()); socketRef.current = ws;
       ws.onopen = () => {
@@ -59,14 +91,9 @@ export default function useLiveInspection(onFinding) {
         timerRef.current = setInterval(() => {
           const canvas = canvasRef.current;
           const video = videoRef.current;
-          if (!canvas || !video?.videoWidth || ws.readyState !== WebSocket.OPEN) return;
-          const width = Math.min(FRAME_MAX_WIDTH, video.videoWidth);
-          const height = Math.max(1, Math.round(video.videoHeight * width / video.videoWidth));
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(video, 0, 0, width, height);
-          const data = canvas.toDataURL('image/jpeg', .6).split(',')[1];
-          ws.send(JSON.stringify({ realtimeInput: { video: { mimeType: 'image/jpeg', data } } }));
+          if (ws.readyState !== WebSocket.OPEN) return;
+          const data = captureFrame(canvas, video);
+          if (data) ws.send(JSON.stringify({ realtimeInput: { video: { mimeType: 'image/jpeg', data } } }));
         }, FRAME_INTERVAL_MS);
       };
       ws.onmessage = e => {
@@ -84,6 +111,6 @@ export default function useLiveInspection(onFinding) {
       setStatus('error');
       setErrorMessage(connectionError.message || 'Live AI analysis could not connect.');
     }
-  }, [onFinding]);
+  }, [onFinding, provider]);
   return { videoRef, canvasRef, status, errorMessage, start, stop };
 }

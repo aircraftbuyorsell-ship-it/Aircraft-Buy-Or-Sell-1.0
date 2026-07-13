@@ -5,7 +5,28 @@ import {
   Search, Activity, Brain, Users, ArrowRight, CheckCircle2, Lock
 } from "lucide-react";
 import { useMonetization } from "@/hooks/useMonetization";
-import CalculatorPricingBadge from "@/components/calculators/CalculatorPricingBadge";
+
+// ── Audience tag colors ──
+const AUDIENCE_STYLES = {
+  buyer:   { bg: "rgba(78,142,247,0.12)",  color: "#4e8ef7",  label: "Buyer" },
+  seller:  { bg: "rgba(93,202,165,0.12)",  color: "#5dcaa5",  label: "Seller" },
+  broker:  { bg: "rgba(245,194,66,0.12)",  color: "#f5c242",  label: "Broker" },
+  lender:  { bg: "rgba(168,85,247,0.12)",  color: "#a855f7",  label: "Lender" },
+  owner:   { bg: "rgba(232,168,58,0.12)",  color: "#e8a83a",  label: "Owner" },
+};
+
+function AudienceBadge({ tag }) {
+  const s = AUDIENCE_STYLES[tag];
+  if (!s) return null;
+  return (
+    <span
+      className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
+      style={{ background: s.bg, color: s.color }}
+    >
+      {s.label}
+    </span>
+  );
+}
 
 const CALCULATOR_GROUPS = [
   {
@@ -15,9 +36,21 @@ const CALCULATOR_GROUPS = [
     color: "#5dcaa5",
     desc: "Start here — no account needed",
     items: [
-      { path: "/n-lookup", label: "Registry Lookup", icon: Search, featureId: "registry_lookup" },
-      { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp, featureId: "basic_valuation" },
-      { path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles, featureId: "detailing" },
+      {
+        path: "/n-lookup", label: "Registry Lookup", icon: Search, featureId: "registry_lookup",
+        audience: ["buyer", "seller", "broker"],
+        features: ["FAA + international registry", "N-Number / ICAO / S/N", "Owner cross-reference"],
+      },
+      {
+        path: "/valuation", label: "OMVM Valuation", icon: TrendingUp, featureId: "basic_valuation",
+        audience: ["buyer", "seller", "broker"],
+        features: ["Market-estimated value", "Comparable sales", "Depreciation curve"],
+      },
+      {
+        path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles, featureId: "detailing",
+        audience: ["owner", "seller"],
+        features: ["Exterior wash & wax", "Interior deep clean", "Labor + material estimate"],
+      },
     ],
   },
   {
@@ -27,10 +60,26 @@ const CALCULATOR_GROUPS = [
     color: "#f5c242",
     desc: "Aircraft transparency scoring & reports",
     items: [
-      { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, featureId: "ati_quick_score" },
-      { path: "/ati-full-report", label: "ATI Full Report", icon: Shield, featureId: "ati_full_report" },
-      { path: "/investment-brief", label: "Investment Brief", icon: Brain, featureId: "investment_brief" },
-      { path: "/market-reports", label: "Market Report", icon: TrendingUp, featureId: "market_report" },
+      {
+        path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap, featureId: "ati_quick_score",
+        audience: ["buyer", "broker"],
+        features: ["120-point transparency score", "Risk flag summary", "PDF scorecard"],
+      },
+      {
+        path: "/ati-full-report", label: "ATI Full Report", icon: Shield, featureId: "ati_full_report",
+        audience: ["buyer", "broker", "lender"],
+        features: ["Full due diligence", "8-dimension breakdown", "Branded .docx report"],
+      },
+      {
+        path: "/investment-brief", label: "Investment Brief", icon: Brain, featureId: "investment_brief",
+        audience: ["buyer", "broker", "lender"],
+        features: ["AI health analysis", "ROI projection", "Financial risk score"],
+      },
+      {
+        path: "/market-reports", label: "Market Report", icon: TrendingUp, featureId: "market_report",
+        audience: ["buyer", "seller", "broker"],
+        features: ["Make/model analysis", "Price trends", "Comparable listings"],
+      },
     ],
   },
   {
@@ -40,9 +89,21 @@ const CALCULATOR_GROUPS = [
     color: "#4e8ef7",
     desc: "OPEX unlocks all sub-calculators below",
     items: [
-      { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, featureId: "opex_calculator", primary: true },
-      { path: "/insurance-calculator", label: "Insurance", icon: Shield, featureId: "insurance_calculator" },
-      { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign, featureId: "leasing_calculator" },
+      {
+        path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, featureId: "opex_calculator", primary: true,
+        audience: ["buyer", "owner", "broker"],
+        features: ["Annual cost projection", "Engine/prop/inspection reserves", "Location-adjusted rates"],
+      },
+      {
+        path: "/insurance-calculator", label: "Insurance", icon: Shield, featureId: "insurance_calculator",
+        audience: ["buyer", "owner"],
+        features: ["Hull & liability premium", "Pilot experience factor", "Deductible options"],
+      },
+      {
+        path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign, featureId: "leasing_calculator",
+        audience: ["buyer", "broker", "lender"],
+        features: ["Dry lease rate estimate", "Tax benefit analysis", "Residual value projection"],
+      },
     ],
   },
   {
@@ -52,10 +113,26 @@ const CALCULATOR_GROUPS = [
     color: "#a855f7",
     desc: "Included with OPEX session — or standalone",
     items: [
-      { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap, featureId: "avionics_upgrade" },
-      { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket, featureId: "exterior_refurb" },
-      { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair, featureId: "interior_refurb" },
-      { path: "/upgrade-comparison", label: "Upgrade Compare", icon: TrendingUp, featureId: "avionics_upgrade" },
+      {
+        path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap, featureId: "avionics_upgrade",
+        audience: ["buyer", "owner"],
+        features: ["Glass panel retrofit", "Transponder/ADS-B install", "Labor + parts estimate"],
+      },
+      {
+        path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket, featureId: "exterior_refurb",
+        audience: ["seller", "owner"],
+        features: ["Full repaint estimate", "Polish & corrosion treatment", "Condition-based pricing"],
+      },
+      {
+        path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair, featureId: "interior_refurb",
+        audience: ["seller", "owner"],
+        features: ["Seat reupholstery", "Cabin paneling & carpet", "Material grade options"],
+      },
+      {
+        path: "/upgrade-comparison", label: "Upgrade Compare", icon: TrendingUp, featureId: "avionics_upgrade",
+        audience: ["buyer", "owner", "broker"],
+        features: ["Side-by-side cost compare", "ROI per upgrade", "Combined project total"],
+      },
     ],
   },
   {
@@ -65,24 +142,106 @@ const CALCULATOR_GROUPS = [
     color: "#5dcaa5",
     desc: "Fractional, fleet, and tracking tools",
     items: [
-      { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users, featureId: "opex_calculator" },
-      { path: "/registry-comparator", label: "Registry Comparator", icon: Search, featureId: "registry_lookup" },
+      {
+        path: "/fractional-calculators", label: "Fractional Ownership", icon: Users, featureId: "opex_calculator",
+        audience: ["buyer", "broker"],
+        features: ["Share-split calculator", "Cost-per-owner breakdown", "Usage allocation"],
+      },
+      {
+        path: "/registry-comparator", label: "Registry Comparator", icon: Search, featureId: "registry_lookup",
+        audience: ["buyer", "broker", "lender"],
+        features: ["FAA vs EASA vs CAA", "Cross-registry data match", "Compliance gap flags"],
+      },
     ],
   },
 ];
+
+// ── Centered price display ──
+function CenteredPrice({ featureId }) {
+  const { getPrice, isRegistered, featurePricing } = useMonetization();
+  const price = getPrice(featureId);
+  if (!price) return null;
+
+  if (price.is_free) {
+    return (
+      <div className="text-center py-2">
+        <span
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
+          style={{ background: "rgba(93,202,165,0.12)", color: "#5dcaa5", border: "0.5px solid rgba(93,202,165,0.25)" }}
+        >
+          <Sparkles className="w-3 h-3" /> Free
+        </span>
+      </div>
+    );
+  }
+
+  // Bundled with OPEX
+  const featureData = featurePricing?.[featureId];
+  if (featureData?.bundled_with === "opex_calculator") {
+    return (
+      <div className="text-center py-2">
+        <span
+          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
+          style={{ background: "rgba(78,142,247,0.12)", color: "#4e8ef7", border: "0.5px solid rgba(78,142,247,0.25)" }}
+        >
+          <CheckCircle2 className="w-3 h-3" /> Incl. with OPEX
+        </span>
+      </div>
+    );
+  }
+
+  // Paid — registered member
+  if (isRegistered && price.member_price_eur) {
+    return (
+      <div className="text-center py-2">
+        <div className="flex items-baseline justify-center gap-2">
+          {price.list_price_eur && (
+            <span className="text-xs line-through" style={{ color: "rgba(255,255,255,0.30)" }}>
+              €{price.list_price_eur}
+            </span>
+          )}
+          <span className="text-lg font-black" style={{ color: "#5dcaa5" }}>
+            €{price.member_price_eur}
+          </span>
+        </div>
+        <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>
+          or {price.credits} credits
+        </p>
+      </div>
+    );
+  }
+
+  // Paid — unregistered (full fiat price + nudge)
+  return (
+    <div className="text-center py-2">
+      <span className="text-lg font-black" style={{ color: "rgba(255,255,255,0.90)" }}>
+        €{price.fiat_eur}
+      </span>
+      <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>
+        or {price.credits} credits
+      </p>
+      {price.list_price_eur && (
+        <p className="text-[9px] mt-0.5" style={{ color: "#f5c242" }}>
+          Register — save {price.discount_pct || 30}%
+        </p>
+      )}
+    </div>
+  );
+}
 
 function CalculatorCard({ item, color }) {
   const Icon = item.icon;
   return (
     <Link
       to={item.path}
-      className="group rounded-2xl p-4 flex flex-col gap-3 transition-all duration-200 hover:scale-[1.02]"
+      className="group rounded-2xl p-4 flex flex-col gap-2 transition-all duration-200 hover:scale-[1.02]"
       style={{
         background: "rgba(255,255,255,0.04)",
         border: `0.5px solid ${item.primary ? `${color}40` : "rgba(255,255,255,0.08)"}`,
         boxShadow: item.primary ? `0 0 20px ${color}10` : "none",
       }}
     >
+      {/* Icon + audience badges */}
       <div className="flex items-start justify-between gap-2">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -90,8 +249,14 @@ function CalculatorCard({ item, color }) {
         >
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
-        <CalculatorPricingBadge featureId={item.featureId} compact={!item.primary} />
+        <div className="flex flex-wrap gap-1 justify-end">
+          {(item.audience || []).map((tag) => (
+            <AudienceBadge key={tag} tag={tag} />
+          ))}
+        </div>
       </div>
+
+      {/* Label */}
       <div>
         <p className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.90)" }}>
           {item.label}
@@ -102,6 +267,23 @@ function CalculatorCard({ item, color }) {
           </p>
         )}
       </div>
+
+      {/* Centered price */}
+      <CenteredPrice featureId={item.featureId} />
+
+      {/* Feature list */}
+      {(item.features || []).length > 0 && (
+        <ul className="space-y-1 pt-1" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
+          {item.features.map((feat, i) => (
+            <li key={i} className="flex items-start gap-1.5 text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <CheckCircle2 className="w-3 h-3 shrink-0 mt-0.5" style={{ color: `${color}80` }} />
+              <span>{feat}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Open link */}
       <div className="flex items-center gap-1 mt-auto pt-2" style={{ borderTop: "0.5px solid rgba(255,255,255,0.06)" }}>
         <span className="text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.50)" }}>
           Open
@@ -113,7 +295,7 @@ function CalculatorCard({ item, color }) {
 }
 
 export default function CalculatorsHub() {
-  const { isRegistered, hasSubscription } = useMonetization();
+  const { isRegistered } = useMonetization();
 
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>

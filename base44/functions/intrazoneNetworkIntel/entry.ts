@@ -41,6 +41,39 @@ Deno.serve(async (req) => {
       return Response.json({ source: 'FAA Certificated Operators via IntraZone', designator, count: records.length, records });
     }
 
+    if (body.action === 'eu_mro_search') {
+      const country = String(body.country_code || '').trim().toUpperCase();
+      if (country && !STATE.test(country)) return Response.json({ error: 'Valid two-letter country code required' }, { status: 400 });
+      const rawTerm = String(body.query || '').trim();
+      if (rawTerm && !/^[\p{L}\p{N} .&()/'-]{2,80}$/u.test(rawTerm)) return Response.json({ error: 'Invalid search query' }, { status: 400 });
+      const term = rawTerm.replaceAll("'", "''");
+      const countryFilter = country ? `and m.country_code='${country}'` : '';
+      const termFilter = term ? `and (m.organisation_name ilike '%${term}%' or m.approval_number ilike '%${term}%')` : '';
+      const records = await query(`select m.country_code,m.approval_number,m.organisation_name,m.approval_type,m.status,m.rating_summary,m.source_url,m.source_retrieved_at,r.status as import_status,r.source_published_at,r.source_sha256 from eu_mro_organisations m left join eu_mro_import_runs r on r.id=m.import_run_id where m.status='active' ${countryFilter} ${termFilter} order by m.country_code,m.organisation_name limit 200`);
+      return Response.json({ source: 'Verified EU CAA sources via IntraZone', country_code: country || null, query: rawTerm || null, count: records.length, records });
+    }
+
+    if (body.action === 'verify_eu_mro') {
+      const approval = String(body.approval_number || '').trim().toUpperCase();
+      if (!/^[A-Z0-9][A-Z0-9.\-\/]{2,40}$/.test(approval)) return Response.json({ error: 'Valid approval number required' }, { status: 400 });
+      const records = await query(`select m.country_code,m.approval_number,m.organisation_name,m.approval_type,m.status,m.rating_summary,m.source_url,m.source_retrieved_at,r.status as import_status,r.source_published_at,r.source_sha256 from eu_mro_organisations m left join eu_mro_import_runs r on r.id=m.import_run_id where upper(m.approval_number)='${approval}' limit 1`);
+      return Response.json({ source: 'Verified EU CAA sources via IntraZone', approval_number: approval, verified: records[0]?.status === 'active' && ['succeeded', 'completed'].includes(records[0]?.import_status), organisation: records[0] || null });
+    }
+
+    if (body.action === 'eu_source_coverage') {
+      if (!['admin', 'super_admin'].includes(user.role)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+      const records = await query(`select country_code,country_name,authority_name,authority_url,registry_source_url,mro_source_url,aoc_source_url,access_mode,registry_status,mro_status,aoc_status,notes,reviewed_at,updated_at from easa_member_state_ingestion order by country_code`);
+      const summary = records.reduce((acc, row) => {
+        acc.total += 1;
+        if (row.mro_status === 'approved') acc.mro_approved += 1;
+        if (row.aoc_status === 'approved') acc.aoc_approved += 1;
+        if (row.registry_status === 'approved') acc.registry_approved += 1;
+        if ([row.mro_status, row.aoc_status, row.registry_status].includes('blocked')) acc.blocked += 1;
+        return acc;
+      }, { total: 0, mro_approved: 0, aoc_approved: 0, registry_approved: 0, blocked: 0 });
+      return Response.json({ source: 'EASA member-state ingestion audit', summary, records });
+    }
+
     if (body.action === 'nearby_facilities') {
       const lat = Number(body.latitude);
       const lon = Number(body.longitude);

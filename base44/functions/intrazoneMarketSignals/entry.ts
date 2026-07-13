@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
           'market_pulse', coalesce((select json_agg(x) from (select aircraft_category,period_start,period_end,avg_ati_score,median_price,price_trend_pct,listing_count,sold_count,avg_days_to_close,demand_signal,computed_at from market_pulse order by period_end desc limit 12) x),'[]'::json),
           'jet_fuel', coalesce((select json_agg(x) from (select period,value_usd_per_gallon,units,area_code,source_description from eia_jet_fuel_spot_prices order by period desc limit 12) x),'[]'::json),
           'international_traffic', coalesce((select json_agg(x) from (select year,month,metric_type,sum(total) as total from dot_international_air_traffic group by year,month,metric_type order by year desc,month desc limit 18) x),'[]'::json),
-          'network', json_build_object('active_dealers',(select count(*) from faa_dealers where is_active=true),'certificated_operators',(select count(*) from faa_certificated_operators),'tracked_operator_aircraft',(select count(*) from faa_operator_aircraft),'air_facilities',(select count(*) from bts_air_facilities))
+          'network', json_build_object('active_dealers',(select count(*) from faa_dealers where is_active=true),'certificated_operators',(select count(*) from faa_certificated_operators),'tracked_operator_aircraft',(select count(*) from faa_operator_aircraft),'air_facilities',(select count(*) from bts_air_facilities),'active_eu_mro',(select count(*) from eu_mro_organisations where status='active'),'verified_eu_mro_states',(select count(*) from easa_member_state_ingestion where mro_status='approved'))
         ) as result
       `);
       return Response.json({ source: 'IntraZone', generated_at: new Date().toISOString(), ...(data[0]?.result || {}) });

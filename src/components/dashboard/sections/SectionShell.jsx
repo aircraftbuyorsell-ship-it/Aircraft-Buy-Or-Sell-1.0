@@ -18,7 +18,7 @@ export default function SectionShell({
       style={{
         background: bg,
         padding,
-        borderTop: topBorder ? "0.5px solid rgba(212,160,23,0.08)" : "none",
+        borderTop: topBorder ? "0.5px solid #A67C00" : "none",
       }}
     >
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
@@ -40,7 +40,7 @@ export default function SectionShell({
                     fontSize: 10,
                     letterSpacing: "0.14em",
                     textTransform: "uppercase",
-                    color: "#D4A017",
+                    color: "#A67C00",
                     marginBottom: 8,
                   }}
                 >
@@ -53,7 +53,7 @@ export default function SectionShell({
                     fontSize: 28,
                     fontWeight: 500,
                     letterSpacing: "-0.03em",
-                    color: "#fff",
+                    color: "#1A1A1A",
                     margin: 0,
                   }}
                 >
@@ -64,7 +64,7 @@ export default function SectionShell({
                 <p
                   style={{
                     fontSize: 13,
-                    color: "rgba(255,255,255,0.4)",
+                    color: "#4D4D4D",
                     maxWidth: 560,
                     lineHeight: 1.6,
                     marginTop: 8,

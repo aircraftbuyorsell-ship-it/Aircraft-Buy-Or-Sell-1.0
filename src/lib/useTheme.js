@@ -2,52 +2,27 @@ import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "abos-theme";
 
-// Dark 18:00–06:00, light otherwise
-function isNightHour() {
-  const h = new Date().getHours();
-  return h >= 18 || h < 6;
-}
-
-function resolveIsDark(stored) {
-  if (stored === "dark") return true;
-  if (stored === "light") return false;
-  // "auto" or no preference → time-based (dark 18:00–06:00)
-  return isNightHour();
-}
-
-function applyClass(isDark) {
-  document.documentElement.classList.toggle("dark", isDark);
+// Light mode is disabled — ABOS is always dark
+function applyClass() {
+  document.documentElement.classList.add("dark");
 }
 
 export function useTheme() {
-  const [isDark, setIsDark] = useState(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const dark = resolveIsDark(stored);
-    applyClass(dark);
-    return dark;
+  const [isDark] = useState(() => {
+    applyClass();
+    return true;
   });
 
   useEffect(() => {
-    // Sync from DOM mutations (ThemeToggle or other class changes)
+    applyClass();
+    // Ensure dark stays on even if ThemeToggle tries to switch
     const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains("dark"));
+      if (!document.documentElement.classList.contains("dark")) {
+        document.documentElement.classList.add("dark");
+      }
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-
-    // Re-evaluate auto mode every 5 minutes (catches hour transitions)
-    const interval = setInterval(() => {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "auto" || !stored) {
-        const dark = resolveIsDark(stored);
-        applyClass(dark);
-        setIsDark(dark);
-      }
-    }, 5 * 60 * 1000);
-
-    return () => {
-      observer.disconnect();
-      clearInterval(interval);
-    };
+    return () => observer.disconnect();
   }, []);
 
   return isDark;

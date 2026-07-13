@@ -51,10 +51,10 @@ export default function HeroGlobe() {
     const GOLD = 0xf5c242;
 
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: 0x0A0E14,
-      emissive: 0x05080c,
-      shininess: 4,
-      specular: 0x0a0f1a,
+      color: 0x050608,
+      emissive: 0x02030a,
+      shininess: 90,
+      specular: 0xb89858,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -78,9 +78,9 @@ export default function HeroGlobe() {
     const gridGeo = new THREE.BufferGeometry();
     gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(gridPts, 3));
     const grid = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({
-      color: 0x2a3540,
+      color: 0xb89858,
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.10,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     }));
@@ -143,12 +143,15 @@ export default function HeroGlobe() {
       markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
     });
 
-    scene.add(new THREE.AmbientLight(0x1a2030, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xfff1d6, 1.1);
+    scene.add(new THREE.AmbientLight(0x0a0c10, 0.3));
+    const dirLight = new THREE.DirectionalLight(0xd4a017, 0.8);
     dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x4a6a9a, 0.25);
-    fillLight.position.set(-3, -1, -2);
+    const rimLight = new THREE.DirectionalLight(0xb89858, 0.5);
+    rimLight.position.set(-4, 1, -2);
+    scene.add(rimLight);
+    const fillLight = new THREE.DirectionalLight(0x1a2030, 0.15);
+    fillLight.position.set(0, -3, 2);
     scene.add(fillLight);
 
     const sg = new THREE.BufferGeometry();

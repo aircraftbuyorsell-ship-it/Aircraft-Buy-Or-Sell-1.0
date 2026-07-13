@@ -76,7 +76,8 @@ Deno.serve(async (req) => {
     const setup = {
       setup: {
         model: `models/${GEMINI_MODEL}`,
-        generationConfig: { responseModalities: ["TEXT"] },
+        responseModalities: ["AUDIO"],
+        outputAudioTranscription: {},
         systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] }
       }
     };

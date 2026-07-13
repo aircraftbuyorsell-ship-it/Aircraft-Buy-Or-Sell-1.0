@@ -66,10 +66,16 @@ export default function useLiveInspection(onFinding) {
           canvas.height = height;
           canvas.getContext('2d').drawImage(video, 0, 0, width, height);
           const data = canvas.toDataURL('image/jpeg', .6).split(',')[1];
-          ws.send(JSON.stringify({ realtimeInput: { mediaChunks: [{ mimeType: 'image/jpeg', data }] } }));
+          ws.send(JSON.stringify({ realtimeInput: { video: { mimeType: 'image/jpeg', data } } }));
         }, FRAME_INTERVAL_MS);
       };
-      ws.onmessage = e => { const msg = JSON.parse(e.data); if (msg?.error) { setStatus('error'); setErrorMessage(msg.error); return; } (msg?.serverContent?.modelTurn?.parts || []).forEach(p => p.text && onFinding(p.text)); };
+      ws.onmessage = e => {
+        const msg = JSON.parse(e.data);
+        if (msg?.error) { setStatus('error'); setErrorMessage(msg.error); return; }
+        (msg?.serverContent?.modelTurn?.parts || []).forEach(part => part.text && onFinding(part.text));
+        const transcription = msg?.serverContent?.outputTranscription?.text;
+        if (transcription) onFinding(transcription);
+      };
       ws.onerror = () => { setStatus('error'); setErrorMessage('The camera opened, but live AI analysis could not connect.'); };
       ws.onclose = () => { if (socketRef.current !== ws) return; clearInterval(timerRef.current); stream.getTracks().forEach(track => track.stop()); socketRef.current = null; streamRef.current = null; setStatus('error'); setErrorMessage(message => message || 'The live AI analysis connection closed. Please try again.'); };
     } catch (connectionError) {

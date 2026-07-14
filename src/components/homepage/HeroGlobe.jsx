@@ -42,7 +42,7 @@ export default function HeroGlobe() {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
-    camera.position.set(0, 0.3, 4.5);
+    camera.position.set(0, 0.3, 6.2);
 
     const globe = new THREE.Group();
     scene.add(globe);

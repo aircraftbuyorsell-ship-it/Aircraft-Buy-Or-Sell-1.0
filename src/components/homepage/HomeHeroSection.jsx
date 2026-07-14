@@ -19,7 +19,7 @@ export default function HomeHeroSection() {
 
       <div className="relative z-10 flex h-full flex-col justify-center px-4 sm:px-8">
         <div className="mx-auto w-full max-w-[1240px]">
-          <div className="flex w-full max-w-[680px] flex-col items-start text-left sm:pt-16 px-3 mb-6">
+          <div className="flex w-full max-w-[680px] flex-col items-start text-left sm:pt-16 px-3">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 sm:mb-6">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS™ Platform</span>

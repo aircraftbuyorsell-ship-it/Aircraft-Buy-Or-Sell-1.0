@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import { useTheme } from "@/lib/useTheme";
 
 const CITY_PAIRS = [
   [[40.7, -74.0], [51.5, -0.1]],
@@ -27,6 +28,7 @@ function latLonToVec3(lat, lon, r) {
 export default function HeroGlobe() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const isDark = useTheme();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -50,11 +52,13 @@ export default function HeroGlobe() {
     const SPHERE_R = 1.8;
     const GOLD = 0xf5c242;
 
+    // Theme-dependent palette
+    // Light: champagne gold-silver metallic; Dark: deep space black
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: 0x0A0E14,
-      emissive: 0x05080c,
-      shininess: 4,
-      specular: 0x0a0f1a,
+      color: isDark ? 0x0A0E14 : 0xC9A84C,
+      emissive: isDark ? 0x05080c : 0x1a1408,
+      shininess: isDark ? 4 : 85,
+      specular: isDark ? 0x0a0f1a : 0xFFFFE0,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -78,10 +82,10 @@ export default function HeroGlobe() {
     const gridGeo = new THREE.BufferGeometry();
     gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(gridPts, 3));
     const grid = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({
-      color: 0x2a3540,
+      color: isDark ? 0x2a3540 : 0x8B7A3A,
       transparent: true,
-      opacity: 0.18,
-      blending: THREE.AdditiveBlending,
+      opacity: isDark ? 0.18 : 0.3,
+      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
       depthWrite: false,
     }));
     globe.add(grid);
@@ -99,7 +103,7 @@ export default function HeroGlobe() {
       const tubeMat = new THREE.MeshBasicMaterial({
         color: GOLD,
         transparent: true,
-        opacity: 0.55,
+        opacity: isDark ? 0.55 : 0.7,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
@@ -143,14 +147,16 @@ export default function HeroGlobe() {
       markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
     });
 
-    scene.add(new THREE.AmbientLight(0x1a2030, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xfff1d6, 1.1);
+    // Lights — brighter & warmer in light mode for metallic gold reflection
+    scene.add(new THREE.AmbientLight(isDark ? 0x1a2030 : 0xfff8e8, isDark ? 0.5 : 0.75));
+    const dirLight = new THREE.DirectionalLight(0xfff1d6, isDark ? 1.1 : 1.4);
     dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x4a6a9a, 0.25);
+    const fillLight = new THREE.DirectionalLight(isDark ? 0x4a6a9a : 0xd4a017, isDark ? 0.25 : 0.35);
     fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 
+    // Stars — subtle in light mode, visible in dark mode
     const sg = new THREE.BufferGeometry();
     const sp = [];
     for (let i = 0; i < 500; i++) {
@@ -163,10 +169,10 @@ export default function HeroGlobe() {
     }
     sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
     scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
-      color: 0x8fa8cc,
+      color: isDark ? 0x8fa8cc : 0x999999,
       size: 0.05,
       transparent: true,
-      opacity: 0.5,
+      opacity: isDark ? 0.5 : 0.12,
     })));
 
     let rafId;
@@ -203,7 +209,7 @@ export default function HeroGlobe() {
       renderer.dispose();
       scene.clear();
     };
-  }, []);
+  }, [isDark]);
 
   return (
     <div ref={containerRef} className="absolute inset-0" style={{ pointerEvents: "none" }}>

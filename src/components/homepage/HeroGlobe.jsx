@@ -57,7 +57,7 @@ export default function HeroGlobe() {
     const sphereMat = new THREE.MeshPhongMaterial({
       color: isDark ? 0x0A0E14 : 0xC9A84C,
       emissive: isDark ? 0x05080c : 0x1a1408,
-      shininess: isDark ? 4 : 85,
+      shininess: isDark ? 4 : 40,
       specular: isDark ? 0x0a0f1a : 0xFFFFE0,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);

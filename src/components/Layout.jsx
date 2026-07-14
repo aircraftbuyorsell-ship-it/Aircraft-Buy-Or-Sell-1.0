@@ -215,13 +215,13 @@ export default function Layout() {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill="white" />
+              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "rgba(0,0,0,0.9)"} />
             </marker>
           </defs>
-          <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
+          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
-        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "Inter, -apple-system, sans-serif" }}>
+        <div style={{ textAlign: "center", marginTop: 18, color: isDark ? "#fff" : "rgba(0,0,0,0.9)", fontFamily: "Inter, -apple-system, sans-serif" }}>
           <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
             ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
@@ -265,7 +265,7 @@ export default function Layout() {
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
+            style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
                 <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
               </button>
             }

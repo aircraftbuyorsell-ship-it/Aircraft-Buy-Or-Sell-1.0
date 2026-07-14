@@ -12,21 +12,10 @@ export default function ListingsShowcase({
   actionTo,
   actionLabel,
 }) {
-  // Nothing to show — hide the whole section instead of an empty shell
   if (!isLoading && listings.length === 0) return null;
 
   const action = actionTo ? (
-    <Link
-      to={actionTo}
-      style={{
-        fontSize: 12,
-        color: "#D4A017",
-        textDecoration: "none",
-        display: "flex",
-        alignItems: "center",
-        gap: 4,
-      }}
-    >
+    <Link to={actionTo} className="text-xs text-gold-official flex items-center gap-1 no-underline">
       {actionLabel} <ArrowRight size={14} />
     </Link>
   ) : null;
@@ -35,56 +24,24 @@ export default function ListingsShowcase({
     <SectionShell eyebrow={eyebrow} title={title} action={action}>
       {listings.length > 0 ? (
         layout === "carousel" ? (
-          <div
-            style={{
-              display: "flex",
-              gap: 16,
-              overflowX: "auto",
-              paddingBottom: 16,
-              scrollbarWidth: "none",
-            }}
-          >
+          <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none]">
             {listings.map((l) => (
-              <div key={l.id} style={{ minWidth: 280, flexShrink: 0 }}>
+              <div key={l.id} className="min-w-[280px] flex-shrink-0">
                 <ListingCard listing={l} />
               </div>
             ))}
           </div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              gap: 16,
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {listings.slice(0, 6).map((l) => (
               <ListingCard key={l.id} listing={l} />
             ))}
           </div>
         )
       ) : (
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            overflowX: "hidden",
-            paddingBottom: 16,
-          }}
-        >
+        <div className="flex gap-4 overflow-x-hidden pb-4">
           {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              style={{
-                minWidth: 280,
-                height: 300,
-                flexShrink: 0,
-                background: "rgba(255,255,255,0.03)",
-                border: "0.5px solid rgba(255,255,255,0.06)",
-                borderRadius: 12,
-              }}
-              className="animate-pulse"
-            />
+            <div key={i} className="min-w-[280px] h-[300px] flex-shrink-0 rounded-xl bg-muted/40 border border-border animate-pulse" />
           ))}
         </div>
       )}

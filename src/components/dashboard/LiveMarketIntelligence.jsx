@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, ReferenceLine,
+  AreaChart, Area,
 } from "recharts";
 import { Activity, TrendingUp, Database, BarChart3 } from "lucide-react";
 import SectionShell from "@/components/dashboard/sections/SectionShell";
@@ -16,33 +16,14 @@ const fmtPrice = (n) => {
   return `$${n}`;
 };
 
-function SkeletonCard() {
-  return (
-    <div style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "0.5px solid rgba(255,255,255,0.06)",
-      borderRadius: 12,
-      padding: 24,
-    }}>
-      <div style={{ height: 12, width: 120, background: "rgba(255,255,255,0.06)", borderRadius: 4, marginBottom: 16 }} />
-      <div style={{ height: 180, background: "rgba(255,255,255,0.03)", borderRadius: 8 }} />
-    </div>
-  );
-}
-
 function ChartCard({ icon: Icon, title, subtitle, children }) {
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "0.5px solid rgba(255,255,255,0.06)",
-      borderRadius: 12,
-      padding: 24,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <Icon size={14} style={{ color: "#f5c242" }} />
-        <span style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>{title}</span>
+    <div className="rounded-xl p-6 bg-card border border-border">
+      <div className="flex items-center gap-2 mb-1">
+        <Icon size={14} className="text-gold-official" />
+        <span className="text-[10px] tracking-[0.12em] uppercase text-muted-foreground">{title}</span>
       </div>
-      {subtitle && <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 16px" }}>{subtitle}</p>}
+      {subtitle && <p className="text-[11px] text-muted-foreground/70 mb-4">{subtitle}</p>}
       {children}
     </div>
   );
@@ -55,6 +36,10 @@ const tooltipStyle = {
   fontSize: 11,
   color: "#fff",
 };
+
+const AXIS_TICK = "hsl(var(--muted-foreground))";
+const AXIS_LINE = "hsl(var(--border))";
+const GRID_STROKE = "hsl(var(--border))";
 
 export default function LiveMarketIntelligence() {
   const { data: marketData, isLoading } = useQuery({
@@ -98,11 +83,13 @@ export default function LiveMarketIntelligence() {
 
   if (isLoading) {
     return shell(
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="rounded-xl p-6 bg-card border border-border">
+            <div className="h-3 w-30 bg-muted rounded mb-4 animate-pulse" />
+            <div className="h-45 bg-muted/50 rounded-lg animate-pulse" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -110,18 +97,11 @@ export default function LiveMarketIntelligence() {
   const market = marketData || [];
   const allStale = market.length > 0 && market.every((m) => m.data._source === "cached" || m.data.is_stale);
   const lastUpdated = market.length > 0
-    ? market
-        .map((m) => new Date(m.data.fetched_at).getTime())
-        .sort((a, b) => b - a)[0]
+    ? market.map((m) => new Date(m.data.fetched_at).getTime()).sort((a, b) => b - a)[0]
     : null;
 
-  // Chart 1: Availability by Make (bar)
-  const availabilityData = market.map((m) => ({
-    make: m.make,
-    listings: m.data.listings_count || 0,
-  }));
+  const availabilityData = market.map((m) => ({ make: m.make, listings: m.data.listings_count || 0 }));
 
-  // Chart 2: Price Distribution (histogram across all makes)
   const allPrices = market.flatMap((m) => m.data.price_samples || []);
   const bucketSize = 50000;
   const buckets = {};
@@ -133,7 +113,6 @@ export default function LiveMarketIntelligence() {
     .map(([k, v]) => ({ range: `${fmtPrice(Number(k))}`, count: v, sortKey: Number(k) }))
     .sort((a, b) => a.sortKey - b.sortKey);
 
-  // Chart 3: Live Market Avg vs OMVM (area)
   const avgVsOmvmData = market.map((m) => {
     const internal = internalListings.filter(
       (l) => l.make && l.make.toLowerCase().includes(m.make.toLowerCase())
@@ -141,14 +120,9 @@ export default function LiveMarketIntelligence() {
     const omvmAvg = internal.length > 0
       ? Math.round(internal.reduce((s, l) => s + (l.omvm_value || 0), 0) / internal.length)
       : 0;
-    return {
-      make: m.make,
-      live_avg: m.data.avg_price || 0,
-      omvm_avg: omvmAvg || 0,
-    };
+    return { make: m.make, live_avg: m.data.avg_price || 0, omvm_avg: omvmAvg || 0 };
   });
 
-  // Chart 4: Top Models ranked table
   const topModels = market
     .map((m) => ({
       make: m.make,
@@ -160,56 +134,51 @@ export default function LiveMarketIntelligence() {
     }))
     .sort((a, b) => (b.avg_price || 0) - (a.avg_price || 0));
 
-  // Feed unavailable — hide the whole section rather than showing an error card
   if (market.length === 0) return null;
 
   return shell(
     <div>
-      {/* Stale indicator + last updated */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
           {allStale && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f5c242", display: "inline-block" }} />
-              <span style={{ fontSize: 10, color: "rgba(245,194,66,0.7)", letterSpacing: "0.04em" }}>Using cached data</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: "#f5c242" }} />
+              <span className="text-[10px] text-gold-official/70">Using cached data</span>
             </div>
           )}
         </div>
         {lastUpdated && (
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>
+          <span className="text-[10px] text-muted-foreground/50">
             Last updated {new Date(lastUpdated).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        {/* Chart 1: Availability by Make */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <ChartCard icon={BarChart3} title="Availability by Make" subtitle="Live listing count per manufacturer">
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={availabilityData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="make" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+              <XAxis dataKey="make" tick={{ fill: AXIS_TICK, fontSize: 10 }} axisLine={{ stroke: AXIS_LINE }} />
+              <YAxis tick={{ fill: AXIS_TICK, fontSize: 10 }} axisLine={{ stroke: AXIS_LINE }} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(245,194,66,0.05)" }} />
               <Bar dataKey="listings" fill="#f5c242" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* Chart 2: Price Distribution */}
         <ChartCard icon={Activity} title="Price Distribution" subtitle="Histogram of live market prices">
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={histogramData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="range" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 9 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+              <XAxis dataKey="range" tick={{ fill: AXIS_TICK, fontSize: 9 }} axisLine={{ stroke: AXIS_LINE }} />
+              <YAxis tick={{ fill: AXIS_TICK, fontSize: 10 }} axisLine={{ stroke: AXIS_LINE }} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(245,194,66,0.05)" }} />
               <Bar dataKey="count" fill="#5dcaa5" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* Chart 3: Live Market Avg vs OMVM */}
         <ChartCard icon={TrendingUp} title="Live Market Avg vs OMVM" subtitle="External feed vs internal valuation model">
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={avgVsOmvmData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -223,9 +192,9 @@ export default function LiveMarketIntelligence() {
                   <stop offset="100%" stopColor="#4e8ef7" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="make" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={{ stroke: "rgba(255,255,255,0.1)" }} tickFormatter={fmtPrice} />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} strokeOpacity={0.5} />
+              <XAxis dataKey="make" tick={{ fill: AXIS_TICK, fontSize: 10 }} axisLine={{ stroke: AXIS_LINE }} />
+              <YAxis tick={{ fill: AXIS_TICK, fontSize: 10 }} axisLine={{ stroke: AXIS_LINE }} tickFormatter={fmtPrice} />
               <Tooltip contentStyle={tooltipStyle} formatter={(v) => fmtPrice(v)} />
               <Area type="monotone" dataKey="live_avg" stroke="#f5c242" strokeWidth={2} fill="url(#liveGrad)" name="Live Avg" />
               <Area type="monotone" dataKey="omvm_avg" stroke="#4e8ef7" strokeWidth={2} fill="url(#omvmGrad)" name="OMVM Avg" />
@@ -233,19 +202,18 @@ export default function LiveMarketIntelligence() {
           </ResponsiveContainer>
         </ChartCard>
 
-        {/* Chart 4: Top Models ranked table */}
         <ChartCard icon={Database} title="Top Models — Market Ranking" subtitle="Ranked by average market price">
-          <div style={{ fontSize: 11 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px", gap: 8, padding: "0 0 8px", borderBottom: "0.5px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.3)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <div className="text-[11px]">
+            <div className="grid grid-cols-[1fr_80px_60px] gap-2 pb-2 border-b border-border text-muted-foreground/50 text-[9px] uppercase tracking-[0.08em]">
               <span>Make</span>
-              <span style={{ textAlign: "right" }}>Avg Price</span>
-              <span style={{ textAlign: "right" }}>Listings</span>
+              <span className="text-right">Avg Price</span>
+              <span className="text-right">Listings</span>
             </div>
             {topModels.map((m) => (
-              <div key={m.make} style={{ display: "grid", gridTemplateColumns: "1fr 80px 60px", gap: 8, padding: "8px 0", borderBottom: "0.5px solid rgba(255,255,255,0.04)", alignItems: "center" }}>
-                <span style={{ color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{m.make}</span>
-                <span style={{ textAlign: "right", color: "#f5c242", fontWeight: 600 }}>{fmtPrice(m.avg_price)}</span>
-                <span style={{ textAlign: "right", color: "rgba(255,255,255,0.4)" }}>{m.listings || 0}</span>
+              <div key={m.make} className="grid grid-cols-[1fr_80px_60px] gap-2 py-2 border-b border-border/50 items-center">
+                <span className="text-foreground font-medium">{m.make}</span>
+                <span className="text-right text-gold-official font-semibold">{fmtPrice(m.avg_price)}</span>
+                <span className="text-right text-muted-foreground">{m.listings || 0}</span>
               </div>
             ))}
           </div>

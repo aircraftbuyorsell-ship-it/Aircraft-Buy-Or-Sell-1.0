@@ -31,16 +31,16 @@ export default function HomepageHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // n8n-style floating pill navbar — detached rounded container with border + blur
+  // n8n-style floating pill navbar — uses glass-navbar for automatic light/dark
   const pillStyle = {
-    background: scrolled ? "rgba(5,7,11,0.90)" : "rgba(10,12,18,0.65)",
+    background: scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     border: scrolled
-      ? "1px solid rgba(245,194,66,0.18)"
-      : "1px solid rgba(255,255,255,0.10)",
+      ? "1px solid hsl(var(--primary) / 0.25)"
+      : "1px solid hsl(var(--border))",
     borderRadius: 18,
-    boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+    boxShadow: "0 8px 32px hsl(var(--foreground) / 0.10)",
   };
 
   return (

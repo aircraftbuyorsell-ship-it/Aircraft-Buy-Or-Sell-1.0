@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "program": "ABOS Factory Control Plane",
+  "repository": "aircraftbuyorsell-ship-it/abos-0.8-intrazone",
+  "control_branch": "abos-factory/v1",
+  "source_snapshot": "aviation-marketspace last(1).zip",
+  "phase": "factory_bootstrap_complete",
+  "production_writes_allowed": false,
+  "evidence": {
+    "total_files": 740,
+    "pages": 86,
+    "component_files": 376,
+    "base44_function_directories": 116,
+    "base44_entities": 79,
+    "base44_connectors": 6,
+    "base44_agents": 4,
+    "build": "pass",
+    "lint": {
+      "status": "fail",
+      "errors": 140,
+      "category": "unused_imports"
+    },
+    "typecheck": "fail",
+    "focused_hardcoded_secret_pattern_scan": "no_match"
+  },
+  "active_gates": {
+    "control_plane": "complete",
+    "source_inventory": "in_progress",
+    "security_inventory": "in_progress",
+    "contract_baseline": "blocked_by_reconciliation",
+    "quality_baseline": "complete",
+    "cloudflare_runtime": "not_started",
+    "supabase_authoritative_schema": "not_started",
+    "first_extracted_capability": "not_started"
+  },
+  "ready_tasks": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-003",
+    "TASK-004"
+  ],
+  "blocked_tasks": [
+    "TASK-005",
+    "TASK-006",
+    "TASK-007",
+    "TASK-008"
+  ],
+  "first_vertical_slice": "Aircraft Search",
+  "deferred": [
+    "escrow_runtime_migration",
+    "on_chain_settlement",
+    "production_cutover",
+    "dns_changes",
+    "public_v1_release"
+  ],
+  "last_updated": "2026-07-15"
+}

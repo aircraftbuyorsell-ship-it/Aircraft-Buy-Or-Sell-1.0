@@ -1,15 +1,16 @@
 import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/lib/useTheme";
 
 const INK   = "#0B1220";
 const INK1  = "#111827";
 const AMBER = "#D4A017";
 const TEAL  = "#5dcaa5";
 const BLUE  = "#4e8ef7";
-const W1    = "rgba(255,255,255,0.90)";
-const W2    = "rgba(255,255,255,0.60)";
-const W3    = "rgba(255,255,255,0.35)";
-const BORDER = "rgba(255,255,255,0.08)";
+const W1    = "var(--pricing-text-1)";
+const W2    = "var(--pricing-text-2)";
+const W3    = "var(--pricing-text-3)";
+const BORDER = "var(--pricing-border)";
 
 const TIERS = [
   {
@@ -134,17 +135,34 @@ function CTAButton({ variant, children }) {
 const eyebrow = { fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: W3 };
 
 export default function Pricing() {
+  const isDark = useTheme();
+  const pageBackground = isDark
+    ? "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)"
+    : "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.05) 0%, transparent 48%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.035) 0%, transparent 48%), radial-gradient(circle, rgba(15,23,42,0.07) 1px, transparent 1px)";
+
   return (
-    <div style={{ background: INK, backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)", backgroundSize: "100% 100%, 100% 100%, 100% 100%, 24px 24px", minHeight: "100vh", color: W1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
+    <div data-theme-surface="adaptive" style={{
+      "--pricing-text-1": isDark ? "rgba(255,255,255,0.90)" : "#111827",
+      "--pricing-text-2": isDark ? "rgba(255,255,255,0.60)" : "#4b5563",
+      "--pricing-text-3": isDark ? "rgba(255,255,255,0.35)" : "#6b7280",
+      "--pricing-border": isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.10)",
+      background: isDark ? INK : "#f7f8fa",
+      backgroundImage: pageBackground,
+      backgroundSize: isDark ? "100% 100%, 100% 100%, 100% 100%, 24px 24px" : "100% 100%, 100% 100%, 24px 24px",
+      minHeight: "100vh",
+      color: W1,
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+      position: "relative",
+    }}>
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill="white" />
+              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "#111827"} />
             </marker>
           </defs>
-          <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
+          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
       </div>
 

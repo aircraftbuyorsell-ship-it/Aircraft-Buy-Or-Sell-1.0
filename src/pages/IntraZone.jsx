@@ -11,7 +11,7 @@ import SalesDashboard from "@/components/intrazone/SalesDashboard";
 import IntraZoneOverview from "@/components/intrazone/IntraZoneOverview";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import {
-  Activity, ArrowLeft, BarChart2, BriefcaseBusiness, ChevronDown, Circle,
+  ArrowLeft, BarChart2, BriefcaseBusiness, ChevronDown, Circle,
   Crosshair, FileText, Gauge, Landmark, MessageSquare, Plane, Search,
   ShieldCheck, Users, Workflow,
 } from "lucide-react";
@@ -186,7 +186,7 @@ export default function IntraZone() {
             <ArrowLeft size={14} /> Public ABOS
           </Link>
           <div className="shrink-0">
-            <SidebarLogo compact />
+            <SidebarLogo compact forceDark />
           </div>
           <span className="hidden h-7 border-l md:block" style={{ borderColor: BORDER }} />
           <div className="hidden shrink-0 md:block">

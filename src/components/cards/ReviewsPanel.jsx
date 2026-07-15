@@ -21,14 +21,16 @@ function StatusBadge({ status }) {
   );
 }
 
-export default function ReviewsPanel({ card, limit = null, publicOnly = false }) {
+export default function ReviewsPanel({ card, listing, limit = null, publicOnly = false }) {
   const qc = useQueryClient();
   const { user, isAdmin } = useCardPermissions(card);
+  const subjectId = listing?.id || card?.listing || card?.id;
+  const reviewFilter = listing?.id || card?.listing ? { listing: listing?.id || card?.listing } : { ati_card: card?.id };
 
   const { data: reviews = [], isLoading } = useQuery({
-    queryKey: ["card-reviews", card?.id],
-    queryFn: () => base44.entities.ATICardReview.filter({ ati_card: card.id }, "-created_date", 100),
-    enabled: !!card?.id,
+    queryKey: ["aircraft-reviews", subjectId],
+    queryFn: () => base44.entities.ATICardReview.filter(reviewFilter, "-created_date", 100),
+    enabled: !!subjectId,
   });
 
   // Public view: only approved. Signed-in: approved + your own (pending/rejected).
@@ -36,7 +38,7 @@ export default function ReviewsPanel({ card, limit = null, publicOnly = false })
     if (r.status === "approved") return true;
     if (publicOnly) return false;
     if (isAdmin) return true;
-    return user && r.created_by === user.email;
+    return user && r.reviewer_email === user.email;
   });
   const displayed = limit ? visible.slice(0, limit) : visible;
 
@@ -46,18 +48,19 @@ export default function ReviewsPanel({ card, limit = null, publicOnly = false })
       moderated_by: user?.email,
       moderated_at: new Date().toISOString(),
     });
-    qc.invalidateQueries({ queryKey: ["card-reviews", card.id] });
+    qc.invalidateQueries({ queryKey: ["aircraft-reviews", subjectId] });
   };
 
   const remove = async (review) => {
     if (!confirm("Delete this review?")) return;
     await base44.entities.ATICardReview.delete(review.id);
-    qc.invalidateQueries({ queryKey: ["card-reviews", card.id] });
+    qc.invalidateQueries({ queryKey: ["aircraft-reviews", subjectId] });
   };
 
-  const canReview = !!user && !publicOnly && !reviews.some((r) => r.created_by === user.email);
-  const avg = card?.average_review_rating || 0;
-  const count = card?.review_count || visible.filter((r) => r.status === "approved").length;
+  const canReview = !!user && !publicOnly && !reviews.some((r) => r.reviewer_email === user.email);
+  const approvedReviews = visible.filter((r) => r.status === "approved");
+  const avg = card?.average_review_rating || (approvedReviews.length ? approvedReviews.reduce((sum, review) => sum + review.rating, 0) / approvedReviews.length : 0);
+  const count = card?.review_count || approvedReviews.length;
 
   return (
     <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
@@ -75,7 +78,7 @@ export default function ReviewsPanel({ card, limit = null, publicOnly = false })
 
       {canReview && (
         <div className="mb-4">
-          <ReviewForm card={card} user={user} />
+          <ReviewForm card={card} listing={listing} user={user} />
         </div>
       )}
 
@@ -98,7 +101,7 @@ export default function ReviewsPanel({ card, limit = null, publicOnly = false })
               <p className="text-sm text-[#4A4845] leading-relaxed mt-2">{r.comment}</p>
 
               {/* Admin moderation + owner delete */}
-              {(isAdmin || r.created_by === user?.email) && (
+              {(isAdmin || r.reviewer_email === user?.email) && (
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-black/[0.05]">
                   {isAdmin && r.status !== "approved" && (
                     <button onClick={() => moderate(r, "approved")}

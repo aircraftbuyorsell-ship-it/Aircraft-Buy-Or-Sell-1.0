@@ -5,6 +5,7 @@ import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, U
 import VaultDocumentsPanel from "@/components/cards/VaultDocumentsPanel";
 import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
+import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 
 function scoreColor(score) {
@@ -308,6 +309,8 @@ export default function ATICard() {
 
         {/* ── Detailed dimension breakdown ─────────────── */}
         <ATIScoreBreakdown passport={passport} missing_data={passport.missing_data} />
+
+        <ReviewsPanel card={card} listing={listing} />
 
         {/* ── Footer metadata ───────────────────────────── */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pb-6 text-[11px] text-[rgba(255,255,255,0.35)]">

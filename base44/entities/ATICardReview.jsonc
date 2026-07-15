@@ -5,7 +5,12 @@
     "ati_card": {
       "type": "string",
       "relationType": "ATICard",
-      "description": "Reviewed ATI card"
+      "description": "Optional ATI card associated with the review"
+    },
+    "listing": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Aircraft listing being reviewed"
     },
     "public_card_code": {
       "type": "string",
@@ -13,7 +18,7 @@
     },
     "reviewer_email": {
       "type": "string",
-      "description": "Email of the reviewer (denormalized from created_by for convenience)"
+      "description": "Email of the reviewer"
     },
     "reviewer_name": {
       "type": "string",
@@ -55,7 +60,7 @@
     }
   },
   "required": [
-    "ati_card",
+    "listing",
     "rating",
     "comment"
   ],

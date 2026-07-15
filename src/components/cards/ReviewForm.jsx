@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Send, Loader2 } from "lucide-react";
 import StarRating from "./StarRating";
 
-export default function ReviewForm({ card, user, onSubmitted }) {
+export default function ReviewForm({ card, listing, user, onSubmitted }) {
   const qc = useQueryClient();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -20,8 +20,8 @@ export default function ReviewForm({ card, user, onSubmitted }) {
     setError(null);
     try {
       await base44.entities.ATICardReview.create({
-        ati_card: card.id,
-        public_card_code: card.public_card_code,
+        ...(card?.id ? { ati_card: card.id, public_card_code: card.public_card_code } : {}),
+        listing: listing?.id || card?.listing,
         reviewer_email: user?.email,
         reviewer_name: user?.full_name,
         rating,
@@ -30,7 +30,7 @@ export default function ReviewForm({ card, user, onSubmitted }) {
       });
       setRating(0);
       setComment("");
-      qc.invalidateQueries({ queryKey: ["card-reviews", card.id] });
+      qc.invalidateQueries({ queryKey: ["aircraft-reviews", card?.id || listing?.id] });
       onSubmitted?.();
     } catch (err) {
       setError(err.message || "Submission failed");

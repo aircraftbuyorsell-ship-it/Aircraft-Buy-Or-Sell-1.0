@@ -2,9 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
 
-export default function SidebarLogo({ compact = false }) {
+export default function SidebarLogo({ compact = false, forceDark = false }) {
   const { pathname } = useLocation();
-  const isDark = useTheme();
+  const themeIsDark = useTheme();
+  const isDark = forceDark || themeIsDark;
   const ink = isDark ? "#fff" : "#111827";
   const inkMuted = isDark ? "rgba(255,255,255,0.55)" : "rgba(17,24,39,0.48)";
   const currentSection = NAV_TREE.find((section) => isPathInSection(section, pathname))?.label || "Dashboard";

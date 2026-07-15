@@ -10,8 +10,8 @@ export default function MobilePillNav() {
   const [openSection, setOpenSection] = useState(null);
   const barRef = useRef(null);
 
-  const idleBg = isDark ? "#1a1a1a" : "#f0ede6";
-  const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const idleBg = isDark ? "#1a1a1a" : "#ffffff";
+  const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.10)";
   const idleColor = isDark ? "#a0a0a0" : "#666";
   const dropdownBg = isDark
     ? "linear-gradient(180deg, rgba(40,40,40,0.92) 0%, rgba(20,20,20,0.88) 70%, rgba(20,20,20,0.60) 100%)"
@@ -45,7 +45,7 @@ export default function MobilePillNav() {
           const Icon = section.icon;
           const w = navGradientWeight(idx);
           const iconSize = 12 + Math.round(w * 6);  // 12px → 18px at peak
-          const chipHeight = 44 + Math.round(w * 14); // 44px → 58px at peak
+          const chipHeight = 42 + Math.round(w * 8); // compact 42px to 50px
           const labelSize = 9 + w * 2;                 // 9px → 11px at peak
           const idleOpacity = 0.5 + w * 0.35;
           return (
@@ -56,10 +56,12 @@ export default function MobilePillNav() {
               style={{
                 height: chipHeight,
                 minWidth: 38 + Math.round(w * 8),
-                borderRadius: 14,
+                borderRadius: 8,
                 padding: "4px 2px",
                 background: open
-                  ? "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.20), rgba(26,26,26,0.95))"
+                  ? (isDark
+                    ? "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.20), rgba(26,26,26,0.95))"
+                    : "rgba(212,160,23,0.10)")
                   : idleBg,
                 border: open
                   ? "1px solid rgba(212,160,23,0.65)"

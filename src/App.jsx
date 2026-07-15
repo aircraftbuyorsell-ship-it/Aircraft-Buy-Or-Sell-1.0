@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
-import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
@@ -145,6 +144,7 @@ const AuthenticatedApp = () => {
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
+        <Route path="/intrazone" element={<IntraZone />} />
         <Route path="/community" element={<Community />} />
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
@@ -207,9 +207,6 @@ const AuthenticatedApp = () => {
         <Route path="/calculators" element={<CalculatorsHub />} />
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
-      </Route>
-      <Route element={<IntraZoneLayout />}>
-        <Route path="/intrazone" element={<IntraZone />} />
       </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />

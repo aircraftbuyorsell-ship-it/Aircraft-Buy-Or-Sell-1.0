@@ -5,68 +5,44 @@
     "ati_card": {
       "type": "string",
       "relationType": "ATICard",
-      "description": "Optional ATI score card linked to this review"
-    },
-    "listing": {
-      "type": "string",
-      "relationType": "AircraftListing",
-      "description": "Public aircraft listing being reviewed"
-    },
-    "report_id": {
-      "type": "string",
-      "description": "Optional report identifier; never stores report contents"
+      "description": "Reviewed ATI card"
     },
     "public_card_code": {
       "type": "string",
-      "description": "Public ATI card reference"
-    },
-    "author_user_id": {
-      "type": "string",
-      "description": "Author user ID snapshot"
+      "description": "Denormalized card code for easy filtering"
     },
     "reviewer_email": {
       "type": "string",
-      "description": "Author email snapshot"
+      "description": "Email of the reviewer (denormalized from created_by for convenience)"
     },
     "reviewer_name": {
       "type": "string",
-      "description": "Public reviewer display name"
+      "description": "Display name of reviewer at time of submission"
     },
     "rating": {
       "type": "number",
       "minimum": 1,
       "maximum": 5,
-      "description": "Star rating from 1 to 5"
-    },
-    "review_title": {
-      "type": "string",
-      "maxLength": 120,
-      "description": "Review heading"
-    },
-    "review_text": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Public review text only"
+      "description": "Star rating 1-5"
     },
     "comment": {
       "type": "string",
       "maxLength": 1000,
-      "description": "Legacy review text field"
+      "description": "Review text"
     },
     "status": {
       "type": "string",
       "enum": [
         "pending",
-        "published",
-        "rejected",
-        "approved"
+        "approved",
+        "rejected"
       ],
       "default": "pending",
-      "description": "Moderation status; approved is retained for legacy reviews"
+      "description": "Moderation status"
     },
     "moderated_by": {
       "type": "string",
-      "description": "Admin email who moderated the review"
+      "description": "Email of admin who moderated"
     },
     "moderated_at": {
       "type": "string",
@@ -75,11 +51,11 @@
     "description": {
       "type": "string",
       "maxLength": 1000,
-      "description": "Optional search description"
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
-    "listing",
+    "ati_card",
     "rating",
     "comment"
   ],
@@ -99,9 +75,6 @@
     "read": {
       "$or": [
         {
-          "data.status": "published"
-        },
-        {
           "data.status": "approved"
         },
         {
@@ -117,8 +90,7 @@
     "update": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}",
-          "data.status": "pending"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -130,8 +102,7 @@
     "delete": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}",
-          "data.status": "pending"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {

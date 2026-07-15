@@ -2,7 +2,6 @@ import { X, ExternalLink, CheckCircle2, ArrowUpRight, Heart, TrendingDown, Trend
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BuyerInterestModal from "@/components/leads/BuyerInterestModal";
-import ReviewsPanel from "@/components/cards/ReviewsPanel";
 
 function scoreColor(score) {
   if (!score) return "#AAA49C";
@@ -181,10 +180,6 @@ export default function ListingDrawer({ listing: l, onClose }) {
                   <p className="text-[12px] text-[#4A4845] leading-relaxed">{l.ai_summary}</p>
                 </div>
               )}
-
-              <div className="px-5 py-4 border-t border-black/[0.05]">
-                <ReviewsPanel listing={l} />
-              </div>
 
               {l.source_url && (
                 <div className="px-5 py-3 border-t border-black/[0.05]">

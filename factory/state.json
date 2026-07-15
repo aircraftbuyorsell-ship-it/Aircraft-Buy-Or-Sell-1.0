@@ -33,12 +33,12 @@
     "supabase_authoritative_schema": "not_started",
     "first_extracted_capability": "not_started"
   },
-  "ready_tasks": [
-    "TASK-001",
-    "TASK-002",
-    "TASK-003",
-    "TASK-004"
-  ],
+  "ready_tasks": {
+    "TASK-001": { "issue": 5, "status": "ready" },
+    "TASK-002": { "issue": 6, "status": "ready" },
+    "TASK-003": { "issue": 7, "status": "ready" },
+    "TASK-004": { "issue": 8, "status": "ready" }
+  },
   "blocked_tasks": [
     "TASK-005",
     "TASK-006",

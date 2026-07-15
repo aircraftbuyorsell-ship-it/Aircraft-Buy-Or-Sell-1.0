@@ -43,15 +43,17 @@ export default function HomepageHeader() {
     border: scrolled
       ? "1px solid hsl(var(--primary) / 0.25)"
       : "1px solid hsl(var(--border))",
-    borderRadius: 18,
-    boxShadow: "0 8px 32px hsl(var(--foreground) / 0.10)",
+    borderRadius: 10,
+    boxShadow: isDark
+      ? "0 8px 32px hsl(var(--foreground) / 0.10)"
+      : "0 8px 24px rgba(15,23,42,0.08)",
   };
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 safe-left safe-right">
+      <header className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 pt-2 sm:pt-3 safe-left safe-right">
         <div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
-          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px]">
+          <div className="flex items-center justify-between px-3 sm:px-6 h-[54px] sm:h-[60px]">
             <div className="flex items-center shrink-0">
               <div className="lg:hidden">
                 <SidebarLogo compact />
@@ -88,7 +90,7 @@ export default function HomepageHeader() {
           </div>
 
           {/* Mobile: unified pill nav — same as inner pages */}
-          <div className="lg:hidden flex items-center justify-center pb-2 px-4">
+          <div className="lg:hidden flex items-center justify-center pb-2 px-2 sm:px-4">
             <MobilePillNav />
           </div>
         </div>

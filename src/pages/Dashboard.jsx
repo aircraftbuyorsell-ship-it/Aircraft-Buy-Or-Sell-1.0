@@ -37,7 +37,7 @@ export default function Dashboard() {
     <div
       className="text-foreground"
       style={{
-        background: "transparent",
+        background: "#fbfaf7",
         minHeight: "100vh",
         fontFamily: "Inter, -apple-system, sans-serif",
       }}

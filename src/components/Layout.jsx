@@ -205,9 +205,11 @@ export default function Layout() {
     return () => {document.removeEventListener("touchstart", onStart);document.removeEventListener("touchend", onEnd);};
   }, []);
 
-  const layoutBg = isDark
-    ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
-    : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+  const layoutBg = isHomepage
+    ? { background: "#fbfaf7" }
+    : isDark
+      ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
+      : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>

@@ -25,10 +25,11 @@ function latLonToVec3(lat, lon, r) {
   );
 }
 
-export default function HeroGlobe() {
+export default function HeroGlobe({ forceLight = false }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const isDark = useTheme();
+  const themeIsDark = useTheme();
+  const isDark = forceLight ? false : themeIsDark;
 
   useEffect(() => {
     const container = containerRef.current;

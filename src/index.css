@@ -12,11 +12,11 @@
   :root {
     color-scheme: light;
 
-    --glass-bg:        rgba(100, 60, 200, 0.05);
-    --glass-bg-heavy:  rgba(100, 60, 200, 0.09);
-    --glass-bg-subtle: rgba(100, 60, 200, 0.02);
-    --glass-border:    rgba(80, 40, 180, 0.14);
-    --glass-border-subtle: rgba(80, 40, 180, 0.07);
+    --glass-bg:        rgba(255, 255, 255, 0.96);
+    --glass-bg-heavy:  rgba(255, 255, 255, 0.98);
+    --glass-bg-subtle: rgba(255, 255, 255, 0.82);
+    --glass-border:    rgba(15, 23, 42, 0.10);
+    --glass-border-subtle: rgba(15, 23, 42, 0.06);
     --glass-shadow:    0 8px 32px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.70);
     --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.80);
     --glass-blur:      blur(24px) saturate(160%);
@@ -27,7 +27,7 @@
 
     /* Official Infrastructure tokens */
     --grid-color: rgba(0, 0, 0, 0.10);
-    --bg-canvas: #fbfaf7;
+    --bg-canvas: #f7f8fa;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.08);
 
@@ -43,13 +43,13 @@
     --neon-pink:  #cc0066;
 
     /* shadcn tokens — light */
-    --background: 48 15% 97%;
+    --background: 210 20% 98%;
     --foreground: 0 0% 12%;
     --card: 0 0% 100%;
     --card-foreground: 220 20% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
-    --primary: 42 87% 46%;
+    --primary: 42 90% 40%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 15% 92%;
     --secondary-foreground: 220 20% 20%;
@@ -62,7 +62,7 @@
     --border: 220 15% 86%;
     --input: 220 15% 92%;
     --ring: 200 80% 42%;
-    --radius: 1.1rem;
+    --radius: 0.5rem;
     --sidebar-background: 220 20% 98%;
     --sidebar-foreground: 220 15% 35%;
     --sidebar-primary: 200 80% 42%;
@@ -151,7 +151,7 @@
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-text-size-adjust: 100%;
-    background: #fbfaf7;
+    background: #f7f8fa;
     min-height: 100dvh;
     color: #1a1a1a;
   }
@@ -436,6 +436,37 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   color: transparent;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   filter: drop-shadow(0 0 0.5px rgba(255,255,255,0.15)) drop-shadow(0 0 4px rgba(212,160,23,0.18));
+}
+
+
+/* Adaptive dark-first pages: explicit light surfaces without fragile exact rgba matching. */
+:root:not(.dark) [data-theme-surface="adaptive"] {
+  color: #111827 !important;
+}
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgb(255"],
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgba(255"],
+:root:not(.dark) [data-theme-surface="adaptive"][style*="color: rgb(255"],
+:root:not(.dark) [data-theme-surface="adaptive"][style*="color: rgba(255"] {
+  color: #111827 !important;
+}
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgba(255"][style*="0.6"],
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgba(255"][style*="0.5"],
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgba(255"][style*="0.4"],
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="color: rgba(255"][style*="0.3"] {
+  color: #5b6472 !important;
+}
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="background: rgba(255"] {
+  background-color: #ffffff !important;
+}
+:root:not(.dark) [data-theme-surface="adaptive"] [style*="border"][style*="rgba(255"] {
+  border-color: rgba(15, 23, 42, 0.10) !important;
+}
+:root:not(.dark) [data-theme-surface="adaptive"] .chrome-text {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: #111827 !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

@@ -11,8 +11,7 @@ function isNightHour() {
 function resolveIsDark(mode) {
   if (mode === "dark") return true;
   if (mode === "light") return false;
-  // Default to dark mode (main mode)
-  return true;
+  return isNightHour();
 }
 
 export default function ThemeToggle() {
@@ -48,10 +47,10 @@ export default function ThemeToggle() {
       onClick={cycle}
       className="relative flex items-center gap-2 px-2.5 h-9 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all overflow-hidden"
       style={{
-        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(255,255,255,0.06)",
+        background: isDark ? "rgba(212,160,23,0.10)" : "#f4f5f6",
         border: "1px solid",
-        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(255,255,255,0.10)",
-        color: isDark ? "#F5C842" : "rgba(255,255,255,0.70)",
+        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(15,23,42,0.10)",
+        color: isDark ? "#F5C842" : "#4b5563",
       }}
       aria-label={`Theme: ${mode}. Click to change.`}
       title={mode === "auto" ? "Auto (time-based) — click for dark" : isDark ? "Dark mode — click for light" : "Light mode — click for auto"}

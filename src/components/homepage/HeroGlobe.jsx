@@ -75,11 +75,11 @@ export default function HeroGlobe() {
         g.addColorStop(0.7, "rgba(166,124,0,0.35)");
         g.addColorStop(1, "rgba(166,124,0,0)");
       } else {
-        // Brushed aluminum rivet — darker than sphere for contrast
-        g.addColorStop(0, "rgba(130,130,130,1)");
-        g.addColorStop(0.3, "rgba(100,100,100,0.85)");
-        g.addColorStop(0.7, "rgba(80,80,80,0.35)");
-        g.addColorStop(1, "rgba(80,80,80,0)");
+        // Brushed aluminum rivet — dark for strong contrast on light sphere
+        g.addColorStop(0, "rgba(90,90,90,1)");
+        g.addColorStop(0.3, "rgba(70,70,70,0.9)");
+        g.addColorStop(0.7, "rgba(55,55,55,0.4)");
+        g.addColorStop(1, "rgba(55,55,55,0)");
       }
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -118,7 +118,7 @@ export default function HeroGlobe() {
       alphaTest: 0.06,
       depthWrite: false,
       sizeAttenuation: true,
-      opacity: isDark ? 0.88 : 0.62,
+      opacity: isDark ? 0.88 : 0.85,
     }));
     globe.add(rivets);
 

@@ -104,10 +104,10 @@ export default function ListingCard({ listing: l, onClick }) {
           <span className="text-xs text-muted-foreground/50">No fresh annual</span>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); }}
+          onClick={(e) => { e.stopPropagation(); onClick?.(); }}
           className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          ATI Passport →
+          View & review →
         </button>
       </div>
     </div>

@@ -30,7 +30,7 @@ export default function ReviewForm({ card, listing, user, onSubmitted }) {
       });
       setRating(0);
       setComment("");
-      qc.invalidateQueries({ queryKey: ["aircraft-reviews", card?.id || listing?.id] });
+      qc.invalidateQueries({ queryKey: ["aircraft-reviews", listing?.id || card?.listing || card?.id] });
       onSubmitted?.();
     } catch (err) {
       setError(err.message || "Submission failed");

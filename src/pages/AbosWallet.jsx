@@ -22,7 +22,7 @@ export default function AbosWallet() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
+    <div data-theme-surface="adaptive" className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">

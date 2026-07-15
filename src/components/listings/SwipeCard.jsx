@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight, TrendingDown, TrendingUp,
   CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
-  Pencil, ChevronLeft, ChevronRight, ChevronUp, Zap, X } from
+  Pencil, ChevronLeft, ChevronRight, ChevronUp, Zap, X, Star } from
 "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -198,8 +198,8 @@ function Card({ listing: l }) {
                 {deal && <span className="text-[8px] uppercase tracking-wider font-black px-2 py-1 rounded-full border" style={{ background: deal.bg, color: deal.color, borderColor: deal.border }}>{l.deal_label}</span>}
                 {l.fresh_annual && <span className="text-[8px] font-black text-[#0F7A56]">Fresh annual</span>}
               </div>
-              <Link to={`/ati-passport/${l.id}`} className="pointer-events-auto flex items-center gap-1 text-[9px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider" onClick={(e) => e.stopPropagation()}>
-                Report <ArrowUpRight className="w-3 h-3" />
+              <Link to={`/ati-passport/${l.id}#reviews`} className="pointer-events-auto flex items-center gap-1 text-[9px] text-[#D4A017] hover:text-[#0B2D5B] font-black uppercase tracking-wider" onClick={(e) => e.stopPropagation()}>
+                <Star className="w-3 h-3" /> Report & review <ArrowUpRight className="w-3 h-3" />
               </Link>
             </div>
           </div>

@@ -63,7 +63,7 @@ export default function ReviewsPanel({ card, listing, limit = null, publicOnly =
   const count = card?.review_count || approvedReviews.length;
 
   return (
-    <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
+    <div id="reviews" className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">Hodnocení · Reviews</p>

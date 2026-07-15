@@ -1,133 +1,122 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CircleCheck, Plane, Radio, ShieldCheck } from "lucide-react";
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import { useTheme } from "@/lib/useTheme";
 
 const STATS = [
-  { value: "8", label: "ATI Dimensions" },
-  { value: "9", label: "Tools From One Search" },
-  { value: "3+", label: "Sources Cross-Checked" },
-  { value: "0", label: "Repeat Lookup Steps" },
-];
-
-const WORKFLOW = [
-  { label: "Identify", detail: "Registration and serial" },
-  { label: "Verify", detail: "Ownership and records" },
-  { label: "Value", detail: "Market and operating data" },
-  { label: "Transact", detail: "Pipeline and settlement" },
+  { value: "8", label: "ATI dimensions" },
+  { value: "9", label: "connected tools" },
+  { value: "3+", label: "verified sources" },
 ];
 
 export default function HomeHeroSection() {
   const isDark = useTheme();
-  const foreground = isDark ? "#ffffff" : "#111827";
-  const muted = isDark ? "rgba(255,255,255,0.64)" : "#4b5563";
-  const panel = isDark ? "rgba(12,17,27,0.84)" : "rgba(255,255,255,0.92)";
-  const panelBorder = isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)";
+  const foreground = isDark ? "#f7f8fa" : "#15171a";
+  const muted = isDark ? "rgba(247,248,250,0.66)" : "#555d67";
+  const border = isDark ? "rgba(255,255,255,0.12)" : "rgba(21,23,26,0.12)";
+  const panel = isDark ? "rgba(10,12,16,0.88)" : "rgba(255,255,255,0.82)";
 
   return (
-    <section className="relative min-h-[760px] w-full overflow-hidden sm:min-h-[820px] lg:min-h-[max(100vh,780px)]">
-      {isDark ? (
-        <HeroGlobe />
-      ) : (
-        <div
-          className="absolute inset-0 bg-cover bg-[68%_center] sm:bg-center"
-          style={{ backgroundImage: "url('/assets/hero-aircraft-light.webp')" }}
-          role="img"
-          aria-label="Business aircraft on an airport apron"
-        />
-      )}
+    <section
+      className="relative min-h-[780px] w-full overflow-hidden sm:min-h-[840px] lg:min-h-[max(100vh,800px)]"
+      style={{ background: isDark ? "#05070a" : "#f4f5f6" }}
+    >
+      <div className="absolute inset-0 opacity-65 sm:opacity-80 lg:opacity-100">
+        <HeroGlobe variant="hero" />
+      </div>
 
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background: isDark
-            ? "linear-gradient(90deg, rgba(4,6,10,0.88) 0%, rgba(4,6,10,0.58) 48%, rgba(4,6,10,0.16) 78%, transparent 100%)"
-            : "linear-gradient(90deg, rgba(247,248,250,0.98) 0%, rgba(247,248,250,0.94) 36%, rgba(247,248,250,0.68) 55%, rgba(247,248,250,0.12) 82%, transparent 100%)",
+            ? "linear-gradient(90deg, rgba(5,7,10,0.98) 0%, rgba(5,7,10,0.88) 42%, rgba(5,7,10,0.36) 72%, transparent 100%)"
+            : "linear-gradient(90deg, rgba(244,245,246,0.99) 0%, rgba(244,245,246,0.95) 38%, rgba(244,245,246,0.54) 64%, rgba(244,245,246,0.04) 100%)",
         }}
       />
       <div
         className="pointer-events-none absolute inset-0 lg:hidden"
         style={{
           background: isDark
-            ? "linear-gradient(180deg, rgba(4,6,10,0.42) 0%, rgba(4,6,10,0.76) 62%, rgba(4,6,10,0.96) 100%)"
-            : "linear-gradient(180deg, rgba(247,248,250,0.76) 0%, rgba(247,248,250,0.92) 58%, rgba(247,248,250,0.99) 100%)",
+            ? "linear-gradient(180deg, rgba(5,7,10,0.28), rgba(5,7,10,0.92) 70%)"
+            : "linear-gradient(180deg, rgba(244,245,246,0.22), rgba(244,245,246,0.96) 70%)",
         }}
       />
 
-      <div className="relative z-10 mx-auto grid min-h-[760px] w-full max-w-[1240px] items-center gap-10 px-4 pb-14 pt-40 sm:min-h-[820px] sm:px-8 sm:pt-44 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-20 lg:pt-32">
-        <div className="max-w-[700px]">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Aviation Intelligence Platform</span>
+      <div className="pointer-events-none absolute right-[12%] top-[30%] z-10 hidden items-center gap-2 lg:flex">
+        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.8)]" />
+        <span className="rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] backdrop-blur-md"
+          style={{ color: foreground, borderColor: border, background: panel }}>
+          Live network
+        </span>
+      </div>
+
+      <div className="pointer-events-none relative z-10 mx-auto flex min-h-[780px] w-full max-w-[1280px] flex-col px-4 pb-24 pt-40 sm:min-h-[840px] sm:px-8 sm:pt-44 lg:min-h-[max(100vh,800px)] lg:justify-center lg:pb-28 lg:pt-28">
+        <div className="pointer-events-auto max-w-[660px]">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2">
+            <Radio size={13} className="text-primary" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS Aviation Intelligence</span>
           </div>
 
           <h1
-            className="max-w-[680px] text-[clamp(2.45rem,6vw,4.7rem)] font-semibold leading-[1.02]"
+            className="max-w-[650px] text-[clamp(2.65rem,5.4vw,4.9rem)] font-semibold leading-[1.01]"
             style={{ color: foreground, letterSpacing: 0 }}
           >
-            Aircraft intelligence. From first signal to closed deal.
+            Know the aircraft. Control the deal.
           </h1>
 
-          <p className="mt-6 max-w-[570px] text-[15px] leading-relaxed sm:text-[17px]" style={{ color: muted }}>
-            Search, verify, value and transact with one connected aviation workspace built for professionals.
+          <p className="mt-6 max-w-[560px] text-[15px] leading-relaxed sm:text-[17px]" style={{ color: muted }}>
+            Search, verify and value any aircraft in the public ABOS network, then carry the same context into a professional transaction workspace.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a href="#aircraft-search" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-[13px] font-bold text-primary-foreground hover:opacity-90">
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <a href="#aircraft-search" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-[13px] font-bold text-primary-foreground hover:opacity-90">
               Search an aircraft <ArrowRight size={15} />
             </a>
             <Link
-              to="/listings"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border px-6 py-3 text-[13px] font-bold"
-              style={{ color: foreground, borderColor: panelBorder, background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.78)" }}
+              to="/intrazone"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border px-6 py-3 text-[13px] font-bold backdrop-blur-md"
+              style={{ color: foreground, borderColor: border, background: panel }}
             >
-              Explore the market
+              Enter IntraZone <ArrowRight size={15} />
             </Link>
           </div>
 
-          <div id="aircraft-search" className="mt-7 w-full max-w-[580px] scroll-mt-40">
+          <div id="aircraft-search" className="mt-7 w-full max-w-[590px] scroll-mt-40">
             <SmartAircraftSearch variant="hero" />
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {STATS.map((stat) => (
-              <div key={stat.label} className="flex items-baseline gap-1.5 rounded-full border px-3 py-2" style={{ background: panel, borderColor: panelBorder }}>
+              <div key={stat.label} className="flex items-baseline gap-1.5 rounded-md border px-3 py-2 backdrop-blur-md" style={{ background: panel, borderColor: border }}>
                 <span className="text-[16px] font-black leading-none text-primary">{stat.value}</span>
-                <span className="text-[8px] font-semibold uppercase tracking-[0.1em]" style={{ color: muted }}>{stat.label}</span>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.08em]" style={{ color: muted }}>{stat.label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <aside
-          className="hidden rounded-lg p-5 shadow-[0_20px_60px_rgba(15,23,42,0.14)] backdrop-blur-xl lg:block"
-          style={{ background: panel, border: `1px solid ${panelBorder}`, color: foreground }}
+        <div
+          className="pointer-events-auto absolute inset-x-4 bottom-5 grid gap-3 rounded-md border p-3 backdrop-blur-xl sm:inset-x-8 sm:grid-cols-[1fr_auto] sm:items-center sm:p-4 lg:inset-x-8 lg:bottom-6"
+          style={{ background: panel, borderColor: border, boxShadow: "0 18px 60px rgba(15,23,42,0.12)" }}
         >
-          <div className="flex items-start justify-between gap-4 border-b pb-4" style={{ borderColor: panelBorder }}>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Connected workflow</p>
-              <h2 className="mt-1 text-lg font-bold">Aircraft workspace</h2>
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <Plane size={19} />
             </div>
-            <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-600">Ready</span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-primary">Aircraft context</p>
+              <p className="truncate text-[13px] font-bold sm:text-[14px]" style={{ color: foreground }}>One aircraft record across discovery, verification and execution</p>
+            </div>
           </div>
-
-          <div className="py-2">
-            {WORKFLOW.map((item) => (
-              <div key={item.label} className="flex items-center gap-3 border-b py-3 last:border-b-0" style={{ borderColor: panelBorder }}>
-                <CheckCircle2 size={16} className="shrink-0 text-emerald-500" />
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold">{item.label}</p>
-                  <p className="text-[10px]" style={{ color: muted }}>{item.detail}</p>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: muted }}><CircleCheck size={14} className="text-emerald-500" /> Context preserved</span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold" style={{ color: muted }}><ShieldCheck size={14} className="text-primary" /> Permission scoped</span>
+            <Link to="/intrazone" className="inline-flex min-h-10 items-center gap-2 rounded-md bg-[#101318] px-4 py-2 text-[11px] font-bold text-white">
+              Open workspace <ArrowRight size={14} />
+            </Link>
           </div>
-
-          <Link to="/intrazone" className="mt-2 inline-flex min-h-11 w-full items-center justify-between rounded-lg bg-foreground px-4 py-3 text-[12px] font-bold text-background">
-            Open Workspace <ArrowRight size={15} />
-          </Link>
-        </aside>
+        </div>
       </div>
     </section>
   );

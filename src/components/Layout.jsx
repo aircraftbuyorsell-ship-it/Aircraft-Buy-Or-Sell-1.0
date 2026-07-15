@@ -206,22 +206,22 @@ export default function Layout() {
 
   const layoutBg = isDark
     ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
-    : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+    : { background: "#f7f8fa", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.035) 0%, transparent 48%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.025) 0%, transparent 48%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.025) 0%, transparent 38%)" };
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
       <DotGrid />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: isDark ? 0.055 : 0.018, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "rgba(0,0,0,0.9)"} />
+              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "#111827"} />
             </marker>
           </defs>
-          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
+          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
-        <div style={{ textAlign: "center", marginTop: 18, color: isDark ? "#fff" : "rgba(0,0,0,0.9)", fontFamily: "Inter, -apple-system, sans-serif" }}>
+        <div style={{ textAlign: "center", marginTop: 18, color: isDark ? "#fff" : "#111827", fontFamily: "Inter, -apple-system, sans-serif" }}>
           <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
             ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
@@ -258,7 +258,7 @@ export default function Layout() {
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && (
       <header className="sticky top-0 z-40"
-      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
+      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(255,255,255,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}

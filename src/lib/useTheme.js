@@ -11,8 +11,7 @@ function isNightHour() {
 function resolveIsDark(stored) {
   if (stored === "dark") return true;
   if (stored === "light") return false;
-  // Default to dark mode (main mode)
-  return true;
+  return isNightHour();
 }
 
 function applyClass(isDark) {

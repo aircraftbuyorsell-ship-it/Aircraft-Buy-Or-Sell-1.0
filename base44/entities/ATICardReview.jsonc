@@ -5,49 +5,68 @@
     "ati_card": {
       "type": "string",
       "relationType": "ATICard",
-      "description": "Optional ATI card associated with the review"
+      "description": "Optional ATI score card linked to this review"
     },
     "listing": {
       "type": "string",
       "relationType": "AircraftListing",
-      "description": "Aircraft listing being reviewed"
+      "description": "Public aircraft listing being reviewed"
+    },
+    "report_id": {
+      "type": "string",
+      "description": "Optional report identifier; never stores report contents"
     },
     "public_card_code": {
       "type": "string",
-      "description": "Denormalized card code for easy filtering"
+      "description": "Public ATI card reference"
+    },
+    "author_user_id": {
+      "type": "string",
+      "description": "Author user ID snapshot"
     },
     "reviewer_email": {
       "type": "string",
-      "description": "Email of the reviewer"
+      "description": "Author email snapshot"
     },
     "reviewer_name": {
       "type": "string",
-      "description": "Display name of reviewer at time of submission"
+      "description": "Public reviewer display name"
     },
     "rating": {
       "type": "number",
       "minimum": 1,
       "maximum": 5,
-      "description": "Star rating 1-5"
+      "description": "Star rating from 1 to 5"
+    },
+    "review_title": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Review heading"
+    },
+    "review_text": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Public review text only"
     },
     "comment": {
       "type": "string",
       "maxLength": 1000,
-      "description": "Review text"
+      "description": "Legacy review text field"
     },
     "status": {
       "type": "string",
       "enum": [
         "pending",
-        "approved",
-        "rejected"
+        "published",
+        "rejected",
+        "approved"
       ],
       "default": "pending",
-      "description": "Moderation status"
+      "description": "Moderation status; approved is retained for legacy reviews"
     },
     "moderated_by": {
       "type": "string",
-      "description": "Email of admin who moderated"
+      "description": "Admin email who moderated the review"
     },
     "moderated_at": {
       "type": "string",
@@ -56,7 +75,7 @@
     "description": {
       "type": "string",
       "maxLength": 1000,
-      "description": "Optional description for search visibility and SEO"
+      "description": "Optional search description"
     }
   },
   "required": [
@@ -80,6 +99,9 @@
     "read": {
       "$or": [
         {
+          "data.status": "published"
+        },
+        {
           "data.status": "approved"
         },
         {
@@ -95,7 +117,8 @@
     "update": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}",
+          "data.status": "pending"
         },
         {
           "user_condition": {
@@ -107,7 +130,8 @@
     "delete": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
+          "created_by_id": "{{user.id}}",
+          "data.status": "pending"
         },
         {
           "user_condition": {

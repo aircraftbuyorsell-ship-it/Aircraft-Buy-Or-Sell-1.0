@@ -180,7 +180,8 @@ export default function Layout() {
   const isDark = useTheme();
 
   const isHomepage = pathname === "/";
-  const showBack = !isHomepage;
+  const isWorkspace = pathname === "/intrazone" || pathname.startsWith("/intrazone/");
+  const showBack = !isHomepage && !isWorkspace;
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
@@ -210,8 +211,8 @@ export default function Layout() {
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
-      <DotGrid />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: isDark ? 0.055 : 0.018, pointerEvents: "none", zIndex: 0 }}>
+      {!isWorkspace && <DotGrid />}
+      {!isWorkspace && <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: isDark ? 0.055 : 0.018, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
@@ -229,17 +230,17 @@ export default function Layout() {
             Marketspace<span style={{ fontSize: 10, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
         </div>
-      </div>
+      </div>}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
 
       {/* ── Mobile drawer ── */}
-      {!isHomepage && mobileOpen &&
+      {!isHomepage && !isWorkspace && mobileOpen &&
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
       style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
       }
-      {!isHomepage && (
+      {!isHomepage && !isWorkspace && (
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
         background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
@@ -256,7 +257,7 @@ export default function Layout() {
       )}
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
-      {!isHomepage && (
+      {!isHomepage && !isWorkspace && (
       <header className="sticky top-0 z-40"
       style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(255,255,255,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
@@ -311,7 +312,7 @@ export default function Layout() {
           <Outlet />
       </main>
 
-      <SiteFooter />
+      {!isWorkspace && <SiteFooter />}
       <ABOSTour />
     </div>);
 

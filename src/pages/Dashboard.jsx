@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import NotificationStack from "@/components/notifications/NotificationStack";
-import HomepageHeader from "@/components/homepage/HomepageHeader";
-import HomeHeroSection from "@/components/homepage/HomeHeroSection";
+import HomepageEditorialHero from "@/components/homepage/HomepageEditorialHero";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import SalesPipelinePromo from "@/components/dashboard/sections/SalesPipelinePromo";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
@@ -43,13 +42,12 @@ export default function Dashboard() {
         fontFamily: "Inter, -apple-system, sans-serif",
       }}
     >
-      <HomepageHeader />
       <NotificationStack />
 
-      {/* 1. Hero (with Globe) */}
-      <HomeHeroSection />
+      {/* 1. Editorial globe and homepage hero */}
+      <HomepageEditorialHero />
 
-      {/* Running news bar — directly below the globe */}
+      {/* Running news bar — directly below the hero */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
         <AviationNewsTicker />
       </div>

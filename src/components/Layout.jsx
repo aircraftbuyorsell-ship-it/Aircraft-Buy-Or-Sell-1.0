@@ -16,6 +16,7 @@ import PragueClock from "@/components/layout/PragueClock";
 import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
+import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import { NAV_TREE } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
 
@@ -255,55 +256,34 @@ export default function Layout() {
       </aside>
       )}
 
-      {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
-      {!isHomepage && (
-      <header className="sticky top-0 z-40"
-      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
-        {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
-        <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
-          {/* Left: back + dominant logo — centered with equal flex */}
-          <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
-            {showBack &&
-            <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
-                <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
-              </button>
-            }
-            {/* Mobile: compact logo; Desktop: full dominant logo */}
-            <div className="lg:hidden">
-              <SidebarLogo compact />
+      {/* ── Top header bar ── */}
+      {isHomepage ? (
+        <header className="sticky top-0 z-20 border-b border-border bg-card safe-left safe-right">
+          <div className="mx-auto flex min-h-16 max-w-[1440px] items-center gap-5 px-4 lg:px-7">
+            <Link to="/" className="shrink-0 text-xl font-extrabold tracking-[-0.05em] text-foreground">ABOS</Link>
+            <nav aria-label="Primary navigation" className="hidden items-center gap-6 lg:flex">
+              <Link to="/listings" className="text-xs font-medium text-foreground hover:text-primary">Marketplace</Link>
+              <Link to="/ati-center" className="text-xs font-medium text-foreground hover:text-primary">Intelligence</Link>
+              <Link to="/ati-verify" className="text-xs font-medium text-foreground hover:text-primary">Verify</Link>
+              <Link to="/solutions/buyers" className="text-xs font-medium text-foreground hover:text-primary">Solutions</Link>
+              <Link to="/pricing" className="text-xs font-medium text-foreground hover:text-primary">Pricing</Link>
+            </nav>
+            <div className="hidden min-w-0 flex-1 justify-center md:flex"><SmartAircraftSearch variant="compact" /></div>
+            <Link to="/intrazone" className="ml-auto inline-flex min-h-11 items-center justify-center rounded-md border border-foreground/30 px-4 text-xs font-semibold text-foreground hover:bg-muted">Workspace</Link>
+          </div>
+        </header>
+      ) : (
+        <header className="sticky top-0 z-40" style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
+          <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
+            <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
+              {showBack && <button onClick={() => navigate(-1)} aria-label="Go back" style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}><ArrowLeft size={16} /><span className="hidden sm:inline">Back</span></button>}
+              <div className="lg:hidden"><SidebarLogo compact /></div><div className="hidden lg:block"><SidebarLogo /></div>
             </div>
-            <div className="hidden lg:block">
-              <SidebarLogo />
-            </div>
+            <div className="hidden lg:flex items-center justify-center flex-1 min-w-0"><PillCommandBar /></div>
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end"><UniversalSearchBar compact /><ThemeToggle /><PragueClock />{currentUser ? <AccountMenu user={currentUser} /> : <button onClick={() => base44.auth.redirectToLogin()} style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}><LogIn size={14} /><span>Log In</span></button>}</div>
           </div>
-
-          {/* Center: pill command bar (desktop only, truly centered) */}
-          <div className="hidden lg:flex items-center justify-center flex-1 min-w-0">
-            <PillCommandBar />
-          </div>
-
-          {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
-            <UniversalSearchBar compact />
-            <ThemeToggle />
-            <PragueClock />
-            {currentUser ?
-            <AccountMenu user={currentUser} /> :
-
-            <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
-                <LogIn size={14} /> <span>Log In</span>
-              </button>
-            }
-          </div>
-        </div>
-
-        {/* Mobile only: compact icon pill nav on second row */}
-        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
-          <MobilePillNav />
-        </div>
-      </header>
+          <div className="lg:hidden flex items-center justify-center pb-2 px-4"><MobilePillNav /></div>
+        </header>
       )}
 
       {/* ── Content ── full width ── */}

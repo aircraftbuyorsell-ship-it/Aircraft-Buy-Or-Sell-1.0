@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import { useTheme } from "@/lib/useTheme";
@@ -10,78 +11,123 @@ const STATS = [
   { value: "0", label: "Repeat Lookup Steps" },
 ];
 
+const WORKFLOW = [
+  { label: "Identify", detail: "Registration and serial" },
+  { label: "Verify", detail: "Ownership and records" },
+  { label: "Value", detail: "Market and operating data" },
+  { label: "Transact", detail: "Pipeline and settlement" },
+];
+
 export default function HomeHeroSection() {
   const isDark = useTheme();
-
-  const mobileOverlay = isDark
-    ? "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)"
-    : "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
-
-  const dotPattern = isDark
-    ? "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)"
-    : "radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px)";
-
-  const h1Class = isDark ? "text-white" : "text-foreground";
-  const pClass = isDark ? "text-white/60" : "text-muted-foreground";
-  const statsLabelClass = isDark ? "text-white/45" : "text-muted-foreground";
-  const statsPillClass = isDark
-    ? "border-primary/20 bg-white/[0.03]"
-    : "border-border bg-card";
-  const btnSecondaryClass = isDark
-    ? "border-white/15 bg-white/5 text-white/85 hover:bg-white/10"
-    : "border-border bg-card text-foreground hover:bg-muted/50";
-  const scrollClass = isDark ? "text-white/35" : "text-muted-foreground/50";
+  const foreground = isDark ? "#ffffff" : "#111827";
+  const muted = isDark ? "rgba(255,255,255,0.64)" : "#4b5563";
+  const panel = isDark ? "rgba(12,17,27,0.84)" : "rgba(255,255,255,0.92)";
+  const panelBorder = isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)";
 
   return (
-    <section className="relative w-full min-h-[640px] h-auto py-14 sm:py-0 sm:h-[900px] lg:h-[max(100vh,780px)] overflow-visible">
-      <HeroGlobe />
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)" }} />
-      <div className="pointer-events-none absolute inset-0 lg:hidden" style={{ background: mobileOverlay }} />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: dotPattern, backgroundSize: "24px 24px" }} />
+    <section className="relative min-h-[760px] w-full overflow-hidden sm:min-h-[820px] lg:min-h-[max(100vh,780px)]">
+      {isDark ? (
+        <HeroGlobe />
+      ) : (
+        <div
+          className="absolute inset-0 bg-cover bg-[68%_center] sm:bg-center"
+          style={{ backgroundImage: "url('/assets/hero-aircraft-light.webp')" }}
+          role="img"
+          aria-label="Business aircraft on an airport apron"
+        />
+      )}
 
-      <div className="relative z-10 flex h-full flex-col justify-center px-4 sm:px-8">
-        <div className="mx-auto w-full max-w-[1240px]">
-          <div className="flex w-full max-w-[680px] flex-col items-start text-left pt-24 sm:pt-28 px-3">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 sm:mb-6">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS™ Platform</span>
-            </div>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: isDark
+            ? "linear-gradient(90deg, rgba(4,6,10,0.88) 0%, rgba(4,6,10,0.58) 48%, rgba(4,6,10,0.16) 78%, transparent 100%)"
+            : "linear-gradient(90deg, rgba(247,248,250,0.98) 0%, rgba(247,248,250,0.94) 36%, rgba(247,248,250,0.68) 55%, rgba(247,248,250,0.12) 82%, transparent 100%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 lg:hidden"
+        style={{
+          background: isDark
+            ? "linear-gradient(180deg, rgba(4,6,10,0.42) 0%, rgba(4,6,10,0.76) 62%, rgba(4,6,10,0.96) 100%)"
+            : "linear-gradient(180deg, rgba(247,248,250,0.76) 0%, rgba(247,248,250,0.92) 58%, rgba(247,248,250,0.99) 100%)",
+        }}
+      />
 
-            <h1 className={`mb-4 tracking-[-0.03em] leading-[1.04] sm:mb-6 ${h1Class}`} style={{ fontSize: "clamp(30px, 8vw, 62px)", fontWeight: 500 }}>
-              The Aviation<br /><span className="font-bold text-primary">Intelligence</span> Platform
-            </h1>
+      <div className="relative z-10 mx-auto grid min-h-[760px] w-full max-w-[1240px] items-center gap-10 px-4 pb-14 pt-40 sm:min-h-[820px] sm:px-8 sm:pt-44 lg:grid-cols-[minmax(0,1fr)_360px] lg:pb-20 lg:pt-32">
+        <div className="max-w-[700px]">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Aviation Intelligence Platform</span>
+          </div>
 
-            <div className="mb-5 flex w-full flex-col gap-2.5 sm:mb-7 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-              <Link to="/listings" className="rounded-xl bg-primary px-6 py-3 text-center text-[13px] font-bold text-primary-foreground hover:opacity-90">Browse Aircraft</Link>
-              <Link to="/ati-center" className={`rounded-xl border px-6 py-3 text-center text-[13px] font-bold transition-colors ${btnSecondaryClass}`}>Explore ABOS Intelligence</Link>
-            </div>
+          <h1
+            className="max-w-[680px] text-[clamp(2.45rem,6vw,4.7rem)] font-semibold leading-[1.02]"
+            style={{ color: foreground, letterSpacing: 0 }}
+          >
+            Aircraft intelligence. From first signal to closed deal.
+          </h1>
 
-            <p className={`mb-5 max-w-[480px] text-[14px] leading-relaxed sm:mb-8 sm:text-[16px] ${pClass}`}>
-              Search. Analyze. Negotiate. Buy. Sell. — verified aircraft identity, AI valuations and end-to-end deal tools in one platform.
-            </p>
+          <p className="mt-6 max-w-[570px] text-[15px] leading-relaxed sm:text-[17px]" style={{ color: muted }}>
+            Search, verify, value and transact with one connected aviation workspace built for professionals.
+          </p>
 
-            <div className="mb-6 w-full max-w-[560px] sm:mb-10">
-              <SmartAircraftSearch variant="hero" />
-            </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a href="#aircraft-search" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-[13px] font-bold text-primary-foreground hover:opacity-90">
+              Search an aircraft <ArrowRight size={15} />
+            </a>
+            <Link
+              to="/listings"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border px-6 py-3 text-[13px] font-bold"
+              style={{ color: foreground, borderColor: panelBorder, background: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.78)" }}
+            >
+              Explore the market
+            </Link>
+          </div>
 
-            <div className="w-full">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="hidden whitespace-nowrap rounded-full border border-primary/20 bg-primary/5 px-3.5 py-2 text-[10px] font-bold uppercase leading-snug tracking-[0.14em] text-primary/70 sm:inline-block">The global aircraft identity &amp; sales network</span>
-                {STATS.map((stat) => (
-                  <div key={stat.label} className={`flex items-baseline gap-1.5 rounded-full border px-3 py-1.5 sm:px-3.5 sm:py-2 ${statsPillClass}`}>
-                    <span className="text-[15px] font-black tabular-nums leading-none text-primary sm:text-[18px]">{stat.value}</span>
-                    <span className={`text-[8px] font-semibold uppercase leading-none tracking-[0.12em] ${statsLabelClass}`}>{stat.label}</span>
-                  </div>
-                ))}
+          <div id="aircraft-search" className="mt-7 w-full max-w-[580px] scroll-mt-40">
+            <SmartAircraftSearch variant="hero" />
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="flex items-baseline gap-1.5 rounded-full border px-3 py-2" style={{ background: panel, borderColor: panelBorder }}>
+                <span className="text-[16px] font-black leading-none text-primary">{stat.value}</span>
+                <span className="text-[8px] font-semibold uppercase tracking-[0.1em]" style={{ color: muted }}>{stat.label}</span>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="pointer-events-none absolute bottom-20 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 sm:flex lg:bottom-8">
-        <span className={`text-[9px] uppercase tracking-[0.2em] ${scrollClass}`}>Scroll</span>
-        <div className="h-8 w-px bg-gradient-to-b from-primary/40 to-transparent" />
+        <aside
+          className="hidden rounded-lg p-5 shadow-[0_20px_60px_rgba(15,23,42,0.14)] backdrop-blur-xl lg:block"
+          style={{ background: panel, border: `1px solid ${panelBorder}`, color: foreground }}
+        >
+          <div className="flex items-start justify-between gap-4 border-b pb-4" style={{ borderColor: panelBorder }}>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Connected workflow</p>
+              <h2 className="mt-1 text-lg font-bold">Aircraft workspace</h2>
+            </div>
+            <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-1 text-[9px] font-bold text-emerald-600">Ready</span>
+          </div>
+
+          <div className="py-2">
+            {WORKFLOW.map((item) => (
+              <div key={item.label} className="flex items-center gap-3 border-b py-3 last:border-b-0" style={{ borderColor: panelBorder }}>
+                <CheckCircle2 size={16} className="shrink-0 text-emerald-500" />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold">{item.label}</p>
+                  <p className="text-[10px]" style={{ color: muted }}>{item.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Link to="/intrazone" className="mt-2 inline-flex min-h-11 w-full items-center justify-between rounded-lg bg-foreground px-4 py-3 text-[12px] font-bold text-background">
+            Open Workspace <ArrowRight size={15} />
+          </Link>
+        </aside>
       </div>
     </section>
   );

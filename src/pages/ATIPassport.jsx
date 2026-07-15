@@ -425,6 +425,7 @@ Return ONLY raw JSON:
               </p>
             </div>
             <div className="p-8">
+              {listing && <div className="mb-8"><ReviewsPanel card={card} listing={listing} /></div>}
               <div className="grid sm:grid-cols-3 gap-4 mb-8">
                 {[
                   { icon: ShieldCheck, title: "8-Dimension Analysis", body: "Documentation, engine condition, avionics, history, storage and transaction readiness." },
@@ -445,7 +446,6 @@ Return ONLY raw JSON:
               <div className="mb-8">
                 <ATITrustBlock passport={null} card={card} ownershipEvents={ownershipEvents} listing={listing} />
               </div>
-              {listing && <ReviewsPanel card={card} listing={listing} />}
               {error && (
                 <div className="bg-[rgba(192,57,43,0.07)] border border-[rgba(192,57,43,0.2)] text-[#e24b4a] text-sm rounded-xl px-4 py-3 mb-5">
                   {error}
@@ -575,6 +575,8 @@ Return ONLY raw JSON:
                 )}
               </div>
             </div>
+
+            {listing && <ReviewsPanel card={card} listing={listing} />}
 
             {/* ── Trust Block ───────────────────────────── */}
             <ATITrustBlock passport={passport} card={card} ownershipEvents={ownershipEvents} listing={listing} />
@@ -828,7 +830,6 @@ Return ONLY raw JSON:
             </div>
 
             {/* ── Timeline, Reviews, Ownership ───────────── */}
-            {listing && <ReviewsPanel card={card} listing={listing} />}
             {card && <AffiliateLinksPanel card={card} />}
             {card && <EventTimeline card={card} />}
             <OwnershipTrace listingId={listingId} />

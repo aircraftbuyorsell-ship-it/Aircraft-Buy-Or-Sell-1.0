@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 const PROJECT_NAME = 'IntraZone';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-const sqlText = (value) => String(value || '').replaceAll("'", "''");
+const complianceNeedle = (value) => String(value || '').trim().replace(/[^a-zA-Z0-9 -]/g, '').slice(0, 100);
 
 Deno.serve(async (req) => {
   try {
@@ -92,33 +92,32 @@ Deno.serve(async (req) => {
     const enginePromise = engineCode
       ? base44.asServiceRole.entities.EngineSpec.filter({ engine_code: engineCode.trim() }, '-created_date', 1)
       : Promise.resolve([]);
-    const modelNeedle = sqlText(model || '');
-    const makeNeedle = sqlText(make || '');
-    const complianceQuery = modelNeedle || makeNeedle ? `
-      select 'ad' as kind, ad_number as number, title, effective_date as date, status
-      from faa_ad
-      where lower(coalesce(manufacturer,'')) like lower('%${makeNeedle}%')
-         or lower(coalesce(aircraft_applicability::text,'')) like lower('%${modelNeedle}%')
-      order by effective_date desc nulls last limit 50;
-      select 'stc' as kind, stc_number as number, title, approval_date as date, status
-      from faa_stc
-      where lower(coalesce(aircraft_models::text,'')) like lower('%${modelNeedle}%')
-         or lower(coalesce(description,'')) like lower('%${modelNeedle}%')
-      order by approval_date desc nulls last limit 50;
-    ` : '';
-    const compliancePromise = complianceQuery
-      ? fetch(`https://api.supabase.com/v1/projects/${project.id}/database/query/read-only`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: complianceQuery }),
-        }).then(async (response) => response.ok ? await response.json() : [])
+    const modelNeedle = complianceNeedle(model);
+    const makeNeedle = complianceNeedle(make);
+    const compliancePromise = modelNeedle || makeNeedle
+      ? Promise.all([
+          makeNeedle ? rest('faa_ad', `select=ad_number,title,effective_date,status&manufacturer=ilike.*${encodeURIComponent(makeNeedle)}*&order=effective_date.desc&limit=50`) : [],
+          modelNeedle ? rest('faa_ad', `select=ad_number,title,effective_date,status&aircraft_applicability=ilike.*${encodeURIComponent(modelNeedle)}*&order=effective_date.desc&limit=50`) : [],
+          modelNeedle ? rest('faa_stc', `select=stc_number,title,approval_date,status&aircraft_models=ilike.*${encodeURIComponent(modelNeedle)}*&order=approval_date.desc&limit=50`) : [],
+          modelNeedle ? rest('faa_stc', `select=stc_number,title,approval_date,status&description=ilike.*${encodeURIComponent(modelNeedle)}*&order=approval_date.desc&limit=50`) : [],
+        ]).then(([adsByMake, adsByModel, stcsByModel, stcsByDescription]) => [
+          ...adsByMake,
+          ...adsByModel,
+          ...stcsByModel,
+          ...stcsByDescription,
+        ])
       : Promise.resolve([]);
 
     const [engineSpecs, compliance] = await Promise.all([enginePromise, compliancePromise]);
     const engineSpec = engineSpecs[0] || null;
-    const complianceRows = Array.isArray(compliance) ? compliance.flat().filter(Boolean) : [];
-    const ads = complianceRows.filter((item) => item.kind === 'ad');
-    const stcs = complianceRows.filter((item) => item.kind === 'stc');
+    const complianceRows = Array.isArray(compliance) ? compliance.filter(Boolean) : [];
+    const uniqueBy = (items, key) => [...new Map(items.map((item) => [item[key], item])).values()];
+    const ads = uniqueBy(complianceRows.filter((item) => item.ad_number), 'ad_number').map((item) => ({
+      kind: 'ad', number: item.ad_number, title: item.title, date: item.effective_date, status: item.status,
+    }));
+    const stcs = uniqueBy(complianceRows.filter((item) => item.stc_number), 'stc_number').map((item) => ({
+      kind: 'stc', number: item.stc_number, title: item.title, date: item.approval_date, status: item.status,
+    }));
     const ownerQuery = normalizeText(body.owner_query);
     const ownerMatch = ownerQuery ? normalizeText(registry?.name) === ownerQuery : null;
 

@@ -16,10 +16,16 @@ function apiSuccess(data) {
   return Response.json({ status: 'success', data });
 }
 
-function mapListing(l) {
+function maskRegistration(registration) {
+  const value = String(registration || '').trim();
+  if (!value) return null;
+  return value.length <= 2 ? '•••' : `${value.slice(0, 1)}•••${value.slice(-1)}`;
+}
+
+function mapListing(l, includeRegistration = false) {
   return {
     id: l.id,
-    registration: l.registration || null,
+    registration: includeRegistration ? (l.registration || null) : maskRegistration(l.registration),
     aircraft: { manufacturer: l.make, model: l.model, year: l.year || null },
     price: l.asking_price ? { value: l.asking_price, currency: l.currency || 'USD' } : null,
     location: null,
@@ -261,7 +267,7 @@ Return ONLY valid JSON.`,
         query,
         intent,
         total_matches: matches.length,
-        matches: matches.slice(0, 20).map(mapListing),
+        matches: matches.slice(0, 20).map((listing) => mapListing(listing, caller.type === 'user')),
       });
     }
 
@@ -354,7 +360,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         return apiError(404, 'listing_not_found', 'Listing not found.');
       }
       await trackUsage();
-      return apiSuccess({ listing: mapListing(listing) });
+      return apiSuccess({ listing: mapListing(listing, caller.type === 'user') });
     }
 
     if (endpoint === 'listings.list') {
@@ -370,7 +376,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (params.max_price) matches = matches.filter((l) => !l.asking_price || l.asking_price <= Number(params.max_price));
       const limit = Math.min(Number(params.limit) || 20, 50);
       await trackUsage();
-      return apiSuccess({ total: matches.length, listings: matches.slice(0, limit).map(mapListing) });
+      return apiSuccess({ total: matches.length, listings: matches.slice(0, limit).map((listing) => mapListing(listing, caller.type === 'user')) });
     }
 
     if (endpoint === 'listings.create') {

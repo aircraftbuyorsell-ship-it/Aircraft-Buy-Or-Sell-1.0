@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-07-16T03:13:13.813Z",
+  "branch": "work",
+  "git_status": [
+    "M package.json",
+    "?? .branch-factory/",
+    "?? scripts/",
+    "?? test/"
+  ],
+  "package_manager": "npm",
+  "runtime": {
+    "package_json": true,
+    "vite": true
+  },
+  "counts": {
+    "files": 774,
+    "pages": 86,
+    "components": 376,
+    "base44_functions": 116,
+    "base44_entities": 79,
+    "base44_connectors": 6,
+    "base44_agents": 4
+  },
+  "openapi_files": [
+    "base44/functions/abosOpenApiSpec/entry.ts"
+  ],
+  "sdk_indicators": [
+    "src/lib/query-client.js",
+    "src/api/base44Client.js"
+  ],
+  "mcp_files": [],
+  "tests": [
+    "test/branch-factory/validation.test.mjs",
+    "test/branch-factory/lifecycle.test.mjs"
+  ],
+  "ci_workflows": [
+    ".github/workflows/node.js.yml"
+  ],
+  "tracking_files": [
+    "base44/entities/RewardMilestone.jsonc",
+    "factory/state.json",
+    ".branch-factory/schemas/task.schema.json",
+    ".branch-factory/tasks.json",
+    "src/lib/milestones.js"
+  ],
+  "automation_config": [
+    "base44/agents/ati_passport_guide.jsonc",
+    "base44/agents/valuation_analyst.jsonc",
+    "base44/agents/deal_wizard.jsonc",
+    "base44/agents/finance_advisor.jsonc",
+    "AGENTS.md",
+    ".github/workflows/node.js.yml"
+  ]
+}

@@ -1,0 +1,10 @@
+id: test-agent
+role: Test Agent
+may_implement: false
+may_test: true
+may_validate: false
+responsibilities:
+  - run_relevant_tests
+  - add_missing_test_coverage_when_required
+  - detect_regressions
+  - produce_structured_test_result

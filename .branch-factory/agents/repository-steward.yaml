@@ -1,0 +1,11 @@
+id: repository-steward
+role: Repository Steward
+may_implement: false
+may_test: false
+may_validate: true
+responsibilities:
+  - validate_tracking_consistency
+  - detect_stale_task_or_branch_records
+  - update_repository_state_reports
+  - ensure_completed_work_reflected_in_existing_goal_tracking
+  - prevent_duplicate_goals_milestones_or_task_identifiers

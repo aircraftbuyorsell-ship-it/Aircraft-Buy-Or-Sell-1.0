@@ -1,0 +1,11 @@
+id: validator-agent
+role: Validator Agent
+may_implement: false
+may_test: false
+may_validate: true
+responsibilities:
+  - verify_abos_platform_bootstrap_v1_conformity
+  - verify_repository_conventions
+  - verify_openapi_and_sdk_consistency_when_relevant
+  - verify_security_sensitive_boundaries
+  - approve_or_reject_task

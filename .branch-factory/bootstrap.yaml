@@ -1,0 +1,20 @@
+schema_version: 1.0.0
+name: ABOS Local Branch Factory
+architectural_context: ABOS Platform Bootstrap v1.0
+mode: local
+production_writes_allowed: false
+auto_merge_allowed: false
+state_store: .branch-factory/state.json
+sprint: .branch-factory/sprint.json
+tasks: .branch-factory/tasks.json
+agent_directory: .branch-factory/agents
+report_directory: .branch-factory/reports
+goal_tracking:
+  authoritative_tracker: factory/state.json
+  milestone_reference: src/lib/milestones.js
+  provisional: false
+rules:
+  - do_not_create_architecture_documents
+  - do_not_deploy
+  - do_not_publish_packages
+  - do_not_modify_production_infrastructure

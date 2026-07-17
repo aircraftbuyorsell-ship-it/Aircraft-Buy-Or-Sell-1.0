@@ -5,11 +5,8 @@ import AircraftContextBar from "@/components/homepage/AircraftContextBar";
 
 export default function GlobeShowcase() {
   return (
-    <section className="relative isolate min-h-[650px] overflow-hidden sm:min-h-[calc(100vh-4rem)]" style={{ backgroundColor: "#FFFFFF" }}>
-      <div className="pointer-events-none absolute inset-0 z-0" style={{ backgroundImage: "radial-gradient(circle, #B8B8B8 1px, transparent 1px)", backgroundSize: "24px 24px", WebkitMaskImage: "linear-gradient(90deg, black 0%, transparent 70%)", maskImage: "linear-gradient(90deg, black 0%, transparent 70%)" }} />
-      <div className="pointer-events-none absolute inset-0 z-0" style={{ backgroundImage: "radial-gradient(circle, #D4A017 1px, transparent 1px)", backgroundSize: "24px 24px", WebkitMaskImage: "linear-gradient(90deg, transparent 30%, black 100%)", maskImage: "linear-gradient(90deg, transparent 30%, black 100%)" }} />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none font-black leading-none" style={{ fontSize: "25vw", color: "rgba(212, 160, 23, 0.07)" }}>ABOS</div>
-      <div className="absolute -right-[24%] top-0 z-10 h-[86%] w-[90%] sm:-right-[12%] sm:w-[72%]"><HeroGlobe forceLight /></div>
+    <section className="relative isolate min-h-[650px] overflow-hidden bg-card sm:min-h-[calc(100vh-4rem)]">
+      <div className="absolute -right-[24%] top-0 z-10 h-[86%] w-[90%] sm:-right-[12%] sm:w-[72%]"><HeroGlobe /></div>
       <div className="relative z-20 mx-auto max-w-[1440px] px-5 pb-28 pt-20 sm:px-10 sm:pt-28">
         <div className="max-w-xl">
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-[-0.04em] sm:text-6xl">Aircraft intelligence.<br />From first signal to closed deal.</h1>

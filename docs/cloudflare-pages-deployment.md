@@ -46,6 +46,10 @@ The workflow does not run on pull requests or pushes. A deployment requires an e
 
 The guard does not scan or block separate ABOS Core API Worker deployment workflows.
 
+## CI verification
+
+Pull-request CI must create at least one runner job for the PR head commit. A `startup_failure` with zero jobs indicates a GitHub Actions account, billing, or repository-policy blocker rather than an application build failure.
+
 ## Application environment variables
 
 Configure required `VITE_*` build-time variables as GitHub Actions secrets or environment variables before deployment. Values prefixed with `VITE_` are bundled into client-side code and must never contain private credentials.

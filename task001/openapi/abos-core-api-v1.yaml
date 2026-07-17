@@ -11,6 +11,15 @@ servers:
 security:
   - BearerAuth: []
   - ApiKeyAuth: []
+x-abos-authentication-policy:
+  api-keys-in-request-body: forbidden
+  dual-credential-request: reject
+  credential-precedence: none
+x-abos-scope-migration:
+  listing:read: { canonical: 'listings:read', legacy-alias-only: true }
+  intelligence:read: { canonical: 'intelligence:request', legacy-alias-only: true }
+  search:read: { canonical: 'search:read', legacy-alias-only: false }
+  listing:write: { canonical: null, legacy-alias-only: true }
 paths:
   /api/v1/search:
     post:
@@ -197,7 +206,10 @@ components:
       required: [source, source_record_id, observed_at, retrieval_method]
       properties:
         source: { type: string }
-        source_record_id: { type: ['null', string], description: Never an internal implementation ID }
+        source_record_id:
+          type: ['null', string]
+          not: { pattern: '^(base44_|internal_|[a-f0-9]{24}$)' }
+          description: External source identifier only; internal implementation IDs are forbidden
         observed_at: { type: ['null', string], format: date-time }
         retrieval_method: { type: string }
     IntelligenceMetadata:
@@ -279,6 +291,19 @@ components:
       type: object
       additionalProperties: false
       required: [valuation_id, status, estimated_value, range, confidence, data_completeness, generated_at, engine_version, source_provenance, limitations]
+      allOf:
+        - if:
+            properties: { status: { const: complete } }
+            required: [status]
+          then:
+            properties:
+              estimated_value: { $ref: '#/components/schemas/Price' }
+              confidence: { type: number, minimum: 0, maximum: 1 }
+              engine_version: { type: string, minLength: 1 }
+              source_provenance:
+                type: array
+                minItems: 1
+                items: { $ref: '#/components/schemas/SourceProvenance' }
       properties:
         valuation_id: { type: string, pattern: '^val_' }
         status: { type: string, enum: [complete, insufficient_data] }
@@ -307,11 +332,23 @@ components:
           additionalProperties: false
           required: [code, message, request_id, details, documentation_url]
           properties:
-            code: { type: string }
-            message: { type: string }
+            code: { type: string, maxLength: 128 }
+            message: { type: string, maxLength: 1000, description: Sanitized message; stack traces and provider errors are forbidden }
             request_id: { type: [string, 'null'] }
-            details: { type: object, additionalProperties: true }
+            details: { $ref: '#/components/schemas/ErrorDetails' }
             documentation_url: { type: [string, 'null'], format: uri }
+    ErrorDetails:
+      type: object
+      description: Flat, sanitized details only; nested implementation objects are forbidden
+      propertyNames:
+        not: { pattern: '^(id|internal_id|base44_id|stack|provider_error)$' }
+      additionalProperties:
+        oneOf:
+          - { type: string, maxLength: 500 }
+          - { type: number }
+          - { type: boolean }
+          - { type: 'null' }
+          - { type: array, maxItems: 50, items: { type: [string, number, boolean, 'null'] } }
     RequestContext:
       type: object
       additionalProperties: false

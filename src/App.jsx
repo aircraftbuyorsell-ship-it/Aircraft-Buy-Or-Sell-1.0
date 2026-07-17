@@ -95,6 +95,7 @@ import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
+import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -208,6 +209,7 @@ const AuthenticatedApp = () => {
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
       </Route>
+      <Route path="/HomePage" element={<HomePage />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

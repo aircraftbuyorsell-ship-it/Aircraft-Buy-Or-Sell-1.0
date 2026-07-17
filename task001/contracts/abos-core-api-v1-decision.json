@@ -6,7 +6,12 @@
     "base_path": "/api/v1",
     "response_envelope": "operation_specific",
     "error_schema": "APIError",
-    "authentication": ["Authorization: Bearer <token>", "X-ABOS-API-Key: <key>"],
+    "authentication": {
+      "accepted_transports": ["Authorization: Bearer <ABOS API key>", "X-ABOS-API-Key: <key>"],
+      "api_keys_in_body_forbidden": true,
+      "dual_credential_policy": "reject",
+      "precedence": null
+    },
     "operations": [
       { "method": "POST", "path": "/api/v1/search", "operation_id": "searchListings", "scope": "search:read" },
       { "method": "GET", "path": "/api/v1/aircraft/{aircraft_id}", "operation_id": "getAircraft", "scope": "listings:read" },
@@ -24,8 +29,8 @@
     "operations": ["keys.create", "keys.list", "keys.revoke", "search", "valuate", "intelligence.extract", "listings.get", "listings.list", "listings.create"]
   },
   "compatibility_mappings": [
-    { "legacy": "search", "canonical": "POST /api/v1/search", "mode": "adapt", "notes": "Map params.query to query; translate matches to results and add pagination/provenance." },
-    { "legacy": "valuate", "canonical": "POST /api/v1/intelligence/valuate", "mode": "guarded_adapt", "notes": "Never translate untraceable LLM memory into a complete valuation." },
+    { "legacy": "search", "canonical": "POST /api/v1/search", "mode": "future_adapter", "notes": "Preserve the deployed legacy path until a separately tested adapter reaches parity." },
+    { "legacy": "valuate", "canonical": "POST /api/v1/intelligence/valuate", "mode": "separate_during_coexistence", "notes": "Legacy keeps its current provider and response. Canonical valuation independently enforces provenance and insufficient_data." },
     { "legacy": "listings.get", "canonical": "GET /api/v1/listings/{listing_id}", "mode": "adapt", "notes": "Resolve internal ID to stable public listing_id before returning a public DTO." },
     { "legacy": "listings.list", "canonical": "POST /api/v1/search", "mode": "adapt", "notes": "Translate structured filters into deterministic search constraints." },
     { "legacy": "keys.create", "canonical": null, "mode": "legacy_only", "notes": "Defer API-key lifecycle contract." },
@@ -42,6 +47,14 @@
     "valuation_without_traceable_sources": "insufficient_data",
     "sanitized_errors": true,
     "request_id_required": true,
-    "legacy_gateway_must_remain_available_during_coexistence": true
+    "legacy_gateway_must_remain_available_during_coexistence": true,
+    "legacy_behavior_must_not_change_in_task001": true,
+    "complete_valuation_requires_nonempty_traceable_provenance": true
+  },
+  "scope_migration": {
+    "listing:read": { "canonical": "listings:read", "legacy_alias_only": true },
+    "intelligence:read": { "canonical": "intelligence:request", "legacy_alias_only": true },
+    "search:read": { "canonical": "search:read", "legacy_alias_only": false },
+    "listing:write": { "canonical": null, "legacy_alias_only": true }
   }
 }

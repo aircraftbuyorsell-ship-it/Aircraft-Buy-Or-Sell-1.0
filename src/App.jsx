@@ -121,6 +121,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/1PAGE" element={<Dashboard />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
         <Route path="/ati-passport" element={<Navigate to="/listings" replace />} />

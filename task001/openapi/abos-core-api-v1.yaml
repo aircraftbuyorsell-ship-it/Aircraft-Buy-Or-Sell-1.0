@@ -24,6 +24,7 @@ paths:
   /api/v1/search:
     post:
       operationId: searchListings
+      x-abos-required-scope: search:read
       summary: Retrieve authoritative listings after deterministic retrieval
       security:
         - BearerAuth: [search:read]
@@ -53,6 +54,7 @@ paths:
   /api/v1/aircraft/{aircraft_id}:
     get:
       operationId: getAircraft
+      x-abos-required-scope: listings:read
       summary: Get one public aircraft identity and specification
       security:
         - BearerAuth: [listings:read]
@@ -74,6 +76,7 @@ paths:
   /api/v1/listings/{listing_id}:
     get:
       operationId: getListing
+      x-abos-required-scope: listings:read
       summary: Get one public aircraft listing
       security:
         - BearerAuth: [listings:read]
@@ -95,6 +98,7 @@ paths:
   /api/v1/intelligence/valuate:
     post:
       operationId: requestValuation
+      x-abos-required-scope: intelligence:request
       summary: Request a traceable valuation result
       description: Returns insufficient_data until a traceable comparable set and approved valuation engine are configured.
       security:
@@ -207,8 +211,10 @@ components:
       properties:
         source: { type: string }
         source_record_id:
-          type: ['null', string]
-          not: { pattern: '^(base44_|internal_|[a-f0-9]{24}$)' }
+          anyOf:
+            - { type: 'null' }
+            - type: string
+              not: { pattern: '^(base44_|internal_|[a-f0-9]{24}$)' }
           description: External source identifier only; internal implementation IDs are forbidden
         observed_at: { type: ['null', string], format: date-time }
         retrieval_method: { type: string }

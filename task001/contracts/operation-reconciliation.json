@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "legacy_operations": [
+    { "operation": "keys.create", "request": ["name", "scopes?", "expires_days?"], "success": "legacy key DTO in {status,data}", "errors": ["missing_name", "invalid_scopes", "user_session_required"], "canonical": null, "disposition": "legacy_only" },
+    { "operation": "keys.list", "request": [], "success": "legacy key list in {status,data}", "errors": ["user_session_required"], "canonical": null, "disposition": "legacy_only" },
+    { "operation": "keys.revoke", "request": ["id"], "success": "revoked status in {status,data}", "errors": ["missing_id", "key_not_found", "user_session_required"], "canonical": null, "disposition": "legacy_only" },
+    { "operation": "search", "request": ["query"], "success": "query, intent, total_matches, matches in {status,data}", "errors": ["missing_query", "insufficient_scope"], "canonical": "POST /api/v1/search", "disposition": "future_adapter" },
+    { "operation": "valuate", "request": ["manufacturer", "model", "year?", "hours?"], "success": "LLM-memory estimate in {status,data}", "errors": ["missing_aircraft", "insufficient_scope"], "canonical": "POST /api/v1/intelligence/valuate", "disposition": "separate_during_coexistence" },
+    { "operation": "intelligence.extract", "request": ["text"], "success": "extraction DTO in {status,data}", "errors": ["missing_text", "insufficient_scope"], "canonical": null, "disposition": "legacy_only" },
+    { "operation": "listings.get", "request": ["id"], "success": "legacy listing in {status,data}", "errors": ["missing_id", "listing_not_found", "insufficient_scope"], "canonical": "GET /api/v1/listings/{listing_id}", "disposition": "future_adapter" },
+    { "operation": "listings.list", "request": ["manufacturer?", "model?", "max_price?", "limit=20,max=50"], "success": "total and listings in {status,data}", "errors": ["insufficient_scope"], "canonical": "POST /api/v1/search", "disposition": "future_adapter" },
+    { "operation": "listings.create", "request": ["manufacturer", "model", "year?", "registration?", "price?", "currency=USD", "hours?", "source_url?"], "success": "internal draft ID in {status,data}", "errors": ["missing_aircraft", "insufficient_scope"], "canonical": null, "disposition": "legacy_only" }
+  ],
+  "canonical_operations": [
+    { "operation": "POST /api/v1/search", "request": "SearchRequest", "success": "SearchResponse", "errors": [400, 401, 403, 429], "scope": "search:read" },
+    { "operation": "GET /api/v1/aircraft/{aircraft_id}", "request": "AircraftId path parameter", "success": "Aircraft", "errors": [401, 403, 404], "scope": "listings:read" },
+    { "operation": "GET /api/v1/listings/{listing_id}", "request": "ListingId path parameter", "success": "AircraftListing", "errors": [401, 403, 404], "scope": "listings:read" },
+    { "operation": "POST /api/v1/intelligence/valuate", "request": "ValuationRequest", "success": "ValuationResult", "errors": [400, 401, 403, 429], "scope": "intelligence:request" }
+  ]
+}

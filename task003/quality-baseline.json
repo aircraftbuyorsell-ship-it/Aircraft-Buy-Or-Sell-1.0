@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "1.0.0",
+  "task_id": "TASK-003",
+  "title": "ABOS quality baseline ledger",
+  "baseline": {
+    "repository": "aircraftbuyorsell-ship-it/abos-0.8-intrazone",
+    "ref": "main",
+    "resolved_commit_sha": "5112f7f43113627b2fa1c1d8495c52d6b0fbca30",
+    "observed_date": "2026-07-17",
+    "package_scripts_sha": "45cb0ed509369d5f9daaeb21121c206aa3e4fe36",
+    "eslint_config_sha": "14a70c5a87d0d03d313b335fb6026be2650faab6",
+    "package_lock_blob_sha": "d8323cce4630534c57969186cd0588293e51c39a"
+  },
+  "commands": {
+    "install": "npm ci",
+    "build": "npm run build",
+    "lint": "npm run lint",
+    "typecheck": "npm run typecheck"
+  },
+  "gates": {
+    "build": {
+      "status": "pass",
+      "diagnostic_count": 0,
+      "categories": [],
+      "raw_output_available": false,
+      "execution_evidence": "historical_control_plane_statement"
+    },
+    "lint": {
+      "status": "fail",
+      "diagnostic_count": 140,
+      "categories": [
+        {
+          "id": "unused_import",
+          "rule_id": "unused-imports/no-unused-imports",
+          "count": 140,
+          "evidence": "AGENTS.md states 140 unused-import errors; eslint.config.js configures this rule as error."
+        }
+      ],
+      "raw_output_available": false,
+      "execution_evidence": "historical_control_plane_statement"
+    },
+    "typecheck": {
+      "status": "fail",
+      "diagnostic_count": null,
+      "categories": [
+        {
+          "id": "unclassified_application_type_error",
+          "typescript_codes": [],
+          "count": null,
+          "evidence": "AGENTS.md and factory/01_PROGRAM_BOARD.md state multiple application type errors; raw diagnostics are unavailable."
+        }
+      ],
+      "raw_output_available": false,
+      "execution_evidence": "historical_control_plane_statement"
+    }
+  },
+  "evidence_sources": [
+    {
+      "path": "AGENTS.md",
+      "ref": "abos-factory/v1",
+      "blob_sha": "e2d1193c2b92285b453cb872fd6681470232aac0"
+    },
+    {
+      "path": "factory/01_PROGRAM_BOARD.md",
+      "ref": "abos-factory/v1",
+      "blob_sha": "b39295bddfa7ef8c2d52c7b860a8d78b64784186"
+    },
+    {
+      "path": "factory/09_BACKLOG.md",
+      "ref": "abos-factory/v1",
+      "blob_sha": "56c3096ef0ca72105013fdbf044db5357c953246"
+    },
+    {
+      "path": "package.json",
+      "ref": "main",
+      "blob_sha": "45cb0ed509369d5f9daaeb21121c206aa3e4fe36"
+    },
+    {
+      "path": "eslint.config.js",
+      "ref": "main",
+      "blob_sha": "14a70c5a87d0d03d313b335fb6026be2650faab6"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "main",
+      "blob_sha": "d8323cce4630534c57969186cd0588293e51c39a"
+    }
+  ],
+  "limitations": [
+    "No raw lint output was preserved, so file-level lint fingerprints cannot be asserted from historical evidence.",
+    "No raw typecheck output was preserved, so TypeScript error counts, codes and file categories are intentionally unknown.",
+    "The GitHub connector cannot execute repository commands; the commands in this task were not run by the builder.",
+    "Regression decisions require fresh captures from both the immutable baseline commit and candidate with identical Node, npm, ESLint, TypeScript and package-lock SHA-256 evidence."
+  ],
+  "policy": {
+    "regression_exit_codes": {
+      "0": "no new diagnostics",
+      "1": "new regression detected",
+      "2": "comparison indeterminate or invalid"
+    },
+    "required_toolchain_identity": [
+      "node",
+      "npm",
+      "eslint",
+      "typescript",
+      "lockfile_sha256"
+    ],
+    "clean_gate_target": {
+      "build": "pass",
+      "lint_diagnostic_count": 0,
+      "typecheck_diagnostic_count": 0
+    }
+  }
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import process from "node:process";
 
@@ -50,36 +51,60 @@ function multiset(fingerprints) {
   return counts;
 }
 
+function unavailable(result, reason) {
+  return {
+    status: "unavailable",
+    exit_code: result?.exit_code ?? null,
+    signal: result?.signal ?? null,
+    capture_error: reason,
+    diagnostic_count: 0,
+    fingerprints: {},
+  };
+}
+
+function toolVersion(command, args, root) {
+  const result = run(command, args, root);
+  if (result.spawn_error || result.exit_code !== 0) return null;
+  return normalizeMessage(result.stdout || result.stderr) || null;
+}
+
+function lockfileSha256(root) {
+  try {
+    return createHash("sha256").update(readFileSync(resolve(root, "package-lock.json"))).digest("hex");
+  } catch {
+    return null;
+  }
+}
+
 function captureBuild(root) {
   const result = run("npm", ["run", "build"], root);
+  if (result.spawn_error || result.exit_code === null) {
+    return unavailable(result, result.spawn_error ?? "Build process did not return an exit code.");
+  }
   return {
     status: result.exit_code === 0 ? "pass" : "fail",
     exit_code: result.exit_code,
     signal: result.signal,
-    capture_error: result.spawn_error,
-    diagnostic_count: null,
+    capture_error: null,
+    diagnostic_count: 0,
     fingerprints: {},
   };
 }
 
 function captureLint(root) {
   const result = run(executable(root, "eslint"), [".", "--quiet", "--format", "json"], root);
-  if (result.spawn_error) {
-    return { status: "unavailable", exit_code: null, capture_error: result.spawn_error, diagnostic_count: null, fingerprints: {} };
+  if (result.spawn_error) return unavailable(result, result.spawn_error);
+  if (result.exit_code !== 0 && result.exit_code !== 1) {
+    return unavailable(result, `ESLint returned unsupported exit code ${result.exit_code}; configuration or runtime failure is likely.`);
   }
 
   let reports;
   try {
     reports = JSON.parse(result.stdout || "[]");
   } catch {
-    return {
-      status: "unavailable",
-      exit_code: result.exit_code,
-      capture_error: "ESLint output was not valid JSON.",
-      diagnostic_count: null,
-      fingerprints: {},
-    };
+    return unavailable(result, "ESLint output was not valid JSON.");
   }
+  if (!Array.isArray(reports)) return unavailable(result, "ESLint JSON output was not an array.");
 
   const fingerprints = [];
   for (const report of reports) {
@@ -91,9 +116,17 @@ function captureLint(root) {
     }
   }
 
+  if (result.exit_code !== 0 && fingerprints.length === 0) {
+    return unavailable(result, "ESLint failed without any parsed error diagnostics.");
+  }
+  if (result.exit_code === 0 && fingerprints.length > 0) {
+    return unavailable(result, "ESLint returned success while reporting error diagnostics.");
+  }
+
   return {
     status: result.exit_code === 0 ? "pass" : "fail",
     exit_code: result.exit_code,
+    signal: result.signal,
     capture_error: null,
     diagnostic_count: fingerprints.length,
     fingerprints: multiset(fingerprints),
@@ -102,9 +135,8 @@ function captureLint(root) {
 
 function captureTypecheck(root) {
   const result = run(executable(root, "tsc"), ["-p", "./jsconfig.json", "--pretty", "false"], root);
-  if (result.spawn_error) {
-    return { status: "unavailable", exit_code: null, capture_error: result.spawn_error, diagnostic_count: null, fingerprints: {} };
-  }
+  if (result.spawn_error) return unavailable(result, result.spawn_error);
+  if (result.exit_code === null) return unavailable(result, "Typecheck process did not return an exit code.");
 
   const fingerprints = [];
   const pattern = /^(?:(.+?)\((\d+),(\d+)\): )?error (TS\d+): (.+)$/;
@@ -115,15 +147,19 @@ function captureTypecheck(root) {
     fingerprints.push(`${file}|${match[4]}|${normalizeMessage(match[5])}`);
   }
 
-  const captureError = result.exit_code !== 0 && fingerprints.length === 0
-    ? "Typecheck failed but no TypeScript diagnostics could be parsed."
-    : null;
+  if (result.exit_code !== 0 && fingerprints.length === 0) {
+    return unavailable(result, "Typecheck failed without any parsed TypeScript diagnostics.");
+  }
+  if (result.exit_code === 0 && fingerprints.length > 0) {
+    return unavailable(result, "Typecheck returned success while reporting error diagnostics.");
+  }
 
   return {
-    status: captureError ? "unavailable" : result.exit_code === 0 ? "pass" : "fail",
+    status: result.exit_code === 0 ? "pass" : "fail",
     exit_code: result.exit_code,
-    capture_error: captureError,
-    diagnostic_count: captureError ? null : fingerprints.length,
+    signal: result.signal,
+    capture_error: null,
+    diagnostic_count: fingerprints.length,
     fingerprints: multiset(fingerprints),
   };
 }
@@ -136,9 +172,15 @@ const capture = {
   ref: args.ref,
   captured_at: new Date().toISOString(),
   environment: {
-    node: process.version,
     platform: process.platform,
     arch: process.arch,
+    toolchain: {
+      node: process.version,
+      npm: toolVersion("npm", ["--version"], root),
+      eslint: toolVersion(executable(root, "eslint"), ["--version"], root),
+      typescript: toolVersion(executable(root, "tsc"), ["--version"], root),
+      lockfile_sha256: lockfileSha256(root),
+    },
   },
   gates: {
     build: captureBuild(root),

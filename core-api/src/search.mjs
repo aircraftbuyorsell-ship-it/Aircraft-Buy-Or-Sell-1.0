@@ -7,6 +7,28 @@ export class ApiError extends Error {
   }
 }
 
+export function createMemoryRateLimiter({ limit = 60, windowMs = 60_000, now = Date.now } = {}) {
+  if (!Number.isInteger(limit) || limit < 1 || !Number.isInteger(windowMs) || windowMs < 1) {
+    throw new Error("Rate limiter configuration is invalid.");
+  }
+  const buckets = new Map();
+  return {
+    consume(subject) {
+      const timestamp = now();
+      let bucket = buckets.get(subject);
+      if (!bucket || timestamp >= bucket.resetAt) bucket = { count: 0, resetAt: timestamp + windowMs };
+      bucket.count += 1;
+      buckets.set(subject, bucket);
+      return {
+        allowed: bucket.count <= limit,
+        limit,
+        remaining: Math.max(0, limit - bucket.count),
+        reset: Math.ceil(bucket.resetAt / 1000),
+      };
+    },
+  };
+}
+
 const json = (status, body, headers = {}) => new Response(JSON.stringify(body), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", ...headers },
@@ -104,7 +126,7 @@ export class InMemoryListingRepository {
   }
 }
 
-export function createSearchHandler({ listingRepository, authenticate }) {
+export function createSearchHandler({ listingRepository, authenticate, rateLimiter = createMemoryRateLimiter() }) {
   if (!listingRepository?.search || typeof authenticate !== "function") throw new Error("Search handler dependencies are incomplete.");
   return async function handle(request) {
     const incomingRequestId = request.headers.get("x-request-id");
@@ -117,8 +139,15 @@ export function createSearchHandler({ listingRepository, authenticate }) {
       try { body = await request.json(); } catch { throw new ApiError(400, "INVALID_JSON", "The request body must contain valid JSON."); }
       if (!body || typeof body !== "object" || Array.isArray(body)) throw new ApiError(400, "INVALID_REQUEST", "The request body must be a JSON object.");
       if ("api_key" in body || "apiKey" in body) throw new ApiError(400, "CREDENTIAL_IN_BODY_FORBIDDEN", "API credentials must be sent in an approved header.");
+      const allowedFields = new Set(["query", "cursor", "page_size"]);
+      if (Object.keys(body).some((field) => !allowedFields.has(field))) throw new ApiError(400, "UNKNOWN_REQUEST_FIELD", "The request body contains an unsupported field.");
       const principal = await authenticate(request);
       if (!principal.scopes?.includes("search:read")) throw new ApiError(403, "INSUFFICIENT_SCOPE", "The search:read scope is required.");
+      const rate = rateLimiter.consume(principal.subject || principal.type || "anonymous");
+      headers["x-ratelimit-limit"] = String(rate.limit);
+      headers["x-ratelimit-remaining"] = String(rate.remaining);
+      headers["x-ratelimit-reset"] = String(rate.reset);
+      if (!rate.allowed) throw new ApiError(429, "RATE_LIMIT_EXCEEDED", "The API rate limit has been exceeded.");
       const pageSize = body.page_size ?? 20;
       if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) throw new ApiError(400, "INVALID_PAGE_SIZE", "page_size must be an integer from 1 to 100.");
       const intent = parseSearchQuery(body.query);
@@ -145,7 +174,10 @@ export function createEnvAuthenticator(env) {
     if (!raw) throw new ApiError(401, "UNAUTHORIZED", "Provide an ABOS API credential.");
     if (!env.ABOS_API_KEY_SHA256) throw new ApiError(503, "AUTH_NOT_CONFIGURED", "API authentication is not configured.");
     const digest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw)))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-    if (digest !== env.ABOS_API_KEY_SHA256.toLowerCase()) throw new ApiError(401, "INVALID_API_KEY", "The API credential is invalid.");
-    return { type: "api_key", scopes: String(env.ABOS_API_KEY_SCOPES || "").split(/[ ,]+/).filter(Boolean) };
+    const expected = env.ABOS_API_KEY_SHA256.toLowerCase();
+    let mismatch = digest.length ^ expected.length;
+    for (let index = 0; index < Math.max(digest.length, expected.length); index += 1) mismatch |= (digest.charCodeAt(index) || 0) ^ (expected.charCodeAt(index) || 0);
+    if (mismatch !== 0) throw new ApiError(401, "INVALID_API_KEY", "The API credential is invalid.");
+    return { type: "api_key", subject: `key_${digest.slice(0, 16)}`, scopes: String(env.ABOS_API_KEY_SCOPES || "").split(/[ ,]+/).filter(Boolean) };
   };
 }

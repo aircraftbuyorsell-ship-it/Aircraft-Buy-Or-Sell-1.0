@@ -88,8 +88,19 @@ test('GitHub Actions matrix references declared GitHub-owned names only', () => 
   assert.equal(actions.environments.production.required_reviewers, true);
 });
 
-test('templates contain no common credential value patterns', () => {
-  const material = [read('templates/.env.example'), read('templates/.dev.vars.example')].join('\n');
+test('package artifacts contain no common credential value patterns', () => {
+  const artifactPaths = [
+    'secret-registry.json',
+    'templates/.env.example',
+    'templates/.dev.vars.example',
+    'cloudflare-bindings.json',
+    'github-actions-environments.json',
+    'provider-rotation-checklist.md',
+    'alias-removal-plan.md',
+    'evidence-report.md',
+    'README.md'
+  ];
+  const material = artifactPaths.map(read).join('\n');
   const patterns = [
     /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
     /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/,

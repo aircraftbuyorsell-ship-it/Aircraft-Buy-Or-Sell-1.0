@@ -1,26 +1,17 @@
 name: Cloudflare Pages
 
-on:
+"on":
   pull_request:
     branches:
       - abos-factory/v1
-    paths:
-      - ".github/workflows/deploy-cloudflare-pages.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.config.*"
-      - "src/**"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: cloudflare-pages-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
   build:
+    name: Build static application
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
@@ -43,8 +34,10 @@ jobs:
         run: test -f dist/index.html
 
   deploy:
-    if: github.event_name == 'workflow_dispatch'
-    needs: build
+    name: Deploy to Cloudflare Pages
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
     runs-on: ubuntu-latest
     environment: production
 
@@ -55,7 +48,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
@@ -63,6 +56,9 @@ jobs:
 
       - name: Build Vite application
         run: npm run build
+
+      - name: Verify static build artifact
+        run: test -f dist/index.html
 
       - name: Deploy static assets to Cloudflare Pages
         run: npx --yes wrangler@4 pages deploy dist --project-name="$CLOUDFLARE_PAGES_PROJECT_NAME" --branch=production

@@ -1,0 +1,12 @@
+name = "abos-core-api-v1-sandbox"
+main = "src/worker.mjs"
+compatibility_date = "2026-07-17"
+
+[vars]
+ABOS_LISTINGS_VIEW = "abos_public_listings_v1"
+ABOS_API_KEY_SCOPES = "search:read"
+
+# Configure as Cloudflare secrets/managed variables; never commit values:
+# SUPABASE_URL
+# SUPABASE_PUBLISHABLE_KEY
+# ABOS_API_KEY_SHA256

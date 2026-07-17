@@ -5,6 +5,7 @@ compatibility_date = "2026-07-17"
 [vars]
 ABOS_LISTINGS_VIEW = "abos_public_listings_v1"
 ABOS_API_KEY_SCOPES = "search:read"
+ABOS_RATE_LIMIT_PER_MINUTE = "60"
 
 # Configure as Cloudflare secrets/managed variables; never commit values:
 # SUPABASE_URL

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "generated_from": "task002/secret-registry.json",
   "pages": {
     "variables": [
@@ -29,13 +29,31 @@
       "GOOGLE_API_KEY",
       "HUGGINGFACE_API_KEY",
       "NVIDIA_API_KEY",
-      "SAKANA_API_KEY",
       "OPENSKY_CLIENT_ID",
-      "OPENSKY_CLIENT_SECRET",
-      "ALCHEMY_RPC_URL"
+      "OPENSKY_CLIENT_SECRET"
+    ]
+  },
+  "planned_bindings": {
+    "blocked": [
+      {
+        "name": "SAKANA_API_KEY",
+        "lifecycle": "blocked_pending_provider_confirmation",
+        "reason": "Provider account, ownership and alias equivalence are not confirmed.",
+        "activation_gate": "Independent provider-owner confirmation and a separately approved runtime task."
+      }
+    ],
+    "deferred": [
+      {
+        "name": "ALCHEMY_RPC_URL",
+        "lifecycle": "deferred",
+        "reason": "Alchemy integration is outside the active launch runtime.",
+        "activation_gate": "Feature approval, least-privilege review and environment-specific rotation."
+      }
     ]
   },
   "excluded_from_runtime": [
+    "SAKANA_API_KEY",
+    "ALCHEMY_RPC_URL",
     "SUPABASE_MANAGEMENT_TOKEN",
     "CLOUDFLARE_API_TOKEN",
     "CLOUDFLARE_ACCOUNT_ID",
@@ -46,7 +64,7 @@
     "Use distinct bindings for development, preview, and production.",
     "Configure secrets with the Cloudflare secret store; never as plaintext vars.",
     "Do not enable compatibility bindings in production without an explicit cutover exception.",
-    "Do not activate SAKANA_API_KEY until provider ownership is confirmed.",
-    "ALCHEMY_RPC_URL remains deferred."
+    "Blocked and deferred bindings are documentation only and must not appear in active Worker templates.",
+    "Administration-only credentials must not be delivered to application runtime."
   ]
 }

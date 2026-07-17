@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "environments": {
     "development": {
       "protected": false,
@@ -11,8 +11,7 @@
         "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
       ],
       "secrets": [
-        "CLOUDFLARE_API_TOKEN",
-        "SUPABASE_MANAGEMENT_TOKEN"
+        "CLOUDFLARE_API_TOKEN"
       ],
       "deployment_target": "non-production"
     },
@@ -26,8 +25,7 @@
         "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
       ],
       "secrets": [
-        "CLOUDFLARE_API_TOKEN",
-        "SUPABASE_MANAGEMENT_TOKEN"
+        "CLOUDFLARE_API_TOKEN"
       ],
       "deployment_target": "non-production"
     },
@@ -42,12 +40,26 @@
         "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
       ],
       "secrets": [
-        "CLOUDFLARE_API_TOKEN",
-        "SUPABASE_MANAGEMENT_TOKEN"
+        "CLOUDFLARE_API_TOKEN"
       ],
       "deployment_target": "production"
+    },
+    "migration_administration": {
+      "protected": true,
+      "required_reviewers": true,
+      "variables": [],
+      "secrets": [
+        "SUPABASE_MANAGEMENT_TOKEN"
+      ],
+      "deployment_target": "administration-only",
+      "allowed_purpose": "Explicitly approved migration or administration jobs; never generic build, preview, deployment or application runtime."
     }
   },
+  "generic_deployment_environments": [
+    "development",
+    "preview",
+    "production"
+  ],
   "runtime_secret_delivery": "Runtime provider secrets are configured directly in environment-scoped Cloudflare Worker secret stores; workflows reference names only and must not echo values.",
   "minimum_controls": [
     "environment protection",
@@ -55,6 +67,7 @@
     "no pull-request secret exposure",
     "masked logs",
     "manual production approval",
-    "credential rotation evidence outside repository"
+    "credential rotation evidence outside repository",
+    "administration credential isolation"
   ]
 }

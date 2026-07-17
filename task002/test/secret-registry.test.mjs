@@ -157,6 +157,24 @@ test('administration-only credentials are isolated from generic deployment envir
   assert.deepEqual(administration.secrets, ['SUPABASE_MANAGEMENT_TOKEN']);
 });
 
+test('administration-only registry environments exactly match Actions placement', () => {
+  const administrationEntries = registry.entries.filter((entry) => entry.lifecycle === 'administration_only');
+  assert.ok(administrationEntries.length > 0);
+  for (const entry of administrationEntries) {
+    const actualEnvironments = Object.entries(actions.environments)
+      .filter(([, environment]) => [...environment.variables, ...environment.secrets].includes(entry.canonical_name))
+      .map(([name]) => name)
+      .sort();
+    assert.deepEqual(actualEnvironments, [...entry.environments].sort(), `${entry.canonical_name} environment metadata drift`);
+    for (const environmentName of actualEnvironments) {
+      const environment = actions.environments[environmentName];
+      assert.equal(environment.protected, true);
+      assert.equal(environment.required_reviewers, true);
+      assert.equal(environment.deployment_target, 'administration-only');
+    }
+  }
+});
+
 test('deferred escrow credentials are absent from active templates and runtime bindings', () => {
   const active = [
     ...parseTemplate('templates/.env.example').map(([name]) => name),

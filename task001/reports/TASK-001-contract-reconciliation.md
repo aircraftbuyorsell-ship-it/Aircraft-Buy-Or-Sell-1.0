@@ -85,10 +85,11 @@ These are intentionally isolated behind coexistence adapters. They are not safe 
 Run:
 
 ```bash
-node --test task001/test/canonical-contract-decision.test.mjs
+npm --prefix task001 ci
+npm --prefix task001 test
 ```
 
-The tests parse the pinned OpenAPI text, pin the four canonical routes, prevent SDK/MCP exposure of the legacy gateway, keep unsupported writes deferred, check header-only authentication and scope aliases, require public-ID patterns and sanitized error/provenance fields, and preserve legacy valuation separation.
+The tests parse YAML, structurally validate and dereference the pinned OpenAPI 3.1 document, pin the four canonical routes, executable-check the 9+4 operation ledger, prevent SDK/MCP exposure of the legacy gateway, verify header-only authentication and scope migration, validate complete/insufficient valuation fixtures, reject internal-looking source IDs, reject nested or sensitive error details, and preserve legacy valuation separation.
 
 ## Rollback
 
@@ -100,7 +101,7 @@ Delete the three `task001/` files from the task branch. No runtime, deployment, 
 
 Conditions before F3 Contract Baseline can be marked complete:
 
-1. Independent validator reviews the selected four-operation scope and scope names.
-2. Canonical OpenAPI is copied onto a current-main-derived implementation branch and passes structural validation.
-3. A tested compatibility adapter is implemented without changing the deployed legacy behavior.
-4. Public ID persistence and resolution are defined by TASK-004.
+1. Independent validator reviews the corrected self-contained contract package and issues `GO`.
+2. The approved package is transplanted onto a current-main-derived integration branch without merging stale history.
+3. A tested compatibility adapter is implemented in a later task without changing deployed legacy behavior.
+4. Public ID persistence and resolution are defined by TASK-004 before runtime cutover.

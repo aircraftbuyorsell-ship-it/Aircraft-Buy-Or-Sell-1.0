@@ -14,7 +14,7 @@ The legacy gateway is an implemented migration source. It is not the contract us
 - `feat/abos-core-api-v1-boundary:base44/functions/abosCoreApiV1/core.mjs`
 - `feat/abos-core-api-v1-boundary:test/abosCoreApiV1.test.mjs`
 
-The old feature branch is evidence only because it has materially diverged from `main`. This task does not merge that branch or claim that its runtime is deployed.
+The old feature branch is evidence only because it has materially diverged from `main`. This task does not merge that branch or claim that its runtime is deployed. The exact reviewed YAML is pinned at `task001/openapi/abos-core-api-v1.yaml` so this decision is self-contained and immutable within the task branch.
 
 ## Contract Comparison
 
@@ -36,7 +36,7 @@ The old feature branch is evidence only because it has materially diverged from 
 ## Operation Mapping
 
 1. `search` maps to `POST /api/v1/search`. The adapter maps `params.query` to `query`; the canonical service provides pagination, public DTOs, limitations, and provenance.
-2. `valuate` maps conditionally to `POST /api/v1/intelligence/valuate`. Without traceable comparable data, return `status: insufficient_data` and a null estimate.
+2. Legacy `valuate` and canonical `POST /api/v1/intelligence/valuate` remain separate during coexistence. The legacy route preserves its current provider and response. The canonical route returns `status: insufficient_data` and a null estimate without traceable comparable data. Any later adapter or cutover requires separate approval and parity tests.
 3. `listings.get` maps to `GET /api/v1/listings/{listing_id}` after resolving the internal Base44 identifier to a stable public identifier.
 4. `listings.list` maps to deterministic search constraints behind `POST /api/v1/search`.
 5. Key management, extraction, and listing creation remain available through the legacy gateway but are excluded from v1 SDK and MCP generation.
@@ -44,23 +44,25 @@ The old feature branch is evidence only because it has materially diverged from 
 
 ## Compatibility Adapter Design
 
-The compatibility adapter sits before canonical routing and performs only transport and DTO translation:
+The future compatibility adapter sits before canonical routing and performs only transport and DTO translation. TASK-001 does not implement or activate it:
 
 1. Authenticate using the current Base44 session or legacy API-key mechanism.
 2. Validate the legacy endpoint and required scope.
-3. Translate only operations marked `adapt` or `guarded_adapt` in the decision manifest.
+3. Translate only operations marked `future_adapter` after characterization and parity tests exist. `separate_during_coexistence` operations must not be redirected.
 4. Invoke the same service/repository boundary used by canonical REST routes.
 5. Translate canonical results back into the legacy `{status,data}` envelope.
 6. Preserve `X-Request-ID`, rate-limit behavior, audit logging, and registration masking.
 7. Never expose internal repository/entity objects.
 
-No canonical service may call the legacy HTTP gateway. Both transports must call a shared application service to avoid recursive coupling.
+No canonical service may call the legacy HTTP gateway. A future migration may move both transports onto a shared application service only after legacy characterization tests prove preserved behavior.
+
+The exhaustive request, response, error and disposition ledger for all nine legacy operations and four canonical operations is `task001/contracts/operation-reconciliation.json`.
 
 ## Breaking Changes
 
 - Canonical clients must change from a body discriminator to explicit REST paths.
-- The API-key header becomes `X-ABOS-API-Key`; request-body keys are forbidden.
-- `listing:read` becomes `listings:read`; `intelligence:read` becomes `intelligence:request` for valuation requests.
+- The API-key header becomes `X-ABOS-API-Key`; request-body keys are forbidden. A request containing both Bearer and API-key credentials is rejected rather than resolved by precedence.
+- `listing:read` becomes `listings:read`; `intelligence:read` becomes `intelligence:request` for valuation requests. Old names remain legacy aliases only and are never emitted by generated canonical clients.
 - Success responses are no longer wrapped in `{status,data}`.
 - Listing `id` becomes `listing_id`; aircraft receives a separate `aircraft_id`.
 - `price` becomes `asking_price`; `photo_url` becomes `primary_image_url`.
@@ -86,7 +88,7 @@ Run:
 node --test task001/test/canonical-contract-decision.test.mjs
 ```
 
-The tests pin the four canonical operations, prevent SDK/MCP exposure of the legacy gateway, keep unsupported writes deferred, and enforce provenance and valuation invariants.
+The tests parse the pinned OpenAPI text, pin the four canonical routes, prevent SDK/MCP exposure of the legacy gateway, keep unsupported writes deferred, check header-only authentication and scope aliases, require public-ID patterns and sanitized error/provenance fields, and preserve legacy valuation separation.
 
 ## Rollback
 
@@ -102,4 +104,3 @@ Conditions before F3 Contract Baseline can be marked complete:
 2. Canonical OpenAPI is copied onto a current-main-derived implementation branch and passes structural validation.
 3. A tested compatibility adapter is implemented without changing the deployed legacy behavior.
 4. Public ID persistence and resolution are defined by TASK-004.
-

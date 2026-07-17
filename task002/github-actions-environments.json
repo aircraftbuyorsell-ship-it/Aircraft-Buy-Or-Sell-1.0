@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "environments": {
+    "development": {
+      "protected": false,
+      "variables": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "VITE_ABOS_API_BASE_URL",
+        "VITE_ABOS_APP_URL",
+        "VITE_ABOS_SUPABASE_URL",
+        "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "secrets": [
+        "CLOUDFLARE_API_TOKEN",
+        "SUPABASE_MANAGEMENT_TOKEN"
+      ],
+      "deployment_target": "non-production"
+    },
+    "preview": {
+      "protected": true,
+      "variables": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "VITE_ABOS_API_BASE_URL",
+        "VITE_ABOS_APP_URL",
+        "VITE_ABOS_SUPABASE_URL",
+        "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "secrets": [
+        "CLOUDFLARE_API_TOKEN",
+        "SUPABASE_MANAGEMENT_TOKEN"
+      ],
+      "deployment_target": "non-production"
+    },
+    "production": {
+      "protected": true,
+      "required_reviewers": true,
+      "variables": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "VITE_ABOS_API_BASE_URL",
+        "VITE_ABOS_APP_URL",
+        "VITE_ABOS_SUPABASE_URL",
+        "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
+      ],
+      "secrets": [
+        "CLOUDFLARE_API_TOKEN",
+        "SUPABASE_MANAGEMENT_TOKEN"
+      ],
+      "deployment_target": "production"
+    }
+  },
+  "runtime_secret_delivery": "Runtime provider secrets are configured directly in environment-scoped Cloudflare Worker secret stores; workflows reference names only and must not echo values.",
+  "minimum_controls": [
+    "environment protection",
+    "least-privilege deployment token",
+    "no pull-request secret exposure",
+    "masked logs",
+    "manual production approval",
+    "credential rotation evidence outside repository"
+  ]
+}

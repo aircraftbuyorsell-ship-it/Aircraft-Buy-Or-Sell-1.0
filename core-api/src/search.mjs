@@ -88,7 +88,7 @@ export function toPublicListing(row) {
       year: row.year ?? null,
       total_time_hours: row.total_time ?? null,
       engine_hours: row.engine_hours ?? null,
-      source_provenance: [{ source, source_record_id: row.public_aircraft_id, observed_at: observedAt, retrieval_method: "authorized_repository" }],
+      source_provenance: [{ source, source_record_id: row.source_record_id || null, observed_at: observedAt, retrieval_method: "authorized_repository" }],
     },
     asking_price: Number.isFinite(row.asking_price) ? { value: row.asking_price, currency: row.currency || "USD" } : null,
     location: row.location_country || row.location_region ? { country: row.location_country || null, region: row.location_region || null, city: row.location_city || null } : null,
@@ -104,7 +104,7 @@ export function toPublicListing(row) {
       engine_version: row.intelligence_engine_version || null,
       limitations: row.intelligence_limitations || ["Intelligence fields may be unavailable for this listing."],
     },
-    source_provenance: [{ source, source_record_id: row.public_listing_id, observed_at: observedAt, retrieval_method: "authorized_repository" }],
+    source_provenance: [{ source, source_record_id: row.source_record_id || null, observed_at: observedAt, retrieval_method: "authorized_repository" }],
     created_at: row.created_at || null,
     updated_at: row.updated_at || null,
   };

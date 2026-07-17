@@ -9,7 +9,8 @@
     "resolved_commit_sha": "5112f7f43113627b2fa1c1d8495c52d6b0fbca30",
     "observed_date": "2026-07-17",
     "package_scripts_sha": "45cb0ed509369d5f9daaeb21121c206aa3e4fe36",
-    "eslint_config_sha": "14a70c5a87d0d03d313b335fb6026be2650faab6"
+    "eslint_config_sha": "14a70c5a87d0d03d313b335fb6026be2650faab6",
+    "package_lock_blob_sha": "d8323cce4630534c57969186cd0588293e51c39a"
   },
   "commands": {
     "install": "npm ci",
@@ -79,13 +80,18 @@
       "path": "eslint.config.js",
       "ref": "main",
       "blob_sha": "14a70c5a87d0d03d313b335fb6026be2650faab6"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "main",
+      "blob_sha": "d8323cce4630534c57969186cd0588293e51c39a"
     }
   ],
   "limitations": [
     "No raw lint output was preserved, so file-level lint fingerprints cannot be asserted from historical evidence.",
     "No raw typecheck output was preserved, so TypeScript error counts, codes and file categories are intentionally unknown.",
     "The GitHub connector cannot execute repository commands; the commands in this task were not run by the builder.",
-    "Regression decisions require fresh captures from both the immutable baseline commit and candidate using the same Node/npm environment."
+    "Regression decisions require fresh captures from both the immutable baseline commit and candidate with identical Node, npm, ESLint, TypeScript and package-lock SHA-256 evidence."
   ],
   "policy": {
     "regression_exit_codes": {
@@ -93,6 +99,13 @@
       "1": "new regression detected",
       "2": "comparison indeterminate or invalid"
     },
+    "required_toolchain_identity": [
+      "node",
+      "npm",
+      "eslint",
+      "typescript",
+      "lockfile_sha256"
+    ],
     "clean_gate_target": {
       "build": "pass",
       "lint_diagnostic_count": 0,

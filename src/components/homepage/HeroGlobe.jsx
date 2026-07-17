@@ -1,7 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 
-const WORLD_DATA_URL = "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson";
 const CITY_PAIRS = [
   [[40.7, -74.0], [51.5, -0.1]],
   [[34.0, -118.2], [35.7, 139.7]],
@@ -11,28 +10,12 @@ const CITY_PAIRS = [
   [[-23.5, -46.6], [-26.2, 28.0]],
 ];
 
+const EARTH_TEXTURE_URL = "https://unpkg.com/three-globe/example/img/earth-dark.jpg";
+
 function latLonToVec3(lat, lon, radius) {
   const phi = (90 - lat) * Math.PI / 180;
   const theta = (lon + 180) * Math.PI / 180;
   return new THREE.Vector3(-radius * Math.sin(phi) * Math.cos(theta), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta));
-}
-
-function pointInRing(lon, lat, ring) {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i];
-    const [xj, yj] = ring[j];
-    if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-function collectPolygons(features) {
-  return features.flatMap(({ geometry }) => {
-    if (!geometry) return [];
-    if (geometry.type === "Polygon") return [geometry.coordinates];
-    return geometry.type === "MultiPolygon" ? geometry.coordinates : [];
-  });
 }
 
 function makeGlowTexture() {
@@ -77,6 +60,20 @@ export default function HeroGlobe() {
       new THREE.MeshPhysicalMaterial({ color: 0xf1f0ed, roughness: 0.56, metalness: 0.12, transparent: true, opacity: 0.76, clearcoat: 0.28 })
     ));
 
+    // Load earth texture (dotted landmasses)
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin("anonymous");
+    textureLoader.load(
+      EARTH_TEXTURE_URL,
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        globe.add(new THREE.Mesh(
+          new THREE.SphereGeometry(radius + 0.002, 96, 96),
+          new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.88, depthWrite: false })
+        ));
+      }
+    );
+
     const glowTexture = makeGlowTexture();
     const markers = [];
     const addMarker = (lat, lon, color, size) => {
@@ -98,26 +95,6 @@ export default function HeroGlobe() {
       addMarker(from[0], from[1], index % 3 === 0 ? 0x49d7c6 : 0xf5c242, index === 0 ? 0.24 : 0.14);
       addMarker(to[0], to[1], index % 2 === 0 ? 0x63c7ed : 0xf5c242, 0.13);
     });
-
-    let disposed = false;
-    fetch(WORLD_DATA_URL)
-      .then((response) => response.json())
-      .then(({ features }) => {
-        if (disposed) return;
-        const polygons = collectPolygons(features);
-        const positions = [];
-        for (let lat = -58; lat <= 80; lat += 2.1) {
-          const lonStep = 2.1 / Math.max(Math.cos(lat * Math.PI / 180), 0.35);
-          for (let lon = -180; lon < 180; lon += lonStep) {
-            if (!polygons.some((polygon) => pointInRing(lon, lat, polygon[0]))) continue;
-            const point = latLonToVec3(lat, lon, radius + 0.018);
-            positions.push(point.x, point.y, point.z);
-          }
-        }
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-        globe.add(new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0xa9a7a2, size: 0.028, transparent: true, opacity: 0.92, depthWrite: false })));
-      });
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0xd6c79e, 2.1));
     const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
@@ -152,7 +129,6 @@ export default function HeroGlobe() {
     window.addEventListener("resize", resize);
 
     return () => {
-      disposed = true;
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       renderer.dispose();

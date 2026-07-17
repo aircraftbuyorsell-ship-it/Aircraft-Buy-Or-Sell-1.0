@@ -49,15 +49,36 @@ test("keeps the Base44 gateway out of SDK and MCP contracts", () => {
 });
 
 test("executable ledger covers all legacy and canonical operations without disposition drift", () => {
-  assert.deepEqual(ledger.legacy_operations.map(({ operation }) => operation), decision.legacy_gateway.operations);
-  assert.equal(ledger.legacy_operations.length, 9);
-  assert.equal(ledger.canonical_operations.length, 4);
-  assert.deepEqual(
-    ledger.canonical_operations.map(({ operation }) => operation),
-    decision.canonical_contract.operations.map(({ method, path }) => `${method} ${path}`)
-  );
+  const expectedLegacy = [
+    ["keys.create", ["name", "scopes?", "expires_days?"], "legacy key DTO in {status,data}", ["missing_name", "invalid_scopes", "user_session_required"], null, "legacy_only"],
+    ["keys.list", [], "legacy key list in {status,data}", ["user_session_required"], null, "legacy_only"],
+    ["keys.revoke", ["id"], "revoked status in {status,data}", ["missing_id", "key_not_found", "user_session_required"], null, "legacy_only"],
+    ["search", ["query"], "query, intent, total_matches, matches in {status,data}", ["missing_query", "insufficient_scope"], "POST /api/v1/search", "future_adapter"],
+    ["valuate", ["manufacturer", "model", "year?", "hours?"], "LLM-memory estimate in {status,data}", ["missing_aircraft", "insufficient_scope"], "POST /api/v1/intelligence/valuate", "separate_during_coexistence"],
+    ["intelligence.extract", ["text"], "extraction DTO in {status,data}", ["missing_text", "insufficient_scope"], null, "legacy_only"],
+    ["listings.get", ["id"], "legacy listing in {status,data}", ["missing_id", "listing_not_found", "insufficient_scope"], "GET /api/v1/listings/{listing_id}", "future_adapter"],
+    ["listings.list", ["manufacturer?", "model?", "max_price?", "limit=20,max=50"], "total and listings in {status,data}", ["insufficient_scope"], "POST /api/v1/search", "future_adapter"],
+    ["listings.create", ["manufacturer", "model", "year?", "registration?", "price?", "currency=USD", "hours?", "source_url?"], "internal draft ID in {status,data}", ["missing_aircraft", "insufficient_scope"], null, "legacy_only"]
+  ];
+  assert.deepEqual(ledger.legacy_operations.map(({ operation, request, success, errors, canonical, disposition }) => [operation, request, success, errors, canonical, disposition]), expectedLegacy);
+  const expectedCanonical = [
+    ["POST /api/v1/search", "SearchRequest", "SearchResponse", [400, 401, 403, 429], "search:read"],
+    ["GET /api/v1/aircraft/{aircraft_id}", "AircraftId path parameter", "Aircraft", [401, 403, 404], "listings:read"],
+    ["GET /api/v1/listings/{listing_id}", "ListingId path parameter", "AircraftListing", [401, 403, 404], "listings:read"],
+    ["POST /api/v1/intelligence/valuate", "ValuationRequest", "ValuationResult", [400, 401, 403, 429], "intelligence:request"]
+  ];
+  assert.deepEqual(ledger.canonical_operations.map(({ operation, request, success, errors, scope }) => [operation, request, success, errors, scope]), expectedCanonical);
   const modes = Object.fromEntries(decision.compatibility_mappings.map(({ legacy, mode }) => [legacy, mode]));
   for (const entry of ledger.legacy_operations) assert.equal(entry.disposition, modes[entry.operation] ?? "legacy_only");
+});
+
+test("binds every operation to the same required scope for bearer and API-key callers", () => {
+  for (const operation of decision.canonical_contract.operations) {
+    const method = operation.method.toLowerCase();
+    const schemaOperation = parsed.paths[operation.path][method];
+    assert.equal(schemaOperation["x-abos-required-scope"], operation.scope);
+    assert.deepEqual(schemaOperation.security, [{ BearerAuth: [operation.scope] }, { ApiKeyAuth: [] }]);
+  }
 });
 
 test("documents header-only authentication, dual-credential rejection, and scope migration", () => {
@@ -115,6 +136,8 @@ test("public DTO schemas reject internal-looking source IDs", () => {
   const validate = schemaValidator(dereferenced.components.schemas.SourceProvenance);
   const fixture = { source: "test", source_record_id: "507f1f77bcf86cd799439011", observed_at: null, retrieval_method: "fixture" };
   assert.equal(validate(fixture), false);
+  assert.equal(validate({ ...fixture, source_record_id: null }), true, JSON.stringify(validate.errors));
+  assert.equal(validate({ ...fixture, source_record_id: "external-1" }), true, JSON.stringify(validate.errors));
   assert.match(parsed.components.parameters.AircraftId.schema.pattern, /^\^ac_/);
   assert.match(parsed.components.parameters.ListingId.schema.pattern, /^\^lst_/);
 });

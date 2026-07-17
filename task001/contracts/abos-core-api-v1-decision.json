@@ -31,8 +31,8 @@
   "compatibility_mappings": [
     { "legacy": "search", "canonical": "POST /api/v1/search", "mode": "future_adapter", "notes": "Preserve the deployed legacy path until a separately tested adapter reaches parity." },
     { "legacy": "valuate", "canonical": "POST /api/v1/intelligence/valuate", "mode": "separate_during_coexistence", "notes": "Legacy keeps its current provider and response. Canonical valuation independently enforces provenance and insufficient_data." },
-    { "legacy": "listings.get", "canonical": "GET /api/v1/listings/{listing_id}", "mode": "adapt", "notes": "Resolve internal ID to stable public listing_id before returning a public DTO." },
-    { "legacy": "listings.list", "canonical": "POST /api/v1/search", "mode": "adapt", "notes": "Translate structured filters into deterministic search constraints." },
+    { "legacy": "listings.get", "canonical": "GET /api/v1/listings/{listing_id}", "mode": "future_adapter", "notes": "Resolve internal ID to stable public listing_id only after parity tests exist." },
+    { "legacy": "listings.list", "canonical": "POST /api/v1/search", "mode": "future_adapter", "notes": "Translate structured filters only after parity tests exist." },
     { "legacy": "keys.create", "canonical": null, "mode": "legacy_only", "notes": "Defer API-key lifecycle contract." },
     { "legacy": "keys.list", "canonical": null, "mode": "legacy_only", "notes": "Defer API-key lifecycle contract." },
     { "legacy": "keys.revoke", "canonical": null, "mode": "legacy_only", "notes": "Defer API-key lifecycle contract." },

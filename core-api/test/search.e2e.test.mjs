@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createEnvAuthenticator, createSearchHandler, InMemoryListingRepository } from "../src/search.mjs";
+import { createEnvAuthenticator, createMemoryRateLimiter, createSearchHandler, InMemoryListingRepository } from "../src/search.mjs";
 
 const rows = [
   {
@@ -35,6 +35,9 @@ test("chat-first query returns only authorized matching public DTOs", async () =
     body: JSON.stringify({ query: "Citation Latitude under 8M in Europe" }),
   }));
   assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-ratelimit-limit"), "60");
+  assert.equal(response.headers.get("x-ratelimit-remaining"), "59");
+  assert.match(response.headers.get("x-ratelimit-reset"), /^\d+$/);
   assert.equal(response.headers.get("x-request-id"), "req_e2e");
   const body = await response.json();
   assert.equal(body.results.length, 1);
@@ -45,6 +48,29 @@ test("chat-first query returns only authorized matching public DTOs", async () =
   assert.equal(body.results[0].source_provenance[0].retrieval_method, "authorized_repository");
   const serialized = JSON.stringify(body);
   assert.doesNotMatch(serialized, /internal-base44-id|internal-owner-id/);
+});
+
+test("rejects unknown request fields and enforces rate limits", async () => {
+  const repository = new InMemoryListingRepository([]);
+  const authenticate = async () => ({ subject: "test-key", scopes: ["search:read"] });
+  const handler = createSearchHandler({
+    listingRepository: repository,
+    authenticate,
+    rateLimiter: createMemoryRateLimiter({ limit: 1, windowMs: 60_000, now: () => 1_000 }),
+  });
+  const unknown = await handler(new Request("https://sandbox.example/api/v1/search", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: "Citation", unexpected: true }),
+  }));
+  assert.equal(unknown.status, 400);
+
+  const request = () => new Request("https://sandbox.example/api/v1/search", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: "Citation" }),
+  });
+  assert.equal((await handler(request())).status, 200);
+  const limited = await handler(request());
+  assert.equal(limited.status, 429);
+  assert.equal(limited.headers.get("x-ratelimit-limit"), "1");
+  assert.equal(limited.headers.get("x-ratelimit-remaining"), "0");
 });
 
 test("rejects body credentials before authentication", async () => {

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SupabaseListingRepository } from "../src/supabase-repository.mjs";
+import { PUBLIC_LISTING_SELECT, SupabaseListingRepository } from "../src/supabase-repository.mjs";
 
 test("uses the RLS-enforced public read endpoint and deterministic filters", async () => {
   let observed;
@@ -18,5 +18,9 @@ test("uses the RLS-enforced public read endpoint and deterministic filters", asy
   assert.match(observed.url, /visibility=eq\.public/);
   assert.match(observed.url, /asking_price=lte\.8000000/);
   assert.match(observed.url, /location_region=eq\.EUROPE/);
+  assert.match(observed.url, /order=ati_score\.desc\.nullslast%2Cpublic_listing_id\.asc/);
+  assert.match(observed.url, /and=%28or%28make\.ilike\.\*citation\*%2Cmodel\.ilike\.\*citation\*%29/);
+  assert.doesNotMatch(observed.url, /select=%2A/);
+  assert.doesNotMatch(PUBLIC_LISTING_SELECT, /(?:^|,)(?:id|owner|registration|source_url)(?:,|$)/);
   assert.equal(observed.init.headers.apikey, "publishable-test-key");
 });

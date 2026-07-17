@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "generated_from": "task002/secret-registry.json",
+  "pages": {
+    "variables": [
+      "VITE_ABOS_API_BASE_URL",
+      "VITE_ABOS_APP_URL",
+      "VITE_ABOS_SUPABASE_URL",
+      "VITE_ABOS_SUPABASE_PUBLISHABLE_KEY"
+    ],
+    "compatibility_variables": [
+      "VITE_BASE44_COMPAT_APP_ID",
+      "VITE_BASE44_COMPAT_APP_BASE_URL",
+      "VITE_BASE44_COMPAT_FUNCTIONS_VERSION",
+      "BASE44_COMPAT_LEGACY_SDK_IMPORTS"
+    ]
+  },
+  "workers": {
+    "variables": [
+      "ABOS_APP_URL",
+      "SUPABASE_URL"
+    ],
+    "secrets": [
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "OPENAI_API_KEY",
+      "ANTHROPIC_API_KEY",
+      "GOOGLE_API_KEY",
+      "HUGGINGFACE_API_KEY",
+      "NVIDIA_API_KEY",
+      "SAKANA_API_KEY",
+      "OPENSKY_CLIENT_ID",
+      "OPENSKY_CLIENT_SECRET",
+      "ALCHEMY_RPC_URL"
+    ]
+  },
+  "excluded_from_runtime": [
+    "SUPABASE_MANAGEMENT_TOKEN",
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "ESCROW_API_KEY",
+    "ESCROW_API_USER"
+  ],
+  "rules": [
+    "Use distinct bindings for development, preview, and production.",
+    "Configure secrets with the Cloudflare secret store; never as plaintext vars.",
+    "Do not enable compatibility bindings in production without an explicit cutover exception.",
+    "Do not activate SAKANA_API_KEY until provider ownership is confirmed.",
+    "ALCHEMY_RPC_URL remains deferred."
+  ]
+}

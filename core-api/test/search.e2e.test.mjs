@@ -46,8 +46,20 @@ test("chat-first query returns only authorized matching public DTOs", async () =
   assert.equal(body.results[0].aircraft.aircraft_id, "ac_0123456789abcdef01234567");
   assert.equal(body.results[0].asking_price.value, 7_800_000);
   assert.equal(body.results[0].source_provenance[0].retrieval_method, "authorized_repository");
+  assert.equal(body.results[0].source_provenance[0].source_record_id, null);
+  assert.equal(body.results[0].aircraft.source_provenance[0].source_record_id, null);
   const serialized = JSON.stringify(body);
   assert.doesNotMatch(serialized, /internal-base44-id|internal-owner-id/);
+});
+
+test("fails closed when stable public IDs are missing or malformed", async () => {
+  const invalidRepository = new InMemoryListingRepository([{ make: "Cessna", model: "Citation", status: "active", visibility: "public" }]);
+  const invalidHandler = createSearchHandler({ listingRepository: invalidRepository, authenticate: authorized });
+  const response = await invalidHandler(new Request("https://api.example.test/api/v1/search", {
+    method: "POST", body: JSON.stringify({ query: "Citation" }),
+  }));
+  assert.equal(response.status, 500);
+  assert.equal((await response.json()).error.code, "PUBLIC_ID_UNAVAILABLE");
 });
 
 test("rejects unknown request fields and enforces rate limits", async () => {

@@ -41,7 +41,7 @@ function run(command, args, cwd) {
 }
 
 function normalizeMessage(message) {
-  return String(message).trim().replace(/\\s+/g, " ");
+  return String(message).trim().replace(/\s+/g, " ");
 }
 
 function multiset(fingerprints) {
@@ -107,8 +107,8 @@ function captureTypecheck(root) {
   }
 
   const fingerprints = [];
-  const pattern = /^(?:(.+?)\\((\\d+),(\\d+)\\): )?error (TS\\d+): (.+)$/;
-  for (const line of `${result.stdout}\n${result.stderr}`.split(/\\r?\\n/)) {
+  const pattern = /^(?:(.+?)\((\d+),(\d+)\): )?error (TS\d+): (.+)$/;
+  for (const line of `${result.stdout}\n${result.stderr}`.split(/\r?\n/)) {
     const match = line.match(pattern);
     if (!match) continue;
     const file = match[1] ? relative(root, resolve(root, match[1])).replaceAll("\\", "/") : "<project>";

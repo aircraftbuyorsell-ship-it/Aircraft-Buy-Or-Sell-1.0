@@ -111,6 +111,52 @@ test('package artifacts contain no common credential value patterns', () => {
   for (const pattern of patterns) assert.doesNotMatch(material, pattern);
 });
 
+test('blocked, deferred and administration-only credentials cannot enter active runtime', () => {
+  const prohibitedLifecycles = new Set(['blocked_pending_provider_confirmation', 'deferred', 'administration_only']);
+  const prohibited = new Set(registry.entries
+    .filter((entry) => prohibitedLifecycles.has(entry.lifecycle))
+    .map((entry) => entry.canonical_name));
+  const activeRuntime = new Set([
+    ...parseTemplate('templates/.env.example').map(([name]) => name),
+    ...parseTemplate('templates/.dev.vars.example').map(([name]) => name),
+    ...bindings.pages.variables,
+    ...bindings.pages.compatibility_variables,
+    ...bindings.workers.variables,
+    ...bindings.workers.secrets
+  ]);
+  for (const name of prohibited) assert.ok(!activeRuntime.has(name), `${name} leaked into active runtime`);
+});
+
+test('planned Cloudflare bindings are explicit and lifecycle-consistent', () => {
+  const byName = new Map(registry.entries.map((entry) => [entry.canonical_name, entry]));
+  const blocked = bindings.planned_bindings.blocked;
+  const deferred = bindings.planned_bindings.deferred;
+  assert.deepEqual(blocked.map((item) => item.name), ['SAKANA_API_KEY']);
+  assert.deepEqual(deferred.map((item) => item.name), ['ALCHEMY_RPC_URL']);
+  for (const item of [...blocked, ...deferred]) {
+    assert.equal(byName.get(item.name)?.lifecycle, item.lifecycle);
+    assert.ok(item.reason);
+    assert.ok(item.activation_gate);
+    assert.ok(bindings.excluded_from_runtime.includes(item.name));
+  }
+});
+
+test('administration-only credentials are isolated from generic deployment environments', () => {
+  const byName = new Map(registry.entries.map((entry) => [entry.canonical_name, entry]));
+  for (const environmentName of actions.generic_deployment_environments) {
+    const environment = actions.environments[environmentName];
+    for (const name of [...environment.variables, ...environment.secrets]) {
+      assert.notEqual(byName.get(name)?.lifecycle, 'administration_only', `${name} leaked into ${environmentName}`);
+    }
+    assert.ok(!environment.secrets.includes('SUPABASE_MANAGEMENT_TOKEN'));
+  }
+  const administration = actions.environments.migration_administration;
+  assert.equal(administration.protected, true);
+  assert.equal(administration.required_reviewers, true);
+  assert.equal(administration.deployment_target, 'administration-only');
+  assert.deepEqual(administration.secrets, ['SUPABASE_MANAGEMENT_TOKEN']);
+});
+
 test('deferred escrow credentials are absent from active templates and runtime bindings', () => {
   const active = [
     ...parseTemplate('templates/.env.example').map(([name]) => name),

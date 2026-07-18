@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 import AircraftContextBar from "@/components/homepage/AircraftContextBar";
-import HeroAircraftSignalCard from "@/components/homepage/HeroAircraftSignalCard";
 import { useHeroAircraft } from "@/hooks/useHeroAircraft";
 
 export default function GlobeShowcase() {
@@ -51,7 +50,7 @@ export default function GlobeShowcase() {
           xl:right-[-2%] xl:w-[66%]
         "
       >
-        <HeroGlobe />
+        <HeroGlobe activeAircraft={aircraft} />
       </div>
 
       {/* Left-side readability wash */}
@@ -187,9 +186,6 @@ export default function GlobeShowcase() {
           </Link>
         </div>
       </div>
-
-      {/* Floating aircraft signal card + pulse (HTML overlay, same record as context bar) */}
-      <HeroAircraftSignalCard aircraft={aircraft} />
 
       {/* Full-width bottom aircraft context bar */}
       <div className="absolute inset-x-0 bottom-0 z-40 px-4 sm:px-8 lg:px-16">

@@ -91,6 +91,7 @@ export function getAircraftStatusLabel(aircraft) {
   if (!aircraft) return "";
   if (aircraft.isActiveListing) return "Active listing";
   if (aircraft.hasSerialOnFile) return "Serial on file";
+  if (aircraft.registrySource === "Global Registry") return "Global Registry";
   if (aircraft.registrySource === "FAA Registry") return "FAA Registry";
   return "Aircraft record";
 }

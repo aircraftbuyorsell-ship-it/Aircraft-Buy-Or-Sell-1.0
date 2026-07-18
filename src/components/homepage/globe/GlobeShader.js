@@ -33,7 +33,7 @@ void main() {
   vec4 mvPosition = modelViewMatrix * vec4(dir * uRadius, 1.0);
   gl_Position = projectionMatrix * mvPosition;
   float twinkle = 0.88 + 0.12 * sin(uTime * 1.4 + aSize * 47.0);
-  gl_PointSize = aSize * uSize * twinkle * (300.0 / -mvPosition.z);
+  gl_PointSize = aSize * uSize * twinkle * (7.0 / -mvPosition.z);
 }
 `;
 
@@ -58,8 +58,8 @@ void main() {
   float fres = 1.0 - max(dot(normalize(vNormal), normalize(vViewDir)), 0.0);
   fres = pow(fres, 2.2);
 
-  vec3 col = vColor + vColor * fres * 1.4;
-  float a = alpha * (0.30 + fres * 0.70) * (0.45 + vLand * 0.55);
+  vec3 col = vColor * (0.72 + fres * 0.35);
+  float a = alpha * (0.50 + fres * 0.40) * vLand;
   gl_FragColor = vec4(col, a);
 }
 `;

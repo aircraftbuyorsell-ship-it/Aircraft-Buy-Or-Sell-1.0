@@ -29,7 +29,7 @@ export default function GlobePoints({ count, radius, dotScale = 1 }) {
         fragmentShader={globeFragmentShader}
         uniforms={uniforms.current}
         transparent
-        depthWrite={false}
+        depthWrite={true}
       />
     </points>
   );

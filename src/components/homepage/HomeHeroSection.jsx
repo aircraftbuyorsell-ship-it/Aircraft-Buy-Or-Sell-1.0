@@ -13,8 +13,7 @@ const STATS = [
 export default function HomeHeroSection() {
   const isDark = useTheme();
 
-  const mobileOverlay = isDark
-    : "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
+  const mobileOverlay = "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
 
   const dotPattern = isDark
     ? "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)"

@@ -1,12 +1,15 @@
-import { OrbitControls } from "@react-three/drei";
-import { MODE_CONFIG } from "./globeConfig";
 import GlobePoints from "./GlobePoints";
 import GlobeRoutes from "./GlobeRoutes";
 import GlobeSignal from "./GlobeSignal";
+import GlobeControls from "./GlobeControls";
+import { MODE_CONFIG } from "./globeConfig";
 
 /**
  * GlobeScene — the in-canvas composition: dot field, route arcs, optional
  * aircraft signal, lighting, and mobile-optimized OrbitControls.
+ *
+ * Fully drei-free: only raw R3F primitives + three's own OrbitControls, so it
+ * is compatible with three 0.185.
  */
 export default function GlobeScene({ mode = "hero", interactive = true, routes = [], activeAircraft }) {
   const cfg = MODE_CONFIG[mode] || MODE_CONFIG.hero;
@@ -24,17 +27,11 @@ export default function GlobeScene({ mode = "hero", interactive = true, routes =
       <GlobeRoutes routes={routes} radius={cfg.radius} />
       {activeAircraft && <GlobeSignal aircraft={activeAircraft} radius={cfg.radius} />}
 
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.05}
-        enableRotate={interactive}
-        enableZoom={interactive && cfg.zoom}
-        enablePan={false}
+      <GlobeControls
+        interactive={interactive}
         autoRotate={cfg.autoRotate}
-        autoRotateSpeed={0.4}
         rotateSpeed={rotateSpeed}
-        minDistance={1.4}
-        maxDistance={5}
+        enableZoom={cfg.zoom}
       />
     </>
   );

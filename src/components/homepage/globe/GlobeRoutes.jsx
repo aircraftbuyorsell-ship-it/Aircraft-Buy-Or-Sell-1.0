@@ -1,6 +1,5 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Line } from "@react-three/drei";
 import * as THREE from "three";
 import { latLngToVec3 } from "./globeUtils";
 
@@ -11,6 +10,9 @@ const TRAIL = [0, 0.02, 0.045];
  * GlobeRoutes — maps the `routes` prop to 3D Bezier arcs elevated above the
  * globe surface, and animates a glowing pulse trail along each line using the
  * R3F useFrame clock.
+ *
+ * Uses raw THREE.Line (one draw call per arc) instead of drei's Line2/
+ * LineMaterial, which is incompatible with three 0.185.
  *
  * routes: [{ startLat, startLng, endLat, endLng, altitude?, color? }]
  */
@@ -27,13 +29,29 @@ export default function GlobeRoutes({ routes = [], radius = 1 }) {
           .normalize()
           .multiplyScalar(radius * (1 + alt));
         const curve = new THREE.QuadraticBezierCurve3(start, ctrl, end);
+        const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(64));
+        const material = new THREE.LineBasicMaterial({
+          color: new THREE.Color(r.color || "#E8C56B"),
+          transparent: true,
+          opacity: 0.22,
+          depthWrite: false,
+        });
         return {
           curve,
-          points: curve.getPoints(64).map((p) => [p.x, p.y, p.z]),
+          lineObject: new THREE.Line(geometry, material),
           color: r.color || "#E8C56B",
         };
       }),
     [routes, radius],
+  );
+
+  useEffect(
+    () => () =>
+      arcs.forEach((a) => {
+        a.lineObject.geometry.dispose();
+        a.lineObject.material.dispose();
+      }),
+    [arcs],
   );
 
   const refs = useRef([]);
@@ -56,7 +74,7 @@ export default function GlobeRoutes({ routes = [], radius = 1 }) {
     <group>
       {arcs.map((arc, i) => (
         <group key={i}>
-          <Line points={arc.points} color={arc.color} lineWidth={1} transparent opacity={0.18} />
+          <primitive object={arc.lineObject} />
           {TRAIL.map((_, j) => (
             <mesh
               key={j}

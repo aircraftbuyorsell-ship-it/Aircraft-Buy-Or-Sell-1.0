@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Plane } from "lucide-react";
+import { getAircraftTitle } from "@/hooks/useHeroAircraft";
 
 const TABS = ["Overview", "Aircraft", "Workflow", "Documents", "Integrations", "Reports"];
 const STEPS = ["1 Identity", "2 Evidence Intake", "3 Verification", "4 Intelligence", "5 Valuation", "6 Decision Support"];
@@ -11,7 +12,7 @@ const DIAGRAM = [
   ["Integrations", "Reports / Transaction"],
 ];
 
-export default function IntraZonePreview() {
+export default function IntraZonePreview({ aircraft }) {
   return (
     <section className="relative bg-[#0b111a] pb-24">
       <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: "radial-gradient(rgba(140,160,190,0.14) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
@@ -26,8 +27,8 @@ export default function IntraZonePreview() {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-[13px] font-bold text-white"><Plane size={15} className="text-[#F5C842]" /> N721AB · Phenom 300E · Opportunity AB-1042</div>
-            <span className="rounded-full border border-[#F5C842]/25 bg-[#F5C842]/10 px-3 py-1 text-[10px] font-bold text-[#F5C842]">ATI 84 · Verification in progress</span>
+            <div className="flex items-center gap-2 text-[13px] font-bold text-white"><Plane size={15} className="text-[#F5C842]" /> {aircraft ? getAircraftTitle(aircraft) : "Aircraft Intelligence Workspace"}</div>
+            <span className="rounded-full border border-[#F5C842]/25 bg-[#F5C842]/10 px-3 py-1 text-[10px] font-bold text-[#F5C842]">{aircraft?.atiScore != null ? `ATI ${Math.round(aircraft.atiScore)}` : "ATI pending"}</span>
           </div>
 
           <div className="mt-8 flex justify-center">

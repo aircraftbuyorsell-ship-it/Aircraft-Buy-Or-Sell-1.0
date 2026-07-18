@@ -111,7 +111,10 @@ export function useHeroAircraft() {
     if (!records.length) return null;
     const persisted = records.find((record) => record.id === selectedId);
     if (persisted) return persisted;
-    return records[Math.floor(Math.random() * records.length)];
+    // Deterministic pick (first record) so every consumer of this hook on the
+    // same page renders the SAME aircraft. A random pick would let sections
+    // 02 / 04 / 09 each select a different aircraft on first load.
+    return records[0];
   }, [query.data, selectedId]);
 
   useEffect(() => {

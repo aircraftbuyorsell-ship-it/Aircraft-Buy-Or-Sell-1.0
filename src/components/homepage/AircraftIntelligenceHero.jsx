@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, CircleCheck, DollarSign, User } from "lucide-react";
+import { getAircraftStatusLabel } from "@/hooks/useHeroAircraft";
 
 const HERO_PHOTO = "https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/bbf0ad58a_generated_image.png";
 
@@ -15,7 +16,11 @@ const PANEL_LINKS = [
   { icon: DollarSign, label: "Costs", to: "/opex-calculator" },
 ];
 
-export default function AircraftIntelligenceHero() {
+export default function AircraftIntelligenceHero({ aircraft }) {
+  const reg = aircraft?.registration;
+  const typeLabel = aircraft ? [aircraft.manufacturer, aircraft.model].filter(Boolean).join(" ") : "";
+  const atiLabel = aircraft?.atiScore != null ? `ATI ${Math.round(aircraft.atiScore)}` : "ATI pending";
+
   return (
     <section className="relative overflow-hidden" style={{ background: "#fbfaf7" }}>
       {/* Full-width aircraft photography */}
@@ -33,27 +38,26 @@ export default function AircraftIntelligenceHero() {
               Connect aircraft identity, available records, ownership context, valuation, documents and market intelligence.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link to="/twin/N721AB" className="rounded-md bg-[#111] px-6 py-3 text-xs font-bold text-white hover:opacity-90">View Aircraft Intelligence</Link>
+              <Link to={reg ? `/twin/${reg}` : "/ati-center"} className="rounded-md bg-[#111] px-6 py-3 text-xs font-bold text-white hover:opacity-90">View Aircraft Intelligence</Link>
               <Link to="/ati-full-report" className="flex items-center gap-2 rounded-md border border-black/15 bg-white/70 px-6 py-3 text-xs font-semibold text-[#111] backdrop-blur hover:bg-white">Open ATI Report <ArrowRight size={13} /></Link>
             </div>
           </div>
 
-          {/* Floating intelligence panel */}
+          {/* Floating intelligence panel — bound to the shared session aircraft */}
           <div className="mt-8 w-full max-w-[280px] rounded-xl border border-black/10 bg-white/85 p-4 shadow-lg backdrop-blur-xl lg:absolute lg:right-10 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2">
             <div className="mb-3">
-              <p className="text-lg font-bold leading-tight text-[#111]">N721AB</p>
-              <p className="text-xs text-[#666]">Phenom 300E</p>
+              <p className="text-lg font-bold leading-tight text-[#111]">{reg || "Aircraft record"}</p>
+              <p className="text-xs text-[#666]">{typeLabel || "Intelligence"}</p>
             </div>
             <div className="mb-3 flex items-center justify-between rounded-lg border border-black/8 bg-white px-3 py-2">
-              <span className="text-[11px] font-semibold text-[#333]">ATI 84</span>
+              <span className="text-[11px] font-semibold text-[#333]">{atiLabel}</span>
               <span className="h-4 w-4 rounded-full border-2 border-[#D4A017] border-t-transparent" />
             </div>
-            <div className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-600/20 bg-emerald-50 px-3 py-2 text-[11px] font-medium text-emerald-700">
-              <CircleCheck size={13} /> Serial verified
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-black/8 bg-white px-3 py-2 text-[11px] font-medium text-[#444]">
+              <CircleCheck size={13} className="text-[#D4A017]" /> {aircraft ? getAircraftStatusLabel(aircraft) : "Record on file"}
             </div>
-            <div className="mb-4">
-              <div className="mb-1 flex justify-between text-[10px] text-[#555]"><span>Deal readiness</span><span className="font-bold">72%</span></div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-black/8"><div className="h-full w-[72%] rounded-full bg-emerald-500" /></div>
+            <div className="mb-4 rounded-lg border border-black/8 bg-white px-3 py-2">
+              <div className="flex justify-between text-[10px] text-[#555]"><span>Source</span><span className="font-bold">{aircraft?.registrySource || "—"}</span></div>
             </div>
             <div className="space-y-1.5">
               {PANEL_LINKS.map(({ icon: Icon, label, to }) => (

@@ -60,9 +60,7 @@ export default function Dashboard() {
         title="Co se právě děje"
         intro="Živé letové signály, zprávy a tržní inteligence v reálném čase."
       >
-        <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 md:px-8">
-          <AviationNewsTicker />
-        </div>
+        <AviationNewsTicker />
         <LiveMarketIntelligence />
       </DashboardBand>
 

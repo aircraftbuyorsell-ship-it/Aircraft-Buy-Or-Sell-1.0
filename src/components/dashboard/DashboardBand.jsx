@@ -28,7 +28,9 @@ export default function DashboardBand({ id, eyebrow, title, intro, children }) {
           )}
         </div>
       )}
-      <div className="flex flex-col gap-8 md:gap-12">{children}</div>
+      <div className="mx-auto w-full max-w-[1360px] px-4 md:px-8">
+        <div className="flex flex-col gap-8 md:gap-12">{children}</div>
+      </div>
     </section>
   );
 }

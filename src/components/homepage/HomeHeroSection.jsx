@@ -31,7 +31,7 @@ export default function HomeHeroSection() {
   const scrollClass = isDark ? "text-white/35" : "text-muted-foreground/50";
 
   return (
-    <section className="relative w-full min-h-[600px] h-auto py-14 sm:py-0 sm:h-[min(80vh,720px)] lg:h-[max(80vh,680px)] overflow-visible">
+    <section className="relative w-full min-h-[560px] h-auto pt-24 pb-14 sm:pt-20 sm:pb-0 sm:h-[min(80vh,720px)] lg:h-[max(80vh,680px)] overflow-hidden">
       <HeroGlobe />
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)" }} />
       <div className="pointer-events-none absolute inset-0 lg:hidden" style={{ background: mobileOverlay }} />
@@ -40,7 +40,7 @@ export default function HomeHeroSection() {
 
       <div className="relative z-10 flex h-full flex-col justify-center px-4 sm:px-8">
         <div className="mx-auto w-full max-w-[1240px]">
-          <div className="flex w-full max-w-[680px] flex-col items-start text-left pt-20 sm:pt-24 px-3">
+          <div className="flex w-full max-w-[680px] flex-col items-start text-left px-3">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 sm:mb-5">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS™ · Global aircraft identity &amp; sales network</span>

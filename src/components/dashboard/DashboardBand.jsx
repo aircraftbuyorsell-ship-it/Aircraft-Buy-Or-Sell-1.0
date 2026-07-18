@@ -5,7 +5,7 @@
  */
 export default function DashboardBand({ id, eyebrow, title, intro, children }) {
   return (
-    <section id={id} className="scroll-mt-32 py-10 md:py-14">
+    <section id={id} className="scroll-mt-[120px] py-10 md:py-14">
       {(eyebrow || title) && (
         <div className="mx-auto mb-8 max-w-[1360px] px-4 md:mb-10 md:px-8">
           {eyebrow && (

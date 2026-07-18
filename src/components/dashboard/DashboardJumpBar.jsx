@@ -13,7 +13,7 @@ const ITEMS = [
  */
 export default function DashboardJumpBar() {
   return (
-    <div className="sticky top-16 z-30 border-b border-black/[0.06] bg-[#fbfaf7]/90 backdrop-blur-xl">
+    <div className="sticky top-[76px] z-30 border-b border-black/[0.06] bg-[#fbfaf7]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1360px] items-center gap-1 overflow-x-auto px-4 py-2 md:px-8">
         {ITEMS.map((it) => {
           const Icon = it.icon;

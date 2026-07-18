@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { fibonacciSphere, vec3ToLatLng, fbm } from "./globeUtils";
 
-// Champagne-gold palette — varied per dot for a metallic, premium texture.
-const GOLD = new THREE.Color("#D4A017");
-const GOLD_BRIGHT = new THREE.Color("#F5C842");
+// Platinum/silver palette — clean light-gray dotted surface (golden only on arcs).
+const SILVER = new THREE.Color("#AEB3BC");
+const SILVER_BRIGHT = new THREE.Color("#E6E9EF");
 const PLATINUM = new THREE.Color("#C9CDD2");
 
 function hash01(i) {
@@ -38,7 +38,7 @@ export function useGlobeGeometry(count = 10000, radius = 1) {
       if (n * latBias <= 0.48) continue; // ocean → no dot
 
       const v = hash01(i);
-      tmp.copy(GOLD).lerp(GOLD_BRIGHT, v * 0.6).lerp(PLATINUM, v * 0.25);
+      tmp.copy(SILVER).lerp(SILVER_BRIGHT, v * 0.6).lerp(PLATINUM, v * 0.25);
       pos.push(x, y, z);
       col.push(tmp.r, tmp.g, tmp.b);
       siz.push(0.9 + v * 0.7);

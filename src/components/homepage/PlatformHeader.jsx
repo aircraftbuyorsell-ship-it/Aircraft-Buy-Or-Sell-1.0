@@ -10,7 +10,7 @@ const NAV = [
 function LogoIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <path d="M3 17L9 11L13 15L21 7" stroke="#e0a938" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 17L9 11L13 15L21 7" stroke="#D4A017" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M21 7H15M21 7V13" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M3 21H21" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
       <circle cx="9" cy="11" r="1.6" fill="#3b82f6" />
@@ -50,7 +50,7 @@ export default function PlatformHeader() {
             <Search size={14} className="text-slate-600" />
           </button>
           <Link
-            to="/intrazone"
+            to="/dashboard"
             className="flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 rounded-lg text-xs font-bold text-slate-800 shadow-xs hover:bg-slate-50"
           >
             <LayoutGrid size={13} className="text-slate-600" />

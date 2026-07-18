@@ -179,7 +179,7 @@ export default function Layout() {
   const touchStartX = useRef(null);
   const isDark = useTheme();
 
-  const isHomepage = pathname === "/";
+  const isHomepage = pathname === "/" || pathname === "/dashboard";
   const showBack = !isHomepage;
 
   const { data: currentUser } = useQuery({

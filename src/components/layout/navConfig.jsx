@@ -20,7 +20,7 @@ export const NAV_TREE = [
   {
     label: "Home",
     mobileLabel: "Home",
-    path: "/",
+    path: "/dashboard",
     icon: LayoutDashboard,
     direct: true,
   },

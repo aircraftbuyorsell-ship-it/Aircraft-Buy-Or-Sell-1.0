@@ -1,4 +1,4 @@
-import HomePageHeader from "@/components/homepage/HomePageHeader";
+import PlatformHeader from "@/components/homepage/PlatformHeader";
 import GlobeShowcase from "@/components/homepage/GlobeShowcase";
 import TrustIndicators from "@/components/homepage/TrustIndicators";
 import AircraftIntelligenceHero from "@/components/homepage/AircraftIntelligenceHero";
@@ -27,7 +27,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
-      <HomePageHeader />
+      <PlatformHeader />
       <GlobeShowcase />
       <TrustIndicators />
       <AircraftIntelligenceHero aircraft={aircraft} />

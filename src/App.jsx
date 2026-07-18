@@ -120,8 +120,9 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/1PAGE" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/1PAGE" element={<Navigate to="/" replace />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
         <Route path="/ati-passport" element={<Navigate to="/listings" replace />} />
@@ -210,7 +211,7 @@ const AuthenticatedApp = () => {
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
       </Route>
-      <Route path="/HomePage" element={<HomePage />} />
+      <Route path="/HomePage" element={<Navigate to="/" replace />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

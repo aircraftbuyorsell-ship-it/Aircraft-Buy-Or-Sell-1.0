@@ -38,9 +38,9 @@ export default function Dashboard() {
 
   return (
     <div
-      className="text-foreground"
+      className="text-foreground dot-grid"
       style={{
-        background: "transparent",
+        background: "#fbfaf7",
         minHeight: "100vh",
         fontFamily: "Inter, -apple-system, sans-serif",
       }}

@@ -171,13 +171,14 @@ const OCEAN_DOTS = createSparseSphereDots();
 
 function drawGlobeBase(ctx, centerX, centerY, radius) {
   const globeFill = ctx.createRadialGradient(
-    centerX - radius * 0.3, centerY - radius * 0.35, radius * 0.1,
-    centerX, centerY, radius,
+    centerX - radius * 0.38, centerY - radius * 0.42, radius * 0.03,
+    centerX + radius * 0.08, centerY + radius * 0.08, radius * 1.08,
   );
-  globeFill.addColorStop(0, "rgba(255,255,255,0.98)");
-  globeFill.addColorStop(0.45, "rgba(249,249,247,0.88)");
-  globeFill.addColorStop(0.78, "rgba(229,232,233,0.48)");
-  globeFill.addColorStop(1, "rgba(203,208,211,0.12)");
+  globeFill.addColorStop(0, "rgba(255,255,255,0.99)");
+  globeFill.addColorStop(0.36, "rgba(250,250,248,0.96)");
+  globeFill.addColorStop(0.68, "rgba(232,235,236,0.82)");
+  globeFill.addColorStop(0.88, "rgba(199,205,209,0.54)");
+  globeFill.addColorStop(1, "rgba(169,178,184,0.17)");
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
   ctx.fillStyle = globeFill;
@@ -216,7 +217,7 @@ function drawGlobeShading(ctx, centerX, centerY, radius) {
 function drawRimLight(ctx, centerX, centerY, radius) {
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(160,168,174,0.18)";
+  ctx.strokeStyle = "rgba(126, 134, 140, 0.12)";
   ctx.lineWidth = 1;
   ctx.stroke();
 }
@@ -240,24 +241,20 @@ function drawSpecularHighlight(ctx, centerX, centerY, radius) {
 function drawDots(ctx, dots, centerX, centerY, radius, rotation, tilt, isLandLayer) {
   for (const dot of dots) {
     const p = project(dot.vec, centerX, centerY, radius, rotation, tilt);
-    if (p.z < -0.15) continue;
+    if (p.z < 0) continue; // front hemisphere only
     const depth = Math.max(0, Math.min(1, (p.z + 1) / 2));
     if (isLandLayer) {
-      const landDensity = dot.density;
-      const dotSize = 0.55 + depth * 0.95 + landDensity * 0.3;
-      const alpha = 0.08 + depth * 0.34 + landDensity * 0.12;
+      const weight = 0.7 + dot.density * 0.8;
+      const size = (0.55 + depth * 1.05) * weight;
+      const alpha = 0.13 + depth * 0.35;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, dotSize, 0, Math.PI * 2);
-      ctx.fillStyle = depth > 0.72
-        ? `rgba(122, 126, 128, ${alpha})`
-        : depth > 0.45
-          ? `rgba(145, 149, 151, ${alpha})`
-          : `rgba(180, 184, 187, ${alpha})`;
+      ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(116, 121, 125, ${alpha})`;
       ctx.fill();
     } else {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 0.6 + depth * 0.4, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(196, 202, 206, ${0.04 + depth * 0.08})`;
+      ctx.arc(p.x, p.y, 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(154, 162, 168, 0.08)";
       ctx.fill();
     }
   }
@@ -316,10 +313,10 @@ function drawOrbitalArc(ctx, centerX, centerY, radiusX, radiusY, rotation, start
   ctx.rotate(rotation);
   ctx.beginPath();
   ctx.ellipse(0, 0, radiusX, radiusY, 0, startAngle, endAngle);
-  ctx.strokeStyle = "rgba(218, 170, 48, 0.42)";
-  ctx.lineWidth = 1;
-  ctx.shadowColor = "rgba(232, 190, 86, 0.25)";
-  ctx.shadowBlur = 8;
+  ctx.strokeStyle = "rgba(212, 160, 23, 0.28)";
+  ctx.lineWidth = 0.8;
+  ctx.shadowColor = "rgba(212, 160, 23, 0.14)";
+  ctx.shadowBlur = 5;
   ctx.stroke();
   ctx.restore();
 }
@@ -406,13 +403,16 @@ export default function HeroGlobe() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      const radius = Math.min(width * 0.57, height * 0.73);
-      const centerX = width * 0.55;
-      const centerY = height * 0.55;
+      const isMobile = width < 640;
+      const radius = isMobile
+        ? Math.min(width * 0.44, height * 0.42)
+        : Math.min(width * 0.46, height * 0.52);
+      const centerX = isMobile ? width * 0.56 : width * 0.52;
+      const centerY = isMobile ? height * 0.52 : height * 0.51;
 
-      const autoRotation = reducedMotion ? 0 : elapsed * 0.000008;
-      const rotation = -0.62 + autoRotation;
-      const tilt = -0.12;
+      const autoRotation = reducedMotion ? 0 : elapsed * 0.000006;
+      const rotation = -0.92 + autoRotation;
+      const tilt = -0.08;
 
       drawOuterAtmosphere(ctx, centerX, centerY, radius);
       drawGlobeBase(ctx, centerX, centerY, radius);
@@ -424,15 +424,16 @@ export default function HeroGlobe() {
       for (const route of ROUTES) drawRoute(ctx, route, centerX, centerY, radius, rotation, tilt, false);
       for (const route of ROUTES) drawRoute(ctx, route, centerX, centerY, radius, rotation, tilt, true);
 
-      // Orbital arcs — large champagne infrastructure ellipses
-      drawOrbitalArc(ctx, centerX, centerY, radius * 1.32, radius * 0.38, -0.4, Math.PI * 0.08, Math.PI * 1.86);
-      drawOrbitalArc(ctx, centerX, centerY, radius * 1.18, radius * 0.52, 0.32, Math.PI * 1.1, Math.PI * 2.7);
+      // Orbital arcs — soft champagne infrastructure ellipses
+      drawOrbitalArc(ctx, centerX, centerY, radius * 1.16, radius * 0.38, -0.28, Math.PI * 0.08, Math.PI * 1.86);
+      drawOrbitalArc(ctx, centerX, centerY, radius * 1.24, radius * 0.29, 0.45, Math.PI * 1.1, Math.PI * 2.7);
+      drawOrbitalArc(ctx, centerX, centerY, radius * 1.08, radius * 0.5, -0.82, Math.PI * 0.35, Math.PI * 1.55);
 
       // Signals
       SIGNALS.forEach((signal, index) => {
         const vec = latLonToVector(signal.pos[0], signal.pos[1]);
         const p = project(vec, centerX, centerY, radius * 1.01, rotation, tilt);
-        if (p.z > -0.05) drawLayeredSignal(ctx, p.x, p.y, signal, elapsed, index);
+        if (p.z >= 0) drawLayeredSignal(ctx, p.x, p.y, signal, elapsed, index);
       });
 
       drawSpecularHighlight(ctx, centerX, centerY, radius);

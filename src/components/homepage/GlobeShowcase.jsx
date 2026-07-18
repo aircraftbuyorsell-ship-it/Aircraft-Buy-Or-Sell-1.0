@@ -3,8 +3,12 @@ import { Link } from "react-router-dom";
 
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 import AircraftContextBar from "@/components/homepage/AircraftContextBar";
+import HeroAircraftSignalCard from "@/components/homepage/HeroAircraftSignalCard";
+import { useHeroAircraft } from "@/hooks/useHeroAircraft";
 
 export default function GlobeShowcase() {
+  const { aircraft, isLoading } = useHeroAircraft();
+
   return (
     <section
       className="
@@ -33,29 +37,18 @@ export default function GlobeShowcase() {
         "
       />
 
-      {/* Full-bleed globe */}
+      {/* Full-bleed globe — single controlled wrapper, no double offset */}
       <div
         className="
           pointer-events-none absolute z-10
-          -right-[62%] top-[14%]
-          h-[72%] w-[145%]
+          right-[-8%] top-[38%] h-[62%] w-[110%]
+          overflow-visible
 
-          sm:-right-[42%]
-          sm:top-[7%]
-          sm:h-[82%]
-          sm:w-[124%]
+          sm:right-[-6%] sm:top-[24%] sm:h-[76%] sm:w-[86%]
 
-          lg:-right-[18%]
-          lg:-top-[2%]
-          lg:h-[96%]
-          lg:w-[78%]
+          lg:right-[-4%] lg:top-0 lg:h-[90%] lg:w-[68%]
 
-          xl:-right-[12%]
-          xl:h-[100%]
-          xl:w-[73%]
-
-          2xl:-right-[7%]
-          2xl:w-[70%]
+          xl:right-[-2%] xl:w-[66%]
         "
       >
         <HeroGlobe />
@@ -195,38 +188,8 @@ export default function GlobeShowcase() {
         </div>
       </div>
 
-      {/* Floating signal card attached to globe */}
-      <div
-        className="
-          absolute right-[17%] top-[31%] z-30 hidden
-          items-center gap-1.5 rounded-[5px]
-          border border-black/[0.08] bg-white/90
-          px-4 py-2.5 text-[12px] text-[#555]
-          shadow-[0_10px_30px_rgba(20,24,32,0.12)]
-          backdrop-blur-xl
-
-          lg:flex
-          xl:right-[20%]
-          xl:top-[34%]
-        "
-      >
-        <strong className="font-semibold text-[#181818]">N721AB</strong>
-        <span className="text-black/35">·</span>
-        <span>Registry matched</span>
-      </div>
-
-      {/* Pulse behind floating card */}
-      <div
-        aria-hidden="true"
-        className="
-          absolute right-[31.4%] top-[37.2%] z-20 hidden
-          h-4 w-4 rounded-full border border-emerald-400/80
-          bg-emerald-300/70 shadow-[0_0_0_8px_rgba(52,211,153,0.12),0_0_28px_rgba(52,211,153,0.75)]
-          lg:block
-          xl:right-[34.4%]
-          xl:top-[39.5%]
-        "
-      />
+      {/* Floating aircraft signal card + pulse (HTML overlay, same record as context bar) */}
+      <HeroAircraftSignalCard aircraft={aircraft} />
 
       {/* Full-width bottom aircraft context bar */}
       <div className="absolute inset-x-0 bottom-0 z-40 px-4 sm:px-8 lg:px-16">
@@ -238,7 +201,7 @@ export default function GlobeShowcase() {
             backdrop-blur-2xl
           "
         >
-          <AircraftContextBar />
+          <AircraftContextBar aircraft={aircraft} isLoading={isLoading} />
         </div>
       </div>
     </section>

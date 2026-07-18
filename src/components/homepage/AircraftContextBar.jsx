@@ -2,6 +2,7 @@ import {
   ArrowRight,
   CheckCircle2,
   CircleGauge,
+  Landmark,
   Plane,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -55,8 +56,9 @@ export default function AircraftContextBar({ aircraft, isLoading }) {
 
   const typeLabel = [aircraft.manufacturer, aircraft.model].filter(Boolean).join(" ");
   const hasAti = aircraft.atiScore != null;
-  const intelLink = hasAti ? "/intrazone" : `/twin/${aircraft.registration}`;
-  const intelLabel = hasAti ? "Open in IntraZone" : "Open Aircraft Intelligence";
+  const useIntraZone = aircraft.isActiveListing && hasAti;
+  const intelLink = useIntraZone ? "/intrazone" : `/twin/${aircraft.registration}`;
+  const intelLabel = useIntraZone ? "Open in IntraZone" : "Open Aircraft Intelligence";
 
   return (
     <div className="flex min-h-[64px] items-center gap-4 px-4 py-3 sm:px-5 lg:px-6">
@@ -66,15 +68,10 @@ export default function AircraftContextBar({ aircraft, isLoading }) {
 
       <div className="flex shrink-0 items-center gap-2 text-[13px]">
         <strong className="font-semibold text-[#171717]">{aircraft.registration}</strong>
-        {typeLabel ? (
+        {typeLabel && (
           <>
             <span className="text-black/35">·</span>
             <span className="text-[#363a3e]">{typeLabel}</span>
-          </>
-        ) : (
-          <>
-            <span className="text-black/35">·</span>
-            <span className="text-[#363a3e]">Aircraft record</span>
           </>
         )}
       </div>
@@ -82,23 +79,25 @@ export default function AircraftContextBar({ aircraft, isLoading }) {
       <div className="hidden h-7 w-px bg-black/[0.08] md:block" />
 
       <div className="hidden flex-1 items-center gap-3 overflow-hidden md:flex">
-        {aircraft.serialVerified ? (
-          <ContextChip icon={CheckCircle2}>Serial verified</ContextChip>
-        ) : aircraft.serialNumber ? (
-          <ContextChip icon={CheckCircle2}>Serial available</ContextChip>
-        ) : null}
-
-        {aircraft.registryMatched && (
-          <ContextChip icon={CheckCircle2}>Registry matched</ContextChip>
+        {aircraft.isActiveListing && (
+          <ContextChip icon={CheckCircle2}>Active listing</ContextChip>
         )}
 
-        {aircraft.ownerContextAvailable && (
-          <ContextChip icon={CheckCircle2}>Owner context available</ContextChip>
+        {aircraft.hasSerialOnFile && (
+          <ContextChip icon={CheckCircle2}>Serial on file</ContextChip>
         )}
 
-        <ContextChip icon={CircleGauge} iconClass="text-sky-600">
-          {hasAti ? `ATI ${Math.round(aircraft.atiScore)}` : "ATI available"}
-        </ContextChip>
+        {aircraft.registrySource !== "Aircraft Listing" && (
+          <ContextChip icon={Landmark} iconClass="text-[#6b7075]">
+            {aircraft.registrySource}
+          </ContextChip>
+        )}
+
+        {hasAti && (
+          <ContextChip icon={CircleGauge} iconClass="text-sky-600">
+            {`ATI ${Math.round(aircraft.atiScore)}`}
+          </ContextChip>
+        )}
       </div>
 
       <Link

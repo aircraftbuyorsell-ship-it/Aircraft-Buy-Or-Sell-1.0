@@ -50,6 +50,8 @@ The guard does not scan or block separate ABOS Core API Worker deployment workfl
 
 Pull-request CI must create at least one runner job for the PR head commit. A `startup_failure` with zero jobs indicates a GitHub Actions account, billing, or repository-policy blocker rather than an application build failure.
 
+Billing re-check trigger: 2026-07-18.
+
 ## Application environment variables
 
 Configure required `VITE_*` build-time variables as GitHub Actions secrets or environment variables before deployment. Values prefixed with `VITE_` are bundled into client-side code and must never contain private credentials.

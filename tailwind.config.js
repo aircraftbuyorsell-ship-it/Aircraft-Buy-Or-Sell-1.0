@@ -13,6 +13,9 @@ module.exports = {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Inter', 'system-ui', 'sans-serif'],
         display: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
       },
+      fontSize: {
+        xxs: ['11px', { lineHeight: '14px' }],
+      },
       colors: {
         gold: {
           DEFAULT: '#D4A017',

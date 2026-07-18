@@ -1,47 +1,107 @@
-import { Link } from "react-router-dom";
-import { CircleCheck, Search } from "lucide-react";
-import HeroGlobe from "@/components/globe/HeroGlobe";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, CornerDownLeft } from "lucide-react";
+import HeroGlobe from "@/components/homepage/HeroGlobe";
+import PlatformHeader from "@/components/homepage/PlatformHeader";
 
 export default function HeroPlatformSection() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+
   return (
-    <section className="relative isolate min-h-[680px] overflow-hidden bg-[#fbfaf7]">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.5]" style={{ backgroundImage: "radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-      <div className="absolute -right-[26%] top-0 z-10 h-[88%] w-[92%] sm:-right-[12%] sm:w-[70%]"><HeroGlobe /></div>
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#fbfaf7]">
+      <PlatformHeader />
 
-      <div className="absolute right-[16%] top-[22%] z-20 hidden rounded-xl border border-black/[0.08] bg-white/95 px-4 py-3 text-[11px] shadow-lg backdrop-blur md:block">
-        <div className="font-bold text-[#1a1a1a]">N721AB</div>
-        <div className="mt-1 flex items-center gap-1 text-[#3a3a3a]"><CircleCheck size={11} className="text-emerald-600" /> Registry matched</div>
-        <div className="flex items-center gap-1 text-[#3a3a3a]"><CircleCheck size={11} className="text-emerald-600" /> Serial identified</div>
-        <div className="mt-1 font-semibold text-[#D4A017]">ATI Score 84</div>
-        <Link to="/ati-center" className="mt-2 block text-[10px] font-bold text-[#D4A017]">Open Intelligence →</Link>
-      </div>
+      <section className="relative isolate overflow-hidden">
+        {/* 3D globe — full-bleed background shifted right, behind content */}
+        <div className="pointer-events-none absolute right-[-10%] top-1/2 z-0 h-[130%] w-[75%] -translate-y-1/2 sm:w-[62%]">
+          <HeroGlobe
+            mode="hero"
+            interactive={false}
+            activeAircraft={{ registration: "N721AB" }}
+            signalLabel="🟢 N721AB · Registry matched"
+          />
+        </div>
 
-      <div className="relative z-20 mx-auto max-w-[1360px] px-5 pb-24 pt-16 sm:px-8 sm:pt-24">
-        <div className="max-w-xl">
-          <h1 className="text-4xl font-semibold leading-[1.06] tracking-[-0.035em] text-[#1a1a1a] sm:text-6xl">
-            The Aviation<br /><span className="font-bold text-[#D4A017]">Intelligence</span> Platform
-          </h1>
-          <p className="mt-5 max-w-md text-[15px] leading-7 text-[#555]">
-            Search aircraft. Verify critical information. Understand market value. Make better aviation decisions.
-          </p>
-          <p className="mt-3 max-w-md text-[13px] leading-6 text-[#777]">
-            ABOS connects aircraft listings, trusted data, valuation, verification, market intelligence and professional workflows in one platform.
-          </p>
+        {/* Subtle dot-grid underlay */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 opacity-60"
+          style={{
+            backgroundImage: "radial-gradient(rgba(15,23,42,0.05) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
 
-          <Link to="/listings" className="mt-7 flex max-w-md items-center gap-3 rounded-xl border border-black/[0.09] bg-white px-4 py-3.5 text-xs text-[#888] shadow-sm hover:border-[#D4A017]/40">
-            <Search size={15} className="text-[#D4A017]" /> Search aircraft, registration, serial, owner, model or ATI code →
-          </Link>
+        {/* Content */}
+        <div className="relative z-20 mx-auto flex min-h-[640px] max-w-[1360px] flex-col justify-center px-5 pb-10 pt-16 sm:px-8 sm:pt-24">
+          <div className="max-w-xl">
+            <h1 className="max-w-xl text-[42px] font-bold leading-[1.1] tracking-tight text-[#0f172a] font-sans sm:text-[48px]">
+              Aircraft intelligence.
+              <br />
+              From first signal to closed deal.
+            </h1>
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link to="/listings" className="rounded-xl bg-[#D4A017] px-6 py-3 text-[13px] font-bold text-white hover:opacity-90">Search Aircraft</Link>
-            <Link to="/ati-center" className="rounded-xl border border-black/[0.12] bg-white px-6 py-3 text-[13px] font-semibold text-[#1a1a1a] hover:bg-black/[0.03]">Explore Aircraft Intelligence</Link>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-500 sm:text-base">
+              Search, verify, value and transact with one connected aviation workspace.
+            </p>
+
+            {/* Row 1 — action buttons */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/listings"
+                className="rounded-lg bg-[#e0a938] px-5 py-3 text-xs font-bold text-[#0f172a] shadow-xs hover:bg-[#cb952b]"
+              >
+                Search an aircraft
+              </Link>
+              <Link
+                to="/marketplace"
+                className="rounded-lg border border-slate-200 bg-white px-5 py-3 text-xs font-bold text-[#0f172a] hover:bg-slate-50"
+              >
+                Explore the market
+              </Link>
+            </div>
+
+            {/* Row 2 — inline search */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                navigate(`/listings?q=${encodeURIComponent(q)}`);
+              }}
+              className="mt-6 flex w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs shadow-sm focus-within:ring-1 focus-within:ring-slate-400"
+            >
+              <Search size={14} className="shrink-0 text-slate-400" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search aircraft, N-Reg, serial or owner..."
+                className="w-full bg-transparent text-xs text-[#0f172a] placeholder:text-slate-400 focus:outline-none"
+              />
+              <span className="flex shrink-0 items-center gap-0.5 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-slate-400">
+                <CornerDownLeft size={9} />
+              </span>
+            </form>
           </div>
 
-          <p className="mt-8 text-[11px] uppercase tracking-[0.14em] text-[#999]">
-            Built for buyers, sellers, brokers, dealers, aviation professionals, developers and intelligent apps.
-          </p>
+          {/* Bottom real-time operational telemetry strip */}
+          <div className="mt-12 flex w-full flex-wrap items-center justify-between gap-3 bg-white/90 px-6 py-3 text-xxs font-semibold text-slate-700 backdrop-blur-md sm:border-y sm:border-slate-200/60">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="font-bold text-slate-900">✈️ N721AB · Phenom 300E</span>
+              <span className="rounded-md border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700">
+                ✓ Serial verified
+              </span>
+              <span className="rounded-md border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700">
+                ✓ Owner matched
+              </span>
+              <span className="rounded-md border border-blue-200/60 bg-blue-50 px-2 py-0.5 font-bold text-blue-700">
+                ⊙ ATI 84
+              </span>
+            </div>
+            <Link to="/intrazone" className="text-xxs font-bold tracking-wide text-[#e0a938] hover:underline">
+              Open in IntraZone →
+            </Link>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

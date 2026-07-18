@@ -64,6 +64,7 @@ export default function HeroGlobe({
   interactive = true,
   routes,
   activeAircraft,
+  signalLabel,
 }) {
   const cfg = MODE_CONFIG[mode] || MODE_CONFIG.hero;
   const effectiveRoutes = routes && routes.length ? routes : DEFAULT_ROUTES;
@@ -126,7 +127,7 @@ export default function HeroGlobe({
         .multiplyScalar(cfg.radius * (1 + alt));
       const curve = new THREE.QuadraticBezierCurve3(start, ctrl, end);
       const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(64));
-      const color = new THREE.Color(r.color || "#E8C56B");
+      const color = new THREE.Color(r.color || "#e0a938");
       const material = new THREE.LineBasicMaterial({
         color,
         transparent: true,
@@ -171,10 +172,11 @@ export default function HeroGlobe({
 
       labelEl = document.createElement("div");
       labelEl.className =
-        "pointer-events-none absolute z-10 whitespace-nowrap rounded-full border border-black/5 bg-white/95 px-3 py-1.5 text-[11px] font-medium shadow-md";
-      labelEl.style.transform = "translate(-50%, -50%)";
+        "pointer-events-none absolute z-10 flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200/80 bg-white/95 px-2.5 py-1 text-[10px] font-bold text-slate-800 shadow-xl backdrop-blur-sm";
+      labelEl.style.transform = "translate(-50%, -100%)";
+      labelEl.style.marginBottom = "8px";
       labelEl.style.willChange = "left, top";
-      labelEl.textContent = `${activeAircraft.registration} · ${getAircraftStatusLabel(activeAircraft)}`;
+      labelEl.textContent = signalLabel || `${activeAircraft.registration} · ${getAircraftStatusLabel(activeAircraft)}`;
       mount.appendChild(labelEl);
     }
 
@@ -254,7 +256,7 @@ export default function HeroGlobe({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, interactive, JSON.stringify(effectiveRoutes), activeAircraft?.id]);
+  }, [mode, interactive, JSON.stringify(effectiveRoutes), activeAircraft?.id, signalLabel]);
 
   return (
     <div

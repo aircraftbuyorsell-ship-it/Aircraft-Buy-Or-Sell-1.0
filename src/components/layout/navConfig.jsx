@@ -119,6 +119,13 @@ export const NAV_TREE = [
     ],
   },
   {
+    label: "IntraZone",
+    mobileLabel: "Intra",
+    path: "/intrazone",
+    icon: Globe,
+    direct: true,
+  },
+  {
     label: "Pricing",
     path: "/pricing",
     icon: CreditCard,

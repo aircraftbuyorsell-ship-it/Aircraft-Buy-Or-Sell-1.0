@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { CircleCheck, Search } from "lucide-react";
-import HeroGlobe from "@/components/homepage/HeroGlobe";
+import HeroGlobe from "@/components/globe/HeroGlobe";
 
 export default function HeroPlatformSection() {
   return (

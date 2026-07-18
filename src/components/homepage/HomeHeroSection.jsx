@@ -14,7 +14,6 @@ export default function HomeHeroSection() {
   const isDark = useTheme();
 
   const mobileOverlay = isDark
-    ? "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)"
     : "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
 
   const dotPattern = isDark

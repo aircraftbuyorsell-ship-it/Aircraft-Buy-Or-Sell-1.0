@@ -26,7 +26,7 @@
     --navbar-border: rgba(0, 0, 0, 0.08);
 
     /* Official Infrastructure tokens */
-    --grid-color: rgba(0, 0, 0, 0.04);
+    --grid-color: rgba(0, 0, 0, 0.12);
     --bg-canvas: #fbfaf7;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.08);
@@ -93,7 +93,7 @@
     --navbar-border: rgba(0, 245, 255, 0.12);
 
     /* Official Infrastructure tokens */
-    --grid-color: rgba(255, 255, 255, 0.03);
+    --grid-color: rgba(255, 255, 255, 0.08);
     --bg-canvas: #0B1220;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.12);

@@ -67,7 +67,7 @@ export const NAV_TREE = [
           { path: "/market-reports", label: "Market Reports", icon: FileText },
           { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
-          { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
+          { path: "/abos-intelligence", label: "ABOS Intelligence", icon: Brain },
           { path: "/calculators", label: "All Calculators", icon: Calculator },
           { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
           { path: "/insurance-calculator", label: "Insurance", icon: Shield },

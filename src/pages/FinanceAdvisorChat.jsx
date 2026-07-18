@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Brain, Send, Loader2, Sparkles, Plane, TrendingUp, ShieldCheck,
-  AlertTriangle, CheckCircle2, Cpu, ChevronRight, User
+  AlertTriangle, CheckCircle2, Cpu, ChevronRight, User, Globe,
+  BarChart2, Scale, FileText, DollarSign, Users, Gauge,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -11,6 +12,14 @@ const SUGGESTED_PROMPTS = [
   { icon: TrendingUp, text: "What's the OPEX vs lease revenue breakeven for a Cirrus SR22?" },
   { icon: ShieldCheck, text: "Which skills should I run for a pre-buy assessment of N8541G?" },
   { icon: Brain, text: "Compare investment health scores for my watched aircraft" },
+  { icon: Globe, text: "Compare N123AB across FAA, EASA and Czech registries" },
+  { icon: AlertTriangle, text: "Check EASA Airworthiness Directives for a Cessna 172" },
+  { icon: BarChart2, text: "Generate a market forecast for light twins in Europe 2026" },
+  { icon: Users, text: "Find matching buyers for my Cessna 182 listed at $185k" },
+  { icon: Scale, text: "Build a negotiation brief for N8541G asking price $220k" },
+  { icon: FileText, text: "What's the global compliance status of D-AIBL?" },
+  { icon: Gauge, text: "Run a full MRO schedule + engine overhaul estimate for N123AB" },
+  { icon: DollarSign, text: "Should I buy or timebuild for my 300hr CPL goal?" },
 ];
 
 function ModelBadge({ model }) {
@@ -194,9 +203,9 @@ export default function FinanceAdvisorChat() {
               <Brain className="w-4 h-4 text-[#f5c242]" />
             </div>
             <div>
-              <p className="text-xs font-black text-white/90">Finance Advisor</p>
-              <p className="text-[9px] text-white/40">Llama 4 + GPT-4o hybrid</p>
-            </div>
+               <p className="text-xs font-black text-white/90">ABOS Intelligence</p>
+               <p className="text-[9px] text-white/40">Valuation · Market · Compliance · Deals</p>
+             </div>
           </div>
         </div>
         <button
@@ -230,7 +239,7 @@ export default function FinanceAdvisorChat() {
         {/* Mobile header */}
         <div className="md:hidden flex items-center gap-2 p-4 border-b border-white/8">
           <Brain className="w-5 h-5 text-[#f5c242]" />
-          <p className="text-sm font-black text-white/90">Finance Advisor</p>
+           <p className="text-sm font-black text-white/90">ABOS Intelligence</p>
         </div>
 
         {/* Messages */}
@@ -242,12 +251,12 @@ export default function FinanceAdvisorChat() {
                   style={{ background: "linear-gradient(135deg, rgba(245,194,66,0.12), rgba(168,85,247,0.08))" }}>
                   <Sparkles className="w-7 h-7 text-[#f5c242]" />
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#f5c242] mb-1">Aviation Investment OS</p>
-                <h2 className="text-xl font-black text-white/90 mb-2">Ask the Finance Advisor</h2>
-                <p className="text-sm text-white/50 max-w-md mx-auto mb-6">
-                  The advisor orchestrates Skills (OPEX, Insurance, Leasing, Tax, Lease Rate) over Digital Twin data
-                  to generate evidence-based investment briefs.
-                </p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#f5c242] mb-1">Aviation Intelligence OS</p>
+                 <h2 className="text-xl font-black text-white/90 mb-2">Ask ABOS Intelligence</h2>
+                 <p className="text-sm text-white/50 max-w-md mx-auto mb-6">
+                   Orchestrates valuation, market intelligence, compliance, registry lookup, and deal-matching
+                   over Digital Twin data — evidence-based briefs for every aviation decision.
+                 </p>
                 <div className="grid sm:grid-cols-2 gap-2 max-w-lg mx-auto">
                   {SUGGESTED_PROMPTS.map((p, i) => {
                     const Icon = p.icon;
@@ -297,7 +306,7 @@ export default function FinanceAdvisorChat() {
                   sendMessage();
                 }
               }}
-              placeholder="Ask about aircraft investment, OPEX, tax benefits, lease rates..."
+              placeholder="Ask about investment, market trends, compliance, deals, valuations..."
               rows={1}
               className="flex-1 resize-none px-4 py-2.5 rounded-xl text-sm outline-none max-h-32"
               style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.10)", color: "white" }}

@@ -204,7 +204,8 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
-        <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
+        <Route path="/abos-intelligence" element={<FinanceAdvisorChat />} />
+        <Route path="/finance-advisor" element={<Navigate to="/abos-intelligence" replace />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
         <Route path="/registry-comparator" element={<RegistryComparator />} />
         <Route path="/calculators" element={<CalculatorsHub />} />

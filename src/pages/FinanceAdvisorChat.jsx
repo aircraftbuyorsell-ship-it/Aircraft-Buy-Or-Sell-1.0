@@ -5,7 +5,7 @@ import {
   AlertTriangle, CheckCircle2, Cpu, ChevronRight, User, Globe,
   BarChart2, Scale, FileText, DollarSign, Users, Gauge,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import StructuredMarkdown from "@/components/intelligence/StructuredMarkdown";
 
 const SUGGESTED_PROMPTS = [
   { icon: Plane, text: "Analyze N123AB investment potential — 200 hrs/yr, rental use in CZ" },
@@ -100,9 +100,7 @@ function MessageBubble({ message }) {
             isUser ? (
               <p className="text-sm text-white/90 whitespace-pre-wrap">{message.content}</p>
             ) : (
-              <ReactMarkdown className="text-sm text-white/85 prose prose-sm prose-invert max-w-none [&_p]:mb-1.5 [&_ul]:mb-1.5 [&_li]:mb-0.5 [&_code]:text-[#f5c242] [&_code]:bg-white/5 [&_code]:px-1 [&_code]:rounded">
-                {message.content}
-              </ReactMarkdown>
+              <StructuredMarkdown content={message.content} />
             )
           )}
         </div>

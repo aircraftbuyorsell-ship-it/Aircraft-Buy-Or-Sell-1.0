@@ -151,14 +151,18 @@
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-text-size-adjust: 100%;
-    background: #fbfaf7;
+    background-color: #fbfaf7;
+    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
+    background-size: 24px 24px;
     min-height: 100dvh;
     color: #1a1a1a;
   }
 
   /* ── DARK body ── */
   .dark body {
-    background: #0B1220;
+    background-color: #0B1220;
+    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
+    background-size: 24px 24px;
     color: #e2e8f0;
   }
 

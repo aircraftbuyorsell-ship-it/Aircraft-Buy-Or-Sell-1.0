@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin } from "lucide-react";
-import SiteFooter from "@/components/SiteFooter";
+import HomepageFooter from "@/components/homepage/HomepageFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
@@ -311,7 +311,7 @@ export default function Layout() {
           <Outlet />
       </main>
 
-      <SiteFooter />
+      <HomepageFooter />
       <ABOSTour />
     </div>);
 

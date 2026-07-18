@@ -16,7 +16,6 @@ import GovernanceLayerSection from "@/components/homepage/GovernanceLayerSection
 import ProfessionalServicesSection from "@/components/homepage/ProfessionalServicesSection";
 import WhyTrustABOS from "@/components/homepage/WhyTrustABOS";
 import FinalCTASection from "@/components/homepage/FinalCTASection";
-import HomepageFooter from "@/components/homepage/HomepageFooter";
 import { useHeroAircraft } from "@/hooks/useHeroAircraft";
 
 export default function HomePage() {
@@ -45,7 +44,6 @@ export default function HomePage() {
       <ProfessionalServicesSection />
       <WhyTrustABOS />
       <FinalCTASection />
-      <HomepageFooter />
     </main>
   );
 }

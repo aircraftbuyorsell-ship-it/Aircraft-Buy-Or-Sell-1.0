@@ -5,14 +5,53 @@ import { getAircraftStatusLabel } from "@/hooks/useHeroAircraft";
 /* ────────────────────────────────────────────
    LAND MASK (bounding-box fallback — consumed by the texture generator)
 ──────────────────────────────────────────── */
+// Granular sub-region boxes — approximates real coastlines closely enough
+// for a dot texture, without dotting the open Pacific/Atlantic as fake land.
+const LAND_BOXES = [
+  // North America
+  [55, 71, -168, -141], // Alaska
+  [49, 70, -130, -95],  // Canada W
+  [49, 60, -95, -67],   // Canada E
+  [25, 49, -125, -67],  // CONUS
+  [14, 32, -118, -86],  // Mexico
+  [8, 18, -92, -77],    // Central America
+  [60, 83, -55, -20],   // Greenland
+  [18, 23, -85, -65],   // Caribbean
+
+  // South America
+  [-5, 12, -82, -50],   // Northern bulk
+  [-35, -5, -75, -53],  // Central
+  [-56, -35, -76, -66], // Southern tail
+
+  // Europe
+  [36, 60, -10, 40],    // Mainland
+  [55, 71, 4, 31],      // Scandinavia
+  [50, 59, -11, 2],     // UK & Ireland
+
+  // Africa
+  [-35, 37, -18, 52],   // Continent
+
+  // Middle East / Arabia
+  [12, 30, 34, 60],
+
+  // Asia (sub-regions to avoid dotting open ocean)
+  [55, 75, 30, 180],    // Russia / Siberia
+  [35, 55, 60, 135],    // Central & East Asia
+  [8, 35, 68, 92],      // Indian subcontinent
+  [8, 35, 92, 110],     // SE Asia mainland
+  [31, 46, 125, 146],   // Korea / Japan
+  [-11, 8, 95, 141],    // Indonesia / Malay archipelago
+
+  // Oceania
+  [-44, -10, 113, 154], // Australia
+  [-47, -34, 166, 178], // New Zealand
+];
+
 function isApproximateLand(lat, lon) {
-  const northAmerica = lat > 10 && lat < 72 && lon > -170 && lon < -50;
-  const southAmerica = lat > -58 && lat < 15 && lon > -82 && lon < -34;
-  const europe = lat > 34 && lat < 72 && lon > -12 && lon < 45;
-  const africa = lat > -36 && lat < 38 && lon > -20 && lon < 52;
-  const asia = lat > 5 && lat < 75 && lon > 35 && lon < 180;
-  const australia = lat > -47 && lat < -10 && lon > 110 && lon < 155;
-  return northAmerica || southAmerica || europe || africa || asia || australia;
+  for (const [latMin, latMax, lonMin, lonMax] of LAND_BOXES) {
+    if (lat >= latMin && lat < latMax && lon >= lonMin && lon < lonMax) return true;
+  }
+  return false;
 }
 
 /* ────────────────────────────────────────────

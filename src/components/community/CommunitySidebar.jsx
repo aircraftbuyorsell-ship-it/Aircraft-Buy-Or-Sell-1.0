@@ -1,9 +1,10 @@
-import { Plane, Sparkles, Users, Megaphone, Facebook, ArrowRight } from "lucide-react";
+import { Plane, Sparkles, Users, Megaphone, Facebook, Instagram, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { C } from "@/theme/community";
 
 const GROWTH_TOOLS = [
   { path: "/facebook-publish", label: "Facebook Publisher", desc: "Post aircraft listings to your pages", icon: Facebook },
+  { path: "/instagram-publish", label: "Instagram Publisher", desc: "Share ATI transparency scores on your feed", icon: Instagram },
   { path: "/meta-ads-optimizer", label: "Meta Ads Optimizer", desc: "Auto-adjust budgets by lead conversions", icon: Megaphone },
 ];
 

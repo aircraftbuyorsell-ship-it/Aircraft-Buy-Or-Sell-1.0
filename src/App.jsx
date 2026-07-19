@@ -101,6 +101,7 @@ import DhlApiHub from "./pages/DhlApiHub";
 import DocusignAgreements from "./pages/DocusignAgreements";
 import FacebookPublish from "./pages/FacebookPublish";
 import MetaAdsOptimizer from "./pages/MetaAdsOptimizer";
+import InstagramPublish from "./pages/InstagramPublish";
 import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
@@ -223,6 +224,7 @@ const AuthenticatedApp = () => {
         <Route path="/docusign" element={<DocusignAgreements />} />
         <Route path="/facebook-publish" element={<FacebookPublish />} />
         <Route path="/meta-ads-optimizer" element={<MetaAdsOptimizer />} />
+        <Route path="/instagram-publish" element={<InstagramPublish />} />
       </Route>
       <Route path="/HomePage" element={<Navigate to="/" replace />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />

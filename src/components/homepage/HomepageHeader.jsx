@@ -51,7 +51,7 @@ export default function HomepageHeader() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 safe-left safe-right">
         <div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
-          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] bg-[hsl(var(--foreground))]">
+          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] bg-[hsl(var(--background))]">
             <div className="flex items-center shrink-0">
               <div className="lg:hidden">
                 <SidebarLogo compact />

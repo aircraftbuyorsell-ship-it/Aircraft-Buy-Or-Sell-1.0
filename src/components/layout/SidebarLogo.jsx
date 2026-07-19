@@ -14,11 +14,11 @@ export default function SidebarLogo({ compact = false }) {
           <polyline points="18,30 22,18 26,24 32,8" fill="none" stroke="#f5c242" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           <polygon points="31,7 35,10 31,13" fill="#f5c242" />
         </svg>
-        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }} className="text-gray-900">
+        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }}>
           ABOS<span style={{ fontSize: 8, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
-      </Link>);
-
+      </Link>
+    );
   }
 
   return (
@@ -46,7 +46,7 @@ export default function SidebarLogo({ compact = false }) {
           fontWeight: 900,
           color: "#fff",
           letterSpacing: "-0.03em",
-          fontFamily: "Inter, -apple-system, sans-serif"
+          fontFamily: "Inter, -apple-system, sans-serif",
         }}>
           ABOS<span style={{ fontSize: 10, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
@@ -56,11 +56,11 @@ export default function SidebarLogo({ compact = false }) {
           textTransform: "uppercase",
           color: "rgba(212,160,23,0.70)",
           fontWeight: 700,
-          marginTop: 3
+          marginTop: 3,
         }}>
           {currentSection}{currentSection === "Marketspace" && <span style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>™</span>}
         </span>
       </div>
-    </Link>);
-
+    </Link>
+  );
 }

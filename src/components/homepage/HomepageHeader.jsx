@@ -23,7 +23,7 @@ export default function HomepageHeader() {
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
     queryFn: () => base44.auth.me(),
-    retry: false,
+    retry: false
   });
 
   useEffect(() => {
@@ -35,23 +35,23 @@ export default function HomepageHeader() {
 
   // n8n-style floating pill navbar — uses glass-navbar for automatic light/dark
   const pillStyle = {
-    background: isDark
-      ? (scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)")
-      : "hsl(var(--card))",
+    background: isDark ?
+    scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)" :
+    "hsl(var(--card))",
     backdropFilter: isDark ? "blur(20px)" : "none",
     WebkitBackdropFilter: isDark ? "blur(20px)" : "none",
-    border: scrolled
-      ? "1px solid hsl(var(--primary) / 0.25)"
-      : "1px solid hsl(var(--border))",
+    border: scrolled ?
+    "1px solid hsl(var(--primary) / 0.25)" :
+    "1px solid hsl(var(--border))",
     borderRadius: 18,
-    boxShadow: "0 8px 32px hsl(var(--foreground) / 0.10)",
+    boxShadow: "0 8px 32px hsl(var(--foreground) / 0.10)"
   };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 safe-left safe-right">
         <div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
-          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px]">
+          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] bg-[hsl(var(--background))]">
             <div className="flex items-center shrink-0">
               <div className="lg:hidden">
                 <SidebarLogo compact />
@@ -69,21 +69,21 @@ export default function HomepageHeader() {
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <UniversalSearchBar compact />
               <ThemeToggle />
-              {currentUser ? (
-                <AccountMenu user={currentUser} />
-              ) : (
-                <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    background: "#f5c242", color: "#04060a", border: "none",
-                    borderRadius: 10, padding: "8px 16px", fontSize: 12, fontWeight: 700,
-                    cursor: "pointer", minHeight: 36,
-                  }}
-                >
+              {currentUser ?
+              <AccountMenu user={currentUser} /> :
+
+              <button
+                onClick={() => base44.auth.redirectToLogin()}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  background: "#f5c242", color: "#04060a", border: "none",
+                  borderRadius: 10, padding: "8px 16px", fontSize: 12, fontWeight: 700,
+                  cursor: "pointer", minHeight: 36
+                }}>
+                
                   <LogIn size={14} /> <span>Get Started</span>
                 </button>
-              )}
+              }
             </div>
           </div>
 
@@ -93,6 +93,6 @@ export default function HomepageHeader() {
           </div>
         </div>
       </header>
-    </>
-  );
+    </>);
+
 }

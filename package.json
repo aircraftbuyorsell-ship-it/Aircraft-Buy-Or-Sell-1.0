@@ -11,7 +11,8 @@
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
     "branch-factory": "node scripts/branch-factory/cli.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "core-api:preflight": "node scripts/core-api/rc-preflight.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.39",

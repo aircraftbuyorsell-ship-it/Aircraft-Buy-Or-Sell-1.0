@@ -28,7 +28,7 @@ export default function PlatformHeader() {
             <span className="text-lg font-black tracking-tighter text-slate-900 pt-6">ABOS™
 
             </span>
-            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] my-1 py-2">AVIATION
+            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] my-1 pb-8">AVIATION
 MARKETSPACE
 INTELLIGENCE™</span>
           </div>

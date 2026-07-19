@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "lifecycle": ["QUEUED", "ASSIGNED", "IMPLEMENTING", "READY_FOR_TEST", "TESTING", "READY_FOR_VALIDATION", "VALIDATING", "PASSED", "READY_FOR_MERGE", "COMPLETED", "TEST_FAILED", "VALIDATION_FAILED", "BLOCKED", "CANCELLED"],
   "current_state": "QUEUED",
-  "current_branch": "work",
+  "current_branch": "abos-factory/v1",
   "authoritative_goal_tracker": "factory/state.json",
   "milestone_reference": "src/lib/milestones.js",
   "last_inspection_report": ".branch-factory/reports/repository-inspection.json",

@@ -1,0 +1,11 @@
+{
+  "$schema": "./schemas/sprint.schema.json",
+  "id": "SPRINT-0",
+  "name": "Local Branch Factory Bootstrap",
+  "objective": "Implement the minimum local Branch Factory foundation for future ABOS implementation sprints.",
+  "architectural_context": "ABOS Platform Bootstrap v1.0",
+  "status": "IMPLEMENTING",
+  "authoritative_goal_tracker": "factory/state.json",
+  "prepared_next_sprint": "SPRINT-1",
+  "task_queue": ["SPRINT1-TASK-001", "SPRINT1-TASK-002", "SPRINT1-TASK-003", "SPRINT1-TASK-004"]
+}

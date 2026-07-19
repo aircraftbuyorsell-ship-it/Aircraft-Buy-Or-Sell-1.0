@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ABOS Branch Factory Agent",
+  "type": "object",
+  "required": ["id", "role", "may_implement", "may_test", "may_validate", "responsibilities"],
+  "properties": {
+    "id": { "type": "string" },
+    "role": { "type": "string" },
+    "may_implement": { "type": "boolean" },
+    "may_test": { "type": "boolean" },
+    "may_validate": { "type": "boolean" },
+    "responsibilities": { "type": "array", "items": { "type": "string" } }
+  }
+}

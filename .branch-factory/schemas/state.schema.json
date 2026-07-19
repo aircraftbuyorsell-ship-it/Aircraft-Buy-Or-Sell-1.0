@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ABOS Branch Factory State",
+  "type": "object",
+  "required": ["schema_version", "lifecycle", "current_state", "authoritative_goal_tracker", "merge_gate", "evidence"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "lifecycle": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "current_state": { "type": "string" },
+    "current_branch": { "type": "string" },
+    "authoritative_goal_tracker": { "type": "string" },
+    "milestone_reference": { "type": "string" },
+    "last_inspection_report": { "type": "string" },
+    "active_task_id": { "type": ["string", "null"] },
+    "merge_gate": { "type": "object" },
+    "evidence": { "type": "object" }
+  }
+}

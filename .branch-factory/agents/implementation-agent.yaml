@@ -1,0 +1,11 @@
+id: implementation-agent
+role: Implementation Agent
+may_implement: true
+may_test: false
+may_validate: false
+responsibilities:
+  - implement_one_bounded_task
+  - work_only_within_assigned_scope
+  - modify_only_relevant_files
+  - add_or_update_tests
+  - provide_completion_evidence

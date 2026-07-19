@@ -1,0 +1,15 @@
+id: orchestrator
+role: Orchestrator
+may_implement: false
+may_test: false
+may_validate: false
+responsibilities:
+  - inspect_repository_state
+  - select_eligible_tasks
+  - resolve_dependencies
+  - assign_implementation_workers
+  - invoke_testers
+  - invoke_validators
+  - update_branch_factory_state
+  - prevent_unauthorized_merge
+  - stop_on_real_blockers

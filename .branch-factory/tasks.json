@@ -1,0 +1,65 @@
+{
+  "$schema": "./schemas/task.schema.json",
+  "tasks": [
+    {
+      "id": "SPRINT1-TASK-001",
+      "sprint": "SPRINT-1",
+      "capability": "Source inventory baseline",
+      "status": "QUEUED",
+      "goal_refs": ["factory/state.json#/active_gates/source_inventory"],
+      "source_files": ["base44/functions", "base44/entities", "base44/connectors", "base44/agents"],
+      "target_architecture": "Repository evidence inventory for ABOS Platform Bootstrap v1.0 migration planning.",
+      "allowed_files": [".branch-factory/reports/**", "factory/state.json"],
+      "forbidden_changes": ["src/**", "base44/**", "production infrastructure"],
+      "acceptance_criteria": ["Inventory report is generated from repository files", "factory/state.json references task completion evidence when complete"],
+      "test_commands": ["npm run branch-factory -- validate"],
+      "rollback": "Revert generated report and factory/state.json evidence update.",
+      "dependencies": []
+    },
+    {
+      "id": "SPRINT1-TASK-002",
+      "sprint": "SPRINT-1",
+      "capability": "Security inventory baseline",
+      "status": "QUEUED",
+      "goal_refs": ["factory/state.json#/active_gates/security_inventory"],
+      "source_files": ["src", "base44/functions", "base44/connectors"],
+      "target_architecture": "Local evidence report for secret and unsafe data-flow review.",
+      "allowed_files": [".branch-factory/reports/**", "factory/state.json"],
+      "forbidden_changes": ["secret values", "production infrastructure"],
+      "acceptance_criteria": ["Secret-pattern scan command and results are recorded", "No secret value is copied into reports"],
+      "test_commands": ["npm run branch-factory -- validate"],
+      "rollback": "Revert generated report and factory/state.json evidence update.",
+      "dependencies": []
+    },
+    {
+      "id": "SPRINT1-TASK-003",
+      "sprint": "SPRINT-1",
+      "capability": "Contract baseline reconciliation",
+      "status": "QUEUED",
+      "goal_refs": ["factory/state.json#/active_gates/contract_baseline"],
+      "source_files": ["base44/functions/abosOpenApiSpec/entry.ts", "base44/functions/abosCoreApi/entry.ts"],
+      "target_architecture": "OpenAPI-first contract baseline without publishing SDKs or changing runtime behavior.",
+      "allowed_files": [".branch-factory/reports/**", "openapi/**", "factory/state.json"],
+      "forbidden_changes": ["public runtime deployment", "SDK publication", "silent contract changes"],
+      "acceptance_criteria": ["Existing OpenAPI source is identified", "Reconciliation blockers are recorded with file evidence"],
+      "test_commands": ["npm run branch-factory -- validate", "npm run build"],
+      "rollback": "Revert generated contract baseline files and tracking updates.",
+      "dependencies": ["SPRINT1-TASK-001"]
+    },
+    {
+      "id": "SPRINT1-TASK-004",
+      "sprint": "SPRINT-1",
+      "capability": "Quality baseline preservation",
+      "status": "QUEUED",
+      "goal_refs": ["factory/state.json#/active_gates/quality_baseline"],
+      "source_files": ["package.json", "eslint.config.js", "jsconfig.json"],
+      "target_architecture": "Baseline quality gates with existing failures distinguished from regressions.",
+      "allowed_files": [".branch-factory/reports/**", "factory/state.json"],
+      "forbidden_changes": ["hiding lint/typecheck failures", "application feature rewrites"],
+      "acceptance_criteria": ["Build, lint, and typecheck results are recorded separately", "Known baseline failures are not reported as fixed without evidence"],
+      "test_commands": ["npm run build", "npm run lint", "npm run typecheck"],
+      "rollback": "Revert generated quality report and tracking updates.",
+      "dependencies": []
+    }
+  ]
+}

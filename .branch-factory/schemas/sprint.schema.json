@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ABOS Branch Factory Sprint",
+  "type": "object",
+  "required": ["id", "name", "objective", "architectural_context", "status", "authoritative_goal_tracker", "task_queue"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "objective": { "type": "string" },
+    "architectural_context": { "const": "ABOS Platform Bootstrap v1.0" },
+    "status": { "type": "string" },
+    "authoritative_goal_tracker": { "type": "string" },
+    "prepared_next_sprint": { "type": "string" },
+    "task_queue": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+  }
+}

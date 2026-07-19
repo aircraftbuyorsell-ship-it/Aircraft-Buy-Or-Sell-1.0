@@ -28,7 +28,7 @@ export default function PlatformHeader() {
             <span className="text-lg font-black tracking-tighter text-slate-900 [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">ABOS™
 
             </span>
-            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] pb-2 text-left [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif]">AVIATION MARKETSPACE INTELLIGENCE™
+            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] pb-2 text-left [font-family:'-apple-system',_BlinkMacSystemFont,_SF_Pro_Display,_SF_Pro_Text,_Inter,_system-ui,_sans-serif] underline">AVIATION MARKETSPACE INTELLIGENCE™
 
             </span>
           </div>

@@ -28,9 +28,9 @@ export default function PlatformHeader() {
             <span className="text-lg font-black tracking-tighter text-slate-900">
               ABOS<span className="ml-0.5 text-[8px] font-semibold align-super text-slate-400">™</span>
             </span>
-            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] my-2">AVIATION
-MARKETSPACE
-INTELLIGENCE™</span>
+            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] pb-2">AVIATION MARKETSPACE INTELLIGENCE™
+
+            </span>
           </div>
         </Link>
 

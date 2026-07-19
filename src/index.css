@@ -26,7 +26,7 @@
     --navbar-border: rgba(0, 0, 0, 0.08);
 
     /* Official Infrastructure tokens */
-    --grid-color: rgba(0, 0, 0, 0.12);
+    --grid-color: rgba(0, 0, 0, 0.10);
     --bg-canvas: #fbfaf7;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.08);
@@ -93,7 +93,7 @@
     --navbar-border: rgba(0, 245, 255, 0.12);
 
     /* Official Infrastructure tokens */
-    --grid-color: rgba(255, 255, 255, 0.08);
+    --grid-color: rgba(255, 255, 255, 0.03);
     --bg-canvas: #0B1220;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.12);
@@ -151,18 +151,14 @@
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-text-size-adjust: 100%;
-    background-color: #fbfaf7;
-    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background: #fbfaf7;
     min-height: 100dvh;
     color: #1a1a1a;
   }
 
   /* ── DARK body ── */
   .dark body {
-    background-color: #0B1220;
-    background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background: #0B1220;
     color: #e2e8f0;
   }
 
@@ -392,6 +388,26 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border: 1px solid rgba(59,130,246,0.2);
 }
 
+/* ── Light mode: remove glass morphism (no backdrop blur, opaque bg) ── */
+:root:not(.dark) .glass,
+:root:not(.dark) .glass-heavy,
+:root:not(.dark) .glass-subtle,
+:root:not(.dark) .glass-dark,
+:root:not(.dark) .glass-navbar,
+:root:not(.dark) .glass-card,
+:root:not(.dark) .glass-pill,
+:root:not(.dark) .glass-pill-tinted {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root:not(.dark) .glass { background: #ffffff !important; }
+:root:not(.dark) .glass-heavy { background: #ffffff !important; }
+:root:not(.dark) .glass-subtle { background: #ffffff !important; }
+:root:not(.dark) .glass-dark { background: #f5f5f0 !important; }
+:root:not(.dark) .glass-navbar { background: rgba(251,250,247,0.98) !important; }
+:root:not(.dark) .glass-card { background: #ffffff !important; }
+:root:not(.dark) .glass-pill { background: #ffffff !important; }
+
 /* ═══════════════════════════════════════════
    DOT GRID — official infrastructure background
 ═══════════════════════════════════════════ */
@@ -420,97 +436,6 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   color: transparent;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   filter: drop-shadow(0 0 0.5px rgba(255,255,255,0.15)) drop-shadow(0 0 4px rgba(212,160,23,0.18));
-}
-
-/* ═══════════════════════════════════════════
-   HOMEPAGE DOT-GRID TRANSITION SYSTEM
-═══════════════════════════════════════════ */
-.homepage-grid-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle at center, var(--grid-dot-color, rgba(0,0,0,0.06)) 1px, transparent 1.4px);
-  background-size: 24px 24px;
-  opacity: var(--grid-opacity, 1);
-  mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-}
-
-.intelligence-transition {
-  --grid-dot-color: rgba(160,169,184,0.34);
-  --grid-opacity: 1;
-  --section-gradient: linear-gradient(180deg, #fbfaf7 0%, #f1ede3 24%, #c7ccd2 48%, #394453 72%, #0b111a 100%);
-  background: var(--section-gradient);
-}
-
-.light-return-transition {
-  --grid-dot-color: rgba(142,150,161,0.28);
-  --grid-opacity: 1;
-  --section-gradient: linear-gradient(180deg, #0b111a 0%, #25303d 26%, #929aa3 52%, #e8e5dc 76%, #fbfaf7 100%);
-  background: var(--section-gradient);
-}
-
-@keyframes gridNodePulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.6); }
-}
-.grid-signal-node {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  animation: gridNodePulse 3.2s ease-in-out infinite;
-}
-
-@media (max-width: 640px) {
-  .homepage-grid-layer { background-size: 32px 32px; }
-  .grid-signal-node.node-desktop-only { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .grid-signal-node { animation: none; opacity: 0.5; transform: none; }
-}
-
-/* ═══════════════════════════════════════════
-   HOMEPAGE DOT-GRID TRANSITION LAYER
-═══════════════════════════════════════════ */
-.homepage-grid-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    radial-gradient(circle at center, var(--grid-dot-color, rgba(0,0,0,0.06)) 1px, transparent 1.4px),
-    var(--section-gradient, linear-gradient(#fbfaf7, #fbfaf7));
-  background-size: 24px 24px, 100% 100%;
-  opacity: var(--grid-opacity, 1);
-  mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-}
-@media (max-width: 640px) {
-  .homepage-grid-layer { background-size: 32px 32px, 100% 100%; }
-}
-
-.intelligence-transition {
-  --grid-dot-color: rgba(160, 169, 184, 0.34);
-  --grid-opacity: 0.8;
-  --section-gradient: linear-gradient(180deg, #fbfaf7 0%, #f1ede3 24%, #c7ccd2 48%, #394453 72%, #0b111a 100%);
-  background: linear-gradient(180deg, #fbfaf7 0%, #f1ede3 24%, #c7ccd2 48%, #394453 72%, #0b111a 100%);
-}
-
-.light-return-transition {
-  --grid-dot-color: rgba(142, 150, 161, 0.28);
-  --grid-opacity: 0.7;
-  --section-gradient: linear-gradient(180deg, #0b111a 0%, #25303d 26%, #929aa3 52%, #e8e5dc 76%, #fbfaf7 100%);
-  background: linear-gradient(180deg, #0b111a 0%, #25303d 26%, #929aa3 52%, #e8e5dc 76%, #fbfaf7 100%);
-}
-
-@keyframes hp-node-pulse {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.5); }
-}
-.hp-node { animation: hp-node-pulse 2.6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .hp-node { animation: none; opacity: 0.6; }
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

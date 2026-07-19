@@ -13,7 +13,9 @@ const STATS = [
 export default function HomeHeroSection() {
   const isDark = useTheme();
 
-  const mobileOverlay = "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
+  const mobileOverlay = isDark
+    ? "linear-gradient(180deg, rgba(4,6,10,0.35) 0%, rgba(4,6,10,0.55) 50%, rgba(4,6,10,0.85) 100%)"
+    : "linear-gradient(180deg, rgba(251,250,247,0.2) 0%, rgba(251,250,247,0.45) 50%, rgba(251,250,247,0.75) 100%)";
 
   const dotPattern = isDark
     ? "radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)"
@@ -31,47 +33,44 @@ export default function HomeHeroSection() {
   const scrollClass = isDark ? "text-white/35" : "text-muted-foreground/50";
 
   return (
-    <section className="relative w-full min-h-[560px] h-auto pt-24 pb-14 sm:pt-20 sm:pb-0 sm:h-[min(80vh,720px)] lg:h-[max(80vh,680px)] overflow-hidden">
+    <section className="relative w-full min-h-[640px] h-auto py-14 sm:py-0 sm:h-[900px] lg:h-[max(100vh,780px)] overflow-visible">
       <HeroGlobe />
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% 20%, rgba(245,194,66,0.12) 0%, transparent 70%)" }} />
       <div className="pointer-events-none absolute inset-0 lg:hidden" style={{ background: mobileOverlay }} />
-      <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[58%] lg:block" style={{ background: isDark ? "linear-gradient(90deg, rgba(4,6,10,0.82) 0%, rgba(4,6,10,0.5) 55%, transparent 100%)" : "linear-gradient(90deg, rgba(251,250,247,0.92) 0%, rgba(251,250,247,0.72) 55%, transparent 100%)" }} />
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: dotPattern, backgroundSize: "24px 24px" }} />
 
       <div className="relative z-10 flex h-full flex-col justify-center px-4 sm:px-8">
         <div className="mx-auto w-full max-w-[1240px]">
-          <div className="flex w-full max-w-[680px] flex-col items-start text-left px-3">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 sm:mb-5">
+          <div className="flex w-full max-w-[680px] flex-col items-start text-left pt-24 sm:pt-28 px-3">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 sm:mb-6">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS™ · Global aircraft identity &amp; sales network</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">ABOS™ Platform</span>
             </div>
 
-            <h1 className={`mb-4 tracking-[-0.03em] leading-[1.04] sm:mb-5 ${h1Class}`} style={{ fontSize: "clamp(30px, 7vw, 58px)", fontWeight: 500 }}>
+            <h1 className={`mb-4 tracking-[-0.03em] leading-[1.04] sm:mb-6 ${h1Class}`} style={{ fontSize: "clamp(30px, 8vw, 62px)", fontWeight: 500 }}>
               The Aviation<br /><span className="font-bold text-primary">Intelligence</span> Platform
             </h1>
 
-            <p className={`mb-6 max-w-[480px] text-[15px] leading-relaxed sm:mb-7 sm:text-[17px] ${pClass}`}>
+            <div className="mb-5 flex w-full flex-col gap-2.5 sm:mb-7 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+              <Link to="/listings" className="rounded-xl bg-primary px-6 py-3 text-center text-[13px] font-bold text-primary-foreground hover:opacity-90">Browse Aircraft</Link>
+              <Link to="/ati-center" className={`rounded-xl border px-6 py-3 text-center text-[13px] font-bold transition-colors ${btnSecondaryClass}`}>Explore ABOS Intelligence</Link>
+            </div>
+
+            <p className={`mb-5 max-w-[480px] text-[14px] leading-relaxed sm:mb-8 sm:text-[16px] ${pClass}`}>
               Search. Analyze. Negotiate. Buy. Sell. — verified aircraft identity, AI valuations and end-to-end deal tools in one platform.
             </p>
 
-            <div className="mb-4 w-full max-w-[560px] sm:mb-6">
+            <div className="mb-6 w-full max-w-[560px] sm:mb-10">
               <SmartAircraftSearch variant="hero" />
             </div>
 
-            <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-2 sm:mb-10">
-              <Link to="/listings" className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-[13px] font-bold text-primary-foreground hover:opacity-90">Browse Aircraft</Link>
-              <Link to="/ati-center" className={`inline-flex items-center text-[13px] font-semibold underline-offset-4 hover:underline ${isDark ? "text-white/70 hover:text-white" : "text-foreground/70 hover:text-foreground"}`}>Explore ABOS Intelligence →</Link>
-            </div>
-
             <div className="w-full">
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-                {STATS.map((stat, i) => (
-                  <div key={stat.label} className="flex items-center gap-5">
-                    {i > 0 && <span className={`hidden h-6 w-px sm:block ${isDark ? "bg-white/10" : "bg-black/10"}`} />}
-                    <div className="flex flex-col">
-                      <span className="text-[18px] font-black tabular-nums leading-none text-primary sm:text-[22px]">{stat.value}</span>
-                      <span className={`mt-1 text-[9px] font-semibold uppercase leading-none tracking-[0.14em] ${statsLabelClass}`}>{stat.label}</span>
-                    </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="hidden whitespace-nowrap rounded-full border border-primary/20 bg-primary/5 px-3.5 py-2 text-[10px] font-bold uppercase leading-snug tracking-[0.14em] text-primary/70 sm:inline-block">The global aircraft identity &amp; sales network</span>
+                {STATS.map((stat) => (
+                  <div key={stat.label} className={`flex items-baseline gap-1.5 rounded-full border px-3 py-1.5 sm:px-3.5 sm:py-2 ${statsPillClass}`}>
+                    <span className="text-[15px] font-black tabular-nums leading-none text-primary sm:text-[18px]">{stat.value}</span>
+                    <span className={`text-[8px] font-semibold uppercase leading-none tracking-[0.12em] ${statsLabelClass}`}>{stat.label}</span>
                   </div>
                 ))}
               </div>

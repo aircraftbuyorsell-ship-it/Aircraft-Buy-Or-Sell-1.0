@@ -1,269 +1,255 @@
-import { useEffect, useRef } from "react";
+import { useRef, useEffect } from "react";
 import * as THREE from "three";
-import { OrbitControls as OrbitControlsImpl } from "three/examples/jsm/controls/OrbitControls.js";
-import { MODE_CONFIG, DEFAULT_ROUTES } from "./globe/globeConfig";
-import { latLngToVec3, fibonacciSphere, vec3ToLatLng, fbm } from "./globe/globeUtils";
-import { globeVertexShader, globeFragmentShader } from "./globe/GlobeShader";
-import { getAircraftStatusLabel } from "@/hooks/useHeroAircraft";
+import { useTheme } from "@/lib/useTheme";
 
-/**
- * HeroGlobe — pure imperative three.js implementation.
- *
- * R3F v8.18's reconciler (applyProps) crashes against three 0.185 with
- * "Cannot read properties of undefined (reading 'source')". To eliminate the
- * reconciler entirely, the scene is built and driven imperatively inside a
- * single useEffect — no <Canvas>, no applyProps, no createInstance.
- *
- * Props:
- *  - mode:           "hero" | "dashboard" | "sidebar" | "background"
- *  - interactive:    enable/disable OrbitControls
- *  - routes:         [{ startLat, startLng, endLat, endLng, altitude?, color? }]
- *  - activeAircraft: optional aircraft record → pulsing signal + HTML label
- */
-const SIGNAL_LAT = 40.7128;
-const SIGNAL_LNG = -74.006;
-const TRAIL = [0, 0.02, 0.045];
+const CITY_PAIRS = [
+  [[40.7, -74.0], [51.5, -0.1]],
+  [[34.0, -118.2], [35.7, 139.7]],
+  [[25.3, 55.3], [1.4, 103.8]],
+  [[48.9, 2.4], [50.1, 8.7]],
+  [[22.3, 114.2], [-33.9, 151.2]],
+  [[41.9, -87.6], [25.8, -80.2]],
+  [[41.0, 28.9], [19.1, 72.9]],
+  [[-23.5, -46.6], [-26.2, 28.0]],
+  [[47.6, -122.3], [61.2, -149.9]],
+  [[46.2, 6.1], [47.4, 8.5]],
+];
 
-// Land-dot geometry (non-hook version of useGlobeGeometry).
-function buildDotGeometry(count, radius) {
-  const pts = fibonacciSphere(count);
-  const pos = [], col = [], siz = [], lnd = [];
-  const SILVER = new THREE.Color("#AEB3BC");
-  const SILVER_BRIGHT = new THREE.Color("#E6E9EF");
-  const PLATINUM = new THREE.Color("#C9CDD2");
-  const tmp = new THREE.Color();
-  const hash01 = (i) => {
-    const s = Math.sin(i * 91.345 + 17.1) * 43758.5453;
-    return s - Math.floor(s);
-  };
-
-  for (let i = 0; i < count; i++) {
-    const [x, y, z] = pts[i];
-    const { lat, lng } = vec3ToLatLng(x, y, z);
-    const n = fbm(lng * 0.035 + 13.2, lat * 0.06 + 4.7, 4);
-    const latBias = 1 - Math.pow(Math.abs(lat) / 90, 1.5) * 0.35;
-    if (n * latBias <= 0.48) continue; // ocean → no dot
-    const v = hash01(i);
-    tmp.copy(SILVER).lerp(SILVER_BRIGHT, v * 0.6).lerp(PLATINUM, v * 0.25);
-    pos.push(x, y, z);
-    col.push(tmp.r, tmp.g, tmp.b);
-    siz.push(0.9 + v * 0.7);
-    lnd.push(1);
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(pos), 3));
-  geo.setAttribute("aColor", new THREE.BufferAttribute(new Float32Array(col), 3));
-  geo.setAttribute("aSize", new THREE.BufferAttribute(new Float32Array(siz), 1));
-  geo.setAttribute("aLand", new THREE.BufferAttribute(new Float32Array(lnd), 1));
-  return geo;
+function latLonToVec3(lat, lon, r) {
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta)
+  );
 }
 
-export default function HeroGlobe({
-  mode = "hero",
-  interactive = true,
-  routes,
-  activeAircraft,
-  signalLabel,
-}) {
-  const cfg = MODE_CONFIG[mode] || MODE_CONFIG.hero;
-  const effectiveRoutes = routes && routes.length ? routes : DEFAULT_ROUTES;
-  const mountRef = useRef(null);
+export default function HeroGlobe() {
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const isDark = useTheme();
 
   useEffect(() => {
-    const mount = mountRef.current;
-    if (!mount) return;
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
 
-    const width = mount.clientWidth || 1;
-    const height = mount.clientHeight || 1;
+    const W = container.clientWidth || window.innerWidth;
+    const H = container.clientHeight || window.innerHeight;
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 0);
-    mount.appendChild(renderer.domElement);
+    renderer.setSize(W, H, false);
 
-    // Scene + camera
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 0, cfg.cameraDist);
+    const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+    camera.position.set(0, 0.3, 6.2);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const pLight = new THREE.PointLight(0xffffff, 1.2);
-    pLight.position.set(3, 2, 4);
-    scene.add(pLight);
+    const globe = new THREE.Group();
+    scene.add(globe);
 
-    // Dot field
-    const dotGeo = buildDotGeometry(cfg.count, cfg.radius);
-    const uniforms = {
-      uTime: { value: 0 },
-      uSize: { value: cfg.dotScale },
-      uRadius: { value: cfg.radius },
-    };
-    const dotMat = new THREE.ShaderMaterial({
-      vertexShader: globeVertexShader,
-      fragmentShader: globeFragmentShader,
-      uniforms,
-      transparent: true,
-      depthWrite: false,
+    const SPHERE_R = 1.8;
+    const GOLD = 0xf5c242;
+
+    // ── Sphere ── light: matte aluminum; dark: deep space
+    const sphereMat = new THREE.MeshPhongMaterial({
+      color: isDark ? 0x0A0E14 : 0x2a2a35,
+      emissive: isDark ? 0x05080c : 0x0d0d12,
+      shininess: isDark ? 4 : 28,
+      specular: isDark ? 0x0a0f1a : 0xb0b0b0,
     });
-    const dots = new THREE.Points(dotGeo, dotMat);
-    scene.add(dots);
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
+    globe.add(sphere);
 
-    // Route arcs + animated pulse trails
-    const arcs = effectiveRoutes.map((r) => {
-      const start = new THREE.Vector3(...latLngToVec3(r.startLat, r.startLng, cfg.radius));
-      const end = new THREE.Vector3(...latLngToVec3(r.endLat, r.endLng, cfg.radius));
-      const alt = typeof r.altitude === "number" ? r.altitude : 0.22;
-      const ctrl = new THREE.Vector3()
-        .addVectors(start, end)
-        .multiplyScalar(0.5)
-        .normalize()
-        .multiplyScalar(cfg.radius * (1 + alt));
-      const curve = new THREE.QuadraticBezierCurve3(start, ctrl, end);
-      const geometry = new THREE.BufferGeometry().setFromPoints(curve.getPoints(64));
-      const color = new THREE.Color(r.color || "#e0a938");
-      const material = new THREE.LineBasicMaterial({
-        color,
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-      });
-      const line = new THREE.Line(geometry, material);
-      scene.add(line);
-      const pulseMeshes = TRAIL.map((_, j) => {
-        const m = new THREE.Mesh(
-          new THREE.SphereGeometry(0.014, 10, 10),
-          new THREE.MeshBasicMaterial({
-            color,
-            transparent: true,
-            opacity: j === 0 ? 0.95 : 0.5 / j,
-            depthWrite: false,
-          })
-        );
-        scene.add(m);
-        return m;
-      });
-      return { curve, line, pulseMeshes, color };
-    });
+    // ── Rivet texture ── circular dot with raised-head gradient
+    const rivetTexture = (() => {
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 32;
+      const ctx = cv.getContext("2d");
+      const g = ctx.createRadialGradient(16, 14, 0, 16, 16, 16);
+      if (isDark) {
+        // Classic gold rivet
+        g.addColorStop(0, "rgba(255,222,130,1)");
+        g.addColorStop(0.3, "rgba(212,160,23,0.85)");
+        g.addColorStop(0.7, "rgba(166,124,0,0.35)");
+        g.addColorStop(1, "rgba(166,124,0,0)");
+      } else {
+        // Brushed aluminum rivet — strong dark contrast on dark light-mode sphere
+        g.addColorStop(0, "rgba(245,200,66,1)");
+        g.addColorStop(0.3, "rgba(212,160,23,0.9)");
+        g.addColorStop(0.7, "rgba(166,124,0,0.4)");
+        g.addColorStop(1, "rgba(166,124,0,0)");
+      }
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(16, 16, 16, 0, Math.PI * 2);
+      ctx.fill();
+      const tex = new THREE.CanvasTexture(cv);
+      tex.flipY = false;
+      return tex;
+    })();
 
-    // Aircraft signal marker + HTML label
-    let signalCore = null, signalHalo = null, labelEl = null;
-    const [sx, sy, sz] = latLngToVec3(SIGNAL_LAT, SIGNAL_LNG, cfg.radius);
-    if (activeAircraft) {
-      signalCore = new THREE.Mesh(
-        new THREE.SphereGeometry(0.018, 16, 16),
-        new THREE.MeshBasicMaterial({ color: "#4adaa1", transparent: true, opacity: 0.95 })
-      );
-      signalCore.position.set(sx, sy, sz);
-      scene.add(signalCore);
+    // ── Rivet positions ── dots along parallels & meridians
+    const rivetPositions = [];
+    const rr = SPHERE_R + 0.006;
 
-      signalHalo = new THREE.Mesh(
-        new THREE.SphereGeometry(0.026, 16, 16),
-        new THREE.MeshBasicMaterial({ color: "#4adaa1", transparent: true, opacity: 0.22, depthWrite: false })
-      );
-      signalHalo.position.set(sx, sy, sz);
-      scene.add(signalHalo);
-
-      labelEl = document.createElement("div");
-      labelEl.className =
-        "pointer-events-none absolute z-10 flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200/80 bg-white/95 px-2.5 py-1 text-[10px] font-bold text-slate-800 shadow-xl backdrop-blur-sm";
-      labelEl.style.transform = "translate(-50%, -100%)";
-      labelEl.style.marginBottom = "8px";
-      labelEl.style.willChange = "left, top";
-      labelEl.textContent = signalLabel || `${activeAircraft.registration} · ${getAircraftStatusLabel(activeAircraft)}`;
-      mount.appendChild(labelEl);
+    // Parallels (latitude rings)
+    for (let lat = -75; lat <= 75; lat += 15) {
+      for (let lon = 0; lon < 360; lon += 5) {
+        const v = latLonToVec3(lat, lon, rr);
+        rivetPositions.push(v.x, v.y, v.z);
+      }
+    }
+    // Meridians (longitude lines)
+    for (let lon = 0; lon < 360; lon += 30) {
+      for (let lat = -78; lat <= 78; lat += 5) {
+        const v = latLonToVec3(lat, lon, rr);
+        rivetPositions.push(v.x, v.y, v.z);
+      }
     }
 
-    // Controls
-    const controls = new OrbitControlsImpl(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enableRotate = interactive;
-    controls.enableZoom = interactive && cfg.zoom;
-    controls.enablePan = false;
-    controls.autoRotate = cfg.autoRotate;
-    controls.autoRotateSpeed = 0.4;
-    controls.rotateSpeed = cfg.rotateSpeed;
-    controls.minDistance = 1.4;
-    controls.maxDistance = 5;
+    const rivetGeo = new THREE.BufferGeometry();
+    rivetGeo.setAttribute("position", new THREE.Float32BufferAttribute(rivetPositions, 3));
+    const rivets = new THREE.Points(rivetGeo, new THREE.PointsMaterial({
+      map: rivetTexture,
+      size: 0.038,
+      transparent: true,
+      alphaTest: 0.06,
+      depthWrite: false,
+      sizeAttenuation: true,
+      opacity: isDark ? 0.88 : 0.85,
+    }));
+    globe.add(rivets);
 
-    // Animation loop
-    const clock = new THREE.Clock();
-    const labelVec = new THREE.Vector3();
-    let raf = 0;
+    // ── Flight path arcs ──
+    const arcGroup = new THREE.Group();
+    globe.add(arcGroup);
 
-    const animate = () => {
-      raf = requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
-      uniforms.uTime.value = t;
-      controls.update();
-
-      arcs.forEach((arc, i) => {
-        TRAIL.forEach((off, j) => {
-          const mesh = arc.pulseMeshes[j];
-          let p = (t * 0.12 + i * 0.19 - off) % 1;
-          if (p < 0) p += 1;
-          mesh.position.copy(arc.curve.getPointAt(p));
-          mesh.scale.setScalar(j === 0 ? 1 : 0.7 / j);
-        });
+    CITY_PAIRS.forEach(([a, b]) => {
+      const va = latLonToVec3(a[0], a[1], SPHERE_R + 0.01);
+      const vb = latLonToVec3(b[0], b[1], SPHERE_R + 0.01);
+      const mid = va.clone().add(vb).multiplyScalar(0.5);
+      const ctrl = mid.normalize().multiplyScalar(2.5);
+      const curve = new THREE.QuadraticBezierCurve3(va, ctrl, vb);
+      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.007, 8, false);
+      const tubeMat = new THREE.MeshBasicMaterial({
+        color: GOLD,
+        transparent: true,
+        opacity: isDark ? 0.55 : 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       });
+      arcGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
+    });
 
-      if (signalHalo) signalHalo.scale.setScalar(1 + 0.28 * Math.sin(t * 3));
+    // ── City markers ──
+    const markerTexture = (() => {
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 64;
+      const ctx = cv.getContext("2d");
+      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, "rgba(255,255,255,1)");
+      g.addColorStop(0.25, "rgba(255,255,255,0.85)");
+      g.addColorStop(0.55, "rgba(245,194,66,0.35)");
+      g.addColorStop(1, "rgba(245,194,66,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(32, 32, 32, 0, Math.PI * 2);
+      ctx.fill();
+      const tex = new THREE.CanvasTexture(cv);
+      tex.flipY = false;
+      return tex;
+    })();
 
-      if (labelEl) {
-        labelVec.set(sx, sy, sz).project(camera);
-        const w = mount.clientWidth, h = mount.clientHeight;
-        labelEl.style.left = `${(labelVec.x * 0.5 + 0.5) * w}px`;
-        labelEl.style.top = `${(-labelVec.y * 0.5 + 0.5) * h}px`;
+    const markers = [];
+    const allCities = CITY_PAIRS.flat();
+    allCities.forEach((city, idx) => {
+      if (idx % 2 !== 0 && idx !== 0) return;
+      const v = latLonToVec3(city[0], city[1], SPHERE_R + 0.02);
+      const mat = new THREE.SpriteMaterial({
+        map: markerTexture,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        opacity: 0.7,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.copy(v);
+      sprite.scale.set(0.14, 0.14, 1);
+      globe.add(sprite);
+      markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
+    });
+
+    // ── Lights ── bright for aluminum, moody for dark
+    scene.add(new THREE.AmbientLight(isDark ? 0x1a2030 : 0x6a6a78, isDark ? 0.5 : 0.35));
+    const dirLight = new THREE.DirectionalLight(0xfff1d6, isDark ? 1.1 : 1.4);
+    dirLight.position.set(3, 2, 3);
+    scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(isDark ? 0x4a6a9a : 0x8090a8, isDark ? 0.25 : 0.4);
+    fillLight.position.set(-3, -1, -2);
+    scene.add(fillLight);
+
+    // ── Stars ── dark mode only
+    if (isDark) {
+      const sg = new THREE.BufferGeometry();
+      const sp = [];
+      for (let i = 0; i < 500; i++) {
+        const v = new THREE.Vector3(
+          Math.random() - 0.5,
+          Math.random() - 0.5,
+          Math.random() - 0.5
+        ).normalize().multiplyScalar(18 + Math.random() * 22);
+        sp.push(v.x, v.y, v.z);
       }
+      sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
+      scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
+        color: 0x8fa8cc,
+        size: 0.05,
+        transparent: true,
+        opacity: 0.5,
+      })));
+    }
+
+    let rafId;
+    const startTime = performance.now();
+    const loop = () => {
+      rafId = requestAnimationFrame(loop);
+      const elapsed = (performance.now() - startTime) / 1000;
+
+      globe.rotation.y = elapsed * 0.05;
+
+      markers.forEach((m) => {
+        const pulse = 0.5 + 0.5 * Math.sin(elapsed * 1.5 + m.phase);
+        m.material.opacity = 0.25 + pulse * 0.65;
+        const scale = 0.09 + pulse * 0.08;
+        m.sprite.scale.set(scale, scale, 1);
+      });
 
       renderer.render(scene, camera);
     };
-    animate();
+    loop();
 
-    // Resize handling
     const onResize = () => {
-      const w = mount.clientWidth || 1, h = mount.clientHeight || 1;
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
     };
-    const ro = new ResizeObserver(onResize);
-    ro.observe(mount);
+    window.addEventListener("resize", onResize);
 
-    // Cleanup
     return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      controls.dispose();
-      scene.traverse((obj) => {
-        if (obj.geometry) obj.geometry.dispose?.();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose?.());
-          else obj.material.dispose?.();
-        }
-      });
-      if (labelEl) labelEl.remove();
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", onResize);
       renderer.dispose();
-      if (renderer.domElement.parentNode === mount) {
-        mount.removeChild(renderer.domElement);
-      }
+      scene.clear();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, interactive, JSON.stringify(effectiveRoutes), activeAircraft?.id, signalLabel]);
+  }, [isDark]);
 
   return (
-    <div
-      className={`relative ${cfg.container}`}
-      style={{ touchAction: "none", pointerEvents: interactive ? "auto" : "none" }}
-    >
-      <div ref={mountRef} className="absolute inset-0" />
+    <div ref={containerRef} className="absolute inset-0" style={{ pointerEvents: "none" }}>
+      <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );
 }

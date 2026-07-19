@@ -85,8 +85,8 @@
       }
     },
     "read": {
-      "id": {
-        "$exists": true
+      "user_condition": {
+        "role": "admin"
       }
     },
     "update": {

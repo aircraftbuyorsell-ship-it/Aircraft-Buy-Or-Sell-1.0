@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin } from "lucide-react";
-import HomepageFooter from "@/components/homepage/HomepageFooter";
+import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
@@ -179,7 +179,7 @@ export default function Layout() {
   const touchStartX = useRef(null);
   const isDark = useTheme();
 
-  const isHomepage = pathname === "/" || pathname === "/dashboard";
+  const isHomepage = pathname === "/";
   const showBack = !isHomepage;
 
   const { data: currentUser } = useQuery({
@@ -237,7 +237,7 @@ export default function Layout() {
       {/* ── Mobile drawer ── */}
       {!isHomepage && mobileOpen &&
       <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
-      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }} />
+      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
       }
       {!isHomepage && (
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
@@ -258,7 +258,7 @@ export default function Layout() {
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && (
       <header className="sticky top-0 z-40"
-      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.92)", backdropFilter: "blur(16px)", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
+      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
@@ -311,7 +311,7 @@ export default function Layout() {
           <Outlet />
       </main>
 
-      <HomepageFooter />
+      <SiteFooter />
       <ABOSTour />
     </div>);
 

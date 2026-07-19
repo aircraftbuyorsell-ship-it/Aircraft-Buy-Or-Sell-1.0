@@ -112,15 +112,13 @@
     "amount"
   ],
   "rls": {
-    "create": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
     "read": {
       "$or": [
         {
           "data.payee_email": "{{user.email}}"
+        },
+        {
+          "data.partner_id": "{{user.partner_id}}"
         },
         {
           "user_condition": {
@@ -128,6 +126,11 @@
           }
         }
       ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
       "user_condition": {

@@ -10,20 +10,6 @@ import Stripe from 'npm:stripe@14.25.0';
  * mode='confirm': { stripe_session_id } → { confirmed: true, crosscheck_id }
  *   Verifies payment, assigns expert to crosscheck, accepts/rejects bids.
  */
-const ALLOWED_RETURN_HOSTS = ['aircraftbuyorsell.com', 'abos.app', 'abos-marketspace.com', 'base44.app', 'base44.com', 'localhost'];
-
-function getSafeReturnUrl(rawReturnUrl, requestUrl) {
-  const fallback = new URL('/experts', requestUrl).toString();
-  if (!rawReturnUrl) return fallback;
-  if (rawReturnUrl.startsWith('/') && !rawReturnUrl.startsWith('//')) {
-    return new URL(rawReturnUrl, requestUrl).toString();
-  }
-  const parsed = new URL(rawReturnUrl);
-  const isAllowed = ALLOWED_RETURN_HOSTS.some((host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`));
-  if (!isAllowed) throw new Error('return_url must use an approved app domain');
-  return parsed.toString();
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -38,12 +24,6 @@ Deno.serve(async (req) => {
     // ── CREATE MODE ──
     if (mode === 'create') {
       const { crosscheck_id, expert_bid_id, return_url } = body;
-      let safeReturnUrl;
-      try {
-        safeReturnUrl = getSafeReturnUrl(String(return_url || '').trim(), req.url);
-      } catch (error) {
-        return Response.json({ error: error.message }, { status: 400 });
-      }
       if (!crosscheck_id || !expert_bid_id) {
         return Response.json({ error: 'crosscheck_id and expert_bid_id required' }, { status: 400 });
       }
@@ -76,8 +56,8 @@ Deno.serve(async (req) => {
           },
           quantity: 1,
         }],
-        success_url: `${safeReturnUrl}${safeReturnUrl.includes('?') ? '&' : '?'}expert_paid=${encodeURIComponent(crosscheck_id)}&stripe_session={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${safeReturnUrl}${safeReturnUrl.includes('?') ? '&' : '?'}expert_canceled=true`,
+        success_url: `${return_url}&expert_paid=${crosscheck_id}&stripe_session={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${return_url}&expert_canceled=true`,
         metadata: {
           product: 'expert_crosscheck',
           crosscheck_id,

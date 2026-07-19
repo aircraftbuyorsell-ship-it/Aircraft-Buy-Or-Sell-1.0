@@ -9,6 +9,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
 import AccountMenu from "@/components/layout/AccountMenu";
+import { useTheme } from "@/lib/useTheme";
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -17,6 +18,7 @@ function initials(user) {
 
 export default function HomepageHeader() {
   const [scrolled, setScrolled] = useState(false);
+  const isDark = useTheme();
 
   const { data: currentUser } = useQuery({
     queryKey: ["auth-me"],
@@ -33,9 +35,11 @@ export default function HomepageHeader() {
 
   // n8n-style floating pill navbar — uses glass-navbar for automatic light/dark
   const pillStyle = {
-    background: scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
+    background: isDark
+      ? (scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)")
+      : "hsl(var(--card))",
+    backdropFilter: isDark ? "blur(20px)" : "none",
+    WebkitBackdropFilter: isDark ? "blur(20px)" : "none",
     border: scrolled
       ? "1px solid hsl(var(--primary) / 0.25)"
       : "1px solid hsl(var(--border))",

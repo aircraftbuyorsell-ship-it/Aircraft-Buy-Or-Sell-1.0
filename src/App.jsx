@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
+import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
@@ -95,14 +96,6 @@ import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
-import MaerskOcean from "./pages/MaerskOcean";
-import MaerskApiLicense from "./pages/MaerskApiLicense";
-import DhlApiHub from "./pages/DhlApiHub";
-import DocusignAgreements from "./pages/DocusignAgreements";
-import FacebookPublish from "./pages/FacebookPublish";
-import MetaAdsOptimizer from "./pages/MetaAdsOptimizer";
-import InstagramPublish from "./pages/InstagramPublish";
-import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -127,9 +120,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/1PAGE" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/listings" element={<Listings />} />
         <Route path="/ati-passport/:listingId" element={<ATIPassport />} />
         <Route path="/ati-passport" element={<Navigate to="/listings" replace />} />
@@ -154,7 +145,6 @@ const AuthenticatedApp = () => {
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
-        <Route path="/intrazone" element={<IntraZone />} />
         <Route path="/community" element={<Community />} />
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
@@ -211,22 +201,16 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
-        <Route path="/abos-intelligence" element={<FinanceAdvisorChat />} />
-        <Route path="/finance-advisor" element={<Navigate to="/abos-intelligence" replace />} />
+        <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
         <Route path="/registry-comparator" element={<RegistryComparator />} />
         <Route path="/calculators" element={<CalculatorsHub />} />
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
-        <Route path="/ocean-freight" element={<MaerskOcean />} />
-        <Route path="/legal/maersk-api-license" element={<MaerskApiLicense />} />
-        <Route path="/dhl-api" element={<DhlApiHub />} />
-        <Route path="/docusign" element={<DocusignAgreements />} />
-        <Route path="/facebook-publish" element={<FacebookPublish />} />
-        <Route path="/meta-ads-optimizer" element={<MetaAdsOptimizer />} />
-        <Route path="/instagram-publish" element={<InstagramPublish />} />
       </Route>
-      <Route path="/HomePage" element={<Navigate to="/" replace />} />
+      <Route element={<IntraZoneLayout />}>
+        <Route path="/intrazone" element={<IntraZone />} />
+      </Route>
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

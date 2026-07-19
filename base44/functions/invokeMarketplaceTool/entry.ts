@@ -10,15 +10,13 @@ async function getTokenAccount(base44, email) {
   return behaviors[0] || null;
 }
 
-async function debitTokens(base44, accountId, amount) {
-  // The balance requirement and decrement happen in one conditional write.
+async function debitTokens(base44, account, amount) {
   const result = await base44.asServiceRole.entities.UserBehavior.updateMany(
-    { id: accountId, tokens_remaining: { $gte: amount } },
+    { id: account.id, tokens_remaining: { $gte: amount } },
     { $inc: { tokens_remaining: -amount } }
   );
   if (!result?.updated) return null;
-  const refreshed = await base44.asServiceRole.entities.UserBehavior.get(accountId);
-  return Number(refreshed.tokens_remaining) || 0;
+  return Math.max(0, (Number(account.tokens_remaining) || 0) - amount);
 }
 
 async function refundTokens(base44, account, amount, toolId, reason) {
@@ -81,7 +79,7 @@ Deno.serve(async (req) => {
     const account = await getTokenAccount(base44, user.email);
     const currentBalance = Number(account?.tokens_remaining) || 0;
     const debitedBalance = account
-      ? await debitTokens(base44, account.id, tool.token_cost)
+      ? await debitTokens(base44, account, tool.token_cost)
       : null;
     if (debitedBalance === null) {
       return Response.json({

@@ -20,6 +20,20 @@ export const TRANSITIONS = new Map([
 const root = process.cwd();
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(root, p), 'utf8'));
 const exists = (p) => fs.existsSync(path.join(root, p));
+function containsArchitectureDocument(dir) {
+  const start = path.join(root, dir);
+  if (!fs.existsSync(start)) return false;
+  const pending = [start];
+  while (pending.length) {
+    const current = pending.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const absolute = path.join(current, entry.name);
+      if (entry.isDirectory()) pending.push(absolute);
+      else if (/architecture|rfc|adl|roadmap/i.test(entry.name)) return true;
+    }
+  }
+  return false;
+}
 
 export function canTransition(from, to) { return (TRANSITIONS.get(from) || []).includes(to); }
 export function transitionTask(task, to, evidence = {}) {
@@ -83,7 +97,7 @@ export function validateFactory() {
   }
   const agentIds = fs.readdirSync(path.join(root,'.branch-factory/agents')).map(f => f.replace(/\.yaml$/,''));
   for (const required of ['orchestrator','implementation-agent','test-agent','validator-agent','repository-steward']) if (!agentIds.includes(required)) errors.push(`Missing agent ${required}`);
-  if (exists('docs') && execFileSync('find', ['docs', '-type', 'f'], { cwd: root, encoding: 'utf8' }).split('\n').some(f => /architecture|rfc|adl|roadmap/i.test(f))) errors.push('Duplicate architecture document detected');
+  if (containsArchitectureDocument('docs')) errors.push('Duplicate architecture document detected');
   return { ok: errors.length === 0, errors };
 }
 

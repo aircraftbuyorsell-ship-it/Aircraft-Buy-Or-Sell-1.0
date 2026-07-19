@@ -25,10 +25,10 @@ export default function PlatformHeader() {
         <Link to="/" className="flex items-center gap-2.5">
           <LogoIcon />
           <div className="flex flex-col leading-none">
-            <span className="text-lg font-black tracking-tighter text-slate-900 pt-6">ABOS™
+            <span className="text-lg font-black tracking-tighter text-slate-900 pt-10">ABOS™
 
             </span>
-            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] my-1 pb-8">AVIATION
+            <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] pb-16 my-2">AVIATION
 MARKETSPACE
 INTELLIGENCE™</span>
           </div>

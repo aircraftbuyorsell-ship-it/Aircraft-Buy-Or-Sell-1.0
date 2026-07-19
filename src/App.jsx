@@ -95,6 +95,7 @@ import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
+import MaerskOcean from "./pages/MaerskOcean";
 import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
@@ -211,6 +212,7 @@ const AuthenticatedApp = () => {
         <Route path="/calculators" element={<CalculatorsHub />} />
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
+        <Route path="/ocean-freight" element={<MaerskOcean />} />
       </Route>
       <Route path="/HomePage" element={<Navigate to="/" replace />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />

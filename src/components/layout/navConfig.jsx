@@ -3,7 +3,7 @@ import {
   Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
   Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
-  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge,
+  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Ship,
 } from "lucide-react";
 
 /**
@@ -38,6 +38,7 @@ export const NAV_TREE = [
           { path: "/deal-radar", label: "Deal Radar", icon: Radar },
           { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
           { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
+          { path: "/ocean-freight", label: "Ocean Freight (Maersk)", icon: Ship },
           { path: "/solutions/buyers", label: "Buyer Solutions", icon: User },
         ],
       },

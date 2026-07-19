@@ -37,3 +37,11 @@ Open [Base44.com](http://Base44.com) and click on Publish.
 Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
 
 Support: [https://app.base44.com/support](https://app.base44.com/support)
+
+**Cloudflare Pages deployment**
+
+Production deployments can be triggered manually from GitHub Actions.
+
+The workflow builds the Vite application, verifies `dist/index.html`, and deploys the static `dist` directory.
+
+See [Cloudflare Pages deployment](docs/cloudflare-pages-deployment.md) for configuration and operating instructions.

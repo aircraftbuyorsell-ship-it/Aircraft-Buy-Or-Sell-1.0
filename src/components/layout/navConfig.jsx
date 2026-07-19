@@ -4,6 +4,7 @@ import {
   Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
   Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Ship, Truck,
+  FileSignature,
 } from "lucide-react";
 
 /**
@@ -50,6 +51,7 @@ export const NAV_TREE = [
           { path: "/solutions/brokers", label: "Broker Solutions", icon: Briefcase },
           { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
           { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
+          { path: "/docusign", label: "DocuSign Agreements", icon: FileSignature },
           { path: "/leads", label: "Leads", icon: Users },
           { path: "/community", label: "Community", icon: Users },
         ],

@@ -9,11 +9,11 @@ const NAV = [
 
 function LogoIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <path d="M3 17L9 11L13 15L21 7" stroke="#D4A017" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M21 7H15M21 7V13" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3 21H21" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="9" cy="11" r="1.6" fill="#3b82f6" />
+    <svg width="32" height="32" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+      <rect width="44" height="44" rx="12" fill="rgba(212,160,23,0.10)" stroke="rgba(212,160,23,0.35)" strokeWidth="1" />
+      <polyline points="7,33 15,14 19,33" fill="none" stroke="#1a1a1a" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points="19,33 24,20 28,26 36,9" fill="none" stroke="#D4A017" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon points="35,8 39,11 35,14" fill="#D4A017" />
     </svg>
   );
 }
@@ -22,8 +22,16 @@ export default function PlatformHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/50 bg-[#fbfaf7]/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1360px] items-center justify-between px-5 sm:px-8">
-        <Link to="/" className="flex items-center gap-1.5 text-xl font-black tracking-tighter text-slate-900">
-          <LogoIcon /> ABOS
+        <Link to="/" className="flex items-center gap-2.5">
+          <LogoIcon />
+          <div className="flex flex-col leading-none">
+            <span className="text-lg font-black tracking-tighter text-slate-900">
+              ABOS<span className="ml-0.5 text-[8px] font-semibold align-super text-slate-400">™</span>
+            </span>
+            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017]">
+              MarketSpace<span className="align-super text-[6px]">™</span>
+            </span>
+          </div>
         </Link>
 
         <nav className="hidden items-center md:flex">

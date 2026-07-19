@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Ship, Container, Calendar, Anchor, MapPin, Radar, FileText,
-  Truck, Boxes, Radio, Eye, Route, Globe2, Loader2, Lock, ArrowUpRight,
+  Truck, Boxes, Radio, Eye, Route, Globe2, Loader2, Lock, ArrowUpRight, ExternalLink,
 } from "lucide-react";
 import MaerskApiCard from "@/components/maersk/MaerskApiCard";
 import OceanTrackDemo from "@/components/maersk/OceanTrackDemo";
@@ -149,6 +150,13 @@ export default function MaerskOcean() {
           Track containers, search schedules, manage bookings, and access premium Maersk Ocean APIs —
           unified into the ABOS Cross-Border Bridge for end-to-end freight orchestration.
         </p>
+        <Link to="/legal/maersk-api-license"
+          className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold transition-colors hover:text-[#f5c242]"
+          style={{ color: "rgba(255,255,255,0.45)" }}>
+          <FileText className="w-3 h-3" />
+          Maersk API License Terms
+          <ExternalLink className="w-2.5 h-2.5" />
+        </Link>
       </div>
 
       <div className="px-4 md:px-8 pb-10 grid lg:grid-cols-[320px_1fr] gap-6">

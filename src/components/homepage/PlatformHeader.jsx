@@ -25,8 +25,8 @@ export default function PlatformHeader() {
         <Link to="/" className="flex items-center gap-2.5">
           <LogoIcon />
           <div className="flex flex-col leading-none">
-            <span className="text-lg font-black tracking-tighter text-slate-900">
-              ABOS<span className="ml-0.5 text-[8px] font-semibold align-super text-slate-400">™</span>
+            <span className="text-lg font-black tracking-tighter text-slate-900 pb-1">ABOS™
+
             </span>
             <span className="text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017] my-1 py-2">AVIATION
 MARKETSPACE

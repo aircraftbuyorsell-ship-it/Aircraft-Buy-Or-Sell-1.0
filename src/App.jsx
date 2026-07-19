@@ -96,6 +96,7 @@ import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
 import MaerskOcean from "./pages/MaerskOcean";
+import DhlApiHub from "./pages/DhlApiHub";
 import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
@@ -213,6 +214,7 @@ const AuthenticatedApp = () => {
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
         <Route path="/ocean-freight" element={<MaerskOcean />} />
+        <Route path="/dhl-api" element={<DhlApiHub />} />
       </Route>
       <Route path="/HomePage" element={<Navigate to="/" replace />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />

@@ -2,10 +2,10 @@ import { Link } from "react-router-dom";
 import { ChevronDown, Search, LayoutGrid } from "lucide-react";
 
 const NAV = [
-  { label: "Marketspace", to: "/marketplace" },
-  { label: "Intelligence", to: "/ati-center" },
-  { label: "Verify", to: "/ati-verify" },
-];
+{ label: "Marketspace", to: "/marketplace" },
+{ label: "Intelligence", to: "/ati-center" },
+{ label: "Verify", to: "/ati-verify" }];
+
 
 function LogoIcon() {
   return (
@@ -14,8 +14,8 @@ function LogoIcon() {
       <polyline points="7,33 15,14 19,33" fill="none" stroke="#1a1a1a" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
       <polyline points="19,33 24,20 28,26 36,9" fill="none" stroke="#D4A017" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
       <polygon points="35,8 39,11 35,14" fill="#D4A017" />
-    </svg>
-  );
+    </svg>);
+
 }
 
 export default function PlatformHeader() {
@@ -28,23 +28,23 @@ export default function PlatformHeader() {
             <span className="text-lg font-black tracking-tighter text-slate-900">
               ABOS<span className="ml-0.5 text-[8px] font-semibold align-super text-slate-400">™</span>
             </span>
-            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017]">
-              MarketSpace<span className="align-super text-[6px]">™</span>
+            <span className="mt-0.5 text-[8px] font-bold uppercase tracking-[0.22em] text-[#D4A017]">AV
+MARKETSPACE™
             </span>
           </div>
         </Link>
 
         <nav className="hidden items-center md:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.label}
-              to={item.to}
-              className="flex items-center gap-1 px-3 text-xs font-semibold text-slate-600 hover:text-slate-900"
-            >
+          {NAV.map((item) =>
+          <Link
+            key={item.label}
+            to={item.to}
+            className="flex items-center gap-1 px-3 text-xs font-semibold text-slate-600 hover:text-slate-900">
+            
               {item.label}
               <ChevronDown size={12} className="text-slate-400" />
             </Link>
-          ))}
+          )}
           <Link to="/pricing" className="px-3 text-xs font-semibold text-slate-600 hover:text-slate-900">
             Pricing
           </Link>
@@ -53,19 +53,19 @@ export default function PlatformHeader() {
         <div className="flex items-center gap-2">
           <button
             aria-label="Search"
-            className="border border-slate-200 bg-white p-2 rounded-lg shadow-xs hover:bg-slate-50"
-          >
+            className="border border-slate-200 bg-white p-2 rounded-lg shadow-xs hover:bg-slate-50">
+            
             <Search size={14} className="text-slate-600" />
           </button>
           <Link
             to="/dashboard"
-            className="flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 rounded-lg text-xs font-bold text-slate-800 shadow-xs hover:bg-slate-50"
-          >
+            className="flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 rounded-lg text-xs font-bold text-slate-800 shadow-xs hover:bg-slate-50">
+            
             <LayoutGrid size={13} className="text-slate-600" />
             Workspace
           </Link>
         </div>
       </div>
-    </header>
-  );
+    </header>);
+
 }

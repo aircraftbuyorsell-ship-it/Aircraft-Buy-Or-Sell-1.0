@@ -6,6 +6,7 @@ import {
   Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Ship, Truck,
   FileSignature,
   Facebook,
+  Megaphone,
 } from "lucide-react";
 
 /**
@@ -54,6 +55,7 @@ export const NAV_TREE = [
           { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
           { path: "/docusign", label: "DocuSign Agreements", icon: FileSignature },
           { path: "/facebook-publish", label: "Facebook Publisher", icon: Facebook },
+          { path: "/meta-ads-optimizer", label: "Meta Ads Optimizer", icon: Megaphone },
           { path: "/leads", label: "Leads", icon: Users },
           { path: "/community", label: "Community", icon: Users },
         ],

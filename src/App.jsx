@@ -99,6 +99,7 @@ import MaerskOcean from "./pages/MaerskOcean";
 import MaerskApiLicense from "./pages/MaerskApiLicense";
 import DhlApiHub from "./pages/DhlApiHub";
 import DocusignAgreements from "./pages/DocusignAgreements";
+import FacebookPublish from "./pages/FacebookPublish";
 import HomePage from "./pages/HomePage";
 
 const AuthenticatedApp = () => {
@@ -219,6 +220,7 @@ const AuthenticatedApp = () => {
         <Route path="/legal/maersk-api-license" element={<MaerskApiLicense />} />
         <Route path="/dhl-api" element={<DhlApiHub />} />
         <Route path="/docusign" element={<DocusignAgreements />} />
+        <Route path="/facebook-publish" element={<FacebookPublish />} />
       </Route>
       <Route path="/HomePage" element={<Navigate to="/" replace />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />

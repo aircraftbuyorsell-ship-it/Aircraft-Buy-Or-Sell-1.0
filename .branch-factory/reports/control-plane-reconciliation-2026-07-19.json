@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SPRINT1-CONTROL-001",
+  "capability": "Branch Factory lifecycle reconciliation",
+  "source_files": [
+    ".branch-factory/tasks.json",
+    "factory/state.json",
+    ".branch-factory/reports/source-inventory.json",
+    "test/branch-factory/validation.test.mjs"
+  ],
+  "target_architecture": "A repository-backed task queue that skips completed work and selects the next eligible Sprint 1 task.",
+  "allowed_files": [
+    ".branch-factory/tasks.json",
+    ".branch-factory/reports/control-plane-reconciliation-2026-07-19.json",
+    "test/branch-factory/validation.test.mjs"
+  ],
+  "forbidden_changes": [
+    "src/**",
+    "base44/**",
+    "production infrastructure",
+    "deployments",
+    "production writes"
+  ],
+  "acceptance_criteria": [
+    "SPRINT1-TASK-001 completion evidence is linked from the Branch Factory queue",
+    "The next-task command selects the next eligible queued task",
+    "The cumulative local checks are recorded without hiding baseline failures"
+  ],
+  "dependencies": [
+    "SPRINT1-TASK-001"
+  ],
+  "rollback": "Revert the queue status, selection-test expectation, and this evidence report.",
+  "implementation": {
+    "completed_task": "SPRINT1-TASK-001",
+    "completion_evidence": ".branch-factory/reports/source-inventory.json",
+    "next_task": "SPRINT1-TASK-002",
+    "runtime_change": false,
+    "contract_drift": "not_applicable_control_plane_only",
+    "new_secret": false
+  },
+  "cumulative_run": {
+    "npm_ci": {
+      "status": "pass",
+      "exit_code": 0,
+      "audit_summary": "20 vulnerabilities reported: 1 low, 10 moderate, 8 high, 1 critical; not modified by this task."
+    },
+    "npm_test": {
+      "status": "pass",
+      "exit_code": 0,
+      "passed": 5,
+      "failed": 0
+    },
+    "npm_run_build": {
+      "status": "pass",
+      "exit_code": 0,
+      "warnings": [
+        "VITE_BASE44_APP_BASE_URL is unset, so the Base44 proxy is disabled.",
+        "Tailwind reported an ambiguous arbitrary easing utility."
+      ]
+    },
+    "npm_run_lint": {
+      "status": "expected_baseline_failure",
+      "exit_code": 1,
+      "errors": 140,
+      "category": "unused imports"
+    },
+    "npm_run_typecheck": {
+      "status": "expected_baseline_failure",
+      "exit_code": 2,
+      "diagnostics": 1081
+    },
+    "branch_factory_validate": {
+      "status": "pass",
+      "exit_code": 0,
+      "result": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    "branch_factory_next": {
+      "status": "pass",
+      "exit_code": 0,
+      "selected_task": "SPRINT1-TASK-002"
+    }
+  },
+  "decision": "CONDITIONAL GO",
+  "github_actions_evidence": {
+    "merged_pr_runs_available": false,
+    "node_ci_scope": "push and pull_request events targeting main only",
+    "branch_factory_validation_in_ci": false,
+    "authoritative_branch_rerun_required": "abos-factory/v1"
+  },
+  "limitations": [
+    "Independent Validator review is still required before this control-plane reconciliation is complete.",
+    "The recorded cumulative commands ran in the provided work branch workspace, not an authenticated checkout of abos-factory/v1.",
+    "No GitHub Actions run is available for the merged PR #10 and PR #11 commits; the existing Node.js CI workflow targets main and does not run Branch Factory validation.",
+    "Repository lint, typecheck, dependency-audit, and migration gates remain unresolved.",
+    "This task does not authorize RC2, a deployment, or production readiness."
+  ]
+}

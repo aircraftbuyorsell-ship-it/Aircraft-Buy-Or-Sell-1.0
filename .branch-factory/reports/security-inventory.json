@@ -1,0 +1,1069 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SPRINT1-TASK-002",
+  "capability": "Security inventory baseline",
+  "generated_on": "2026-07-19",
+  "source_commit": "d95a7f67a808443abbe3cda51a4d5f1fce051a7c",
+  "scope": [
+    "src",
+    "base44/functions",
+    "base44/connectors"
+  ],
+  "files_scanned": 642,
+  "scan_commands": [
+    "rg --pcre2 --files-with-matches --glob '*.{js,jsx,ts,tsx,json,jsonc,mjs,cjs}' '(?<![A-Za-z0-9])(?:sk_(?:live|test)_[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16})(?![A-Za-z0-9])' src base44/functions base44/connectors",
+    "rg --files-with-matches --glob '*.{js,jsx,ts,tsx,json,jsonc,mjs,cjs}' -- '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----' src base44/functions base44/connectors",
+    "rg --pcre2 --files-with-matches --glob '*.{js,jsx,ts,tsx,json,jsonc,mjs,cjs}' 'https?://[^\\s/:]+:[^\\s/@]+@' src base44/functions base44/connectors"
+  ],
+  "candidate_secret_scan": {
+    "known_token_prefixes": {
+      "matches": 0,
+      "rg_exit_code": 1
+    },
+    "private_key_blocks": {
+      "matches": 0,
+      "rg_exit_code": 1
+    },
+    "embedded_url_credentials": {
+      "matches": 0,
+      "rg_exit_code": 1
+    },
+    "result": "no_match",
+    "value_capture": "disabled"
+  },
+  "unsafe_data_flow_inventory": {
+    "environment_access": {
+      "match_count": 56,
+      "file_count": 32,
+      "locations": [
+        {
+          "path": "base44/functions/atiScoreNative/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/brokerAlertNotify/entry.ts",
+          "lines": [
+            8
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/escrowSync/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/expertCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/fetchAllTradeData/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/fetchLiveTraffic/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/gcrCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/gcrConfirmUnlock/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/geminiLiveProxy/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/getOpenSkyToken/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/getSupabaseConfig/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/globalAircraftLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/hfMarketIntelligence/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/invokeSkillInvestmentHealth/entry.ts",
+          "lines": [
+            1,
+            4,
+            7
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/listSupabaseProjects/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/newsletterCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/nregSearch/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/nvidiaFrameAnalysis/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/openSky/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/orchestrateSalesStep/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/piloterrTradeProxy/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/registryLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/reportCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/reportFulfill/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/setupDatabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/stripeCreateCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/stripeWebhook/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/syncFaaFromSupabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/usdcEscrowMonitor/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/widgetEscrowAction/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "src/lib/app-params.js",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "src/lib/supabase.js",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        }
+      ]
+    },
+    "service_role_reference": {
+      "match_count": 364,
+      "file_count": 83,
+      "locations": [
+        {
+          "path": "base44/functions/abosCoreApi/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 15
+        },
+        {
+          "path": "base44/functions/aircraftDataHub/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/aircraftPhoto/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/atiScoreNative/entry.ts",
+          "lines": [
+            6
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/atiVerifyProcess/entry.ts",
+          "lines": [
+            1,
+            5,
+            9,
+            12
+          ],
+          "match_count": 9
+        },
+        {
+          "path": "base44/functions/autoEnrichListing/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/autoScoreFAA/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/autoScoreTraffic/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/autoValuateOnCardAttach/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/aviationServiceIntel/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/brokerAlertNotify/entry.ts",
+          "lines": [
+            1,
+            10
+          ],
+          "match_count": 6
+        },
+        {
+          "path": "base44/functions/bulkActionListings/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/cachedTraffic/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/calculateEngineMaintenance/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/cmrLeadScore/entry.ts",
+          "lines": [
+            1,
+            2,
+            4
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/cmrMatchEngine/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/cmrNegoBrief/entry.ts",
+          "lines": [
+            1,
+            2
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/computeGlobalCompliance/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 8
+        },
+        {
+          "path": "base44/functions/computeMarketAnalytics/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/computeOMVMAnalytics/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/computeRevenueShare/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/createFaaAtiCards/entry.ts",
+          "lines": [
+            1,
+            5
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/dataIntegrityShield/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 6
+        },
+        {
+          "path": "base44/functions/dispatchWebhook/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/easaAdLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/escrowNotify/entry.ts",
+          "lines": [
+            52
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/executeBrokerAgreement/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/expertCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/expertNotify/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/fetchAllTradeData/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/fetchAviationNews/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/fetchLiveTraffic/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/gcrConfirmUnlock/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/generateAviationNews/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/generateMarketForecast/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/generateMarketInsights/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/generateMarketReport/entry.ts",
+          "lines": [
+            1,
+            2
+          ],
+          "match_count": 9
+        },
+        {
+          "path": "base44/functions/globalAircraftLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 11
+        },
+        {
+          "path": "base44/functions/hfMarketIntelligence/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/identifyTestListings/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/ingestLiveTraffic/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/initDigitalTwin/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/intelExchange/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/intraZoneSupabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/intrazoneMarketSignals/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/intrazoneNetworkIntel/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/invokeMarketplaceTool/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 9
+        },
+        {
+          "path": "base44/functions/invokeSkill/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/invokeSkillInvestmentHealth/entry.ts",
+          "lines": [
+            10
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/listWorkflows/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/managePreBuyInspection/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/marketExpertValuation/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/monitorFaaAirmanRelease/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 6
+        },
+        {
+          "path": "base44/functions/nregSearch/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/omvmV5Score/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 6
+        },
+        {
+          "path": "base44/functions/onBuyerInterest/entry.ts",
+          "lines": [
+            1,
+            4
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/onListingATIUpdate/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/onPipelineStatusChange/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/openSky/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/orchestrateATIScoring/entry.ts",
+          "lines": [
+            5
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/orchestrateSalesStep/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/piloterrTradeProxy/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/pipelineIntegrations/entry.ts",
+          "lines": [
+            1,
+            3
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/publicTwinLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/registryComparator/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/registryLookup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 7
+        },
+        {
+          "path": "base44/functions/reportCheckout/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/reportFulfill/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/requestAccountDeletion/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 5
+        },
+        {
+          "path": "base44/functions/searchConsolePerformance/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/sendPipelineEmailSummary/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/setupAdminUser/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/stripeWebhook/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 23
+        },
+        {
+          "path": "base44/functions/superAdminFeatureManager/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 8
+        },
+        {
+          "path": "base44/functions/syncEscrowToCalendar/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/syncFaaFromSupabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 35
+        },
+        {
+          "path": "base44/functions/syncFaaToAtiCard/entry.ts",
+          "lines": [
+            1,
+            5
+          ],
+          "match_count": 7
+        },
+        {
+          "path": "base44/functions/syncFeatureRequestToGitHub/entry.ts",
+          "lines": [
+            1,
+            2
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/unlockAtiQuickScore/entry.ts",
+          "lines": [
+            2
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/usdcEscrowMonitor/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/userBehaviorCleanup/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/widgetEscrowAction/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 17
+        },
+        {
+          "path": "base44/functions/widgetGateway/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 6
+        }
+      ]
+    },
+    "authorization_header_reference": {
+      "match_count": 41,
+      "file_count": 24,
+      "locations": [
+        {
+          "path": "base44/functions/aircraftDataHub/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/aviationServiceIntel/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/calculateEngineMaintenance/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/escrowSync/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/geminiLiveProxy/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/hfMarketIntelligence/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/intraZoneSupabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 4
+        },
+        {
+          "path": "base44/functions/intrazoneMarketSignals/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/intrazoneNetworkIntel/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/invokeSkillInvestmentHealth/entry.ts",
+          "lines": [
+            1,
+            4
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/listSupabaseProjects/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/monitorFaaAirmanRelease/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/nvidiaFrameAnalysis/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/openSky/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 2
+        },
+        {
+          "path": "base44/functions/pipelineIntegrations/entry.ts",
+          "lines": [
+            1,
+            3
+          ],
+          "match_count": 3
+        },
+        {
+          "path": "base44/functions/reportFulfill/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/searchConsolePerformance/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/setupDatabase/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/syncEscrowToCalendar/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/syncFeatureRequestToGitHub/entry.ts",
+          "lines": [
+            2
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/unlockAtiQuickScore/entry.ts",
+          "lines": [
+            2
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "base44/functions/verifyCertificate/entry.ts",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "src/components/crossborder/TransferOrchestrator.jsx",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        },
+        {
+          "path": "src/pages/SkyBoss.jsx",
+          "lines": [
+            1
+          ],
+          "match_count": 1
+        }
+      ]
+    }
+  },
+  "frontend_boundary": {
+    "service_role_reference_files": [],
+    "environment_access_files": [
+      "src/lib/app-params.js",
+      "src/lib/supabase.js"
+    ],
+    "result": "No service-role reference was found under src; the two frontend environment-access files require configuration-boundary review."
+  },
+  "external_supabase_evidence": {
+    "report": ".branch-factory/reports/supabase-security-fix-evidence-intake-2026-07-19.json",
+    "status": "pending_evidence_ingestion",
+    "reported_task_security_review": "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/task-002-independent-security-review-2026-07-20.json",
+    "reported_supabase_independent_verification": "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/supabase-security-fix-2026-07-19/independent-verification-2026-07-20.json",
+    "reported_review_files_accessible_in_workspace": false
+  },
+  "contract_drift": "not_applicable_inventory_only",
+  "decision": "READY_FOR_VALIDATION",
+  "limitations": [
+    "Pattern scans reduce risk but do not prove the absence of encoded, split, dynamically loaded, or provider-specific secrets.",
+    "Service-role and authorization references are inventory signals, not findings of exploitability; manual data-flow review remains required.",
+    "The external Supabase audit package, both reported independent-review JSON files, and production project configuration remain unavailable in this workspace.",
+    "No production sync, deployment, database mutation, or secret retrieval was performed.",
+    "This report does not approve RC2 or production readiness."
+  ],
+  "rollback": "Revert this report and its factory/state.json evidence pointer; no runtime or external state is affected."
+}

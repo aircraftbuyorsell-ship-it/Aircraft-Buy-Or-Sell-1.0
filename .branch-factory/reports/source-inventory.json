@@ -1,0 +1,1077 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SPRINT1-TASK-001",
+  "capability": "Source inventory baseline",
+  "generated_on": "2026-07-19",
+  "source_commit": "50e1cb2316a93176a1721d6d9b69e304792a8e8d",
+  "generation_method": "Recursive file enumeration, lexicographic path sorting, byte counts, and SHA-256 content digests.",
+  "summary": {
+    "total_files": 205,
+    "base44_function_directories": 116,
+    "base44_function_files": 116,
+    "base44_entities": 79,
+    "base44_connectors": 6,
+    "base44_agents": 4
+  },
+  "inventory": {
+    "base44_functions": {
+      "source_path": "base44/functions",
+      "top_level_directory_count": 116,
+      "file_count": 116,
+      "files": [
+        {
+          "path": "base44/functions/abosCoreApi/entry.ts",
+          "bytes": 18209,
+          "sha256": "1159fd3d1841da59411a746a8c20db8250918127e218a2279b83a9c6c272e5aa"
+        },
+        {
+          "path": "base44/functions/abosOpenApiSpec/entry.ts",
+          "bytes": 6748,
+          "sha256": "62115550c99b32ba778918ba5f5499aa06fec4f3321628a070d9c6e18d5e4547"
+        },
+        {
+          "path": "base44/functions/aircraftDataHub/entry.ts",
+          "bytes": 13600,
+          "sha256": "6d937d8ce5758fd209c461450b95e56e4abab7fe99190683450e8a4da7126b87"
+        },
+        {
+          "path": "base44/functions/aircraftPhoto/entry.ts",
+          "bytes": 6561,
+          "sha256": "29c147b05bc505c035d048b79417b79e438b72187c86953b0bacd29adf50c71c"
+        },
+        {
+          "path": "base44/functions/anchorVaultDocument/entry.ts",
+          "bytes": 2103,
+          "sha256": "652ed2a9988da03a18e084127f06d0d28c966a72e7a63087ec0e12a7db831444"
+        },
+        {
+          "path": "base44/functions/atiFullReportScore/entry.ts",
+          "bytes": 9349,
+          "sha256": "922cc4ba3e4d113636effbb3212ffa9e6d29578aa7fa5466d744bc2b1af0f28a"
+        },
+        {
+          "path": "base44/functions/atiScoreNative/entry.ts",
+          "bytes": 16432,
+          "sha256": "825fa32581a064c0a046fe65967b491a2ee90fa57b2af0e4fb6b7d275c9d84ac"
+        },
+        {
+          "path": "base44/functions/atiVerifyProcess/entry.ts",
+          "bytes": 9811,
+          "sha256": "86ec333134084f78e81136b4f1419167cc2420960fa3d794cab4766d3c40d33d"
+        },
+        {
+          "path": "base44/functions/autoEnrichListing/entry.ts",
+          "bytes": 3515,
+          "sha256": "37c1e4fd6bd74c737d5777b191804968cd0af601b298b79deec4e0fff65dbfef"
+        },
+        {
+          "path": "base44/functions/autoScoreFAA/entry.ts",
+          "bytes": 6576,
+          "sha256": "5478be8b1a3f41048fe2ca91ad5db84c4807f5c859ab18adaf0e31a59260160b"
+        },
+        {
+          "path": "base44/functions/autoScoreTraffic/entry.ts",
+          "bytes": 5755,
+          "sha256": "402c2bad212f977e386392e7c4e064a4d046ef68ed2491566c068f71cb979813"
+        },
+        {
+          "path": "base44/functions/autoValuateOnCardAttach/entry.ts",
+          "bytes": 2648,
+          "sha256": "a4fdb2d76cba3522f8570b966e62e85f9234200f86ce4f34b092ef80cc2d06c1"
+        },
+        {
+          "path": "base44/functions/aviationServiceIntel/entry.ts",
+          "bytes": 13083,
+          "sha256": "43f0a0a196f1e67d283b135caf10a4dcd95570cac36ab78647ab5ee356e59341"
+        },
+        {
+          "path": "base44/functions/brokerAlertNotify/entry.ts",
+          "bytes": 5417,
+          "sha256": "9b74d3224b70809de14fb21f9b97040175d3f974184c80375cf612b6336493a0"
+        },
+        {
+          "path": "base44/functions/bulkActionListings/entry.ts",
+          "bytes": 1150,
+          "sha256": "45dfebefd5271fac77d04195f783d5363b1b99bc028b3beecec81d4678e0932b"
+        },
+        {
+          "path": "base44/functions/cachedTraffic/entry.ts",
+          "bytes": 8346,
+          "sha256": "3c09baac144b4e5c4947cd2482821421eb4d2e7499e7489e2067e760a8f33e47"
+        },
+        {
+          "path": "base44/functions/calculateEngineMaintenance/entry.ts",
+          "bytes": 8335,
+          "sha256": "8dae24d455ba12054309647fc1e4dae852f74548eb18787db35214f69ceb0c2c"
+        },
+        {
+          "path": "base44/functions/cmrLeadScore/entry.ts",
+          "bytes": 6940,
+          "sha256": "4c7ac27529f24a85be213eaa416f5b9b0ffadb35cc81f58700fb8129b1513811"
+        },
+        {
+          "path": "base44/functions/cmrMatchEngine/entry.ts",
+          "bytes": 4975,
+          "sha256": "0b1acaacfe3f8073ca027ba7cc0565b18da64e519b41f6d9a25a7f3e466f54f6"
+        },
+        {
+          "path": "base44/functions/cmrNegoBrief/entry.ts",
+          "bytes": 5572,
+          "sha256": "9298c31c2b98d64ad9f0df1784fe28c763d9f041f94a568be5f04c0e5afbe2bb"
+        },
+        {
+          "path": "base44/functions/computeGlobalCompliance/entry.ts",
+          "bytes": 18504,
+          "sha256": "b07d926aa6209569e970bee35fdc2ae1241a79ed3581a307490f54302ff2281d"
+        },
+        {
+          "path": "base44/functions/computeMarketAnalytics/entry.ts",
+          "bytes": 5278,
+          "sha256": "da9467f21093d0250d65e1d447d47803d330257cbb8ebef671a9cfd406e196a2"
+        },
+        {
+          "path": "base44/functions/computeOMVMAnalytics/entry.ts",
+          "bytes": 8849,
+          "sha256": "31ae2c9262ff561cf3fb8819116163214d6bf9b6ce803098a0d33ec2ce2ee7ef"
+        },
+        {
+          "path": "base44/functions/computeRevenueShare/entry.ts",
+          "bytes": 2921,
+          "sha256": "3a32efe1576d6b074950c9bce0d7b9ebd6145162309b9fce1d906f3c2ceaa975"
+        },
+        {
+          "path": "base44/functions/createFaaAtiCards/entry.ts",
+          "bytes": 6997,
+          "sha256": "0e6451f88ea01a9707d82d1e7f693a529e8330858af7600f4105c24b3f601d56"
+        },
+        {
+          "path": "base44/functions/dataIntegrityShield/entry.ts",
+          "bytes": 6172,
+          "sha256": "948d2e034c43fd436cd2a3e0a6c78ac50b82ec36376c173390a78701d9508720"
+        },
+        {
+          "path": "base44/functions/dispatchWebhook/entry.ts",
+          "bytes": 2773,
+          "sha256": "2cd91df27bc3df66a9e0a54cbccbcea8a0bf329b3ecbb39d89f0d5fad4dc42e1"
+        },
+        {
+          "path": "base44/functions/easaAdLookup/entry.ts",
+          "bytes": 4178,
+          "sha256": "87cac7cea41da10967e5829d6cbffb36e437c3cbd6e1482f14210bb6709a36d6"
+        },
+        {
+          "path": "base44/functions/escrowNotify/entry.ts",
+          "bytes": 4773,
+          "sha256": "e9056c4696e6af7c9e66f2539261cc500d0dde363b0b84e9e06c61c510f60cdd"
+        },
+        {
+          "path": "base44/functions/escrowSync/entry.ts",
+          "bytes": 3900,
+          "sha256": "dbfd984d7973dce95231665a2fbf91f4f831bd2d988f4d1d4e14cb8ddf3edb48"
+        },
+        {
+          "path": "base44/functions/executeBrokerAgreement/entry.ts",
+          "bytes": 10682,
+          "sha256": "1b5f67d31dc90ac9f1094e532e5a6f5b8e69f389827049ff7c48c86eabcf99a0"
+        },
+        {
+          "path": "base44/functions/expertCheckout/entry.ts",
+          "bytes": 4555,
+          "sha256": "1acdd865f4ba062533bfd3702f4d46b7e3e6247719ea6544ae0988b8d457e1cc"
+        },
+        {
+          "path": "base44/functions/expertNotify/entry.ts",
+          "bytes": 3208,
+          "sha256": "dade5fe4551b4d1e550cc6c2caa996efbad3ad960a6436667fe290233b640fe1"
+        },
+        {
+          "path": "base44/functions/fetchAllTradeData/entry.ts",
+          "bytes": 7010,
+          "sha256": "4671657bd6a5f2dbb0701c8b8cfd8eb02719fac5fe331140e322a1c374902a5f"
+        },
+        {
+          "path": "base44/functions/fetchAviationNews/entry.ts",
+          "bytes": 5127,
+          "sha256": "2dd70e1267a89ce5ba1ce656589410440126fe58a4c919a2a47ac25702f6bcb3"
+        },
+        {
+          "path": "base44/functions/fetchLiveTraffic/entry.ts",
+          "bytes": 2299,
+          "sha256": "bbe9de784ce99918454dd832547624923067d5e6d4b5872e5e24aa65b8e454ff"
+        },
+        {
+          "path": "base44/functions/gcrCheckout/entry.ts",
+          "bytes": 1811,
+          "sha256": "c936de57ddf6dabc79d46896e1ddcc8c4dd6883c569ee6610a550e6478fbd268"
+        },
+        {
+          "path": "base44/functions/gcrConfirmUnlock/entry.ts",
+          "bytes": 2254,
+          "sha256": "05a67bbcf6b8a5a24fda78e7194c87748e7638240a87fea117a1032414933b82"
+        },
+        {
+          "path": "base44/functions/geminiLiveProxy/entry.ts",
+          "bytes": 5244,
+          "sha256": "e367fdf6f1dad3d9106136311b8c0d6c6874db1714c40bb965d66f3abb9b3bde"
+        },
+        {
+          "path": "base44/functions/generateAviationNews/entry.ts",
+          "bytes": 3431,
+          "sha256": "b13873d1be0f2d815735de3c3ef3423c38c0e1ff76adf6eb80e335bf74d50c2b"
+        },
+        {
+          "path": "base44/functions/generateMarketForecast/entry.ts",
+          "bytes": 5789,
+          "sha256": "75783a1e21e30a4b08f3dd1094e12ea519fe7d2a3cef20b64a98d9c1b15d00af"
+        },
+        {
+          "path": "base44/functions/generateMarketInsights/entry.ts",
+          "bytes": 7054,
+          "sha256": "c1ea11abc1b5e8a3d0b9289d7d910891fda4a73a4d2b27880b33dc2009cf18ba"
+        },
+        {
+          "path": "base44/functions/generateMarketReport/entry.ts",
+          "bytes": 13789,
+          "sha256": "11775b97b0add6e9e213aa032eeea6e2100bd48d53262918124b1daba039e13e"
+        },
+        {
+          "path": "base44/functions/getOpenSkyToken/entry.ts",
+          "bytes": 1620,
+          "sha256": "493e7aff92e008efb95f80063a57cc2988cd9ea5ef317d339a6adf8e003efbab"
+        },
+        {
+          "path": "base44/functions/getSupabaseConfig/entry.ts",
+          "bytes": 2575,
+          "sha256": "76ed04db866e6c1a6df5aa229ef2de18d61a3ebb88997fcc00a3a364b836366e"
+        },
+        {
+          "path": "base44/functions/globalAircraftLookup/entry.ts",
+          "bytes": 17514,
+          "sha256": "a72b09483392aa2a83d09f498cc1f17ff503d384d2103aaf2932485928288ce4"
+        },
+        {
+          "path": "base44/functions/hfMarketIntelligence/entry.ts",
+          "bytes": 11154,
+          "sha256": "e43fc164e7f8ef680821b9fb6904f85ce52359eb6ab5a1854ad528cb20e4e24a"
+        },
+        {
+          "path": "base44/functions/identifyTestListings/entry.ts",
+          "bytes": 2519,
+          "sha256": "c4663146ae4fe0c42e116febcb4d819b75332d166251ab1b34f4a0ad95999f1d"
+        },
+        {
+          "path": "base44/functions/ingestLiveTraffic/entry.ts",
+          "bytes": 5730,
+          "sha256": "5cd07100263d04b25f5398f246534a4ed858cedbc73f45eddec3ed35319d8f98"
+        },
+        {
+          "path": "base44/functions/initDigitalTwin/entry.ts",
+          "bytes": 7036,
+          "sha256": "ed5a1c350d49f3f9a106eefb4b11a0f4282e3ec04a5b9a5a8df5284710899d78"
+        },
+        {
+          "path": "base44/functions/intelExchange/entry.ts",
+          "bytes": 5085,
+          "sha256": "a26ba23be7fa74d31c4bc6eae9fb897211c193c3e7d9131b03b6f6f2ecf66f7a"
+        },
+        {
+          "path": "base44/functions/intraZoneSupabase/entry.ts",
+          "bytes": 5072,
+          "sha256": "a06d1b8abfddb3596dc31463a531546b51e47e56f9fcb339f450b053c6212cb0"
+        },
+        {
+          "path": "base44/functions/intrazoneMarketSignals/entry.ts",
+          "bytes": 3846,
+          "sha256": "d7a54a42da0b3ba5d75c84a09c5b762d623b0c14770b04692ec6566c3cdca668"
+        },
+        {
+          "path": "base44/functions/intrazoneNetworkIntel/entry.ts",
+          "bytes": 7223,
+          "sha256": "568e186833c3c81f6dd956db91d6b809f64695678e61004d7b02d37ad3acb9c9"
+        },
+        {
+          "path": "base44/functions/invokeMarketplaceTool/entry.ts",
+          "bytes": 7542,
+          "sha256": "898b6daa6ad8c24a04f5f0d2ef99e87fe56687b327294ff5dd58f0b99c98bf88"
+        },
+        {
+          "path": "base44/functions/invokeSkill/entry.ts",
+          "bytes": 5221,
+          "sha256": "ee17e59a8f6bf28c48f5b642c09e8f73af00a606b2bd3a4497c62fc1cc29feca"
+        },
+        {
+          "path": "base44/functions/invokeSkillAvionics/entry.ts",
+          "bytes": 5090,
+          "sha256": "415cb1f08d5de41bbd7ec89dfbd1315b23720a977d1eba37ae6bbf64271289c6"
+        },
+        {
+          "path": "base44/functions/invokeSkillDetailing/entry.ts",
+          "bytes": 7992,
+          "sha256": "e5cc3ef89a9cc20a431476a02bb4e882b232e7750c75996dd31f978f2a7cebc7"
+        },
+        {
+          "path": "base44/functions/invokeSkillEngineOverhaul/entry.ts",
+          "bytes": 5505,
+          "sha256": "3f4558575bcbab59a5c44341b8a917111a7a1be63561c3de364ea1c9082b8bee"
+        },
+        {
+          "path": "base44/functions/invokeSkillExterior/entry.ts",
+          "bytes": 4975,
+          "sha256": "4598c5b501639b3ed0dd828df3ba96ffabeac3aa5fda41d4eb9a07c618039c14"
+        },
+        {
+          "path": "base44/functions/invokeSkillFleetChange/entry.ts",
+          "bytes": 7878,
+          "sha256": "a2eb57833d77182389ae09129fd63c5a86980c9b0a5c45954c6f3779d4c0593f"
+        },
+        {
+          "path": "base44/functions/invokeSkillFractionalOwnership/entry.ts",
+          "bytes": 5709,
+          "sha256": "5a80abf17c1f58005ca304a1aa89586c0e490da314da2f7d001574bd6d43681d"
+        },
+        {
+          "path": "base44/functions/invokeSkillInsurance/entry.ts",
+          "bytes": 4433,
+          "sha256": "c6f4451b94df737d4066f49949dc3810c5e00fdcb17f3b5289fd558fbfb0f8c4"
+        },
+        {
+          "path": "base44/functions/invokeSkillInterior/entry.ts",
+          "bytes": 6506,
+          "sha256": "0cf4b273069737e7882dcd100e8125818e37b84b250c81a0734f796cc92c6653"
+        },
+        {
+          "path": "base44/functions/invokeSkillInvestmentHealth/entry.ts",
+          "bytes": 12471,
+          "sha256": "3f008322baf2109f01fef02bac79538ab3886408166b8dd6b85731acc9338737"
+        },
+        {
+          "path": "base44/functions/invokeSkillLeaseRate/entry.ts",
+          "bytes": 2865,
+          "sha256": "201c6b1b9528928559de9d3dfd4bc169c36631e37058ae1010ed2199a021e42f"
+        },
+        {
+          "path": "base44/functions/invokeSkillLeasing/entry.ts",
+          "bytes": 3893,
+          "sha256": "4e7f8aef255c694370da8041d8dd019e8d7a07b6e0bcf40b2c08fd23d2493e53"
+        },
+        {
+          "path": "base44/functions/invokeSkillMroSchedule/entry.ts",
+          "bytes": 8469,
+          "sha256": "414d3dc129a296e1370a0c73d16125f3fe90ae8e97383bce79655f216acc2e8b"
+        },
+        {
+          "path": "base44/functions/invokeSkillOpex/entry.ts",
+          "bytes": 8833,
+          "sha256": "998b1350faf7987b424e7a4051db5ae329f5a2ef93d26aaffb34896a9b9c3d0c"
+        },
+        {
+          "path": "base44/functions/invokeSkillPropOverhaul/entry.ts",
+          "bytes": 6087,
+          "sha256": "8803660f5029e19c38da2927e156eab99753eda9094407d24588df5d35980b19"
+        },
+        {
+          "path": "base44/functions/invokeSkillRebuildRoi/entry.ts",
+          "bytes": 3527,
+          "sha256": "370032e854e7e5001770aeca93843bd5141cce76e3f99a02c739b3ff3dc3afba"
+        },
+        {
+          "path": "base44/functions/invokeSkillTaxBenefit/entry.ts",
+          "bytes": 3489,
+          "sha256": "168eb4c02c47a7c94a0fdd9868555fc973f9c29da68687fa23973f4190b4cf77"
+        },
+        {
+          "path": "base44/functions/invokeSkillTimebuildingBuy/entry.ts",
+          "bytes": 7518,
+          "sha256": "dc0203e91afb86577fd5d61351568868bb81158d87815746fbbe973e9f5d913a"
+        },
+        {
+          "path": "base44/functions/invokeSkillUpgradeCompare/entry.ts",
+          "bytes": 3247,
+          "sha256": "4e527801add096a8022cfa23feb7719ca50e38f809a2329b67b92e35ca68e1a5"
+        },
+        {
+          "path": "base44/functions/listSupabaseProjects/entry.ts",
+          "bytes": 3866,
+          "sha256": "0ecf8bf2c6884dcc58ced7fd6ce9ba09fa26853dac91f225d4ead7abefeb8601"
+        },
+        {
+          "path": "base44/functions/listWorkflows/entry.ts",
+          "bytes": 681,
+          "sha256": "7919da092510c6b3bb32cfb292384bab9b5ae216f4a4d1fbdc94c9b6c718f7e1"
+        },
+        {
+          "path": "base44/functions/managePreBuyInspection/entry.ts",
+          "bytes": 13756,
+          "sha256": "a994530cc057c63e484d62769b0d3fda1623a31afae12201a2207494a4d94060"
+        },
+        {
+          "path": "base44/functions/marketExpertValuation/entry.ts",
+          "bytes": 10678,
+          "sha256": "62e6d12cb46940fa5049f510b98dca66907ac336bb241541cb03a5632fcdeaee"
+        },
+        {
+          "path": "base44/functions/monitorFaaAirmanRelease/entry.ts",
+          "bytes": 5017,
+          "sha256": "cdd3432efb4c7207d3acf456c4fce53c7380f427ab61599b0958ba0c1b37f48f"
+        },
+        {
+          "path": "base44/functions/newsletterCheckout/entry.ts",
+          "bytes": 1611,
+          "sha256": "d42edd162add72001a2bb978c1a37421041d3bbcb546ddb5894064e930b8b149"
+        },
+        {
+          "path": "base44/functions/nregSearch/entry.ts",
+          "bytes": 5981,
+          "sha256": "7d4657ff33b2a10d2088c2d0cbd4f859bce9658b167c9966dc050cf005280e63"
+        },
+        {
+          "path": "base44/functions/nvidiaFrameAnalysis/entry.ts",
+          "bytes": 2350,
+          "sha256": "87817521bb2924a71d96ee61a372733908bb6be76c6715ac1c6863ff4da514e9"
+        },
+        {
+          "path": "base44/functions/omvmV5Score/entry.ts",
+          "bytes": 10933,
+          "sha256": "55488e6bce0e70354bf38edfaaddaeec780218cf7758ced68c137a123a71f582"
+        },
+        {
+          "path": "base44/functions/onBuyerInterest/entry.ts",
+          "bytes": 4297,
+          "sha256": "8feedd5649912735aa64717d94dacf45f6499abf2c12849fc1115fad3bfa316b"
+        },
+        {
+          "path": "base44/functions/onListingATIUpdate/entry.ts",
+          "bytes": 2272,
+          "sha256": "2f822f5567234e4acdf001de3ed02d9697026da6029b8c9f1e22ae413734692e"
+        },
+        {
+          "path": "base44/functions/onPipelineStatusChange/entry.ts",
+          "bytes": 4405,
+          "sha256": "1c31d81d1830e9e01acf824287ebcf59a4ef266515cda86c9f6a21b909afefb9"
+        },
+        {
+          "path": "base44/functions/openSky/entry.ts",
+          "bytes": 27672,
+          "sha256": "1d74ea783d3836b02fa18550b46665351cc3b5fcc95f004e0dfd66176b397a2e"
+        },
+        {
+          "path": "base44/functions/orchestrateATIScoring/entry.ts",
+          "bytes": 16901,
+          "sha256": "32e0ff047bb73d56ed75829e47665ef5aa417a580b58d0b193e91d5f9a39e12f"
+        },
+        {
+          "path": "base44/functions/orchestrateSalesStep/entry.ts",
+          "bytes": 15252,
+          "sha256": "7fead3c23341ad4d51fe9d79bb893f3951dd7cd8a178f000671db88805c1b73a"
+        },
+        {
+          "path": "base44/functions/piloterrTradeProxy/entry.ts",
+          "bytes": 9275,
+          "sha256": "07328b55ed770447725bc88676ae9390f1b2ff72a07b77404d3e29ec755f07c6"
+        },
+        {
+          "path": "base44/functions/pipelineIntegrations/entry.ts",
+          "bytes": 6174,
+          "sha256": "dd8df66a59e724c7cadd665c53ec6c258b00d5ad4f6b759d0c3b6a598197c5eb"
+        },
+        {
+          "path": "base44/functions/publicTwinLookup/entry.ts",
+          "bytes": 3754,
+          "sha256": "87693a73fef0cbed36e0986218e3b181d6da4c415b114aadda6bb5220585068a"
+        },
+        {
+          "path": "base44/functions/registryComparator/entry.ts",
+          "bytes": 16990,
+          "sha256": "6ee6b7c4594204a91f569e911017689d4735a752f8639645ea68d43ae9af3a67"
+        },
+        {
+          "path": "base44/functions/registryLookup/entry.ts",
+          "bytes": 12334,
+          "sha256": "c6492fcf2cc31554c990282f2c433671b1eaaa39aeb400540dad8188577d7043"
+        },
+        {
+          "path": "base44/functions/reportCheckout/entry.ts",
+          "bytes": 4195,
+          "sha256": "5ff01f15c15979a3fdb3973e294e0d4f02a87fe95f379cd1f6373a74299eb9fc"
+        },
+        {
+          "path": "base44/functions/reportFulfill/entry.ts",
+          "bytes": 9293,
+          "sha256": "c5007d54b415444306efeafccd538e8567674c8c3e873dab75f8e5a62f57d4cb"
+        },
+        {
+          "path": "base44/functions/requestAccountDeletion/entry.ts",
+          "bytes": 2861,
+          "sha256": "a495a2225bce53d12a33b8e652a4fea9da494cf1412ec28c5bd985677d9eea68"
+        },
+        {
+          "path": "base44/functions/sakanaDealBrief/entry.ts",
+          "bytes": 6564,
+          "sha256": "687e7887c9f06003318a7420c15511f8276f6683deb956b453a9f0700509e851"
+        },
+        {
+          "path": "base44/functions/searchConsolePerformance/entry.ts",
+          "bytes": 6252,
+          "sha256": "b70dc886cc730faa65cc34cc8dc85b38ce7fcf31cb038c008e8826ecefcc851b"
+        },
+        {
+          "path": "base44/functions/sendPipelineEmailSummary/entry.ts",
+          "bytes": 4717,
+          "sha256": "121e5e6c469919813a431e26377531bfe04639828b0bba158f04299c269bbabd"
+        },
+        {
+          "path": "base44/functions/setupAdminUser/entry.ts",
+          "bytes": 2666,
+          "sha256": "4218aeceb8cb677283282df063697d11ec4f9814db5fa8210876213bb46edd20"
+        },
+        {
+          "path": "base44/functions/setupDatabase/entry.ts",
+          "bytes": 9881,
+          "sha256": "a96cbf779cd35ef4d8dfae76ee2ca7c2ac2839e2a15579238d23c146cb9d311b"
+        },
+        {
+          "path": "base44/functions/stripeCreateCheckout/entry.ts",
+          "bytes": 1408,
+          "sha256": "51e34c2fb8541f7cacfadf7b07a04c3cc0b2008fdfec895614b4726eb5765efb"
+        },
+        {
+          "path": "base44/functions/stripeWebhook/entry.ts",
+          "bytes": 14061,
+          "sha256": "bf76e66a962b57193d8ae7819c9374e59f28b6914484d70b527c435e5a820b68"
+        },
+        {
+          "path": "base44/functions/superAdminFeatureManager/entry.ts",
+          "bytes": 3054,
+          "sha256": "82b88f8470978fde086b6f9c9c5f47228fe8735457c2d1688198c461cc380abf"
+        },
+        {
+          "path": "base44/functions/syncEscrowToCalendar/entry.ts",
+          "bytes": 6175,
+          "sha256": "7a9649b659ac2c8914e84a9abadec617991942c73d98abb952196543b0d2d4d4"
+        },
+        {
+          "path": "base44/functions/syncFaaFromSupabase/entry.ts",
+          "bytes": 32764,
+          "sha256": "29b4e27c30dde514e9dd309a496d91355c8867d0b144db79c131d087bc32d1ad"
+        },
+        {
+          "path": "base44/functions/syncFaaToAtiCard/entry.ts",
+          "bytes": 7531,
+          "sha256": "0805782d8d0b5827b84d0e0402001fa25b7eebe0e487a0079090500696d1defc"
+        },
+        {
+          "path": "base44/functions/syncFeatureRequestToGitHub/entry.ts",
+          "bytes": 2344,
+          "sha256": "aaa569a732496d46220239863fb2e8283b406d537e4e57a4c3d00a753c55ee20"
+        },
+        {
+          "path": "base44/functions/unlockAtiQuickScore/entry.ts",
+          "bytes": 13230,
+          "sha256": "40597561c830dbf30f8960d21b25d46260203a5f21d9804400ea11c56efaeddd"
+        },
+        {
+          "path": "base44/functions/usdcEscrowMonitor/entry.ts",
+          "bytes": 4577,
+          "sha256": "e5207909ab14676a9c0de1aee9e410f81a261c47026fbb751783982d2513c232"
+        },
+        {
+          "path": "base44/functions/userBehaviorCleanup/entry.ts",
+          "bytes": 2930,
+          "sha256": "1605ae15c9dad0d186fe11b319770ea453c868d297b0291d1b57b1f7feac831c"
+        },
+        {
+          "path": "base44/functions/verifyCertificate/entry.ts",
+          "bytes": 1981,
+          "sha256": "733eafce8493885b71692e8bf7c650ccc2c098e9994e0725005e62bca18b4766"
+        },
+        {
+          "path": "base44/functions/widgetEscrowAction/entry.ts",
+          "bytes": 11440,
+          "sha256": "b6ceec00db87cd358f80a8918ed8e6691f4e6390a81cb1475cbe59ff1418447b"
+        },
+        {
+          "path": "base44/functions/widgetGateway/entry.ts",
+          "bytes": 17011,
+          "sha256": "c568b375f7e7bf55b9d4463f523f3ac1577f673c3ac62b875c6a9e8300fdd45f"
+        },
+        {
+          "path": "base44/functions/xmlReader/entry.ts",
+          "bytes": 1427,
+          "sha256": "7f5b005738122848d411a5a63b77602d4991fa94f23fb9011f44c1999c8db78e"
+        }
+      ]
+    },
+    "base44_entities": {
+      "source_path": "base44/entities",
+      "top_level_directory_count": 0,
+      "file_count": 79,
+      "files": [
+        {
+          "path": "base44/entities/ATICard.jsonc",
+          "bytes": 7921,
+          "sha256": "df34d9160eddb0ecc3ae5796ceb228ca73a81ff10ad317a5da776dc9b3960a8c"
+        },
+        {
+          "path": "base44/entities/ATICardReview.jsonc",
+          "bytes": 2284,
+          "sha256": "a9dfbb9b3e5459aa62be7ae8eb44f30cce842f58893e74f17fd58b31aab7d8e5"
+        },
+        {
+          "path": "base44/entities/ATIPassport.jsonc",
+          "bytes": 7259,
+          "sha256": "b9f88c93e826e09742e5ffbe8942b84189ba2ebb1ebe71d73e41f75a8fdc8ae6"
+        },
+        {
+          "path": "base44/entities/ATIVerifyDocument.jsonc",
+          "bytes": 3235,
+          "sha256": "1eb4a9bd0e5dc7b4001cb2077dd31b63521a340f82dc3fc10c7e470340540104"
+        },
+        {
+          "path": "base44/entities/ATIVerifyScore.jsonc",
+          "bytes": 1853,
+          "sha256": "9bd89ee5bc0c859094424e49cde4ca30e395dfcb961b8daca8b28492cf907278"
+        },
+        {
+          "path": "base44/entities/ATIVerifySession.jsonc",
+          "bytes": 2798,
+          "sha256": "4515a101bceb7472eab469d639e4e280211de87c0abb97012427fa18d2963c86"
+        },
+        {
+          "path": "base44/entities/AccountDeletion.jsonc",
+          "bytes": 1809,
+          "sha256": "30cbe0462840cff69f20063803b6bdf44facf2a9112eb0c36ea52b7915a92b64"
+        },
+        {
+          "path": "base44/entities/AdminAuditTrail.jsonc",
+          "bytes": 2477,
+          "sha256": "228f873868ca75a35f1ace98776ec7ffdaae36feaa830aa20d79152f26dff55c"
+        },
+        {
+          "path": "base44/entities/AdminDashboard.jsonc",
+          "bytes": 2999,
+          "sha256": "a9cba06f5929150de96019f1bd07e672f5712e87f4b3a2420dd668aa4f417965"
+        },
+        {
+          "path": "base44/entities/AdminSettings.jsonc",
+          "bytes": 1611,
+          "sha256": "731605949bd884f916aba921bd60668940c314932ad2df21860e944e6b025803"
+        },
+        {
+          "path": "base44/entities/AffiliateLink.jsonc",
+          "bytes": 3296,
+          "sha256": "8d419749ddd1e4e93be528c56a24a41e45b35d842d569421b06f6d1cb0284a2e"
+        },
+        {
+          "path": "base44/entities/AircraftAlert.jsonc",
+          "bytes": 2797,
+          "sha256": "481cb4a8d404726bbc67a5fcffceadd8cbaea760a0316cd9e428961868f3a458"
+        },
+        {
+          "path": "base44/entities/AircraftListing.jsonc",
+          "bytes": 3857,
+          "sha256": "a8191e9ba3d149fff0fde213cb32fdd25b10a3ec5688c844db01bd4156aad03d"
+        },
+        {
+          "path": "base44/entities/AirmanReleaseMonitor.jsonc",
+          "bytes": 1199,
+          "sha256": "5ab8fc9b156d5f87330a36e5eebc9cff8e329d8919d56e68e5e4e363683f9b0b"
+        },
+        {
+          "path": "base44/entities/ApiKey.jsonc",
+          "bytes": 2780,
+          "sha256": "915be1d8b926e6897758dc94295ffa4201749d49a2c9799be1dcbb182f9c1e51"
+        },
+        {
+          "path": "base44/entities/ApiRequestLog.jsonc",
+          "bytes": 1466,
+          "sha256": "04b07c0d29160c884d9af92751ee0fb00583eac724449937861780eec3dc1602"
+        },
+        {
+          "path": "base44/entities/AppConfig.jsonc",
+          "bytes": 1106,
+          "sha256": "5e65d98e4a54174dc4cc70b128d7ac1fe7a1a71742149fa2600dc3d5487fdcc6"
+        },
+        {
+          "path": "base44/entities/AviationNewsItem.jsonc",
+          "bytes": 1606,
+          "sha256": "5110ba099a09b8f77d4003a050c8f639d6f65a0cc93c4e0df37b30ab86525ccc"
+        },
+        {
+          "path": "base44/entities/AviationService.jsonc",
+          "bytes": 3897,
+          "sha256": "d5cdf5930177c0274fbbf8c8c8e92a5fc5e8cecf6c41507588c638aab983a8f8"
+        },
+        {
+          "path": "base44/entities/BillOfSaleDraft.jsonc",
+          "bytes": 3511,
+          "sha256": "fcbe484216ba885e4fdb25992f0d84cc66101f8c1fa9288f465a23c131183b15"
+        },
+        {
+          "path": "base44/entities/BillingEvent.jsonc",
+          "bytes": 2837,
+          "sha256": "89760c3d8bbad242be6306f684efbe54b6b6621347013774a405343ca7b05323"
+        },
+        {
+          "path": "base44/entities/BrokerAgreement.jsonc",
+          "bytes": 2986,
+          "sha256": "35d331ebb6128afad87fe46054fabbc41c1fe7f30790a104be09a39c9eac6b50"
+        },
+        {
+          "path": "base44/entities/BrokerAlert.jsonc",
+          "bytes": 3468,
+          "sha256": "b3be293dedd0521e56b55258c0c9bc7307a2ded73d73dcc6388648121ce22752"
+        },
+        {
+          "path": "base44/entities/BrokerProfile.jsonc",
+          "bytes": 2120,
+          "sha256": "4794f6948404273b1ec42a1fd3dbaa09e5dc7677b9fcd8f9450fe89f535374c3"
+        },
+        {
+          "path": "base44/entities/CommissionLedger.jsonc",
+          "bytes": 3379,
+          "sha256": "525804d912786e6a4f25b330dbe7aff0607196a69bfb71783bf17dfc5275572c"
+        },
+        {
+          "path": "base44/entities/DealRadar.jsonc",
+          "bytes": 1303,
+          "sha256": "06d7cd97d09c8a4e8e69f2dafac39f21bcc03760a0ff6e02a80c014f0973337a"
+        },
+        {
+          "path": "base44/entities/DealerLead.jsonc",
+          "bytes": 1416,
+          "sha256": "007f9d116315a016a4d337b9ce1f2cd4536c2233c9ea00694f2eb56efebd5d27"
+        },
+        {
+          "path": "base44/entities/DealerLocation.jsonc",
+          "bytes": 2691,
+          "sha256": "8a52e0b3fd455f3cd11f36a0168a576ddfed0fe16dfe96c942e1b45072cac413"
+        },
+        {
+          "path": "base44/entities/DecisionLog.jsonc",
+          "bytes": 2105,
+          "sha256": "0ce6b58992fc0b8350d72ceed7b88083c286b646a5953213d433d34ab039e382"
+        },
+        {
+          "path": "base44/entities/DeveloperAccount.jsonc",
+          "bytes": 3532,
+          "sha256": "1574c92dc0322a73bcd0e505f6693c942b6ff3dc095017be0f08a44a832ee23a"
+        },
+        {
+          "path": "base44/entities/EditorProfile.jsonc",
+          "bytes": 3424,
+          "sha256": "dc05efc998edbfc47844581b44602a41b40e0efb083b3a0b781563fab613b9bb"
+        },
+        {
+          "path": "base44/entities/EngineMaintenance.jsonc",
+          "bytes": 2531,
+          "sha256": "2e4fceb3cd43677b46feae7e0370f0d488eda42005ea8b65a0fabec441288723"
+        },
+        {
+          "path": "base44/entities/EngineSpec.jsonc",
+          "bytes": 2648,
+          "sha256": "506ed92c82ab2dceacf4ac7c0beb0e93f0afce909f54d3e0495af9bbc7b214e3"
+        },
+        {
+          "path": "base44/entities/EscrowTransaction.jsonc",
+          "bytes": 5695,
+          "sha256": "562e24e97d8238bc91c8e086006b19cdfa49c45c3ef3d9ced0a30b1a77eb2691"
+        },
+        {
+          "path": "base44/entities/ExpertBid.jsonc",
+          "bytes": 2629,
+          "sha256": "0b695e3c486f22eb99431f192db0cd2b72f71bd44fa3957123e051c6f0ea1beb"
+        },
+        {
+          "path": "base44/entities/ExpertCrossCheck.jsonc",
+          "bytes": 3204,
+          "sha256": "3573e70bb707e2f23ec1ded8ab4c0b5a1fc7d040fe870c1c9314c5fb937d3805"
+        },
+        {
+          "path": "base44/entities/ExpertProfile.jsonc",
+          "bytes": 3537,
+          "sha256": "e05eb798a625f635372523f5609133a481655216c35ef2ac999ddb5fd7c014b4"
+        },
+        {
+          "path": "base44/entities/ExpertValuation.jsonc",
+          "bytes": 2741,
+          "sha256": "89b4fbb0da33c0dfd614f41b6140f945e75b09865fc26194c1b2e0ccaf771114"
+        },
+        {
+          "path": "base44/entities/FAAAircraft.jsonc",
+          "bytes": 3054,
+          "sha256": "025373409ad0cba69d1c5f91ab62c005c077b551374ee210c2921c67dfcd4d41"
+        },
+        {
+          "path": "base44/entities/FAADocIndex.jsonc",
+          "bytes": 1287,
+          "sha256": "621b4354cf243695bf6fcdd252b2202ec94e9b3bf1663d2cbd7a0766e47f4f33"
+        },
+        {
+          "path": "base44/entities/FeatureRequest.jsonc",
+          "bytes": 1973,
+          "sha256": "c40759c8af1fb3215a37f5802267e5394a76eeb1f39df0bd9889713cdf7b50c2"
+        },
+        {
+          "path": "base44/entities/FeatureRollout.jsonc",
+          "bytes": 2736,
+          "sha256": "eb759a733694ce1a663cfc9c9e4d256273fa49b7debc80fac11e67899ff02689"
+        },
+        {
+          "path": "base44/entities/FeatureToggle.jsonc",
+          "bytes": 3162,
+          "sha256": "f969bc2dc4e63acc61037618b3fa32cde059766e45cb67a7d22ca22679f6296b"
+        },
+        {
+          "path": "base44/entities/FeatureUsageMetric.jsonc",
+          "bytes": 2649,
+          "sha256": "7af53a1f09f0ed091d0702f70ee4df174d8b618448d70c25a173586aa919ccf0"
+        },
+        {
+          "path": "base44/entities/FeatureVote.jsonc",
+          "bytes": 1216,
+          "sha256": "110ea5ccdc36ae4c4f3de4369094c8e2e3c20e305b08c5d9763e91951c7cf616"
+        },
+        {
+          "path": "base44/entities/GlobalRegistry.jsonc",
+          "bytes": 2527,
+          "sha256": "825548ad64bb0c94177243f297471e0eefd2b1f811217e00e6928f7f1f23d6ff"
+        },
+        {
+          "path": "base44/entities/Lead.jsonc",
+          "bytes": 2530,
+          "sha256": "7beb6748d590430476d1cd21656610188670e7cf72ed7f93daceea499a01faa1"
+        },
+        {
+          "path": "base44/entities/LeadEvent.jsonc",
+          "bytes": 2507,
+          "sha256": "272b8750ed3b297cf45cc17043c032f6728199afefc5bb3c794f9af6b8ce195a"
+        },
+        {
+          "path": "base44/entities/MarketComparable.jsonc",
+          "bytes": 2291,
+          "sha256": "8aed0cc438c8644f5cd906d042321a36d4c7ffd5d53ce7cd46a710a9eaba94e7"
+        },
+        {
+          "path": "base44/entities/MarketForecast.jsonc",
+          "bytes": 5835,
+          "sha256": "f9e2c6080870640df3f33d95461f5bf043812013883aa65936697702a4e8cbba"
+        },
+        {
+          "path": "base44/entities/MarketReport.jsonc",
+          "bytes": 6629,
+          "sha256": "c5531c682d6159f7c2c70dd06e1e4a42f5d10a7b24702577987643b9fbd4dd30"
+        },
+        {
+          "path": "base44/entities/NewPlaneBrowser.jsonc",
+          "bytes": 1671,
+          "sha256": "07e8042888ba0fde564eb3b834dd06d92b72a5baef6ad73369c96fbf94cae501"
+        },
+        {
+          "path": "base44/entities/Order.jsonc",
+          "bytes": 1888,
+          "sha256": "5f47e99d4559c8675adf8b843b0c8dfdd66009d7973e03a2aadc3fe165691438"
+        },
+        {
+          "path": "base44/entities/OwnershipTrace.jsonc",
+          "bytes": 2973,
+          "sha256": "bf2e338cd7675c24cb15be1cb7c7f1c6d4d0d7bf250dbf8ec059dec183c4a884"
+        },
+        {
+          "path": "base44/entities/PartnerConfig.jsonc",
+          "bytes": 3755,
+          "sha256": "f39e4afa88dc338fd0765657b6bbba08930456413707e5e5267a88e38a398d50"
+        },
+        {
+          "path": "base44/entities/PartnerListingFeed.jsonc",
+          "bytes": 1792,
+          "sha256": "71c9c5dcdbc7d5fecbbe09cdfa813b98d6ad26224c2cfd9c30404f4b6586de29"
+        },
+        {
+          "path": "base44/entities/PermissionLog.jsonc",
+          "bytes": 2151,
+          "sha256": "69a49366b066a6a1883b309eff6cddd3a856da9b306bee41da213e76d33886dd"
+        },
+        {
+          "path": "base44/entities/PreBuyInspection.jsonc",
+          "bytes": 8253,
+          "sha256": "7a6959c5b8ef789c8a821d3785db1cc656f053089e590d4e44963830f7856276"
+        },
+        {
+          "path": "base44/entities/ReportRequest.jsonc",
+          "bytes": 1652,
+          "sha256": "f2d9b76db9569197d81d97a2d35c8ff771d6af24d48dafded8e9e38de2ffe243"
+        },
+        {
+          "path": "base44/entities/RewardMilestone.jsonc",
+          "bytes": 2053,
+          "sha256": "8cdbcded95184dba94b042e4a19df4e537adc7b5073ea4d6de14f4d8fcb68137"
+        },
+        {
+          "path": "base44/entities/SalesFunnel.jsonc",
+          "bytes": 2953,
+          "sha256": "a6342c617341b7a4ac3df4ca53e69b9746923b38b75b44f7914d445383d9e4a0"
+        },
+        {
+          "path": "base44/entities/SalesPipeline.jsonc",
+          "bytes": 4426,
+          "sha256": "23e99b89f43e1d46acfa64ae3624567dc1109a3cb80f64688705eae16c5c00f6"
+        },
+        {
+          "path": "base44/entities/ScraperRun.jsonc",
+          "bytes": 1666,
+          "sha256": "fe1fc5674dc3ebe5c5c9bdc131922051879a83533de888a05e80c6d09bc989e2"
+        },
+        {
+          "path": "base44/entities/Settlement.jsonc",
+          "bytes": 2197,
+          "sha256": "09431e5bb7086b8af09108ab126e959a87c727c00cc972911711a88f2fd038b1"
+        },
+        {
+          "path": "base44/entities/SkillDefinition.jsonc",
+          "bytes": 3013,
+          "sha256": "88d6d999feb671d61a3cd459ad2bfb0cfb620503258c82d8e1d6358ff8b31dd1"
+        },
+        {
+          "path": "base44/entities/StartupProject.jsonc",
+          "bytes": 3792,
+          "sha256": "2e16ab48ab278a61ef950f37f06edf36e5629a4a6a4e16b6511361edd4ad9433"
+        },
+        {
+          "path": "base44/entities/SuspensionEvent.jsonc",
+          "bytes": 3260,
+          "sha256": "9d0b6605c3d10a7df4a011ac40e5d593d890095d866c24f96f2861a3740ad516"
+        },
+        {
+          "path": "base44/entities/TierChange.jsonc",
+          "bytes": 3180,
+          "sha256": "af86805d4ec848b1c849215918d1ce3ddc2a7dcaae2c19324c794509addffe0c"
+        },
+        {
+          "path": "base44/entities/TokenTransaction.jsonc",
+          "bytes": 2026,
+          "sha256": "8efe75fcfa2638ae1ba5896608f25d3610fe35b8e5ed850bbe89402c6f727683"
+        },
+        {
+          "path": "base44/entities/ToolIntegration.jsonc",
+          "bytes": 3653,
+          "sha256": "4130f4e30dda993da06b295b89539e98f725d55dc3ad364011f373d09cb85673"
+        },
+        {
+          "path": "base44/entities/ToolInvocation.jsonc",
+          "bytes": 2792,
+          "sha256": "3ab80d688f2818a3e8c09a6598a01b7ff778cdeef20284064d3814e0f4ba1496"
+        },
+        {
+          "path": "base44/entities/TrafficAppearance.jsonc",
+          "bytes": 2464,
+          "sha256": "2abac8257aa90abde1f13fa86c460068af44711410250f73a63e4b8b60f1e58a"
+        },
+        {
+          "path": "base44/entities/TrafficSnapshot.jsonc",
+          "bytes": 1536,
+          "sha256": "ffa98ae1856529aa3b3b40386a53db357a6638c19abbba9938d99135b936c2fc"
+        },
+        {
+          "path": "base44/entities/User.jsonc",
+          "bytes": 2340,
+          "sha256": "66d84f02d269b9498ab38e127776cba2f3cfd91f9f7c6ef8c44db534fe724c9d"
+        },
+        {
+          "path": "base44/entities/UserBehavior.jsonc",
+          "bytes": 2989,
+          "sha256": "18867f3d2b2ce20f046ec2f61f49bce27b673b2130f8ea5acf7f6bf93ccbbf61"
+        },
+        {
+          "path": "base44/entities/UserProfile.jsonc",
+          "bytes": 3617,
+          "sha256": "2369729def14c88448e70d546a717b4176e2dda6d474c2092dfa8a309360005c"
+        },
+        {
+          "path": "base44/entities/VaultDocument.jsonc",
+          "bytes": 5340,
+          "sha256": "7b143cb8e93865d3b0b9ef29289a5e283d2be0e3f72d385b1a26d9a2a1d8268d"
+        },
+        {
+          "path": "base44/entities/WebhookConfig.jsonc",
+          "bytes": 1814,
+          "sha256": "43171be87c1c3260d48157280fd2e0a2b7a1c17c270a527e906c124300818770"
+        },
+        {
+          "path": "base44/entities/Workflow.jsonc",
+          "bytes": 2086,
+          "sha256": "c0cc673cb58031d1dc6e5d9a0097d89317fe17588c261554c8d19273c2369a1a"
+        }
+      ]
+    },
+    "base44_connectors": {
+      "source_path": "base44/connectors",
+      "top_level_directory_count": 0,
+      "file_count": 6,
+      "files": [
+        {
+          "path": "base44/connectors/github.jsonc",
+          "bytes": 52,
+          "sha256": "f75efdc757d7ca4129e060c65dd0164cb5cdc1a0e061ec414d09c70a049c38b9"
+        },
+        {
+          "path": "base44/connectors/gmail.jsonc",
+          "bytes": 102,
+          "sha256": "2a872e6c15820f13a38dc06d9622e8344d3311684176921a904ffde58c6b2f29"
+        },
+        {
+          "path": "base44/connectors/google_search_console.jsonc",
+          "bytes": 127,
+          "sha256": "c93be779eeeb7669d8c7dd7e7d853014dff7661db7c83f0002d8a0b8d47dc225"
+        },
+        {
+          "path": "base44/connectors/googlecalendar.jsonc",
+          "bytes": 116,
+          "sha256": "205403532df9e5e936566c5a794a03c02c16521d6a2602688c19b865099327c5"
+        },
+        {
+          "path": "base44/connectors/googledocs.jsonc",
+          "bytes": 156,
+          "sha256": "bc4062817da72348fd71f799f77717c5f44d531855f701a6c4ec2e16c4e4e7f7"
+        },
+        {
+          "path": "base44/connectors/supabase.jsonc",
+          "bytes": 104,
+          "sha256": "7e5853cc61ab45a96cfacf4dc1f95296ca9494ddb16dae15134360b4396762e3"
+        }
+      ]
+    },
+    "base44_agents": {
+      "source_path": "base44/agents",
+      "top_level_directory_count": 0,
+      "file_count": 4,
+      "files": [
+        {
+          "path": "base44/agents/ati_passport_guide.jsonc",
+          "bytes": 5481,
+          "sha256": "d3ddbd0986367bc34f1d2c6b8c6bd9802b31e0a1a1819c681105214f9ebf3d12"
+        },
+        {
+          "path": "base44/agents/deal_wizard.jsonc",
+          "bytes": 3638,
+          "sha256": "a2c2153d710779cfcb047012d249f5bbc673b8c3ca46127e901c202ed4b22902"
+        },
+        {
+          "path": "base44/agents/finance_advisor.jsonc",
+          "bytes": 5307,
+          "sha256": "d23a559f195ea16aeb8b5bb569ae6b8397b542f5942f685236ca9af81263a7ee"
+        },
+        {
+          "path": "base44/agents/valuation_analyst.jsonc",
+          "bytes": 5375,
+          "sha256": "51ed77afc7cfdc213b665f68446089ceda9a69cec64bc2ed1676a3b9cc141dec"
+        }
+      ]
+    }
+  },
+  "contract_drift": "not_applicable_inventory_only",
+  "secret_handling": "Only paths, byte counts, and one-way content digests are recorded; file contents and secret values are excluded.",
+  "limitations": [
+    "Counts describe repository files at source_commit and do not assert runtime equivalence or migration readiness.",
+    "SHA-256 digests support change detection and are not a security or secret scan."
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SPRINT1-SECURITY-EVIDENCE-INTAKE-001",
+  "capability": "Supabase security-fix evidence intake",
+  "reported_on": "2026-07-19",
+  "target_architecture": "Supabase security controls with disabled ARES access, least-privilege synchronization, hardened database functions, and auditable advisor evidence.",
+  "allowed_files": [
+    ".branch-factory/reports/supabase-security-fix-evidence-intake-2026-07-19.json",
+    "factory/state.json"
+  ],
+  "forbidden_changes": [
+    "Supabase production writes",
+    "deployments",
+    "secret values",
+    "runtime implementation",
+    "closing security or production gates without accessible evidence"
+  ],
+  "source_evidence": {
+    "reported_package": "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/supabase-security-fix-2026-07-19/README.md",
+    "reported_independent_verification": "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/supabase-security-fix-2026-07-19/independent-verification-2026-07-20.json",
+    "reported_task_security_review": "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/task-002-independent-security-review-2026-07-20.json",
+    "accessible_in_workspace": false,
+    "repository_migration_present": false,
+    "verification_status": "pending_evidence_ingestion"
+  },
+  "user_reported_findings": {
+    "ares_proxy": "410 feature_disabled for authenticated access; 401 when unauthenticated",
+    "presence_scorer": "410 feature_disabled for authenticated access; 401 when unauthenticated",
+    "ares_tables": "retained but locked; public SELECT and INSERT return 42501 permission denied",
+    "database_hardening": [
+      "RLS policies corrected",
+      "function privileges corrected",
+      "function search_path hardened",
+      "sync-log access restricted"
+    ],
+    "aircraftbuyorsell_sync": "requires super_admin; anonymous access returns 401",
+    "edge_function_syntax": "three functions reported exit code 0",
+    "security_advisor": {
+      "errors": 0,
+      "warnings": 1,
+      "info": 43,
+      "remaining_warning": "Leaked Password Protection not enabled or not verifiably configured"
+    },
+    "production_sync_executed": false,
+    "performance_advisor_warnings_remaining": true
+  },
+  "acceptance_criteria": [
+    "The audit README and migration files are copied into an authorized repository evidence location without secret values",
+    "Migration checksums and target project identity are recorded without exposing credentials",
+    "HTTP status evidence for disabled and unauthorized paths is reproducible",
+    "Database grants, RLS, function privileges, search_path, and sync-log access are verified from captured metadata",
+    "Security Advisor export corroborates the reported 0 ERROR, 1 WARN, and 43 INFO counts",
+    "An independent Security Reviewer records GO, CONDITIONAL GO, or NO-GO"
+  ],
+  "required_checks_after_ingestion": [
+    "Review the migration diff for destructive statements, secret values, and privilege escalation",
+    "Verify syntax checks for all three Edge Functions",
+    "Run repository secret scanning against the ingested evidence",
+    "Confirm no production sync or other production data write is required for validation",
+    "Record Leaked Password Protection and Performance Advisor items as unresolved risks"
+  ],
+  "contract_drift": "not_assessed_evidence_unavailable",
+  "decision": "CONDITIONAL GO",
+  "limitations": [
+    "All security-fix outcomes are user-reported and have not been independently reproduced from this workspace.",
+    "The Windows-local audit package and both reported independent-review JSON files are not available in the repository workspace.",
+    "The Supabase project and dashboard configuration cannot be inferred from repository files.",
+    "This evidence intake does not close SPRINT1-TASK-002, authorize production sync, approve RC2, or assert production readiness."
+  ],
+  "rollback": "Revert this intake report and its factory/state.json evidence pointer; no Supabase state is changed by this record."
+}

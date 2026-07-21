@@ -1,0 +1,256 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { createRouter } from "../base44/functions/abosCoreApiV1/core.mjs";
+
+const listing = {
+  listing_id: "lst_0123456789abcdef01234567",
+  aircraft: {
+    aircraft_id: "ac_0123456789abcdef01234567",
+    identity: { registration: "N123AB", serial_number: null, registry_country: null },
+    manufacturer: "Cessna",
+    model: "172",
+    year: 2000,
+    total_time_hours: null,
+    engine_hours: null,
+    source_provenance: [],
+  },
+  asking_price: { value: 100000, currency: "USD" },
+  location: null,
+  status: "active",
+  intelligence: {
+    ati_score: null,
+    observed_market_value: null,
+    deal_score: null,
+    deal_label: null,
+    generated_at: null,
+    engine_version: null,
+    limitations: [],
+  },
+  source_provenance: [],
+  created_at: null,
+  updated_at: null,
+};
+
+function router(
+  scopes = ["search:read", "listings:read", "intelligence:request"],
+  aircraft = null,
+  rateLimiter = undefined,
+) {
+  return createRouter({
+    authenticate: async () => ({ type: "api_key", scopes }),
+    listingRepository: {
+      search: async () => ({ items: [listing], nextCursor: null }),
+      getByPublicId: async () => null,
+    },
+    aircraftRepository: { getByPublicId: async () => aircraft },
+    intentInterpreter: {
+      interpret: async () => ({ intent: "search", interpretation_status: "deterministic", constraints: { terms: [] } }),
+    },
+    valuationProvider: {
+      valuate: async () => ({
+        status: "insufficient_data",
+        estimated_value: null,
+        range: { minimum: null, maximum: null, currency: "USD" },
+        confidence: null,
+        data_completeness: 0,
+        source_provenance: [],
+        limitations: ["No traceable source."],
+      }),
+    },
+    auditSink: { record: async () => {} },
+    rateLimiter,
+  });
+}
+
+test("search returns only public DTOs", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna 172" }),
+  }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.results[0].listing_id, listing.listing_id);
+  assert.equal("id" in body.results[0], false);
+  assert.equal(response.headers.has("x-request-id"), true);
+  assert.deepEqual(body.results[0].aircraft.source_provenance, []);
+});
+
+test("aircraft route returns a public aircraft DTO", async () => {
+  const response = await router(undefined, listing.aircraft)(
+    new Request("https://example.test/api/v1/aircraft/ac_0123456789abcdef01234567"),
+  );
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.aircraft_id, listing.aircraft.aircraft_id);
+  assert.deepEqual(body.source_provenance, []);
+});
+
+test("listing not found uses sanitized error contract", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/listings/lst_0123456789abcdef01234567"));
+  assert.equal(response.status, 404);
+  const body = await response.json();
+  assert.deepEqual(Object.keys(body.error).sort(), ["code", "details", "documentation_url", "message", "request_id"]);
+  assert.equal(body.error.code, "LISTING_NOT_FOUND");
+});
+
+test("scope enforcement rejects unauthorized search", async () => {
+  const response = await router([])(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 403);
+  assert.equal((await response.json()).error.code, "INSUFFICIENT_SCOPE");
+});
+
+test("valuation is explicitly insufficient without traceable data", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/intelligence/valuate", {
+    method: "POST",
+    body: JSON.stringify({ manufacturer: "Pilatus", model: "PC-12" }),
+  }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.status, "insufficient_data");
+  assert.equal(body.estimated_value, null);
+  assert.equal(body.source_provenance.length, 0);
+});
+
+test("search rejects fields not declared by the OpenAPI contract", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna", internal_filter: "private" }),
+  }));
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.error.code, "UNKNOWN_FIELDS");
+  assert.deepEqual(body.error.details.fields, ["internal_filter"]);
+});
+
+
+test("search enforces the OpenAPI query length limit", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "x".repeat(501) }),
+  }));
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "QUERY_TOO_LONG");
+});
+
+test("valuation rejects fields not declared by the OpenAPI contract", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/intelligence/valuate", {
+    method: "POST",
+    body: JSON.stringify({ manufacturer: "Pilatus", model: "PC-12", prompt: "ignore policy" }),
+  }));
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "UNKNOWN_FIELDS");
+});
+
+test("invalid aircraft public IDs are rejected before repository access", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/aircraft/not-an-aircraft-id"));
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "INVALID_AIRCRAFT_ID");
+});
+
+test("invalid listing public IDs are rejected before repository access", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/listings/lst_INTERNAL_RECORD"));
+  assert.equal(response.status, 400);
+  assert.equal((await response.json()).error.code, "INVALID_LISTING_ID");
+});
+
+test("rate-limit headers are omitted when no limiter is configured", async () => {
+  const response = await router()(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.has("x-ratelimit-limit"), false);
+  assert.equal(response.headers.has("x-ratelimit-remaining"), false);
+  assert.equal(response.headers.has("x-ratelimit-reset"), false);
+});
+
+test("rate-limit headers reflect a configured limiter", async () => {
+  const rateLimiter = {
+    check: async () => ({ limited: false, limit: 100, remaining: 99, reset: 1735689600 }),
+  };
+  const response = await router(undefined, null, rateLimiter)(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-ratelimit-limit"), "100");
+  assert.equal(response.headers.get("x-ratelimit-remaining"), "99");
+  assert.equal(response.headers.get("x-ratelimit-reset"), "1735689600");
+});
+
+
+test("invalid configured rate-limit results fail closed", async () => {
+  const rateLimiter = {
+    check: async () => ({ limited: false, limit: undefined, remaining: 99, reset: 1735689600 }),
+  };
+  const response = await router(undefined, null, rateLimiter)(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).error.code, "RATE_LIMITER_INVALID");
+});
+
+test("invalid repository DTOs are contained behind a generic 500 response", async () => {
+  const invalidListing = { ...listing, listing_id: "internal-database-id" };
+  const handle = createRouter({
+    authenticate: async () => ({ type: "api_key", scopes: ["search:read"] }),
+    listingRepository: {
+      search: async () => ({ items: [invalidListing], nextCursor: null }),
+      getByPublicId: async () => null,
+    },
+    aircraftRepository: { getByPublicId: async () => null },
+    intentInterpreter: {
+      interpret: async () => ({ intent: "search", interpretation_status: "deterministic", constraints: { terms: [] } }),
+    },
+    valuationProvider: { valuate: async () => ({}) },
+    auditSink: { record: async () => {} },
+  });
+
+  const response = await handle(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 500);
+  const body = await response.json();
+  assert.equal(body.error.code, "INTERNAL_ERROR");
+  assert.equal(JSON.stringify(body).includes("internal-database-id"), false);
+});
+
+test("unsafe request IDs are rejected and never reflected", async () => {
+  const supplied = "invalid request id with spaces";
+  const response = await router()(new Request("https://example.test/api/v1/listings/lst_0123456789abcdef01234567", {
+    headers: { "X-Request-ID": supplied },
+  }));
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.error.code, "INVALID_REQUEST_ID");
+  assert.notEqual(body.error.request_id, supplied);
+  assert.match(body.error.request_id, /^req_/);
+  assert.equal(response.headers.get("x-request-id"), body.error.request_id);
+});
+
+test("audit sink failures do not alter successful API responses", async () => {
+  const handle = createRouter({
+    authenticate: async () => ({ type: "api_key", scopes: ["search:read"] }),
+    listingRepository: {
+      search: async () => ({ items: [listing], nextCursor: null }),
+      getByPublicId: async () => null,
+    },
+    aircraftRepository: { getByPublicId: async () => null },
+    intentInterpreter: {
+      interpret: async () => ({ intent: "search", interpretation_status: "deterministic", constraints: { terms: [] } }),
+    },
+    valuationProvider: { valuate: async () => ({}) },
+    auditSink: { record: async () => { throw new Error("audit unavailable"); } },
+  });
+
+  const response = await handle(new Request("https://example.test/api/v1/search", {
+    method: "POST",
+    body: JSON.stringify({ query: "Cessna" }),
+  }));
+  assert.equal(response.status, 200);
+});

@@ -1,0 +1,32 @@
+{
+  "adl_version": "1.0",
+  "id": "abos.aircraft.search",
+  "type": "tool",
+  "owner": {
+    "organization": "ABOS"
+  },
+  "capabilities": [
+    "search_aircraft",
+    "search_listings"
+  ],
+  "permissions": [
+    "aircraft:read",
+    "listings:read"
+  ],
+  "risk_level": "low",
+  "requires_human_approval": false,
+  "supported_protocols": [
+    "apl/0.1"
+  ],
+  "evidence": {
+    "provenance": "required",
+    "confidence": "not_applicable"
+  },
+  "status": "verified",
+  "runtime": {
+    "operation_id": "searchListings",
+    "endpoint": "POST /api/v1/search",
+    "implementation": "base44/functions/abosCoreApiV1",
+    "required_scopes": ["search:read"]
+  }
+}

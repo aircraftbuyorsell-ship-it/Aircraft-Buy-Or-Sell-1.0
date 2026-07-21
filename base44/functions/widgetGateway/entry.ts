@@ -9,6 +9,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  */
 Deno.serve(async (req) => {
   try {
+    // Gateway secret check — blocks direct calls that bypass the Cloudflare Worker.
+    // Enforced only when GATEWAY_SECRET is set in Base44 env, so deploying this
+    // patch before the Worker is live does not break anything.
+    const expectedSecret = Deno.env.get('GATEWAY_SECRET');
+    if (expectedSecret) {
+      const providedSecret = req.headers.get('x-gateway-secret') || '';
+      if (!timingSafeEqual(providedSecret, expectedSecret)) {
+        return Response.json({ error: 'unauthorized' }, { status: 401 });
+      }
+    }
+
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const { embed_token, action, payload } = body;
@@ -29,9 +40,21 @@ Deno.serve(async (req) => {
       default: return Response.json({ error: 'Unknown action: ' + action }, { status: 400 });
     }
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('widgetGateway error:', error);
+    return Response.json({ error: 'internal_error' }, { status: 500 });
   }
 });
+
+// Constant-time string comparison to avoid timing attacks on the secret.
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
 
 // ═══════════════════════════════════════════
 // ENRICH — Registry lookup for aircraft data

@@ -15,6 +15,14 @@
       "type": "string",
       "description": "Unique token for widget authentication (generated on creation)"
     },
+    "allowed_domains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Domains allowed to embed this partner's widget (e.g. partner.com \u2014 subdomains match automatically). Empty = any origin (fail-open)."
+    },
     "logo_url": {
       "type": "string",
       "description": "Partner logo URL displayed in widget header"

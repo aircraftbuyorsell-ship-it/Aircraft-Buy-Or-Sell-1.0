@@ -1,0 +1,19 @@
+name = "abos-core-api-gateway"
+main = "src/worker.mjs"
+compatibility_date = "2025-01-01"
+
+# Public vars — safe to commit, not secret.
+[vars]
+CORS_ALLOWED_ORIGINS = ""
+# BASE44_APP_BASE_URL is deployment-specific (this Base44 project's real base44.app
+# URL). Set it per environment below, or as a var during deploy — it is not a
+# secret, but it isn't known at commit time, so it's left blank here on purpose.
+BASE44_APP_BASE_URL = ""
+
+# GATEWAY_SECRET is set with `wrangler secret put GATEWAY_SECRET`, never committed.
+# It must match ABOS_GATEWAY_SHARED_SECRET configured on the Base44 side for
+# base44/functions/abosCoreApiV1.
+
+# [env.production]
+# vars = { BASE44_APP_BASE_URL = "https://<your-app>.base44.app", CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com" }
+# route = { pattern = "api.abos.group/api/v1/*", zone_name = "abos.group" }

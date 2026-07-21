@@ -32,6 +32,19 @@ Deno.serve(async (req) => {
     if (partners.length === 0) return Response.json({ error: 'Invalid embed token' }, { status: 403 });
     const partner = partners[0];
 
+    // Per-partner origin lock — fail-open when partner has no domains configured.
+    // Origin is forwarded by the Cloudflare Worker as x-widget-origin.
+    const widgetOrigin = req.headers.get('x-widget-origin') || '';
+    const allowedDomains = Array.isArray(partner.allowed_domains) ? partner.allowed_domains : [];
+    if (allowedDomains.length > 0) {
+      const originHost = widgetOrigin.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+      const ok = originHost && allowedDomains.some((d) => {
+        const dom = String(d).toLowerCase().trim();
+        return originHost === dom || originHost.endsWith('.' + dom);
+      });
+      if (!ok) return Response.json({ error: 'origin_not_allowed' }, { status: 403 });
+    }
+
     switch (action) {
       case 'enrich': return await handleEnrich(base44, payload, partner);
       case 'gcr': return await handleGcr(base44, payload, partner);

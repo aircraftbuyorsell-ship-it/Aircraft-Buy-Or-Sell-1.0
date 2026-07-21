@@ -10,23 +10,23 @@ allowed to hold `X-ABOS-Gateway-Secret`. See `architecture/AD-026-api-deployment
   CORS; no business logic — that all stays in `abosCoreApiV1`, already tested there).
 - `test/worker.test.mjs` — 3 tests covering the request rewrite, GET/HEAD-without-body handling,
   and header stripping. `node --test gateway/test/worker.test.mjs` — all passing.
+- `BASE44_APP_BASE_URL` in `wrangler.toml` is already set to this project's real Base44 URL
+  (`https://aviation-marketspace.base44.app`) — not a secret, safe to commit.
 - `npx wrangler deploy --dry-run` bundles cleanly from this directory.
-- **Not deployed.** Needs two things this repo doesn't have:
-  1. **Working Cloudflare account access** — the Cloudflare MCP connector was intermittently
-     unavailable in the session this was written in.
-  2. **This app's actual Base44 base URL** (`https://<something>.base44.app`) — that's
-     deployment-specific and isn't (and shouldn't be) committed to the repo.
+- **Not deployed.** The Cloudflare MCP connector used in this session has read access to the
+  account (Workers list/get, D1/KV/R2/Hyperdrive CRUD) but no tool to push a Worker script or
+  set a secret — that has to be done with the `wrangler` CLI directly, which needs an
+  interactive Cloudflare login (`wrangler login`) or an API token, neither of which belongs in
+  chat. Run the two commands below yourself.
 
 ## Deploying it for real
 
 ```bash
 cd gateway
-npx wrangler secret put GATEWAY_SECRET   # paste a long random value — must exactly match
-                                          # ABOS_GATEWAY_SHARED_SECRET set on the Base44 side
-                                          # for the abosCoreApiV1 function
-npx wrangler deploy \
-  --var BASE44_APP_BASE_URL:https://<your-app>.base44.app \
-  --var CORS_ALLOWED_ORIGINS:https://aircraftbuyorsell.com
+npx wrangler secret put GATEWAY_SECRET   # paste a long random value (e.g. `openssl rand -hex 32`)
+                                          # must exactly match ABOS_GATEWAY_SHARED_SECRET set on
+                                          # the Base44 side for the abosCoreApiV1 function
+npx wrangler deploy --var CORS_ALLOWED_ORIGINS:https://aircraftbuyorsell.com
 ```
 
 Then set `ABOS_GATEWAY_SHARED_SECRET` (same value as `GATEWAY_SECRET` above) and

@@ -124,9 +124,9 @@ export default function VaultDocumentsPanel({ card, listing, isOwner }) {
         description: formData.description,
         file_url: fileUrl,
         file_hash: hashResult.file_hash || "",
-        polygon_tx_hash: hashResult.tx_hash || "",
-        polygon_block_number: hashResult.block_number || 0,
-        polygon_verified_at: hashResult.verified_at || null,
+        polygon_tx_hash: hashResult.anchored ? (hashResult.tx_hash || "") : "",
+        polygon_block_number: hashResult.anchored ? (hashResult.block_number || 0) : 0,
+        polygon_verified_at: hashResult.anchored ? (hashResult.verified_at || null) : null,
         verification_status: "pending",
         certifying_authority: formData.certifying_authority,
         certifier_license: formData.certifier_license,
@@ -159,7 +159,11 @@ export default function VaultDocumentsPanel({ card, listing, isOwner }) {
         queryClient.invalidateQueries({ queryKey: ["listings-public"] });
       }
 
-      setUploadStatus({ success: "Document uploaded and anchored to Polygon Vault" });
+      setUploadStatus({
+        success: hashResult.anchored
+          ? "Document uploaded and anchored to Polygon Vault"
+          : "Document uploaded. Blockchain anchoring is not yet available in this environment — the document is stored and hashed, but not yet on-chain.",
+      });
       queryClient.invalidateQueries({ queryKey: ["vault-docs", card?.id] });
       resetForm();
     } catch (err) {
@@ -313,7 +317,7 @@ export default function VaultDocumentsPanel({ card, listing, isOwner }) {
             <button onClick={resetForm} className="text-[11px] font-medium hover:underline" style={{ color: muted }}>Cancel</button>
           </div>
           <p className="text-[9px] mt-2" style={{ color: muted }}>
-            Documents are encrypted and anchored to the Polygon blockchain for immutable verification.
+            Documents are encrypted and hashed. Polygon blockchain anchoring is applied where configured for this environment.
             Max 50MB. PDF, images, and Office documents supported.
           </p>
         </div>
@@ -432,8 +436,9 @@ export default function VaultDocumentsPanel({ card, listing, isOwner }) {
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-[9px] font-medium"
         style={{ background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.15)", color: "#7c3aed" }}>
         <Hash className="w-3 h-3" />
-        Documents are encrypted, hashed, and anchored to the Polygon blockchain for tamper-proof verification.
-        Owner retains full control of access rights.
+        {hasPolygonAnchor > 0
+          ? "Documents are encrypted and hashed; anchored documents carry a verifiable Polygon blockchain record. Owner retains full control of access rights."
+          : "Documents are encrypted and hashed. Polygon blockchain anchoring for tamper-proof verification is not yet live in this environment — anchored documents will show a verified on-chain badge once available. Owner retains full control of access rights."}
       </div>
     </div>
   );

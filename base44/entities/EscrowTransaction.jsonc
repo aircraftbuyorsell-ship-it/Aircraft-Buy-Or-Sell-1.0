@@ -122,6 +122,27 @@
       "type": "number",
       "description": "USDC amount received on-chain"
     },
+    "kyc_status": {
+      "type": "string",
+      "enum": [
+        "not_required",
+        "required",
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "not_required",
+      "description": "KYC gate for USDC escrow funding above the compliance threshold (ARCH-004). Funds arriving on-chain are held until this is 'verified'."
+    },
+    "kyc_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When kyc_status was set to verified or rejected"
+    },
+    "kyc_verified_by": {
+      "type": "string",
+      "description": "Admin email who performed the manual KYC verification (no automated KYC provider is integrated yet)"
+    },
     "stripe_session_id": {
       "type": "string",
       "description": "Stripe checkout session ID for escrow deposit"

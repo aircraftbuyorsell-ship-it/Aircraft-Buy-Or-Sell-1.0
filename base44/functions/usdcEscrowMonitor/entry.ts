@@ -54,19 +54,35 @@ Deno.serve(async (req) => {
       const required = tx.usdc_amount_required || 0;
       const funded = balanceUsdc >= required;
 
+      // ARCH-004: KYC required before funds > EUR 1000 can be released as "secured".
+      // USDC is ~1:1 USD; treated as an approximation of the EUR threshold until
+      // proper FX-aware compliance logic and a real KYC provider are wired up.
+      const KYC_THRESHOLD_USDC = 1000;
+      const requiresKyc = required > KYC_THRESHOLD_USDC;
+      const kycCleared = tx.kyc_status === 'verified';
+      const heldForKyc = funded && requiresKyc && !kycCleared;
+
       if (funded && tx.status === 'funds_pending') {
-        await base44.asServiceRole.entities.EscrowTransaction.update(escrow_id, {
-          status: 'funds_secured',
-          usdc_amount_received: balanceUsdc,
-        });
+        if (heldForKyc) {
+          await base44.asServiceRole.entities.EscrowTransaction.update(escrow_id, {
+            usdc_amount_received: balanceUsdc,
+            kyc_status: tx.kyc_status === 'not_required' ? 'required' : tx.kyc_status,
+          });
+        } else {
+          await base44.asServiceRole.entities.EscrowTransaction.update(escrow_id, {
+            status: 'funds_secured',
+            usdc_amount_received: balanceUsdc,
+          });
+        }
       }
 
       return Response.json({
+        held_for_kyc: heldForKyc,
         address: tx.escrow_wallet_address,
         balance_usdc: balanceUsdc,
         required_usdc: required,
         funded,
-        status: funded ? 'funds_secured' : tx.status,
+        status: heldForKyc ? tx.status : (funded ? 'funds_secured' : tx.status),
       });
     }
 

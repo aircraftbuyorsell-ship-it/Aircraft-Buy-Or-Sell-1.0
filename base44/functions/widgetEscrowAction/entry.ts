@@ -213,9 +213,31 @@ async function closeEscrow(base44, payload, partner) {
   const { escrow_id } = payload || {};
   if (!escrow_id) return Response.json({ error: 'escrow_id required' }, { status: 400 });
 
-  const tx = await base44.asServiceRole.entities.EscrowTransaction.get(escrow_id);
+  let tx = await base44.asServiceRole.entities.EscrowTransaction.get(escrow_id);
   if (!tx) return Response.json({ error: 'Transaction not found' }, { status: 404 });
   if (tx.partner_id !== partner.id) return Response.json({ error: 'Transaction does not belong to this partner' }, { status: 403 });
+
+  // USDC-funded escrows must actually move the funds on-chain before we can
+  // truthfully tell either party that money was released. Escrow.com deals
+  // are confirmed via escrowSync against the live Escrow.com API. Stripe-
+  // funded escrow deposits are NOT gated here — stripeWebhook only handles
+  // subscription/credit purchases, not EscrowTransaction records, so a
+  // Stripe-funded close is still effectively a self-reported status today.
+  // That gap is real and unresolved; flagged in EscrowDrawer's UI too.
+  if (tx.payment_method === 'usdc' && tx.status !== 'released') {
+    const releaseRes = await base44.asServiceRole.functions.invoke('usdcEscrowMonitor', {
+      action: 'release',
+      escrow_id,
+      embed_token: partner.embed_token,
+    });
+    const releaseData = releaseRes.data || releaseRes;
+    if (releaseData.error) {
+      return Response.json({
+        error: `Cannot close: USDC release failed — ${releaseData.error}`,
+      }, { status: 409 });
+    }
+    tx = await base44.asServiceRole.entities.EscrowTransaction.get(escrow_id);
+  }
 
   await base44.asServiceRole.entities.EscrowTransaction.update(escrow_id, {
     status: 'closed',
@@ -226,7 +248,9 @@ async function closeEscrow(base44, payload, partner) {
   const closeBody = `Transaction completed for ${tx.aircraft_label || 'aircraft'}.
 
 Sale amount: ${tx.currency || 'USD'} ${Number(tx.sale_amount).toLocaleString()}
-Escrow funds have been released to the seller.
+${tx.payment_method === 'usdc'
+    ? `USDC funds have been released on-chain to the seller (tx: ${tx.blockchain_tx_hash}).`
+    : 'Escrow funds have been released to the seller.'}
 
 Transaction reference: ${escrow_id}
 Thank you for using ${partner.brand_name || 'ABOS'}.`;

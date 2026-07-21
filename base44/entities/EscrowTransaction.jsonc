@@ -112,7 +112,11 @@
     },
     "blockchain_tx_hash": {
       "type": "string",
-      "description": "On-chain transaction hash for USDC deposit confirmation"
+      "description": "On-chain transaction hash for the USDC release payout to the seller"
+    },
+    "seller_usdc_payout_address": {
+      "type": "string",
+      "description": "Seller's USDC (Polygon) wallet address for release payout. Required before a USDC escrow can be released."
     },
     "usdc_amount_required": {
       "type": "number",

@@ -1,11 +1,21 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Upload, FileText, RefreshCw, Zap, CheckCircle, FileCheck2, ExternalLink, Calendar } from "lucide-react";
+import { X, Upload, FileText, RefreshCw, Zap, CheckCircle, FileCheck2, ExternalLink, Calendar, ShieldAlert, Send } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { ESCROW_STATUS, STATUS_FLOW, formatMoney } from "@/lib/escrow";
 import EscrowStatusBadge from "./EscrowStatusBadge";
 import StatusStepper from "./StatusStepper";
 import HustleContractModal from "./HustleContractModal";
+
+// Statuses that confirm money actually moved. For providers with a real
+// verification path (Escrow.com sync, USDC on-chain release), these must
+// NOT be settable by clicking a button — that would let anyone self-report
+// funds as secured/released/closed with nothing behind it. 'internal' deals
+// have no integration to bypass, so they stay fully manual.
+const MONEY_CONFIRMING_STATUSES = ["funds_secured", "released", "closed"];
+function isMoneyStatusGated(tx) {
+  return tx.escrow_provider === "escrow_com" || tx.payment_method === "usdc";
+}
 
 const W1 = "rgba(255,255,255,0.90)";
 const W2 = "rgba(255,255,255,0.60)";
@@ -36,6 +46,8 @@ export default function EscrowDrawer({ tx, onClose }) {
   const [inspectionDate, setInspectionDate] = useState(tx.inspection_date || "");
   const [closingDeadline, setClosingDeadline] = useState(tx.closing_deadline || "");
   const [err, setErr] = useState(null);
+  const [payoutAddress, setPayoutAddress] = useState(tx.seller_usdc_payout_address || "");
+  const [releasing, setReleasing] = useState(false);
   const fileInput = useRef(null);
 
   const updateMutation = useMutation({
@@ -57,7 +69,26 @@ export default function EscrowDrawer({ tx, onClose }) {
   };
 
   const handleStatusChange = (newStatus) => {
+    if (isMoneyStatusGated(tx) && MONEY_CONFIRMING_STATUSES.includes(newStatus)) return;
     updateMutation.mutate({ status: newStatus, closed_at: newStatus === "closed" ? new Date().toISOString() : tx.closed_at });
+  };
+
+  const handleSavePayoutAddress = async () => {
+    setErr(null);
+    try {
+      await updateMutation.mutateAsync({ seller_usdc_payout_address: payoutAddress.trim() });
+    } catch (e) { setErr(e.message); }
+  };
+
+  const handleReleaseUsdc = async () => {
+    setReleasing(true); setErr(null);
+    try {
+      const res = await base44.functions.invoke("usdcEscrowMonitor", { action: "release", escrow_id: tx.id });
+      const data = res?.data || res;
+      if (data.error) throw new Error(data.error);
+      qc.invalidateQueries({ queryKey: ["escrow-transactions"] });
+    } catch (e) { setErr(e.message); }
+    setReleasing(false);
   };
 
   const handleCreateOnEscrowCom = async () => {
@@ -132,20 +163,36 @@ export default function EscrowDrawer({ tx, onClose }) {
               <EscrowStatusBadge status={tx.status} size="lg" />
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {STATUS_FLOW.map(s => (
-                <button
-                  key={s}
-                  onClick={() => handleStatusChange(s)}
-                  disabled={tx.status === s}
-                  className="text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-lg border transition-opacity"
-                  style={tx.status === s ? { background: AMBER, color: "#04060a", border: `0.5px solid ${AMBER}` } : { background: "transparent", color: W2, borderColor: BORDER }}
-                >
-                  {ESCROW_STATUS[s].label}
-                </button>
-              ))}
+              {STATUS_FLOW.map(s => {
+                const gated = isMoneyStatusGated(tx) && MONEY_CONFIRMING_STATUSES.includes(s) && tx.status !== s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => handleStatusChange(s)}
+                    disabled={tx.status === s || gated}
+                    title={gated ? "Confirmed automatically — use Sync (Escrow.com) or Release USDC below, not a manual click" : undefined}
+                    className="text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-lg border transition-opacity disabled:opacity-40"
+                    style={tx.status === s ? { background: AMBER, color: "#04060a", border: `0.5px solid ${AMBER}` } : { background: "transparent", color: W2, borderColor: BORDER }}
+                  >
+                    {ESCROW_STATUS[s].label}
+                  </button>
+                );
+              })}
               <button onClick={() => handleStatusChange("cancelled")} className="text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-lg border" style={{ background: "rgba(226,75,74,0.06)", color: RED, borderColor: "rgba(226,75,74,0.22)" }}>Cancel</button>
               <button onClick={() => handleStatusChange("disputed")} className="text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-lg border" style={{ background: "rgba(226,75,74,0.06)", color: RED, borderColor: "rgba(226,75,74,0.22)" }}>Dispute</button>
             </div>
+            {isMoneyStatusGated(tx) && (
+              <p className="text-[9px] mt-2 flex items-center gap-1.5" style={{ color: W3 }}>
+                <ShieldAlert className="w-3 h-3 shrink-0" />
+                Funds Secured / Released / Closed are confirmed automatically for {tx.escrow_provider === "escrow_com" ? "Escrow.com" : "USDC"} deals — not manually clickable.
+              </p>
+            )}
+            {tx.payment_method === "stripe" && (
+              <p className="text-[9px] mt-2 flex items-center gap-1.5" style={{ color: "#e8a83a" }}>
+                <ShieldAlert className="w-3 h-3 shrink-0" />
+                Stripe-funded escrow deposits aren't auto-confirmed yet — these buttons are still manual for this deal. Treat status changes here as a self-report, not a verified payment.
+              </p>
+            )}
           </div>
 
           <div className="rounded-2xl p-5" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
@@ -249,7 +296,37 @@ export default function EscrowDrawer({ tx, onClose }) {
               <span className="flex items-center gap-2"><FileText className="w-4 h-4" /> View Hustle Contract</span>
               <span className="text-[10px] uppercase tracking-wider opacity-80">PDF</span>
             </button>
-            {tx.escrow_provider !== "escrow_com" ? (
+            {tx.payment_method === "usdc" ? (
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-wider font-semibold block" style={{ color: W3 }}>Seller USDC Payout Address (Polygon)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={payoutAddress}
+                    onChange={e => setPayoutAddress(e.target.value)}
+                    placeholder="0x..."
+                    className="flex-1 px-3 py-2 rounded-lg text-sm font-mono focus:outline-none"
+                    style={inputStyle}
+                  />
+                  <button onClick={handleSavePayoutAddress} disabled={updateMutation.isPending || !payoutAddress.trim()} className="px-3 py-2 rounded-lg text-[11px] font-bold disabled:opacity-40" style={{ background: "transparent", border: `0.5px solid ${BORDER}`, color: W1 }}>
+                    Save
+                  </button>
+                </div>
+                <button
+                  onClick={handleReleaseUsdc}
+                  disabled={releasing || tx.status !== "funds_secured" || !tx.seller_usdc_payout_address}
+                  title={tx.status !== "funds_secured" ? "Funds must be secured (and KYC-cleared) first" : (!tx.seller_usdc_payout_address ? "Set and save the seller payout address first" : undefined)}
+                  className="w-full flex items-center justify-center gap-2 font-bold text-sm px-4 py-3 rounded-xl transition-opacity disabled:opacity-40"
+                  style={{ background: AMBER, color: "#04060a" }}
+                >
+                  <Send className={`w-4 h-4 ${releasing ? "animate-pulse" : ""}`} />
+                  {releasing ? "Releasing on-chain…" : "Release USDC to Seller"}
+                </button>
+                {tx.status === "released" && tx.blockchain_tx_hash && (
+                  <p className="text-[9px] font-mono break-all" style={{ color: W3 }}>Released — tx {tx.blockchain_tx_hash}</p>
+                )}
+              </div>
+            ) : tx.escrow_provider !== "escrow_com" ? (
               <button onClick={handleCreateOnEscrowCom} disabled={creatingExternal || !tx.buyer_email || !tx.seller_email} className="w-full flex items-center justify-center gap-2 font-bold text-sm px-4 py-3 rounded-xl transition-opacity disabled:opacity-50" style={{ background: "transparent", border: "0.5px solid rgba(245,194,66,0.22)", color: AMBER }}>
                 <Zap className={`w-4 h-4 ${creatingExternal ? "animate-pulse" : ""}`} />
                 {creatingExternal ? "Creating on Escrow.com…" : "Push to Escrow.com (live)"}

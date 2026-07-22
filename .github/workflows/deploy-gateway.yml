@@ -1,17 +1,14 @@
 # Deploys the Cloudflare Worker in gateway/ (abos-widget-gateway).
-# Requires the CLOUDFLARE_API_TOKEN repository secret (Edit Cloudflare Workers).
+# Requires repository secrets (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN - token with Edit Cloudflare Workers permission
+#   GATEWAY_SECRET       - shared secret; set the same value in Base44 env vars
 name: Deploy Widget Gateway
 
 on:
   workflow_dispatch:
-    inputs:
-      gateway_secret:
-        description: 'GATEWAY_SECRET to set on the worker (leave empty to skip)'
-        required: false
-        type: string
   push:
-    branches: [ "main" ]
-    paths: [ "gateway/**" ]
+    branches: [ "main", "claude/cloudflare-worker-deploy-7yakuc" ]
+    paths: [ "gateway/**", ".github/workflows/deploy-gateway.yml" ]
 
 jobs:
   deploy:
@@ -19,19 +16,27 @@ jobs:
     defaults:
       run:
         working-directory: gateway
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
       - run: npm ci
+      - name: Check credentials
+        if: ${{ env.CLOUDFLARE_API_TOKEN == '' }}
+        run: |
+          echo "::error::CLOUDFLARE_API_TOKEN repository secret is not set"
+          exit 1
       - name: Deploy worker
         run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Set GATEWAY_SECRET on worker
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.gateway_secret != '' }}
-        run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          GATEWAY_SECRET_VALUE: ${{ inputs.gateway_secret }}
+          GATEWAY_SECRET_VALUE: ${{ secrets.GATEWAY_SECRET }}
+        run: |
+          if [ -z "$GATEWAY_SECRET_VALUE" ]; then
+            echo "GATEWAY_SECRET repo secret not set - skipping wrangler secret put"
+            exit 0
+          fi
+          printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET

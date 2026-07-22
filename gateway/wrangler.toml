@@ -1,0 +1,7 @@
+name = "abos-widget-gateway"
+main = "src/index.js"
+compatibility_date = "2026-07-21"
+
+[vars]
+BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"
+CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com"

@@ -1,0 +1,37 @@
+# Deploys the Cloudflare Worker in gateway/ (abos-widget-gateway).
+# Requires the CLOUDFLARE_API_TOKEN repository secret (Edit Cloudflare Workers).
+name: Deploy Widget Gateway
+
+on:
+  workflow_dispatch:
+    inputs:
+      gateway_secret:
+        description: 'GATEWAY_SECRET to set on the worker (leave empty to skip)'
+        required: false
+        type: string
+  push:
+    branches: [ "main" ]
+    paths: [ "gateway/**" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - run: npm ci
+      - name: Deploy worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Set GATEWAY_SECRET on worker
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.gateway_secret != '' }}
+        run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GATEWAY_SECRET_VALUE: ${{ inputs.gateway_secret }}

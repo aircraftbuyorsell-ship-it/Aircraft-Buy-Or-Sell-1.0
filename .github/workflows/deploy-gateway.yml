@@ -10,9 +10,18 @@ on:
     branches: [ "main" ]
     paths: [ "gateway/**", ".github/workflows/deploy-gateway.yml" ]
 
+# Serialize deploys so the newest requested revision deterministically wins;
+# cancel any superseded run before it can overwrite production with older code.
+concurrency:
+  group: deploy-widget-gateway
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only ever deploy production from main, including manual workflow_dispatch,
+    # so unreviewed refs cannot replace the production Worker.
+    if: github.ref == 'refs/heads/main'
     defaults:
       run:
         working-directory: gateway
@@ -38,10 +47,15 @@ jobs:
           fi
       # CLOUDFLARE_API_TOKEN is scoped to the wrangler steps only, so it is never
       # exposed to npm lifecycle scripts during checkout / setup / install.
+      # --keep-vars preserves the existing GATEWAY_SECRET binding so it is not
+      # dropped between this deploy and the secret-put step below.
       - name: Deploy worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy
+        run: npx wrangler deploy --keep-vars
+      # NOTE: GATEWAY_SECRET is shared with Base44. When rotating it, update
+      # Base44 to accept the new value before (or together with) this deploy,
+      # otherwise in-flight requests get 401 during the transition.
       - name: Set GATEWAY_SECRET on worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

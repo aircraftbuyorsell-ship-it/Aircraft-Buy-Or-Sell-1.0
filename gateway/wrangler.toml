@@ -1,7 +1,8 @@
-# deploy: 2026-07-22T18:45Z
+# deploy: 2026-07-23T08:30Z
 name = "abos-widget-gateway"
 main = "src/index.js"
 compatibility_date = "2026-07-21"
+account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 
 [vars]
 BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"

@@ -7,7 +7,7 @@ name: Deploy Widget Gateway
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "claude/cloudflare-worker-deploy-7yakuc" ]
+    branches: [ "main" ]
     paths: [ "gateway/**", ".github/workflows/deploy-gateway.yml" ]
 
 jobs:
@@ -16,27 +16,34 @@ jobs:
     defaults:
       run:
         working-directory: gateway
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
       - run: npm ci
-      - name: Check credentials
-        if: ${{ env.CLOUDFLARE_API_TOKEN == '' }}
+      # Fail loudly before deploying if either required secret is missing, so a
+      # misconfigured repo never ships a Worker with an empty gateway secret.
+      - name: Check required secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GATEWAY_SECRET: ${{ secrets.GATEWAY_SECRET }}
         run: |
-          echo "::error::CLOUDFLARE_API_TOKEN repository secret is not set"
-          exit 1
+          missing=
+          [ -z "$CLOUDFLARE_API_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$GATEWAY_SECRET" ] && missing="$missing GATEWAY_SECRET"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required repository secret(s):$missing"
+            exit 1
+          fi
+      # CLOUDFLARE_API_TOKEN is scoped to the wrangler steps only, so it is never
+      # exposed to npm lifecycle scripts during checkout / setup / install.
       - name: Deploy worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npx wrangler deploy
       - name: Set GATEWAY_SECRET on worker
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GATEWAY_SECRET_VALUE: ${{ secrets.GATEWAY_SECRET }}
-        run: |
-          if [ -z "$GATEWAY_SECRET_VALUE" ]; then
-            echo "GATEWAY_SECRET repo secret not set - skipping wrangler secret put"
-            exit 0
-          fi
-          printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET
+        run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET

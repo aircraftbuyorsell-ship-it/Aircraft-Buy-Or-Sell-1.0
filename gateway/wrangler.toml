@@ -1,4 +1,4 @@
-# deploy: 2026-07-23T08:30Z
+# deploy: 2026-07-23T10:15Z
 name = "abos-widget-gateway"
 main = "src/index.js"
 compatibility_date = "2026-07-21"

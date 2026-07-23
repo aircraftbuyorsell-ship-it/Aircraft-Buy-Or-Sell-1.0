@@ -23,7 +23,10 @@ export default function IntegrationKit() {
   });
 
   const endpoint = `${window.location.origin}/functions/intelExchange`;
-  const widgetEndpoint = `${window.location.origin}/functions/widgetGateway`;
+  // Widget calls go through the Cloudflare Worker gateway, which injects the
+  // x-gateway-secret the Base44 widgetGateway function requires. Calling
+  // /functions/widgetGateway directly returns 401 once enforcement is enabled.
+  const widgetEndpoint = "https://abos-widget-gateway.aircraftbuyorsell.workers.dev";
 
   const exchangeSnippet = `POST ${endpoint}
 Content-Type: application/json

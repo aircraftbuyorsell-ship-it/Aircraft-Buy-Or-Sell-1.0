@@ -84,7 +84,7 @@ async function hasProcessedPayment(base44, paymentId) {
   return existing.length > 0;
 }
 
-async function handleCheckoutCompleted(session, base44) {
+async function handleCheckoutCompleted(session, stripe, base44) {
   console.log('✅ checkout.session.completed:', session.id);
 
   const meta        = session.metadata || {};
@@ -108,12 +108,18 @@ async function handleCheckoutCompleted(session, base44) {
   let priceUsd = parseFloat(meta.price_usd || '0');
   let tier    = meta.tier || 'pro';
 
-  // If metadata is sparse, look up via line items price
+  // If metadata is sparse, fall back to the price map. checkout.session.completed
+  // does not inline line_items, so fetch them from the API before looking up.
   let subTier = meta.sub_tier || '';
   if (!tokens) {
-    const priceId = session.line_items?.data?.[0]?.price?.id;
-    const mapped  = PRICE_TOKEN_MAP[priceId];
-    if (mapped) { tokens = mapped.tokens; tier = mapped.tier; subTier = mapped.sub_tier; priceUsd = mapped.price_usd; }
+    try {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+      const priceId = lineItems?.data?.[0]?.price?.id;
+      const mapped  = PRICE_TOKEN_MAP[priceId];
+      if (mapped) { tokens = mapped.tokens; tier = mapped.tier; subTier = mapped.sub_tier; priceUsd = mapped.price_usd; }
+    } catch (err) {
+      console.warn('Line-item fallback failed for', session.id, '-', err.message);
+    }
   }
 
   if (!userEmail) { console.warn('No email found in session, skipping grant'); return; }
@@ -303,7 +309,7 @@ Deno.serve(async (req) => {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object, base44);
+        await handleCheckoutCompleted(event.data.object, stripe, base44);
         break;
       case 'charge.succeeded':
         await handleChargeSucceeded(event.data.object);

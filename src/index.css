@@ -215,6 +215,28 @@
     border-color: rgba(0,0,0,0.08) !important;
   }
 
+  /* ── Light mode: override Tailwind white utility classes globally ── */
+  :root:not(.dark) .text-white { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.9"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.8"] { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.7"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.6"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.5"] { color: hsl(var(--muted-foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.4"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.3"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.2"] { color: hsl(var(--muted-foreground) / 0.6) !important; }
+  :root:not(.dark) [class*="border-[rgba(255,255,255"] { border-color: hsl(var(--border)) !important; }
+  :root:not(.dark) [class*="bg-[rgba(255,255,255,0.0"] { background-color: hsl(var(--muted) / 0.4) !important; }
+  :root:not(.dark) [class*="bg-[rgba(255,255,255,0.1"] { background-color: hsl(var(--muted) / 0.6) !important; }
+  :root:not(.dark) [class*="bg-white\/"] { background-color: hsl(var(--muted) / 0.4) !important; }
+  :root:not(.dark) [class*="text-white\/9"],
+  :root:not(.dark) [class*="text-white\/8"] { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-white\/7"],
+  :root:not(.dark) [class*="text-white\/6"],
+  :root:not(.dark) [class*="text-white\/5"] { color: hsl(var(--muted-foreground)) !important; }
+  :root:not(.dark) [class*="text-white\/4"],
+  :root:not(.dark) [class*="text-white\/3"] { color: hsl(var(--muted-foreground) / 0.6) !important; }
+
   /* Prevent accidental selection/callout on tappable UI */
   button,
   [role="button"],

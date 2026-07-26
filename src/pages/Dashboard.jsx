@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import HomepageHeader from "@/components/homepage/HomepageHeader";
 import HomeHeroSection from "@/components/homepage/HomeHeroSection";
+import HomeFeatureBar from "@/components/homepage/HomeFeatureBar";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import SalesPipelinePromo from "@/components/dashboard/sections/SalesPipelinePromo";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
@@ -48,6 +49,8 @@ export default function Dashboard() {
 
       {/* 1. Hero (with Globe) */}
       <HomeHeroSection />
+
+      <HomeFeatureBar />
 
       {/* Running news bar — directly below the globe */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">

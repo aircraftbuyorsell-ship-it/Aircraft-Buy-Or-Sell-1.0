@@ -16,6 +16,8 @@ import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
 import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
+import { useProTrial } from "@/hooks/useProTrial";
+import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -35,6 +37,8 @@ export default function Dashboard() {
     staleTime: 60000,
   });
 
+  const { data: trial } = useProTrial(user);
+
   return (
     <div
       className="text-foreground"
@@ -51,6 +55,8 @@ export default function Dashboard() {
       <HomeHeroSection />
 
       <HomeFeatureBar />
+
+      {trial?.ok && <ProTrialBanner trial={trial} />}
 
       {/* Running news bar — directly below the globe */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">

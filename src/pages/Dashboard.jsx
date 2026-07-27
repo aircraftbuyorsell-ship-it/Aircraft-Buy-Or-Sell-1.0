@@ -16,8 +16,10 @@ import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
 import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
+import { useState } from "react";
 import { useProTrial } from "@/hooks/useProTrial";
 import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
+import WelcomeGiftModal from "@/components/onboarding/WelcomeGiftModal";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -37,7 +39,8 @@ export default function Dashboard() {
     staleTime: 60000,
   });
 
-  const { data: trial } = useProTrial(user);
+  const { data: trial, grantTrial, refresh: refreshTrial } = useProTrial(user);
+  const [giftModalDismissed, setGiftModalDismissed] = useState(false);
 
   return (
     <div
@@ -56,7 +59,16 @@ export default function Dashboard() {
 
       <HomeFeatureBar />
 
-      {trial?.ok && <ProTrialBanner trial={trial} />}
+      {trial?.ok && trial?.alreadyGranted && <ProTrialBanner trial={trial} />}
+
+      {trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0 && !giftModalDismissed && (
+        <WelcomeGiftModal
+          giftOptions={trial.giftOptions}
+          slotsLeft={trial.slotsLeft}
+          onSelect={grantTrial}
+          onClose={() => { setGiftModalDismissed(true); refreshTrial(); }}
+        />
+      )}
 
       {/* Running news bar — directly below the globe */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">

@@ -1,19 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 /**
- * Calls the grantProTrial backend function once per user.
- * Idempotent — safe to call repeatedly; returns existing trial if already granted.
+ * Checks Pro trial status (without granting) on mount.
+ * `grantTrial(giftChoice)` grants the trial with the selected gift.
+ * `refresh()` re-checks after granting or dismissing.
  */
 export function useProTrial(user) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["pro-trial", user?.email],
     queryFn: async () => {
-      const res = await base44.functions.invoke("grantProTrial", {});
+      const res = await base44.functions.invoke("grantProTrial", { checkOnly: true });
       return res.data;
     },
     enabled: !!user?.email,
     staleTime: Infinity,
     retry: false,
   });
+
+  const grantTrial = async (giftChoice) => {
+    const res = await base44.functions.invoke("grantProTrial", { giftChoice });
+    return res.data;
+  };
+
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: ["pro-trial", user?.email] });
+
+  return { ...query, grantTrial, refresh };
 }

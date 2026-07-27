@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useProTrial } from "@/hooks/useProTrial";
 import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
 import WelcomeGiftModal from "@/components/onboarding/WelcomeGiftModal";
+import TrialPromoBanner from "@/components/onboarding/TrialPromoBanner";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -41,6 +42,17 @@ export default function Dashboard() {
 
   const { data: trial, grantTrial, refresh: refreshTrial } = useProTrial(user);
   const [giftModalDismissed, setGiftModalDismissed] = useState(false);
+  const [giftModalOpen, setGiftModalOpen] = useState(false);
+
+  const showGiftModal = trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0
+    && (!giftModalDismissed || giftModalOpen);
+
+  const handleClaimGift = () => setGiftModalOpen(true);
+  const handleCloseGiftModal = () => {
+    setGiftModalDismissed(true);
+    setGiftModalOpen(false);
+    refreshTrial();
+  };
 
   return (
     <div
@@ -59,14 +71,17 @@ export default function Dashboard() {
 
       <HomeFeatureBar />
 
-      {trial?.ok && trial?.alreadyGranted && <ProTrialBanner trial={trial} />}
+      {trial?.ok && trial?.alreadyGranted
+        ? <ProTrialBanner trial={trial} />
+        : <TrialPromoBanner trial={trial} onClaimGift={handleClaimGift} />
+      }
 
-      {trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0 && !giftModalDismissed && (
+      {showGiftModal && (
         <WelcomeGiftModal
           giftOptions={trial.giftOptions}
           slotsLeft={trial.slotsLeft}
           onSelect={grantTrial}
-          onClose={() => { setGiftModalDismissed(true); refreshTrial(); }}
+          onClose={handleCloseGiftModal}
         />
       )}
 

@@ -15,7 +15,7 @@ export default function HomeHeroSection() {
       <div className="pointer-events-none absolute inset-0 opacity-40">
         <HeroGlobe />
       </div>
-      <div className="relative z-10 mx-auto max-w-[1400px] px-4 py-12 sm:px-8 sm:py-16 lg:py-24">
+      <div className="relative z-10 mx-auto max-w-[1400px] px-4 pt-32 pb-12 sm:px-8 sm:pt-36 sm:pb-16 lg:py-24">
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
           {/* Left: Text content */}
           <div className="flex flex-col items-start text-left order-2 lg:order-1">

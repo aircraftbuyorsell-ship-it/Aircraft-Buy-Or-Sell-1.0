@@ -167,7 +167,7 @@ export default function Leads() {
         <LeadPackages onSelectPack={handleBuyPack} availableLeads={leads.length - stats.unlocked} />
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Total", value: stats.total, color: W1 },
             { label: "Unlocked", value: stats.unlocked, color: TEAL },

@@ -460,6 +460,26 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   filter: drop-shadow(0 0 0.5px rgba(255,255,255,0.15)) drop-shadow(0 0 4px rgba(212,160,23,0.18));
 }
 
+/* ── Table & data overview mobile readability ── */
+table {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Momentum scrolling for all overflow containers (tables, lists, cards) */
+.overflow-auto,
+.overflow-x-auto,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent layout thrash during fast scroll on data rows */
+tbody tr,
+[data-scroll-row] {
+  contain: layout style;
+}
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }

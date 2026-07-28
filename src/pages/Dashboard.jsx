@@ -71,6 +71,17 @@ export default function Dashboard() {
 
       <HomeFeatureBar />
 
+      {/* 2. Featured Aircraft — moved up for search-first flow */}
+      <ListingsShowcase
+        listings={listings}
+        isLoading={listingsLoading}
+        eyebrow="Featured Aircraft"
+        title="Browse Aircraft from Verified Sellers"
+        layout="carousel"
+        actionTo="/listings"
+        actionLabel="Browse all aircraft"
+      />
+
       {trial?.ok && trial?.alreadyGranted
         ? <ProTrialBanner trial={trial} />
         : <TrialPromoBanner trial={trial} onClaimGift={handleClaimGift} />
@@ -85,21 +96,10 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Running news bar — directly below the globe */}
+      {/* Running news bar */}
       <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
         <AviationNewsTicker />
       </div>
-
-      {/* 2. Featured Aircraft */}
-      <ListingsShowcase
-        listings={listings}
-        isLoading={listingsLoading}
-        eyebrow="Featured Aircraft"
-        title="Handpicked Aircraft from Verified Sellers"
-        layout="carousel"
-        actionTo="/listings"
-        actionLabel="View all"
-      />
 
       {/* 3. ATI Passport Verification */}
       <ATIPassportVerification />

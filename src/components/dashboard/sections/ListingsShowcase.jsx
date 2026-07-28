@@ -15,7 +15,7 @@ export default function ListingsShowcase({
   if (!isLoading && listings.length === 0) return null;
 
   const action = actionTo ? (
-    <Link to={actionTo} className="text-xs text-gold-official flex items-center gap-1 no-underline">
+    <Link to={actionTo} className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-[12px] font-bold text-primary no-underline transition-colors hover:bg-primary/20">
       {actionLabel} <ArrowRight size={14} />
     </Link>
   ) : null;

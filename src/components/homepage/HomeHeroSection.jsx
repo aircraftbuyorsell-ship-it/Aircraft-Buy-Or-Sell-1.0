@@ -24,18 +24,18 @@ export default function HomeHeroSection() {
             </span>
             <h1 className="mb-5 tracking-[-0.02em] leading-[1.05] text-foreground"
               style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700 }}>
-              Aircraft intelligence.<br />From first signal to closed deal.
+              Search any aircraft.<br />Verify before you buy.
             </h1>
             <p className="mb-7 max-w-[480px] text-[15px] leading-relaxed text-muted-foreground sm:text-[17px]">
-              Search, verify, value and transact with one connected aviation workspace.
+              Browse verified listings, check ownership &amp; maintenance history, and see real market valuations — all in one place.
             </p>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Link to="/listings"
-                className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3.5 text-[14px] font-bold text-background transition-opacity hover:opacity-90">
-                <Search className="h-4 w-4" /> Search an aircraft
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
+                <Search className="h-5 w-5" /> Search aircraft now
               </Link>
               <Link to="/market-reports"
-                className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-foreground hover:underline">
+                className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 Explore the market <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

@@ -96,6 +96,7 @@ import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
+import AircraftAlerts from "./pages/AircraftAlerts";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -207,6 +208,7 @@ const AuthenticatedApp = () => {
         <Route path="/calculators" element={<CalculatorsHub />} />
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
+        <Route path="/aircraft-alerts" element={<AircraftAlerts />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

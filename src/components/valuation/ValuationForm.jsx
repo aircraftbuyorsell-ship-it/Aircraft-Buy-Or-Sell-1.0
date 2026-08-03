@@ -17,35 +17,35 @@ export default function ValuationForm({ formData, onChange, onSubmit, loading })
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Make</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Make</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} value={formData.make} onChange={(e) => update("make", e.target.value)} placeholder="Cessna" required />
         </label>
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Model</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Model</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} value={formData.model} onChange={(e) => update("model", e.target.value)} placeholder="172S" required />
         </label>
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Year</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Year</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} type="number" value={formData.year} onChange={(e) => update("year", e.target.value)} placeholder="2006" required />
         </label>
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Airframe hours</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Airframe hours</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} type="number" value={formData.total_time} onChange={(e) => update("total_time", e.target.value)} placeholder="2450" />
         </label>
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Engine hours SMOH</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Engine hours SMOH</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} type="number" value={formData.engine_hours} onChange={(e) => update("engine_hours", e.target.value)} placeholder="620" />
         </label>
         <label className="space-y-1.5">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Engine TBO</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Engine TBO</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} type="number" value={formData.tbo} onChange={(e) => update("tbo", e.target.value)} placeholder="2000" />
         </label>
         <label className="space-y-1.5 md:col-span-2">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Avionics / upgrades</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Avionics / upgrades</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} value={formData.avionics} onChange={(e) => update("avionics", e.target.value)} placeholder="Garmin G1000, ADS-B, WAAS" />
         </label>
         <label className="space-y-1.5 md:col-span-2">
-          <span className="text-xs font-black uppercase tracking-wide rgba(255,255,255,0.45)">Asking price, optional</span>
+          <span className="text-xs font-black uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.45)" }}>Asking price, optional</span>
           <input className={FIELD_CLASS} style={FIELD_STYLE} type="number" value={formData.asking_price} onChange={(e) => update("asking_price", e.target.value)} placeholder="185000" />
         </label>
       </div>

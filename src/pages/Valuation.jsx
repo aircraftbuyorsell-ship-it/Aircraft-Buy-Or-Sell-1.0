@@ -69,21 +69,21 @@ export default function Valuation() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-8" style={{ background: "transparent", color: "#fff" }}>
+    <div className="min-h-screen px-4 py-8 md:px-8 text-foreground">
       <div className="mx-auto max-w-6xl space-y-8">
-        <div className="rounded-3xl p-6 md:p-8" style={{ background: "#111827", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="rounded-3xl p-6 md:p-8 bg-card border border-border">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)" }}>
                 <ShieldCheck className="h-6 w-6 text-white" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4A017]">OMVM v5 valuation desk</p>
-              <h1 className="mt-2 max-w-3xl text-3xl font-black tracking-tight md:text-5xl" style={{ color: "#fff", letterSpacing: "-0.02em" }}>AI-driven aircraft price estimation and market report</h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <h1 className="mt-2 max-w-3xl text-3xl font-black tracking-tight text-foreground md:text-5xl" style={{ letterSpacing: "-0.02em" }}>AI-driven aircraft price estimation and market report</h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
                 Generate a professional sales-ready valuation using comparable inventory, aircraft age, engine position, avionics quality, and market calibration signals.
               </p>
             </div>
-            <div className="rounded-2xl p-4 text-sm leading-6 md:max-w-xs" style={{ background: "rgba(212,160,23,0.06)", border: "1px solid rgba(212,160,23,0.2)", color: "rgba(255,255,255,0.55)" }}>
+            <div className="rounded-2xl p-4 text-sm leading-6 md:max-w-xs border border-[#D4A017]/30 bg-[#D4A017]/[0.06] text-muted-foreground">
               Built for brokers, owners, and acquisition teams that need fast pricing intelligence before a listing, offer, or buyer conversation.
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function Valuation() {
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <ValuationForm formData={formData} onChange={setFormData} onSubmit={handleSubmit} loading={loading} />
           {error && (
-            <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(226,75,74,0.10)", border: "0.5px solid rgba(226,75,74,0.22)", color: "#e24b4a" }}>
+            <div className="rounded-xl px-4 py-3 text-sm border border-destructive/30 bg-destructive/10 text-destructive">
               {error}
             </div>
           )}

@@ -219,10 +219,22 @@ export default function InvestmentBrief() {
         <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-1 uppercase flex items-center gap-2" style={{ color: "rgba(255,255,255,0.90)" }}>
           <Brain className="w-7 h-7 text-[#f5c242]" /> Investment Brief
         </h1>
-        <p className="text-sm mt-1 max-w-3xl" style={{ color: "rgba(255,255,255,0.60)" }}>
-          Hybrid AI pipeline: Digital Twin → OMVM → Engine TBO → OPEX → Insurance → Investment Brief.
-          Powered by Llama 4 Maverick (narrative) + GPT o3 (tool calling) + pure math (deterministic).
-        </p>
+        <div className="mt-3 rounded-xl p-4" style={{ background: "linear-gradient(180deg, #0f1114 0%, #1a1d21 100%)", border: "1px solid #33373d" }}>
+          <div className="flex flex-wrap items-center gap-1.5 justify-center">
+            {["Digital Twin", "OMVM", "Engine TBO", "OPEX", "Insurance", "Investment Brief"].map((stage, i, arr) => (
+              <div key={stage} className="flex items-center gap-1.5">
+                <span className="px-3 py-1.5 rounded-full text-[12px] font-mono font-light"
+                  style={{ background: "transparent", border: "1px solid #4a4f56", color: "#d1d5db" }}>
+                  {stage}
+                </span>
+                {i < arr.length - 1 && <span style={{ color: "#f59e0b", fontSize: "13px", lineHeight: 1 }}>→</span>}
+              </div>
+            ))}
+          </div>
+          <p className="text-center mt-3 text-[11px]" style={{ color: "#6b7280" }}>
+            Powered by Llama 4 Maverick (narrative) + GPT o3 (tool calling) + pure math (deterministic)
+          </p>
+        </div>
 
         {/* Free-form chat CTA */}
         <div className="mt-5 rounded-2xl p-4 flex items-center justify-between gap-3" style={{ background: "linear-gradient(135deg, rgba(245,194,66,0.06), rgba(168,85,247,0.04))", border: "0.5px solid rgba(245,194,66,0.18)" }}>

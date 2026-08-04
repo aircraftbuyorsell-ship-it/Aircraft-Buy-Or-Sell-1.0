@@ -55,7 +55,7 @@ export default function AdminSettings() {
     retry: false,
   });
 
-  const { data: configs = [], isLoading } = useQuery({
+  const { data: configs = [], isLoading, isSuccess } = useQuery({
     queryKey: ["app-config"],
     // Must match the sort used by generateMarketReport / generateMarketForecast
     // ("-created_date", 1) or the admin panel reads and writes a different row
@@ -78,11 +78,15 @@ export default function AdminSettings() {
         freezeAbosDataInfluence: frozen,
         abosDataFreezeMessage: message,
       };
-      if (configs.length > 0) {
-        return base44.entities.AppConfig.update(configs[0].id, data);
-      } else {
-        return base44.entities.AppConfig.create(data);
+      if (configs.length === 0) {
+        // Never create here. `configs` defaults to [] on a failed/pending read,
+        // and a create on that path is what produced the duplicate key:"global"
+        // rows. The row is seeded by migration; if it's missing, fail loudly.
+        throw new Error(
+          "AppConfig key:\"global\" not loaded \u2014 refusing to write. Reload and retry."
+        );
       }
+      return base44.entities.AppConfig.update(configs[0].id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["app-config"] });
@@ -189,7 +193,7 @@ export default function AdminSettings() {
 
         <Button
           onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || isLoading}
+          disabled={saveMutation.isPending || isLoading || !isSuccess}
           className="w-full font-bold uppercase tracking-wide"
           style={{ background: "linear-gradient(135deg,#4e8ef7,#143C75)" }}
         >

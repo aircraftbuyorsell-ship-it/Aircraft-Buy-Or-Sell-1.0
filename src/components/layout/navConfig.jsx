@@ -66,11 +66,11 @@ export const NAV_TREE = [
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
-          { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
+          { path: "/valuation", label: "Aircraft Price Check", icon: TrendingUp },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
           { path: "/calculators", label: "All Calculators", icon: Calculator },
-          { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+          { path: "/opex-calculator", label: "Operational Costs", icon: Calculator },
           { path: "/insurance-calculator", label: "Insurance", icon: Shield },
           { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
           { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },

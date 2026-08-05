@@ -10,7 +10,6 @@ import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
 import AccountMenu from "@/components/layout/AccountMenu";
 import { useTheme } from "@/lib/useTheme";
-import BuyerTrialStrip from "@/components/buy/BuyerTrialStrip";
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -25,13 +24,6 @@ export default function HomepageHeader() {
     queryKey: ["auth-me"],
     queryFn: () => base44.auth.me(),
     retry: false
-  });
-
-  const { data: buyerProfile } = useQuery({
-    queryKey: ["buyer-trial-strip", currentUser?.email],
-    queryFn: () => base44.entities.UserProfile.filter({ user_email: currentUser.email }, "-created_date", 1).then((profiles) => profiles[0] || null),
-    enabled: Boolean(currentUser?.email),
-    retry: false,
   });
 
   useEffect(() => {
@@ -57,9 +49,8 @@ export default function HomepageHeader() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 safe-left safe-right">
-        <BuyerTrialStrip profile={buyerProfile} />
-        <div className="px-3 pt-3 sm:px-6"><div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
+      <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 safe-left safe-right">
+        <div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
           <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] bg-[hsl(var(--background))]">
             <div className="flex items-center shrink-0 gap-2">
               <button onClick={() => window.dispatchEvent(new CustomEvent('abos-open-drawer'))} aria-label="Open menu"
@@ -105,7 +96,7 @@ export default function HomepageHeader() {
           <div className="lg:hidden flex items-center justify-center pb-2 px-4">
             <MobilePillNav />
           </div>
-        </div></div>
+        </div>
       </header>
     </>);
 

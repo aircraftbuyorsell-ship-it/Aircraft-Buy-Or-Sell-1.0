@@ -114,58 +114,11 @@
     },
     "feature_flags": {
       "type": "object",
-      "description": "Feature access flags"
+      "description": "Feature access {escrow_enabled: true, white_label: false}"
     },
     "metadata": {
       "type": "object",
       "description": "Custom user metadata"
-    },
-    "pipeline_role": {
-      "type": "string",
-      "enum": [
-        "buyer",
-        "seller",
-        "both",
-        "none"
-      ],
-      "default": "none",
-      "description": "Selected ABOS transaction pipeline role"
-    },
-    "trial_started_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Buyer trial start time"
-    },
-    "trial_expires_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Buyer trial expiry time"
-    },
-    "buyer_pro_active": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether the buyer has active unlimited access"
-    },
-    "buyer_plan": {
-      "type": "string",
-      "enum": [
-        "monthly",
-        "annual",
-        "none"
-      ],
-      "default": "none",
-      "description": "Buyer subscription plan"
-    },
-    "seller_free_listing_used": {
-      "type": "boolean",
-      "default": false,
-      "description": "Whether the seller has used their complimentary first listing"
-    },
-    "total_listings_count": {
-      "type": "number",
-      "minimum": 0,
-      "default": 0,
-      "description": "Number of seller aircraft created through ABOS"
     }
   },
   "required": [

@@ -1,8 +1,0 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-
-export default function BuyerOnboardingForm({ onSubmit, loading }) {
-  const [form, setForm] = useState({ aircraft: "", budget: "", timeline: "" });
-  const update = (key, value) => setForm({ ...form, [key]: value });
-  return <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); onSubmit(form); }}><div><label className="mb-2 block text-sm font-semibold" htmlFor="aircraft">Co hledáš?</label><input id="aircraft" required value={form.aircraft} onChange={(e) => update("aircraft", e.target.value)} placeholder="Např. Citation CJ3, 2015+" className="w-full rounded-lg border px-3 py-3" /></div><div><label className="mb-2 block text-sm font-semibold" htmlFor="budget">Jaký je budget?</label><input id="budget" required type="number" min="0" value={form.budget} onChange={(e) => update("budget", e.target.value)} placeholder="USD" className="w-full rounded-lg border px-3 py-3" /></div><div><label className="mb-2 block text-sm font-semibold" htmlFor="timeline">Jaký je timeline?</label><select id="timeline" required value={form.timeline} onChange={(e) => update("timeline", e.target.value)} className="w-full rounded-lg border px-3 py-3"><option value="">Vyber termín</option><option value="immediate">Ihned</option><option value="30_days">Do 30 dní</option><option value="researching">Průzkum trhu</option></select></div><Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground">{loading ? "Aktivuji trial…" : "Spustit 3denní trial"}</Button></form>;
-}

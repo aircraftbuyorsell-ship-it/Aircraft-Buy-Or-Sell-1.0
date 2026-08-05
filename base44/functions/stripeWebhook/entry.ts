@@ -35,6 +35,13 @@ async function syncUserProfileTier(base44, userEmail, tier, subTier) {
   }
 }
 
+async function setBuyerSubscription(base44, userEmail, active, plan = 'none') {
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
+  const payload = { buyer_pro_active: active, buyer_plan: active ? plan : 'none', tier: active ? 'pro' : 'free_explorer', sub_tier: active ? 'premium' : 'none', status: 'active' };
+  if (profiles[0]) return await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, payload);
+  return await base44.asServiceRole.entities.UserProfile.create({ user_email: userEmail, role: 'buyer', ...payload });
+}
+
 // Downgrade UserProfile to free_explorer on subscription end
 async function downgradeUserProfile(base44, userEmail) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
@@ -91,6 +98,11 @@ async function handleCheckoutCompleted(session, base44) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  if (meta.product === 'buyer_subscription') {
+    if (userEmail) await setBuyerSubscription(base44, userEmail, true, meta.buyer_plan || 'monthly');
+    return;
+  }
 
   // Newsletter subscription — set flag, no tokens
   if (meta.product === 'newsletter_subscription') {
@@ -163,8 +175,13 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
-  // Newsletter subscription — manage flag, skip token logic
   const subMeta = subscription.metadata || {};
+  if (subMeta.product === 'buyer_subscription') {
+    await setBuyerSubscription(base44, userEmail, subscription.status === 'active' || subscription.status === 'trialing', subMeta.buyer_plan || 'monthly');
+    return;
+  }
+
+  // Newsletter subscription — manage flag, skip token logic
   if (subMeta.product === 'newsletter_subscription') {
     if (subscription.status === 'active' || subscription.status === 'trialing') {
       await setNewsletterFlag(base44, userEmail, true);
@@ -262,8 +279,13 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) return;
 
-  // Newsletter subscription — clear flag only, don't touch tier
   const subMeta = subscription.metadata || {};
+  if (subMeta.product === 'buyer_subscription') {
+    await setBuyerSubscription(base44, userEmail, false);
+    return;
+  }
+
+  // Newsletter subscription — clear flag only, don't touch tier
   if (subMeta.product === 'newsletter_subscription') {
     await setNewsletterFlag(base44, userEmail, false);
     return;

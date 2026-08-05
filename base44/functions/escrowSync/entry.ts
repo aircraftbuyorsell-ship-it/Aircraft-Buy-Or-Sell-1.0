@@ -91,11 +91,19 @@ Deno.serve(async (req) => {
         "cancelled": "cancelled",
       };
       const mapped = statusMap[remote.status?.in_progress ? "in_progress" : remote.status] || tx.status;
-      await base44.entities.EscrowTransaction.update(transaction_id, {
-        status: mapped,
-        closed_at: mapped === "closed" ? new Date().toISOString() : tx.closed_at,
-      });
-      return Response.json({ success: true, remote_status: remote.status, local_status: mapped });
+      let settlement = {};
+      if (mapped === "closed" && tx.status !== "closed") {
+        const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: tx.seller_email }, '-created_date', 1);
+        const sellerProfile = profiles[0];
+        const applyFee = sellerProfile?.total_listings_count > 1;
+        const amount = Number(tx.sale_amount) || 0;
+        const pct = amount < 100000 ? 2.5 : amount < 500000 ? 1.5 : amount < 1000000 ? 1 : 0.5;
+        const cap = amount < 100000 ? 2475 : amount < 500000 ? 7485 : amount < 1000000 ? 9990 : Infinity;
+        const fee = applyFee ? Math.min(amount * pct / 100, cap) : 0;
+        settlement = { finders_fee_pct: applyFee ? pct : 0, finders_fee_amount: fee, seller_net: amount - fee };
+      }
+      await base44.entities.EscrowTransaction.update(transaction_id, { status: mapped, closed_at: mapped === "closed" ? new Date().toISOString() : tx.closed_at, ...settlement });
+      return Response.json({ success: true, remote_status: remote.status, local_status: mapped, ...settlement });
     }
 
     return Response.json({ error: "Unknown action" }, { status: 400 });

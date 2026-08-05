@@ -8,7 +8,23 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl } = await req.json();
+    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl, plan_type } = await req.json();
+
+    if (plan_type === 'buyer_monthly' || plan_type === 'buyer_annual') {
+      const annual = plan_type === 'buyer_annual';
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        customer_email: user.email,
+        client_reference_id: user.id,
+        line_items: [{ price_data: { currency: 'usd', unit_amount: annual ? 99900 : 19900, recurring: { interval: annual ? 'year' : 'month' }, product_data: { name: annual ? 'ABOS BUY Annual' : 'ABOS BUY Monthly' } }, quantity: 1 }],
+        success_url: `${returnUrl}&stripe_session={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: `${returnUrl}&canceled=true`,
+        metadata: { product: 'buyer_subscription', buyer_plan: annual ? 'annual' : 'monthly', user_id: user.id, user_email: user.email },
+        subscription_data: { metadata: { product: 'buyer_subscription', buyer_plan: annual ? 'annual' : 'monthly', user_id: user.id, user_email: user.email } },
+      });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url });
+    }
 
     if (!priceId) return Response.json({ error: 'Missing priceId' }, { status: 400 });
 

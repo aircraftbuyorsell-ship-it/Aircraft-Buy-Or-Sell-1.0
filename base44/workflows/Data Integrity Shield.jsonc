@@ -1,0 +1,35 @@
+{
+  "name": "Data Integrity Shield",
+  "description": "Cross-checks aircraft identity across FAA cache, adsbdb, and ADS-B traffic on every passport create/update. Flags data conflicts and sets Data Confidence badge.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "ATIPassport"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "data_integrity_shield",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "dataIntegrityShield",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

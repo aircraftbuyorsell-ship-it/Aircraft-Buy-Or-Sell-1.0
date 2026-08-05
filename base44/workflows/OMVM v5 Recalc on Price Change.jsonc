@@ -1,0 +1,34 @@
+{
+  "name": "OMVM v5 Recalc on Price Change",
+  "description": "Recalculates OMVM deal score when asking price changes on a listing",
+  "trigger": {
+    "condition": "${ (.trigger.changed_fields | index(\"asking_price\") != null) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "omvm_v5_recalc_on_price_change",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "omvmV5Score",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

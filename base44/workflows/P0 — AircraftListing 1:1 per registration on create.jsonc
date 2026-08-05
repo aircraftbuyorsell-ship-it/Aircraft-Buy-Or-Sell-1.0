@@ -1,0 +1,34 @@
+{
+  "name": "P0 \u2014 AircraftListing 1:1 per registration on create",
+  "description": "P0 guard \u2014 when an AircraftListing is created, if another exists with the same registration (case-insensitive), merge into the oldest (preserve latest status, fill empty fields) and delete the duplicate.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "p0_aircraftlisting_1_1_per_registration_on_create",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enforceUniqueOnCreate",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

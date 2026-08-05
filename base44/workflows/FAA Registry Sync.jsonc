@@ -1,0 +1,43 @@
+{
+  "name": "FAA Registry Sync",
+  "description": "Syncs 50 FAA registry records into FAAAircraft every 5 minutes",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 5,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-06-14T12:44:54.879000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "faa_registry_sync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncFaaFromSupabase",
+            "args": {
+              "mode": "registry_sync"
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

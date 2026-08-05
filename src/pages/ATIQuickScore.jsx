@@ -1,7 +1,7 @@
 import { useState }  from "react";
 import { Link }       from "react-router-dom";
 import {
-  Zap, FileText, TrendingUp, ShieldCheck, RotateCw,
+  Zap, FileText, TrendingUp, ShieldCheck, RotateCw, Database,
 } from "lucide-react";
 import { orchestrateATIScoring } from "@/api/orchestrateATIScoring";
 import { base44 } from "@/api/base44Client";
@@ -9,7 +9,6 @@ import { lookupAircraft } from "@/lib/aircraftLookup";
 import QuickScoreLookupForm from "@/components/ati/QuickScoreLookupForm";
 import AircraftMinimumFields from "@/components/ati/AircraftMinimumFields";
 import ListingTextPaste from "@/components/ati/ListingTextPaste";
-import TierBadge   from "@/components/TierBadge";
 import MiniGlobe   from "@/components/MiniGlobe";
 import {
   ScoreArc, DimensionBars, FlagsList, OMVMValue,
@@ -20,7 +19,6 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TIERS = ["free_explorer", "starter", "pro", "enterprise"];
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
 function emptyDetails() {
@@ -257,34 +255,31 @@ export default function ATIQuickScore() {
               color:         T.w1,
             }}
           >
-            ATI <span style={{ color: T.amber }}>Quick Score</span>
+            FAA Check & <span style={{ color: T.amber }}>Free Valuation</span>
           </h1>
 
           <p style={{ color: T.w3, fontSize: "13px", margin: "0 0 18px", lineHeight: 1.6 }}>
-            Start with an N-Number, confirm the known details, then add listing information.
+            Verify a U.S. N-Number against FAA registry data and get a free market-value estimate for the aircraft.
           </p>
 
           <div
             style={{
-              display:        "flex",
-              alignItems:     "center",
+              display: "inline-flex",
+              alignItems: "center",
               justifyContent: "center",
-              gap:            "6px",
-              flexWrap:       "wrap",
+              gap: "7px",
+              padding: "7px 10px",
+              borderRadius: "999px",
+              background: "rgba(93,202,165,0.08)",
+              border: "0.5px solid rgba(93,202,165,0.22)",
+              color: T.teal,
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
             }}
           >
-            <span
-              style={{
-                fontSize:      "9px",
-                letterSpacing: "0.10em",
-                textTransform: "uppercase",
-                color:         T.w3,
-                marginRight:   "4px",
-              }}
-            >
-              Available for:
-            </span>
-            {TIERS.map((t) => <TierBadge key={t} tier={t} size="sm" />)}
+            <Database size={13} /> FAA registry check · Free estimate
           </div>
         </div>
 
@@ -300,7 +295,7 @@ export default function ATIQuickScore() {
                   <ListingTextPaste value={input} onChange={setInput} />
                   {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">{error}</p>}
                   <button onClick={handleScore} disabled={!canSubmit} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
-                    <Zap size={16} /> Create ATI Quick Score
+                    <Zap size={16} /> Get Free Aircraft Valuation
                   </button>
                   {!hasMinimumDetails && <p className="text-center text-sm text-muted-foreground">Add year, make and model to create the score.</p>}
                 </>

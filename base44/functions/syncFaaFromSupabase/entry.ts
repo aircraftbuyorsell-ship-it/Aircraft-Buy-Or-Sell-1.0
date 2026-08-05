@@ -3,9 +3,20 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // ── Helpers (defined before try block so they're in scope in catch) ──
 
+// Robust error serializer — avoids "[object Object]" when an error lacks .message
+const errToStr = (e) => {
+  if (e == null) return 'Unknown error';
+  if (typeof e === 'string') return e;
+  if (e.message) return String(e.message);
+  if (typeof e === 'object') {
+    try { return JSON.stringify(e); } catch (_) { return '[object Object]'; }
+  }
+  return String(e);
+};
+
 // Detect Supabase HTML error pages (522/503 — project paused or down)
 const supabaseErrMsg = (err) => {
-  const msg = err?.message || String(err);
+  const msg = errToStr(err);
   if (msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out')) {
     return 'Supabase project is unreachable (522/503). Check if the Supabase project is paused or down.';
   }
@@ -750,7 +761,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
-    const msg = error.message || String(error);
+    const msg = errToStr(error);
     const isSupabaseDown = msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out');
     const isTimeout = msg.includes('timed out') || msg.includes('Timeout');
 

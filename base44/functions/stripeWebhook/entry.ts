@@ -35,10 +35,25 @@ async function syncUserProfileTier(base44, userEmail, tier, subTier) {
   }
 }
 
+// Plan types that grant ABOS Pro / Marketplace access (see stripeCreateCheckout)
+const ABOS_PLAN_TYPES = [
+  'buyer_monthly', 'buyer_annual',
+  'abos_pro_monthly', 'abos_pro_annual',
+  'abos_market_growth', 'abos_market_scale', 'abos_market_enterprise',
+];
+const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
+
 async function syncBuyerSubscription(base44, userEmail, planType, active) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
-  const plan = planType === 'buyer_annual' ? 'annual' : 'monthly';
-  const update = { buyer_pro_active: active, buyer_plan: active ? plan : 'none', status: 'active' };
+  const plan = ['buyer_annual', 'abos_pro_annual'].includes(planType) ? 'annual' : 'monthly';
+  const isMarketplace = planType.startsWith('abos_market_');
+  const update = {
+    buyer_pro_active: active,
+    buyer_plan: active ? plan : 'none',
+    status: 'active',
+    tier: active ? (isMarketplace ? 'enterprise' : 'pro') : 'free_explorer',
+    sub_tier: active ? (isMarketplace ? 'scale' : 'premium') : 'none',
+  };
   if (profiles[0]) {
     await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, update);
   } else {
@@ -103,7 +118,7 @@ async function handleCheckoutCompleted(session, base44) {
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
 
-  if (meta.plan_type === 'buyer_monthly' || meta.plan_type === 'buyer_annual') {
+  if (isAbosPlan(meta.plan_type)) {
     if (!userEmail) { console.warn('No email found in buyer checkout session'); return; }
     await syncBuyerSubscription(base44, userEmail, meta.plan_type, true);
     return;
@@ -181,7 +196,7 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
   const subMeta = subscription.metadata || {};
-  if (subMeta.plan_type === 'buyer_monthly' || subMeta.plan_type === 'buyer_annual') {
+  if (isAbosPlan(subMeta.plan_type)) {
     await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, ['active', 'trialing'].includes(subscription.status));
     return;
   }
@@ -285,7 +300,7 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   if (!userEmail) return;
 
   const subMeta = subscription.metadata || {};
-  if (subMeta.plan_type === 'buyer_monthly' || subMeta.plan_type === 'buyer_annual') {
+  if (isAbosPlan(subMeta.plan_type)) {
     await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, false);
     return;
   }

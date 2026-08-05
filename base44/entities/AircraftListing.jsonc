@@ -111,7 +111,7 @@
     },
     "photo_url": {
       "type": "string",
-      "description": "Aircraft photo URL (from adsbdb real photo or HF-generated representative photo)"
+      "description": "Aircraft photo URL"
     },
     "photo_source": {
       "type": "string",
@@ -127,6 +127,11 @@
       "type": "string",
       "relationType": "User",
       "description": "Listing owner"
+    },
+    "pending_fee_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Finder's fee held for collection only when an ABOS escrow closes"
     }
   },
   "required": [

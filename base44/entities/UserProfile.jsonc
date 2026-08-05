@@ -1,4 +1,5 @@
 {
+  "name": "UserProfile",
   "type": "object",
   "properties": {
     "user_email": {
@@ -114,11 +115,60 @@
     },
     "feature_flags": {
       "type": "object",
-      "description": "Feature access {escrow_enabled: true, white_label: false}"
+      "description": "Feature access flags"
     },
     "metadata": {
       "type": "object",
       "description": "Custom user metadata"
+    },
+    "pipeline_role": {
+      "type": "string",
+      "enum": [
+        "buyer",
+        "seller",
+        "both"
+      ],
+      "description": "Commercial pipeline role"
+    },
+    "trial_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Buyer trial start time"
+    },
+    "trial_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Buyer trial expiry time"
+    },
+    "buyer_pro_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether buyer Pro access is active"
+    },
+    "buyer_plan": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual",
+        "none"
+      ],
+      "default": "none",
+      "description": "Active buyer billing plan"
+    },
+    "seller_free_listing_used": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the seller has used their first free asset listing"
+    },
+    "total_listings_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Seller asset listing count"
+    },
+    "stripe_connect_account_id": {
+      "type": "string",
+      "description": "Seller Stripe Connect account used for escrow payouts"
     }
   },
   "required": [
@@ -168,6 +218,5 @@
         "role": "admin"
       }
     }
-  },
-  "name": "UserProfile"
+  }
 }

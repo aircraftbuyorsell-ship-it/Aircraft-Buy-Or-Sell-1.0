@@ -11,7 +11,9 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const listing = body.data || await base44.asServiceRole.entities.AircraftListing.get(body.event?.entity_id);
+    const listingId = body.data?.id || body.event?.entity_id;
+    if (!body.data && !listingId) return Response.json({ skipped: true, reason: 'No listing in automation payload' });
+    const listing = body.data || await base44.asServiceRole.entities.AircraftListing.get(listingId);
     if (!listing) return Response.json({ skipped: true, reason: 'Listing not found' });
 
     const ownerId = listing.owner || listing.created_by_id;

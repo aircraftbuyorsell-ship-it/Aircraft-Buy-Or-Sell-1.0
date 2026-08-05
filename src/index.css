@@ -484,3 +484,17 @@ tbody tr,
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+
+/* Finance Advisor orchestration flow */
+.finance-flow-line {
+  color: var(--gold-bright);
+  font-family: 'Courier Prime', monospace;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: finance-flow 1s linear infinite;
+}
+@keyframes finance-flow {
+  from { opacity: .3; transform: translateX(-3px); }
+  50% { opacity: 1; }
+  to { opacity: .3; transform: translateX(3px); }
+}

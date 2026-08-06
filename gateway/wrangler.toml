@@ -4,6 +4,10 @@ main = "src/index.js"
 compatibility_date = "2026-07-21"
 account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 
+# Secrets (set via `wrangler secret put`, never in [vars]):
+#   GATEWAY_SECRET    - shared secret Base44 checks on inbound calls
+#   MCP_BEARER_TOKEN  - bearer token for the /mcp route; unset = /mcp returns 503
+
 [vars]
 BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"
 CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com"

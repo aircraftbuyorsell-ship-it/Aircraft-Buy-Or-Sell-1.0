@@ -1,70 +1,165 @@
-// Cloudflare Worker gateway in front of the Base44 widgetGateway function.
-// Locks down CORS to CORS_ALLOWED_ORIGINS and injects GATEWAY_SECRET /
-// x-widget-origin so Base44 can trust the caller and enforce per-partner
-// domain checks.
-export default {
-  async fetch(request, env) {
-    const origin = request.headers.get('Origin') || '';
-    const allowedOrigins = (env.CORS_ALLOWED_ORIGINS || '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean);
-    const originAllowed = allowedOrigins.includes(origin);
+// Cloudflare Worker gateway for ABOS.
+//
+// Two routes, two different trust models:
+//
+//   /mcp   -> Base44 MCP endpoint. Callers are MCP clients (Claude Desktop,
+//             Cursor, agents), NOT browsers. They send no Origin header, so
+//             the CORS allowlist cannot apply here. Auth is a Bearer token
+//             compared in constant time. Responses may be SSE and are
+//             streamed through unbuffered.
+//
+//   /*     -> Legacy widget path. Browser callers. Origin allowlist + injected
+//             GATEWAY_SECRET, forwarded to the widgetGateway function.
+//             Behaviour unchanged.
 
-    const corsHeaders = originAllowed
-      ? {
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Vary': 'Origin',
-        }
-      : {};
+const MCP_ACCEPT = 'application/json, text/event-stream';
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: originAllowed ? 204 : 403, headers: corsHeaders });
-    }
+function json(body, status, extraHeaders = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
+  });
+}
 
-    if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'method_not_allowed' }), {
-        status: 405,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
-    }
+async function sha256(value) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return new Uint8Array(digest);
+}
 
-    if (!originAllowed) {
-      return new Response(JSON.stringify({ error: 'origin_not_allowed' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+// Hash both sides before comparing so neither the token contents nor its
+// length leak through timing.
+async function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
+  const [ha, hb] = await Promise.all([sha256(a), sha256(b)]);
+  let diff = 0;
+  for (let i = 0; i < ha.length; i++) diff |= ha[i] ^ hb[i];
+  return diff === 0;
+}
 
-    if (!env.BASE44_APP_BASE_URL) {
-      return new Response(JSON.stringify({ error: 'gateway_misconfigured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      });
-    }
+function bearerFrom(request) {
+  const header = request.headers.get('Authorization') || '';
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  return match ? match[1].trim() : null;
+}
 
-    const upstreamUrl = `${env.BASE44_APP_BASE_URL.replace(/\/$/, '')}/functions/widgetGateway`;
-    const body = await request.text();
+async function handleMcp(request, env, baseUrl) {
+  if (!env.MCP_BEARER_TOKEN) {
+    return json({ error: 'mcp_disabled' }, 503);
+  }
 
-    const upstreamResponse = await fetch(upstreamUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-gateway-secret': env.GATEWAY_SECRET || '',
-        'x-widget-origin': origin,
-      },
+  if (!['POST', 'GET', 'DELETE'].includes(request.method)) {
+    return json({ error: 'method_not_allowed' }, 405, { Allow: 'POST, GET, DELETE' });
+  }
+
+  const presented = bearerFrom(request);
+  if (!(await timingSafeEqual(presented, env.MCP_BEARER_TOKEN))) {
+    return json({ error: 'unauthorized' }, 401, {
+      'WWW-Authenticate': 'Bearer realm="abos-mcp"',
+    });
+  }
+
+  const upstreamHeaders = new Headers();
+  // Base44 rejects requests that don't advertise both JSON and SSE (406).
+  upstreamHeaders.set('Accept', request.headers.get('Accept') || MCP_ACCEPT);
+  upstreamHeaders.set('x-gateway-secret', env.GATEWAY_SECRET || '');
+
+  for (const name of ['Content-Type', 'Mcp-Session-Id', 'MCP-Protocol-Version', 'Last-Event-ID']) {
+    const value = request.headers.get(name);
+    if (value) upstreamHeaders.set(name, value);
+  }
+
+  // JSON-RPC payloads are small; buffering avoids duplex-stream edge cases.
+  const body = request.method === 'POST' ? await request.text() : undefined;
+
+  let upstream;
+  try {
+    upstream = await fetch(`${baseUrl}/api/mcp`, {
+      method: request.method,
+      headers: upstreamHeaders,
       body,
     });
+  } catch (err) {
+    return json({ error: 'upstream_unreachable' }, 502);
+  }
 
-    const responseBody = await upstreamResponse.text();
-    return new Response(responseBody, {
-      status: upstreamResponse.status,
-      headers: {
-        'Content-Type': upstreamResponse.headers.get('Content-Type') || 'application/json',
-        ...corsHeaders,
-      },
-    });
+  const responseHeaders = new Headers();
+  responseHeaders.set(
+    'Content-Type',
+    upstream.headers.get('Content-Type') || 'application/json'
+  );
+  responseHeaders.set('Cache-Control', 'no-store');
+  for (const name of ['Mcp-Session-Id', 'MCP-Protocol-Version']) {
+    const value = upstream.headers.get(name);
+    if (value) responseHeaders.set(name, value);
+  }
+
+  // Stream the body rather than awaiting .text() so SSE responses stay live.
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: responseHeaders,
+  });
+}
+
+async function handleWidget(request, env, baseUrl) {
+  const origin = request.headers.get('Origin') || '';
+  const allowedOrigins = (env.CORS_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const originAllowed = allowedOrigins.includes(origin);
+
+  const corsHeaders = originAllowed
+    ? {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        Vary: 'Origin',
+      }
+    : {};
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: originAllowed ? 204 : 403, headers: corsHeaders });
+  }
+
+  if (request.method !== 'POST') {
+    return json({ error: 'method_not_allowed' }, 405, corsHeaders);
+  }
+
+  if (!originAllowed) {
+    return json({ error: 'origin_not_allowed' }, 403);
+  }
+
+  const upstreamResponse = await fetch(`${baseUrl}/functions/widgetGateway`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-gateway-secret': env.GATEWAY_SECRET || '',
+      'x-widget-origin': origin,
+    },
+    body: await request.text(),
+  });
+
+  const responseBody = await upstreamResponse.text();
+  return new Response(responseBody, {
+    status: upstreamResponse.status,
+    headers: {
+      'Content-Type': upstreamResponse.headers.get('Content-Type') || 'application/json',
+      ...corsHeaders,
+    },
+  });
+}
+
+export default {
+  async fetch(request, env) {
+    if (!env.BASE44_APP_BASE_URL) {
+      return json({ error: 'gateway_misconfigured' }, 500);
+    }
+    const baseUrl = env.BASE44_APP_BASE_URL.replace(/\/$/, '');
+    const { pathname } = new URL(request.url);
+
+    if (pathname === '/mcp' || pathname.startsWith('/mcp/')) {
+      return handleMcp(request, env, baseUrl);
+    }
+    return handleWidget(request, env, baseUrl);
   },
 };

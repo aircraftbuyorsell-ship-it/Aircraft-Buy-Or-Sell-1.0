@@ -16,15 +16,19 @@
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-sonnet-5';
 
+// Keys are the ATIPassport column names. The MEANINGS are the ones
+// orchestrateATIScoring uses, which is the canonical mapping — the same three
+// columns were being used for entirely different quantities by
+// marketExpertValuation, so labels travel with the key from here on.
 const DIMENSIONS = [
-  'documentation',
-  'maintenance',
-  'engine_health',
-  'avionics',
-  'usage_mission',
-  'storage_exposure',
-  'config_clarity',
-  'market_readiness',
+  { key: 'documentation',     label: 'Documentation Completeness' },
+  { key: 'technical',         label: 'Maintenance Traceability' },
+  { key: 'transparency',      label: 'Engine Health' },
+  { key: 'transaction_ready', label: 'Avionics Quality' },
+  { key: 'usage_mission',     label: 'Usage / Mission Risk' },
+  { key: 'storage_exposure',  label: 'Storage & Exposure' },
+  { key: 'config_clarity',    label: 'Configuration Clarity' },
+  { key: 'market_readiness',  label: 'Market Readiness' },
 ];
 
 function json(body, status = 200, extra = {}) {
@@ -176,12 +180,15 @@ function buildSystemPrompt() {
     'You are the ATI (Aircraft Transparency Index) scoring agent for ABOS.',
     'Return ONLY valid JSON. No markdown fences, no commentary outside the JSON.',
     '',
-    'Score eight dimensions, 0-15 each, total 0-120:',
+    'Score eight dimensions, 0-15 each, total 0-120. Use these exact JSON keys;',
+    'the key names are historical and do not always describe what is scored, so',
+    'go by the description, not the key:',
     '1. documentation      - logbook and records completeness',
-    '2. maintenance        - AD compliance and maintenance trail',
-    '3. engine_health      - SMOH against TBO, compressions, oil analysis.',
+    '2. technical          - MAINTENANCE TRACEABILITY: AD compliance, maintenance trail',
+    '3. transparency       - ENGINE HEALTH: SMOH against TBO, compressions, oil analysis.',
     '                        Cap at 7 when SMOH is not stated.',
-    '4. avionics           - GPS/WAAS 3, autopilot 3, glass 2, ADS-B 3, IFR 2, weather 2',
+    '4. transaction_ready  - AVIONICS QUALITY: GPS/WAAS 3, autopilot 3, glass 2,',
+    '                        ADS-B 3, IFR 2, weather 2',
     '5. usage_mission      - private 13-15, training 5-8, commercial 0-4',
     '6. storage_exposure   - hangared dry 13-15, outdoor coastal 0-4',
     '7. config_clarity     - spec consistency, STC documentation',
@@ -302,10 +309,10 @@ export async function handleAtiScore(request, env, baseUrl) {
   const dims = scored.dimensions || {};
   let total = 0;
   const dimensions = {};
-  for (const name of DIMENSIONS) {
-    const raw = Number(dims[name]?.score);
+  for (const { key, label } of DIMENSIONS) {
+    const raw = Number(dims[key]?.score);
     const score = Number.isFinite(raw) ? Math.max(0, Math.min(15, Math.round(raw))) : 0;
-    dimensions[name] = { score, max: 15, notes: dims[name]?.notes || '' };
+    dimensions[key] = { score, max: 15, label, notes: dims[key]?.notes || '' };
     total += score;
   }
 
@@ -324,7 +331,7 @@ export async function handleAtiScore(request, env, baseUrl) {
 
   const id = await cardId(canonicalise(aircraft, listingText));
 
-  return json({
+  const card = {
     status: 'ok',
     card_id: id,
     score_version: 'ati-v2.1',
@@ -357,5 +364,33 @@ export async function handleAtiScore(request, env, baseUrl) {
       notice: 'Dimension notes and narrative are AI-generated. The ATI total and the market valuation are computed, not generated.',
     },
     generated_at: new Date().toISOString(),
-  });
+  };
+
+  // Persist. A scoring run that is not recorded is a card that evaporates,
+  // which is exactly what happens the moment the n8n Sheets writer is turned
+  // off. Registration is the passport key, so without one there is nothing to
+  // upsert against and the card is returned unsaved rather than silently lost.
+  const registration = String(aircraft.registration || aircraft.reg || '').trim().toUpperCase();
+  if (registration) {
+    try {
+      const saved = await callBase44(env, baseUrl, 'persistAtiPassport', {
+        ...card,
+        registration,
+        listing_id: body.listing_id,
+        omvm: { ...card.omvm, market_intelligence: omvm.market_intelligence },
+      });
+      card.passport_id = saved.passport_id || null;
+      card.persisted = saved.action || null;
+    } catch (err) {
+      // The score is still worth returning; the caller just needs to know it
+      // did not land.
+      card.passport_id = null;
+      card.persisted = 'failed';
+      card.persist_error = err.message;
+    }
+  } else {
+    card.persisted = 'skipped_no_registration';
+  }
+
+  return json(card);
 }

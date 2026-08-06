@@ -393,6 +393,7 @@ async function handleOmvm(base44, payload, partner) {
 
   return Response.json({
     ok: true,
+    status: 'ok',
     omvm_value: omvmValue,
     value_low: lowBand,
     value_high: highBand,

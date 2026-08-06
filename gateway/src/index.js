@@ -14,6 +14,8 @@
 
 const MCP_ACCEPT = 'application/json, text/event-stream';
 
+import { handleOmvm, handleAtiScore } from './ati.js';
+
 function json(body, status, extraHeaders = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -160,6 +162,25 @@ export default {
     if (pathname === '/mcp' || pathname.startsWith('/mcp/')) {
       return handleMcp(request, env, baseUrl);
     }
+
+    // ATI / OMVM — replaces the n8n ATI Score Pipeline. POST only; these are
+    // machine endpoints, not browser ones, so the CORS allowlist below does
+    // not apply to them.
+    if (pathname === '/omvm' || pathname === '/ati/score') {
+      if (request.method !== 'POST') {
+        return json({ error: 'method_not_allowed' }, 405, { Allow: 'POST' });
+      }
+      const presented = bearerFrom(request);
+      if (!env.MCP_BEARER_TOKEN || !(await timingSafeEqual(presented, env.MCP_BEARER_TOKEN))) {
+        return json({ error: 'unauthorized' }, 401, {
+          'WWW-Authenticate': 'Bearer realm="abos-ati"',
+        });
+      }
+      return pathname === '/omvm'
+        ? handleOmvm(request, env, baseUrl)
+        : handleAtiScore(request, env, baseUrl);
+    }
+
     return handleWidget(request, env, baseUrl);
   },
 };

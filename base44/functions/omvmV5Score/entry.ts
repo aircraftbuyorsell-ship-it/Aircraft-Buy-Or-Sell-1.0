@@ -36,11 +36,10 @@ async function getMarketFallbackValue(base44, listing, listingId) {
     return { value: makeMedian, confidence: 'LOW', sample: makeRows.length, reason: 'make_average_market_price' };
   }
 
-  if (listing.asking_price && listing.asking_price > 5000) {
-    return { value: listing.asking_price, confidence: 'LOW', sample: 0, reason: 'asking_price_reference' };
-  }
-
-  return { value: 10000, confidence: 'LOW', sample: 0, reason: 'minimum_floor_no_market_data' };
+  // Neither an asking-price anchor nor a floor constant belongs here. Anchoring
+  // on the asking price is circular — the model ends up agreeing with whatever
+  // number it was handed. A floor constant is worse: it looks like a valuation.
+  return { value: null, confidence: null, sample: 0, reason: 'insufficient_comparables' };
 }
 
 /**
@@ -164,10 +163,10 @@ Deno.serve(async (req) => {
       fallbackReason = fallback.reason;
     }
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
-    const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
-    let omvmValue = Math.max(10000, Math.round(rawOMVM / 1000) * 1000);
 
-    // ── Live market intelligence blend (30% live / 70% model) ──
+    // ── Live market intelligence ──
+    // Fetched before the valuation is assembled, because when the comparable
+    // pool is empty this is the only remaining legitimate anchor.
     let liveMarketAvg = null, liveMinPrice = null, liveMaxPrice = null, liveListingsCount = null;
     let marketDataSource = 'none';
     try {
@@ -181,10 +180,59 @@ Deno.serve(async (req) => {
         liveMaxPrice = market.max_price;
         liveListingsCount = market.listings_count || 0;
         marketDataSource = market._source === 'cached' ? 'cached' : 'live';
-        omvmValue = Math.max(10000, Math.round((0.7 * omvmValue + 0.3 * liveMarketAvg) / 1000) * 1000);
       }
     } catch (marketErr) {
       console.warn('[omvmV5Score] market intelligence failed:', marketErr.message);
+    }
+
+    if (baseValue == null) {
+      if (liveMarketAvg && liveMarketAvg > 0) {
+        baseValue = liveMarketAvg;
+        confidence = 'LOW';
+        fallbackReason = 'live_market_only';
+      } else {
+        return Response.json({
+          ok: true,
+          status: 'insufficient_comparables',
+          omvm_value: null,
+          deal_score: null,
+          deal_label: null,
+          discount_pct: null,
+          confidence: null,
+          fallback_reason: 'insufficient_comparables',
+          comp_sample: valid.length,
+          required_comps: 3,
+          message: 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
+          engine_remaining_pct: Math.round(engineRemainingFrac * 100),
+          market_intelligence: {
+            live_market_avg: null,
+            live_min_price: null,
+            live_max_price: null,
+            live_listings_count: null,
+            market_data_source: marketDataSource,
+          },
+        });
+      }
+    }
+
+    const rawOMVM = (baseValue + engineAdj + avionicsPremium) * calibrationMultiplier * atiDiscount;
+    let omvmValue = Math.round(rawOMVM / 1000) * 1000;
+
+    // Blend live market in only when it is genuinely a second opinion. If it is
+    // already the base, blending it against itself would fake a corroboration.
+    if (liveMarketAvg && fallbackReason !== 'live_market_only') {
+      omvmValue = Math.round((0.7 * omvmValue + 0.3 * liveMarketAvg) / 1000) * 1000;
+    }
+
+    if (!Number.isFinite(omvmValue) || omvmValue <= 0) {
+      return Response.json({
+        ok: true,
+        status: 'valuation_out_of_range',
+        omvm_value: null,
+        confidence: null,
+        comp_sample: valid.length,
+        message: 'Adjustments drove the valuation to a non-positive figure; inputs are inconsistent.',
+      });
     }
 
     // 9) Deal scoring
@@ -236,6 +284,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       ok: true,
+      status: 'ok',
       omvm_value: omvmValue,
       deal_score: dealScore,
       deal_label: dealLabel,

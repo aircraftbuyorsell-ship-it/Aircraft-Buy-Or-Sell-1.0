@@ -329,23 +329,42 @@ async function handleOmvm(base44, payload, partner) {
     return l.asking_price > 5000 && l.year > 1950 && compPrefix === modelPrefix;
   });
 
+  // No synthetic floor. When the comparable pool is too thin the model has no
+  // opinion, and saying so is more useful to a partner than a constant dressed
+  // up as a valuation. Callers branch on `status`, so the contract is stable
+  // whether or not comps exist.
+  const MIN_COMPS = 3;
   let baseValue, confidence;
-  if (valid.length >= 3) {
+  if (valid.length >= MIN_COMPS) {
     const prices = valid.map(l => l.asking_price).sort((a, b) => a - b);
     baseValue = prices[Math.floor(prices.length / 2)];
     confidence = valid.length >= 10 ? 'HIGH' : 'MEDIUM';
   } else {
     const allMake = comps.filter(l => l.asking_price > 5000);
-    if (allMake.length > 0) {
+    if (allMake.length >= MIN_COMPS) {
       const prices = allMake.map(l => l.asking_price).sort((a, b) => a - b);
       baseValue = prices[Math.floor(prices.length / 2)];
       confidence = 'LOW';
-    } else if (askingPrice && askingPrice > 5000) {
-      baseValue = askingPrice;
-      confidence = 'LOW';
     } else {
-      baseValue = 50000;
-      confidence = 'LOW';
+      // Deliberately no asking_price fallback: anchoring on the number we were
+      // asked to check is circular and always yields a 0% discount.
+      return Response.json({
+        ok: true,
+        status: 'insufficient_comparables',
+        omvm_value: null,
+        value_low: null,
+        value_high: null,
+        deal_score: null,
+        deal_label: null,
+        discount_pct: null,
+        confidence: null,
+        comp_sample: valid.length,
+        make_sample: allMake.length,
+        required_comps: MIN_COMPS,
+        message: 'Not enough comparable listings to produce a defensible valuation.',
+        asking_price: askingPrice,
+        partner_id: partner.id,
+      });
     }
   }
 

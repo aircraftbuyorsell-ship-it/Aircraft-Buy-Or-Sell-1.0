@@ -47,21 +47,50 @@ async function getMarketFallbackValue(base44, listing, listingId) {
  * Log-linear depreciation + engine remaining curve + expert calibration.
  * Body: { listingId } OR { make, model, year, engine_hours, tbo, avionics, asking_price }
  */
+// Constant-time comparison via SHA-256 of both sides, so neither the secret's
+// contents nor its length leak through response timing.
+async function timingSafeEqual(a: string | null, b: string | null): Promise<boolean> {
+  if (!a || !b) return false;
+  const enc = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const va = new Uint8Array(ha), vb = new Uint8Array(hb);
+  let diff = 0;
+  for (let i = 0; i < va.length; i++) diff |= va[i] ^ vb[i];
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Two ways in. Browsers arrive with a user session. The Cloudflare gateway
+    // arrives with a shared secret and no session at all, which is why the
+    // listing fetch below has to go through asServiceRole rather than the
+    // user-scoped client.
+    const isService = await timingSafeEqual(
+      req.headers.get('x-gateway-secret'),
+      Deno.env.get('GATEWAY_SECRET') ?? null
+    );
+
+    if (!isService) {
+      const user = await base44.auth.me();
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json().catch(() => ({}));
-    const { listingId } = body;
+    // Accept listingId, listing_id and a nested aircraft object so the gateway
+    // and the existing front-end callers can share one contract.
+    const listingId = body.listingId || body.listing_id;
 
     let listing = null;
     if (listingId) {
-      listing = await base44.entities.AircraftListing.get(listingId);
+      listing = await base44.asServiceRole.entities.AircraftListing.get(listingId);
       if (!listing) return Response.json({ error: 'Listing not found' }, { status: 404 });
     } else {
-      listing = body; // inline data
+      listing = body.aircraft && Object.keys(body.aircraft).length ? body.aircraft : body;
     }
 
     const currentYear = new Date().getFullYear();

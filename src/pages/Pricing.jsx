@@ -2,7 +2,6 @@ import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const INK   = "#0B1220";
-const INK1  = "#111827";
 const AMBER = "#D4A017";
 const TEAL  = "#5dcaa5";
 const BLUE  = "#4e8ef7";
@@ -38,7 +37,7 @@ const TIERS = [
       { ok: true,  text: "Up to 10 listings / month" },
       { ok: false, text: "No .docx branded report" },
     ],
-    cta: "Get started", ctaVariant: "ghost", link: "/my-account",
+    cta: "Get started", ctaVariant: "ghost", link: "/plans",
   },
   {
     id: "t2", label: "T2 — Pro", price: "€99", cadence: "/month", accent: "amber",
@@ -52,7 +51,7 @@ const TIERS = [
       { ok: true, text: "FAA + EASA registry cross-check" },
       { ok: true, text: "Unlimited listings" },
     ],
-    cta: "Start Pro", ctaVariant: "amber", link: "/my-account",
+    cta: "Start Pro", ctaVariant: "amber", link: "/plans",
   },
   {
     id: "t3", label: "T3 — Enterprise", price: "€249", cadence: "/month", accent: "blue",
@@ -66,7 +65,7 @@ const TIERS = [
       { ok: true, text: "Quarterly compliance audit report" },
       { ok: true, text: "Named account manager" },
     ],
-    cta: "Contact sales", ctaVariant: "ghost", link: "/contact",
+    cta: "Contact sales", ctaVariant: "ghost", link: "/plans",
   },
 ];
 
@@ -198,7 +197,7 @@ export default function Pricing() {
                       ))}
                     </ul>
                     {tier.link ? (
-                      <Link to={tier.link}><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
+                      <Link to={tier.link} className="block"><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
                     ) : (
                       <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
                     )}
@@ -234,7 +233,7 @@ export default function Pricing() {
         {/* Pay-per-use pricing table */}
         <section className="max-w-4xl mx-auto px-4 py-8">
           <p style={eyebrow} className="text-center mb-1">Pay-per-use — or use credits</p>
-          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/my-account" style={{ color: AMBER }}>Register free →</Link></p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/plans" style={{ color: AMBER }}>See plans →</Link></p>
           <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
             <div style={{ height: "2px", background: `linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)` }} />
             <div className="overflow-x-auto">
@@ -268,7 +267,7 @@ export default function Pricing() {
               </table>
             </div>
           </div>
-          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: `0.5px solid rgba(78,142,247,0.20)"` }}>
+          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
             <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: BLUE }} />
             <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>
               <strong style={{ color: W1 }}>How it works:</strong> Subscribers use credits (1 credit ≈ €0.15). Non-subscribers pay fiat at 1.3× the credit rate.

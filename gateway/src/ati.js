@@ -366,18 +366,21 @@ export async function handleAtiScore(request, env, baseUrl) {
     generated_at: new Date().toISOString(),
   };
 
-  // Persist. A scoring run that is not recorded is a card that evaporates,
-  // which is exactly what happens the moment the n8n Sheets writer is turned
-  // off. Registration is the passport key, so without one there is nothing to
+  // Persist through orchestrateATIScoring's persist-only path rather than a
+  // dedicated writer. ATIPassport already had three functions calling .create
+  // on it; a fourth would repeat the mistake this refactor exists to undo.
+  // Registration is the passport key, so without one there is nothing to
   // upsert against and the card is returned unsaved rather than silently lost.
   const registration = String(aircraft.registration || aircraft.reg || '').trim().toUpperCase();
   if (registration) {
     try {
-      const saved = await callBase44(env, baseUrl, 'persistAtiPassport', {
-        ...card,
-        registration,
-        listing_id: body.listing_id,
-        omvm: { ...card.omvm, market_intelligence: omvm.market_intelligence },
+      const saved = await callBase44(env, baseUrl, 'orchestrateATIScoring', {
+        card: {
+          ...card,
+          registration,
+          listing_id: body.listing_id,
+          omvm: { ...card.omvm, market_intelligence: omvm.market_intelligence },
+        },
       });
       card.passport_id = saved.passport_id || null;
       card.persisted = saved.action || null;

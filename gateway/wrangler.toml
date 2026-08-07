@@ -10,12 +10,10 @@ account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 #   ANTHROPIC_API_KEY - ATI narrative scoring; unset = /ati/score returns 503
 
 # APL audit chain (APL-A2). Without this binding the hash chain still emits but
-# every event links to genesis, so it proves nothing. Create it first:
-#   wrangler kv namespace create ABOS_AUDIT
-# then paste the returned id below and uncomment.
-# [[kv_namespaces]]
-# binding = "ABOS_AUDIT"
-# id = "<paste-id-here>"
+# every event links to genesis, so it proves nothing.
+[[kv_namespaces]]
+binding = "ABOS_AUDIT"
+id = "4d82602f2546446eb480fee148863922"
 
 [vars]
 BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"

@@ -98,6 +98,9 @@ async function handleRequest(request) {
       }
       const body = await request.json().catch(() => ({}));
       const fixes = await applyFixes(SECURITY_KV, body.fixIds || "all");
+      if (fixes.error) {
+        return new Response(JSON.stringify({ fixesApplied: fixes }, null, 2), { status: 409, headers: corsHeaders });
+      }
       return new Response(JSON.stringify({ fixesApplied: fixes }, null, 2), { headers: corsHeaders });
     }
 

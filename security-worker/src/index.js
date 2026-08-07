@@ -29,6 +29,284 @@ function bearerFrom(request) {
   return match ? match[1].trim() : null;
 }
 
+const CF_API_BASE = "https://api.cloudflare.com/client/v4";
+
+async function cfFetch(path, options = {}) {
+  const res = await fetch(`${CF_API_BASE}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${CF_API_TOKEN}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body || body.success === false) {
+    const err = new Error(body?.errors?.[0]?.message || `HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return body.result;
+}
+
+// Pulls the live zone state each check evaluates against. Each piece is
+// fetched independently so one missing entitlement (e.g. Bot Management on
+// a plan that doesn't include it) doesn't take down the whole scan.
+async function fetchZoneData() {
+  const data = { settings: null, dnssec: null, botManagement: null, wafEntrypoint: null, errors: {} };
+
+  try {
+    const settings = await cfFetch(`/zones/${ZONE_ID}/settings`);
+    data.settings = Object.fromEntries(settings.map(s => [s.id, s.value]));
+  } catch (err) {
+    data.errors.settings = err.message;
+  }
+
+  try {
+    data.dnssec = await cfFetch(`/zones/${ZONE_ID}/dnssec`);
+  } catch (err) {
+    data.errors.dnssec = err.message;
+  }
+
+  try {
+    data.botManagement = await cfFetch(`/zones/${ZONE_ID}/bot_management`);
+  } catch (err) {
+    data.errors.botManagement = err.message;
+  }
+
+  try {
+    data.wafEntrypoint = await cfFetch(`/zones/${ZONE_ID}/rulesets/phases/http_request_firewall_managed/entrypoint`);
+  } catch (err) {
+    // A 404 here means no managed ruleset is deployed at all - that's a
+    // real (non-compliant) finding, not a fetch failure.
+    if (err.status === 404) {
+      data.wafEntrypoint = { rules: [] };
+    } else {
+      data.errors.wafEntrypoint = err.message;
+    }
+  }
+
+  return data;
+}
+
+const CHECKS = [
+  {
+    id: "ssl-mode",
+    name: "SSL/TLS Mode Check",
+    severity: "critical",
+    description: "SSL/TLS mode should be full_strict to prevent downgrade attacks",
+    autoFixable: true,
+    evaluate: d => !d.settings
+      ? { status: "error", detail: d.errors.settings }
+      : { status: d.settings.ssl === "strict" ? "compliant" : "non_compliant", detail: `ssl=${d.settings.ssl}` },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/ssl`, { method: "PATCH", body: JSON.stringify({ value: "strict" }) }),
+  },
+  {
+    id: "dnssec",
+    name: "DNSSEC Status",
+    severity: "high",
+    description: "DNSSEC should be enabled to prevent DNS spoofing",
+    autoFixable: false,
+    evaluate: d => !d.dnssec
+      ? { status: "error", detail: d.errors.dnssec }
+      : { status: d.dnssec.status === "active" ? "compliant" : "non_compliant", detail: `status=${d.dnssec.status}` },
+  },
+  {
+    id: "bot-protection",
+    name: "Bot Protection",
+    severity: "medium",
+    description: "Bot Management protects against automated threats",
+    autoFixable: false,
+    evaluate: d => !d.botManagement
+      ? { status: "error", detail: d.errors.botManagement }
+      : {
+          status: d.botManagement.fight_mode || d.botManagement.sbfm_definitely_automated === "block" ? "compliant" : "non_compliant",
+          detail: `fight_mode=${d.botManagement.fight_mode}`,
+        },
+  },
+  {
+    id: "waf",
+    name: "WAF Status",
+    severity: "critical",
+    description: "WAF should be enabled to block malicious requests",
+    autoFixable: false,
+    evaluate: d => {
+      if (!d.wafEntrypoint) return { status: "error", detail: d.errors.wafEntrypoint };
+      const activeRules = (d.wafEntrypoint.rules || []).filter(r => r.enabled !== false);
+      return { status: activeRules.length > 0 ? "compliant" : "non_compliant", detail: `active_rules=${activeRules.length}` };
+    },
+  },
+  {
+    id: "always-use-https",
+    name: "Always Use HTTPS",
+    severity: "high",
+    description: "Always Use HTTPS should be enabled to enforce encryption",
+    autoFixable: true,
+    evaluate: d => !d.settings
+      ? { status: "error", detail: d.errors.settings }
+      : { status: d.settings.always_use_https === "on" ? "compliant" : "non_compliant", detail: `always_use_https=${d.settings.always_use_https}` },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/always_use_https`, { method: "PATCH", body: JSON.stringify({ value: "on" }) }),
+  },
+  {
+    id: "auto-minify",
+    name: "Auto Minify",
+    severity: "low",
+    description: "Auto Minify improves performance and reduces payload size",
+    autoFixable: true,
+    evaluate: d => {
+      if (!d.settings) return { status: "error", detail: d.errors.settings };
+      const m = d.settings.minify || {};
+      const allOn = m.css === "on" && m.html === "on" && m.js === "on";
+      return { status: allOn ? "compliant" : "non_compliant", detail: `minify=${JSON.stringify(m)}` };
+    },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/minify`, {
+      method: "PATCH",
+      body: JSON.stringify({ value: { css: "on", html: "on", js: "on" } }),
+    }),
+  },
+  {
+    id: "brotli",
+    name: "Brotli Compression",
+    severity: "low",
+    description: "Brotli compression reduces bandwidth usage",
+    autoFixable: true,
+    evaluate: d => !d.settings
+      ? { status: "error", detail: d.errors.settings }
+      : { status: d.settings.brotli === "on" ? "compliant" : "non_compliant", detail: `brotli=${d.settings.brotli}` },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/brotli`, { method: "PATCH", body: JSON.stringify({ value: "on" }) }),
+  },
+  {
+    id: "security-level",
+    name: "Security Level",
+    severity: "medium",
+    description: "Security level should be at least medium",
+    autoFixable: true,
+    evaluate: d => {
+      if (!d.settings) return { status: "error", detail: d.errors.settings };
+      const compliant = ["medium", "high", "under_attack"].includes(d.settings.security_level);
+      return { status: compliant ? "compliant" : "non_compliant", detail: `security_level=${d.settings.security_level}` };
+    },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/security_level`, { method: "PATCH", body: JSON.stringify({ value: "medium" }) }),
+  },
+  {
+    id: "email-obfuscation",
+    name: "Email Obfuscation",
+    severity: "low",
+    description: "Email obfuscation prevents email scraping",
+    autoFixable: true,
+    evaluate: d => !d.settings
+      ? { status: "error", detail: d.errors.settings }
+      : { status: d.settings.email_obfuscation === "on" ? "compliant" : "non_compliant", detail: `email_obfuscation=${d.settings.email_obfuscation}` },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/email_obfuscation`, { method: "PATCH", body: JSON.stringify({ value: "on" }) }),
+  },
+  {
+    id: "hotlink-protection",
+    name: "Hotlink Protection",
+    severity: "low",
+    description: "Hotlink protection prevents bandwidth theft",
+    autoFixable: true,
+    evaluate: d => !d.settings
+      ? { status: "error", detail: d.errors.settings }
+      : { status: d.settings.hotlink_protection === "on" ? "compliant" : "non_compliant", detail: `hotlink_protection=${d.settings.hotlink_protection}` },
+    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/hotlink_protection`, { method: "PATCH", body: JSON.stringify({ value: "on" }) }),
+  },
+];
+
+// Scans write one key per run instead of rewriting a shared "scan_history"
+// list, so concurrent /scan calls can't clobber each other's entries.
+async function recordScan(kv, scanId, timestamp, summary) {
+  await kv.put(`scan_history:${scanId}`, JSON.stringify({ scanId, timestamp, summary }));
+}
+
+async function getScanHistory(kv, limit = 50) {
+  const list = await kv.list({ prefix: "scan_history:" });
+  const keys = list.keys.map(k => k.name).sort().reverse().slice(0, limit);
+  const entries = await Promise.all(keys.map(k => kv.get(k, "json")));
+  return entries.filter(Boolean);
+}
+
+async function pruneScanHistory(kv, keep = 50) {
+  const list = await kv.list({ prefix: "scan_history:" });
+  const sorted = list.keys.map(k => k.name).sort();
+  const excess = sorted.slice(0, Math.max(0, sorted.length - keep));
+  await Promise.all(excess.map(name => kv.delete(name)));
+}
+
+async function runSecurityScan(kv) {
+  const scanId = "scan_" + Date.now();
+  const timestamp = new Date().toISOString();
+  const zoneData = await fetchZoneData();
+
+  const findings = CHECKS.map(check => {
+    const { status, detail } = check.evaluate(zoneData);
+    return {
+      id: check.id,
+      name: check.name,
+      severity: check.severity,
+      description: check.description,
+      status,
+      detail,
+      autoFixable: check.autoFixable,
+    };
+  });
+
+  const bySeverity = severity => findings.filter(f => f.severity === severity && f.status === "non_compliant").length;
+
+  const results = {
+    scanId,
+    timestamp,
+    zoneId: ZONE_ID,
+    summary: {
+      totalChecks: findings.length,
+      critical: bySeverity("critical"),
+      high: bySeverity("high"),
+      medium: bySeverity("medium"),
+      low: bySeverity("low"),
+      errors: findings.filter(f => f.status === "error").length,
+      autoFixable: findings.filter(f => f.status === "non_compliant" && f.autoFixable).length,
+    },
+    findings,
+  };
+
+  await kv.put("latest_results", JSON.stringify(results));
+  await kv.put("last_scan", JSON.stringify({ scanId, timestamp, summary: results.summary }));
+  await recordScan(kv, scanId, timestamp, results.summary);
+  await pruneScanHistory(kv);
+
+  return results;
+}
+
+async function applyFixes(kv, fixIds) {
+  const results = await kv.get("latest_results", "json");
+  if (!results) return { error: "No scan results found. Run /scan first." };
+
+  const targets = results.findings.filter(f => {
+    if (!f.autoFixable || f.status !== "non_compliant") return false;
+    return fixIds === "all" || (Array.isArray(fixIds) ? fixIds.includes(f.id) : fixIds === f.id);
+  });
+
+  const applied = [];
+  for (const finding of targets) {
+    const check = CHECKS.find(c => c.id === finding.id);
+    try {
+      await check.fix();
+      applied.push({ id: finding.id, action: "fixed", description: finding.description });
+    } catch (err) {
+      applied.push({ id: finding.id, action: "failed", description: finding.description, error: err.message });
+    }
+  }
+
+  const fixLog = {
+    timestamp: new Date().toISOString(),
+    fixesApplied: applied.filter(a => a.action === "fixed").length,
+    fixesFailed: applied.filter(a => a.action === "failed").length,
+    details: applied,
+  };
+  await kv.put("last_fix_log", JSON.stringify(fixLog));
+
+  return fixLog;
+}
+
 async function handleRequest(request) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -88,8 +366,8 @@ async function handleRequest(request) {
     }
 
     if (path === "/scan/history") {
-      const history = await SECURITY_KV.get("scan_history", "json");
-      return new Response(JSON.stringify(history || [], null, 2), { headers: corsHeaders });
+      const history = await getScanHistory(SECURITY_KV);
+      return new Response(JSON.stringify(history, null, 2), { headers: corsHeaders });
     }
 
     if (path === "/fix") {
@@ -106,18 +384,7 @@ async function handleRequest(request) {
 
     if (path === "/checks") {
       return new Response(JSON.stringify({
-        securityChecks: [
-          { id: "ssl-mode", name: "SSL/TLS Mode Check", description: "Ensures SSL mode is set to full or full_strict" },
-          { id: "dnssec", name: "DNSSEC Status", description: "Checks if DNSSEC is enabled for zones" },
-          { id: "bot-protection", name: "Bot Protection", description: "Checks if Bot Management is enabled" },
-          { id: "waf", name: "WAF Status", description: "Checks if Web Application Firewall is active" },
-          { id: "always-use-https", name: "Always Use HTTPS", description: "Ensures HTTPS redirect is enabled" },
-          { id: "auto-minify", name: "Auto Minify", description: "Checks if auto-minification is enabled for performance" },
-          { id: "brotli", name: "Brotli Compression", description: "Checks if Brotli compression is enabled" },
-          { id: "security-level", name: "Security Level", description: "Checks Cloudflare security level setting" },
-          { id: "email-obfuscation", name: "Email Obfuscation", description: "Checks if email obfuscation is enabled" },
-          { id: "hotlink-protection", name: "Hotlink Protection", description: "Checks if hotlink protection is enabled" },
-        ]
+        securityChecks: CHECKS.map(c => ({ id: c.id, name: c.name, description: c.description })),
       }, null, 2), { headers: corsHeaders });
     }
 
@@ -126,91 +393,4 @@ async function handleRequest(request) {
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
   }
-}
-
-async function runSecurityScan(kv) {
-  const scanId = "scan_" + Date.now();
-  const timestamp = new Date().toISOString();
-
-  const findings = [];
-  const checks = [
-    { id: "ssl-mode", severity: "critical", description: "SSL/TLS mode should be full_strict to prevent downgrade attacks" },
-    { id: "dnssec", severity: "high", description: "DNSSEC should be enabled to prevent DNS spoofing" },
-    { id: "bot-protection", severity: "medium", description: "Bot Management protects against automated threats" },
-    { id: "waf", severity: "critical", description: "WAF should be enabled to block malicious requests" },
-    { id: "always-use-https", severity: "high", description: "Always Use HTTPS should be enabled to enforce encryption" },
-    { id: "auto-minify", severity: "low", description: "Auto Minify improves performance and reduces payload size" },
-    { id: "brotli", severity: "low", description: "Brotli compression reduces bandwidth usage" },
-    { id: "security-level", severity: "medium", description: "Security level should be at least medium" },
-    { id: "email-obfuscation", severity: "low", description: "Email obfuscation prevents email scraping" },
-    { id: "hotlink-protection", severity: "low", description: "Hotlink protection prevents bandwidth theft" },
-  ];
-
-  for (const check of checks) {
-    findings.push({
-      id: check.id,
-      severity: check.severity,
-      description: check.description,
-      status: "checked",
-      autoFixable: ["ssl-mode", "always-use-https", "auto-minify", "brotli", "security-level", "email-obfuscation", "hotlink-protection"].includes(check.id),
-    });
-  }
-
-  const criticalCount = findings.filter(f => f.severity === "critical").length;
-  const highCount = findings.filter(f => f.severity === "high").length;
-  const mediumCount = findings.filter(f => f.severity === "medium").length;
-  const lowCount = findings.filter(f => f.severity === "low").length;
-
-  const results = {
-    scanId,
-    timestamp,
-    summary: {
-      totalChecks: findings.length,
-      critical: criticalCount,
-      high: highCount,
-      medium: mediumCount,
-      low: lowCount,
-      autoFixable: findings.filter(f => f.autoFixable).length,
-    },
-    findings,
-  };
-
-  await kv.put("latest_results", JSON.stringify(results));
-  await kv.put("last_scan", JSON.stringify({ scanId, timestamp, summary: results.summary }));
-
-  let history = await kv.get("scan_history", "json") || [];
-  history.unshift({ scanId, timestamp, summary: results.summary });
-  if (history.length > 50) history = history.slice(0, 50);
-  await kv.put("scan_history", JSON.stringify(history));
-
-  return results;
-}
-
-async function applyFixes(kv, fixIds) {
-  const results = await kv.get("latest_results", "json");
-  if (!results) return { error: "No scan results found. Run /scan first." };
-
-  const fixes = results.findings.filter(f => {
-    if (fixIds === "all") return f.autoFixable;
-    return f.autoFixable && (Array.isArray(fixIds) ? fixIds.includes(f.id) : fixIds === f.id);
-  });
-
-  const applied = [];
-  for (const fix of fixes) {
-    applied.push({
-      id: fix.id,
-      action: "queued_for_remediation",
-      description: fix.description,
-      note: "Fix will be applied via Cloudflare API. Use the Worker with proper API bindings to execute changes directly.",
-    });
-  }
-
-  const fixLog = {
-    timestamp: new Date().toISOString(),
-    fixesApplied: applied.length,
-    details: applied,
-  };
-  await kv.put("last_fix_log", JSON.stringify(fixLog));
-
-  return fixLog;
 }

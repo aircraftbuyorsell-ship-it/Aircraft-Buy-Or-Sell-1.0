@@ -15,6 +15,75 @@
 const MCP_ACCEPT = 'application/json, text/event-stream';
 
 import { handleOmvm, handleAtiScore } from './ati.js';
+import { aplToolList, isAplTool, callAplTool } from './apl.js';
+
+// Base44's MCP transport answers in SSE even for plain JSON-RPC, so anything
+// read back from upstream has to come out of `data:` frames.
+function parseSseJson(text) {
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('data:')) continue;
+    const payload = trimmed.slice(5).trim();
+    if (!payload) continue;
+    try {
+      return JSON.parse(payload);
+    } catch {
+      /* keep scanning */
+    }
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function upstreamTools(baseUrl, headers) {
+  try {
+    const res = await fetch(`${baseUrl}/api/mcp`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ jsonrpc: '2.0', id: 'tools', method: 'tools/list', params: {} }),
+    });
+    const parsed = parseSseJson(await res.text());
+    return parsed?.result?.tools || [];
+  } catch {
+    return [];
+  }
+}
+
+// APL sits above MCP: tools declared by an ADL manifest are served here, the
+// Base44 entity readers still come from upstream, and tools/list merges the
+// two so a client sees a single server.
+async function interceptApl(bodyText, env, baseUrl, upstreamHeaders) {
+  let rpc;
+  try {
+    rpc = JSON.parse(bodyText);
+  } catch {
+    return null;
+  }
+  if (!rpc || Array.isArray(rpc)) return null;
+
+  if (rpc.method === 'tools/list') {
+    const merged = [...aplToolList(), ...(await upstreamTools(baseUrl, upstreamHeaders))];
+    return json({ jsonrpc: '2.0', id: rpc.id, result: { tools: merged } });
+  }
+
+  if (rpc.method === 'tools/call' && isAplTool(rpc.params?.name)) {
+    const outcome = await callAplTool(rpc.params.name, rpc.params.arguments || {}, env, baseUrl);
+    const payload = outcome.error || outcome.result;
+    return json({
+      jsonrpc: '2.0',
+      id: rpc.id,
+      result: {
+        content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+        isError: !!outcome.error,
+      },
+    });
+  }
+
+  return null;
+}
 
 function json(body, status, extraHeaders = {}) {
   return new Response(JSON.stringify(body), {
@@ -72,6 +141,11 @@ async function handleMcp(request, env, baseUrl) {
 
   // JSON-RPC payloads are small; buffering avoids duplex-stream edge cases.
   const body = request.method === 'POST' ? await request.text() : undefined;
+
+  if (body) {
+    const handled = await interceptApl(body, env, baseUrl, upstreamHeaders);
+    if (handled) return handled;
+  }
 
   let upstream;
   try {

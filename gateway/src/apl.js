@@ -17,6 +17,7 @@
 // merged into running code yet; this is that merge for two skills only.
 
 import { handleOmvm, handleAtiScore } from './ati.js';
+import { handleDealRadar, handleFaaRegistry, handlePartnerStatus } from './data.js';
 
 export const APL_VERSION = '1.0';
 
@@ -40,6 +41,11 @@ const ALLOW_DEFAULT = [
   'recommendation.generate',
   'documentation.verify',
   'audit.log',
+  // Reading a partner's own configuration. Read-only and self-scoped: the
+  // caller must present the embed_token the record is keyed on, so this grants
+  // no visibility across partners. Distinct from the deny-default
+  // 'payment.execute' — seeing what you are owed is not moving money.
+  'partner.read',
 ];
 
 // ── ADL manifests ──────────────────────────────────────────────────────
@@ -116,6 +122,104 @@ export const ADL_MANIFESTS = [
           engine_hours: { type: 'number' },
           asking_price: { type: 'number' },
           listing_id: { type: 'string' },
+        },
+      },
+    },
+  },
+  {
+    adl_version: '1.0',
+    id: 'abos.market.dealradar',
+    apl_id: 'apl://aviation.abos/market/dealradar-agent/v1',
+    type: 'tool',
+    owner: { organization: 'ABOS' },
+    skill: 'Deal Radar Query v1',
+    description:
+      'Filtered feed of publicly visible ABOS listings with ATI score, OMVM value and discount. Returns market data only — seller identity is never included, so results are not a lead list.',
+    capabilities: ['query_listings', 'compare_market'],
+    permissions: ['aircraft.read', 'market.analyze'],
+    autonomy: 'A1', // analytical — returns rows, decides nothing
+    trust: 'APL-T2',
+    audit: 'APL-A2',
+    risk_level: 'low',
+    requires_human_approval: false,
+    supported_protocols: ['apl/1.0'],
+    evidence: { provenance: 'required', confidence: 'optional' },
+    status: 'verified',
+    mcp: {
+      name: 'abos_deal_radar',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          make: { type: 'string', description: 'Manufacturer, exact match' },
+          model: { type: 'string', description: 'Model, exact match' },
+          min_year: { type: 'number' },
+          max_year: { type: 'number' },
+          min_price: { type: 'number' },
+          max_price: { type: 'number' },
+          min_ati_score: { type: 'number', description: 'ATI floor, 0-120' },
+          min_discount_pct: { type: 'number', description: 'Minimum discount below OMVM, in percent' },
+          sort: { type: 'string', description: "Sort field, e.g. '-deal_score'. Default '-created_date'" },
+          limit: { type: 'number', description: 'Rows to return, 1-100. Default 25' },
+        },
+      },
+    },
+  },
+  {
+    adl_version: '1.0',
+    id: 'abos.registry.faa',
+    apl_id: 'apl://aviation.abos/registry/faa-agent/v1',
+    type: 'tool',
+    owner: { organization: 'ABOS' },
+    skill: 'FAA Registry Lookup v1',
+    description:
+      'Single-tail FAA lookup joining ACFTREF, DOCINDEX and dealer presence. Derives transaction signals: ownership changes on record, and open liens as security agreements minus releases. Absence of a DOCINDEX row is reported as unproven, never as clear.',
+    capabilities: ['lookup_registry', 'documentation.verify'],
+    permissions: ['aircraft.read', 'documentation.verify'],
+    autonomy: 'A1',
+    trust: 'APL-T2',
+    audit: 'APL-A2',
+    risk_level: 'low',
+    requires_human_approval: false,
+    supported_protocols: ['apl/1.0'],
+    evidence: { provenance: 'required', confidence: 'optional' },
+    status: 'verified',
+    mcp: {
+      name: 'abos_faa_registry',
+      inputSchema: {
+        type: 'object',
+        required: ['registration'],
+        properties: {
+          registration: { type: 'string', description: 'US N-number, e.g. N3006Q. One tail per call.' },
+        },
+      },
+    },
+  },
+  {
+    adl_version: '1.0',
+    id: 'abos.partner.status',
+    apl_id: 'apl://aviation.abos/partner/status-agent/v1',
+    type: 'tool',
+    owner: { organization: 'ABOS' },
+    skill: 'Partner Widget Status v1',
+    description:
+      'Self-scoped partner configuration and revenue-share position. The caller must present their own embed_token; there is no listing operation. Neither the embed_token nor the Stripe Connect ID is echoed back. Flags live misconfigurations such as an unset domain allowlist.',
+    capabilities: ['read_partner_config'],
+    permissions: ['partner.read'],
+    autonomy: 'A1',
+    trust: 'APL-T2',
+    audit: 'APL-A2',
+    risk_level: 'medium', // touches commercial terms, so it is audited more visibly
+    requires_human_approval: false,
+    supported_protocols: ['apl/1.0'],
+    evidence: { provenance: 'optional', confidence: 'optional' },
+    status: 'verified',
+    mcp: {
+      name: 'abos_partner_status',
+      inputSchema: {
+        type: 'object',
+        required: ['embed_token'],
+        properties: {
+          embed_token: { type: 'string', description: "The partner's own embed token. Scopes the result to that partner." },
         },
       },
     },

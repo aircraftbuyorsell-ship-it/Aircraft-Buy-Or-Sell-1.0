@@ -7,6 +7,15 @@ account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 # Secrets (set via `wrangler secret put`, never in [vars]):
 #   GATEWAY_SECRET    - shared secret Base44 checks on inbound calls
 #   MCP_BEARER_TOKEN  - bearer token for the /mcp route; unset = /mcp returns 503
+#   ANTHROPIC_API_KEY - ATI narrative scoring; unset = /ati/score returns 503
+
+# APL audit chain (APL-A2). Without this binding the hash chain still emits but
+# every event links to genesis, so it proves nothing. Create it first:
+#   wrangler kv namespace create ABOS_AUDIT
+# then paste the returned id below and uncomment.
+# [[kv_namespaces]]
+# binding = "ABOS_AUDIT"
+# id = "<paste-id-here>"
 
 [vars]
 BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"

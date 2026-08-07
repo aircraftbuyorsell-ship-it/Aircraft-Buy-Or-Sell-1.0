@@ -1,11 +1,11 @@
 {
-  "auth": "none",
+  "auth": "oauth",
   "tools": {
     "entity_overrides": {
-      "AircraftListing": { "operations": ["read"] },
-      "AircraftListingReview": { "operations": ["read"] },
-      "AviationNewsItem": { "operations": ["read"] },
-      "MarketForecast": { "operations": ["read"] },
+      "AircraftListing": { "operations": [] },
+      "AircraftListingReview": { "operations": [] },
+      "AviationNewsItem": { "operations": [] },
+      "MarketForecast": { "operations": [] },
       "UserProfile": { "operations": [] },
       "User": { "operations": [] },
       "CommissionLedger": { "operations": [] },

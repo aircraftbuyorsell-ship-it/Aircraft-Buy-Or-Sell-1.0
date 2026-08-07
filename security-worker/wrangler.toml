@@ -1,0 +1,16 @@
+name = "abos-security"
+main = "src/index.js"
+compatibility_date = "2026-07-21"
+account_id = "0a4bd07b66927cf0cae8d39d150e858a"
+
+# Secrets (set via `wrangler secret put`, never in [vars]):
+#   SECURITY_BEARER_TOKEN - required to call any endpoint; unset = worker returns 503
+
+[[kv_namespaces]]
+binding = "SECURITY_KV"
+id = "17d6a3348a174ce7b62085377a7e04d0"
+
+# Daily scan at 06:00 UTC. Adjust to taste - without this the scheduled
+# handler is never invoked because Cloudflare only fires configured crons.
+[triggers]
+crons = ["0 6 * * *"]

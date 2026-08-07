@@ -353,17 +353,32 @@ function toRestBody(manifest, args = {}) {
     : { aircraft_data: aircraft, listing_text: args.listing_text || '', listing_id: args.listing_id };
 }
 
+// Two executor shapes live behind this. The ATI/OMVM handlers predate the APL
+// layer and speak Request/Response because they are also mounted as REST
+// routes; the data handlers are APL-only and return plain objects. Rather than
+// wrap one to look like the other, the map records which is which.
+const EXECUTORS = {
+  'abos.valuation.omvm': { kind: 'rest', run: handleOmvm },
+  'abos.aircraft.ati': { kind: 'rest', run: handleAtiScore },
+  'abos.market.dealradar': { kind: 'plain', run: handleDealRadar },
+  'abos.registry.faa': { kind: 'plain', run: handleFaaRegistry },
+  'abos.partner.status': { kind: 'plain', run: handlePartnerStatus },
+};
+
 async function execute(manifest, args, env, baseUrl) {
-  const body = toRestBody(manifest, args);
+  const executor = EXECUTORS[manifest.id];
+  if (!executor) throw new Error(`no executor bound for ${manifest.id}`);
+
+  if (executor.kind === 'plain') {
+    return executor.run(args || {}, env, baseUrl);
+  }
+
   const req = new Request('https://internal/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(toRestBody(manifest, args)),
   });
-  const res =
-    manifest.id === 'abos.valuation.omvm'
-      ? await handleOmvm(req, env, baseUrl)
-      : await handleAtiScore(req, env, baseUrl);
+  const res = await executor.run(req, env, baseUrl);
   return res.json();
 }
 

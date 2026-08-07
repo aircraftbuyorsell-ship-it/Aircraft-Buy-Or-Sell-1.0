@@ -230,9 +230,10 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
   }
   if (!rpc || Array.isArray(rpc)) return rpcError(null, -32600, 'Invalid request');
 
-  // JSON-RPC notifications (no `id`) must never get a response body - only
-  // `ping`, an actual request, does.
-  if (rpc.method === 'notifications/initialized') {
+  // JSON-RPC notifications are identified by the absence of `id`, not by
+  // method name, and must never get a response body - regardless of which
+  // notification method it is (notifications/initialized, .../cancelled, ...).
+  if (!('id' in rpc)) {
     return new Response(null, { status: 202 });
   }
   if (rpc.method === 'ping') {

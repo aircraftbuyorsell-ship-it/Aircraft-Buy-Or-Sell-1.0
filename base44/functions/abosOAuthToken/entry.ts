@@ -79,9 +79,18 @@ Deno.serve(async (req) => {
   const plaintext = `abos_live_${secret}`;
   const keyHash = await sha256(plaintext);
 
+  // ApiKey.name caps at 100 chars but OAuthClient.client_name allows up to
+  // 200 - truncate so a long client name can't blow the limit after the
+  // code has already been burned, which would strand the exchange.
+  const connectedSuffix = ` (Connected ${new Date().toISOString().slice(0, 10)})`;
+  const maxClientNameLen = 100 - connectedSuffix.length;
+  const truncatedClientName = client.client_name.length > maxClientNameLen
+    ? `${client.client_name.slice(0, maxClientNameLen - 1)}…`
+    : client.client_name;
+
   await base44.asServiceRole.entities.ApiKey.create({
     owner_email: authCode.user_email,
-    name: `${client.client_name} (Connected ${new Date().toISOString().slice(0, 10)})`,
+    name: `${truncatedClientName}${connectedSuffix}`,
     key_prefix: plaintext.slice(0, 16) + '…',
     key_hash: keyHash,
     scopes: authCode.scopes,

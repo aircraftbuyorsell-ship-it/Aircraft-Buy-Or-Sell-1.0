@@ -117,12 +117,21 @@ const CHECKS = [
     severity: "medium",
     description: "Bot Management protects against automated threats",
     autoFixable: false,
-    evaluate: d => !d.botManagement
-      ? { status: "error", detail: d.errors.botManagement }
-      : {
-          status: d.botManagement.fight_mode || d.botManagement.sbfm_definitely_automated === "block" ? "compliant" : "non_compliant",
-          detail: `fight_mode=${d.botManagement.fight_mode}`,
-        },
+    evaluate: d => {
+      if (!d.botManagement) return { status: "error", detail: d.errors.botManagement };
+      const bm = d.botManagement;
+      // "managed_challenge" mitigates automated traffic just as much as
+      // "block" does, and likely-automated deserves the same credit as
+      // definitely-automated - only "allow" (or unset) means unprotected.
+      const sbfmActive = ["sbfm_definitely_automated", "sbfm_likely_automated"].some(
+        field => bm[field] && bm[field] !== "allow"
+      );
+      const compliant = Boolean(bm.fight_mode) || sbfmActive;
+      return {
+        status: compliant ? "compliant" : "non_compliant",
+        detail: `fight_mode=${bm.fight_mode}, sbfm_definitely_automated=${bm.sbfm_definitely_automated}, sbfm_likely_automated=${bm.sbfm_likely_automated}`,
+      };
+    },
   },
   {
     id: "waf",

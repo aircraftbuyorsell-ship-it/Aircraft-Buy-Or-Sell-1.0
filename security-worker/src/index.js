@@ -132,8 +132,10 @@ const CHECKS = [
     autoFixable: false,
     evaluate: d => {
       if (!d.wafEntrypoint) return { status: "error", detail: d.errors.wafEntrypoint };
-      const activeRules = (d.wafEntrypoint.rules || []).filter(r => r.enabled !== false);
-      return { status: activeRules.length > 0 ? "compliant" : "non_compliant", detail: `active_rules=${activeRules.length}` };
+      // "execute" rules actually run a managed ruleset; "skip"/other actions
+      // are exemptions and don't block anything, so they don't count.
+      const executingRules = (d.wafEntrypoint.rules || []).filter(r => r.enabled !== false && r.action === "execute");
+      return { status: executingRules.length > 0 ? "compliant" : "non_compliant", detail: `executing_rules=${executingRules.length}` };
     },
   },
   {
@@ -186,7 +188,14 @@ const CHECKS = [
       const compliant = ["medium", "high", "under_attack"].includes(d.settings.security_level);
       return { status: compliant ? "compliant" : "non_compliant", detail: `security_level=${d.settings.security_level}` };
     },
-    fix: () => cfFetch(`/zones/${ZONE_ID}/settings/security_level`, { method: "PATCH", body: JSON.stringify({ value: "medium" }) }),
+    // Re-reads the live value first: the scan that flagged this could be
+    // stale, and blindly reapplying "medium" would downgrade a zone an
+    // admin has since raised to "high" or "under_attack" mid-incident.
+    fix: async () => {
+      const current = await cfFetch(`/zones/${ZONE_ID}/settings/security_level`);
+      if (["medium", "high", "under_attack"].includes(current.value)) return current;
+      return cfFetch(`/zones/${ZONE_ID}/settings/security_level`, { method: "PATCH", body: JSON.stringify({ value: "medium" }) });
+    },
   },
   {
     id: "email-obfuscation",
@@ -222,7 +231,22 @@ async function getScanHistory(kv, limit = 50) {
   const list = await kv.list({ prefix: "scan_history:" });
   const keys = list.keys.map(k => k.name).sort().reverse().slice(0, limit);
   const entries = await Promise.all(keys.map(k => kv.get(k, "json")));
-  return entries.filter(Boolean);
+  const recent = entries.filter(Boolean);
+
+  // One-time bridge for zones that scanned before this per-key format
+  // shipped: their history still lives under the old single "scan_history"
+  // array key, which nothing writes to anymore. Merge it in rather than
+  // let it silently disappear.
+  if (recent.length < limit) {
+    const legacy = (await kv.get("scan_history", "json")) || [];
+    const seen = new Set(recent.map(e => e.scanId));
+    for (const entry of legacy) {
+      if (!seen.has(entry.scanId)) recent.push(entry);
+    }
+    recent.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+  }
+
+  return recent.slice(0, limit);
 }
 
 async function pruneScanHistory(kv, keep = 50) {
@@ -233,7 +257,10 @@ async function pruneScanHistory(kv, keep = 50) {
 }
 
 async function runSecurityScan(kv) {
-  const scanId = "scan_" + Date.now();
+  // Timestamp keeps entries sortable; the random suffix stops two scans
+  // started in the same millisecond from overwriting each other's history
+  // key and silently losing one.
+  const scanId = `scan_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
   const timestamp = new Date().toISOString();
   const zoneData = await fetchZoneData();
 

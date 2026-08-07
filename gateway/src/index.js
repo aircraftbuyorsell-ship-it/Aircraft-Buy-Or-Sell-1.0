@@ -217,7 +217,7 @@ function rpcError(id, code, message) {
 // (see /oauth/token). Every tool call is a straight passthrough to
 // abosCoreApi with that key as x-abos-key - abosCoreApi already owns scope
 // checks, rate limiting and auditing, so there is nothing to duplicate here.
-async function handleCoreMcp(request, env, baseUrl, apiKey) {
+async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
   if (request.method !== 'POST') {
     return json({ error: 'method_not_allowed' }, 405, { Allow: 'POST' });
   }
@@ -230,16 +230,21 @@ async function handleCoreMcp(request, env, baseUrl, apiKey) {
   }
   if (!rpc || Array.isArray(rpc)) return rpcError(null, -32600, 'Invalid request');
 
+  // JSON-RPC notifications (no `id`) must never get a response body - only
+  // `ping`, an actual request, does.
+  if (rpc.method === 'notifications/initialized') {
+    return new Response(null, { status: 202 });
+  }
+  if (rpc.method === 'ping') {
+    return rpcResult(rpc.id, {});
+  }
+
   if (rpc.method === 'initialize') {
     return rpcResult(rpc.id, {
       protocolVersion: '2025-06-18',
       capabilities: { tools: {} },
       serverInfo: { name: 'abos-core', version: '1.0.0' },
     });
-  }
-
-  if (rpc.method === 'notifications/initialized' || rpc.method === 'ping') {
-    return rpcResult(rpc.id ?? null, {});
   }
 
   if (rpc.method === 'tools/list') {
@@ -266,6 +271,15 @@ async function handleCoreMcp(request, env, baseUrl, apiKey) {
       });
     }
 
+    // A dead/revoked key needs to surface as a real 401 so the MCP client
+    // knows to restart the OAuth flow, not as a 200 the client has to
+    // inspect to discover auth failed.
+    if (upstream.status === 401) {
+      return json({ error: 'unauthorized' }, 401, {
+        'WWW-Authenticate': `Bearer realm="abos-mcp", resource_metadata="${gatewayOrigin}/.well-known/oauth-protected-resource"`,
+      });
+    }
+
     const payload = await upstream.json().catch(() => ({ status: 'error', error: { message: 'Invalid upstream response' } }));
     return rpcResult(rpc.id, {
       content: [{ type: 'text', text: JSON.stringify(payload.data ?? payload.error ?? payload, null, 2) }],
@@ -288,7 +302,7 @@ async function handleMcp(request, env, baseUrl, gatewayOrigin) {
   }
 
   if (presented && presented.startsWith('abos_live_')) {
-    return handleCoreMcp(request, env, baseUrl, presented);
+    return handleCoreMcp(request, env, baseUrl, presented, gatewayOrigin);
   }
 
   return json({ error: 'unauthorized' }, 401, {
@@ -426,10 +440,14 @@ async function handleOAuth(request, env, baseUrl, pathname, url) {
       headers: { 'Content-Type': request.headers.get('Content-Type') || 'application/json' },
       body: request.method === 'POST' ? await request.text() : undefined,
     });
-    return new Response(upstream.body, {
-      status: upstream.status,
-      headers: { 'Content-Type': upstream.headers.get('Content-Type') || 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    const responseHeaders = { 'Content-Type': upstream.headers.get('Content-Type') || 'application/json', 'Access-Control-Allow-Origin': '*' };
+    // /oauth/token responses carry a live abos_live_... credential - RFC 6749
+    // 5.1 requires these not be cached by any intermediary.
+    if (pathname === '/oauth/token') {
+      responseHeaders['Cache-Control'] = 'no-store';
+      responseHeaders['Pragma'] = 'no-cache';
+    }
+    return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
   }
 
   return json({ error: 'not_found' }, 404);

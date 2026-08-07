@@ -89,6 +89,7 @@ import SolutionsSellers from "./pages/solutions/SolutionsSellers";
 import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
+import OAuthAuthorize from "./pages/OAuthAuthorize";
 import InvestmentBrief from "./pages/InvestmentBrief";
 import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
 import FractionalCalculators from "./pages/FractionalCalculators";
@@ -202,6 +203,7 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
+        <Route path="/oauth-authorize" element={<OAuthAuthorize />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
         <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />

@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
 
-  if (url.pathname.endsWith('oauth-protected-resource')) {
+  if (url.searchParams.get('resource') === 'protected') {
     return Response.json({
       resource: `${GATEWAY_BASE}/mcp`,
       authorization_servers: [GATEWAY_BASE],

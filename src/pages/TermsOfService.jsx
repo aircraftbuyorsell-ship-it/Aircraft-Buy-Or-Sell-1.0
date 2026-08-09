@@ -65,16 +65,26 @@ In accordance with EU AI Act 2024/1689, users are informed that this system uses
 • Attempt to reverse-engineer or circumvent the ATI scoring system`
   },
   {
-    id: "5", title: "5. Payments & Subscriptions",
+    id: "5", title: "5. Payments, Subscriptions & Refunds",
     content: `5.1 Billing. Subscription fees are billed monthly or annually in advance. All prices are exclusive of VAT where applicable.
 
-5.2 Cancellation. You may cancel your subscription at any time. Access continues until the end of the current billing period. No refunds for partial periods.
+5.2 Right of Withdrawal (EU Consumers). If you are a consumer residing in the European Union, you have the right to withdraw from any purchase made on the Platform within 14 days of the purchase date, without giving any reason, in accordance with Directive 2011/83/EU on Consumer Rights and § 1829 of the Czech Civil Code.
 
-5.3 One-Time Fees. Certain services (e.g., ATI PASS verification packages) may carry one-time fees. These are non-refundable once the service has been delivered.
+To exercise this right, use the "Withdraw & Request Refund" option on the Subscription Management page, or contact legal@abos-marketspace.com. Upon withdrawal:
+• All eligible payments made within the last 14 days are refunded in full to the original payment method
+• Any active subscription is cancelled immediately
+• Credits or access granted by the refunded purchase are removed from your account
+• Refunds are processed without undue delay, no later than 14 days after withdrawal; funds typically arrive within 5–10 business days
 
-5.4 Price Changes. We reserve the right to change subscription prices with 30 days written notice.
+Exception: Where you expressly request immediate delivery of digital content (e.g., a generated ATI report) and acknowledge that you thereby lose the right of withdrawal, the withdrawal right does not apply to that delivered content (Art. 16(m), Directive 2011/83/EU).
 
-5.5 Affiliate Program. Participants in the ABOS Affiliate Program are subject to separate Affiliate Terms and earn commissions as specified in the current Commission Schedule.`
+5.3 Cancellation After the Withdrawal Period. You may cancel your subscription at any time. Access continues until the end of the current billing period. Beyond the 14-day withdrawal window, no refunds are provided for partial billing periods.
+
+5.4 One-Time Fees. Certain services (e.g., ATI PASS verification packages) may carry one-time fees. Beyond the 14-day withdrawal window, or where the service has been fully delivered at your request, these are non-refundable.
+
+5.5 Price Changes. We reserve the right to change subscription prices with 30 days written notice.
+
+5.6 Affiliate Program. Participants in the ABOS Affiliate Program are subject to separate Affiliate Terms and earn commissions as specified in the current Commission Schedule.`
   },
   {
     id: "6", title: "6. Intellectual Property",
@@ -120,7 +130,7 @@ For consumers in the EU: You may also use the EU Online Dispute Resolution platf
     id: "10", title: "10. Changes to Terms",
     content: `We may update these Terms at any time. Material changes will be notified via email or in-app notification at least 14 days before taking effect. Continued use after the effective date constitutes acceptance.
 
-Last updated: June 2026 | Version: 1.0`
+Last updated: August 2026 | Version: 1.1`
   },
 ];
 
@@ -214,7 +224,7 @@ export default function TermsOfService() {
             Terms of Service
           </h1>
           <p style={{ fontSize: "13px", color: C.w2, margin: 0 }}>
-            ABOS Marketspace · Last updated June 2026 · Version 1.0
+            ABOS Marketspace · Last updated August 2026 · Version 1.1
           </p>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "16px" }}>
             {["Czech law applies", "GDPR compliant", "EU AI Act compliant", "Not financial advice"].map(t => (

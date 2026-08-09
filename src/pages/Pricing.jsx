@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import PlanCheckoutButton from "@/components/plans/PlanCheckoutButton";
 
 const INK   = "#0B1220";
 const AMBER = "#D4A017";
@@ -37,7 +38,7 @@ const SELLER_TIERS = [
       { ok: true,  text: "Up to 10 listings / month" },
       { ok: false, text: "No .docx branded report" },
     ],
-    cta: "Get started", ctaVariant: "ghost", link: "/plans",
+    cta: "Get started", ctaVariant: "ghost", plan_type: "abos_seller_starter",
   },
   {
     id: "t2", label: "T2 — Pro", price: "€99", cadence: "/month", accent: "amber",
@@ -51,13 +52,13 @@ const SELLER_TIERS = [
       { ok: true, text: "FAA + EASA registry cross-check" },
       { ok: true, text: "Unlimited listings" },
     ],
-    cta: "Start Pro", ctaVariant: "amber", link: "/plans",
+    cta: "Start Pro", ctaVariant: "amber", plan_type: "abos_seller_pro",
   },
 ];
 
 const VOLUME_TIERS = [
   {
-    id: "v1", label: "Growth", price: "€249", cadence: "/month", accent: "blue",
+    id: "v1", label: "Growth", price: "€499", cadence: "/month", accent: "blue",
     desc: "For regional marketplaces starting with automated compliance.",
     featured: false,
     features: [
@@ -68,10 +69,10 @@ const VOLUME_TIERS = [
       { ok: false, text: "No dedicated endpoint" },
       { ok: false, text: "No SLA" },
     ],
-    cta: "Contact sales", ctaVariant: "ghost", link: "/plans",
+    cta: "Start Growth", ctaVariant: "ghost", plan_type: "abos_market_growth",
   },
   {
-    id: "v2", label: "Scale", price: "€499", cadence: "/month", accent: "blue",
+    id: "v2", label: "Scale", price: "€999", cadence: "/month", accent: "blue",
     desc: "For high-volume platforms with full API integration.",
     featured: true, badge: "Best for marketplaces",
     features: [
@@ -82,10 +83,10 @@ const VOLUME_TIERS = [
       { ok: true, text: "SLA + priority support" },
       { ok: true, text: "Quarterly compliance audit report" },
     ],
-    cta: "Start Scale", ctaVariant: "amber", link: "/plans",
+    cta: "Start Scale", ctaVariant: "amber", plan_type: "abos_market_scale",
   },
   {
-    id: "v3", label: "Enterprise", price: "Custom", cadence: "volume pricing", accent: "blue",
+    id: "v3", label: "Enterprise", price: "€1,999", cadence: "/month", accent: "blue",
     desc: "Unlimited volume, custom terms, and a named account manager.",
     featured: false,
     features: [
@@ -96,7 +97,7 @@ const VOLUME_TIERS = [
       { ok: true, text: "Custom affiliate revenue share" },
       { ok: true, text: "Onboarding & implementation included" },
     ],
-    cta: "Contact sales", ctaVariant: "ghost", link: "/plans",
+    cta: "Start Enterprise", ctaVariant: "ghost", plan_type: "abos_market_enterprise",
   },
 ];
 
@@ -189,7 +190,9 @@ function TierCard({ tier }) {
             </li>
           ))}
         </ul>
-        {tier.link ? (
+        {tier.plan_type ? (
+          <PlanCheckoutButton planType={tier.plan_type} label={tier.cta} variant={tier.ctaVariant === "amber" ? "default" : "outline"} />
+        ) : tier.link ? (
           <Link to={tier.link} className="block"><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
         ) : (
           <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>

@@ -39,6 +39,7 @@ async function syncUserProfileTier(base44, userEmail, tier, subTier) {
 const ABOS_PLAN_TYPES = [
   'buyer_monthly', 'buyer_annual',
   'abos_pro_monthly', 'abos_pro_annual',
+  'abos_seller_starter', 'abos_seller_pro',
   'abos_market_growth', 'abos_market_scale', 'abos_market_enterprise',
 ];
 const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
@@ -47,12 +48,13 @@ async function syncBuyerSubscription(base44, userEmail, planType, active) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
   const plan = ['buyer_annual', 'abos_pro_annual'].includes(planType) ? 'annual' : 'monthly';
   const isMarketplace = planType.startsWith('abos_market_');
+  const SELLER_SUB_TIERS = { abos_seller_starter: 'starter', abos_seller_pro: 'premium' };
   const update = {
     buyer_pro_active: active,
     buyer_plan: active ? plan : 'none',
     status: 'active',
     tier: active ? (isMarketplace ? 'enterprise' : 'pro') : 'free_explorer',
-    sub_tier: active ? (isMarketplace ? 'scale' : 'premium') : 'none',
+    sub_tier: active ? (isMarketplace ? 'scale' : (SELLER_SUB_TIERS[planType] || 'premium')) : 'none',
   };
   if (profiles[0]) {
     await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, update);

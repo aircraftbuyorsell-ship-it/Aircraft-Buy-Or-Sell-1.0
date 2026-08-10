@@ -1,6 +1,29 @@
 {
   "auth": "oauth",
   "tools": {
+    "functions": [
+      {
+        "name": "list_abos_capabilities",
+        "title": "List ABOS Capabilities",
+        "description": "Vrátí kompletní katalog ABOS funkcí (FREE vs PRO), uvítací zprávu a suggestion chips. Zavolej AUTOMATICKY při prvním kontaktu s uživatelem a kdykoliv se uživatel zeptá 'Co umíš?', 'Help' nebo požádá o nápovědu. Zobraz welcome_message a nabídni suggestion_chips.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": ["buyer", "seller", "broker"],
+              "description": "Volitelná role uživatele — přizpůsobí suggestion chips. Vynech pokud role není známa."
+            }
+          }
+        },
+        "handler": "listAbosCapabilities",
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true
+        }
+      }
+    ],
     "entity_overrides": {
       "AircraftListing": { "operations": [] },
       "AircraftListingReview": { "operations": [] },

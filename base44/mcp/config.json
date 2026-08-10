@@ -1,110 +1,375 @@
 {
   "auth": "oauth",
+  "login_path": null,
+  "consent_path": null,
   "tools": {
+    "excluded_agents": [],
+    "entity_overrides": {
+      "AircraftListing": {
+        "operations": [],
+        "description": null
+      },
+      "AircraftListingReview": {
+        "operations": [],
+        "description": null
+      },
+      "AviationNewsItem": {
+        "operations": [],
+        "description": null
+      },
+      "MarketForecast": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "UserProfile": {
+        "operations": [],
+        "description": null
+      },
+      "User": {
+        "operations": [],
+        "description": null
+      },
+      "CommissionLedger": {
+        "operations": [],
+        "description": null
+      },
+      "Settlement": {
+        "operations": [],
+        "description": null
+      },
+      "EscrowTransaction": {
+        "operations": [],
+        "description": null
+      },
+      "AircraftAlert": {
+        "operations": [],
+        "description": null
+      },
+      "ExpertProfile": {
+        "operations": [],
+        "description": null
+      },
+      "BrokerProfile": {
+        "operations": [],
+        "description": null
+      },
+      "ExpertCrossCheck": {
+        "operations": [],
+        "description": null
+      },
+      "ExpertBid": {
+        "operations": [],
+        "description": null
+      },
+      "ExpertValuation": {
+        "operations": [],
+        "description": null
+      },
+      "MarketReport": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "MarketComparable": {
+        "operations": [],
+        "description": null
+      },
+      "AppConfig": {
+        "operations": [],
+        "description": null
+      },
+      "AdminSettings": {
+        "operations": [],
+        "description": null
+      },
+      "AdminDashboard": {
+        "operations": [],
+        "description": null
+      },
+      "AdminAuditTrail": {
+        "operations": [],
+        "description": null
+      },
+      "PermissionLog": {
+        "operations": [],
+        "description": null
+      },
+      "SuspensionEvent": {
+        "operations": [],
+        "description": null
+      },
+      "AccountDeletion": {
+        "operations": [],
+        "description": null
+      },
+      "ApiKey": {
+        "operations": [],
+        "description": null
+      },
+      "ApiRequestLog": {
+        "operations": [],
+        "description": null
+      },
+      "DeveloperAccount": {
+        "operations": [],
+        "description": null
+      },
+      "PartnerConfig": {
+        "operations": [],
+        "description": null
+      },
+      "PartnerListingFeed": {
+        "operations": [],
+        "description": null
+      },
+      "WebhookConfig": {
+        "operations": [],
+        "description": null
+      },
+      "ToolIntegration": {
+        "operations": [],
+        "description": null
+      },
+      "ToolInvocation": {
+        "operations": [],
+        "description": null
+      },
+      "VaultDocument": {
+        "operations": [],
+        "description": null
+      },
+      "BillOfSaleDraft": {
+        "operations": [],
+        "description": null
+      },
+      "BillingEvent": {
+        "operations": [],
+        "description": null
+      },
+      "TokenTransaction": {
+        "operations": [],
+        "description": null
+      },
+      "TierChange": {
+        "operations": [],
+        "description": null
+      },
+      "Order": {
+        "operations": [],
+        "description": null
+      },
+      "Lead": {
+        "operations": [],
+        "description": null
+      },
+      "LeadEvent": {
+        "operations": [],
+        "description": null
+      },
+      "DealerLead": {
+        "operations": [],
+        "description": null
+      },
+      "DealerLocation": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "SalesFunnel": {
+        "operations": [],
+        "description": null
+      },
+      "DealRadar": {
+        "operations": [],
+        "description": null
+      },
+      "DecisionLog": {
+        "operations": [],
+        "description": null
+      },
+      "AffiliateLink": {
+        "operations": [],
+        "description": null
+      },
+      "RewardMilestone": {
+        "operations": [],
+        "description": null
+      },
+      "BrokerAgreement": {
+        "operations": [],
+        "description": null
+      },
+      "BrokerAlert": {
+        "operations": [],
+        "description": null
+      },
+      "EditorProfile": {
+        "operations": [],
+        "description": null
+      },
+      "ATICard": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATICardReview": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATIPassport": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATIVerifySession": {
+        "operations": [],
+        "description": null
+      },
+      "ATIVerifyScore": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "PreBuyInspection": {
+        "operations": [],
+        "description": null
+      },
+      "OwnershipTrace": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "GlobalRegistry": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "FAAAircraft": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "FAADocIndex": {
+        "operations": [],
+        "description": null
+      },
+      "AirmanReleaseMonitor": {
+        "operations": [],
+        "description": null
+      },
+      "EngineSpec": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "EngineMaintenance": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "AviationService": {
+        "operations": [],
+        "description": null
+      },
+      "NewPlaneBrowser": {
+        "operations": [],
+        "description": null
+      },
+      "TrafficSnapshot": {
+        "operations": [],
+        "description": null
+      },
+      "TrafficAppearance": {
+        "operations": [],
+        "description": null
+      },
+      "ScraperRun": {
+        "operations": [],
+        "description": null
+      },
+      "UserBehavior": {
+        "operations": [],
+        "description": null
+      },
+      "FeatureRequest": {
+        "operations": [],
+        "description": null
+      },
+      "FeatureVote": {
+        "operations": [],
+        "description": null
+      },
+      "FeatureToggle": {
+        "operations": [],
+        "description": null
+      },
+      "FeatureRollout": {
+        "operations": [],
+        "description": null
+      },
+      "FeatureUsageMetric": {
+        "operations": [],
+        "description": null
+      },
+      "ReportRequest": {
+        "operations": [],
+        "description": null
+      },
+      "SkillDefinition": {
+        "operations": [],
+        "description": null
+      },
+      "StartupProject": {
+        "operations": [],
+        "description": null
+      },
+      "Workflow": {
+        "operations": [],
+        "description": null
+      }
+    },
     "functions": [
       {
         "name": "list_abos_capabilities",
         "title": "List ABOS Capabilities",
-        "description": "Vrátí kompletní katalog ABOS funkcí (FREE vs PRO), uvítací zprávu a suggestion chips. Zavolej AUTOMATICKY při prvním kontaktu s uživatelem a kdykoliv se uživatel zeptá 'Co umíš?', 'Help' nebo požádá o nápovědu. Zobraz welcome_message a nabídni suggestion_chips.",
+        "description": "Vr\u00e1t\u00ed kompletn\u00ed katalog ABOS funkc\u00ed (FREE vs PRO), uv\u00edtac\u00ed zpr\u00e1vu a suggestion chips. Zavolej AUTOMATICKY p\u0159i prvn\u00edm kontaktu s u\u017eivatelem a kdykoliv se u\u017eivatel zept\u00e1 'Co um\u00ed\u0161?', 'Help' nebo po\u017e\u00e1d\u00e1 o n\u00e1pov\u011bdu. Zobraz welcome_message a nab\u00eddni suggestion_chips.",
         "input_schema": {
           "type": "object",
           "properties": {
             "role": {
               "type": "string",
-              "enum": ["buyer", "seller", "broker"],
-              "description": "Volitelná role uživatele — přizpůsobí suggestion chips. Vynech pokud role není známa."
+              "enum": [
+                "buyer",
+                "seller",
+                "broker"
+              ],
+              "description": "Voliteln\u00e1 role u\u017eivatele \u2014 p\u0159izp\u016fsob\u00ed suggestion chips. Vynech pokud role nen\u00ed zn\u00e1ma."
             }
           }
         },
-        "handler": "listAbosCapabilities",
         "annotations": {
           "read_only_hint": true,
           "destructive_hint": false,
-          "idempotent_hint": true
-        }
+          "idempotent_hint": true,
+          "open_world_hint": null
+        },
+        "handler": "listAbosCapabilities",
+        "disabled": false
       }
-    ],
-    "entity_overrides": {
-      "AircraftListing": { "operations": [] },
-      "AircraftListingReview": { "operations": [] },
-      "AviationNewsItem": { "operations": [] },
-      "MarketForecast": { "operations": [] },
-      "UserProfile": { "operations": [] },
-      "User": { "operations": [] },
-      "CommissionLedger": { "operations": [] },
-      "Settlement": { "operations": [] },
-      "EscrowTransaction": { "operations": [] },
-      "AircraftAlert": { "operations": [] },
-      "ExpertProfile": { "operations": [] },
-      "BrokerProfile": { "operations": [] },
-      "ExpertCrossCheck": { "operations": [] },
-      "ExpertBid": { "operations": [] },
-      "ExpertValuation": { "operations": [] },
-      "MarketReport": { "operations": [] },
-      "MarketComparable": { "operations": [] },
-      "AppConfig": { "operations": [] },
-      "AdminSettings": { "operations": [] },
-      "AdminDashboard": { "operations": [] },
-      "AdminAuditTrail": { "operations": [] },
-      "PermissionLog": { "operations": [] },
-      "SuspensionEvent": { "operations": [] },
-      "AccountDeletion": { "operations": [] },
-      "ApiKey": { "operations": [] },
-      "ApiRequestLog": { "operations": [] },
-      "DeveloperAccount": { "operations": [] },
-      "PartnerConfig": { "operations": [] },
-      "PartnerListingFeed": { "operations": [] },
-      "WebhookConfig": { "operations": [] },
-      "ToolIntegration": { "operations": [] },
-      "ToolInvocation": { "operations": [] },
-      "VaultDocument": { "operations": [] },
-      "BillOfSaleDraft": { "operations": [] },
-      "BillingEvent": { "operations": [] },
-      "TokenTransaction": { "operations": [] },
-      "TierChange": { "operations": [] },
-      "Order": { "operations": [] },
-      "Lead": { "operations": [] },
-      "LeadEvent": { "operations": [] },
-      "DealerLead": { "operations": [] },
-      "DealerLocation": { "operations": [] },
-      "SalesPipeline": { "operations": [] },
-      "SalesFunnel": { "operations": [] },
-      "DealRadar": { "operations": [] },
-      "DecisionLog": { "operations": [] },
-      "AffiliateLink": { "operations": [] },
-      "RewardMilestone": { "operations": [] },
-      "BrokerAgreement": { "operations": [] },
-      "BrokerAlert": { "operations": [] },
-      "EditorProfile": { "operations": [] },
-      "ATICard": { "operations": [] },
-      "ATICardReview": { "operations": [] },
-      "ATIPassport": { "operations": [] },
-      "ATIVerifySession": { "operations": [] },
-      "ATIVerifyScore": { "operations": [] },
-      "ATIVerifyDocument": { "operations": [] },
-      "PreBuyInspection": { "operations": [] },
-      "OwnershipTrace": { "operations": [] },
-      "GlobalRegistry": { "operations": [] },
-      "FAAAircraft": { "operations": [] },
-      "FAADocIndex": { "operations": [] },
-      "AirmanReleaseMonitor": { "operations": [] },
-      "EngineSpec": { "operations": [] },
-      "EngineMaintenance": { "operations": [] },
-      "AviationService": { "operations": [] },
-      "NewPlaneBrowser": { "operations": [] },
-      "TrafficSnapshot": { "operations": [] },
-      "TrafficAppearance": { "operations": [] },
-      "ScraperRun": { "operations": [] },
-      "UserBehavior": { "operations": [] },
-      "FeatureRequest": { "operations": [] },
-      "FeatureVote": { "operations": [] },
-      "FeatureToggle": { "operations": [] },
-      "FeatureRollout": { "operations": [] },
-      "FeatureUsageMetric": { "operations": [] },
-      "ReportRequest": { "operations": [] },
-      "SkillDefinition": { "operations": [] },
-      "StartupProject": { "operations": [] },
-      "Workflow": { "operations": [] }
-    }
+    ]
   }
 }

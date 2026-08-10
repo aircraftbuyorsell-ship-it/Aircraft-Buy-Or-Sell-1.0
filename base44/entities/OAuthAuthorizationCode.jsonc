@@ -1,5 +1,6 @@
 {
   "name": "OAuthAuthorizationCode",
+  "type": "object",
   "properties": {
     "client_id": {
       "type": "string"
@@ -38,6 +39,11 @@
     "user_email": {
       "description": "ABOS user who approved the consent screen",
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -69,6 +75,5 @@
         "role": "admin"
       }
     }
-  },
-  "type": "object"
+  }
 }

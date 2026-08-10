@@ -1,5 +1,6 @@
 {
   "name": "OAuthClient",
+  "type": "object",
   "properties": {
     "client_id": {
       "description": "Public client identifier issued at registration (not secret)",
@@ -24,6 +25,11 @@
         "manual"
       ],
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -52,6 +58,5 @@
         "role": "admin"
       }
     }
-  },
-  "type": "object"
+  }
 }

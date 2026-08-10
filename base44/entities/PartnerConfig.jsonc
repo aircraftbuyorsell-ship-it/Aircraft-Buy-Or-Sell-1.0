@@ -122,6 +122,11 @@
       "type": "number",
       "default": 0,
       "description": "Total amount paid out to partner (net of revenue share)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

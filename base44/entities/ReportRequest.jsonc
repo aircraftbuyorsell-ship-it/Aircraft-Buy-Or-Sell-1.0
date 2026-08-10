@@ -41,6 +41,11 @@
     "delivery_error": {
       "type": "string",
       "maxLength": 500
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

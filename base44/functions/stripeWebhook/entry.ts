@@ -44,6 +44,42 @@ const ABOS_PLAN_TYPES = [
 ];
 const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
 
+// ── Aircraft listing permissions per plan ──
+// Free / lapsed: 1 active listing. Seller Starter (T1): 10. Pro / Marketplace: unlimited.
+const LISTING_LIMITS = {
+  abos_seller_starter: 10,
+  abos_seller_pro: Infinity,
+  abos_pro_monthly: Infinity,
+  abos_pro_annual: Infinity,
+  abos_market_growth: Infinity,
+  abos_market_scale: Infinity,
+  abos_market_enterprise: Infinity,
+};
+const FREE_LISTING_LIMIT = 1;
+
+// Sync AircraftListing permissions with the user's subscription status.
+// Over-limit active listings are unpublished (status=draft, visibility=private), oldest kept live.
+async function syncListingPermissions(base44, userEmail, planType, active) {
+  if (planType === 'buyer_monthly' || planType === 'buyer_annual') return; // buyer plans don't grant listing rights
+  const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+  const owner = users[0];
+  if (!owner) { console.warn(`No user account for ${userEmail}, skipping listing permission sync`); return; }
+
+  const limit = active ? (LISTING_LIMITS[planType] ?? FREE_LISTING_LIMIT) : FREE_LISTING_LIMIT;
+  const activeListings = await base44.asServiceRole.entities.AircraftListing.filter(
+    { owner: owner.id, status: 'active' }, 'created_date', 500
+  );
+  if (activeListings.length <= limit) {
+    console.log(`✓ Listing permissions OK for ${userEmail}: ${activeListings.length}/${limit === Infinity ? '∞' : limit} active`);
+    return;
+  }
+  const excess = activeListings.slice(limit);
+  await base44.asServiceRole.entities.AircraftListing.bulkUpdate(
+    excess.map((l) => ({ id: l.id, status: 'draft', visibility: 'private' }))
+  );
+  console.log(`⬇️ Listing permissions enforced for ${userEmail}: ${excess.length} listing(s) unpublished (limit ${limit === Infinity ? '∞' : limit})`);
+}
+
 async function syncBuyerSubscription(base44, userEmail, planType, active) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
   const plan = ['buyer_annual', 'abos_pro_annual'].includes(planType) ? 'annual' : 'monthly';
@@ -61,6 +97,7 @@ async function syncBuyerSubscription(base44, userEmail, planType, active) {
   } else {
     await base44.asServiceRole.entities.UserProfile.create({ user_email: userEmail, role: 'viewer', tier: 'free_explorer', sub_tier: 'none', pipeline_role: 'buyer', ...update });
   }
+  await syncListingPermissions(base44, userEmail, planType, active);
 }
 
 // Downgrade UserProfile to free_explorer on subscription end

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import DeveloperOnboarding from "@/components/developers/DeveloperOnboarding";
 import DeveloperDashboard from "@/components/developers/DeveloperDashboard";
 import SubmitToolModal from "@/components/developers/SubmitToolModal";
+import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
 
 const W1 = "rgba(255,255,255,0.90)";
 const W2 = "rgba(255,255,255,0.60)";
@@ -104,6 +105,11 @@ export default function Developers() {
           onSubmitTool={() => setShowSubmitModal(true)}
         />
       )}
+
+      {/* Agent connection instructions — public MCP connector */}
+      <div className="mt-10 rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.03)", border: `0.5px solid ${BORDER}` }}>
+        <AgentConnectInstructions />
+      </div>
 
       {showSubmitModal && (
         <SubmitToolModal

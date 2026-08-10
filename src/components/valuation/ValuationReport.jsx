@@ -24,6 +24,18 @@ export default function ValuationReport({ result, aircraft }) {
     );
   }
 
+  if (result.status === 'insufficient_comparables' || result.omvm_value == null) {
+    return (
+      <div className="rounded-2xl p-6 bg-card border border-destructive/30">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-destructive">Valuation unavailable</p>
+        <h2 className="mt-2 text-xl font-black tracking-tight text-foreground">{aircraft?.year} {aircraft?.make} {aircraft?.model}</h2>
+        <p className="mt-3 text-sm leading-7 text-muted-foreground">
+          {result.message || 'Not enough comparable listings and no live market data was found for this aircraft. Try adding a more specific make/model or check back later as market data refreshes.'}
+        </p>
+      </div>
+    );
+  }
+
   const confidenceCopy = result.confidence === "HIGH"
     ? "Strong comparable depth supports premium sales confidence."
     : result.confidence === "MEDIUM"

@@ -193,25 +193,47 @@ Deno.serve(async (req) => {
     }
     const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
 
-    // ── Live market intelligence ──
-    // Fetched before the valuation is assembled, because when the comparable
-    // pool is empty this is the only remaining legitimate anchor.
+    // ── Live market intelligence via LLM web search ──
+    // Searches Controller.com, Trade-A-Plane, AircraftTrader etc. for real
+    // current asking prices. Replaces the dead Piloterr API proxy.
     let liveMarketAvg = null, liveMinPrice = null, liveMaxPrice = null, liveListingsCount = null;
     let marketDataSource = 'none';
+    let marketNotes = null;
     try {
-      const marketRes = await base44.functions.invoke('piloterrTradeProxy', {
-        make: listing.make, model: listing.model, year: listing.year,
+      const aircraftQuery = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
+      const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
+
+Return the current market price range for this aircraft. Include only real, currently listed or recently sold aircraft of the same make and model (within ±5 years if year is specified). All prices in USD.
+
+Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
+
+Return strict JSON only.`,
+        add_context_from_internet: true,
+        model: 'gemini_3_1_pro',
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            avg_price: { type: 'number', description: 'Average asking price in USD' },
+            min_price: { type: 'number', description: 'Minimum asking price in USD' },
+            max_price: { type: 'number', description: 'Maximum asking price in USD' },
+            listings_count: { type: 'number', description: 'Number of comparable listings found' },
+            confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+            notes: { type: 'string' },
+          },
+        },
       });
-      const market = marketRes?.data || marketRes;
-      if (market && market.avg_price != null && market.avg_price > 0) {
+      const market = llmResult?.data ?? llmResult;
+      if (market && market.avg_price != null && market.avg_price > 5000) {
         liveMarketAvg = market.avg_price;
         liveMinPrice = market.min_price;
         liveMaxPrice = market.max_price;
         liveListingsCount = market.listings_count || 0;
-        marketDataSource = market._source === 'cached' ? 'cached' : 'live';
+        marketNotes = market.notes || null;
+        marketDataSource = 'live';
       }
     } catch (marketErr) {
-      console.warn('[omvmV5Score] market intelligence failed:', marketErr.message);
+      console.warn('[omvmV5Score] LLM market intelligence failed:', marketErr.message);
     }
 
     if (baseValue == null) {
@@ -239,6 +261,7 @@ Deno.serve(async (req) => {
             live_max_price: null,
             live_listings_count: null,
             market_data_source: marketDataSource,
+            notes: marketNotes,
           },
         });
       }
@@ -330,6 +353,7 @@ Deno.serve(async (req) => {
         live_max_price: liveMaxPrice,
         live_listings_count: liveListingsCount,
         market_data_source: marketDataSource,
+        notes: marketNotes,
       },
     });
   } catch (error) {

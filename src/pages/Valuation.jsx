@@ -53,7 +53,7 @@ export default function Valuation() {
 
     try {
       const response = await base44.functions.invoke("omvmV5Score", payload);
-      setResult(response.data);
+      setResult(response?.data ?? response);
       setAircraft(payload);
       setError(null);
     } catch (e) {

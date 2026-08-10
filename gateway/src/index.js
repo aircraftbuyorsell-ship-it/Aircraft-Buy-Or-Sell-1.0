@@ -244,7 +244,18 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
     return rpcResult(rpc.id, {
       protocolVersion: '2025-06-18',
       capabilities: { tools: {} },
-      serverInfo: { name: 'abos-core', version: '1.0.0' },
+      serverInfo: {
+        name: 'abos-marketspace',
+        title: 'ABOS MarketSpace',
+        version: '1.0.0',
+        icons: [
+          {
+            src: 'https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/99047304a_A895AA0E-59E0-4D35-993A-3A419A5C8234.jpeg',
+            mimeType: 'image/jpeg',
+            sizes: ['1024x1024'],
+          },
+        ],
+      },
     });
   }
 

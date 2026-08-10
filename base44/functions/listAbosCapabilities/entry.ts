@@ -4,37 +4,52 @@ Deno.serve(async (req) => {
 
     const catalog = {
       buyer_tools: {
-        label: "🔍 Buyer Tools",
+        label: "🔍 Buyer Tools (FREE)",
         items: [
-          { name: "N-Reg Lookup", tier: "FREE", description: "Vyhledání letadla podle registrace (N-Number / OK- / D- atd.) v FAA a globálních registrech.", example_query: "Prověř letadlo N123AB" },
-          { name: "Registry Lookup", tier: "FREE", description: "Základní údaje z leteckého registru — vlastník, typ, sériové číslo, rok výroby.", example_query: "Kdo vlastní OK-LAD?" },
-          { name: "ATI Quick Score Preview", tier: "FREE", description: "Rychlý náhled ATI transparency skóre (0–120) pro dané letadlo.", example_query: "Jaké má N456CD ATI skóre?" },
-          { name: "Aircraft Photo", tier: "FREE", description: "Fotografie letadla podle registrace.", example_query: "Ukaž mi fotku N123AB" },
-          { name: "ATI Full Report", tier: "PRO", description: "Kompletní 8-dimenzionální analýza rizik s AI doporučeními. Vyžaduje ABOS Pro kredit.", example_query: "Vygeneruj plný ATI report pro N123AB", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "Investment Brief", tier: "PRO", description: "Investiční brief s exekutivním souhrnem a finančním snapshotem. Vyžaduje kredit.", example_query: "Připrav investment brief pro Cessna 172 z roku 2005", upgrade_url: "https://aircraftbuyorsell.com/plans" }
+          { name: "registry_lookup", tier: "FREE", description: "Vyhledání letadla podle registrace (N-Number / OK- / D- atd.) v FAA, adsbdb.com a Supabase. Vrací make/model, rok, sériové číslo, engine specs, případný ABOS inzerát.", example_query: "Prověř letadlo N123AB", tool: "registry_lookup" },
+          { name: "public_twin_lookup", tier: "FREE", description: "Veřejný anonymní Digital Twin lookup — maskovaný vlastník, zda existuje ATI report, zda je na prodej. Skóre zamčené.", example_query: "Je N456CD na prodej a má ATI report?", tool: "public_twin_lookup" },
+          { name: "aircraft_photo", tier: "FREE", description: "Fotografie letadla z planespotters.net / adsbdb podle registrace nebo hex kódu.", example_query: "Ukaž mi fotku N123AB", tool: "aircraft_photo" },
+          { name: "easa_ad_lookup", tier: "FREE", description: "Aktuální EASA Airworthiness Directives, PADs a SIBs pro daný typ letadla z ad.easa.europa.eu.", example_query: "Jaké EASA AD platí pro Cessnu 172?", tool: "easa_ad_lookup" },
+          { name: "registry_comparator", tier: "PRO", description: "Cross-registry ověření (FAA/CAA/EASA) + ADS-B tracking historie — detekuje grounded/revoked letadla (90+ dní bez sighting).", example_query: "Je OK-LAD aktivní nebo grounded?", tool: "registry_comparator", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "global_compliance", tier: "PRO", description: "Global Compliance Report — triple-check (registry + fotky + flight traffic) → Compliance Score 0–100.", example_query: "Spočítej GCR compliance pro N123AB", tool: "global_compliance", upgrade_url: "https://aircraftbuyorsell.com/plans" }
         ]
       },
       seller_tools: {
-        label: "🏷️ Seller Tools",
+        label: "🏷️ Seller & Valuation Tools",
         items: [
-          { name: "Listing Validation", tier: "FREE", description: "Automatická N-Reg validace inzerátu proti FAA/EASA datasetu — ATI PASS badge.", example_query: "Zvaliduj můj inzerát s registrací N789EF" },
-          { name: "OMVM Valuation", tier: "PRO", description: "Off-Market Value Model — tržní ocenění letadla s deal skóre. Vyžaduje kredit.", example_query: "Jaká je tržní cena mého Piper PA-28?", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "Expert Crosscheck", tier: "PRO", description: "Ověření údajů certifikovaným leteckým expertem. Placená služba.", example_query: "Chci expertní crosscheck pro OK-LAD", upgrade_url: "https://aircraftbuyorsell.com/plans" }
+          { name: "omvm_valuation", tier: "PRO", description: "OMVM v5 — AI tržní ocenění s deal skóre, confidence levelem a live market intelligence z Controller.com/Trade-A-Plane.", example_query: "Jaká je tržní cena mého Piper PA-28?", tool: "omvm_valuation", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "engine_maintenance", tier: "PRO", description: "Engine remaining hours do TBO, remaining % a aktuální Service Bulletins (až 50 registrací batch).", example_query: "Kolik zbývá do TBO na N789EF?", tool: "engine_maintenance", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "Expert Crosscheck", tier: "PRO", description: "Ověření údajů certifikovaným leteckým expertem (A&P/IA/EASA). Placená služba.", example_query: "Chci expertní crosscheck pro OK-LAD", upgrade_url: "https://aircraftbuyorsell.com/plans" }
         ]
       },
       market_intelligence: {
         label: "📊 Market Intelligence",
         items: [
-          { name: "Aviation News", tier: "FREE", description: "Aktuální letecké zprávy a tržní signály.", example_query: "Co je nového na trhu s letadly?" },
-          { name: "Market Report", tier: "PRO", description: "Personalizovaný tržní report s makro signály, regionální analýzou a predikcemi. Vyžaduje kredit.", example_query: "Vygeneruj tržní report pro single-engine pistons v Evropě", upgrade_url: "https://aircraftbuyorsell.com/plans" }
+          { name: "market_report", tier: "PRO", description: "Personalizovaný tržní report — makro, politické/regulatorní signály, regionální analýza, falzifikovatelné predikce. Scope: hourly/daily/weekly/monthly.", example_query: "Vygeneruj weekly tržní report pro single-engine pistons v Evropě", tool: "market_report", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "Aviation News", tier: "FREE", description: "Aktuální letecké zprávy a tržní signály.", example_query: "Co je nového na trhu s letadly?" }
         ]
       },
-      finance_skills: {
-        label: "💰 Finance Skills",
+      finance_and_upgrade_skills: {
+        label: "💰 Finance & Upgrade Skills (PRO — via invoke_skill gateway)",
         items: [
-          { name: "OPEX Calculator", tier: "PRO", description: "Roční provozní náklady letadla. Vyžaduje kredit.", example_query: "Kolik stojí roční provoz Cessny 182?", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "Insurance / Leasing / Tax Benefit", tier: "PRO", description: "Pojištění, leasing splátky a daňové výhody. Vyžaduje kredit.", example_query: "Spočítej leasing na letadlo za $250k", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "Engine Overhaul / Avionics / Refurb ROI", tier: "PRO", description: "Návratnost investic do motoru, avioniky a renovací. Vyžaduje kredit.", example_query: "Vyplatí se generálka motoru při 1800 SMOH?", upgrade_url: "https://aircraftbuyorsell.com/plans" }
+          { name: "abos.skill.opex.v1", tier: "PRO", description: "Roční provozní náklady — fuel, maintenance, hangar, insurance, reserves.", example_query: "Kolik stojí roční provoz Cessny 182?", tool: "invoke_skill" },
+          { name: "abos.skill.insurance_estimate.v1", tier: "PRO", description: "Odhad hull + liability pojištění.", example_query: "Oceň pojištění pro Cirrus SR22", tool: "invoke_skill" },
+          { name: "abos.skill.leasing.v1", tier: "PRO", description: "Leasing splátky a residual value.", example_query: "Spočítej leasing na letadlo za $250k", tool: "invoke_skill" },
+          { name: "abos.skill.lease_rate.v1", tier: "PRO", description: "Dry lease rate odhad.", example_query: "Jaká dry lease rate pro Baron 58?", tool: "invoke_skill" },
+          { name: "abos.skill.tax_benefit.v1", tier: "PRO", description: "Daňové výhody ownership.", example_query: "Jaké daňové výhody pro $200k letadlo?", tool: "invoke_skill" },
+          { name: "abos.skill.engine_overhaul.v1", tier: "PRO", description: "ROI generálky motoru.", example_query: "Vyplatí se generálka motoru při 1800 SMOH?", tool: "invoke_skill" },
+          { name: "abos.skill.prop_overhaul.v1", tier: "PRO", description: "ROI generálky vrtule.", example_query: "Kdy přeládat vrtuli?", tool: "invoke_skill" },
+          { name: "abos.skill.rebuild_roi.v1", tier: "PRO", description: "Celkové ROI rekonstrukce.", example_query: "ROI kompletní rekonstrukce", tool: "invoke_skill" },
+          { name: "abos.skill.avionics_upgrade.v1", tier: "PRO", description: "Cena glass panel retrofit.", example_query: "Cena Garmin GFC700 autopilotu?", tool: "invoke_skill" },
+          { name: "abos.skill.exterior_refurb.v1", tier: "PRO", description: "Cena repainting/polish.", example_query: "Cena exterior repaint Cessny 172", tool: "invoke_skill" },
+          { name: "abos.skill.interior_refurb.v1", tier: "PRO", description: "Cena seat/cabin refurb.", example_query: "Cena interior refurb", tool: "invoke_skill" },
+          { name: "abos.skill.detailing.v1", tier: "PRO", description: "Cena wash/wax/deep clean.", example_query: "Cena detailing", tool: "invoke_skill" },
+          { name: "abos.skill.upgrade_compare.v1", tier: "PRO", description: "Porovnání upgrade opcí + ROI.", example_query: "Porovnej avionics vs. interior", tool: "invoke_skill" },
+          { name: "abos.skill.mro_schedule.v1", tier: "PRO", description: "MRO maintenance schedule.", example_query: "MRO schedule pro King Air", tool: "invoke_skill" },
+          { name: "abos.skill.fractional_ownership.v1", tier: "PRO", description: "Fractional ownership cost split.", example_query: "Fractional 1/4 share Cessna 172", tool: "invoke_skill" },
+          { name: "abos.skill.timebuilding_buy.v1", tier: "PRO", description: "Timebuilding purchase analysis.", example_query: "Vyplatí se koupit letadlo na timebuilding?", tool: "invoke_skill" },
+          { name: "abos.skill.fleet_change.v1", tier: "PRO", description: "Fleet change cost analysis.", example_query: "Cena výměny fleet", tool: "invoke_skill" },
+          { name: "abos.skill.investment_health.v1", tier: "PRO", description: "Investment brief — health, ROI, risk score.", example_query: "Investment brief pro 2018 Cirrus SR22", tool: "invoke_skill" }
         ]
       }
     };
@@ -68,13 +83,13 @@ Deno.serve(async (req) => {
     ];
 
     const welcomeMessage = [
-      "✈️ **Vítej v ABOS MarketSpace!** Jsem tvůj letecký asistent. Umím:",
-      "🔍 **Buyer Tools** — prověření letadla, registry lookup, ATI skóre (FREE)",
-      "🏷️ **Seller Tools** — validace inzerátu (FREE), OMVM ocenění [PRO]",
-      "📊 **Market Intelligence** — letecké zprávy (FREE), tržní reporty [PRO]",
-      "💰 **Finance Skills** — OPEX, leasing, pojištění, ROI kalkulace [PRO — vyžaduje kredit]",
+      "✈️ **Vítej v ABOS MarketSpace!** Jsem tvůj letecký asistent. K dispozici mám 10 nástrojů:",
+      "🔍 **Buyer (FREE)** — registry_lookup, public_twin_lookup, aircraft_photo, easa_ad_lookup",
+      "🏷️ **Valuation (PRO)** — omvm_valuation, registry_comparator, global_compliance, engine_maintenance",
+      "📊 **Market (PRO)** — market_report (hourly/daily/weekly/monthly)",
+      "💰 **Finance & Upgrades (PRO)** — invoke_skill gateway: OPEX, insurance, leasing, tax, ROI, avionics, refurb, MRO, fractional (18 skillů)",
       "",
-      "Napiš třeba: *„Prověř letadlo N123AB“* — nebo se zeptej *„Co umíš?“*",
+      "Napiš třeba: *„Prověř letadlo N123AB“* nebo *„Jaká je tržní cena Piper PA-28?“*",
       "🔓 PRO funkce odemkneš na https://aircraftbuyorsell.com/plans"
     ].join("\n");
 

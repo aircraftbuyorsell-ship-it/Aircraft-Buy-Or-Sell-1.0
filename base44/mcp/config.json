@@ -369,6 +369,279 @@
         },
         "handler": "listAbosCapabilities",
         "disabled": false
+      },
+      {
+        "name": "registry_lookup",
+        "title": "Aircraft Registry Lookup",
+        "description": "FREE. Vyhledá letadlo podle registrace (N-Number nebo mezinárodní prefix OK-/D-/G- atd.) ve FAA entitě, adsbdb.com API a Supabase fallback. Vrací výrobce, model, rok, sériové číslo, vlastníka (state), engine specs a případný ABOS inzerát. Použij vždy, když uživatel zadá registraci a chce základní údaje o letadle.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla, např. 'N123AB', 'OK-LAD', 'G-ABCD'"
+            },
+            "enrich_listing_id": {
+              "type": "string",
+              "description": "Volitelné ID ABOS inzerátu pro auto-enrich chybějících polí"
+            }
+          },
+          "required": ["registration"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "registryLookup",
+        "disabled": false
+      },
+      {
+        "name": "public_twin_lookup",
+        "title": "Digital Twin Public Lookup",
+        "description": "FREE. Veřejný (anonymní) lookup Digital Twin podle registrace nebo sériového čísla. Vrací maskované údaje — registrace, rok, make/model, maskovaný vlastník, zda existuje ATI report, zda je letadlo na prodej. Skóre je zamčené (vyžaduje platbu). Použij pro rychlé veřejné ověření letadla bez citlivých údajů.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "N-Number, registrace nebo sériové číslo"
+            },
+            "owner_query": {
+              "type": "string",
+              "description": "Volitelné jméno vlastníka pro anonymní ověření shody (vrátí owner_match boolean, ne jméno)"
+            }
+          },
+          "required": ["query"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "publicTwinLookup",
+        "disabled": false
+      },
+      {
+        "name": "aircraft_photo",
+        "title": "Aircraft Photo",
+        "description": "FREE. Stáhne fotografii letadla podle registrace nebo Mode-S hex kódu z planespotters.net a adsbdb.com. Vrací photo_url, thumbnail_url, source a fotografa. Použij když uživatel chce vidět fotku letadla.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla (např. 'N123AB')"
+            },
+            "hex": {
+              "type": "string",
+              "description": "Volitelný ICAO 24-bit hex kód (Mode-S), např. 'A1B2C3'"
+            }
+          },
+          "required": ["registration"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "aircraftPhoto",
+        "disabled": false
+      },
+      {
+        "name": "easa_ad_lookup",
+        "title": "EASA Airworthiness Directives Lookup",
+        "description": "FREE. Vyhledá aktuální EASA Airworthiness Directives (AD), Proposed ADs (PAD) a Safety Information Bulletins (SIB) pro daný typ letadla pomocí LLM web search na ad.easa.europa.eu. Použij když uživatel ptá na EASA AD/PAD/SIB pro letadlo.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla (make/model se automaticky dohledá)"
+            },
+            "manufacturer": {
+              "type": "string",
+              "description": "Volitelně výrobce (např. 'Cessna')"
+            },
+            "model": {
+              "type": "string",
+              "description": "Volitelně model (např. '172S')"
+            }
+          }
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "easaAdLookup",
+        "disabled": false
+      },
+      {
+        "name": "registry_comparator",
+        "title": "Registry Comparator (Grounded Detection)",
+        "description": "PRO. Křížově ověřuje registraci napříč FAA/CAA/EASA registry s live ADS-B tracking historií. Detekuje grounded/revoked/inactive letadla (žádný ADS-B sighting 90+ dní = grounded alert). Použij když uživatel chce vědět, zda je letadlo aktivní/grounded nebo chce cross-registry ověření.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla"
+            }
+          },
+          "required": ["registration"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "registryComparator",
+        "disabled": false
+      },
+      {
+        "name": "omvm_valuation",
+        "title": "OMVM v5 Valuation",
+        "description": "PRO (vyžaduje kredit). Off-Market Value Model — AI řízené tržní ocenění letadla s deal skóre, confidence levelem a live market intelligence z Controller.com/Trade-A-Plane. Použij když uživatel chce odhadnout tržní cenu letadla nebo porovnat asking price vs. trh.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "make": { "type": "string", "description": "Výrobce (např. 'Cessna')" },
+            "model": { "type": "string", "description": "Model (např. '172S')" },
+            "year": { "type": "number", "description": "Rok výroby" },
+            "total_time": { "type": "number", "description": "Celkový nálet airframu (hod)" },
+            "engine_hours": { "type": "number", "description": "Engine hours SMOH" },
+            "tbo": { "type": "number", "description": "TBO hod (default 2000)" },
+            "avionics": { "type": "string", "description": "Avionika (comma-separated)" },
+            "asking_price": { "type": "number", "description": "Asking price pro deal scoring" },
+            "listingId": { "type": "string", "description": "Volitelné ID ABOS inzerátu pro persistenci skóre" }
+          },
+          "required": ["make", "model"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "omvmV5Score",
+        "disabled": false
+      },
+      {
+        "name": "market_report",
+        "title": "Aviation Market Report",
+        "description": "PRO (vyžaduje kredit). Generuje personalizovaný tržní report s makroekonomickými signály, politickými/regulatorními signály, regionální analýzou a falzifikovatelnými predikcemi. Scope: hourly/daily/weekly/monthly. Použij když uživatel chce tržní report nebo outlook pro daný region/kategorii.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "type": "string",
+              "enum": ["hourly", "daily", "weekly", "monthly"],
+              "description": "Frekvence/hloubka reportu (hourly=nejlevnější, monthly=nejhlubší)"
+            },
+            "personalization_filters": {
+              "type": "object",
+              "description": "Volitelné filtry — aircraft_category, regions[], price_range_min/max, focus_areas[]",
+              "properties": {
+                "aircraft_category": { "type": "string" },
+                "regions": { "type": "array", "items": { "type": "string" } },
+                "price_range_min": { "type": "number" },
+                "price_range_max": { "type": "number" },
+                "focus_areas": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "required": ["scope"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": false,
+          "open_world_hint": true
+        },
+        "handler": "generateMarketReport",
+        "disabled": false
+      },
+      {
+        "name": "global_compliance",
+        "title": "Global Compliance Report (GCR)",
+        "description": "PRO (vyžaduje kredit). Triple-check validační engine — agreguje registry lookup, vizuální evidence (fotky) a historickou flight traffic do Compliance Score 0–100 s integrity_flags a doporučeními. Použij když uživatel chce compliance audit letadla napříč zdroji.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": { "type": "string", "description": "Registrace letadla" },
+            "hex": { "type": "string", "description": "Volitelný ICAO hex kód" },
+            "force": { "type": "boolean", "description": "Přeskočit cache a přepočítat (default false)" }
+          }
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": false,
+          "open_world_hint": true
+        },
+        "handler": "computeGlobalCompliance",
+        "disabled": false
+      },
+      {
+        "name": "engine_maintenance",
+        "title": "Engine Maintenance & Service Bulletins",
+        "description": "PRO (vyžaduje kredit). Spočítá remaining hours do TBO, remaining % a zkontroluje aktuální Service Bulletins pro dané letadlo (až 50 registrací najednou). Použij když uživatel chce engine health overview nebo SB status.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "registration": { "type": "string", "description": "Registrace letadla" },
+            "registrations": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Volitelně pole registrací pro batch lookup (až 50)"
+            }
+          }
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": true
+        },
+        "handler": "calculateEngineMaintenance",
+        "disabled": false
+      },
+      {
+        "name": "invoke_skill",
+        "title": "ABOS Skill Gateway (OPEX / Insurance / Leasing / ROI / Upgrades)",
+        "description": "PRO (vyžaduje kredit). Univerzální gateway pro 18 finančních a upgrade skillů. Předej skill_id z tabulky a inputs. Dostupné skill_id: abos.skill.opex.v1, abos.skill.insurance_estimate.v1, abos.skill.leasing.v1, abos.skill.lease_rate.v1, abos.skill.tax_benefit.v1, abos.skill.rebuild_roi.v1, abos.skill.investment_health.v1, abos.skill.avionics_upgrade.v1, abos.skill.exterior_refurb.v1, abos.skill.interior_refurb.v1, abos.skill.detailing.v1, abos.skill.upgrade_compare.v1, abos.skill.engine_overhaul.v1, abos.skill.prop_overhaul.v1, abos.skill.mro_schedule.v1, abos.skill.fractional_ownership.v1, abos.skill.timebuilding_buy.v1, abos.skill.fleet_change.v1. Použij pro OPEX, leasing, pojištění, daňové výhody, ROI přestaveb, avioniky, renovací, MRO schedule, fractional ownership atd.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "skill_id": {
+              "type": "string",
+              "description": "ID skillu z routing tabulky (např. 'abos.skill.opex.v1')"
+            },
+            "inputs": {
+              "type": "object",
+              "description": "Vstupní parametry konkrétního skillu (aircraft type, hours, prices, region atd.)"
+            },
+            "passport_id": {
+              "type": "string",
+              "description": "Volitelné ID ATIPassport pro kontext letadla"
+            }
+          },
+          "required": ["skill_id", "inputs"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": null
+        },
+        "handler": "invokeSkill",
+        "disabled": false
       }
     ]
   }

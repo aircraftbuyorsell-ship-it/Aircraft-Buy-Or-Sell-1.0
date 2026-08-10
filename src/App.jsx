@@ -90,6 +90,7 @@ import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
 import OAuthAuthorize from "./pages/OAuthAuthorize";
+import OAuthConsent from "./pages/OAuthConsent";
 import InvestmentBrief from "./pages/InvestmentBrief";
 import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
 import FractionalCalculators from "./pages/FractionalCalculators";
@@ -217,6 +218,8 @@ const AuthenticatedApp = () => {
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />
       </Route>
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
+      <Route path="/oauth/callback" element={<OAuthConsent />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

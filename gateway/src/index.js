@@ -132,6 +132,11 @@ const CORE_TOOLS = [
   {
     name: 'search',
     endpoint: 'search',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'Chat-first natural language aircraft search across active marketplace listings.',
     inputSchema: {
       type: 'object',
@@ -142,6 +147,11 @@ const CORE_TOOLS = [
   {
     name: 'valuate',
     endpoint: 'valuate',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'OMVM market valuation for a given aircraft manufacturer/model/year/hours.',
     inputSchema: {
       type: 'object',
@@ -157,6 +167,11 @@ const CORE_TOOLS = [
   {
     name: 'extract_listing_intelligence',
     endpoint: 'intelligence.extract',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'Extract a structured aircraft listing from unstructured text (e.g. a Facebook post).',
     inputSchema: {
       type: 'object',
@@ -167,12 +182,22 @@ const CORE_TOOLS = [
   {
     name: 'get_listing',
     endpoint: 'listings.get',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'Fetch a single marketplace listing by id.',
     inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
   },
   {
     name: 'list_listings',
     endpoint: 'listings.list',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'List/filter active marketplace listings.',
     inputSchema: {
       type: 'object',
@@ -187,6 +212,11 @@ const CORE_TOOLS = [
   {
     name: 'create_listing',
     endpoint: 'listings.create',
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
     description: 'Create a new marketplace listing.',
     inputSchema: {
       type: 'object',
@@ -261,7 +291,7 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
 
   if (rpc.method === 'tools/list') {
     return rpcResult(rpc.id, {
-      tools: CORE_TOOLS.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
+      tools: CORE_TOOLS.map(({ name, description, inputSchema, annotations }) => ({ name, description, inputSchema, annotations })),
     });
   }
 

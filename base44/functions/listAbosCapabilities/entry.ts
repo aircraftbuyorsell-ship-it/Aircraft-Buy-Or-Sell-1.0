@@ -3,6 +3,12 @@ Deno.serve(async (req) => {
     const { role } = await req.json().catch(() => ({}));
 
     const catalog = {
+      guide_and_help: {
+        label: "🧭 Guide & Help (FREE)",
+        items: [
+          { name: "abos_guide", tier: "FREE", description: "Nápověda, role-aware suggestions, intent → tool routing, guided flows (due diligence / prodej / market intel) a FAQ. Volej společně s list_abos_capabilities při prvním kontaktu.", example_query: "Co umíš? / Jak ocením letadlo? / Help", tool: "abos_guide" }
+        ]
+      },
       buyer_tools: {
         label: "🔍 Buyer Tools (FREE)",
         items: [
@@ -10,23 +16,28 @@ Deno.serve(async (req) => {
           { name: "public_twin_lookup", tier: "FREE", description: "Veřejný anonymní Digital Twin lookup — maskovaný vlastník, zda existuje ATI report, zda je na prodej. Skóre zamčené.", example_query: "Je N456CD na prodej a má ATI report?", tool: "public_twin_lookup" },
           { name: "aircraft_photo", tier: "FREE", description: "Fotografie letadla z planespotters.net / adsbdb podle registrace nebo hex kódu.", example_query: "Ukaž mi fotku N123AB", tool: "aircraft_photo" },
           { name: "easa_ad_lookup", tier: "FREE", description: "Aktuální EASA Airworthiness Directives, PADs a SIBs pro daný typ letadla z ad.easa.europa.eu.", example_query: "Jaké EASA AD platí pro Cessnu 172?", tool: "easa_ad_lookup" },
+          { name: "ati_quick_score", tier: "FREE", description: "ATI transparency skóre (0–120, 8 dimenzí) pro letadlo z listing textu nebo listingId.", example_query: "Jaké má N456CD ATI skóre?", tool: "ati_quick_score" },
           { name: "registry_comparator", tier: "PRO", description: "Cross-registry ověření (FAA/CAA/EASA) + ADS-B tracking historie — detekuje grounded/revoked letadla (90+ dní bez sighting).", example_query: "Je OK-LAD aktivní nebo grounded?", tool: "registry_comparator", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "global_compliance", tier: "PRO", description: "Global Compliance Report — triple-check (registry + fotky + flight traffic) → Compliance Score 0–100.", example_query: "Spočítej GCR compliance pro N123AB", tool: "global_compliance", upgrade_url: "https://aircraftbuyorsell.com/plans" }
+          { name: "global_compliance", tier: "PRO", description: "Global Compliance Report — triple-check (registry + fotky + flight traffic) → Compliance Score 0–100.", example_query: "Spočítej GCR compliance pro N123AB", tool: "global_compliance", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "ati_full_report", tier: "PRO", description: "Plný 8-dimenzionální ATI due-diligence report s LLM analýzou, strengths/risks/recommendations a verdict (EXCEPTIONAL…AVOID).", example_query: "Vygeneruj plný ATI report pro N123AB", tool: "ati_full_report", upgrade_url: "https://aircraftbuyorsell.com/plans" }
         ]
       },
       seller_tools: {
         label: "🏷️ Seller & Valuation Tools",
         items: [
           { name: "omvm_valuation", tier: "PRO", description: "OMVM v5 — AI tržní ocenění s deal skóre, confidence levelem a live market intelligence z Controller.com/Trade-A-Plane.", example_query: "Jaká je tržní cena mého Piper PA-28?", tool: "omvm_valuation", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "ati_quick_score", tier: "FREE", description: "ATI transparency skóre pro můj inzerát — zjisti ATI PASS badge připravenost.", example_query: "Jaké má můj inzerát ATI skóre?", tool: "ati_quick_score" },
+          { name: "ati_full_report", tier: "PRO", description: "Plný 8-dimenzionální ATI report pro sales-ready prezentaci kupci.", example_query: "Vygeneruj ATI full report pro prodej", tool: "ati_full_report", upgrade_url: "https://aircraftbuyorsell.com/plans" },
           { name: "engine_maintenance", tier: "PRO", description: "Engine remaining hours do TBO, remaining % a aktuální Service Bulletins (až 50 registrací batch).", example_query: "Kolik zbývá do TBO na N789EF?", tool: "engine_maintenance", upgrade_url: "https://aircraftbuyorsell.com/plans" },
+          { name: "negotiation_brief", tier: "PRO", description: "Data-backed negotiation strategie (BUYER/SELLER side) pomocí ATI + OMVM + comps — stance, arguments, target price.", example_query: "Negotační brief pro prodej N789EF (seller side)", tool: "negotiation_brief", upgrade_url: "https://aircraftbuyorsell.com/plans" },
           { name: "Expert Crosscheck", tier: "PRO", description: "Ověření údajů certifikovaným leteckým expertem (A&P/IA/EASA). Placená služba.", example_query: "Chci expertní crosscheck pro OK-LAD", upgrade_url: "https://aircraftbuyorsell.com/plans" }
         ]
       },
       market_intelligence: {
         label: "📊 Market Intelligence",
         items: [
-          { name: "market_report", tier: "PRO", description: "Personalizovaný tržní report — makro, politické/regulatorní signály, regionální analýza, falzifikovatelné predikce. Scope: hourly/daily/weekly/monthly.", example_query: "Vygeneruj weekly tržní report pro single-engine pistons v Evropě", tool: "market_report", upgrade_url: "https://aircraftbuyorsell.com/plans" },
-          { name: "Aviation News", tier: "FREE", description: "Aktuální letecké zprávy a tržní signály.", example_query: "Co je nového na trhu s letadly?" }
+          { name: "aviation_news", tier: "FREE", description: "Kurátorovaný aviation news pipeline (FAA, AOPA, industry) s ABOS editorial voice a themed images.", example_query: "Co je nového na trhu s letadly?", tool: "aviation_news" },
+          { name: "market_report", tier: "PRO", description: "Personalizovaný tržní report — makro, politické/regulatorní signály, regionální analýza, falzifikovatelné predikce. Scope: hourly/daily/weekly/monthly.", example_query: "Vygeneruj weekly tržní report pro single-engine pistons v Evropě", tool: "market_report", upgrade_url: "https://aircraftbuyorsell.com/plans" }
         ]
       },
       finance_and_upgrade_skills: {
@@ -83,13 +94,14 @@ Deno.serve(async (req) => {
     ];
 
     const welcomeMessage = [
-      "✈️ **Vítej v ABOS MarketSpace!** Jsem tvůj letecký asistent. K dispozici mám 10 nástrojů:",
-      "🔍 **Buyer (FREE)** — registry_lookup, public_twin_lookup, aircraft_photo, easa_ad_lookup",
-      "🏷️ **Valuation (PRO)** — omvm_valuation, registry_comparator, global_compliance, engine_maintenance",
-      "📊 **Market (PRO)** — market_report (hourly/daily/weekly/monthly)",
-      "💰 **Finance & Upgrades (PRO)** — invoke_skill gateway: OPEX, insurance, leasing, tax, ROI, avionics, refurb, MRO, fractional (18 skillů)",
+      "✈️ **Vítej v ABOS MarketSpace!** Jsem tvůj letecký asistent. K dispozici mám 15 nástrojů:",
+      "🧭 **Guide (FREE)** — abos_guide (nápověda, suggestions, FAQ, guided flows)",
+      "🔍 **Buyer (FREE)** — registry_lookup, public_twin_lookup, aircraft_photo, easa_ad_lookup, ati_quick_score",
+      "🏷️ **Valuation & Seller (PRO)** — omvm_valuation, ati_full_report, registry_comparator, global_compliance, engine_maintenance, negotiation_brief",
+      "📊 **Market (FREE/PRO)** — aviation_news (FREE), market_report (PRO)",
+      "💰 **Finance & Upgrades (PRO)** — invoke_skill gateway (18 skillů: OPEX, insurance, leasing, tax, ROI, avionics, refurb, MRO, fractional)",
       "",
-      "Napiš třeba: *„Prověř letadlo N123AB“* nebo *„Jaká je tržní cena Piper PA-28?“*",
+      "Napiš třeba: *„Prověř letadlo N123AB“*, *„Jaká je tržní cena Piper PA-28?“* nebo *„Help“*",
       "🔓 PRO funkce odemkneš na https://aircraftbuyorsell.com/plans"
     ].join("\n");
 

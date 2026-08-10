@@ -642,6 +642,116 @@
         },
         "handler": "invokeSkill",
         "disabled": false
+      },
+      {
+        "name": "ati_quick_score",
+        "title": "ATI Quick Score",
+        "description": "FREE preview / PRO full. Aircraft Transparency Index — 120bodové skóre (8 dimenzí × 15: dokumentace, maintenance, engine health, avionics, usage, storage, config, market readiness). Může vzít listingId nebo listing_text/aircraft_data. Vrací ati_score, score_label, dimension breakdown, OMVM range a capex estimate. Použij když uživatel chce ATI skóre letadla.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "listingId": { "type": "string", "description": "ID ABOS inzerátu (preferováno — natáhne všechna pole)" },
+            "listing_text": { "type": "string", "description": "Volitelně surový text inzerátu pro scoring" },
+            "aircraft_data": { "type": "object", "description": "Volitelně strukturovaná data letadla (year, make, model, engineTime, tbo, annualStatus, avionics atd.)" }
+          }
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": false,
+          "open_world_hint": null
+        },
+        "handler": "atiScoreNative",
+        "disabled": false
+      },
+      {
+        "name": "ati_full_report",
+        "title": "ATI Full Report (8-Dimension)",
+        "description": "PRO (vyžaduje kredit). Plný due-diligence report — 8 nezávislých LLM analýz (jedna na dimenzi) s justification, strengths, risks, missing data + executive summary, OMVM range a asking price. Vrací score_label: EXCEPTIONAL/STRONG BUY/FAIR/CAUTION/RED FLAGS/AVOID. Použij pro hloubkovou analýzu před koupí/prodejem.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "aircraft_data": { "type": "string", "description": "Surový text inzerátu / specifikace letadla (povinné)" },
+            "registration": { "type": "string", "description": "Volitelná registrace pro kontext" }
+          },
+          "required": ["aircraft_data"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": false,
+          "open_world_hint": null
+        },
+        "handler": "atiFullReportScore",
+        "disabled": false
+      },
+      {
+        "name": "aviation_news",
+        "title": "Aviation News Pipeline",
+        "description": "FREE (admin-trigger). Spustí kurátorovaný aviation news pipeline — InvokeLLM web search (FAA, AOPA, industry), přepíše v ABOS editorial voice, generuje themed image per článek a uloží jako AviationNewsItem. 6h freshness gate (force=true přeskočí). Použij když uživatel chce aktuální letecké zprávy nebo když je news feed zastaralý.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "force": { "type": "boolean", "description": "Přeskočit 6h freshness gate (default false)" }
+          }
+        },
+        "annotations": {
+          "read_only_hint": false,
+          "destructive_hint": false,
+          "idempotent_hint": false,
+          "open_world_hint": true
+        },
+        "handler": "fetchAviationNews",
+        "disabled": false
+      },
+      {
+        "name": "negotiation_brief",
+        "title": "Negotiation Brief (CMR)",
+        "description": "PRO. Generuje data-backed negotiation strategii pomocí ATI subscores + OMVM + comparable sales. Body: { listingId, side: BUYER|SELLER, leadId? }. Vrací negotiation stance, key arguments, leverage points, target price range. Použij když broker/kupce/prodejce chystá vyjednávání.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "listingId": { "type": "string", "description": "ID ABOS inzerátu (povinné)" },
+            "side": { "type": "string", "enum": ["BUYER", "SELLER"], "description": "Strana pro kterou se generuje brief" },
+            "leadId": { "type": "string", "description": "Volitelné ID leadu pro buyer context" }
+          },
+          "required": ["listingId", "side"]
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": null
+        },
+        "handler": "cmrNegoBrief",
+        "disabled": false
+      },
+      {
+        "name": "abos_guide",
+        "title": "ABOS Guide, Suggestions & FAQ",
+        "description": "FREE. Vrací role-aware suggestions (co udělat dál), intent-based tool routing (který nástroj použít pro daný záměr), guided flows (due diligence / příprava prodeje / market intel) a FAQ odpovědi (ATI, OMVM, Digital Twin, FREE vs PRO, alert, EASA, grounded, provoz, MCP). Zavolej když uživatel neví kterým nástrojem začít, ptá se 'Co umíš?', 'Help', 'Jak na…', nebo chce nápovědu. Vždy volat společně s list_abos_capabilities při prvním kontaktu.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": ["buyer", "seller", "broker"],
+              "description": "Volitelná role — přizpůsobí suggestions a guided flows"
+            },
+            "user_intent": {
+              "type": "string",
+              "description": "Volitelný popis záměru uživatele (např. 'chci ocenit letadlo', 'prověř registraci') — vrátí matched_intent s suggested_tool + faq_search"
+            }
+          }
+        },
+        "annotations": {
+          "read_only_hint": true,
+          "destructive_hint": false,
+          "idempotent_hint": true,
+          "open_world_hint": null
+        },
+        "handler": "abosGuideFaq",
+        "disabled": false
       }
     ]
   }

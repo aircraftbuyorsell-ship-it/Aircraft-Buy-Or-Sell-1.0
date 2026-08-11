@@ -70,7 +70,9 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
-  "selected_workspace_skill_ids": [],
+  "selected_workspace_skill_ids": [
+    "69d5cce47c5dd44d5a8e5248"
+  ],
   "model": "automatic",
   "whatsapp_greeting": null,
   "telegram_greeting": null,

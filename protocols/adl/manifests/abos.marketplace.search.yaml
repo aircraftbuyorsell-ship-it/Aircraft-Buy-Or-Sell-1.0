@@ -1,0 +1,47 @@
+# ADL manifest - marketplace natural language search
+# Governs the 'search' capability currently served ungoverned by handleCoreMcp.
+adl_version: "1.0"
+id: abos.marketplace.search
+apl_id: apl://aviation.abos/marketplace/search-agent/v1
+type: tool
+owner:
+  organization: ABOS
+skill: Marketplace Natural Language Search
+description: >-
+  Chat-first natural language search across active ABOS marketplace listings.
+  Returns listings that exist in ABOS inventory. It does not invent aircraft and
+  it does not reach outside the marketplace.
+capabilities:
+  - search_listings
+  - search_aircraft
+permissions:
+  - aircraft.read
+  - market.analyze
+autonomy: A0
+trust: APL-T2
+audit: APL-A1
+risk_level: low
+requires_human_approval: false
+supported_protocols:
+  - apl/1.0
+evidence:
+  provenance: required
+  confidence: optional
+status: verified
+execution:
+  kind: core
+  endpoint: search
+mcp:
+  name: search
+  inputSchema:
+    type: object
+    required:
+      - query
+    properties:
+      query:
+        type: string
+        description: e.g. "Citation Latitude under 8M USD in Europe"
+  annotations:
+    readOnlyHint: true
+    openWorldHint: false
+    destructiveHint: false

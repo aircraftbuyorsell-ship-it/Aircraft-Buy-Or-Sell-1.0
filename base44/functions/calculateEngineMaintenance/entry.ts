@@ -12,6 +12,10 @@ const finiteNumber = (value) => value !== null && value !== '' && Number.isFinit
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
     const body = await req.json().catch(() => ({}));
     const requested = Array.isArray(body.registrations) ? body.registrations : [body.registration];
     const registrations = [...new Set(requested.map(normalizeReg).filter(Boolean))].slice(0, 50);

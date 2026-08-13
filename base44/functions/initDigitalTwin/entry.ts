@@ -37,6 +37,10 @@ function labelFromTotal(total) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
     const body = await req.json().catch(() => ({}));
     const reg = normalizeReg(body.registration || body.n_number);
     if (!reg) return Response.json({ error: 'registration required' }, { status: 400 });

@@ -24,23 +24,6 @@ const CONTENT = {
     chips: ["AI Act 2024/1689", "Čl. 50 — transparentnost", "Platné od 2. 8. 2026"],
     introTitle: "Používání umělé inteligence na platformě ABOS",
     intro: "Aircraft Buy Or Sell využívá nástroje umělé inteligence napříč platformou. Níže je úplný, průběžně aktualizovaný seznam všech funkcí využívajících AI, seskupených podle oblasti:",
-    features: [
-      {
-        name: "ATI Report (Aircraft Transparency Index)",
-        desc: "Automatizované hodnocení letadla v 8 dimenzích na základě veřejně dostupných dat (registr FAA, databáze nehod NTSB, historie údržby, tržní data).",
-        color: "#f5c242",
-      },
-      {
-        name: "OMVM (odhad tržní hodnoty)",
-        desc: "Statistický/AI model odhadující tržní hodnotu letadla na základě srovnatelných transakcí a historických dat.",
-        color: "#5dcaa5",
-      },
-      {
-        name: "4ir.stream podcast",
-        desc: "Epizody využívající AI generování hlasu (text-to-speech).",
-        color: "rgba(255,255,255,0.35)",
-      },
-    ],
     disclosureTitle: "Povinné sdělení dle čl. 50 AI Act",
     disclosureItems: [
       "Výše uvedený obsah je generován nebo zásadně podporován AI nástroji",

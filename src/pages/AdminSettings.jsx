@@ -404,6 +404,82 @@ export default function AdminSettings() {
         </div>
       </div>
 
+      {/* FAA LADD (Limiting Aircraft Data Displayed) Compliance */}
+      <div className="rounded-2xl p-7 mt-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-start gap-4 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-[#4e8ef7]/10 flex items-center justify-center shrink-0">
+            <ShieldAlert className="w-5 h-5 text-[#4e8ef7]" />
+          </div>
+          <div>
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
+              FAA LADD Compliance
+            </h2>
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
+              Import the monthly IndustryLADD list from the FAA ADX portal (adx.faa.gov — requires a signed Data Access User Agreement). Blocked registrations are withheld from registry lookups and the live traffic map.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3 mb-4">
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[rgba(255,255,255,0.60)] mb-2 block">
+              List Month
+            </label>
+            <input
+              value={laddMonth}
+              onChange={(e) => setLaddMonth(e.target.value)}
+              placeholder="2026-08"
+              className="w-full px-3 py-2.5 rounded-xl text-sm font-mono"
+              style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.10)", color: "white" }}
+            />
+          </div>
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[rgba(255,255,255,0.60)] mb-2 block">
+              IndustryLADD Entries (N-numbers, one per line or comma-separated)
+            </label>
+            <Textarea
+              value={laddEntries}
+              onChange={(e) => setLaddEntries(e.target.value)}
+              placeholder={"N12345\nN6789A\n..."}
+              className="resize-none min-h-[90px] text-sm font-mono"
+            />
+          </div>
+        </div>
+
+        {laddReport && (
+          <div className={`rounded-xl p-4 mb-5 text-sm ${laddReport.error ? "bg-[#e24b4a]/08 border border-[#e24b4a]/20 text-[#e24b4a]" : "bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5]"}`}>
+            {laddReport.error ? (
+              <p>{laddReport.error}</p>
+            ) : (
+              <>
+                <p className="font-bold">{laddReport.message || `Imported: ${laddReport.created} new, ${laddReport.refreshed} refreshed, ${laddReport.deactivated} deactivated.`}</p>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button
+            onClick={runLaddCheck}
+            disabled={laddLoading || !laddMonth || !laddEntries}
+            variant="outline"
+            className="flex-1 font-bold uppercase tracking-wide"
+          >
+            {laddLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Check Import
+          </Button>
+          {laddReport && !laddReport.error && laddReport.dryRun && (
+            <Button
+              onClick={runLaddConfirm}
+              disabled={laddLoading}
+              className="flex-1 font-bold uppercase tracking-wide text-white"
+              style={{ background: "linear-gradient(135deg,#4e8ef7,#143C75)" }}
+            >
+              Confirm Import
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Smart Contracts — Coming Soon */}
       <div className="rounded-2xl p-7 opacity-70" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4 mb-4">

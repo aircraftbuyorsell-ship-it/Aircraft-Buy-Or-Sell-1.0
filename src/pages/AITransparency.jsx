@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Brain, AlertTriangle, CheckCircle } from "lucide-react";
+import { getAiDisclosureByCategory } from "@/lib/aiDisclosureRegistry";
 
 const C = {
   ink: "#04060a", ink1: "#0d1117", ink2: "#111620",

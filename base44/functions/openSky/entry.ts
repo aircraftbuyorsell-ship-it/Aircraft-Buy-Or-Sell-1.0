@@ -447,14 +447,38 @@ async function enrichStates(base44, states, includeDealReadiness = false) {
     } catch (e) { console.warn("ATI enrichment failed:", e.message); }
   }
 
+  // ── FAA LADD check, batched ── aircraft on the current LADD list must not
+  // have their FAA-sourced registry data (registration, owner name, etc.)
+  // publicly displayed. ADS-B position/altitude/speed are NOT FAA-source
+  // data and are unaffected by LADD, so those still render normally.
+  let laddBlockedSet = new Set();
+  const nNumbersOnly = Object.values(faaMap).map((r) => r.n_number).filter(Boolean);
+  if (nNumbersOnly.length > 0) {
+    try {
+      const blocked = await base44.asServiceRole.entities.LaddBlockList.filter(
+        { n_number: { $in: nNumbersOnly }, active: true }, "", 500
+      );
+      laddBlockedSet = new Set(blocked.map((b) => b.n_number));
+    } catch (e) {
+      // Fail CLOSED for the affected aircraft: if we can't verify LADD status,
+      // suppress FAA data for every aircraft in this batch rather than risk
+      // showing data for one that's actually blocked.
+      console.warn("LADD check failed — suppressing FAA overlay for this batch:", e.message);
+      laddBlockedSet = new Set(nNumbersOnly);
+    }
+  }
+
   return states.map((s) => {
-    const faa = faaMap[s.icao24?.toLowerCase()] || null;
-    const reg = faa?.n_number ? `N${faa.n_number}` : (s.registration || null);
+    const faaRaw = faaMap[s.icao24?.toLowerCase()] || null;
+    const isLaddBlocked = !!(faaRaw?.n_number && laddBlockedSet.has(faaRaw.n_number));
+    const faa = isLaddBlocked ? null : faaRaw;
+    const reg = faa?.n_number ? `N${faa.n_number}` : (isLaddBlocked ? null : (s.registration || null));
     const listing = reg ? atiMap[reg.toUpperCase()] || null : null;
     const fuelEst = estimateFuelConsumption(s, faa);
     const endurance = fuelEst ? estimateEndurance(s, fuelEst, faa) : null;
     return {
       ...s,
+      ladd_blocked: isLaddBlocked,
       faa: faa ? { n_number: `N${faa.n_number}`, name: faa.name, type_aircraft: faa.type_aircraft, mfr_mdl_code: faa.mfr_mdl_code, year_mfr: faa.year_mfr } : null,
       listing: listing ? { id: listing.id, make: listing.make, model: listing.model, year: listing.year, ati_score: listing.ati_score, deal_label: listing.deal_label, asking_price: listing.asking_price } : null,
       fuel_estimate: fuelEst,

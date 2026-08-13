@@ -57,6 +57,8 @@ export default function AITransparency() {
   const navigate = useNavigate();
   const [lang, setLang] = useState("en");
   const t = CONTENT[lang];
+  const disclosureCategories = getAiDisclosureByCategory();
+  const CAT_COLORS = ["#f5c242", "#5dcaa5", "#4e8ef7", "#e8895a", "#a86ce8", "rgba(255,255,255,0.35)"];
 
   return (
     <div style={{

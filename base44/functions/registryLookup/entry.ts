@@ -35,6 +35,31 @@ Deno.serve(async (req) => {
       fullReg = `N${normalized}`;
     }
 
+    // ── FAA LADD (Limiting Aircraft Data Displayed) check ──
+    // LADD only governs FAA-sourced data for US N-numbers. Per FAA policy, no
+    // data (including historical) may be displayed for a registration while
+    // it is on the current LADD list — so this short-circuits before any of
+    // the source lookups below run, rather than fetching then redacting.
+    if (!isIntl) {
+      try {
+        const blocked = await base44.asServiceRole.entities.LaddBlockList.filter(
+          { n_number: normalized, active: true }, '-created_date', 1
+        );
+        if (blocked.length > 0) {
+          return Response.json({
+            found: false,
+            source: 'ladd_blocked',
+            aircraft: null,
+            listing: null,
+            areaServices: null,
+            ladd_blocked: true,
+            message: 'This aircraft registration is enrolled in the FAA Limiting Aircraft Data Displayed (LADD) program. Display of its registry data is withheld per FAA policy.',
+            searchedAt: new Date().toISOString(),
+          });
+        }
+      } catch (_) { /* LaddBlockList unreachable — fail open rather than block all lookups */ }
+    }
+
     const result = {
       found: false,
       source: null,

@@ -88,7 +88,8 @@ export default function ATIMarkerPopup({ ac }) {
                 ? `${listing?.year || faa?.year_mfr || ""} ${listing?.make || ""} ${listing?.model || faa?.mfr_mdl_code || ""}`.trim().replace(/\s+/g, ' ') || (callsign || "—")
                 : (callsign || "—")}
             </p>
-            {faa?.name && <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 2 }}>{faa.name}</p>}
+            {/* Owner name masked for privacy — never render faa.name raw, see src/lib/privacy.js */}
+            {faa?.name && <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 2 }}>{maskOwnerName(faa.name)}</p>}
           </div>
           {/* ATI Ring */}
           {ati && (

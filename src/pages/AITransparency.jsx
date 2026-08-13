@@ -23,7 +23,7 @@ const CONTENT = {
     subtitle: "Informace o využití umělé inteligence · ABOS Marketspace",
     chips: ["AI Act 2024/1689", "Čl. 50 — transparentnost", "Platné od 2. 8. 2026"],
     introTitle: "Používání umělé inteligence na platformě ABOS",
-    intro: "Aircraft Buy Or Sell využívá nástroje umělé inteligence k podpoře následujících funkcí:",
+    intro: "Aircraft Buy Or Sell využívá nástroje umělé inteligence napříč platformou. Níže je úplný, průběžně aktualizovaný seznam všech funkcí využívajících AI, seskupených podle oblasti:",
     features: [
       {
         name: "ATI Report (Aircraft Transparency Index)",

@@ -1,0 +1,58 @@
+{
+  "name": "LaddBlockList",
+  "type": "object",
+  "properties": {
+    "n_number": {
+      "type": "string",
+      "description": "FAA registration number, digits/letters only, no 'N' prefix (e.g. '12345' for N12345). Normalized uppercase on write."
+    },
+    "call_sign": {
+      "type": "string",
+      "description": "Optional call sign also listed on the FAA IndustryLADD list for this aircraft, if provided."
+    },
+    "list_month": {
+      "type": "string",
+      "description": "The LADD list edition this entry came from, as YYYY-MM (e.g. '2026-08'). The FAA publishes IndustryLADD monthly."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "adx_import",
+        "manual_upload",
+        "manual_entry"
+      ],
+      "default": "manual_upload",
+      "description": "How this entry entered the system. 'adx_import' is reserved for a future direct FAA ADX/SWIM integration once ABOS has a Data Access User Agreement; today entries come from a manually downloaded IndustryLADD list."
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "False once the aircraft is confirmed removed from the current FAA list. Historical LADD-period data must still be protected even after removal \u2014 see syncLaddList for the retention rule."
+    }
+  },
+  "required": [
+    "n_number"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

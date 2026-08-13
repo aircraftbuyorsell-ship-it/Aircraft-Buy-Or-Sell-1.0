@@ -118,18 +118,27 @@ export default function AITransparency() {
           </div>
         </div>
 
-        {/* Intro + Features */}
+        {/* Intro + AI-Powered Functions (from aiDisclosureRegistry.js) */}
         <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ height: "2px", background: C.amber }} />
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px", color: C.w1 }}>{t.introTitle}</h2>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.65, margin: "0 0 16px" }}>{t.intro}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {t.features.map((f) => (
-                <div key={f.name} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: `0.5px solid ${C.border}`, borderRadius: "8px", borderLeft: `3px solid ${f.color}` }}>
-                  <div>
-                    <p style={{ fontSize: "12px", fontWeight: 700, color: C.w1, margin: "0 0 4px" }}>{f.name}</p>
-                    <p style={{ fontSize: "12px", color: C.w2, lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+              {disclosureCategories.map((cat, ci) => (
+                <div key={cat.id}>
+                  <p style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: C.w3, margin: "0 0 8px" }}>
+                    {lang === "cz" ? cat.label_cz : cat.label_en}
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {cat.items.map((f) => (
+                      <div key={f.id} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: `0.5px solid ${C.border}`, borderRadius: "8px", borderLeft: `3px solid ${CAT_COLORS[ci % CAT_COLORS.length]}` }}>
+                        <div>
+                          <p style={{ fontSize: "12px", fontWeight: 700, color: C.w1, margin: "0 0 4px" }}>{lang === "cz" ? f.name_cz : f.name_en}</p>
+                          <p style={{ fontSize: "12px", color: C.w2, lineHeight: 1.6, margin: 0 }}>{lang === "cz" ? f.desc_cz : f.desc_en}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}

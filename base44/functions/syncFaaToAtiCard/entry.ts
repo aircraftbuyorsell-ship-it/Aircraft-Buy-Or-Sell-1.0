@@ -114,9 +114,11 @@ Deno.serve(async (req) => {
     const year = Number(data.year_mfr) || null;
     const reg = nNum;
 
-    // Determine make/model from FAA data
-    const make = data.name?.split(' ').slice(0, 2).join(' ') || 'Unknown';
-    const model = data.mfr_mdl_code || aircraft_type || 'Unknown';
+    // Determine make/model from FAA's ACFTREF reference table — never from
+    // data.name (that's the registrant's/owner's name, not the manufacturer).
+    const resolved = await resolveMakeModel(data.mfr_mdl_code);
+    const make = resolved.make;
+    const model = resolved.model !== 'Unknown' ? resolved.model : (data.mfr_mdl_code || aircraft_type || 'Unknown');
 
     const { dimensions, total } = scoreFromRecord(data);
     const scoreLabel = labelFromTotal(total);

@@ -40,24 +40,7 @@ const CONTENT = {
     subtitle: "Disclosure of Artificial Intelligence Use · ABOS Marketspace",
     chips: ["AI Act 2024/1689", "Art. 50 — transparency", "Effective 2 Aug 2026"],
     introTitle: "Use of Artificial Intelligence on the ABOS Platform",
-    intro: "Aircraft Buy Or Sell uses artificial intelligence tools to support the following features:",
-    features: [
-      {
-        name: "ATI Report (Aircraft Transparency Index)",
-        desc: "Automated aircraft assessment across 8 dimensions based on publicly available data (FAA registry, NTSB accident database, maintenance history, market data).",
-        color: "#f5c242",
-      },
-      {
-        name: "OMVM (market value estimate)",
-        desc: "A statistical/AI model estimating aircraft market value based on comparable transactions and historical data.",
-        color: "#5dcaa5",
-      },
-      {
-        name: "4ir.stream podcast",
-        desc: "Episodes using AI voice generation (text-to-speech).",
-        color: "rgba(255,255,255,0.35)",
-      },
-    ],
+    intro: "Aircraft Buy Or Sell uses artificial intelligence tools across the platform. Below is a complete, continuously updated list of every AI-powered function, grouped by area:",
     disclosureTitle: "Mandatory Disclosure per AI Act Art. 50",
     disclosureItems: [
       "The content above is generated or substantially supported by AI tools",

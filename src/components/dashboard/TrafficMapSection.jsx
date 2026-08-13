@@ -7,6 +7,7 @@ import {
   Radar, RefreshCw, Loader2, Search, X, Filter, Sparkles, CheckCircle2, AlertCircle, ExternalLink
 } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
+import { maskOwnerName } from "@/lib/privacy";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -462,7 +463,7 @@ export default function TrafficMapSection({ globalSearch = "", onClearSearch }) 
                         <p style={{ fontSize: 8, fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: isDark ? "#00f5ff" : "#2563eb", margin: "0 0 4px" }}>FAA Registry</p>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 6px", fontSize: 10 }}>
                           {ac.faa.year_mfr && <div><span style={{ color: sColor }}>Year: </span><strong style={{ color: tColor }}>{ac.faa.year_mfr}</strong></div>}
-                          {ac.faa.name && <div><span style={{ color: sColor }}>Owner: </span><strong style={{ color: tColor }}>{ac.faa.name}</strong></div>}
+                          {ac.faa.name && <div><span style={{ color: sColor }}>Owner: </span><strong style={{ color: tColor }}>{maskOwnerName(ac.faa.name)}</strong></div>}
                           {ac.faa.city && <div><span style={{ color: sColor }}>Location: </span><strong style={{ color: tColor }}>{ac.faa.city}{ac.faa.state ? `, ${ac.faa.state}` : ""}</strong></div>}
                           {ac.faa.engine_mfr && <div><span style={{ color: sColor }}>Engine: </span><strong style={{ color: tColor }}>{ac.faa.engine_mfr} {ac.faa.engine_model || ""}</strong></div>}
                           {ac.faa.status_code && <div><span style={{ color: sColor }}>Reg: </span><strong style={{ color: tColor }}>{ac.faa.status_code}</strong></div>}

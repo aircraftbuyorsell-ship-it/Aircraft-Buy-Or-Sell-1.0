@@ -272,39 +272,53 @@ Return ONLY valid JSON.`,
       const { manufacturer, model } = params;
       if (!manufacturer || !model) return apiError(400, 'missing_aircraft', "'params.manufacturer' and 'params.model' are required.");
 
-      const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the ABOS OMVM (Observed Market Value Model) aircraft valuation engine. Estimate the current fair market value in USD.
-
-AIRCRAFT:
-Manufacturer: ${manufacturer}
-Model: ${model}
-Year: ${params.year || 'unknown'}
-Airframe hours: ${params.hours || 'unknown'}
-
-Base your estimate on typical 2025-2026 market medians for this make/model/year class (Controller, Trade-A-Plane, VREF style comps). Be conservative and realistic — a Cessna 150 is ~$25-45k, a 2021 PC-12 NGX ~$5M, a 2018 Citation Latitude ~$7M.
-
-Return ONLY valid JSON with: estimated_value (USD int), range_min, range_max, confidence (0-1), rationale (max 40 words).`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            estimated_value: { type: 'number' },
-            range_min: { type: 'number' },
-            range_max: { type: 'number' },
-            confidence: { type: 'number' },
-            rationale: { type: 'string' },
+      // Delegate to the real OMVM v5 engine (log-linear depreciation curve
+      // fit on actual AircraftListing comps + engine-wear adjustment + live
+      // grounded web market search), instead of asking a bare LLM to guess a
+      // number with zero data grounding. The bare-LLM approach is what
+      // produced implausible values for edge cases (e.g. 1979 Cessna 172XP) —
+      // an ungrounded model has nothing to anchor a numeric estimate to.
+      let v5;
+      try {
+        const v5res = await base44.functions.invoke('omvmV5Score', {
+          aircraft: {
+            make: manufacturer,
+            model,
+            year: params.year || null,
+            engine_hours: params.hours || null,
           },
-        },
-      });
+        });
+        v5 = v5res.data;
+      } catch (v5err) {
+        return apiError(502, 'valuation_engine_unavailable', `OMVM engine call failed: ${v5err.message}`);
+      }
 
       await trackUsage();
+
+      if (!v5 || v5.status === 'insufficient_comparables' || v5.omvm_value == null) {
+        return apiSuccess({
+          aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
+          estimated_value: null,
+          range: { min: null, max: null },
+          currency: 'USD',
+          confidence: null,
+          rationale: v5?.message || 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
+          model_version: 'omvm-v5',
+        });
+      }
+
+      const spread = Math.round(v5.omvm_value * 0.15);
       return apiSuccess({
         aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
-        estimated_value: result.estimated_value,
-        range: { min: result.range_min, max: result.range_max },
+        estimated_value: v5.omvm_value,
+        range: {
+          min: v5.market_intelligence?.live_min_price ?? Math.max(0, v5.omvm_value - spread),
+          max: v5.market_intelligence?.live_max_price ?? v5.omvm_value + spread,
+        },
         currency: 'USD',
-        confidence: result.confidence,
-        rationale: result.rationale,
-        model_version: 'omvm-llm-v1',
+        confidence: typeof v5.confidence === 'string' ? v5.confidence.toLowerCase() : v5.confidence,
+        rationale: v5.market_intelligence?.notes || `OMVM v5 comp-based valuation (${v5.comp_sample ?? 0} comparable listing(s), ${v5.confidence || 'unknown'} confidence).`,
+        model_version: 'omvm-v5',
       });
     }
 

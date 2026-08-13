@@ -16,6 +16,36 @@ export default function AdminSettings() {
   const [frozen, setFrozen] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  // ── AppConfig dedupe state ──
+  // Cleans up leftover duplicate key:"global" (and other) AppConfig rows left
+  // behind by the historical Save-mutation race condition. Dry-run first,
+  // then confirm. See base44/functions/dedupeAppConfig for details.
+  const [dedupeReport, setDedupeReport] = useState(null);
+  const [dedupeLoading, setDedupeLoading] = useState(false);
+
+  const runDedupeCheck = async () => {
+    setDedupeLoading(true);
+    try {
+      const res = await base44.functions.invoke("dedupeAppConfig", {});
+      setDedupeReport(res.data);
+    } catch (err) {
+      setDedupeReport({ error: err.message || "Check failed" });
+    }
+    setDedupeLoading(false);
+  };
+
+  const runDedupeConfirm = async () => {
+    setDedupeLoading(true);
+    try {
+      const res = await base44.functions.invoke("dedupeAppConfig", { confirm: true });
+      setDedupeReport(res.data);
+      queryClient.invalidateQueries({ queryKey: ["app-config"] });
+    } catch (err) {
+      setDedupeReport({ error: err.message || "Delete failed" });
+    }
+    setDedupeLoading(false);
+  };
+
   // ── Global Data Sync state ──
   const [syncing, setSyncing] = useState(false);
   const [syncSteps, setSyncSteps] = useState([

@@ -314,6 +314,68 @@ export default function AdminSettings() {
         </Button>
       </div>
 
+      {/* Database Maintenance — AppConfig dedupe */}
+      <div className="rounded-2xl p-7 mt-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-start gap-4 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-[#f5c242]/10 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5 text-[#f5c242]" />
+          </div>
+          <div>
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
+              Database Maintenance
+            </h2>
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
+              Clean up duplicate AppConfig rows left over from a historical Save-mutation race condition. Keeps the most recently edited row per key.
+            </p>
+          </div>
+        </div>
+
+        {dedupeReport && (
+          <div className={`rounded-xl p-4 mb-5 text-sm ${dedupeReport.error ? "bg-[#e24b4a]/08 border border-[#e24b4a]/20 text-[#e24b4a]" : "bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5]"}`}>
+            {dedupeReport.error ? (
+              <p>{dedupeReport.error}</p>
+            ) : (
+              <>
+                <p className="font-bold">{dedupeReport.message || (dedupeReport.dryRun === false ? `Deleted ${dedupeReport.deleted} duplicate row(s).` : "")}</p>
+                {dedupeReport.report?.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-xs text-[rgba(255,255,255,0.70)]">
+                    {dedupeReport.report.map((r) => (
+                      <li key={r.key}>
+                        <strong>{r.key}</strong>: {r.totalRows} rows found — keeping 1, {r.deleting.length} {dedupeReport.dryRun === false ? "deleted" : "would be deleted"}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {dedupeReport.errors?.length > 0 && (
+                  <p className="mt-2 text-xs text-[#e24b4a]">{dedupeReport.errors.length} row(s) failed to delete — see logs.</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button
+            onClick={runDedupeCheck}
+            disabled={dedupeLoading}
+            variant="outline"
+            className="flex-1 font-bold uppercase tracking-wide"
+          >
+            {dedupeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Check for Duplicates
+          </Button>
+          {dedupeReport && !dedupeReport.error && dedupeReport.dryRun && dedupeReport.report?.length > 0 && (
+            <Button
+              onClick={runDedupeConfirm}
+              disabled={dedupeLoading}
+              className="flex-1 font-bold uppercase tracking-wide text-white"
+              style={{ background: "linear-gradient(135deg,#e24b4a,#b91c1c)" }}
+            >
+              Confirm Delete
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Smart Contracts — Coming Soon */}
       <div className="rounded-2xl p-7 opacity-70" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <div className="flex items-start gap-4 mb-4">

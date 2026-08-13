@@ -114,6 +114,45 @@ Deno.serve(async (req) => {
       .sort((a, b) => b.listings - a.listings)
       .slice(0, 8);
 
+    // ── Category price trends (popular aircraft categories, last 12 months) ──
+    // Heuristic make/model classifier — a visualisation aid, not a legal class.
+    const CATEGORY_DEFS = [
+      { key: 'Helicopter', color: '#14b8a6', test: /robinson|eurocopter|airbus helicopter|sikorsky|agusta|schweizer|enstrom|hughes|\bmd ?500\b|\br44\b|\br66\b|\br22\b|as350|ec130|ec135|h125|bell 206|bell 407|bell 429|bell 412|bell 505|sk[- ]?76/i },
+      { key: 'Jet', color: '#ec4899', test: /citation|phenom|learjet|gulfstream|challenger|\bfalcon\b|embraer|hondajet|honda jet|praetor|legacy|global express|global 5|global 6|global 7|mustang|excel|sovereign|latitude|longitude|g450|g550|g650|g700|cj[1-4]|erj/i },
+      { key: 'Turboprop', color: '#22c55e', test: /king air|tbm|pilatus|pc[- ]?12|caravan|c208|meridian|saab 340|saab340|dash ?8|q400|pc[- ]?24|atr/i },
+      { key: 'Multi-Engine Piston', color: '#4e8ef7', test: /seneca|aztec|duchess|\bbaron\b|\b310\b|\b402\b|pa[- ]?34|pa[- ]?23|pa[- ]?44|be[- ]?76|travel air|twinstar|da42|da62|piper twin|cessna twin/i },
+      { key: 'Single-Engine Piston', color: '#f5c242', test: /cessna|piper|cirrus|mooney|bonanza|musketeer|debonair|\bda40\b|\bda20\b|grumman|pipistrel|aeronca|luscombe|taylorcraft|\bcub\b|pa[- ]?18|pa[- ]?11|super cub|cherokee|warrior|archer|arrow|saratoga|lance|comanche|tripacer|colt|reliant|citabria|decathlon|scout|maule|van'?s|rv[- ]?\d|sonex|zenith|aeroprakt|tecnam|bristell|grob|robin|dr400|commander 114/i },
+    ];
+    const classifyListing = (l) => {
+      const text = `${l.make || ''} ${l.model || ''}`.trim();
+      for (const c of CATEGORY_DEFS) if (c.test.test(text)) return c.key;
+      return null;
+    };
+    const catBuckets = CATEGORY_DEFS.map((c) => ({
+      key: c.key, color: c.color,
+      months: buckets.map((b) => ({ key: b.key, label: b.label, sum: 0, count: 0 })),
+    }));
+    listings.forEach((l) => {
+      const cat = classifyListing(l);
+      if (!cat || !l.asking_price || !l.created_date) return;
+      const d = new Date(l.created_date);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const row = catBuckets.find((c) => c.key === cat);
+      const b = row.months.find((m) => m.key === k);
+      if (!b) return;
+      b.sum += l.asking_price;
+      b.count += 1;
+    });
+    const categoryTrends = catBuckets.map((c) => ({
+      category: c.key,
+      color: c.color,
+      data: c.months.map((b) => ({
+        month: b.label,
+        avgPrice: b.count > 0 ? Math.round(b.sum / b.count) : null,
+        listings: b.count,
+      })),
+    }));
+
     const data = {
       generated_at: new Date().toISOString(),
       summary: {
@@ -127,6 +166,7 @@ Deno.serve(async (req) => {
       delta,
       topModels: topModelsList,
       daysOnMarket: dom,
+      categoryTrends,
     };
 
     CACHE.set('global', { at: Date.now(), data });

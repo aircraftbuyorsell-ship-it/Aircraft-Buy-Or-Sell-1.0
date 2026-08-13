@@ -389,9 +389,9 @@ export default function ATIQuickScore() {
                   <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: 1.65, margin: 0 }}>
                     <strong style={{ color: "rgba(245,194,66,0.75)", fontWeight: 700 }}>AI notice:</strong>{" "}
                     The ATI Score and OMVM valuation estimate are generated using artificial intelligence tools based on available data (FAA registry, NTSB database, market comparables). These outputs are for informational purposes only and do not replace a professional technical inspection or formal appraisal. Any final purchase or sale decision should include an independent pre-buy inspection.{" "}
-                    <a href="/legal/ai-transparency" style={{ color: "rgba(245,194,66,0.55)", textDecoration: "none" }}>
+                    <Link to="/legal/ai-transparency" style={{ color: "rgba(245,194,66,0.55)", textDecoration: "none" }}>
                       Full AI disclosure (EU AI Act Art. 50) →
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </div>

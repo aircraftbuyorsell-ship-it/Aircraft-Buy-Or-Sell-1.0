@@ -57,7 +57,19 @@ Deno.serve(async (req) => {
             searchedAt: new Date().toISOString(),
           });
         }
-      } catch (_) { /* LaddBlockList unreachable — fail open rather than block all lookups */ }
+      } catch (laddErr) {
+        // Fail CLOSED, not open: this is an FAA compliance check, not a
+        // convenience feature. If we can't verify an aircraft isn't
+        // LADD-blocked, we must not display data that might be blocked.
+        return Response.json({
+          found: false,
+          source: null,
+          aircraft: null,
+          error: 'ladd_check_unavailable',
+          message: 'Unable to verify LADD status right now, so registry data cannot be safely displayed. Please retry shortly.',
+          searchedAt: new Date().toISOString(),
+        }, { status: 503 });
+      }
     }
 
     const result = {

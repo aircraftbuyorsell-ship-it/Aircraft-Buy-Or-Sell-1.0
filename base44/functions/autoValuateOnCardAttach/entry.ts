@@ -10,13 +10,11 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
 
-    // Validate caller — must be an authenticated user or an entity automation event
-    const user = await base44.auth.me();
-    const { event, data } = payload;
-
-    if (!user && !event) {
-      return Response.json({ error: 'Forbidden: must be authenticated or triggered by entity automation' }, { status: 403 });
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
+    const { event, data } = payload;
 
     console.log(`📡 autoValuateOnCardAttach triggered: event=${event?.type}, card=${event?.entity_id}`);
 

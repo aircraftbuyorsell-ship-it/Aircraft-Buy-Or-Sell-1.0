@@ -32,11 +32,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Entity automations run without user context — trusted invocation
-    let isAuthorized = false;
-    try { const u = await base44.auth.me(); isAuthorized = u?.role === 'admin'; }
-    catch (_) { isAuthorized = true; }
-    if (!isAuthorized) return Response.json({ error: 'Admin access required' }, { status: 403 });
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') return Response.json({ error: 'Admin access required' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
     const { event, data } = body;

@@ -46,6 +46,34 @@ export default function AdminSettings() {
     setDedupeLoading(false);
   };
 
+  // ── FAA LADD list sync state ──
+  const [laddMonth, setLaddMonth] = useState("");
+  const [laddEntries, setLaddEntries] = useState("");
+  const [laddReport, setLaddReport] = useState(null);
+  const [laddLoading, setLaddLoading] = useState(false);
+
+  const runLaddCheck = async () => {
+    setLaddLoading(true);
+    try {
+      const res = await base44.functions.invoke("syncLaddList", { list_month: laddMonth, entries: laddEntries });
+      setLaddReport(res.data);
+    } catch (err) {
+      setLaddReport({ error: err.response?.data?.error || err.message || "Check failed" });
+    }
+    setLaddLoading(false);
+  };
+
+  const runLaddConfirm = async () => {
+    setLaddLoading(true);
+    try {
+      const res = await base44.functions.invoke("syncLaddList", { list_month: laddMonth, entries: laddEntries, confirm: true });
+      setLaddReport(res.data);
+    } catch (err) {
+      setLaddReport({ error: err.response?.data?.error || err.message || "Import failed" });
+    }
+    setLaddLoading(false);
+  };
+
   // ── Global Data Sync state ──
   const [syncing, setSyncing] = useState(false);
   const [syncSteps, setSyncSteps] = useState([

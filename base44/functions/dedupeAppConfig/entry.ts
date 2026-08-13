@@ -11,10 +11,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  * remain in the data and need a one-time cleanup. Safe to re-run — it is a
  * no-op once at most one row per key remains.
  *
- * For each duplicate key, keeps the single most-recently-updated row (the
- * one every engine and the admin panel actually reads via
- * `-created_date, 1` — ties broken by `updated_date` so the row with the
- * latest admin edit wins) and deletes the rest.
+ * For each duplicate key, keeps the single row with the highest
+ * `created_date` — that is exactly the row every engine and the admin
+ * panel already read via `.filter({ key }, '-created_date', 1)`, so
+ * dedupe never changes which row is "live"; it only removes the rows
+ * nothing was ever reading. (Do NOT sort by `updated_date` here — an
+ * admin may have unknowingly been editing an older duplicate that isn't
+ * the one production reads; keeping by updated_date would delete the
+ * actual live row and swap in stale data.) Deletes the rest.
  *
  * Admin-only. Dry-run by default — pass { confirm: true } to actually delete.
  */
@@ -43,10 +47,12 @@ Deno.serve(async (req) => {
 
     for (const [key, rows] of byKey.entries()) {
       if (rows.length <= 1) continue;
-      // Sort by updated_date desc (fallback created_date) — keep the newest edit.
+      // Sort by created_date desc — identical ordering to the production
+      // read path (`.filter({ key }, '-created_date', 1)`), so "keep" is
+      // always the same row the app is already live-reading from.
       const sorted = [...rows].sort((a, b) => {
-        const ta = new Date(a.updated_date || a.created_date).getTime();
-        const tb = new Date(b.updated_date || b.created_date).getTime();
+        const ta = new Date(a.created_date).getTime();
+        const tb = new Date(b.created_date).getTime();
         return tb - ta;
       });
       const keep = sorted[0];

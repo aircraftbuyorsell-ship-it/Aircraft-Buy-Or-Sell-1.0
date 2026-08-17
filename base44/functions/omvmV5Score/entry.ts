@@ -139,10 +139,15 @@ Deno.serve(async (req) => {
       if (den > 0) { slope = num / den; intercept = sy - slope * sx; }
     }
 
-    // 3) Engine remaining value adjustment
-    const tbo = listing.tbo || 2000;
-    const engineHours = listing.engine_hours || 0;
-    const engineRemainingFrac = Math.max(0, Math.min(1, (tbo - engineHours) / tbo));
+    // 3) Engine remaining value adjustment — only when BOTH the TBO and the
+    // engine hours are genuinely known. Never fabricate a TBO (the old 2000
+    // default is invalid for diesels/turbines) nor assume 0 engine hours; an
+    // unknown engine life is simply skipped, not guessed.
+    const tbo = (Number.isFinite(Number(listing.tbo)) && Number(listing.tbo) > 0) ? Number(listing.tbo) : null;
+    const engineHours = (listing.engine_hours != null && Number.isFinite(Number(listing.engine_hours))) ? Number(listing.engine_hours) : null;
+    const engineRemainingFrac = (tbo != null && engineHours != null)
+      ? Math.max(0, Math.min(1, (tbo - engineHours) / tbo))
+      : null;
 
     // Engine impact: ~$25k premium for fresh engine (fraction = 1.0) vs run-out (0)
     let engineSlope = 25000;
@@ -203,7 +208,8 @@ Deno.serve(async (req) => {
       confidence = fallback.confidence;
       fallbackReason = fallback.reason;
     }
-    const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
+    // Engine adjustment only applies when engine life is actually known.
+    const engineAdj = engineRemainingFrac != null ? engineSlope * (engineRemainingFrac - 0.5) : 0;
 
     // ── Live market intelligence via LLM web search ──
     // Searches Controller.com, Trade-A-Plane, AircraftTrader etc. for real
@@ -229,7 +235,7 @@ Return strict JSON only.`;
       const knowledgePrompt = `You are an aircraft market valuation expert. Estimate the current market value range for this aircraft from your training knowledge of the general aviation market (Controller.com, Trade-A-Plane, Vref, Aircraft Bluebook). Do not pretend to search the web.
 
 Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
-${listing.engine_hours != null ? `Engine hours SMOH: ${listing.engine_hours} (TBO ${listing.tbo || 2000})` : ''}
+${listing.engine_hours != null && tbo != null ? `Engine hours SMOH: ${listing.engine_hours} (TBO ${tbo})` : ''}
 ${listing.total_time != null ? `Airframe total time: ${listing.total_time} hours` : ''}
 
 Return your best estimate of the market price range in USD. Return strict JSON only.`;
@@ -285,7 +291,7 @@ Return your best estimate of the market price range in USD. Return strict JSON o
           comp_sample: valid.length,
           required_comps: 3,
           message: 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
-          engine_remaining_pct: Math.round(engineRemainingFrac * 100),
+          engine_remaining_pct: engineRemainingFrac != null ? Math.round(engineRemainingFrac * 100) : null,
           market_intelligence: {
             live_market_avg: null,
             live_min_price: null,
@@ -376,7 +382,7 @@ Return your best estimate of the market price range in USD. Return strict JSON o
       confidence,
       fallback_reason: fallbackReason,
       comp_sample: valid.length,
-      engine_remaining_pct: Math.round(engineRemainingFrac * 100),
+      engine_remaining_pct: engineRemainingFrac != null ? Math.round(engineRemainingFrac * 100) : null,
       expert_calibration: { avg_delta_pct: avgExpertDelta, multiplier: calibrationMultiplier, sample: deltas.length },
       ati_transparency_discount: atiDiscount,
       market_intelligence: {

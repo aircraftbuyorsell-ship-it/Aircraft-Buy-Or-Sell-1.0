@@ -87,8 +87,6 @@ export const MAKE_MODEL_ENGINE = {
   "DAHER|TBM 900": "PT6A", "DAHER|TBM 930": "PT6A", "PILATUS|PC-12": "PT6A",
 };
 
-export const DEFAULT_TBO = 2000;
-
 export function normalizeEngineModel(raw) {
   if (!raw) return "";
   return String(raw).toUpperCase().replace(/\s+/g, "").trim();

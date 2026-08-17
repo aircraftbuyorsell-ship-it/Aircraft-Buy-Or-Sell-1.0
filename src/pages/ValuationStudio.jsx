@@ -33,7 +33,7 @@ export default function ValuationStudio() {
     year: readParam("year"),
     total_time: readParam("total_time"),
     engine_hours: readParam("engine_hours"),
-    tbo: readParam("tbo") || "2000",
+    tbo: readParam("tbo") || "",
     avionics: readParam("avionics"),
     asking_price: readParam("asking_price"),
   }));

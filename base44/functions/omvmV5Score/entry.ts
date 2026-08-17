@@ -211,19 +211,33 @@ Deno.serve(async (req) => {
     let liveMarketAvg = null, liveMinPrice = null, liveMaxPrice = null, liveListingsCount = null;
     let marketDataSource = 'none';
     let marketNotes = null;
+    // Caller-selectable model (Valuation Studio). Defaults to the original
+    // gemini_3_flash so existing callers are unaffected. Only the two Gemini
+    // models support live web search; any other model falls back to a
+    // knowledge-based estimate with a tighter timeout.
+    const selectedModel = (typeof body.llm_model === 'string' && body.llm_model.trim()) ? body.llm_model.trim() : 'gemini_3_flash';
+    const useWebSearch = selectedModel === 'gemini_3_flash' || selectedModel === 'gemini_3_1_pro';
     try {
       const aircraftQuery = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
-      const llmResult = await withTimeout(
-        base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
+      const webPrompt = `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
 
 Return the current market price range for this aircraft. Include only real, currently listed or recently sold aircraft of the same make and model (within ±5 years if year is specified). All prices in USD.
 
 Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
 
-Return strict JSON only.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_flash',
+Return strict JSON only.`;
+      const knowledgePrompt = `You are an aircraft market valuation expert. Estimate the current market value range for this aircraft from your training knowledge of the general aviation market (Controller.com, Trade-A-Plane, Vref, Aircraft Bluebook). Do not pretend to search the web.
+
+Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
+${listing.engine_hours != null ? `Engine hours SMOH: ${listing.engine_hours} (TBO ${listing.tbo || 2000})` : ''}
+${listing.total_time != null ? `Airframe total time: ${listing.total_time} hours` : ''}
+
+Return your best estimate of the market price range in USD. Return strict JSON only.`;
+      const llmResult = await withTimeout(
+        base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: useWebSearch ? webPrompt : knowledgePrompt,
+        add_context_from_internet: useWebSearch,
+        model: selectedModel,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -236,7 +250,7 @@ Return strict JSON only.`,
           },
         },
       }),
-        20000,
+        useWebSearch ? 20000 : 15000,
         null
       );
       const market = llmResult?.data ?? llmResult;
@@ -261,6 +275,7 @@ Return strict JSON only.`,
         return Response.json({
           ok: true,
           status: 'insufficient_comparables',
+          model_used: selectedModel,
           omvm_value: null,
           deal_score: null,
           deal_label: null,
@@ -353,6 +368,7 @@ Return strict JSON only.`,
     return Response.json({
       ok: true,
       status: 'ok',
+      model_used: selectedModel,
       omvm_value: omvmValue,
       deal_score: dealScore,
       deal_label: dealLabel,

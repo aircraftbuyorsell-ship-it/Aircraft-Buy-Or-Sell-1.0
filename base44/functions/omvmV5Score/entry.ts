@@ -62,6 +62,18 @@ async function timingSafeEqual(a: string | null, b: string | null): Promise<bool
   return diff === 0;
 }
 
+// The live-market LLM call (web search + generation) is the slowest step by
+// far — gemini_3_1_pro with add_context_from_internet routinely runs 25-35s,
+// which pushes the whole function past the platform's wall-clock limit when it
+// is chained behind abosCoreApi + the Cloudflare gateway. Cap it so the
+// function always returns within budget and falls back to comps-only.
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -201,7 +213,8 @@ Deno.serve(async (req) => {
     let marketNotes = null;
     try {
       const aircraftQuery = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
-      const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+      const llmResult = await withTimeout(
+        base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
 
 Return the current market price range for this aircraft. Include only real, currently listed or recently sold aircraft of the same make and model (within ±5 years if year is specified). All prices in USD.
@@ -210,7 +223,7 @@ Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
 
 Return strict JSON only.`,
         add_context_from_internet: true,
-        model: 'gemini_3_1_pro',
+        model: 'gemini_3_flash',
         response_json_schema: {
           type: 'object',
           properties: {
@@ -222,7 +235,10 @@ Return strict JSON only.`,
             notes: { type: 'string' },
           },
         },
-      });
+      }),
+        20000,
+        null
+      );
       const market = llmResult?.data ?? llmResult;
       if (market && market.avg_price != null && market.avg_price > 5000) {
         liveMarketAvg = market.avg_price;

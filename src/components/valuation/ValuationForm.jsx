@@ -26,7 +26,7 @@ export default function ValuationForm({ formData, onChange, onSubmit, loading, f
         </label>
         <label className="space-y-1.5">
           <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">Year</span>
-          <input className={FIELD_CLASS} type="number" value={formData.year} onChange={(e) => update("year", e.target.value)} placeholder="2006" required />
+          <input className={FIELD_CLASS} type="number" value={formData.year} onChange={(e) => update("year", e.target.value)} placeholder="2006" />
         </label>
         <label className="space-y-1.5">
           <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">Airframe hours</span>

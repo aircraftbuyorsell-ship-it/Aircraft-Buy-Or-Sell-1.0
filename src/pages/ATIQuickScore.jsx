@@ -218,7 +218,7 @@ export default function ATIQuickScore() {
   }
 
   const updateDetail = (key, value) => setDetails((current) => ({ ...current, [key]: value }));
-  const hasMinimumDetails = String(details.year || "").trim() && String(details.make || "").trim() && String(details.model || "").trim();
+  const hasMinimumDetails = String(details.make || "").trim() && String(details.model || "").trim();
   const canSubmit = !["idle", "loading"].includes(lookupStatus) && hasMinimumDetails && !loading;
   const total     = calcATITotal(result);
   const band      = atiBand(total);

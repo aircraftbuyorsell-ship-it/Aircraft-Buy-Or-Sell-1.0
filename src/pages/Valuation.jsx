@@ -15,9 +15,37 @@ const INITIAL_FORM = {
   tbo: "2000",
   avionics: "",
   asking_price: "",
+  listing_text: "",
 };
 
 const toNumber = (value) => value === "" ? undefined : Number(value);
+const numOrUndef = (v) => (v == null ? undefined : Number(v));
+
+async function extractAircraftSpecs({ listingText, fileUrls }) {
+  const prompt = `Extract aircraft specification fields from the following listing text and any attached documents. Return strict JSON only.
+Fields: make (string), model (string), year (number), total_time (airframe hours number), engine_hours (SMOH number), tbo (number), avionics (comma-separated string), asking_price (number USD). Use null for anything not found.
+
+LISTING TEXT:
+${listingText || "(none)"}`;
+  const res = await base44.integrations.Core.InvokeLLM({
+    prompt,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        make: { type: ["string", "null"] },
+        model: { type: ["string", "null"] },
+        year: { type: ["number", "null"] },
+        total_time: { type: ["number", "null"] },
+        engine_hours: { type: ["number", "null"] },
+        tbo: { type: ["number", "null"] },
+        avionics: { type: ["string", "null"] },
+        asking_price: { type: ["number", "null"] },
+      },
+    },
+    ...(fileUrls.length ? { file_urls: fileUrls } : {}),
+  });
+  return res?.data ?? res;
+}
 
 export default function Valuation() {
   const [formData, setFormData] = useState(() => ({
@@ -31,6 +59,7 @@ export default function Valuation() {
     avionics: readParam("avionics"),
     asking_price: readParam("asking_price"),
   }));
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
@@ -40,18 +69,48 @@ export default function Valuation() {
     event.preventDefault();
     setLoading(true);
 
-    const payload = {
-      make: formData.make.trim(),
-      model: formData.model.trim(),
-      year: toNumber(formData.year),
-      total_time: toNumber(formData.total_time),
-      engine_hours: toNumber(formData.engine_hours),
-      tbo: toNumber(formData.tbo),
-      avionics: formData.avionics.trim(),
-      asking_price: toNumber(formData.asking_price),
-    };
-
     try {
+      // 1) Upload any attached files
+      let fileUrls = [];
+      if (files.length > 0) {
+        const uploaded = await Promise.all(
+          files.map((f) => base44.integrations.Core.UploadFile({ file: f }))
+        );
+        fileUrls = uploaded.map((u) => (u?.data ?? u)?.file_url).filter(Boolean);
+      }
+
+      const listingText = (formData.listing_text || "").trim();
+
+      // 2) If the user pasted text or attached files, extract specs and fill blanks
+      let merged = { ...formData };
+      if (listingText || fileUrls.length) {
+        try {
+          const extracted = await extractAircraftSpecs({ listingText, fileUrls });
+          for (const key of ["make", "model", "year", "total_time", "engine_hours", "tbo", "avionics", "asking_price"]) {
+            const val = extracted?.[key];
+            if (val != null && String(val).trim() !== "" && String(merged[key] || "").trim() === "") {
+              merged[key] = key === "avionics" ? String(val) : val;
+            }
+          }
+          setFormData((prev) => ({ ...prev, ...merged }));
+        } catch (extractErr) {
+          console.warn("[Valuation] spec extraction failed:", extractErr?.message);
+        }
+      }
+
+      const payload = {
+        make: String(merged.make || "").trim(),
+        model: String(merged.model || "").trim(),
+        year: toNumber(merged.year),
+        total_time: numOrUndef(merged.total_time),
+        engine_hours: numOrUndef(merged.engine_hours),
+        tbo: toNumber(merged.tbo),
+        avionics: String(merged.avionics || "").trim(),
+        asking_price: numOrUndef(merged.asking_price),
+        listing_text: listingText || undefined,
+        file_urls: fileUrls.length ? fileUrls : undefined,
+      };
+
       const response = await base44.functions.invoke("omvmV5Score", payload);
       setResult(response?.data ?? response);
       setAircraft(payload);
@@ -90,7 +149,7 @@ export default function Valuation() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <ValuationForm formData={formData} onChange={setFormData} onSubmit={handleSubmit} loading={loading} />
+          <ValuationForm formData={formData} onChange={setFormData} onSubmit={handleSubmit} loading={loading} files={files} onFilesChange={setFiles} />
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm border border-destructive/30 bg-destructive/10 text-destructive">
               {error}

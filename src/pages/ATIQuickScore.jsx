@@ -172,7 +172,6 @@ export default function ATIQuickScore() {
       const extracted = await extractAircraftSpecs({ listingText, fileUrls });
       const { merged } = mergeExtractedSpecs(details, extracted);
       setDetails((current) => ({ ...current, ...merged }));
-      if (extracted?.make && !details.make) setDetails((current) => ({ ...current, make: extracted.make }));
     } catch (e) {
       setError(e?.message || "Auto-fill failed.");
     } finally {
@@ -219,7 +218,7 @@ export default function ATIQuickScore() {
 
   const updateDetail = (key, value) => setDetails((current) => ({ ...current, [key]: value }));
   const hasMinimumDetails = String(details.make || "").trim() && String(details.model || "").trim();
-  const canSubmit = !["idle", "loading"].includes(lookupStatus) && hasMinimumDetails && !loading;
+  const canSubmit = hasMinimumDetails && !loading;
   const total     = calcATITotal(result);
   const band      = atiBand(total);
   const fullReportParams = new URLSearchParams(window.location.search);

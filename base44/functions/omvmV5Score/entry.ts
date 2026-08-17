@@ -106,7 +106,8 @@ Deno.serve(async (req) => {
     }
 
     const currentYear = new Date().getFullYear();
-    const age = currentYear - (listing.year || currentYear);
+    const hasYear = Number.isFinite(Number(listing.year)) && Number(listing.year) > 1900;
+    const age = hasYear ? currentYear - Number(listing.year) : 0;
 
     // 1) Pull historical comps for make, then filter by model prefix in code
     const filter = {};
@@ -195,7 +196,10 @@ Deno.serve(async (req) => {
     // 8) Base OMVM calculation — comps first, market fallback second
     let baseValue, confidence, fallbackReason = null;
 
-    if (valid.length >= 10) {
+    // The log-linear depreciation curve requires a real manufacture year;
+    // without one, age is meaningless, so fall through to the comp median
+    // rather than valuing a year-less aircraft as brand-new (age 0).
+    if (valid.length >= 10 && hasYear) {
       baseValue = Math.exp(intercept + slope * age);
       confidence = 'HIGH';
     } else if (valid.length >= 3) {

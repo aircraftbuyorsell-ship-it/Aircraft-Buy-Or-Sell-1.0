@@ -8,7 +8,8 @@ import { base44 } from "@/api/base44Client";
 import { lookupAircraft } from "@/lib/aircraftLookup";
 import QuickScoreLookupForm from "@/components/ati/QuickScoreLookupForm";
 import AircraftMinimumFields from "@/components/ati/AircraftMinimumFields";
-import ListingTextPaste from "@/components/ati/ListingTextPaste";
+import AircraftExtraInput from "@/components/aircraft-input/AircraftExtraInput";
+import { extractAircraftSpecs, mergeExtractedSpecs } from "@/lib/aircraftInput";
 import MiniGlobe   from "@/components/MiniGlobe";
 import {
   ScoreArc, DimensionBars, FlagsList, OMVMValue,
@@ -22,12 +23,13 @@ import {
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
 function emptyDetails() {
-  return { year: "", make: "", model: "", total_time: "", engine_hours: "", tbo: "", asking_price: "" };
+  return { year: "", make: "", model: "", engine_model: "", total_time: "", engine_hours: "", tbo: "", asking_price: "" };
 }
 
 function buildInitialDetails() {
   return {
     year: readParam("year"), make: readParam("make"), model: readParam("model"),
+    engine_model: readParam("engine_model"),
     total_time: readParam("total_time"), engine_hours: readParam("engine_hours"),
     tbo: readParam("tbo"), asking_price: readParam("asking_price"),
   };
@@ -118,12 +120,15 @@ export default function ATIQuickScore() {
   const [scorePayload, setScorePayload] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
+  const [files,     setFiles]     = useState([]);
+  const [autoFilling, setAutoFilling] = useState(false);
   const [result,    setResult]    = useState(null);
   const [error,     setError]     = useState("");
 
   const buildScoreInput = () => [
     [details.year, details.make, details.model].filter(Boolean).join(" "),
     nReg && `Registration: ${nReg}`,
+    details.engine_model && `Engine: ${details.engine_model}`,
     details.total_time && `Airframe Total Time: ${details.total_time} hrs`,
     details.engine_hours && `Engine SMOH: ${details.engine_hours} hrs`,
     details.tbo && `TBO: ${details.tbo} hrs`,
@@ -142,7 +147,9 @@ export default function ATIQuickScore() {
         const aircraft = data.aircraft || {}; const listing = data.listing || {};
         setDetails((current) => ({
           year: aircraft.year || aircraft.year_mfr || current.year, make: aircraft.make || current.make,
-          model: aircraft.model || current.model, total_time: listing.total_time || aircraft.total_time || current.total_time,
+          model: aircraft.model || current.model,
+          engine_model: listing.engine_model || aircraft.engine_model || current.engine_model,
+          total_time: listing.total_time || aircraft.total_time || current.total_time,
           engine_hours: listing.engine_hours || aircraft.engine_hours || current.engine_hours,
           tbo: listing.tbo || aircraft.tbo || current.tbo, asking_price: listing.asking_price || current.asking_price,
         }));
@@ -150,6 +157,27 @@ export default function ATIQuickScore() {
       }
     } catch (lookupFailure) { setLookupError(lookupFailure?.response?.data?.error || "Lookup failed. Check the N-Number and try again."); setLookupStatus("error"); }
     setLookupLoading(false);
+  }
+
+  async function handleAutoFill() {
+    const listingText = (input || "").trim();
+    if (!listingText && files.length === 0) return;
+    setAutoFilling(true);
+    try {
+      let fileUrls = [];
+      if (files.length > 0) {
+        const uploaded = await Promise.all(files.map((f) => base44.integrations.Core.UploadFile({ file: f })));
+        fileUrls = uploaded.map((u) => (u?.data ?? u)?.file_url).filter(Boolean);
+      }
+      const extracted = await extractAircraftSpecs({ listingText, fileUrls });
+      const { merged } = mergeExtractedSpecs(details, extracted);
+      setDetails((current) => ({ ...current, ...merged }));
+      if (extracted?.make && !details.make) setDetails((current) => ({ ...current, make: extracted.make }));
+    } catch (e) {
+      setError(e?.message || "Auto-fill failed.");
+    } finally {
+      setAutoFilling(false);
+    }
   }
 
   async function handleScore() {
@@ -292,7 +320,14 @@ export default function ATIQuickScore() {
               {["found", "not_found"].includes(lookupStatus) && (
                 <>
                   <AircraftMinimumFields details={details} onChange={updateDetail} status={lookupStatus} />
-                  <ListingTextPaste value={input} onChange={setInput} />
+                  <AircraftExtraInput
+                    listingText={input}
+                    onListingTextChange={setInput}
+                    files={files}
+                    onFilesChange={setFiles}
+                    onAutoFill={handleAutoFill}
+                    autoFilling={autoFilling}
+                  />
                   {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">{error}</p>}
                   <button onClick={handleScore} disabled={!canSubmit} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
                     <Zap size={16} /> Get Free Aircraft Valuation

@@ -5,6 +5,7 @@ import ValuationForm from "@/components/valuation/ValuationForm";
 import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
 import HistoricalPriceCheck from "@/components/valuation-studio/HistoricalPriceCheck";
+import { extractAircraftSpecs, mergeExtractedSpecs } from "@/lib/aircraftInput";
 
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
@@ -14,7 +15,8 @@ const INITIAL_FORM = {
   year: "",
   total_time: "",
   engine_hours: "",
-  tbo: "2000",
+  engine_model: "",
+  tbo: "",
   avionics: "",
   asking_price: "",
   listing_text: "",
@@ -22,32 +24,6 @@ const INITIAL_FORM = {
 
 const toNumber = (value) => (value === "" ? undefined : Number(value));
 const numOrUndef = (v) => (v == null ? undefined : Number(v));
-
-async function extractAircraftSpecs({ listingText, fileUrls }) {
-  const prompt = `Extract aircraft specification fields from the following listing text and any attached documents. Return strict JSON only.
-Fields: make (string), model (string), year (number), total_time (airframe hours number), engine_hours (SMOH number), tbo (number), avionics (comma-separated string), asking_price (number USD). Use null for anything not found.
-
-LISTING TEXT:
-${listingText || "(none)"}`;
-  const res = await base44.integrations.Core.InvokeLLM({
-    prompt,
-    response_json_schema: {
-      type: "object",
-      properties: {
-        make: { type: ["string", "null"] },
-        model: { type: ["string", "null"] },
-        year: { type: ["number", "null"] },
-        total_time: { type: ["number", "null"] },
-        engine_hours: { type: ["number", "null"] },
-        tbo: { type: ["number", "null"] },
-        avionics: { type: ["string", "null"] },
-        asking_price: { type: ["number", "null"] },
-      },
-    },
-    ...(fileUrls.length ? { file_urls: fileUrls } : {}),
-  });
-  return res?.data ?? res;
-}
 
 export default function ValuationStudio() {
   const [formData, setFormData] = useState(() => ({
@@ -64,6 +40,7 @@ export default function ValuationStudio() {
   const [model, setModel] = useState("gemini_3_flash");
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [autoFilling, setAutoFilling] = useState(false);
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
   const [error, setError] = useState(null);
@@ -95,12 +72,8 @@ export default function ValuationStudio() {
       if (listingText || fileUrls.length) {
         try {
           const extracted = await extractAircraftSpecs({ listingText, fileUrls });
-          for (const key of ["make", "model", "year", "total_time", "engine_hours", "tbo", "avionics", "asking_price"]) {
-            const val = extracted?.[key];
-            if (val != null && String(val).trim() !== "" && String(merged[key] || "").trim() === "") {
-              merged[key] = key === "avionics" ? String(val) : val;
-            }
-          }
+          const { merged: mergedSpecs } = mergeExtractedSpecs(merged, extracted);
+          merged = mergedSpecs;
           setFormData((prev) => ({ ...prev, ...merged }));
         } catch (extractErr) {
           console.warn("[ValuationStudio] spec extraction failed:", extractErr?.message);
@@ -113,6 +86,7 @@ export default function ValuationStudio() {
         year: toNumber(merged.year),
         total_time: numOrUndef(merged.total_time),
         engine_hours: numOrUndef(merged.engine_hours),
+        engine_model: String(merged.engine_model || "").trim() || undefined,
         tbo: toNumber(merged.tbo),
         avionics: String(merged.avionics || "").trim(),
         asking_price: numOrUndef(merged.asking_price),
@@ -134,6 +108,26 @@ export default function ValuationStudio() {
       setError(e?.response?.data?.error || e?.message || "Valuation failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAutoFill = async () => {
+    const listingText = (formData.listing_text || "").trim();
+    if (!listingText && files.length === 0) return;
+    setAutoFilling(true);
+    try {
+      let fileUrls = [];
+      if (files.length > 0) {
+        const uploaded = await Promise.all(files.map((f) => base44.integrations.Core.UploadFile({ file: f })));
+        fileUrls = uploaded.map((u) => (u?.data ?? u)?.file_url).filter(Boolean);
+      }
+      const extracted = await extractAircraftSpecs({ listingText, fileUrls });
+      const { merged } = mergeExtractedSpecs(formData, extracted);
+      setFormData(merged);
+    } catch (e) {
+      setError(e?.message || "Auto-fill failed.");
+    } finally {
+      setAutoFilling(false);
     }
   };
 
@@ -174,6 +168,8 @@ export default function ValuationStudio() {
               loading={loading}
               files={files}
               onFilesChange={setFiles}
+              onAutoFill={handleAutoFill}
+              autoFilling={autoFilling}
             />
           </div>
 

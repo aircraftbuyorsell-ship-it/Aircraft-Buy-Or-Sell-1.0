@@ -25,8 +25,29 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Marketspace",
+    label: "Market",
     mobileLabel: "Market",
+    path: "/listings",
+    icon: Plane,
+    direct: true,
+  },
+  {
+    label: "Analytics",
+    mobileLabel: "Analytics",
+    path: "/analytics",
+    icon: BarChart2,
+    direct: true,
+  },
+  {
+    label: "Deal Radar",
+    mobileLabel: "Deals",
+    path: "/deal-radar",
+    icon: Radar,
+    direct: true,
+  },
+  {
+    label: "Marketspace",
+    mobileLabel: "More",
     path: "/listings",
     icon: Plane,
     categories: [
@@ -134,12 +155,12 @@ export const NAV_TREE = [
 ];
 
 /**
- * Gradient weight — Intelligence (index 2) is the peak (1.0),
+ * Gradient weight — Analytics (index 2) is the peak (1.0),
  * items to its left and right gradually diminish toward 0.
  * Used for font-size and opacity scaling across the nav bar.
  */
 export function navGradientWeight(index, total = NAV_TREE.length) {
-  const peakIndex = 2; // Intelligence
+  const peakIndex = 2; // Analytics
   const maxDist = Math.max(peakIndex, total - 1 - peakIndex);
   const dist = Math.abs(index - peakIndex);
   return Math.max(0, 1 - dist / maxDist);

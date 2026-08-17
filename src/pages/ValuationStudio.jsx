@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { ShieldCheck, SlidersHorizontal, RotateCcw } from "lucide-react";
 import ValuationForm from "@/components/valuation/ValuationForm";
 import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
@@ -111,6 +111,14 @@ export default function ValuationStudio() {
     }
   };
 
+  const handleReset = () => {
+    setFormData({ ...INITIAL_FORM });
+    setFiles([]);
+    setResult(null);
+    setAircraft(null);
+    setError(null);
+  };
+
   const handleAutoFill = async () => {
     const listingText = (formData.listing_text || "").trim();
     if (!listingText && files.length === 0) return;
@@ -149,9 +157,18 @@ export default function ValuationStudio() {
                 a faster knowledge-based model for a second opinion or when the main one times out.
               </p>
             </div>
-            <div className="rounded-2xl p-4 text-sm leading-6 md:max-w-xs border border-[#D4A017]/30 bg-[#D4A017]/[0.06] text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5 font-black text-[#A67C00]"><ShieldCheck className="h-3.5 w-3.5" /> Independent lab</span>
-              <p className="mt-1.5">This studio runs separately from the main Valuation desk — experiments here don't affect the production flow.</p>
+            <div className="flex flex-col gap-4 md:items-end">
+              <div className="rounded-2xl p-4 text-sm leading-6 md:max-w-xs border border-[#D4A017]/30 bg-[#D4A017]/[0.06] text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 font-black text-[#A67C00]"><ShieldCheck className="h-3.5 w-3.5" /> Independent lab</span>
+                <p className="mt-1.5">This studio runs separately from the main Valuation desk — experiments here don't affect the production flow.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground border border-border bg-card hover:bg-muted/60 transition"
+              >
+                <RotateCcw className="h-4 w-4" /> New valuation
+              </button>
             </div>
           </div>
         </div>

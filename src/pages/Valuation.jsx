@@ -67,6 +67,14 @@ export default function Valuation() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const listingText0 = (formData.listing_text || "").trim();
+    const hasFormSpecs = (formData.make || "").trim() && (formData.model || "").trim();
+    if (!hasFormSpecs && !listingText0 && files.length === 0) {
+      setError("Fill in the form fields, paste a listing text, or attach a file — at least one is needed to value the aircraft.");
+      return;
+    }
+    setError(null);
     setLoading(true);
 
     try {

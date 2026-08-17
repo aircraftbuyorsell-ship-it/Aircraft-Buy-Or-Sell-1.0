@@ -18,11 +18,11 @@ export default function ValuationForm({ formData, onChange, onSubmit, loading, f
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">Make</span>
-          <input className={FIELD_CLASS} value={formData.make} onChange={(e) => update("make", e.target.value)} placeholder="Cessna" required />
+          <input className={FIELD_CLASS} value={formData.make} onChange={(e) => update("make", e.target.value)} placeholder="Cessna" />
         </label>
         <label className="space-y-1.5">
           <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">Model</span>
-          <input className={FIELD_CLASS} value={formData.model} onChange={(e) => update("model", e.target.value)} placeholder="172S" required />
+          <input className={FIELD_CLASS} value={formData.model} onChange={(e) => update("model", e.target.value)} placeholder="172S" />
         </label>
         <label className="space-y-1.5">
           <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">Year</span>
@@ -54,7 +54,7 @@ export default function ValuationForm({ formData, onChange, onSubmit, loading, f
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4A017]">Prefer to paste a listing?</p>
           <h3 className="mt-1 text-sm font-black tracking-tight text-foreground">Paste listing text or upload spec sheet</h3>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">Drop the raw listing copy or attach a PDF / doc — we'll extract the specs and fill the fields above automatically.</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Valuation runs from the form fields, the pasted text, attached files, or any combination — fill in whatever you have and we'll merge the rest.</p>
         </div>
 
         <label className="space-y-1.5 block">

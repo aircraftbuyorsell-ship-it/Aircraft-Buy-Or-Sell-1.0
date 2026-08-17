@@ -18,7 +18,6 @@ import Escrow from "./pages/Escrow";
 import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
-import Valuation from "./pages/Valuation";
 import ValuationStudio from "./pages/ValuationStudio";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
@@ -137,7 +136,6 @@ const AuthenticatedApp = () => {
         <Route path="/traffic" element={<TrafficMap />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
-        <Route path="/valuation" element={<Valuation />} />
         <Route path="/valuation-studio" element={<ValuationStudio />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />

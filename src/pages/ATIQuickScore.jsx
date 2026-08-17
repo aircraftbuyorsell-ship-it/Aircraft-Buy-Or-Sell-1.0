@@ -474,7 +474,7 @@ export default function ATIQuickScore() {
                     desc="Downloadable .docx with executive summary and risk breakdown"
                   />
                   <UpgradeRow
-                    to="/valuation"
+                    to="/valuation-studio"
                     icon={TrendingUp}
                     iconColor={T.teal}
                     title="OMVM Price Check"

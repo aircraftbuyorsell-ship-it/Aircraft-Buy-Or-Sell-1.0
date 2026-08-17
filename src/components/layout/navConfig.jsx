@@ -87,7 +87,6 @@ export const NAV_TREE = [
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
-          { path: "/valuation", label: "Aircraft Price Check", icon: TrendingUp },
           { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },

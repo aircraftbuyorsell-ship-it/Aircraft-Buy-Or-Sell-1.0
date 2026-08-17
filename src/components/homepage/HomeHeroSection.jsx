@@ -30,7 +30,7 @@ export default function HomeHeroSection() {
               Enter a tail number to pull registry &amp; maintenance data, then get a market value that reflects the aircraft's actual condition — not just the listing price.
             </p>
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link to="/valuation"
+              <Link to="/valuation-studio"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
                 <Search className="h-5 w-5" /> Check aircraft price
               </Link>

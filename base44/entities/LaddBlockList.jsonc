@@ -28,6 +28,11 @@
       "type": "boolean",
       "default": true,
       "description": "False once the aircraft is confirmed removed from the current FAA list. Historical LADD-period data must still be protected even after removal \u2014 see syncLaddList for the retention rule."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

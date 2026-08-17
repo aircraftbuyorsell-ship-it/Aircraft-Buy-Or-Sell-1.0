@@ -4,6 +4,7 @@ import { ShieldCheck, SlidersHorizontal } from "lucide-react";
 import ValuationForm from "@/components/valuation/ValuationForm";
 import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
+import HistoricalPriceCheck from "@/components/valuation-studio/HistoricalPriceCheck";
 
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
@@ -189,6 +190,11 @@ export default function ValuationStudio() {
               </div>
             )}
             <ValuationReport result={result} aircraft={aircraft || formData} />
+            <HistoricalPriceCheck
+              make={(aircraft || formData).make}
+              model={(aircraft || formData).model}
+              year={(aircraft || formData).year}
+            />
           </div>
         </div>
       </div>

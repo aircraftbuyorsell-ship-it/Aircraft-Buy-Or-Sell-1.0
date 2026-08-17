@@ -80,9 +80,19 @@ export default function ValuationStudio() {
         }
       }
 
+      // Document-only valuations: extraction must yield make+model so the
+      // backend has an anchor for comparables / live-market search.
+      const mergedMake = String(merged.make || "").trim();
+      const mergedModel = String(merged.model || "").trim();
+      if (!mergedMake || !mergedModel) {
+        setError("Couldn't read the make and model from your document. Please type them into the form fields, then run the valuation again.");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
-        make: String(merged.make || "").trim(),
-        model: String(merged.model || "").trim(),
+        make: mergedMake,
+        model: mergedModel,
         year: toNumber(merged.year),
         total_time: numOrUndef(merged.total_time),
         engine_hours: numOrUndef(merged.engine_hours),

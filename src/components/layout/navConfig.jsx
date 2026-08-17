@@ -1,7 +1,7 @@
 import {
   Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard, Wallet,
   Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
-  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
+  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
   Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Bell,
 } from "lucide-react";
@@ -88,6 +88,7 @@ export const NAV_TREE = [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
           { path: "/valuation", label: "Aircraft Price Check", icon: TrendingUp },
+          { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
           { path: "/calculators", label: "All Calculators", icon: Calculator },

@@ -28,6 +28,7 @@ const MCP_ACCEPT = 'application/json, text/event-stream';
 
 import { handleOmvm, handleAtiScore } from './ati.js';
 import { aplToolList, isAplTool, callAplTool } from './apl.js';
+import { ABOS_ICON_SVG, ABOS_ICON_PNG_BYTES } from './icon.js';
 
 // Base44's MCP transport answers in SSE even for plain JSON-RPC, so anything
 // read back from upstream has to come out of `data:` frames.
@@ -351,12 +352,13 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
         name: 'abos-marketspace',
         title: 'ABOS MarketSpace',
         version: '1.1.0',
+        // Served from this worker (see /icon.png and /icon.svg below) rather
+        // than from media.base44.com, so the icon survives anything that
+        // happens to the app's published domain. PNG first — clients that
+        // decline remote SVG still get a mark.
         icons: [
-          {
-            src: 'https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/99047304a_A895AA0E-59E0-4D35-993A-3A419A5C8234.jpeg',
-            mimeType: 'image/jpeg',
-            sizes: ['1024x1024'],
-          },
+          { src: `${gatewayOrigin}/icon.png`, mimeType: 'image/png', sizes: ['256x256'] },
+          { src: `${gatewayOrigin}/icon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },
         ],
       },
     });
@@ -624,6 +626,19 @@ export default {
 
     if (pathname === '/mcp' || pathname.startsWith('/mcp/')) {
       return handleMcp(request, env, baseUrl, `${url.protocol}//${url.host}`);
+    }
+
+    // Brand mark for serverInfo.icons. Public and cacheable — an MCP client
+    // fetches these unauthenticated, before any token exists.
+    if (pathname === '/icon.svg' || pathname === '/icon.png') {
+      const isSvg = pathname === '/icon.svg';
+      return new Response(isSvg ? ABOS_ICON_SVG : ABOS_ICON_PNG_BYTES, {
+        headers: {
+          'Content-Type': isSvg ? 'image/svg+xml; charset=utf-8' : 'image/png',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
     // ATI / OMVM — replaces the n8n ATI Score Pipeline. POST only; these are

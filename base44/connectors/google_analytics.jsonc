@@ -1,0 +1,7 @@
+{
+  "type": "google_analytics",
+  "scopes": [
+    "https://www.googleapis.com/auth/analytics.readonly",
+    "email"
+  ]
+}

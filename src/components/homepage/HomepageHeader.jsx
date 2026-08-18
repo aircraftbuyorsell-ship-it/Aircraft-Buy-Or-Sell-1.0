@@ -33,25 +33,19 @@ export default function HomepageHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // n8n-style floating pill navbar — uses glass-navbar for automatic light/dark
+  // Simplified floating pill navbar — clean, consistent, light/dark aware
   const pillStyle = {
-    background: isDark ?
-    scrolled ? "hsl(var(--card) / 0.92)" : "hsl(var(--card) / 0.75)" :
-    "hsl(var(--card))",
-    backdropFilter: isDark ? "blur(20px)" : "none",
-    WebkitBackdropFilter: isDark ? "blur(20px)" : "none",
-    border: scrolled ?
-    "1px solid hsl(var(--primary) / 0.25)" :
-    "1px solid hsl(var(--border))",
-    borderRadius: 18,
-    boxShadow: "0 8px 32px hsl(var(--foreground) / 0.10)"
+    background: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: 16,
+    boxShadow: scrolled ? "0 4px 20px hsl(var(--foreground) / 0.08)" : "0 1px 3px hsl(var(--foreground) / 0.05)"
   };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 pt-3 safe-left safe-right">
         <div className="max-w-[1240px] mx-auto transition-all duration-300" style={pillStyle}>
-          <div className="flex items-center justify-between px-4 sm:px-6 h-[60px] bg-[hsl(var(--background))] rounded-[28px]">
+          <div className="flex items-center justify-between px-4 sm:px-5 h-[56px]">
             <div className="flex items-center shrink-0 gap-2">
               <button onClick={() => window.dispatchEvent(new CustomEvent('abos-open-drawer'))} aria-label="Open menu"
               className="lg:hidden"

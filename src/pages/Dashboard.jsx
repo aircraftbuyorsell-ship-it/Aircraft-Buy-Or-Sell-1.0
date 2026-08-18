@@ -16,6 +16,7 @@ import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
 import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
+import AgentConnectCard from "@/components/dashboard/sections/AgentConnectCard";
 import { useState } from "react";
 import { useProTrial } from "@/hooks/useProTrial";
 import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
@@ -127,7 +128,10 @@ export default function Dashboard() {
       {/* 8. Aviation News Feed — curated from FAA + AOPA */}
       <HomeNewsFeed />
 
-      {/* 9. Market Intelligence — hides itself when the feed is unavailable */}
+      {/* 9b. Agent connection — condensed MCP setup card */}
+      <AgentConnectCard />
+
+      {/* 9c. Market Intelligence — hides itself when the feed is unavailable */}
       <LiveMarketIntelligence />
     </div>
   );

@@ -1,0 +1,7 @@
+{
+  "type": "googledocs",
+  "scopes": [
+    "https://www.googleapis.com/auth/documents",
+    "email"
+  ]
+}

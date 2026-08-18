@@ -144,6 +144,23 @@ async function handleRequest(req, ctx) {
       } catch (_e) { /* usage tracking must never break the response */ }
     };
 
+    // ═══════════════ WHOAMI — caller identity + granted scopes ═══════════════
+    // The Cloudflare gateway calls this before running an APL-served tool.
+    // Those tools execute with the gateway's own GATEWAY_SECRET, outside this
+    // function's request path, so they cannot rely on the requireScope()
+    // checks below — the gateway has to ask what the calling key is allowed
+    // to do and enforce it itself. Returns no secrets: no key material, no
+    // hash, no prefix.
+    if (endpoint === 'whoami') {
+      await trackUsage();
+      return apiSuccess({
+        caller_type: caller.type,
+        email: caller.email,
+        scopes: caller.scopes,
+        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : null,
+      });
+    }
+
     // ═══════════════ KEY MANAGEMENT (user session only) ═══════════════
     if (endpoint === 'keys.create' || endpoint === 'keys.list' || endpoint === 'keys.revoke') {
       if (caller.type !== 'user') return apiError(403, 'user_session_required', 'API key management requires a logged-in user session.');
@@ -416,5 +433,5 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
     }
 
     return apiError(404, 'unknown_endpoint',
-      "Unknown endpoint. Valid: search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
+      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
 }

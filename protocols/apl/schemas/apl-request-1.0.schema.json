@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abos.aero/protocols/apl/schemas/apl-request-1.0.schema.json",
+  "title": "APL Request v1.0",
+  "description": "An APL request message. Carried over MCP, REST or SDK; the transport is irrelevant to the contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apl_version", "message_id", "sender", "receiver", "intent", "payload"],
+  "properties": {
+    "apl_version": { "const": "1.0" },
+    "message_id": {
+      "type": "string",
+      "description": "Client-generated UUID. Echoed in the audit event so a caller can correlate its own request with the chain."
+    },
+    "sender": {
+      "type": "string",
+      "pattern": "^(apl://|agent:|user:|app:)",
+      "description": "Who is asking. An APL identity for agents, or a scheme-prefixed identifier for humans and applications."
+    },
+    "receiver": {
+      "type": "string",
+      "pattern": "^apl://[a-z0-9.]+(/[a-z0-9-]+){2,3}/v[0-9]+$",
+      "description": "Target APL identity. Accepts the four-segment form used by the gateway today and the five-segment form defined by the compact pack - see OPEN DECISION APL-1.0-D1."
+    },
+    "intent": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+([._][a-z0-9]+)*$",
+      "description": "MUST match one entry in the target manifest capabilities array."
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "channel": { "enum": ["mcp", "rest", "sdk", "web", "chatgpt", "partner"] },
+        "human_approved": {
+          "type": "boolean",
+          "description": "Set only by a trusted surface that actually collected human consent. A caller asserting this about itself is not consent.",
+          "default": false
+        },
+        "locale": { "type": "string" },
+        "request_id": { "type": "string" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auth_method": { "enum": ["oauth", "api_key", "static_token"] },
+        "scopes": { "type": "array", "items": { "type": "string" } },
+        "signature": { "type": "string", "description": "Required from APL-T3 upwards." }
+      }
+    },
+    "payload": { "type": "object" }
+  }
+}

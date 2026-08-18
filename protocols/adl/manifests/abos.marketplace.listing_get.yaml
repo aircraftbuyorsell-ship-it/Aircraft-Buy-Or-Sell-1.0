@@ -1,0 +1,42 @@
+# ADL manifest - fetch a single marketplace listing
+adl_version: "1.0"
+id: abos.marketplace.listing_get
+apl_id: apl://aviation.abos/marketplace/listing-reader/v1
+type: tool
+owner:
+  organization: ABOS
+skill: Marketplace Listing Reader
+description: >-
+  Fetches one active marketplace listing by its identifier. Read-only and scoped
+  to listings the calling key is entitled to see.
+capabilities:
+  - get_listing
+permissions:
+  - aircraft.read
+autonomy: A0
+trust: APL-T2
+audit: APL-A0
+risk_level: low
+requires_human_approval: false
+supported_protocols:
+  - apl/1.0
+evidence:
+  provenance: required
+  confidence: none
+status: verified
+execution:
+  kind: core
+  endpoint: listings.get
+mcp:
+  name: get_listing
+  inputSchema:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+  annotations:
+    readOnlyHint: true
+    openWorldHint: false
+    destructiveHint: false

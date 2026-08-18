@@ -39,6 +39,31 @@ Deno.serve(async (req) => {
       return Response.json({ notified: sent });
     }
 
+    if (type === 'new_listing') {
+      // Fired by the "New Listing — Alert Valuation Analyst" workflow when a
+      // new AircraftListing is created. Emails the approved expert / appraiser
+      // pool so a human expert valuation can be submitted for the aircraft.
+      const experts = await base44.asServiceRole.entities.ExpertProfile.filter(
+        { verified_status: 'approved', is_blocked: false },
+        '-created_date',
+        100
+      );
+
+      let sent = 0;
+      for (const expert of experts) {
+        if (!expert.email) continue;
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: expert.email,
+            subject: `New Listing to Value: ${registration || ''} — ${aircraft_info || ''}`.trim(),
+            body: `Hello ${expert.full_name},\n\nA new aircraft listing has been created on ABOS MarketSpace and is ready for expert valuation.\n\nAircraft: ${aircraft_info || 'N/A'}\nRegistration: ${registration || 'N/A'}\n\nVisit your Expert Dashboard to review the listing and submit an expert valuation.\n\n— ABOS MarketSpace`,
+          });
+          sent++;
+        } catch (_) { /* skip failed sends */ }
+      }
+      return Response.json({ notified: sent });
+    }
+
     if (type === 'bid_received') {
       if (!requester_email) return Response.json({ error: 'requester_email required' }, { status: 400 });
       await base44.integrations.Core.SendEmail({

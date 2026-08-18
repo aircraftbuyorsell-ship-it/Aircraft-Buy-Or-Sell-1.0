@@ -101,6 +101,7 @@ import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
 import AircraftAlerts from "./pages/AircraftAlerts";
 import Plans from "./pages/Plans";
 import AgentConnect from "./pages/AgentConnect";
+import ActivitySummary from "./pages/ActivitySummary";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -216,6 +217,7 @@ const AuthenticatedApp = () => {
         <Route path="/aircraft-alerts" element={<AircraftAlerts />} />
         <Route path="/plans" element={<Plans />} />
         <Route path="/connect" element={<AgentConnect />} />
+        <Route path="/activity" element={<ActivitySummary />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

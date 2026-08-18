@@ -4,6 +4,7 @@ import {
   Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
   Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Bell,
+  History,
 } from "lucide-react";
 
 /**
@@ -29,6 +30,13 @@ export const NAV_TREE = [
     mobileLabel: "Market",
     path: "/listings",
     icon: Plane,
+    direct: true,
+  },
+  {
+    label: "Activity",
+    mobileLabel: "Activity",
+    path: "/activity",
+    icon: History,
     direct: true,
   },
   {

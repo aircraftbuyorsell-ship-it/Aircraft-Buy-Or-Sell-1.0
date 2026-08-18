@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
 
     let user = null;
     try { user = await base44.auth.me(); } catch (_) { user = null; }
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('supabase');
     const projectsResponse = await fetch('https://api.supabase.com/v1/projects', {

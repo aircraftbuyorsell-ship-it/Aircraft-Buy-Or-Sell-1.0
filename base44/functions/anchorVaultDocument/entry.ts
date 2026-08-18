@@ -28,14 +28,15 @@ Deno.serve(async (req) => {
       try { parsed = new URL(raw); } catch { throw new Error('Invalid file_url'); }
       if (parsed.protocol !== 'https:') throw new Error('Only HTTPS file URLs are allowed');
       const host = parsed.hostname.toLowerCase();
+      // Strict host safelist: only ABOS platform file storage is fetchable.
+      // This eliminates SSRF regardless of DNS TOCTOU or IP-literal tricks,
+      // because internal/metadata hosts can never match.
+      if (!host.endsWith('.base44.com')) throw new Error('Only ABOS storage URLs are allowed');
       if (host === 'localhost' || host.endsWith('.localhost')) throw new Error('Blocked host');
       // Block IPv6 loopback and link-local
       if (host === '::1' || host === '0:0:0:0:0:0:0:1' || host.startsWith('fe80:')) throw new Error('Blocked IPv6');
-      // Literal IPv4 — check directly
-      if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
-        if (isPrivateIPv4(host)) throw new Error('Blocked private IP');
-        return;
-      }
+      // Literal IPv4 — never allowed (storage is a domain name)
+      if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) throw new Error('Blocked private IP');
       // Domain name — resolve DNS and reject if any resolved IP is private/internal
       let addrs: string[];
       try {

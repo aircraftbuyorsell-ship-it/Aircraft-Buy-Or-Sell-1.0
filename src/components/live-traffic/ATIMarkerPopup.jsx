@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Sparkles, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
 import { m2ft, mps2kts } from "./liveTrafficConfig";
+import { maskOwnerName } from "@/lib/privacy";
 
 function scoreColor(s) {
   if (!s) return "#AAA49C";
@@ -84,10 +85,11 @@ export default function ATIMarkerPopup({ ac }) {
             {/* Aircraft type third */}
             <p style={{ color: "white", fontWeight: 900, fontSize: 14, lineHeight: 1.2 }}>
               {faa?.type_aircraft || aircraft_type || listing
-                ? `${listing?.year || faa?.year_mfr || ""} ${listing?.make || faa?.name?.split(' ').slice(0, 2).join(' ') || ""} ${listing?.model || faa?.mfr_mdl_code || ""}`.trim().replace(/\s+/g, ' ') || (callsign || "—")
+                ? `${listing?.year || faa?.year_mfr || ""} ${listing?.make || ""} ${listing?.model || faa?.mfr_mdl_code || ""}`.trim().replace(/\s+/g, ' ') || (callsign || "—")
                 : (callsign || "—")}
             </p>
-            {faa?.name && <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 2 }}>{faa.name}</p>}
+            {/* Owner name masked for privacy — never render faa.name raw, see src/lib/privacy.js */}
+            {faa?.name && <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 10, marginTop: 2 }}>{maskOwnerName(faa.name)}</p>}
           </div>
           {/* ATI Ring */}
           {ati && (

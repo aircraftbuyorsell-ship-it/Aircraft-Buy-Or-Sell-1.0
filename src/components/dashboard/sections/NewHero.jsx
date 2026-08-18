@@ -27,7 +27,7 @@ const STATS = [
 
 const QUICK_ACTIONS = [
   { label: "Browse Aircraft", icon: Plane, to: "/listings", color: "#5dcaa5" },
-  { label: "Aircraft Value", icon: TrendingUp, to: "/valuation", color: "#a855f7" },
+  { label: "Aircraft Value", icon: TrendingUp, to: "/valuation-studio", color: "#a855f7" },
   { label: "ATI Passport", icon: Shield, to: "/ati-passport", color: "#D4A017" },
   { label: "Sell My Aircraft", icon: Tag, to: "/listings", color: "#4e8ef7" },
 ];

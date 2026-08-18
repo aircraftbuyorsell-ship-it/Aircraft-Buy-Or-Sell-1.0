@@ -127,7 +127,7 @@ export function OMVMValue({ result }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
       <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-        OMVM Estimate
+        Free Market Value Estimate
       </span>
       <span style={{ display: "inline-flex", alignItems: "center" }}>
         <span style={{ color: "#5dcaa5", fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em" }}>

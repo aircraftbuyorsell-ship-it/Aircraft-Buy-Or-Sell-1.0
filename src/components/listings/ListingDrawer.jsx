@@ -2,6 +2,7 @@ import { X, ExternalLink, CheckCircle2, ArrowUpRight, Heart, TrendingDown, Trend
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BuyerInterestModal from "@/components/leads/BuyerInterestModal";
+import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
 
 function scoreColor(score) {
   if (!score) return "#AAA49C";
@@ -190,6 +191,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                   </a>
                 </div>
               )}
+              <ListingReviewsPanel listing={l} />
             </div>
 
             {/* ── Footer CTAs ── */}

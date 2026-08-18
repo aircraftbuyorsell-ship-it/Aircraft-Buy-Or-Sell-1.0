@@ -1,0 +1,41 @@
+{
+  "name": "Weekly Market Forecast Generation (Copy)",
+  "description": "Generates comprehensive market behavior forecast every Sunday at 9 PM  UTC +0h using Gemini 3.1 Pro with live internet context",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 19 * * 0",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "weekly_market_forecast_generation_copy",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "generateMarketForecast",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

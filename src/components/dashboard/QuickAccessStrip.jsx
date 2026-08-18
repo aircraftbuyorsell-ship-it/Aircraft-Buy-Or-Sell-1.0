@@ -25,7 +25,7 @@ const ITEMS = [
     icon: TrendingUp,
     label: "OMVM Valuation",
     desc: "Off-Market Value Model — AI-powered aircraft pricing estimate.",
-    link: "/valuation",
+    link: "/valuation-studio",
     color: "#a855f7",
     credits: 5,
   },

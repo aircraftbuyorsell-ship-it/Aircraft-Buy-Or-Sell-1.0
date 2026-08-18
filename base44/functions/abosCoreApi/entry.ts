@@ -16,16 +16,10 @@ function apiSuccess(data) {
   return Response.json({ status: 'success', data });
 }
 
-function maskRegistration(registration) {
-  const value = String(registration || '').trim();
-  if (!value) return null;
-  return value.length <= 2 ? '•••' : `${value.slice(0, 1)}•••${value.slice(-1)}`;
-}
-
-function mapListing(l, includeRegistration = false) {
+function mapListing(l) {
   return {
     id: l.id,
-    registration: includeRegistration ? (l.registration || null) : maskRegistration(l.registration),
+    registration: l.registration || null,
     aircraft: { manufacturer: l.make, model: l.model, year: l.year || null },
     price: l.asking_price ? { value: l.asking_price, currency: l.currency || 'USD' } : null,
     location: null,
@@ -150,6 +144,23 @@ async function handleRequest(req, ctx) {
       } catch (_e) { /* usage tracking must never break the response */ }
     };
 
+    // ═══════════════ WHOAMI — caller identity + granted scopes ═══════════════
+    // The Cloudflare gateway calls this before running an APL-served tool.
+    // Those tools execute with the gateway's own GATEWAY_SECRET, outside this
+    // function's request path, so they cannot rely on the requireScope()
+    // checks below — the gateway has to ask what the calling key is allowed
+    // to do and enforce it itself. Returns no secrets: no key material, no
+    // hash, no prefix.
+    if (endpoint === 'whoami') {
+      await trackUsage();
+      return apiSuccess({
+        caller_type: caller.type,
+        email: caller.email,
+        scopes: caller.scopes,
+        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : null,
+      });
+    }
+
     // ═══════════════ KEY MANAGEMENT (user session only) ═══════════════
     if (endpoint === 'keys.create' || endpoint === 'keys.list' || endpoint === 'keys.revoke') {
       if (caller.type !== 'user') return apiError(403, 'user_session_required', 'API key management requires a logged-in user session.');
@@ -267,7 +278,7 @@ Return ONLY valid JSON.`,
         query,
         intent,
         total_matches: matches.length,
-        matches: matches.slice(0, 20).map((listing) => mapListing(listing, caller.type === 'user')),
+        matches: matches.slice(0, 20).map(mapListing),
       });
     }
 
@@ -278,39 +289,60 @@ Return ONLY valid JSON.`,
       const { manufacturer, model } = params;
       if (!manufacturer || !model) return apiError(400, 'missing_aircraft', "'params.manufacturer' and 'params.model' are required.");
 
-      const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are the ABOS OMVM (Observed Market Value Model) aircraft valuation engine. Estimate the current fair market value in USD.
-
-AIRCRAFT:
-Manufacturer: ${manufacturer}
-Model: ${model}
-Year: ${params.year || 'unknown'}
-Airframe hours: ${params.hours || 'unknown'}
-
-Base your estimate on typical 2025-2026 market medians for this make/model/year class (Controller, Trade-A-Plane, VREF style comps). Be conservative and realistic — a Cessna 150 is ~$25-45k, a 2021 PC-12 NGX ~$5M, a 2018 Citation Latitude ~$7M.
-
-Return ONLY valid JSON with: estimated_value (USD int), range_min, range_max, confidence (0-1), rationale (max 40 words).`,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            estimated_value: { type: 'number' },
-            range_min: { type: 'number' },
-            range_max: { type: 'number' },
-            confidence: { type: 'number' },
-            rationale: { type: 'string' },
+      // Delegate to the real OMVM v5 engine (log-linear depreciation curve
+      // fit on actual AircraftListing comps + engine-wear adjustment + live
+      // grounded web market search), instead of asking a bare LLM to guess a
+      // number with zero data grounding. The bare-LLM approach is what
+      // produced implausible values for edge cases (e.g. 1979 Cessna 172XP) —
+      // an ungrounded model has nothing to anchor a numeric estimate to.
+      let v5;
+      try {
+        // MUST be asServiceRole. abosCoreApi is the API-key surface: callers
+        // authenticate with x-abos-key, which Base44 knows nothing about, so
+        // the plain client carries no Base44 credentials and an internal
+        // invoke through it cannot resolve the app — it fails with
+        // "App not found". Every other data access in this function already
+        // goes through asServiceRole; this one call was the exception, which
+        // is why 'valuate' was the only broken endpoint on the whole surface.
+        const v5res = await base44.asServiceRole.functions.invoke('omvmV5Score', {
+          aircraft: {
+            make: manufacturer,
+            model,
+            year: params.year || null,
+            engine_hours: params.hours || null,
           },
-        },
-      });
+        });
+        v5 = v5res.data;
+      } catch (v5err) {
+        return apiError(502, 'valuation_engine_unavailable', `OMVM engine call failed: ${v5err.message}`);
+      }
 
       await trackUsage();
+
+      if (!v5 || v5.status === 'insufficient_comparables' || v5.omvm_value == null) {
+        return apiSuccess({
+          aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
+          estimated_value: null,
+          range: { min: null, max: null },
+          currency: 'USD',
+          confidence: null,
+          rationale: v5?.message || 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
+          model_version: 'omvm-v5',
+        });
+      }
+
+      const spread = Math.round(v5.omvm_value * 0.15);
       return apiSuccess({
         aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
-        estimated_value: result.estimated_value,
-        range: { min: result.range_min, max: result.range_max },
+        estimated_value: v5.omvm_value,
+        range: {
+          min: v5.market_intelligence?.live_min_price ?? Math.max(0, v5.omvm_value - spread),
+          max: v5.market_intelligence?.live_max_price ?? v5.omvm_value + spread,
+        },
         currency: 'USD',
-        confidence: result.confidence,
-        rationale: result.rationale,
-        model_version: 'omvm-llm-v1',
+        confidence: typeof v5.confidence === 'string' ? v5.confidence.toLowerCase() : v5.confidence,
+        rationale: v5.market_intelligence?.notes || `OMVM v5 comp-based valuation (${v5.comp_sample ?? 0} comparable listing(s), ${v5.confidence || 'unknown'} confidence).`,
+        model_version: 'omvm-v5',
       });
     }
 
@@ -360,7 +392,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         return apiError(404, 'listing_not_found', 'Listing not found.');
       }
       await trackUsage();
-      return apiSuccess({ listing: mapListing(listing, caller.type === 'user') });
+      return apiSuccess({ listing: mapListing(listing) });
     }
 
     if (endpoint === 'listings.list') {
@@ -376,7 +408,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (params.max_price) matches = matches.filter((l) => !l.asking_price || l.asking_price <= Number(params.max_price));
       const limit = Math.min(Number(params.limit) || 20, 50);
       await trackUsage();
-      return apiSuccess({ total: matches.length, listings: matches.slice(0, limit).map((listing) => mapListing(listing, caller.type === 'user')) });
+      return apiSuccess({ total: matches.length, listings: matches.slice(0, limit).map(mapListing) });
     }
 
     if (endpoint === 'listings.create') {
@@ -408,5 +440,5 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
     }
 
     return apiError(404, 'unknown_endpoint',
-      "Unknown endpoint. Valid: search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
+      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
 }

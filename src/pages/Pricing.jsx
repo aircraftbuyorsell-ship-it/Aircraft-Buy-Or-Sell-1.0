@@ -1,8 +1,8 @@
 import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import PlanCheckoutButton from "@/components/plans/PlanCheckoutButton";
 
 const INK   = "#0B1220";
-const INK1  = "#111827";
 const AMBER = "#D4A017";
 const TEAL  = "#5dcaa5";
 const BLUE  = "#4e8ef7";
@@ -11,7 +11,7 @@ const W2    = "rgba(255,255,255,0.60)";
 const W3    = "rgba(255,255,255,0.35)";
 const BORDER = "rgba(255,255,255,0.08)";
 
-const TIERS = [
+const SELLER_TIERS = [
   {
     id: "t0", label: "T0 — Free", price: "€0", cadence: "automatic, all listings", accent: "gray",
     desc: "Baseline N-Reg compliance validation. Every listing gets it.",
@@ -38,7 +38,7 @@ const TIERS = [
       { ok: true,  text: "Up to 10 listings / month" },
       { ok: false, text: "No .docx branded report" },
     ],
-    cta: "Get started", ctaVariant: "ghost", link: "/my-account",
+    cta: "Get started", ctaVariant: "ghost", plan_type: "abos_seller_starter",
   },
   {
     id: "t2", label: "T2 — Pro", price: "€99", cadence: "/month", accent: "amber",
@@ -52,21 +52,52 @@ const TIERS = [
       { ok: true, text: "FAA + EASA registry cross-check" },
       { ok: true, text: "Unlimited listings" },
     ],
-    cta: "Start Pro", ctaVariant: "amber", link: "/my-account",
+    cta: "Start Pro", ctaVariant: "amber", plan_type: "abos_seller_pro",
   },
+];
+
+const VOLUME_TIERS = [
   {
-    id: "t3", label: "T3 — Enterprise", price: "€249", cadence: "/month", accent: "blue",
-    desc: "Dedicated API, custom branding, SLA, and compliance audit.",
+    id: "v1", label: "Growth", price: "€499", cadence: "/month", accent: "blue",
+    desc: "For regional marketplaces starting with automated compliance.",
     featured: false,
     features: [
-      { ok: true, text: "Everything in T2" },
+      { ok: true,  text: "Up to 1,000 listings validated / month" },
+      { ok: true,  text: "N-Reg validation + ATI PASS badges" },
+      { ok: true,  text: "White-label API access" },
+      { ok: true,  text: "20% affiliate revenue share" },
+      { ok: false, text: "No dedicated endpoint" },
+      { ok: false, text: "No SLA" },
+    ],
+    cta: "Start Growth", ctaVariant: "ghost", plan_type: "abos_market_growth",
+  },
+  {
+    id: "v2", label: "Scale", price: "€999", cadence: "/month", accent: "blue",
+    desc: "For high-volume platforms with full API integration.",
+    featured: true, badge: "Best for marketplaces",
+    features: [
+      { ok: true, text: "Up to 10,000 listings validated / month" },
+      { ok: true, text: "Everything in Growth" },
       { ok: true, text: "Dedicated ATI API endpoint" },
       { ok: true, text: "Custom branding + domain" },
       { ok: true, text: "SLA + priority support" },
       { ok: true, text: "Quarterly compliance audit report" },
-      { ok: true, text: "Named account manager" },
     ],
-    cta: "Contact sales", ctaVariant: "ghost", link: "/contact",
+    cta: "Start Scale", ctaVariant: "amber", plan_type: "abos_market_scale",
+  },
+  {
+    id: "v3", label: "Enterprise", price: "€1,999", cadence: "/month", accent: "blue",
+    desc: "Unlimited volume, custom terms, and a named account manager.",
+    featured: false,
+    features: [
+      { ok: true, text: "Unlimited listings validated" },
+      { ok: true, text: "Everything in Scale" },
+      { ok: true, text: "Custom data retention & compliance terms" },
+      { ok: true, text: "Named account manager" },
+      { ok: true, text: "Custom affiliate revenue share" },
+      { ok: true, text: "Onboarding & implementation included" },
+    ],
+    cta: "Start Enterprise", ctaVariant: "ghost", plan_type: "abos_market_enterprise",
   },
 ];
 
@@ -133,6 +164,44 @@ function CTAButton({ variant, children }) {
 
 const eyebrow = { fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: W3 };
 
+function TierCard({ tier }) {
+  const a = ACCENTS[tier.accent];
+  return (
+    <div className="rounded-xl relative flex flex-col overflow-hidden"
+      style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
+      <div style={{ height: "2px", background: a.line }} />
+      <div className="p-5 flex flex-col flex-1">
+        {tier.badge && (
+          <span className="self-start text-[9px] font-bold px-2.5 py-1 rounded-full mb-3" style={{ background: a.chip.bg, color: a.chip.color, border: `0.5px solid ${a.chip.border}`, letterSpacing: "0.08em", textTransform: "uppercase" }}>{tier.badge}</span>
+        )}
+        <p style={{ ...eyebrow }} className="mb-2">{tier.label}</p>
+        <div className="flex items-baseline gap-1">
+          <span style={{ fontSize: "32px", fontWeight: 500, letterSpacing: "-0.04em", color: W1 }}>{tier.price}</span>
+          <span style={{ fontSize: "13px", color: W3 }}>{tier.cadence}</span>
+        </div>
+        <p className="text-[12px] mt-3 mb-4 min-h-[36px]" style={{ color: W2 }}>{tier.desc}</p>
+        <ul className="flex-1 mb-5">
+          {tier.features.map((f, i) => (
+            <li key={i} className="flex items-start gap-2 text-[13px] py-1.5" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+              {f.ok
+                ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: tier.accent === "gray" ? TEAL : a.chip.color }} />
+                : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: W3 }} />}
+              <span style={{ color: f.ok ? W2 : W3 }}>{f.text}</span>
+            </li>
+          ))}
+        </ul>
+        {tier.plan_type ? (
+          <PlanCheckoutButton planType={tier.plan_type} label={tier.cta} variant={tier.ctaVariant === "amber" ? "default" : "outline"} />
+        ) : tier.link ? (
+          <Link to={tier.link} className="block"><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
+        ) : (
+          <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Pricing() {
   return (
     <div style={{ background: INK, backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)", backgroundSize: "100% 100%, 100% 100%, 100% 100%, 24px 24px", minHeight: "100vh", color: W1, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", position: "relative" }}>
@@ -167,45 +236,21 @@ export default function Pricing() {
           </div>
         </header>
 
-        {/* Tiers */}
-        <section className="max-w-6xl mx-auto px-4 py-8">
-          <p style={eyebrow} className="text-center mb-8">Subscription tiers</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-            {TIERS.map((tier) => {
-              const a = ACCENTS[tier.accent];
-              return (
-                <div key={tier.id} className="rounded-xl relative flex flex-col overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
-                  <div style={{ height: "2px", background: a.line }} />
-                  <div className="p-5 flex flex-col flex-1">
-                    {tier.badge && (
-                      <span className="self-start text-[9px] font-bold px-2.5 py-1 rounded-full mb-3" style={{ background: a.chip.bg, color: a.chip.color, border: `0.5px solid ${a.chip.border}`, letterSpacing: "0.08em", textTransform: "uppercase" }}>{tier.badge}</span>
-                    )}
-                    <p style={{ ...eyebrow }} className="mb-2">{tier.label}</p>
-                    <div className="flex items-baseline gap-1">
-                      <span style={{ fontSize: "32px", fontWeight: 500, letterSpacing: "-0.04em", color: W1 }}>{tier.price}</span>
-                      <span style={{ fontSize: "13px", color: W3 }}>{tier.cadence}</span>
-                    </div>
-                    <p className="text-[12px] mt-3 mb-4 min-h-[36px]" style={{ color: W2 }}>{tier.desc}</p>
-                    <ul className="flex-1 mb-5">
-                      {tier.features.map((f, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[13px] py-1.5" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                          {f.ok
-                            ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: tier.accent === "gray" ? TEAL : a.chip.color }} />
-                            : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: W3 }} />}
-                          <span style={{ color: f.ok ? W2 : W3 }}>{f.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {tier.link ? (
-                      <Link to={tier.link}><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
-                    ) : (
-                      <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+        {/* Tiers — individual sellers */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <p style={{ ...eyebrow, color: AMBER }} className="text-center mb-1">For individual sellers</p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Tiered membership for private sellers, owners, and brokers listing their own aircraft</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            {SELLER_TIERS.map((tier) => <TierCard key={tier.id} tier={tier} />)}
+          </div>
+        </section>
+
+        {/* Tiers — volume plans for marketplaces */}
+        <section className="max-w-5xl mx-auto px-4 py-8">
+          <p style={{ ...eyebrow, color: BLUE }} className="text-center mb-1">Volume plans for marketplaces</p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>High-volume validation tariffs for platforms and large marketplaces — API-first, white-label</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            {VOLUME_TIERS.map((tier) => <TierCard key={tier.id} tier={tier} />)}
           </div>
         </section>
 
@@ -234,7 +279,7 @@ export default function Pricing() {
         {/* Pay-per-use pricing table */}
         <section className="max-w-4xl mx-auto px-4 py-8">
           <p style={eyebrow} className="text-center mb-1">Pay-per-use — or use credits</p>
-          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/my-account" style={{ color: AMBER }}>Register free →</Link></p>
+          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/plans" style={{ color: AMBER }}>See plans →</Link></p>
           <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
             <div style={{ height: "2px", background: `linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)` }} />
             <div className="overflow-x-auto">
@@ -268,7 +313,7 @@ export default function Pricing() {
               </table>
             </div>
           </div>
-          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: `0.5px solid rgba(78,142,247,0.20)"` }}>
+          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
             <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: BLUE }} />
             <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>
               <strong style={{ color: W1 }}>How it works:</strong> Subscribers use credits (1 credit ≈ €0.15). Non-subscribers pay fiat at 1.3× the credit rate.

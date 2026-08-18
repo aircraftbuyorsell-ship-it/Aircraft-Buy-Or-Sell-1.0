@@ -224,7 +224,7 @@ export default function LeasingCalculatorPanel({
         {/* Cross-links */}
         <div className="grid grid-cols-2 gap-3">
           <Link
-            to={`/valuation?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&asking_price=${aircraftPrice}`}
+            to={`/valuation-studio?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&asking_price=${aircraftPrice}`}
             className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
             style={{ background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.25)", color: "#a855f7" }}>
             <TrendingUp className="w-4 h-4" /> OMVM Estimate

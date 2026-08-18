@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 
 export default function QuickPasteImport({ open, onClose, onPublish }) {
   const [text, setText] = useState("");
+  const [manual, setManual] = useState({ make: "", model: "", registration: "", year: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -11,48 +12,22 @@ export default function QuickPasteImport({ open, onClose, onPublish }) {
   const [atiScore, setAtiScore] = useState(null);
 
   const handlePublish = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() && !(manual.make.trim() && manual.model.trim())) return;
     setLoading(true);
     setError(null);
 
     try {
-      // AI extracts specs from pasted text
-      const extracted = await base44.integrations.Core.InvokeLLM({
-        prompt: `Extract aircraft listing details from this text. Return ONLY fields found in the text (omit missing fields entirely, do NOT invent or guess missing values):
-
-${text.slice(0, 12000)}
-
-Return JSON with these fields ONLY if explicitly found in the text:
-{
-  "make": "string",
-  "model": "string",
-  "year": "number",
-  "registration": "string",
-  "total_time": "number",
-  "engine_hours": "number",
-  "tbo": "number",
-  "asking_price": "number",
-  "avionics": "string",
-  "last_annual": "string",
-  "description": "string"
-}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            make: { type: ["string", "null"] },
-            model: { type: ["string", "null"] },
-            year: { type: ["number", "null"] },
-            registration: { type: ["string", "null"] },
-            total_time: { type: ["number", "null"] },
-            engine_hours: { type: ["number", "null"] },
-            tbo: { type: ["number", "null"] },
-            asking_price: { type: ["number", "null"] },
-            avionics: { type: ["string", "null"] },
-            last_annual: { type: ["string", "null"] },
-            description: { type: ["string", "null"] },
-          },
-        },
-      });
+      const extracted = manual.make.trim() && manual.model.trim()
+        ? { make: manual.make.trim(), model: manual.model.trim(), registration: manual.registration.trim(), year: manual.year ? Number(manual.year) : undefined }
+        : await base44.integrations.Core.InvokeLLM({
+            prompt: `Extract aircraft listing details from this text. Return ONLY fields found in the text (omit missing fields entirely, do NOT invent or guess missing values):\n\n${text.slice(0, 12000)}`,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                make: { type: ["string", "null"] }, model: { type: ["string", "null"] }, year: { type: ["number", "null"] }, registration: { type: ["string", "null"] }, total_time: { type: ["number", "null"] }, engine_hours: { type: ["number", "null"] }, tbo: { type: ["number", "null"] }, asking_price: { type: ["number", "null"] }, avionics: { type: ["string", "null"] }, last_annual: { type: ["string", "null"] }, description: { type: ["string", "null"] },
+              },
+            },
+          });
 
       if (!extracted.make && !extracted.model) {
         setError("Could not identify aircraft make/model. Try pasting more complete listing text.");
@@ -124,10 +99,15 @@ Return JSON with these fields ONLY if explicitly found in the text:
           {!preview ? (
             <>
               <div className="bg-[rgba(11,45,91,0.05)] border border-[rgba(11,45,91,0.12)] rounded-xl px-4 py-3">
-                <p className="text-[11px] font-bold text-[#0B2D5B] mb-1">📋 Copy-paste from anywhere</p>
-                <p className="text-[11px] text-[#3a3530]">Facebook Marketplace, Controller.com, Trade-A-Plane, email, or any listing — AI extracts specs and auto-scores the aircraft.</p>
+                <p className="text-[11px] font-bold text-[#0B2D5B] mb-1">Add aircraft details</p>
+                <p className="text-[11px] text-[#3a3530]">Enter the basics below, or paste a full listing for automatic extraction.</p>
               </div>
-
+              <div className="grid grid-cols-2 gap-3">
+                <input value={manual.make} onChange={event => setManual(current => ({ ...current, make: event.target.value }))} placeholder="Make * (e.g. Cessna)" className="rounded-lg border border-black/10 px-3 py-2 text-sm" />
+                <input value={manual.model} onChange={event => setManual(current => ({ ...current, model: event.target.value }))} placeholder="Model * (e.g. 172S)" className="rounded-lg border border-black/10 px-3 py-2 text-sm" />
+                <input value={manual.registration} onChange={event => setManual(current => ({ ...current, registration: event.target.value.toUpperCase() }))} placeholder="Registration (e.g. N12345)" className="rounded-lg border border-black/10 px-3 py-2 text-sm" />
+                <input type="number" value={manual.year} onChange={event => setManual(current => ({ ...current, year: event.target.value }))} placeholder="Year" className="rounded-lg border border-black/10 px-3 py-2 text-sm" />
+              </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -249,7 +229,7 @@ Call John: 555-1234"`}
                 className="px-4 py-2.5 rounded-xl border border-black/[0.08] text-[13px] font-bold text-[#3a3530] hover:bg-[#F7F4EF] transition-colors">
                 Cancel
               </button>
-              <button onClick={handlePublish} disabled={loading || !text.trim()}
+              <button onClick={handlePublish} disabled={loading || (!text.trim() && !(manual.make.trim() && manual.model.trim()))}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4A017] hover:bg-[#A67C00] disabled:opacity-30 disabled:cursor-not-allowed text-white text-[13px] font-bold transition-colors">
                 <Sparkles className={`w-4 h-4 ${loading ? "animate-pulse" : ""}`} />
                 {loading ? "Processing…" : "Paste & Publish"}

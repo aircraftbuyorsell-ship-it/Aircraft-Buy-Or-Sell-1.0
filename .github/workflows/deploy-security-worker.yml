@@ -1,0 +1,56 @@
+# Deploys the Cloudflare Worker in security-worker/ (abos-security).
+# Requires repository secrets (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   - token with Edit Cloudflare Workers permission (shared with the gateway deploy)
+#   SECURITY_BEARER_TOKEN  - bearer token required on every request to this worker
+name: Deploy Security Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths: [ "security-worker/**", ".github/workflows/deploy-security-worker.yml" ]
+
+# Serialize deploys so the newest requested revision deterministically wins;
+# cancel any superseded run before it can overwrite production with older code.
+concurrency:
+  group: deploy-security-worker
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only ever deploy production from main, including manual workflow_dispatch,
+    # so unreviewed refs cannot replace the production Worker.
+    if: github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: security-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - run: npm ci
+      # Fail loudly before deploying if either required secret is missing, so a
+      # misconfigured repo never ships a Worker with auth silently disabled.
+      - name: Check required secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SECURITY_BEARER_TOKEN: ${{ secrets.SECURITY_BEARER_TOKEN }}
+        run: |
+          missing=
+          [ -z "$CLOUDFLARE_API_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$SECURITY_BEARER_TOKEN" ] && missing="$missing SECURITY_BEARER_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required repository secret(s):$missing"
+            exit 1
+          fi
+      - name: Deploy worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy --keep-vars
+      - name: Set SECURITY_BEARER_TOKEN on worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SECURITY_BEARER_TOKEN_VALUE: ${{ secrets.SECURITY_BEARER_TOKEN }}
+        run: printf '%s' "$SECURITY_BEARER_TOKEN_VALUE" | npx wrangler secret put SECURITY_BEARER_TOKEN

@@ -35,6 +35,71 @@ async function syncUserProfileTier(base44, userEmail, tier, subTier) {
   }
 }
 
+// Plan types that grant ABOS Pro / Marketplace access (see stripeCreateCheckout)
+const ABOS_PLAN_TYPES = [
+  'buyer_monthly', 'buyer_annual',
+  'abos_pro_monthly', 'abos_pro_annual',
+  'abos_seller_starter', 'abos_seller_pro',
+  'abos_market_growth', 'abos_market_scale', 'abos_market_enterprise',
+];
+const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
+
+// ── Aircraft listing permissions per plan ──
+// Free / lapsed: 1 active listing. Seller Starter (T1): 10. Pro / Marketplace: unlimited.
+const LISTING_LIMITS = {
+  abos_seller_starter: 10,
+  abos_seller_pro: Infinity,
+  abos_pro_monthly: Infinity,
+  abos_pro_annual: Infinity,
+  abos_market_growth: Infinity,
+  abos_market_scale: Infinity,
+  abos_market_enterprise: Infinity,
+};
+const FREE_LISTING_LIMIT = 1;
+
+// Sync AircraftListing permissions with the user's subscription status.
+// Over-limit active listings are unpublished (status=draft, visibility=private), oldest kept live.
+async function syncListingPermissions(base44, userEmail, planType, active) {
+  if (planType === 'buyer_monthly' || planType === 'buyer_annual') return; // buyer plans don't grant listing rights
+  const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+  const owner = users[0];
+  if (!owner) { console.warn(`No user account for ${userEmail}, skipping listing permission sync`); return; }
+
+  const limit = active ? (LISTING_LIMITS[planType] ?? FREE_LISTING_LIMIT) : FREE_LISTING_LIMIT;
+  const activeListings = await base44.asServiceRole.entities.AircraftListing.filter(
+    { owner: owner.id, status: 'active' }, 'created_date', 500
+  );
+  if (activeListings.length <= limit) {
+    console.log(`✓ Listing permissions OK for ${userEmail}: ${activeListings.length}/${limit === Infinity ? '∞' : limit} active`);
+    return;
+  }
+  const excess = activeListings.slice(limit);
+  await base44.asServiceRole.entities.AircraftListing.bulkUpdate(
+    excess.map((l) => ({ id: l.id, status: 'draft', visibility: 'private' }))
+  );
+  console.log(`⬇️ Listing permissions enforced for ${userEmail}: ${excess.length} listing(s) unpublished (limit ${limit === Infinity ? '∞' : limit})`);
+}
+
+async function syncBuyerSubscription(base44, userEmail, planType, active) {
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
+  const plan = ['buyer_annual', 'abos_pro_annual'].includes(planType) ? 'annual' : 'monthly';
+  const isMarketplace = planType.startsWith('abos_market_');
+  const SELLER_SUB_TIERS = { abos_seller_starter: 'starter', abos_seller_pro: 'premium' };
+  const update = {
+    buyer_pro_active: active,
+    buyer_plan: active ? plan : 'none',
+    status: 'active',
+    tier: active ? (isMarketplace ? 'enterprise' : 'pro') : 'free_explorer',
+    sub_tier: active ? (isMarketplace ? 'scale' : (SELLER_SUB_TIERS[planType] || 'premium')) : 'none',
+  };
+  if (profiles[0]) {
+    await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, update);
+  } else {
+    await base44.asServiceRole.entities.UserProfile.create({ user_email: userEmail, role: 'viewer', tier: 'free_explorer', sub_tier: 'none', pipeline_role: 'buyer', ...update });
+  }
+  await syncListingPermissions(base44, userEmail, planType, active);
+}
+
 // Downgrade UserProfile to free_explorer on subscription end
 async function downgradeUserProfile(base44, userEmail) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
@@ -91,6 +156,12 @@ async function handleCheckoutCompleted(session, base44) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  if (isAbosPlan(meta.plan_type)) {
+    if (!userEmail) { console.warn('No email found in buyer checkout session'); return; }
+    await syncBuyerSubscription(base44, userEmail, meta.plan_type, true);
+    return;
+  }
 
   // Newsletter subscription — set flag, no tokens
   if (meta.product === 'newsletter_subscription') {
@@ -163,8 +234,13 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
-  // Newsletter subscription — manage flag, skip token logic
   const subMeta = subscription.metadata || {};
+  if (isAbosPlan(subMeta.plan_type)) {
+    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, ['active', 'trialing'].includes(subscription.status));
+    return;
+  }
+
+  // Newsletter subscription — manage flag, skip token logic
   if (subMeta.product === 'newsletter_subscription') {
     if (subscription.status === 'active' || subscription.status === 'trialing') {
       await setNewsletterFlag(base44, userEmail, true);
@@ -262,8 +338,13 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) return;
 
-  // Newsletter subscription — clear flag only, don't touch tier
   const subMeta = subscription.metadata || {};
+  if (isAbosPlan(subMeta.plan_type)) {
+    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, false);
+    return;
+  }
+
+  // Newsletter subscription — clear flag only, don't touch tier
   if (subMeta.product === 'newsletter_subscription') {
     await setNewsletterFlag(base44, userEmail, false);
     return;

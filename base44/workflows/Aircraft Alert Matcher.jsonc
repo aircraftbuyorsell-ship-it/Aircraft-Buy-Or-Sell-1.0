@@ -1,0 +1,34 @@
+{
+  "name": "Aircraft Alert Matcher",
+  "description": "On new AircraftListing, check active AircraftAlerts and email matching owners.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "aircraft_alert_matcher",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyAircraftAlert",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

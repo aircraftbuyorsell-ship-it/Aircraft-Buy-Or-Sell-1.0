@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
@@ -55,7 +56,7 @@ function AINotice() {
         (FAA registry, NTSB database, market comparables). These outputs are for informational purposes only and do not
         replace a professional technical inspection or formal appraisal. Any final purchase or sale decision should include
         an independent pre-buy inspection.{" "}
-        <a href="/legal/ai-transparency" className="text-gold-official hover:underline">Full AI disclosure (EU AI Act Art. 50) →</a>
+        <Link to="/legal/ai-transparency" className="text-gold-official hover:underline">Full AI disclosure (EU AI Act Art. 50) →</Link>
       </p>
     </div>
   );

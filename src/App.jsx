@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
+import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
@@ -17,7 +18,7 @@ import Escrow from "./pages/Escrow";
 import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
-import Valuation from "./pages/Valuation";
+import ValuationStudio from "./pages/ValuationStudio";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -88,6 +89,8 @@ import SolutionsSellers from "./pages/solutions/SolutionsSellers";
 import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
 import SolutionsLenders from "./pages/solutions/SolutionsLenders";
 import CoreAPI from "./pages/CoreAPI";
+import OAuthAuthorize from "./pages/OAuthAuthorize";
+import OAuthConsent from "./pages/OAuthConsent";
 import InvestmentBrief from "./pages/InvestmentBrief";
 import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
 import FractionalCalculators from "./pages/FractionalCalculators";
@@ -95,6 +98,10 @@ import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
 import AbosWallet from "./pages/AbosWallet";
 import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
+import AircraftAlerts from "./pages/AircraftAlerts";
+import Plans from "./pages/Plans";
+import AgentConnect from "./pages/AgentConnect";
+import ActivitySummary from "./pages/ActivitySummary";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -131,7 +138,7 @@ const AuthenticatedApp = () => {
         <Route path="/traffic" element={<TrafficMap />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
-        <Route path="/valuation" element={<Valuation />} />
+        <Route path="/valuation-studio" element={<ValuationStudio />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/terms" element={<TermsOfService />} />
@@ -144,7 +151,6 @@ const AuthenticatedApp = () => {
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
-        <Route path="/intrazone" element={<IntraZone />} />
         <Route path="/community" element={<Community />} />
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
@@ -200,6 +206,7 @@ const AuthenticatedApp = () => {
         <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
         <Route path="/solutions/lenders" element={<SolutionsLenders />} />
         <Route path="/developers/core-api" element={<CoreAPI />} />
+        <Route path="/oauth-authorize" element={<OAuthAuthorize />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
         <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
@@ -207,7 +214,16 @@ const AuthenticatedApp = () => {
         <Route path="/calculators" element={<CalculatorsHub />} />
         <Route path="/wallet" element={<AbosWallet />} />
         <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
+        <Route path="/aircraft-alerts" element={<AircraftAlerts />} />
+        <Route path="/plans" element={<Plans />} />
+        <Route path="/connect" element={<AgentConnect />} />
+        <Route path="/activity" element={<ActivitySummary />} />
       </Route>
+      <Route element={<IntraZoneLayout />}>
+        <Route path="/intrazone" element={<IntraZone />} />
+      </Route>
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
+      <Route path="/oauth/callback" element={<OAuthConsent />} />
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

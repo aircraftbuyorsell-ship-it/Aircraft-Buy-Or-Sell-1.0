@@ -1,0 +1,41 @@
+{
+  "name": "Weekly Pipeline Email Summary",
+  "description": "Sends weekly email summary of active sales pipelines to owners and buyers every Monday 9am Prague time",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * 1",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "weekly_pipeline_email_summary",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendPipelineEmailSummary",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

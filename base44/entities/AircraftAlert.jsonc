@@ -42,6 +42,11 @@
       "maximum": 120,
       "description": "Minimum ATI score (0\u2013120)"
     },
+    "deal_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Only notify when the listing is flagged as a good deal (below market value)"
+    },
     "channel": {
       "type": "string",
       "enum": [

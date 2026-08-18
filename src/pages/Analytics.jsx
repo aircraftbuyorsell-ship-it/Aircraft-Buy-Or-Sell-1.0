@@ -4,6 +4,7 @@ import {
   BarChart3, Plane, Database, Store, Cpu, Radar, Globe, AlertTriangle, TrendingUp, ShieldCheck, DollarSign, Activity,
 } from "lucide-react";
 import PriceTrendChart from "@/components/analytics/PriceTrendChart";
+import CategoryPriceTrends from "@/components/analytics/CategoryPriceTrends";
 import DaysOnMarketChart from "@/components/analytics/DaysOnMarketChart";
 import TopModelsTable from "@/components/analytics/TopModelsTable";
 import MarketInsightCard from "@/components/analytics/MarketInsightCard";
@@ -108,6 +109,7 @@ export default function Analytics() {
           <div className="space-y-5">
             <SectionHeader eyebrow="Market Trends" title="Pricing & Liquidity" sub="Historical pricing trends and inventory liquidity signals" />
             <PriceTrendChart data={monthly} isDark={isDark} />
+            <CategoryPriceTrends categoryTrends={analytics?.categoryTrends} isDark={isDark} />
             <div className="grid lg:grid-cols-2 gap-5">
               <DaysOnMarketChart data={dom} isDark={isDark} />
               <TopModelsTable rows={models} isDark={isDark} />

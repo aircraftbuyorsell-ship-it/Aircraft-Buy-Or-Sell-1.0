@@ -1,0 +1,34 @@
+{
+  "name": "Auto-Valuate on ATICard Attach",
+  "description": "Runs OMVM v5 valuation automatically whenever a new ATICard is created and linked to an AircraftListing",
+  "trigger": {
+    "condition": "${ (.trigger.data.listing != null) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "ATICard"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_valuate_on_aticard_attach",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoValuateOnCardAttach",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

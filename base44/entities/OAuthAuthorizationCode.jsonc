@@ -1,0 +1,79 @@
+{
+  "name": "OAuthAuthorizationCode",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "code_challenge": {
+      "description": "PKCE S256 code_challenge supplied by the client at /authorize",
+      "type": "string"
+    },
+    "code_hash": {
+      "description": "SHA-256 hash of the authorization code (plaintext is never stored)",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "redirect_uri": {
+      "type": "string"
+    },
+    "scopes": {
+      "items": {
+        "enum": [
+          "listing:read",
+          "listing:write",
+          "search:read",
+          "intelligence:read"
+        ],
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "used": {
+      "default": false,
+      "type": "boolean"
+    },
+    "user_email": {
+      "description": "ABOS user who approved the consent screen",
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "code_hash",
+    "user_email",
+    "client_id",
+    "redirect_uri",
+    "code_challenge",
+    "expires_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

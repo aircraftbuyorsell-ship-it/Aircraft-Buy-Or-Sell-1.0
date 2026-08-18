@@ -89,6 +89,11 @@
     "calculated_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

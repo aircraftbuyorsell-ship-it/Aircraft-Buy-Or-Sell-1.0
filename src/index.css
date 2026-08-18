@@ -26,7 +26,7 @@
     --navbar-border: rgba(0, 0, 0, 0.08);
 
     /* Official Infrastructure tokens */
-    --grid-color: rgba(0, 0, 0, 0.04);
+    --grid-color: rgba(0, 0, 0, 0.10);
     --bg-canvas: #fbfaf7;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.08);
@@ -215,6 +215,28 @@
     border-color: rgba(0,0,0,0.08) !important;
   }
 
+  /* ── Light mode: override Tailwind white utility classes globally ── */
+  :root:not(.dark) .text-white { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.9"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.8"] { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.7"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.6"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.5"] { color: hsl(var(--muted-foreground)) !important; }
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.4"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.3"],
+  :root:not(.dark) [class*="text-[rgba(255,255,255,0.2"] { color: hsl(var(--muted-foreground) / 0.6) !important; }
+  :root:not(.dark) [class*="border-[rgba(255,255,255"] { border-color: hsl(var(--border)) !important; }
+  :root:not(.dark) [class*="bg-[rgba(255,255,255,0.0"] { background-color: hsl(var(--muted) / 0.4) !important; }
+  :root:not(.dark) [class*="bg-[rgba(255,255,255,0.1"] { background-color: hsl(var(--muted) / 0.6) !important; }
+  :root:not(.dark) [class*="bg-white\/"] { background-color: hsl(var(--muted) / 0.4) !important; }
+  :root:not(.dark) [class*="text-white\/9"],
+  :root:not(.dark) [class*="text-white\/8"] { color: hsl(var(--foreground)) !important; }
+  :root:not(.dark) [class*="text-white\/7"],
+  :root:not(.dark) [class*="text-white\/6"],
+  :root:not(.dark) [class*="text-white\/5"] { color: hsl(var(--muted-foreground)) !important; }
+  :root:not(.dark) [class*="text-white\/4"],
+  :root:not(.dark) [class*="text-white\/3"] { color: hsl(var(--muted-foreground) / 0.6) !important; }
+
   /* Prevent accidental selection/callout on tappable UI */
   button,
   [role="button"],
@@ -388,6 +410,26 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   border: 1px solid rgba(59,130,246,0.2);
 }
 
+/* ── Light mode: remove glass morphism (no backdrop blur, opaque bg) ── */
+:root:not(.dark) .glass,
+:root:not(.dark) .glass-heavy,
+:root:not(.dark) .glass-subtle,
+:root:not(.dark) .glass-dark,
+:root:not(.dark) .glass-navbar,
+:root:not(.dark) .glass-card,
+:root:not(.dark) .glass-pill,
+:root:not(.dark) .glass-pill-tinted {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root:not(.dark) .glass { background: #ffffff !important; }
+:root:not(.dark) .glass-heavy { background: #ffffff !important; }
+:root:not(.dark) .glass-subtle { background: #ffffff !important; }
+:root:not(.dark) .glass-dark { background: #f5f5f0 !important; }
+:root:not(.dark) .glass-navbar { background: rgba(251,250,247,0.98) !important; }
+:root:not(.dark) .glass-card { background: #ffffff !important; }
+:root:not(.dark) .glass-pill { background: #ffffff !important; }
+
 /* ═══════════════════════════════════════════
    DOT GRID — official infrastructure background
 ═══════════════════════════════════════════ */
@@ -418,7 +460,41 @@ input::placeholder, textarea::placeholder { color: rgba(0,0,0,0.48) !important; 
   filter: drop-shadow(0 0 0.5px rgba(255,255,255,0.15)) drop-shadow(0 0 4px rgba(212,160,23,0.18));
 }
 
+/* ── Table & data overview mobile readability ── */
+table {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Momentum scrolling for all overflow containers (tables, lists, cards) */
+.overflow-auto,
+.overflow-x-auto,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent layout thrash during fast scroll on data rows */
+tbody tr,
+[data-scroll-row] {
+  contain: layout style;
+}
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+
+/* Finance Advisor orchestration flow */
+.finance-flow-line {
+  color: var(--gold-bright);
+  font-family: 'Courier Prime', monospace;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: finance-flow 1s linear infinite;
+}
+@keyframes finance-flow {
+  from { opacity: .3; transform: translateX(-3px); }
+  50% { opacity: 1; }
+  to { opacity: .3; transform: translateX(3px); }
+}

@@ -19,6 +19,7 @@ import EventTimeline from "@/components/cards/EventTimeline";
 import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
+import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import ATITrustBlock from "@/components/ati/ATITrustBlock";
@@ -833,6 +834,7 @@ Return ONLY raw JSON:
             <OwnershipTrace listingId={listingId} />
           </>
         )}
+        {listing && <ListingReviewsPanel listing={listing} />}
       </div>
 
       <UpgradeGate open={showGate} onClose={() => setShowGate(false)} feature="ati_passport_full"

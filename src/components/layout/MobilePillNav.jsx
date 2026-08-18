@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { NAV_TREE, isPathInSection, navGradientWeight } from "@/components/layout/navConfig";
+import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
 
 export default function MobilePillNav() {
@@ -10,12 +10,12 @@ export default function MobilePillNav() {
   const [openSection, setOpenSection] = useState(null);
   const barRef = useRef(null);
 
-  const idleBg = isDark ? "#1a1a1a" : "#f0ede6";
+  const idleBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)";
   const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-  const idleColor = isDark ? "#a0a0a0" : "#666";
-  const dropdownBg = isDark
-    ? "linear-gradient(180deg, rgba(40,40,40,0.92) 0%, rgba(20,20,20,0.88) 70%, rgba(20,20,20,0.60) 100%)"
-    : "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,246,241,0.92) 70%, rgba(248,246,241,0.80) 100%)";
+  const idleColor = isDark ? "rgba(255,255,255,0.60)" : "rgba(0,0,0,0.55)";
+  const dropdownBg = isDark ?
+  "linear-gradient(180deg, rgba(40,40,40,0.96) 0%, rgba(20,20,20,0.94) 100%)" :
+  "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,246,241,0.96) 100%)";
   const dropdownBorder = isDark ? "rgba(212,160,23,0.18)" : "rgba(212,160,23,0.25)";
   const itemBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)";
   const itemBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
@@ -27,7 +27,11 @@ export default function MobilePillNav() {
       if (barRef.current && !barRef.current.contains(e.target)) setOpenSection(null);
     };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("touchstart", onClick, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("touchstart", onClick);
+    };
   }, []);
 
   const handleNav = (path) => {
@@ -37,118 +41,113 @@ export default function MobilePillNav() {
 
   return (
     <div ref={barRef} className="w-full max-w-sm mx-auto" style={{ position: "relative" }}>
-      {/* ── Chip row ── */}
-      <div className="flex items-end justify-center gap-1.5 w-full">
-        {NAV_TREE.map((section, idx) => {
+      {/* ── Tab row — uniform sizes for consistent touch targets ── */}
+      <div className="flex items-center justify-center gap-1 w-full">
+        {NAV_TREE.map((section) => {
           const active = isPathInSection(section, pathname);
           const open = openSection === section.label;
           const Icon = section.icon;
-          const w = navGradientWeight(idx);
-          const iconSize = 12 + Math.round(w * 6);  // 12px → 18px at peak
-          const chipHeight = 44 + Math.round(w * 14); // 44px → 58px at peak
-          const labelSize = 9 + w * 2;                 // 9px → 11px at peak
-          const idleOpacity = 0.5 + w * 0.35;
           return (
             <button
               key={section.label}
               onClick={() => section.direct ? handleNav(section.path) : setOpenSection(open ? null : section.label)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 transition-all"
               style={{
-                height: chipHeight,
-                minWidth: 38 + Math.round(w * 8),
+                height: 46,
+                minWidth: 44,
                 borderRadius: 14,
                 padding: "4px 2px",
-                background: open
-                  ? "radial-gradient(circle at 50% 40%, rgba(212,160,23,0.20), rgba(26,26,26,0.95))"
-                  : idleBg,
-                border: open
-                  ? "1px solid rgba(212,160,23,0.65)"
-                  : `1px solid ${idleBorder}`,
-                boxShadow: open
-                  ? "0 0 16px rgba(212,160,23,0.25), inset 0 0 12px rgba(212,160,23,0.06)"
-                  : w > 0.6 ? `0 0 ${w * 10}px rgba(212,160,23,${w * 0.06})` : "none",
-                color: open ? "#D4A017" : `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`,
-                cursor: "pointer",
-                opacity: open ? 1 : (0.65 + w * 0.35),
-              }}
-            >
-              {Icon && <Icon size={iconSize} style={{ opacity: open ? 1 : (0.5 + w * 0.4) }} />}
-              <span style={{ fontSize: labelSize, fontWeight: open ? 700 : 500 + Math.round(w * 150), letterSpacing: "0.03em" }}>
+                background: open ?
+                isDark ? "rgba(212,160,23,0.12)" : "rgba(212,160,23,0.10)" :
+                active ?
+                isDark ? "rgba(212,160,23,0.08)" : "rgba(212,160,23,0.06)" :
+                idleBg,
+                border: open ?
+                "1px solid rgba(212,160,23,0.50)" :
+                active ?
+                "1px solid rgba(212,160,23,0.25)" :
+                `1px solid ${idleBorder}`,
+                color: open || active ? "#D4A017" : idleColor,
+                cursor: "pointer"
+              }}>
+              
+              {Icon && <Icon size={17} style={{ opacity: open || active ? 1 : 0.7 }} />}
+              <span style={{ fontSize: 10, fontWeight: open || active ? 700 : 500, letterSpacing: "0.02em" }} className="text-xs capitalize">
                 {section.mobileLabel || section.label}
               </span>
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
       {/* ── Dropdown card ── */}
-      {openSection && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 8px)",
-            left: 0,
-            right: 0,
-            background: dropdownBg,
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: `1px solid ${dropdownBorder}`,
-            borderRadius: 16,
-            boxShadow: isDark ? "0 12px 40px rgba(0,0,0,0.7)" : "0 12px 40px rgba(0,0,0,0.15)",
-            padding: 10,
-            zIndex: 100,
-            maxHeight: "72vh",
-            overflowY: "auto",
-          }}
-        >
-          {NAV_TREE.find((s) => s.label === openSection)?.categories.map((cat, ci) => (
-            <div key={cat.label} style={{ marginBottom: ci > 0 ? 6 : 0 }}>
+      {openSection &&
+      <div
+        style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: 0,
+          right: 0,
+          background: dropdownBg,
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: `1px solid ${dropdownBorder}`,
+          borderRadius: 16,
+          boxShadow: isDark ? "0 12px 40px rgba(0,0,0,0.7)" : "0 12px 40px rgba(0,0,0,0.15)",
+          padding: 10,
+          zIndex: 100,
+          maxHeight: "68vh",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch"
+        }}>
+        
+          {NAV_TREE.find((s) => s.label === openSection)?.categories.map((cat, ci) =>
+        <div key={cat.label} style={{ marginBottom: ci > 0 ? 6 : 0 }}>
               <div style={{
-                fontSize: 8,
-                fontWeight: 700,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: catColor,
-                padding: "6px 6px 4px",
-              }}>
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: catColor,
+            padding: "6px 6px 4px"
+          }}>
                 {cat.label}
               </div>
-              {/* 2-column grid of icon+label chips */}
               <div className="grid grid-cols-2 gap-1.5">
                 {cat.items.map((item) => {
-                  const itemActive = pathname === item.path || pathname.startsWith(item.path + "/");
-                  const ItemIcon = item.icon;
-                  return (
-                    <button
-                      key={item.path}
-                      onClick={() => handleNav(item.path)}
-                      className="flex flex-col items-center justify-center gap-1 text-center transition-all"
-                      style={{
-                        borderRadius: 12,
-                        padding: "10px 6px",
-                        minHeight: 60,
-                        background: itemActive
-                          ? "rgba(74,74,62,0.80)"
-                          : itemBg,
-                        border: itemActive
-                          ? "1px solid rgba(212,160,23,0.25)"
-                          : `1px solid ${itemBorder}`,
-                        color: itemActive ? "#D4A017" : itemColor,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {ItemIcon && <ItemIcon size={16} style={{ opacity: 0.85 }} />}
-                      <span style={{ fontSize: 10, fontWeight: itemActive ? 700 : 600, lineHeight: 1.15, maxWidth: "100%" }}>
+              const itemActive = pathname === item.path || pathname.startsWith(item.path + "/");
+              const ItemIcon = item.icon;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => handleNav(item.path)}
+                  className="flex flex-col items-center justify-center gap-1 text-center transition-all"
+                  style={{
+                    borderRadius: 12,
+                    padding: "12px 6px",
+                    minHeight: 64,
+                    background: itemActive ?
+                    isDark ? "rgba(212,160,23,0.10)" : "rgba(212,160,23,0.08)" :
+                    itemBg,
+                    border: itemActive ?
+                    "1px solid rgba(212,160,23,0.25)" :
+                    `1px solid ${itemBorder}`,
+                    color: itemActive ? "#D4A017" : itemColor,
+                    cursor: "pointer"
+                  }}>
+                  
+                      {ItemIcon && <ItemIcon size={18} style={{ opacity: 0.85 }} />}
+                      <span style={{ fontSize: 10.5, fontWeight: itemActive ? 700 : 600, lineHeight: 1.15, maxWidth: "100%" }}>
                         {item.label}
                       </span>
-                    </button>
-                  );
-                })}
+                    </button>);
+
+            })}
               </div>
             </div>
-          ))}
+        )}
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }

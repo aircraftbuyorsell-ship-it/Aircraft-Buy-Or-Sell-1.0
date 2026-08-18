@@ -1,9 +1,10 @@
 import {
   Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard, Wallet,
   Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
-  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck,
+  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
   DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
-  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge,
+  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Bell,
+  History,
 } from "lucide-react";
 
 /**
@@ -25,8 +26,36 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Marketspace",
+    label: "Market",
     mobileLabel: "Market",
+    path: "/listings",
+    icon: Plane,
+    direct: true,
+  },
+  {
+    label: "Activity",
+    mobileLabel: "Activity",
+    path: "/activity",
+    icon: History,
+    direct: true,
+  },
+  {
+    label: "Analytics",
+    mobileLabel: "Analytics",
+    path: "/analytics",
+    icon: BarChart2,
+    direct: true,
+  },
+  {
+    label: "Deal Radar",
+    mobileLabel: "Deals",
+    path: "/deal-radar",
+    icon: Radar,
+    direct: true,
+  },
+  {
+    label: "Marketspace",
+    mobileLabel: "More",
     path: "/listings",
     icon: Plane,
     categories: [
@@ -36,6 +65,7 @@ export const NAV_TREE = [
           { path: "/listings", label: "Aircraft Listings", icon: Plane },
           { path: "/compare", label: "Compare Aircraft", icon: Scale },
           { path: "/deal-radar", label: "Deal Radar", icon: Radar },
+          { path: "/aircraft-alerts", label: "Aircraft Alerts", icon: Bell },
           { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
           { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
           { path: "/solutions/buyers", label: "Buyer Solutions", icon: User },
@@ -65,11 +95,11 @@ export const NAV_TREE = [
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
-          { path: "/valuation", label: "OMVM Valuation", icon: TrendingUp },
+          { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
           { path: "/calculators", label: "All Calculators", icon: Calculator },
-          { path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator },
+          { path: "/opex-calculator", label: "Operational Costs", icon: Calculator },
           { path: "/insurance-calculator", label: "Insurance", icon: Shield },
           { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
           { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },
@@ -133,12 +163,12 @@ export const NAV_TREE = [
 ];
 
 /**
- * Gradient weight — Intelligence (index 2) is the peak (1.0),
+ * Gradient weight — Analytics (index 2) is the peak (1.0),
  * items to its left and right gradually diminish toward 0.
  * Used for font-size and opacity scaling across the nav bar.
  */
 export function navGradientWeight(index, total = NAV_TREE.length) {
-  const peakIndex = 2; // Intelligence
+  const peakIndex = 2; // Analytics
   const maxDist = Math.max(peakIndex, total - 1 - peakIndex);
   const dist = Math.abs(index - peakIndex);
   return Math.max(0, 1 - dist / maxDist);

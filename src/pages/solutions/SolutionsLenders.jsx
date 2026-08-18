@@ -14,7 +14,7 @@ export default function SolutionsLenders() {
         { icon: Landmark, title: "Transaction Visibility", desc: "Milestone-level insight into escrow and closing status for financed deals." },
         { icon: BarChart2, title: "Market Analytics", desc: "Fleet-level price trends, liquidity and days-on-market data for portfolio monitoring." },
       ]}
-      primary={{ to: "/valuation", label: "Run a Valuation" }}
+      primary={{ to: "/valuation-studio", label: "Run a Valuation" }}
       secondary={{ to: "/analytics", label: "Market Analytics" }}
     />
   );

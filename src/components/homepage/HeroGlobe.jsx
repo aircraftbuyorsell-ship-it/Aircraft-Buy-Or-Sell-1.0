@@ -54,10 +54,10 @@ export default function HeroGlobe() {
 
     // ── Sphere ── light: matte aluminum; dark: deep space
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: isDark ? 0x0A0E14 : 0xC4C4C4,
-      emissive: isDark ? 0x05080c : 0x1c1c1c,
-      shininess: isDark ? 4 : 5,
-      specular: isDark ? 0x0a0f1a : 0x555555,
+      color: isDark ? 0x0A0E14 : 0x2a2a35,
+      emissive: isDark ? 0x05080c : 0x0d0d12,
+      shininess: isDark ? 4 : 28,
+      specular: isDark ? 0x0a0f1a : 0xb0b0b0,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -75,11 +75,11 @@ export default function HeroGlobe() {
         g.addColorStop(0.7, "rgba(166,124,0,0.35)");
         g.addColorStop(1, "rgba(166,124,0,0)");
       } else {
-        // Brushed aluminum rivet — darker than sphere for contrast
-        g.addColorStop(0, "rgba(130,130,130,1)");
-        g.addColorStop(0.3, "rgba(100,100,100,0.85)");
-        g.addColorStop(0.7, "rgba(80,80,80,0.35)");
-        g.addColorStop(1, "rgba(80,80,80,0)");
+        // Brushed aluminum rivet — strong dark contrast on dark light-mode sphere
+        g.addColorStop(0, "rgba(245,200,66,1)");
+        g.addColorStop(0.3, "rgba(212,160,23,0.9)");
+        g.addColorStop(0.7, "rgba(166,124,0,0.4)");
+        g.addColorStop(1, "rgba(166,124,0,0)");
       }
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -118,7 +118,7 @@ export default function HeroGlobe() {
       alphaTest: 0.06,
       depthWrite: false,
       sizeAttenuation: true,
-      opacity: isDark ? 0.88 : 0.62,
+      opacity: isDark ? 0.88 : 0.85,
     }));
     globe.add(rivets);
 
@@ -136,7 +136,7 @@ export default function HeroGlobe() {
       const tubeMat = new THREE.MeshBasicMaterial({
         color: GOLD,
         transparent: true,
-        opacity: isDark ? 0.55 : 0.65,
+        opacity: isDark ? 0.55 : 0.85,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
@@ -182,11 +182,11 @@ export default function HeroGlobe() {
     });
 
     // ── Lights ── bright for aluminum, moody for dark
-    scene.add(new THREE.AmbientLight(isDark ? 0x1a2030 : 0xe8e8e8, isDark ? 0.5 : 0.85));
-    const dirLight = new THREE.DirectionalLight(0xfff1d6, isDark ? 1.1 : 1.25);
+    scene.add(new THREE.AmbientLight(isDark ? 0x1a2030 : 0x6a6a78, isDark ? 0.5 : 0.35));
+    const dirLight = new THREE.DirectionalLight(0xfff1d6, isDark ? 1.1 : 1.4);
     dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(isDark ? 0x4a6a9a : 0xb0b0b0, isDark ? 0.25 : 0.35);
+    const fillLight = new THREE.DirectionalLight(isDark ? 0x4a6a9a : 0x8090a8, isDark ? 0.25 : 0.4);
     fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 

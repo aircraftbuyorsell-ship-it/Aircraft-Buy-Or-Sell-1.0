@@ -88,7 +88,10 @@ Deno.serve(async (req) => {
     );
 
     if (!isService) {
-      const user = await base44.auth.me();
+      // auth.me() throws rather than returning null for a sessionless caller,
+      // so the check below was dead code and the SDK's error message ("Authentication
+      // required to view users") leaked to the client as a 500 instead of a clean 401.
+      const user = await base44.auth.me().catch(() => null);
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

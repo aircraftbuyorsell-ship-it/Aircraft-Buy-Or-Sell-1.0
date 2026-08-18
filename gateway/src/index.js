@@ -471,10 +471,17 @@ async function handleMcp(request, env, baseUrl, gatewayOrigin) {
 // (currently exposes no entity operations - kept for whatever it grows
 // into, and for callers who already depend on MCP_BEARER_TOKEN).
 async function handleLegacyMcp(request, env, baseUrl) {
+  // A missing binding used to fall through as an empty header, which Base44
+  // rejects identically to a wrong secret: an indistinguishable 401. Fail
+  // loudly here instead of forwarding a request that can never succeed.
+  if (!env.GATEWAY_SECRET) {
+    return json({ error: 'gateway_secret_not_configured' }, 500);
+  }
+
   const upstreamHeaders = new Headers();
   // Base44 rejects requests that don't advertise both JSON and SSE (406).
   upstreamHeaders.set('Accept', request.headers.get('Accept') || MCP_ACCEPT);
-  upstreamHeaders.set('x-gateway-secret', env.GATEWAY_SECRET || '');
+  upstreamHeaders.set('x-gateway-secret', env.GATEWAY_SECRET);
 
   for (const name of ['Content-Type', 'Mcp-Session-Id', 'MCP-Protocol-Version', 'Last-Event-ID']) {
     const value = request.headers.get(name);
@@ -547,11 +554,18 @@ async function handleWidget(request, env, baseUrl) {
     return json({ error: 'origin_not_allowed' }, 403);
   }
 
+  // A missing binding used to fall through as an empty header, which Base44
+  // rejects identically to a wrong secret: an indistinguishable 401. Fail
+  // loudly here instead of forwarding a request that can never succeed.
+  if (!env.GATEWAY_SECRET) {
+    return json({ error: 'gateway_secret_not_configured' }, 500, corsHeaders);
+  }
+
   const upstreamResponse = await fetch(`${baseUrl}/functions/widgetGateway`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-gateway-secret': env.GATEWAY_SECRET || '',
+      'x-gateway-secret': env.GATEWAY_SECRET,
       'x-widget-origin': origin,
     },
     body: await request.text(),

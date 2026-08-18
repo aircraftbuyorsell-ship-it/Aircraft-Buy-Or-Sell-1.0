@@ -297,7 +297,14 @@ Return ONLY valid JSON.`,
       // an ungrounded model has nothing to anchor a numeric estimate to.
       let v5;
       try {
-        const v5res = await base44.functions.invoke('omvmV5Score', {
+        // MUST be asServiceRole. abosCoreApi is the API-key surface: callers
+        // authenticate with x-abos-key, which Base44 knows nothing about, so
+        // the plain client carries no Base44 credentials and an internal
+        // invoke through it cannot resolve the app — it fails with
+        // "App not found". Every other data access in this function already
+        // goes through asServiceRole; this one call was the exception, which
+        // is why 'valuate' was the only broken endpoint on the whole surface.
+        const v5res = await base44.asServiceRole.functions.invoke('omvmV5Score', {
           aircraft: {
             make: manufacturer,
             model,

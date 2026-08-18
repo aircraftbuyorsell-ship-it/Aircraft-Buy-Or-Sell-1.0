@@ -104,6 +104,34 @@ function json(body, status, extraHeaders = {}) {
   });
 }
 
+// Base44 functions do not always fail in JSON. A function timeout or an
+// unhandled runtime fault comes back as an HTML or plain-text error page,
+// and `await res.json()` on that throws. Reading the body as text first
+// keeps the upstream status, content type and a body snippet alive in the
+// error we hand back, instead of flattening every distinct failure into one
+// opaque "Invalid upstream response" with nothing to debug from.
+async function readUpstreamJson(upstream, label) {
+  const text = await upstream.text();
+  try {
+    return { ok: true, payload: JSON.parse(text) };
+  } catch {
+    return {
+      ok: false,
+      payload: {
+        status: 'error',
+        error: {
+          code: 'upstream_not_json',
+          message: `${label} returned HTTP ${upstream.status} with a non-JSON body — `
+            + 'usually a function timeout or an unhandled runtime error upstream.',
+          upstream_status: upstream.status,
+          upstream_content_type: upstream.headers.get('Content-Type') || null,
+          body_snippet: text.slice(0, 300),
+        },
+      },
+    };
+  }
+}
+
 async function sha256(value) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return new Uint8Array(digest);
@@ -133,7 +161,8 @@ const CORE_TOOLS = [
     name: 'search',
     endpoint: 'search',
     annotations: {
-      readOnlyHint: false,
+      readOnlyHint: true,
+      idempotentHint: true,
       openWorldHint: false,
       destructiveHint: false,
     },
@@ -148,8 +177,11 @@ const CORE_TOOLS = [
     name: 'valuate',
     endpoint: 'valuate',
     annotations: {
-      readOnlyHint: false,
-      openWorldHint: false,
+      readOnlyHint: true,
+      idempotentHint: true,
+      // OMVM v5 supplements internal comps with a live grounded web market
+      // search, so this one genuinely reaches outside the closed dataset.
+      openWorldHint: true,
       destructiveHint: false,
     },
     description: 'OMVM market valuation for a given aircraft manufacturer/model/year/hours.',
@@ -168,7 +200,8 @@ const CORE_TOOLS = [
     name: 'extract_listing_intelligence',
     endpoint: 'intelligence.extract',
     annotations: {
-      readOnlyHint: false,
+      readOnlyHint: true,
+      idempotentHint: true,
       openWorldHint: false,
       destructiveHint: false,
     },
@@ -183,7 +216,8 @@ const CORE_TOOLS = [
     name: 'get_listing',
     endpoint: 'listings.get',
     annotations: {
-      readOnlyHint: false,
+      readOnlyHint: true,
+      idempotentHint: true,
       openWorldHint: false,
       destructiveHint: false,
     },
@@ -194,7 +228,8 @@ const CORE_TOOLS = [
     name: 'list_listings',
     endpoint: 'listings.list',
     annotations: {
-      readOnlyHint: false,
+      readOnlyHint: true,
+      idempotentHint: true,
       openWorldHint: false,
       destructiveHint: false,
     },
@@ -213,7 +248,10 @@ const CORE_TOOLS = [
     name: 'create_listing',
     endpoint: 'listings.create',
     annotations: {
+      // The only writer on this surface. It creates a draft/private listing,
+      // so it adds state but never overwrites or removes any.
       readOnlyHint: false,
+      idempotentHint: false,
       openWorldHint: false,
       destructiveHint: false,
     },
@@ -241,6 +279,41 @@ function rpcResult(id, result) {
 
 function rpcError(id, code, message) {
   return json({ jsonrpc: '2.0', id, error: { code, message } });
+}
+
+// APL-served tools that the per-user OAuth path is allowed to expose, and the
+// scope each one needs. These execute inside the worker using GATEWAY_SECRET,
+// which means they bypass abosCoreApi's own requireScope() checks entirely —
+// so the gate has to live here, against the calling key's granted scopes.
+//
+// abos_partner_status is deliberately absent. It is gated on a partner
+// presenting their own embed_token, and no marketplace scope in VALID_SCOPES
+// could ever legitimately grant it, so it stays on the static-token path.
+const APL_SCOPE = {
+  abos_omvm_value: 'intelligence:read',
+  abos_ati_score: 'intelligence:read',
+  abos_deal_radar: 'listing:read',
+  abos_faa_registry: 'listing:read',
+};
+
+// Resolves what the calling abos_live_... key is actually allowed to do.
+// Fails closed: any error yields no scopes, so an APL tool is refused rather
+// than run unchecked.
+async function callerScopes(baseUrl, apiKey) {
+  let upstream;
+  try {
+    upstream = await fetch(`${baseUrl}/functions/abosCoreApi`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-abos-key': apiKey },
+      body: JSON.stringify({ endpoint: 'whoami', params: {} }),
+    });
+  } catch {
+    return { revoked: false, scopes: [] };
+  }
+  if (upstream.status === 401) return { revoked: true, scopes: [] };
+  const { ok, payload } = await readUpstreamJson(upstream, 'abosCoreApi whoami');
+  if (!ok || payload.status === 'error') return { revoked: false, scopes: [] };
+  return { revoked: false, scopes: payload.data?.scopes || [] };
 }
 
 // Serves MCP for callers authenticated with a per-user abos_live_... key
@@ -277,7 +350,7 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
       serverInfo: {
         name: 'abos-marketspace',
         title: 'ABOS MarketSpace',
-        version: '1.0.0',
+        version: '1.1.0',
         icons: [
           {
             src: 'https://media.base44.com/images/public/69f665b6d05c695ac1e7b353/99047304a_A895AA0E-59E0-4D35-993A-3A419A5C8234.jpeg',
@@ -290,14 +363,58 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
   }
 
   if (rpc.method === 'tools/list') {
-    return rpcResult(rpc.id, {
-      tools: CORE_TOOLS.map(({ name, description, inputSchema, annotations }) => ({ name, description, inputSchema, annotations })),
-    });
+    // The APL surface used to be visible only on the static-token path, which
+    // meant no OAuth user ever saw Deal Radar, the FAA registry lookup or the
+    // ATI scorer. Merge both surfaces so one connection sees one server.
+    const core = CORE_TOOLS.map(({ name, description, inputSchema, annotations }) => ({ name, description, inputSchema, annotations }));
+    const apl = aplToolList().filter((t) => Object.prototype.hasOwnProperty.call(APL_SCOPE, t.name));
+    return rpcResult(rpc.id, { tools: [...core, ...apl] });
   }
 
   if (rpc.method === 'tools/call') {
-    const tool = CORE_TOOLS.find((t) => t.name === rpc.params?.name);
-    if (!tool) return rpcError(rpc.id, -32602, `Unknown tool: ${rpc.params?.name}`);
+    const toolName = rpc.params?.name;
+
+    // A dead/revoked key needs to surface as a real 401 so the MCP client
+    // knows to restart the OAuth flow, not as a 200 the client has to
+    // inspect to discover auth failed.
+    const unauthorized = () => json({ error: 'unauthorized' }, 401, {
+      'WWW-Authenticate': `Bearer realm="abos-mcp", resource_metadata="${gatewayOrigin}/.well-known/oauth-protected-resource"`,
+    });
+
+    const toolError = (body) => rpcResult(rpc.id, {
+      content: [{ type: 'text', text: JSON.stringify(body, null, 2) }],
+      isError: true,
+    });
+
+    // ── APL-served tools: scope-gated, then executed in-worker ──
+    if (isAplTool(toolName)) {
+      const needed = APL_SCOPE[toolName];
+      if (!needed) {
+        return rpcError(rpc.id, -32602, `Tool not available on this connection: ${toolName}`);
+      }
+      const { revoked, scopes } = await callerScopes(baseUrl, apiKey);
+      if (revoked) return unauthorized();
+      if (!scopes.includes('*') && !scopes.includes(needed)) {
+        return toolError({
+          status: 'error',
+          error: {
+            code: 'insufficient_scope',
+            message: `${toolName} requires the '${needed}' scope.`,
+            granted: scopes,
+          },
+        });
+      }
+      const outcome = await callAplTool(toolName, rpc.params?.arguments || {}, env, baseUrl);
+      const payload = outcome.error || outcome.result;
+      return rpcResult(rpc.id, {
+        content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+        isError: !!outcome.error,
+      });
+    }
+
+    // ── Core tools: straight passthrough to abosCoreApi ──
+    const tool = CORE_TOOLS.find((t) => t.name === toolName);
+    if (!tool) return rpcError(rpc.id, -32602, `Unknown tool: ${toolName}`);
 
     let upstream;
     try {
@@ -306,23 +423,19 @@ async function handleCoreMcp(request, env, baseUrl, apiKey, gatewayOrigin) {
         headers: { 'Content-Type': 'application/json', 'x-abos-key': apiKey },
         body: JSON.stringify({ endpoint: tool.endpoint, params: rpc.params?.arguments || {} }),
       });
-    } catch {
-      return rpcResult(rpc.id, {
-        content: [{ type: 'text', text: 'ABOS API is unreachable right now.' }],
-        isError: true,
+    } catch (err) {
+      return toolError({
+        status: 'error',
+        error: {
+          code: 'upstream_unreachable',
+          message: `Could not reach abosCoreApi for '${tool.endpoint}': ${err.message}`,
+        },
       });
     }
 
-    // A dead/revoked key needs to surface as a real 401 so the MCP client
-    // knows to restart the OAuth flow, not as a 200 the client has to
-    // inspect to discover auth failed.
-    if (upstream.status === 401) {
-      return json({ error: 'unauthorized' }, 401, {
-        'WWW-Authenticate': `Bearer realm="abos-mcp", resource_metadata="${gatewayOrigin}/.well-known/oauth-protected-resource"`,
-      });
-    }
+    if (upstream.status === 401) return unauthorized();
 
-    const payload = await upstream.json().catch(() => ({ status: 'error', error: { message: 'Invalid upstream response' } }));
+    const { payload } = await readUpstreamJson(upstream, `abosCoreApi '${tool.endpoint}'`);
     return rpcResult(rpc.id, {
       content: [{ type: 'text', text: JSON.stringify(payload.data ?? payload.error ?? payload, null, 2) }],
       isError: payload.status === 'error',

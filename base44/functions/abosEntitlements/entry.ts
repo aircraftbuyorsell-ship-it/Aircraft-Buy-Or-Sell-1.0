@@ -106,8 +106,8 @@ Deno.serve(async (req) => {
           return Response.json({ entitled: true, reason: 'subscription_included', active_sub_product: subProduct });
         }
 
-        // 3. Per-aircraft entitlement exists?
-        if (reg) {
+        // 3. Per-aircraft entitlement exists? (also matches registration-less purchases)
+        {
           const ents = await svc.entities.Entitlement.filter(
             { user_email: user.email, product_key, aircraft_registration: reg, status: 'active' }, '-created_date', 1
           );

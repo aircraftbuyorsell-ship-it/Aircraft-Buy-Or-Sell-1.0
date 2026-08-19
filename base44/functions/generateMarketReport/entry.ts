@@ -45,6 +45,28 @@ async function getBalance(base44, email) {
   return txs.length ? Number(txs[0].balance_after) || 0 : 0;
 }
 
+// ── ABOS monetization gate — active PRO/BROKER subscription required (server-enforced for web, API and MCP) ──
+async function gateProSubscription(base44, user) {
+  if (user?.role === 'admin' || user?.role === 'super_admin') return null;
+  const check = await base44.functions.invoke('abosEntitlements', { action: 'check', product_key: 'PRO' });
+  const d = check?.data || {};
+  if (d.entitled || d.active_sub_product) return null;
+  let checkoutUrl = null;
+  try {
+    const co = await base44.functions.invoke('abosEntitlements', {
+      action: 'create_checkout', product_key: 'PRO',
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+    });
+    checkoutUrl = co?.data?.url || null;
+  } catch (_) { /* checkout link is optional */ }
+  return Response.json({
+    error: 'payment_required',
+    message: 'This is a paid ABOS PRO tool. An active ABOS Professional (\u20ac99/mo) or Broker subscription is required. Open checkout_url to subscribe, then retry this request.',
+    product_key: 'PRO',
+    checkout_url: checkoutUrl,
+  }, { status: 402 });
+}
+
 async function gatherDataSnapshot(base44) {
   const [listings, deals, escrows] = await Promise.all([
     base44.asServiceRole.entities.AircraftListing.filter({ status: "active" }, "-created_date", 200),
@@ -248,12 +270,10 @@ Deno.serve(async (req) => {
       return Response.json({ report: cached, balance: balanceNow, cost: 0, cached: true });
     }
 
-    // Token check — only for user-driven requests (not scheduled system runs)
+    // Subscription gate — only for user-driven requests (not scheduled system runs)
     if (!isScheduled) {
-      const balance = await getBalance(base44, userEmail);
-      if (balance < cost) {
-        return Response.json({ error: "Insufficient tokens", required: cost, balance }, { status: 402 });
-      }
+      const gate = await gateProSubscription(base44, user);
+      if (gate) return gate;
     }
 
     const [appConfig, snapshot] = await Promise.all([
@@ -264,19 +284,8 @@ Deno.serve(async (req) => {
     const freezeAbosData = appConfig.freezeAbosDataInfluence === true;
     const narrative = await generateNarrative(base44, scope, snapshot, filters, freezeAbosData);
 
-    // Token deduction — only for user-driven requests
-    let newBalance = 0;
-    if (!isScheduled) {
-      const balance = await getBalance(base44, userEmail);
-      newBalance = balance - cost;
-      await base44.asServiceRole.entities.TokenTransaction.create({
-        user_email: userEmail,
-        type: "consumption",
-        amount: -cost,
-        feature: `market_report_${scope}`,
-        balance_after: newBalance,
-      });
-    }
+    // Tokens are deprecated — access is gated by subscription above; nothing to deduct.
+    const newBalance = 0;
 
     const report = await base44.asServiceRole.entities.MarketReport.create({
       user_email: userEmail,

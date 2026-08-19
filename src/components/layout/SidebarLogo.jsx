@@ -9,15 +9,16 @@ export default function SidebarLogo({ compact = false }) {
 
   if (compact) {
     return (
-      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+      <Link to="/" className="abos-lounge-logo" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
         <img
           src={BRAND_LOGO_URL}
           alt="ABOS Logo"
+          className="abos-lounge-logo-mark"
           width={28}
           height={28}
           style={{ display: "block", flexShrink: 0, borderRadius: 6, objectFit: "cover" }}
         />
-        <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", fontFamily: "var(--brand-font-heading)" }}>
+        <span className="abos-lounge-logo-wordmark" style={{ fontSize: 16, fontWeight: 700, color: "var(--brand-text)", fontFamily: "var(--brand-font-heading)" }}>
           ABOS
         </span>
       </Link>
@@ -25,20 +26,20 @@ export default function SidebarLogo({ compact = false }) {
   }
 
   return (
-    <Link to="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+    <Link to="/" className="abos-lounge-logo" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
       <img
         src={BRAND_LOGO_URL}
         alt="ABOS Logo"
+        className="abos-lounge-logo-mark"
         width={44}
         height={44}
         style={{ display: "block", flexShrink: 0, borderRadius: 10, objectFit: "cover", border: "1px solid rgba(224,176,52,0.3)" }}
       />
       <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-        <span style={{
+        <span className="abos-lounge-logo-wordmark" style={{
           fontSize: 22,
           fontWeight: 700,
-          color: "#fff",
-          letterSpacing: "-0.03em",
+          color: "var(--brand-text)",
           fontFamily: "var(--brand-font-heading)",
         }}>
           ABOS

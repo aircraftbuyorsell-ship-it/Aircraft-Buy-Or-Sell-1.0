@@ -272,6 +272,44 @@ const CORE_TOOLS = [
       },
     },
   },
+  {
+    name: 'buy_ati_report_credits',
+    endpoint: 'report.checkout',
+    annotations: {
+      readOnlyHint: false,
+      idempotentHint: false,
+      openWorldHint: true, // hits Stripe
+      destructiveHint: false,
+    },
+    description: "Create a Stripe Checkout link to buy ATI Full Report credits ($29/credit). Requires the 'report:paid' scope.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        credits: { type: 'number', description: 'How many report credits to buy, 1-100. Default 1.' },
+        success_url: { type: 'string' },
+        cancel_url: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'get_ati_report',
+    endpoint: 'report.get',
+    annotations: {
+      readOnlyHint: false, // spends a credit
+      idempotentHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
+    description: "Full 8-dimension ATI report (documentation, technical condition, transparency, transaction readiness, usage, storage, config clarity, market readiness) plus executive summary and OMVM range. Spends 1 report credit. Returns HTTP 402 payment_required with a checkout_endpoint hint if the caller has none — call buy_ati_report_credits first.",
+    inputSchema: {
+      type: 'object',
+      required: ['aircraft_data'],
+      properties: {
+        aircraft_data: { type: 'string', description: 'Free-text listing or spec dump for the aircraft to score.' },
+        registration: { type: 'string' },
+      },
+    },
+  },
 ];
 
 function rpcResult(id, result) {

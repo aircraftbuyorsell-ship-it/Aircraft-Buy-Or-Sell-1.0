@@ -90,11 +90,11 @@ export default function ListingRow({ listing, onClick, selected, onToggle }) {
       {/* Main info */}
       <div className="flex-1 min-w-0" onClick={() => !selected && onClick(listing)}>
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p style={{ fontSize: "12px", fontWeight: 500, letterSpacing: "-0.02em", color: T.w1, margin: 0 }}>
+          <p style={{ fontSize: "13px", fontWeight: 500, letterSpacing: "-0.02em", color: T.w1, margin: 0 }}>
             {listing.year && `${listing.year} `}{listing.make} {listing.model}
           </p>
           {listing.registration &&
-            <span style={{ fontFamily: "'Courier New', monospace", fontSize: "10px", letterSpacing: "0.06em", color: T.w3 }}>
+            <span style={{ fontFamily: "'Courier New', monospace", fontSize: "11px", letterSpacing: "0.06em", color: T.w3 }}>
               {listing.registration}
             </span>
           }

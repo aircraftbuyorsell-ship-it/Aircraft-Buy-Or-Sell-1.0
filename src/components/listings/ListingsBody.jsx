@@ -11,7 +11,6 @@ import ListingDrawer     from "@/components/listings/ListingDrawer";
 import QuickPasteImport  from "@/components/listings/QuickPasteImport";
 import AircraftWizard    from "@/components/aircraft-wizard/AircraftWizard";
 import UpgradeGate       from "@/components/marketing/UpgradeGate";
-import { TOKEN_COSTS }   from "@/lib/pricing";
 
 // ─── v2 design tokens ─────────────────────────────────────────────────────────
 const T = {
@@ -139,13 +138,7 @@ export default function ListingsBody({
           </p>
 
           <button
-            onClick={() =>
-              requireFeature(
-                "ati_passport_full",
-                TOKEN_COSTS.ati_passport_full,
-                () => setShowImport(true),
-              )
-            }
+            onClick={() => setShowWizard(true)}
             style={{
               display:     "inline-flex",
               alignItems:  "center",

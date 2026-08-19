@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Search, Zap, Upload, HelpCircle, ArrowRight, List, LayoutGrid,
-  Plane, Loader2, ShieldCheck, X } from
+  Plane, Loader2, ShieldCheck, X, Plus } from
 "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { TOKEN_COSTS } from "@/lib/pricing";
 import MarketspaceTourLauncher from "@/components/marketspace-tour/MarketspaceTourLauncher";
 
 // ─── Design tokens ───────────────────────────────────────────────
@@ -291,7 +290,7 @@ export default function ListingsHeader({
               <HelpCircle className="w-4 h-4" />
             </button>
             <button
-              onClick={() => requireFeature("quick_import", TOKEN_COSTS.ati_passport_full, () => onShowImport(true))}
+              onClick={() => onShowImport(true)}
               className="hidden sm:flex items-center gap-1.5 text-[12px] font-semibold px-3.5 py-2 rounded-lg transition-all focus:outline-none focus-visible:ring-2"
               style={{
                 background: "rgba(255,255,255,0.05)",
@@ -304,10 +303,10 @@ export default function ListingsHeader({
             </button>
             <button
               onClick={() => onShowWizard()}
-              className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-105 focus:outline-none focus-visible:ring-2 hidden"
+              className="flex items-center gap-1.5 text-[12px] font-semibold px-4 py-2 rounded-lg transition-all hover:brightness-105 focus:outline-none focus-visible:ring-2"
               style={{ background: AMBER, color: INK, "--tw-ring-color": AMBER }}>
               
-              <Zap className="w-3.5 h-3.5" /> Score Aircraft
+              <Plus className="w-3.5 h-3.5" /> Add Aircraft
             </button>
           </div>
         </div>

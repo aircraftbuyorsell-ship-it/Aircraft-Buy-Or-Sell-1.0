@@ -181,6 +181,20 @@ export default function ListingsHeader({
     if (showLookup && inputRef.current) inputRef.current.focus();
   }, [showLookup]);
 
+  // Global ⌘K / Ctrl+K shortcut to open the N-number lookup — the pill next
+  // to the search input advertised this but no listener ever backed it.
+  useEffect(() => {
+    const onGlobalKeyDown = (e) => {
+      const key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && key === "k") {
+        e.preventDefault();
+        setShowLookup(true);
+      }
+    };
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, []);
+
   const collapse = () => {
     setShowLookup(false);
     setLookupReg("");

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { TOKEN_COSTS } from "@/lib/pricing";
+import MarketspaceTourLauncher from "@/components/marketspace-tour/MarketspaceTourLauncher";
 
 // ─── Design tokens ───────────────────────────────────────────────
 const INK = "#04060a";
@@ -275,6 +276,7 @@ export default function ListingsHeader({
           </span>
 
           <div className="flex items-center gap-2">
+            <MarketspaceTourLauncher />
             <button
               onClick={onShowFAQ}
               aria-label="How it works"

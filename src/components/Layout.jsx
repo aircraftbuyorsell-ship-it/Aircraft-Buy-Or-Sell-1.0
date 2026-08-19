@@ -6,6 +6,7 @@ import {
   ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
+import MarketspaceTour from "@/components/marketspace-tour/MarketspaceTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";

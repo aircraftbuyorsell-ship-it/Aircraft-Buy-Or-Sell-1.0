@@ -18,6 +18,7 @@ import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import { NAV_TREE } from "@/components/layout/navConfig";
+import { useTheme } from "@/lib/useTheme";
 
 
 function initials(user) {
@@ -25,12 +26,13 @@ function initials(user) {
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function DrawerContent({ pathname, user, onNavigate }) {
-  const cardBg = "rgba(255,255,255,0.03)";
-  const border = "rgba(47,55,74,0.72)";
-  const text = "rgba(255,255,255,0.75)";
-  const textDim = "rgba(255,255,255,0.35)";
-  const textFaint = "rgba(255,255,255,0.25)";
+function DrawerContent({ pathname, user, onNavigate, isDark }) {
+  const tx = (darkVal, lightVal) => (isDark ? darkVal : lightVal);
+  const cardBg = tx("rgba(255,255,255,0.03)", "rgba(0,0,0,0.03)");
+  const border = tx("rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
+  const text = tx("rgba(255,255,255,0.75)", "rgba(0,0,0,0.75)");
+  const textDim = tx("rgba(255,255,255,0.35)", "rgba(0,0,0,0.40)");
+  const textFaint = tx("rgba(255,255,255,0.25)", "rgba(0,0,0,0.30)");
 
   return (
     <>
@@ -39,11 +41,11 @@ function DrawerContent({ pathname, user, onNavigate }) {
         <SidebarLogo />
         {/* Time / Location / Theme status bar */}
         <div
-          className="abos-retro-status mt-3 flex items-center justify-between gap-2 px-3 py-2"
+          className="flex items-center justify-between gap-2 mt-3 px-3 py-2 rounded-xl"
           style={{ background: cardBg, border: `0.5px solid ${border}` }}
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin size={11} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
+            <MapPin size={11} style={{ color: "#D4A017", flexShrink: 0 }} />
             <PragueClock />
           </div>
           <ThemeToggle />
@@ -124,7 +126,8 @@ function DrawerContent({ pathname, user, onNavigate }) {
             </button>
           </div> :
 
-        <button onClick={() => base44.auth.redirectToLogin()} className="abos-btn-primary w-full">
+        <button onClick={() => base44.auth.redirectToLogin()}
+        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
             <LogIn size={14} /> Log In
           </button>
         }
@@ -138,6 +141,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const touchStartX = useRef(null);
+  const isDark = useTheme();
 
   const isHomepage = pathname === "/";
   const showBack = !isHomepage;
@@ -172,20 +176,24 @@ export default function Layout() {
     };
   }, []);
 
+  const layoutBg = isDark
+    ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
+    : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+
   return (
-    <div className="abos-retro-shell relative flex min-h-screen flex-col font-sans">
+    <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
       <DotGrid />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill="white" />
+              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "rgba(0,0,0,0.9)"} />
             </marker>
           </defs>
-          <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
+          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
-        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "var(--brand-font-body)" }}>
+        <div style={{ textAlign: "center", marginTop: 18, color: isDark ? "#fff" : "rgba(0,0,0,0.9)", fontFamily: "Inter, -apple-system, sans-serif" }}>
           <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
             ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
@@ -194,42 +202,45 @@ export default function Layout() {
           </span>
         </div>
       </div>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
 
       {/* ── Mobile drawer ── */}
       {mobileOpen &&
       <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMobileOpen(false)}
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
       }
-      <aside className="abos-retro-drawer fixed bottom-0 left-0 top-0 z-[60] flex w-[85vw] max-w-[320px] flex-col overflow-y-auto transition-transform duration-300 lg:hidden"
+      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
-        background: "var(--brand-surface)", borderRight: "1px solid var(--brand-border)",
+        background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3 safe-top">
-          <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="abos-retro-control flex h-11 w-11 shrink-0 items-center justify-center text-muted-foreground">
+          <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
+          style={{ width: "44px", height: "44px", borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChevronLeft size={18} />
           </button>
         </div>
-        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
+        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} isDark={isDark} />
       </aside>
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
-      {(
-      <header className="abos-retro-header sticky top-0 z-40"
-      style={{ background: "rgba(21,25,34,0.94)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--brand-border)" }}>
+      {!isHomepage && (
+      <header className="sticky top-0 z-40"
+      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
-        <div className="abos-retro-header-row safe-left safe-right flex h-[64px] items-center justify-between gap-3 px-4 sm:gap-6 sm:px-8">
+        <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="abos-retro-control flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
+            style={{ width: "40px", height: "40px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Menu size={18} />
             </button>
             {showBack &&
-            <button onClick={() => navigate(-1)} aria-label="Go back" className="abos-retro-control flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground">
-                <ArrowLeft size={16} />
+            <button onClick={() => navigate(-1)} aria-label="Go back"
+            style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
+                <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
               </button>
             }
             {/* Mobile: compact logo; Desktop: full dominant logo */}
@@ -248,28 +259,29 @@ export default function Layout() {
 
           {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
-            <div className="hidden lg:block"><UniversalSearchBar compact /></div>
-            <div className="hidden lg:block"><ThemeToggle /></div>
-            <div className="hidden lg:block"><PragueClock /></div>
+            <UniversalSearchBar compact />
+            <ThemeToggle />
+            <PragueClock />
             {currentUser ?
             <AccountMenu user={currentUser} /> :
 
-            <button onClick={() => base44.auth.redirectToLogin()} className="abos-btn-primary" style={{ padding: "8px 12px", fontSize: "12px", flexShrink: 0 }}>
-                <LogIn size={14} /> <span className="hidden sm:inline">Log In</span>
+            <button onClick={() => base44.auth.redirectToLogin()}
+            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
+                <LogIn size={14} /> <span>Log In</span>
               </button>
             }
           </div>
         </div>
 
         {/* Mobile only: compact icon pill nav on second row */}
-        <div className="lg:hidden flex items-center justify-center pb-3 px-3 safe-left safe-right">
+        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
           <MobilePillNav />
         </div>
       </header>
       )}
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="abos-retro-main relative z-10 flex-1 overflow-x-hidden overflow-y-auto" style={{ background: "transparent" }}>
+      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
           <Outlet />
       </main>
 

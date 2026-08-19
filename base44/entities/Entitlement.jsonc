@@ -14,9 +14,7 @@
         "VALUATION_STUDIO",
         "VERIFICATION_PACK",
         "PRO",
-        "BROKER",
-        "API_PRO",
-        "API_ENTERPRISE"
+        "BROKER"
       ],
       "description": "ABOS product this entitlement grants access to"
     },
@@ -49,7 +47,7 @@
     },
     "stripe_subscription_id": {
       "type": "string",
-      "description": "Stripe Subscription id (PRO/BROKER/API_PRO/API_ENTERPRISE)"
+      "description": "Stripe Subscription id (PRO/BROKER)"
     },
     "stripe_event_id": {
       "type": "string",
@@ -68,7 +66,7 @@
     "current_period_end": {
       "type": "string",
       "format": "date-time",
-      "description": "Subscription current period end (PRO/BROKER/API tiers)"
+      "description": "Subscription current period end (PRO/BROKER)"
     },
     "description": {
       "type": "string",

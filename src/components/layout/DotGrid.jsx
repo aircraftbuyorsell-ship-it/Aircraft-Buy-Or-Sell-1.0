@@ -7,7 +7,7 @@ export default function DotGrid({ opacity = 1, size = 24 }) {
   return (
     <div
       aria-hidden="true"
-      className="abos-shell-grid fixed inset-0 z-0 pointer-events-none"
+      className="fixed inset-0 pointer-events-none z-0"
       style={{
         backgroundImage:
           "radial-gradient(circle, var(--grid-color) 1px, transparent 1px)",

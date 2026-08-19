@@ -74,7 +74,6 @@ export default function AccountMenu({ user }) {
       <button
         onClick={() => setOpen(!open)}
         aria-label="Account menu"
-        className="abos-retro-control"
         style={{
           display: "flex", alignItems: "center", gap: 4,
           background: "transparent", border: "none", cursor: "pointer", padding: 2,
@@ -96,7 +95,7 @@ export default function AccountMenu({ user }) {
       </button>
 
       {open && (
-        <div className="abos-retro-menu" style={{
+        <div style={{
           position: "absolute", top: "calc(100% + 10px)", right: 0,
           width: 240, maxHeight: "72vh", overflowY: "auto",
           background: "linear-gradient(180deg, rgba(28,28,38,0.97) 0%, rgba(16,16,24,0.97) 100%)",

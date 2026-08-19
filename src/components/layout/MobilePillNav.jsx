@@ -1,19 +1,22 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
+import { useTheme } from "@/lib/useTheme";
 
 export default function MobilePillNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isDark = useTheme();
 
-  // Filter to the 4 hubs + Home (5 items) — Pricing is in the drawer
-  const items = NAV_TREE.filter((s) => s.path !== "/pricing");
+  const idleBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)";
+  const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const idleColor = isDark ? "rgba(255,255,255,0.60)" : "rgba(0,0,0,0.55)";
 
   const handleNav = (path) => navigate(path);
 
   return (
-    <div className="w-full">
-      <div className="abos-retro-mobile-nav flex w-full items-center justify-center gap-1">
-        {items.map((section) => {
+    <div className="w-full max-w-sm mx-auto">
+      <div className="flex items-center justify-center gap-1 w-full">
+        {NAV_TREE.map((section) => {
           const active = isPathInSection(section, pathname);
           const Icon = section.icon;
           return (
@@ -22,19 +25,21 @@ export default function MobilePillNav() {
               onClick={() => handleNav(section.path)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 transition-all"
               style={{
-                height: 48,
+                height: 46,
                 minWidth: 44,
                 borderRadius: 14,
                 padding: "4px 2px",
-                background: active ? "rgba(224,176,52,0.08)" : "rgba(255,255,255,0.04)",
+                background: active
+                  ? isDark ? "rgba(212,160,23,0.08)" : "rgba(212,160,23,0.06)"
+                  : idleBg,
                 border: active
-                  ? "1px solid rgba(224,176,52,0.25)"
-                  : "1px solid rgba(47,55,74,0.72)",
-                color: active ? "var(--brand-primary)" : "rgba(255,255,255,0.60)",
+                  ? "1px solid rgba(212,160,23,0.25)"
+                  : `1px solid ${idleBorder}`,
+                color: active ? "#D4A017" : idleColor,
                 cursor: "pointer"
               }}>
-              {Icon && <Icon size={18} style={{ opacity: active ? 1 : 0.7 }} />}
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }}>
+              {Icon && <Icon size={17} style={{ opacity: active ? 1 : 0.7 }} />}
+              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }} className="text-xs capitalize">
                 {section.mobileLabel || section.label}
               </span>
             </button>

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "@/lib/useTheme";
 
 export default function PragueClock() {
   const [now, setNow] = useState(new Date());
+  const isDark = useTheme();
+
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
@@ -12,10 +15,10 @@ export default function PragueClock() {
 
   return (
     <div className="hidden sm:flex flex-col items-end" style={{ lineHeight: 1.2 }}>
-      <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--brand-primary)", fontVariantNumeric: "tabular-nums", letterSpacing: "0.04em" }}>
+      <span style={{ fontSize: "11px", fontWeight: 600, color: "#f5c242", fontVariantNumeric: "tabular-nums", letterSpacing: "0.02em" }}>
         {timeStr}
       </span>
-      <span style={{ fontSize: "9px", color: "var(--brand-muted-foreground)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+      <span style={{ fontSize: "9px", color: isDark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.40)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
         {dateStr} · Prague
       </span>
     </div>

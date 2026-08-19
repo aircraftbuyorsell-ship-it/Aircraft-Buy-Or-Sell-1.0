@@ -105,6 +105,7 @@ import ActivitySummary from "./pages/ActivitySummary";
 import Billing from "./pages/Billing";
 import MyReports from "./pages/MyReports";
 import AdminMonetization from "./pages/AdminMonetization";
+import WalkthroughScript from "./pages/WalkthroughScript";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -224,6 +225,7 @@ const AuthenticatedApp = () => {
         <Route path="/billing" element={<Billing />} />
         <Route path="/my-reports" element={<MyReports />} />
         <Route path="/admin/monetization" element={<AdminMonetization />} />
+        <Route path="/walkthrough-script" element={<WalkthroughScript />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

@@ -323,6 +323,7 @@ export default function Layout() {
 
       <SiteFooter />
       <ABOSTour />
+      <MarketspaceTour />
     </div>);
 
 }

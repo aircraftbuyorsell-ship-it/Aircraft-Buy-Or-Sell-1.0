@@ -115,7 +115,7 @@ export default function ValuationCanvas({ anchor, onVerified, onRunOmvm }) {
       <style>{`@keyframes vs-flow{to{stroke-dashoffset:-16}}.vs-line{animation:vs-flow 1.2s linear infinite}`}</style>
 
       {/* Radial canvas (desktop / tablet) — search field is the center, tools around it */}
-      <div className="relative mx-auto hidden aspect-square max-h-[72vh] w-full max-w-3xl sm:block">
+      <div className="relative mx-auto hidden aspect-square w-full max-w-[min(100%,640px)] sm:block">
         <svg className="absolute inset-0 h-full w-full text-black/20 dark:text-white/15" viewBox="0 0 100 100" preserveAspectRatio="none">
           {TOOLS.map((t, i) => {
             const ang = (i / n) * Math.PI * 2 - Math.PI / 2;

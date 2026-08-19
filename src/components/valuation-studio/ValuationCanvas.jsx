@@ -138,7 +138,8 @@ export default function ValuationCanvas({ anchor, onVerified, onRunOmvm }) {
           const Icon = t.icon;
           return (
             <button key={t.key} onClick={() => handleTool(t)}
-              className="group absolute -translate-x-1/2 -translate-y-1/2">
+              className="group absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${x}%`, top: `${y}%` }}>
               <div className="flex w-16 flex-col items-center gap-1 md:w-20">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/[0.06] bg-white shadow-sm transition group-hover:scale-110 group-hover:shadow-md dark:border-white/10 dark:bg-white/[0.06] md:h-14 md:w-14">
                   <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: t.accent }} />

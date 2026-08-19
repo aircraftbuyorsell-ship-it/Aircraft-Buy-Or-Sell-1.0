@@ -6,6 +6,9 @@ import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
 import HistoricalPriceCheck from "@/components/valuation-studio/HistoricalPriceCheck";
 import { extractAircraftSpecs, mergeExtractedSpecs } from "@/lib/aircraftInput";
+import { useEntitlementGate } from "@/hooks/useEntitlementGate";
+import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
+import { saveReport, recordUsage } from "@/lib/entitlements";
 
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
@@ -26,6 +29,7 @@ const toNumber = (value) => (value === "" ? undefined : Number(value));
 const numOrUndef = (v) => (v == null ? undefined : Number(v));
 
 export default function ValuationStudio() {
+  const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
   const [formData, setFormData] = useState(() => ({
     ...INITIAL_FORM,
     make: readParam("make"),
@@ -55,6 +59,7 @@ export default function ValuationStudio() {
       return;
     }
     setError(null);
+    if (!(await requireAccess("VALUATION_STUDIO", ""))) return;
     setLoading(true);
 
     try {
@@ -109,6 +114,17 @@ export default function ValuationStudio() {
       setResult(response?.data ?? response);
       setAircraft(payload);
       setError(null);
+      // Persist the purchased report (re-access without re-charge) + usage record
+      try {
+        await saveReport({
+          product_key: "VALUATION_STUDIO",
+          aircraft_registration: "",
+          aircraft_label: [merged.year, mergedMake, mergedModel].filter(Boolean).join(" "),
+          report_type: "valuation",
+          result_data: response?.data ?? response,
+        });
+        await recordUsage({ product_key: "VALUATION_STUDIO", aircraft_registration: "" });
+      } catch (_) {}
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {
         base44.auth.redirectToLogin(window.location.href);
@@ -221,6 +237,8 @@ export default function ValuationStudio() {
           </div>
         </div>
       </div>
+
+      <EntitlementGateModal gate={gate} onClose={closeGate} onCheckout={startCheckout} />
     </div>
   );
 }

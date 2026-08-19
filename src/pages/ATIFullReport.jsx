@@ -13,6 +13,9 @@ import HeroHeader from "@/components/intelligence/HeroHeader";
 import ActionBar from "@/components/intelligence/ActionBar";
 import EmptyState from "@/components/intelligence/EmptyState";
 import DimensionAnalyticsRow from "@/components/report/DimensionAnalyticsRow";
+import { useEntitlementGate } from "@/hooks/useEntitlementGate";
+import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
+import { saveReport, recordUsage } from "@/lib/entitlements";
 
 const TABS = ["Overview", "Identity", "Dimensions", "Market", "Risk"];
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
@@ -63,6 +66,7 @@ function AINotice() {
 }
 
 export default function ATIFullReport() {
+  const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
   const [input, setInput] = useState(buildInitialReportInput);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
@@ -100,6 +104,7 @@ export default function ATIFullReport() {
 
   async function handleGenerate() {
     if (!input.trim()) return;
+    if (!(await requireAccess("ATI_FULL_REPORT", (regExtracted || "").toUpperCase()))) return;
     setLoading(true);
     setResult(null);
     setError("");
@@ -155,6 +160,17 @@ export default function ATIFullReport() {
       setResult(flatResult);
       setReportCode(code);
       setTab("Overview");
+      // Persist the purchased report (re-access without re-charge) + usage record
+      try {
+        await saveReport({
+          product_key: "ATI_FULL_REPORT",
+          aircraft_registration: (reg || "").toUpperCase(),
+          report_type: "ati_full_report",
+          result_data: flatResult,
+          confidence: "caution",
+        });
+        await recordUsage({ product_key: "ATI_FULL_REPORT", aircraft_registration: (reg || "").toUpperCase() });
+      } catch (_) {}
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {
         base44.auth.redirectToLogin(window.location.href);
@@ -400,6 +416,8 @@ export default function ATIFullReport() {
           )}
         </div>
       </div>
+
+      <EntitlementGateModal gate={gate} onClose={closeGate} onCheckout={startCheckout} />
     </div>
   );
 }

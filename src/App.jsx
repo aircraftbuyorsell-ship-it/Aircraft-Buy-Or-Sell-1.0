@@ -106,6 +106,10 @@ import Billing from "./pages/Billing";
 import MyReports from "./pages/MyReports";
 import AdminMonetization from "./pages/AdminMonetization";
 import WalkthroughScript from "./pages/WalkthroughScript";
+import MarketspaceHub from "./pages/hubs/MarketspaceHub";
+import IntelligenceHub from "./pages/hubs/IntelligenceHub";
+import VerifyHub from "./pages/hubs/VerifyHub";
+import ApiHub from "./pages/hubs/ApiHub";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -226,6 +230,10 @@ const AuthenticatedApp = () => {
         <Route path="/my-reports" element={<MyReports />} />
         <Route path="/admin/monetization" element={<AdminMonetization />} />
         <Route path="/walkthrough-script" element={<WalkthroughScript />} />
+        <Route path="/marketspace" element={<MarketspaceHub />} />
+        <Route path="/intelligence" element={<IntelligenceHub />} />
+        <Route path="/verify" element={<VerifyHub />} />
+        <Route path="/api" element={<ApiHub />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

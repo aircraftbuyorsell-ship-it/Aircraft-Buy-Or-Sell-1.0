@@ -60,50 +60,13 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
         {NAV_TREE.map((section) =>
-          section.direct ?
           <div key={section.label} style={{ marginTop: 8 }}>
             <NavItem
               to={section.path}
               icon={section.icon}
               label={section.label}
-              active={pathname === section.path}
+              active={pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"))}
               onClick={onNavigate} />
-          </div> :
-          <div key={section.label}>
-            <div style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "rgba(212,160,23,0.55)",
-              padding: "16px 16px 4px",
-              marginTop: 4,
-            }}>
-              {section.label}
-            </div>
-            {section.categories.map((cat) =>
-              <div key={cat.label} style={{ marginBottom: 2 }}>
-                <div style={{
-                  fontSize: "8px",
-                  fontWeight: 600,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  color: textDim,
-                  padding: "8px 16px 2px",
-                }}>
-                  {cat.label}
-                </div>
-                {cat.items.map((item) =>
-                  <NavItem
-                    key={item.path}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    active={pathname === item.path || pathname.startsWith(item.path + "/")}
-                    onClick={onNavigate} />
-                )}
-              </div>
-            )}
           </div>
         )}
       </nav>

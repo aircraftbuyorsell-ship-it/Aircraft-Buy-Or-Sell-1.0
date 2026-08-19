@@ -8,9 +8,7 @@ import BulkActionsBar    from "@/components/listings/BulkActionsBar";
 import ListingRow        from "@/components/listings/ListingRow";
 import SelectAllCheckbox from "@/components/listings/SelectAllCheckbox";
 import ListingDrawer     from "@/components/listings/ListingDrawer";
-import QuickPasteImport  from "@/components/listings/QuickPasteImport";
-import AircraftWizard    from "@/components/aircraft-wizard/AircraftWizard";
-import UpgradeGate       from "@/components/marketing/UpgradeGate";
+import ImportAndEditFlow from "@/components/listings/ImportAndEditFlow";
 
 // ─── v2 design tokens ─────────────────────────────────────────────────────────
 const T = {

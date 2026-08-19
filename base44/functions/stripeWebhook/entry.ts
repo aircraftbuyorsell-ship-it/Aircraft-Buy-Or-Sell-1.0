@@ -149,6 +149,39 @@ async function hasProcessedPayment(base44, paymentId) {
   return existing.length > 0;
 }
 
+async function handleReportCredits(session, base44) {
+  const meta = session.metadata || {};
+  const apiKeyId = meta.api_key_id;
+  const credits  = parseInt(meta.credits || '0', 10);
+  const paymentId = session.payment_intent || session.id;
+  if (!apiKeyId || !credits) { console.warn('report_credits checkout missing api_key_id/credits, skipping'); return; }
+
+  if (await hasProcessedPayment(base44, paymentId)) {
+    console.log(`Duplicate report_credits payment ignored: ${paymentId}`);
+    return;
+  }
+
+  const key = await base44.asServiceRole.entities.ApiKey.get(apiKeyId).catch(() => null);
+  if (!key) { console.warn(`ApiKey ${apiKeyId} not found, cannot grant report credits`); return; }
+
+  const newBalance = (key.report_credits || 0) + credits;
+  await base44.asServiceRole.entities.ApiKey.update(apiKeyId, { report_credits: newBalance });
+
+  // Reuse TokenTransaction as the audit trail for this purchase too — same
+  // hasProcessedPayment() idempotency check reads from it above.
+  await base44.asServiceRole.entities.TokenTransaction.create({
+    user_email:        meta.owner_email || key.owner_email || '',
+    type:              'purchase',
+    amount:            credits,
+    pack:              'ati_report_credits',
+    price_usd:         credits * 29,
+    stripe_payment_id: paymentId,
+    balance_after:     newBalance,
+  });
+
+  console.log(`✓ Granted ${credits} report credit(s) to ApiKey ${apiKeyId}, balance: ${newBalance}`);
+}
+
 async function handleCheckoutCompleted(session, base44) {
   console.log('✅ checkout.session.completed:', session.id);
 
@@ -156,6 +189,11 @@ async function handleCheckoutCompleted(session, base44) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  if (meta.type === 'report_credits') {
+    await handleReportCredits(session, base44);
+    return;
+  }
 
   if (isAbosPlan(meta.plan_type)) {
     if (!userEmail) { console.warn('No email found in buyer checkout session'); return; }

@@ -15,11 +15,11 @@ const FOOTER_LINKS = [
 
 export default function SiteFooter() {
   return (
-    <footer className="border-t border-black/[0.06] bg-[#111113] px-4 py-6 safe-bottom">
+    <footer className="safe-bottom border-t border-border bg-[#0E1014] px-4 py-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-black tracking-tight text-[#F0EDE6]">ABOS MarketSpace</p>
-          <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#E8A83A] mt-0.5">The Global Aircraft Identity & Sales Network</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase text-primary">The Global Aircraft Identity & Sales Network</p>
           <p className="mt-1.5 text-xs text-[#8A8780]">
             Powered by{" "}
             <span className="text-white/40 font-semibold">IntraZone Intelligence</span>
@@ -28,7 +28,7 @@ export default function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2">
           {FOOTER_LINKS.map((link) => (
-            <Link key={link.to} to={link.to} className="text-xs font-bold text-[#8A8780] transition-colors hover:text-[#E8A83A]">
+            <Link key={link.to} to={link.to} className="text-xs font-bold text-muted-foreground transition-colors hover:text-primary">
               {link.label}
             </Link>
           ))}

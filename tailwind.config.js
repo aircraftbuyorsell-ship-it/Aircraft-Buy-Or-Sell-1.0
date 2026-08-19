@@ -3,8 +3,8 @@ module.exports = {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   safelist: [
-    "bg-[#D4A017]", "text-[#D4A017]", "border-[#D4A017]",
-    "bg-[#4d5466]", "bg-[#111827]", "bg-[#111113]",
+    "bg-[#E0B034]", "text-[#E0B034]", "border-[#E0B034]",
+    "bg-[#0B0C10]", "bg-[#151922]", "bg-[#0E1014]",
   ],
   theme: {
     extend: {
@@ -16,9 +16,9 @@ module.exports = {
       },
       colors: {
         gold: {
-          DEFAULT: '#D4A017',
-          bright: '#F5C242',
-          deep: '#A67C00',
+          DEFAULT: '#E0B034',
+          bright: '#FFD043',
+          deep: '#BD911B',
           official: 'var(--gold-official)',
           bg: 'var(--gold-bg)',
         },

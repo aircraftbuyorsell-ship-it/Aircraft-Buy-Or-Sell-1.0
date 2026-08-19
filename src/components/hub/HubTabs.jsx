@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
@@ -20,43 +20,31 @@ export default function HubTabs({ tabs, defaultTab }) {
   };
 
   return (
-    <div className="min-h-[60vh]">
-      {/* Tab bar — sticky, scrollable, unified gold accent */}
-      <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-border bg-background/95 px-4 backdrop-blur md:-mx-8 md:px-8">
-        <div className="flex gap-1 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
+    <div className="grid min-h-[60vh] gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <nav aria-label="Hub tools" className="sticky top-[124px] z-20 self-start overflow-x-auto rounded-xl border border-border bg-card p-2 lg:top-20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-max gap-1 lg:min-w-0 lg:flex-col">
+          {tabs.map((tab, index) => {
             const active = tab.key === activeTab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => selectTab(tab.key)}
-                className={`group inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all md:text-[13px] ${
-                  active
-                    ? "bg-[#D4A017] text-white shadow-md shadow-[#D4A017]/20"
-                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
-                }`}
+                aria-current={active ? "page" : undefined}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-3 rounded-full px-4 text-left text-sm font-bold transition-colors lg:w-full ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
               >
-                {Icon && (
-                  <Icon className={`h-4 w-4 transition-transform ${active ? "scale-110" : "group-hover:scale-105"}`} />
-                )}
+                <span className={`flex h-6 w-6 items-center justify-center rounded-full border text-[10px] ${active ? "border-primary-foreground/30" : "border-border"}`}>{String(index + 1).padStart(2, "0")}</span>
                 {tab.label}
               </button>
             );
           })}
         </div>
-      </div>
+      </nav>
 
-      {/* Active tab content */}
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-6 w-6 animate-spin text-[#D4A017]" />
-          </div>
-        }
-      >
-        <activeTab.Component />
-      </Suspense>
+      <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-background">
+        <Suspense fallback={<div className="flex items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+          <activeTab.Component />
+        </Suspense>
+      </div>
     </div>
   );
 }

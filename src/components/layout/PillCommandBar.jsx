@@ -24,7 +24,7 @@ export default function PillCommandBar() {
               style={{
                 fontSize,
                 fontWeight: active ? 800 : fontWeight,
-                color: active ? "#D4A017" : `rgba(255,255,255,${idleOpacity})`,
+                color: active ? "var(--brand-primary)" : `rgba(255,255,255,${idleOpacity})`,
                 background: "transparent",
                 border: "none",
                 padding: "8px 2px",
@@ -42,8 +42,8 @@ export default function PillCommandBar() {
             {active && (
               <div style={{
                 position: "absolute", bottom: 2, left: 2, right: 2, height: 2,
-                background: "#D4A017", borderRadius: 1,
-                boxShadow: "0 0 8px rgba(212,160,23,0.5)",
+                background: "var(--brand-primary)", borderRadius: 1,
+                boxShadow: "0 0 8px rgba(224,176,52,0.45)",
               }} />
             )}
           </div>

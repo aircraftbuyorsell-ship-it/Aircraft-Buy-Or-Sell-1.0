@@ -53,82 +53,37 @@ export default function HomeHero() {
   };
 
   return (
-    <section className="relative overflow-hidden border-b border-border" style={{ background: "var(--brand-background)" }}>
-      {/* Globe — right side, desktop only */}
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 opacity-40 hidden md:block">
-        <HeroGlobe />
-      </div>
+    <section className="border-b border-border bg-background">
+      <div className="mx-auto grid max-w-[1500px] gap-8 px-4 py-12 md:px-8 md:py-16 lg:grid-cols-[1.05fr_.95fr] lg:items-stretch lg:py-20">
+        <div className="flex flex-col justify-center">
+          <span className="abos-badge-promo mb-6 w-fit"><span className="abos-badge-promo-dot" aria-hidden="true" />ABOS MarketSpace 1.0</span>
+          <h1 className="max-w-3xl text-4xl font-bold text-foreground md:text-6xl">Aircraft intelligence. <span className="text-primary">Verified.</span></h1>
+          <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">From first signal to closed deal. Search any tail number to unlock its Digital Twin, ATI score, real market valuation, ownership history, and verification status.</p>
 
-      {/* Subtle dot grid overlay */}
-      <div className="pointer-events-none absolute inset-0 dot-grid opacity-50" />
-
-      <div className="relative mx-auto max-w-[1500px] px-4 py-12 md:px-8 md:py-24">
-        <div className="max-w-2xl">
-          {/* Promo badge */}
-          <div className="mb-5">
-            <span className="abos-badge-promo">
-              <span className="abos-badge-promo-dot" aria-hidden="true" />
-              ABOS MarketSpace 1.0
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h1 className="mb-4 text-3xl text-foreground md:text-6xl" style={{ lineHeight: "1.08" }}>
-            Aircraft Intelligence,
-            <br />
-            <span style={{ color: "var(--brand-primary)" }}>Verified.</span>
-          </h1>
-
-          <p className="mb-8 max-w-xl text-base text-muted-foreground md:text-lg" style={{ lineHeight: "1.6" }}>
-            Search any tail number to unlock its Digital Twin — ATI score, market valuation,
-            ownership history, and verification status, all in one place.
-          </p>
-
-          {/* Tail-number search — from design system */}
-          <form onSubmit={handleSearch} className="abos-tail-search mb-3">
+          <form onSubmit={handleSearch} className="abos-tail-search mt-8 mb-3">
             <div className="abos-tail-search-shell">
               <div className="abos-tail-search-field">
                 <span className="abos-tail-search-leading"><SearchIcon /></span>
-                <input
-                  className="abos-tail-search-input"
-                  value={query}
-                  onChange={(e) => { setQuery(e.target.value); setError(null); }}
-                  placeholder="Enter aircraft ID"
-                  aria-label="Aircraft tail number"
-                  type="text"
-                />
+                <input className="abos-tail-search-input" value={query} onChange={(e) => { setQuery(e.target.value); setError(null); }} placeholder="Enter aircraft ID" aria-label="Aircraft tail number" type="text" />
               </div>
-              <button className="abos-tail-search-submit" type="submit" disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon />}
-                <span>Check</span>
-              </button>
+              <button className="abos-tail-search-submit" type="submit" disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon />}<span>Check</span></button>
             </div>
           </form>
+          {error && <p className="mb-3 text-sm text-destructive">{error}</p>}
 
-          {error && (
-            <p className="mb-3 text-sm text-destructive">{error}</p>
-          )}
-
-          {/* Quick links */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground">Popular:</span>
-            {["N123AB", "G-ABCD", "D-ELYX"].map((reg) => (
-              <button
-                key={reg}
-                onClick={() => setQuery(reg)}
-                className="abos-badge-tag"
-                style={{ minHeight: "auto", fontSize: "11px", cursor: "pointer" }}
-              >
-                {reg}
-              </button>
-            ))}
+            {["N123AB", "G-ABCD", "D-ELYX"].map((reg) => <button key={reg} onClick={() => setQuery(reg)} className="abos-badge-tag touch-target-compact" style={{ minHeight: "auto", fontSize: "11px", cursor: "pointer" }}>{reg}</button>)}
           </div>
+          <div className="mt-8 flex flex-wrap items-center gap-5"><TrustItem icon={<ShieldCheckIcon />} label="FAA Verified" /><TrustItem icon={<RadarIcon />} label="Live ADS-B" /><TrustItem icon={<PlaneIcon />} label="Global Registry" /></div>
+        </div>
 
-          {/* Trust indicators */}
-          <div className="mt-8 flex flex-wrap items-center gap-5">
-            <TrustItem icon={<ShieldCheckIcon />} label="FAA Verified" />
-            <TrustItem icon={<RadarIcon />} label="Live ADS-B" />
-            <TrustItem icon={<PlaneIcon />} label="Global Registry" />
+        <div className="relative min-h-[320px] overflow-hidden rounded-xl border border-border bg-card md:min-h-[440px]">
+          <HeroGlobe />
+          <div className="pointer-events-none absolute inset-0 dot-grid opacity-30" />
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-background via-background/80 to-transparent p-5 md:p-7">
+            <div><span className="abos-badge-category">Live network</span><p className="mt-2 text-sm font-semibold text-foreground">Global aircraft identity and market signals</p></div>
+            <span className="abos-badge-tag touch-target-compact" style={{ minHeight: "auto" }}>24/7</span>
           </div>
         </div>
       </div>

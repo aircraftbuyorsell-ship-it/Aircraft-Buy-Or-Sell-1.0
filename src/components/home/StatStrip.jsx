@@ -65,7 +65,7 @@ export default function StatStrip() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {ITEMS.map((item) => (
             <div key={item.label} className="glass-card flex items-center gap-3 px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(212,160,23,0.08)" }}>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/[0.06]">
                 {item.icon}
               </div>
               <div className="min-w-0">

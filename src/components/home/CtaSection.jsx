@@ -14,13 +14,13 @@ const SparklesIcon = ({ color = "#D4A017" }) => (
 
 export default function CtaSection() {
   return (
-    <section style={{ background: "var(--brand-background)" }}>
+    <section className="bg-background">
       <div className="mx-auto max-w-[1500px] px-4 py-16 md:px-8 md:py-24">
         <div
           className="relative overflow-hidden p-6 md:p-14"
           style={{
-            background: "linear-gradient(135deg, rgba(212,160,23,0.08) 0%, var(--brand-surface) 50%, var(--brand-surface) 100%)",
-            border: "1px solid rgba(212,160,23,0.2)",
+            background: "linear-gradient(135deg, rgba(224,176,52,0.08) 0%, var(--brand-surface) 50%, var(--brand-surface) 100%)",
+            border: "1px solid rgba(224,176,52,0.22)",
             borderRadius: "var(--brand-radius-lg)",
           }}
         >

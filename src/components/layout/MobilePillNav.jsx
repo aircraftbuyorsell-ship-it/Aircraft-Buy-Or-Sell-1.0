@@ -26,11 +26,11 @@ export default function MobilePillNav() {
                 minWidth: 44,
                 borderRadius: 14,
                 padding: "4px 2px",
-                background: active ? "rgba(212,160,23,0.08)" : "rgba(255,255,255,0.04)",
+                background: active ? "rgba(224,176,52,0.08)" : "rgba(255,255,255,0.04)",
                 border: active
-                  ? "1px solid rgba(212,160,23,0.25)"
-                  : "1px solid rgba(55,65,81,0.5)",
-                color: active ? "#D4A017" : "rgba(255,255,255,0.60)",
+                  ? "1px solid rgba(224,176,52,0.25)"
+                  : "1px solid rgba(47,55,74,0.72)",
+                color: active ? "var(--brand-primary)" : "rgba(255,255,255,0.60)",
                 cursor: "pointer"
               }}>
               {Icon && <Icon size={18} style={{ opacity: active ? 1 : 0.7 }} />}

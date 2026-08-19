@@ -27,7 +27,7 @@ function initials(user) {
 
 function DrawerContent({ pathname, user, onNavigate }) {
   const cardBg = "rgba(255,255,255,0.03)";
-  const border = "rgba(55,65,81,0.5)";
+  const border = "rgba(47,55,74,0.72)";
   const text = "rgba(255,255,255,0.75)";
   const textDim = "rgba(255,255,255,0.35)";
   const textFaint = "rgba(255,255,255,0.25)";
@@ -43,7 +43,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
           style={{ background: cardBg, border: `0.5px solid ${border}` }}
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin size={11} style={{ color: "#D4A017", flexShrink: 0 }} />
+            <MapPin size={11} style={{ color: "var(--brand-primary)", flexShrink: 0 }} />
             <PragueClock />
           </div>
           <ThemeToggle />
@@ -173,7 +173,7 @@ export default function Layout() {
     };
   }, []);
 
-  const layoutBg = { background: "#4d5466", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+  const layoutBg = { background: "var(--brand-background)", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(224,176,52,0.08) 0%, transparent 50%), radial-gradient(ellipse at 92% 88%, rgba(10,60,117,0.10) 0%, transparent 52%)" };
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
@@ -208,7 +208,7 @@ export default function Layout() {
       }
       <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[320px] overflow-y-auto"
       style={{
-        background: "#111827", borderRight: "0.5px solid rgba(55,65,81,0.5)",
+        background: "var(--brand-surface)", borderRight: "1px solid var(--brand-border)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3 safe-top">
@@ -223,7 +223,7 @@ export default function Layout() {
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {(
       <header className="sticky top-0 z-40"
-      style={{ background: "rgba(17,24,39,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(55,65,81,0.4)" }}>
+      style={{ background: "rgba(21,25,34,0.94)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--brand-border)" }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
@@ -260,8 +260,7 @@ export default function Layout() {
             {currentUser ?
             <AccountMenu user={currentUser} /> :
 
-            <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0A101E", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
+            <button onClick={() => base44.auth.redirectToLogin()} className="abos-btn-primary" style={{ padding: "8px 12px", fontSize: "12px", flexShrink: 0 }}>
                 <LogIn size={14} /> <span className="hidden sm:inline">Log In</span>
               </button>
             }

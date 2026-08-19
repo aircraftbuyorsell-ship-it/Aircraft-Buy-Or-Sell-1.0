@@ -1,6 +1,6 @@
 import { Plane, GitBranch, Radar, Scale, Landmark, Users, Globe, Bell, Users2 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
-import HubPageHeader from "@/components/hub/HubPageHeader";
+import HubHero from "@/components/hub/HubHero";
 
 const Listings = lazyPage(() => import("@/pages/Listings"));
 const SalesPipeline = lazyPage(() => import("@/pages/SalesPipeline"));
@@ -26,13 +26,13 @@ const TABS = [
 
 export default function MarketspaceHub() {
   return (
-    <div className="px-4 py-6 md:px-8 md:py-8">
-      <HubPageHeader
-        icon={Plane}
+    <div className="mx-auto max-w-[1500px] px-4 py-6 md:px-8 md:py-10">
+      <HubHero
+        kind="marketspace"
         eyebrow="Marketspace"
         title="Aircraft Trading Hub"
         subtitle="Browse listings, manage deals through the sales pipeline, handle escrow, track leads, and match buyers with sellers."
-        tabCount={TABS.length}
+        toolCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="listings" />
     </div>

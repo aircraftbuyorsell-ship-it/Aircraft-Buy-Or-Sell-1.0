@@ -31,7 +31,7 @@ export default function SidebarLogo({ compact = false }) {
         alt="ABOS Logo"
         width={44}
         height={44}
-        style={{ display: "block", flexShrink: 0, borderRadius: 10, objectFit: "cover", border: "1px solid rgba(212,160,23,0.3)" }}
+        style={{ display: "block", flexShrink: 0, borderRadius: 10, objectFit: "cover", border: "1px solid rgba(224,176,52,0.3)" }}
       />
       <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
         <span style={{
@@ -47,7 +47,7 @@ export default function SidebarLogo({ compact = false }) {
           fontSize: 9,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(212,160,23,0.70)",
+          color: "var(--brand-primary)",
           fontWeight: 700,
           marginTop: 3,
           fontFamily: "var(--brand-font-body)",

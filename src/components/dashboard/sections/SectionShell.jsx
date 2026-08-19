@@ -18,22 +18,20 @@ export default function SectionShell({
       className={topBorder ? "border-t border-border" : ""}
       style={{ background: bg, padding }}
     >
-      <div className="max-w-[1280px] mx-auto px-4 md:px-8">
+      <div className="mx-auto max-w-[1500px] px-4 md:px-8">
         {(eyebrow || title) && (
           <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
             <div>
               {eyebrow && (
-                <p className="text-[10px] tracking-[0.14em] uppercase text-gold-official mb-2">
-                  {eyebrow}
-                </p>
+                <p className="abos-badge-category mb-2">{eyebrow}</p>
               )}
               {title && (
-                <h2 className="text-2xl md:text-[28px] font-medium tracking-[-0.03em] text-foreground m-0">
+                <h2 className="m-0 text-2xl font-semibold text-foreground md:text-[28px]">
                   {title}
                 </h2>
               )}
               {subtitle && (
-                <p className="text-[13px] text-muted-foreground max-w-[560px] leading-[1.6] mt-2">
+                <p className="mt-2 max-w-[560px] text-sm text-muted-foreground">
                   {subtitle}
                 </p>
               )}

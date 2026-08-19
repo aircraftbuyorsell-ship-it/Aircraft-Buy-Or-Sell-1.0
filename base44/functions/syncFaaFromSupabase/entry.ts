@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // ── Helpers (defined before try block so they're in scope in catch) ──
@@ -88,7 +88,9 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
 
-    const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
+    // Parse the request body exactly once; Request streams cannot be consumed twice.
+    const payload = await req.json().catch(() => ({}));
+    const { mode, page, pageSize, search } = payload;
     // Default to registry_sync for scheduled automations (no payload = sync 50 records).
     // The UI page always passes an explicit mode, so this only affects automated calls.
     const currentMode = mode || 'registry_sync';
@@ -148,7 +150,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: browse ──
     if (currentMode === 'browse') {
-      const { status_code: statusFilter } = await req.json().catch(() => ({}));
+      const { status_code: statusFilter } = payload;
       const from = (currentPage - 1) * size;
       const to = from + size - 1;
       const searchFilter = search
@@ -349,10 +351,15 @@ Deno.serve(async (req) => {
         .map((item) => `N${item.n_number}`))];
       let maintenanceProcessed = 0;
       if (maintenanceRegistrations.length) {
-        const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
-          registrations: maintenanceRegistrations,
-        });
-        maintenanceProcessed = maintenanceResponse.data?.processed || 0;
+        try {
+          const maintenanceResponse = await base44.asServiceRole.functions.invoke('calculateEngineMaintenance', {
+            registrations: maintenanceRegistrations,
+          });
+          maintenanceProcessed = maintenanceResponse?.data?.processed || maintenanceResponse?.processed || 0;
+        } catch (maintenanceError) {
+          // Maintenance enrichment is optional and must not roll back a successful FAA registry batch.
+          console.warn('Maintenance enrichment skipped:', errToStr(maintenanceError));
+        }
       }
 
       // Get total for batch tracking
@@ -655,7 +662,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: registry_import_single ──
     if (currentMode === 'registry_import_single') {
-      const { n_number } = await req.json().catch(() => ({}));
+      const { n_number } = payload;
       if (!n_number) return Response.json({ error: 'n_number required' }, { status: 400 });
 
       const { data: rows, error: rowErr } = await supabaseAdmin
@@ -685,7 +692,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: acftref_enrich_single ──
     if (currentMode === 'acftref_enrich_single') {
-      const { code } = await req.json().catch(() => ({}));
+      const { code } = payload;
       if (!code) return Response.json({ error: 'code required' }, { status: 400 });
 
       const { data: refs, error: refErr } = await supabaseAdmin
@@ -713,7 +720,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: dealers_import_single ──
     if (currentMode === 'dealers_import_single') {
-      const { cert_num } = await req.json().catch(() => ({}));
+      const { cert_num } = payload;
       if (!cert_num) return Response.json({ error: 'cert_num required' }, { status: 400 });
 
       const { data: rows, error: rowErr } = await supabaseAdmin
@@ -738,7 +745,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: engine_enrich_single ──
     if (currentMode === 'engine_enrich_single') {
-      const { code } = await req.json().catch(() => ({}));
+      const { code } = payload;
       if (!code) return Response.json({ error: 'code required' }, { status: 400 });
 
       const { data: refs, error: refErr } = await supabaseAdmin

@@ -1,15 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
-import { useTheme } from "@/lib/useTheme";
 
 export default function MobilePillNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const isDark = useTheme();
-
-  const idleBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)";
-  const idleBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-  const idleColor = isDark ? "rgba(255,255,255,0.60)" : "rgba(0,0,0,0.55)";
 
   const handleNav = (path) => navigate(path);
 
@@ -29,13 +23,11 @@ export default function MobilePillNav() {
                 minWidth: 44,
                 borderRadius: 14,
                 padding: "4px 2px",
-                background: active
-                  ? isDark ? "rgba(212,160,23,0.08)" : "rgba(212,160,23,0.06)"
-                  : idleBg,
+                background: active ? "rgba(212,160,23,0.08)" : "rgba(255,255,255,0.04)",
                 border: active
                   ? "1px solid rgba(212,160,23,0.25)"
-                  : `1px solid ${idleBorder}`,
-                color: active ? "#D4A017" : idleColor,
+                  : "1px solid rgba(55,65,81,0.5)",
+                color: active ? "#D4A017" : "rgba(255,255,255,0.60)",
                 cursor: "pointer"
               }}>
               {Icon && <Icon size={17} style={{ opacity: active ? 1 : 0.7 }} />}

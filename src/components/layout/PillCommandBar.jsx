@@ -1,15 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_TREE, isPathInSection, navGradientWeight } from "@/components/layout/navConfig";
-import { useTheme } from "@/lib/useTheme";
 
 /** Flat text nav bar — all sections are direct links to the 4 hubs + Home + Pricing. */
 export default function PillCommandBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const isDark = useTheme();
-
-  const idleColor = isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.60)";
-  const hoverColor = isDark ? "#fff" : "#000";
 
   const handleNav = (path) => navigate(path);
 
@@ -29,7 +24,7 @@ export default function PillCommandBar() {
               style={{
                 fontSize,
                 fontWeight: active ? 800 : fontWeight,
-                color: active ? "#D4A017" : `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`,
+                color: active ? "#D4A017" : `rgba(255,255,255,${idleOpacity})`,
                 background: "transparent",
                 border: "none",
                 padding: "8px 2px",
@@ -39,8 +34,8 @@ export default function PillCommandBar() {
                 textShadow: w > 0.6 ? `0 0 ${w * 12}px rgba(212,160,23,${w * 0.15})` : "none",
                 transition: "color 150ms ease, text-shadow 150ms ease",
               }}
-              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = hoverColor; }}
-              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = `rgba(${isDark ? "255,255,255" : "0,0,0"},${idleOpacity})`; }}
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = `rgba(255,255,255,${idleOpacity})`; }}
             >
               {section.label}
             </button>

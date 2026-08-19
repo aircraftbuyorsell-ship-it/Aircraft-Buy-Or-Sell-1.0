@@ -27,12 +27,11 @@ function initials(user) {
 }
 
 function DrawerContent({ pathname, user, onNavigate, isDark }) {
-  const tx = (darkVal, lightVal) => (isDark ? darkVal : lightVal);
-  const cardBg = tx("rgba(255,255,255,0.03)", "rgba(0,0,0,0.03)");
-  const border = tx("rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
-  const text = tx("rgba(255,255,255,0.75)", "rgba(0,0,0,0.75)");
-  const textDim = tx("rgba(255,255,255,0.35)", "rgba(0,0,0,0.40)");
-  const textFaint = tx("rgba(255,255,255,0.25)", "rgba(0,0,0,0.30)");
+  const cardBg = "rgba(255,255,255,0.03)";
+  const border = "rgba(55,65,81,0.5)";
+  const text = "rgba(255,255,255,0.75)";
+  const textDim = "rgba(255,255,255,0.35)";
+  const textFaint = "rgba(255,255,255,0.25)";
 
   return (
     <>
@@ -176,9 +175,7 @@ export default function Layout() {
     };
   }, []);
 
-  const layoutBg = isDark
-    ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
-    : { background: "#fbfaf7", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+  const layoutBg = { background: "#0A101E", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
@@ -187,13 +184,13 @@ export default function Layout() {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
           <defs>
             <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "rgba(0,0,0,0.9)"} />
+              <polygon points="0,0 9,4.5 0,9" fill="white" />
             </marker>
           </defs>
-          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "rgba(0,0,0,0.9)"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
+          <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
-        <div style={{ textAlign: "center", marginTop: 18, color: isDark ? "#fff" : "rgba(0,0,0,0.9)", fontFamily: "Inter, -apple-system, sans-serif" }}>
+        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "Inter, -apple-system, sans-serif" }}>
           <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
             ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
@@ -226,20 +223,20 @@ export default function Layout() {
       </aside>
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
-      {!isHomepage && (
+      {(
       <header className="sticky top-0 z-40"
-      style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
+      style={{ background: "rgba(10,16,30,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(55,65,81,0.4)" }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
             <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            style={{ width: "40px", height: "40px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            style={{ width: "40px", height: "40px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Menu size={18} />
             </button>
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
+            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
                 <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
               </button>
             }

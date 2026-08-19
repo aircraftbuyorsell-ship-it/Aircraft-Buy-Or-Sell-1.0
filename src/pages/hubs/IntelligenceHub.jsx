@@ -3,7 +3,7 @@ import {
   Calculator, Wrench,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
-import HubPageHeader from "@/components/hub/HubPageHeader";
+import InstrumentHubHeader from "@/components/hub/InstrumentHubHeader";
 
 const Analytics = lazyPage(() => import("@/pages/Analytics"));
 const ValuationStudio = lazyPage(() => import("@/pages/ValuationStudio"));
@@ -26,12 +26,16 @@ const TABS = [
 export default function IntelligenceHub() {
   return (
     <div className="px-4 py-6 md:px-8 md:py-8">
-      <HubPageHeader
+      <InstrumentHubHeader
         icon={BarChart2}
         eyebrow="Intelligence"
         title="Market Intelligence & Valuation"
         subtitle="Run valuations, analyze market trends, calculate operating costs, and generate investment briefs — all from one workbench."
-        tabCount={TABS.length}
+        readouts={[
+          { label: "Tools", value: String(TABS.length) },
+          { label: "Currency", value: "EUR" },
+          { label: "Engine", value: "OMVM v5" },
+        ]}
       />
       <HubTabs tabs={TABS} defaultTab="analytics" />
     </div>

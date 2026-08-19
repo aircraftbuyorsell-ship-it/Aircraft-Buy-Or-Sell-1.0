@@ -194,7 +194,7 @@ export default function ValuationStudio() {
         </p>
 
         {/* Interactive board */}
-        <div className="rounded-3xl border border-border bg-card/50 p-5 md:p-8">
+        <div className="rounded-3xl border border-border bg-gradient-to-b from-[#FBFAF7] to-[#F3F3EE] p-5 shadow-sm dark:from-[#0F1626] dark:to-[#0B1220] md:p-8">
           <ValuationCanvas anchor={anchor} onVerified={setAnchor} onRunOmvm={openOmvm} />
         </div>
       </div>

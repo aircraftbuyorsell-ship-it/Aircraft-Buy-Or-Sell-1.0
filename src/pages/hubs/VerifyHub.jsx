@@ -1,5 +1,6 @@
 import {
-  Shield, Search, CheckCircle, ShieldCheck, Award, BadgeCheck, Plane,
+  Shield, Search, CheckCircle, ShieldCheck, Award, BadgeCheck,
+  Radar, Map,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
@@ -11,11 +12,15 @@ const ATIStandard = lazyPage(() => import("@/pages/ATIStandard"));
 const ATIVerify = lazyPage(() => import("@/pages/ATIVerify"));
 const Experts = lazyPage(() => import("@/pages/Experts"));
 const DigitalTwin = lazyPage(() => import("@/pages/DigitalTwin"));
+const TrafficMap = lazyPage(() => import("@/pages/TrafficMap"));
+const FAAMap = lazyPage(() => import("@/pages/FAAMap"));
 
 const TABS = [
   { key: "registry", label: "Registry Lookup", icon: Search, Component: NLookup },
-  { key: "twin", label: "Digital Twin", icon: Plane, Component: DigitalTwin },
-  { key: "passport", label: "ATI Passport", icon: Shield, Component: ATIPassport },
+  { key: "faa-map", label: "FAA Registry Map", icon: Map, Component: FAAMap },
+  { key: "traffic", label: "Live Traffic", icon: Radar, Component: TrafficMap },
+  { key: "twin", label: "Digital Twin", icon: Shield, Component: DigitalTwin },
+  { key: "passport", label: "ATI Passport", icon: ShieldCheck, Component: ATIPassport },
   { key: "prebuy", label: "Pre-Buy Inspection", icon: CheckCircle, Component: PreBuyInspection },
   { key: "ati-standard", label: "ATI Standard", icon: Award, Component: ATIStandard },
   { key: "ati-verify", label: "Verification Center", icon: ShieldCheck, Component: ATIVerify },
@@ -28,8 +33,9 @@ export default function VerifyHub() {
       <HubPageHeader
         icon={Shield}
         eyebrow="Verify"
-        title="Aircraft & Document Verification"
-        subtitle="Look up registrations, inspect digital twins, run pre-buy inspections, verify documentation, and connect with certified aviation experts."
+        title="Aircraft & Identity Verification"
+        subtitle="Track live traffic, look up registrations, inspect digital twins, run pre-buy inspections, and connect with certified aviation experts."
+        tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="registry" />
     </div>

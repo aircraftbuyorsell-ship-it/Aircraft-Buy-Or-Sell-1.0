@@ -32,6 +32,7 @@ export default function MarketspaceHub() {
         eyebrow="Marketspace"
         title="Aircraft Trading Hub"
         subtitle="Browse listings, manage deals through the sales pipeline, handle escrow, track leads, and match buyers with sellers."
+        tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="listings" />
     </div>

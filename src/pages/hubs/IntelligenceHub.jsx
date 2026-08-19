@@ -1,6 +1,6 @@
 import {
   BarChart2, SlidersHorizontal, FileText, Brain, BrainCircuit,
-  Plane, Map, Wrench, Calculator,
+  Calculator, Wrench,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
@@ -10,8 +10,6 @@ const ValuationStudio = lazyPage(() => import("@/pages/ValuationStudio"));
 const MarketReports = lazyPage(() => import("@/pages/MarketReports"));
 const InvestmentBrief = lazyPage(() => import("@/pages/InvestmentBrief"));
 const FinanceAdvisorChat = lazyPage(() => import("@/pages/FinanceAdvisorChat"));
-const TrafficMap = lazyPage(() => import("@/pages/TrafficMap"));
-const FAAMap = lazyPage(() => import("@/pages/FAAMap"));
 const ServiceIntelligence = lazyPage(() => import("@/pages/ServiceIntelligence"));
 const CalculatorsHub = lazyPage(() => import("@/pages/CalculatorsHub"));
 
@@ -22,8 +20,6 @@ const TABS = [
   { key: "investment", label: "Investment Brief", icon: Brain, Component: InvestmentBrief },
   { key: "finance-advisor", label: "Finance Advisor", icon: BrainCircuit, Component: FinanceAdvisorChat },
   { key: "calculators", label: "Calculators", icon: Calculator, Component: CalculatorsHub },
-  { key: "traffic", label: "Live Traffic", icon: Plane, Component: TrafficMap },
-  { key: "faa-map", label: "FAA Registry Map", icon: Map, Component: FAAMap },
   { key: "service-intel", label: "Service Intel", icon: Wrench, Component: ServiceIntelligence },
 ];
 
@@ -34,7 +30,8 @@ export default function IntelligenceHub() {
         icon={BarChart2}
         eyebrow="Intelligence"
         title="Market Intelligence & Valuation"
-        subtitle="Run valuations, compare aircraft, analyze market trends, calculate operating costs, and generate investment briefs — all from one workbench."
+        subtitle="Run valuations, analyze market trends, calculate operating costs, and generate investment briefs — all from one workbench."
+        tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="analytics" />
     </div>

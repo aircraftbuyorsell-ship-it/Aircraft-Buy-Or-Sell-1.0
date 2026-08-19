@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
@@ -21,9 +21,9 @@ export default function HubTabs({ tabs, defaultTab }) {
 
   return (
     <div className="min-h-[60vh]">
-      {/* Tab bar */}
+      {/* Tab bar — sticky, scrollable, unified gold accent */}
       <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-border bg-background/95 px-4 backdrop-blur md:-mx-8 md:px-8">
-        <div className="flex gap-1 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-1 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = tab.key === activeTab.key;
@@ -31,13 +31,15 @@ export default function HubTabs({ tabs, defaultTab }) {
               <button
                 key={tab.key}
                 onClick={() => selectTab(tab.key)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-colors md:text-[13px] ${
+                className={`group inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all md:text-[13px] ${
                   active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-[#D4A017] text-white shadow-md shadow-[#D4A017]/20"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 }`}
               >
-                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {Icon && (
+                  <Icon className={`h-4 w-4 transition-transform ${active ? "scale-110" : "group-hover:scale-105"}`} />
+                )}
                 {tab.label}
               </button>
             );
@@ -49,7 +51,7 @@ export default function HubTabs({ tabs, defaultTab }) {
       <Suspense
         fallback={
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#D4A017]" />
           </div>
         }
       >

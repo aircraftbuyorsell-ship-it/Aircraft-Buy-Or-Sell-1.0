@@ -32,6 +32,7 @@ export default function ApiHub() {
         eyebrow="Developer API"
         title="API, MCP & Developer Hub"
         subtitle="Core API endpoints, MCP server, SDK references, integration kit, agent connections, workflow management, and the developer marketplace — everything builders need."
+        tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="core-api" />
     </div>

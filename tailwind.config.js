@@ -4,15 +4,15 @@ module.exports = {
   content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   safelist: [
     "bg-[#D4A017]", "text-[#D4A017]", "border-[#D4A017]",
-    "bg-[#0A101E]", "bg-[#111827]",
+    "bg-[#4d5466]", "bg-[#111827]", "bg-[#111113]",
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Abril Fatface', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Abril Fatface', 'sans-serif'],
-        body: ['Abril Fatface', 'Inter', 'sans-serif'],
-        display: ['Abril Fatface', 'sans-serif'],
+        sans: ['Work Sans', 'system-ui', 'sans-serif'],
+        heading: ['Work Sans', 'sans-serif'],
+        body: ['Work Sans', 'sans-serif'],
+        display: ['Work Sans', 'sans-serif'],
       },
       colors: {
         gold: {

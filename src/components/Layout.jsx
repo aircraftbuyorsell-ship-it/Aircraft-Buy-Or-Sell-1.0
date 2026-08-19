@@ -173,7 +173,7 @@ export default function Layout() {
     };
   }, []);
 
-  const layoutBg = { background: "#0A101E", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
+  const layoutBg = { background: "#4d5466", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.10) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.08) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.05) 0%, transparent 40%)" };
 
   return (
     <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
@@ -188,7 +188,7 @@ export default function Layout() {
           <polyline points="2,98 52,8 70,98" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
         </svg>
-        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "Inter, -apple-system, sans-serif" }}>
+        <div style={{ textAlign: "center", marginTop: 18, color: "#fff", fontFamily: "var(--brand-font-body)" }}>
           <span style={{ fontSize: 42, fontWeight: 900, letterSpacing: "-0.03em" }}>
             ABOS<span style={{ fontSize: 18, fontWeight: 600, verticalAlign: "super", marginLeft: 2 }}>™</span>
           </span>
@@ -223,7 +223,7 @@ export default function Layout() {
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {(
       <header className="sticky top-0 z-40"
-      style={{ background: "rgba(10,16,30,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(55,65,81,0.4)" }}>
+      style={{ background: "rgba(17,24,39,0.92)", backdropFilter: "blur(16px)", borderBottom: "0.5px solid rgba(55,65,81,0.4)" }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}

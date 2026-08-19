@@ -50,7 +50,7 @@ export default function SidebarLogo({ compact = false }) {
           color: "rgba(212,160,23,0.70)",
           fontWeight: 700,
           marginTop: 3,
-          fontFamily: "Inter, sans-serif",
+          fontFamily: "var(--brand-font-body)",
         }}>
           {currentSection}
         </span>

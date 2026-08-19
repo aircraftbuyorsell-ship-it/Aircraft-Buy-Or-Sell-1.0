@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,7 +12,7 @@
     color-scheme: dark;
 
     /* shadcn tokens — branded dark */
-    --background: 222 50% 8%;
+    --background: 223 14% 35%;
     --foreground: 0 0% 100%;
     --card: 221 39% 11%;
     --card-foreground: 0 0% 100%;
@@ -32,15 +32,15 @@
     --input: 217 19% 27%;
     --ring: 43 80% 46%;
     --radius: 8px;
-    --font-heading: 'Abril Fatface', sans-serif;
-    --font-body: 'Abril Fatface', sans-serif;
+    --font-heading: 'Work Sans', sans-serif;
+    --font-body: 'Work Sans', sans-serif;
 
     /* Brand variables */
     --brand-primary: #D4A017;
     --brand-on-primary: #0A101E;
     --brand-secondary: #111827;
     --brand-accent: #D4A017;
-    --brand-background: #0A101E;
+    --brand-background: #4d5466;
     --brand-surface: #111827;
     --brand-text: #FFFFFF;
     --brand-muted: #1F2937;
@@ -56,8 +56,8 @@
     --brand-control-foreground: #F8FAFC;
     --brand-hover-gold: #C9A22F;
     --brand-footer-charcoal: #111113;
-    --brand-font-heading: 'Abril Fatface', sans-serif;
-    --brand-font-body: 'Abril Fatface', sans-serif;
+    --brand-font-heading: 'Work Sans', sans-serif;
+    --brand-font-body: 'Work Sans', sans-serif;
     --brand-font-weight-regular: 400;
     --brand-font-weight-medium: 500;
     --brand-font-weight-semibold: 600;
@@ -85,8 +85,8 @@
     --glass-bg-heavy: rgba(17, 24, 39, 0.94);
     --glass-border: rgba(55, 65, 81, 0.5);
     --glass-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    --grid-color: rgba(255, 255, 255, 0.03);
-    --bg-canvas: #0A101E;
+    --grid-color: rgba(255, 255, 255, 0.04);
+    --bg-canvas: #4d5466;
     --gold-official: #D4A017;
     --gold-bg: rgba(212, 160, 23, 0.08);
     --gold: #D4A017;
@@ -96,7 +96,7 @@
     --neon-blue: #3B82F6;
     --neon-purple: #7a00ff;
     --neon-pink: #ff007a;
-    --navbar-bg: rgba(10, 16, 30, 0.92);
+    --navbar-bg: rgba(17, 24, 39, 0.92);
     --navbar-border: rgba(55, 65, 81, 0.4);
   }
 
@@ -118,7 +118,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background: #0A101E;
+    background: #4d5466;
     min-height: 100dvh;
     color: #FFFFFF;
     -webkit-text-size-adjust: 100%;
@@ -186,13 +186,13 @@ input::placeholder, textarea::placeholder { color: #9CA3AF !important; }
   border: 1px solid rgba(55, 65, 81, 0.35);
 }
 .glass-dark {
-  background: linear-gradient(160deg, rgba(17,24,39,0.96) 0%, rgba(10,16,30,0.98) 100%);
+  background: linear-gradient(160deg, rgba(17,24,39,0.96) 0%, rgba(17,24,39,0.98) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid rgba(55, 65, 81, 0.4);
 }
 .glass-navbar {
-  background: rgba(10, 16, 30, 0.92);
+  background: rgba(17, 24, 39, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(55, 65, 81, 0.4);
@@ -261,7 +261,7 @@ tbody tr, [data-scroll-row] { contain: layout style; }
 /* Finance Advisor flow */
 .finance-flow-line {
   color: var(--brand-signal-gold);
-  font-family: 'Inter', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   overflow: hidden;
   white-space: nowrap;
   animation: finance-flow 1s linear infinite;
@@ -299,7 +299,6 @@ tbody tr, [data-scroll-row] { contain: layout style; }
   transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1), border-color .15s cubic-bezier(.4,0,.2,1), opacity .15s;
 }
 .abos-btn-primary svg { width: 16px; height: 16px; flex: none; }
-.abos-btn-primary:hover { background: var(--brand-hover-gold); }
 .abos-btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 
 /* Button · Primary · Arrow CTA (larger padding) */

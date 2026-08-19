@@ -66,7 +66,7 @@ export default function HubGrid() {
   return (
     <section className="border-b border-border" style={{ background: "var(--brand-background)" }}>
       <div className="mx-auto max-w-[1500px] px-4 py-12 md:px-8 md:py-16">
-        <div className="mb-8 flex items-end justify-between">
+        <div className="mb-6 flex items-end justify-between">
           <div>
             <p className="mb-1 abos-badge-category">Explore the platform</p>
             <h2 className="text-2xl text-foreground md:text-3xl">Four hubs. One mission.</h2>
@@ -83,7 +83,7 @@ export default function HubGrid() {
               <Link
                 key={hub.label}
                 to={hub.path}
-                className="group glass-card flex flex-col p-5 no-underline"
+                className="group glass-card flex flex-col p-4 md:p-5 no-underline"
               >
                 {/* Icon */}
                 <div
@@ -104,8 +104,8 @@ export default function HubGrid() {
                 {/* Tools list */}
                 <span className="mb-3 abos-badge-category">{hub.tools}</span>
 
-                {/* Arrow */}
-                <div className="flex items-center gap-1.5 text-xs font-bold opacity-0 transition-opacity duration-150 group-hover:opacity-100" style={{ color: "var(--brand-primary)" }}>
+                {/* Arrow — always visible on mobile, hover-reveal on desktop */}
+                <div className="flex items-center gap-1.5 text-xs font-bold opacity-100 lg:opacity-0 transition-opacity duration-150 lg:group-hover:opacity-100" style={{ color: "var(--brand-primary)" }}>
                   <span>Enter hub</span>
                   <ArrowRightIcon />
                 </div>

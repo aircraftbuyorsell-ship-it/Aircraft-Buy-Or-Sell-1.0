@@ -18,7 +18,6 @@ import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import { NAV_TREE } from "@/components/layout/navConfig";
-import { useTheme } from "@/lib/useTheme";
 
 
 function initials(user) {
@@ -26,7 +25,7 @@ function initials(user) {
   return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function DrawerContent({ pathname, user, onNavigate, isDark }) {
+function DrawerContent({ pathname, user, onNavigate }) {
   const cardBg = "rgba(255,255,255,0.03)";
   const border = "rgba(55,65,81,0.5)";
   const text = "rgba(255,255,255,0.75)";
@@ -126,7 +125,7 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
           </div> :
 
         <button onClick={() => base44.auth.redirectToLogin()}
-        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0A101E", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
             <LogIn size={14} /> Log In
           </button>
         }
@@ -140,7 +139,6 @@ export default function Layout() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const touchStartX = useRef(null);
-  const isDark = useTheme();
 
   const isHomepage = pathname === "/";
   const showBack = !isHomepage;
@@ -199,27 +197,27 @@ export default function Layout() {
           </span>
         </div>
       </div>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0B1220] focus:rounded-xl focus:text-sm focus:font-bold">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0A101E] focus:rounded-xl focus:text-sm focus:font-bold">
         Skip to content
       </a>
 
       {/* ── Mobile drawer ── */}
       {mobileOpen &&
       <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMobileOpen(false)}
-      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
       }
-      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
+      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[320px] overflow-y-auto"
       style={{
-        background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+        background: "#111827", borderRight: "0.5px solid rgba(55,65,81,0.5)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3 safe-top">
           <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "44px", height: "44px", borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(55,65,81,0.5)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChevronLeft size={18} />
           </button>
         </div>
-        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} isDark={isDark} />
+        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} />
       </aside>
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
@@ -236,8 +234,8 @@ export default function Layout() {
             </button>
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
-                <ArrowLeft size={16} /> <span className="hidden sm:inline">Back</span>
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", flexShrink: 0, width: 40, height: 40 }}>
+                <ArrowLeft size={16} />
               </button>
             }
             {/* Mobile: compact logo; Desktop: full dominant logo */}
@@ -256,22 +254,22 @@ export default function Layout() {
 
           {/* Right: theme toggle + Prague date/time + user — balanced with logo width */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 lg:w-[260px] lg:justify-end">
-            <UniversalSearchBar compact />
-            <ThemeToggle />
-            <PragueClock />
+            <div className="hidden lg:block"><UniversalSearchBar compact /></div>
+            <div className="hidden lg:block"><ThemeToggle /></div>
+            <div className="hidden lg:block"><PragueClock /></div>
             {currentUser ?
             <AccountMenu user={currentUser} /> :
 
             <button onClick={() => base44.auth.redirectToLogin()}
-            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
-                <LogIn size={14} /> <span>Log In</span>
+            style={{ display: "flex", alignItems: "center", gap: "5px", background: "#D4A017", color: "#0A101E", border: "none", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer", flexShrink: 0, minHeight: 36 }}>
+                <LogIn size={14} /> <span className="hidden sm:inline">Log In</span>
               </button>
             }
           </div>
         </div>
 
         {/* Mobile only: compact icon pill nav on second row */}
-        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
+        <div className="lg:hidden flex items-center justify-center pb-3 px-3 safe-left safe-right">
           <MobilePillNav />
         </div>
       </header>

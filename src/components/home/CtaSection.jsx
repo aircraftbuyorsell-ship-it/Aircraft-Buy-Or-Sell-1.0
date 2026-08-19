@@ -17,7 +17,7 @@ export default function CtaSection() {
     <section style={{ background: "var(--brand-background)" }}>
       <div className="mx-auto max-w-[1500px] px-4 py-16 md:px-8 md:py-24">
         <div
-          className="relative overflow-hidden p-8 md:p-14"
+          className="relative overflow-hidden p-6 md:p-14"
           style={{
             background: "linear-gradient(135deg, rgba(212,160,23,0.08) 0%, var(--brand-surface) 50%, var(--brand-surface) 100%)",
             border: "1px solid rgba(212,160,23,0.2)",
@@ -34,7 +34,7 @@ export default function CtaSection() {
               </span>
             </div>
 
-            <h2 className="mb-4 text-3xl text-foreground md:text-4xl" style={{ lineHeight: "1.1" }}>
+            <h2 className="mb-4 text-2xl text-foreground md:text-4xl" style={{ lineHeight: "1.1" }}>
               Verify your first aircraft
               <br />
               <span style={{ color: "var(--brand-primary)" }}>in under 60 seconds.</span>

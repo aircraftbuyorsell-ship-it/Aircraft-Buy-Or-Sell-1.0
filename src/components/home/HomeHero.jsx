@@ -62,7 +62,7 @@ export default function HomeHero() {
       {/* Subtle dot grid overlay */}
       <div className="pointer-events-none absolute inset-0 dot-grid opacity-50" />
 
-      <div className="relative mx-auto max-w-[1500px] px-4 py-16 md:px-8 md:py-24">
+      <div className="relative mx-auto max-w-[1500px] px-4 py-12 md:px-8 md:py-24">
         <div className="max-w-2xl">
           {/* Promo badge */}
           <div className="mb-5">
@@ -73,7 +73,7 @@ export default function HomeHero() {
           </div>
 
           {/* Headline */}
-          <h1 className="mb-4 text-4xl text-foreground md:text-6xl" style={{ lineHeight: "1.08" }}>
+          <h1 className="mb-4 text-3xl text-foreground md:text-6xl" style={{ lineHeight: "1.08" }}>
             Aircraft Intelligence,
             <br />
             <span style={{ color: "var(--brand-primary)" }}>Verified.</span>

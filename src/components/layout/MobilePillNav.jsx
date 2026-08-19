@@ -5,12 +5,15 @@ export default function MobilePillNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  // Filter to the 4 hubs + Home (5 items) — Pricing is in the drawer
+  const items = NAV_TREE.filter((s) => s.path !== "/pricing");
+
   const handleNav = (path) => navigate(path);
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="flex items-center justify-center gap-1 w-full">
-        {NAV_TREE.map((section) => {
+    <div className="w-full">
+      <div className="flex items-center justify-center gap-1.5 w-full">
+        {items.map((section) => {
           const active = isPathInSection(section, pathname);
           const Icon = section.icon;
           return (
@@ -19,7 +22,7 @@ export default function MobilePillNav() {
               onClick={() => handleNav(section.path)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 transition-all"
               style={{
-                height: 46,
+                height: 48,
                 minWidth: 44,
                 borderRadius: 14,
                 padding: "4px 2px",
@@ -30,8 +33,8 @@ export default function MobilePillNav() {
                 color: active ? "#D4A017" : "rgba(255,255,255,0.60)",
                 cursor: "pointer"
               }}>
-              {Icon && <Icon size={17} style={{ opacity: active ? 1 : 0.7 }} />}
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }} className="text-xs capitalize">
+              {Icon && <Icon size={18} style={{ opacity: active ? 1 : 0.7 }} />}
+              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }}>
                 {section.mobileLabel || section.label}
               </span>
             </button>

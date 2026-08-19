@@ -494,7 +494,7 @@ export default function SwipeDeck({ listings, onLike, onDiscard, onOffer }) {
           className="absolute inset-0 flex items-center justify-center z-10 mx-auto px-2 md:px-0"
           style={{ width: "100%", left: 0 }}>
           
-          <div className="w-full h-full md:w-[44%]" style={{ height: "92%" }}>
+          <div className="w-full h-[92%] md:w-[44%]">
             {currentListing &&
             <SwipeableCard
               key={currentListing.id}

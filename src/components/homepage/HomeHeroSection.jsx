@@ -43,20 +43,20 @@ export default function HomeHeroSection() {
 
           {/* Right: Aircraft image with annotations + data card */}
           <div className="relative order-1 lg:order-2">
-            <img
-              src="https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1400&q=80"
-              alt="Business jet on tarmac"
-              className="aspect-[4/3] w-full rounded-2xl object-cover shadow-2xl" />
+            
+
+
+            
             
 
             {/* Annotations — desktop only */}
             {ANNOTATIONS.map((a) =>
             <div key={a.label} className="absolute hidden items-center gap-2 lg:flex" style={a.style}>
-                <div className="h-2 w-2 rounded-full bg-white shadow-lg hidden" />
-                <div className="h-px w-6 bg-white/60 hidden" />
-                <span className="whitespace-nowrap rounded-full bg-black/70 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm hidden">
-                  {a.label} {a.value}
-                </span>
+                
+                
+                
+
+              
               </div>
             )}
 

@@ -190,6 +190,12 @@ async function handleCheckoutCompleted(session, base44) {
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
 
+  // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
+  if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {
+    await handleProductCheckout(session, base44);
+    return;
+  }
+
   if (meta.type === 'report_credits') {
     await handleReportCredits(session, base44);
     return;
@@ -273,6 +279,10 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
   const subMeta = subscription.metadata || {};
+  if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
+    await handleProductSubscription(subscription, stripe, base44);
+    return;
+  }
   if (isAbosPlan(subMeta.plan_type)) {
     await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, ['active', 'trialing'].includes(subscription.status));
     return;
@@ -377,6 +387,10 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   if (!userEmail) return;
 
   const subMeta = subscription.metadata || {};
+  if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
+    await handleProductSubscription(subscription, stripe, base44);
+    return;
+  }
   if (isAbosPlan(subMeta.plan_type)) {
     await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, false);
     return;
@@ -393,6 +407,84 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   if (behaviors[0]) {
     await base44.asServiceRole.entities.UserBehavior.update(behaviors[0].id, { tier: 'free_explorer' });
   }
+}
+
+// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
+const PRODUCT_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'PRO', 'BROKER']);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
+
+async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
+  const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
+  if (existing.length > 0) return false;
+  await base44.asServiceRole.entities.PaymentEvent.create({
+    stripe_event_id: eventId, event_type: type, user_email: email || '', product_key: productKey || '',
+    stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '', amount_eur: amountEur || 0, status: status || 'processed',
+  });
+  return true;
+}
+
+// checkout.session.completed for a product purchase → grant entitlement (idempotent).
+async function handleProductCheckout(session, base44) {
+  const meta = session.metadata || {};
+  const productKey = meta.product_key;
+  if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
+  const email = meta.user_email || session.customer_email || session.customer_details?.email;
+  const eventId = `co_${session.id}`;
+  if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'processed'))) {
+    console.log(`Duplicate product checkout ignored: ${eventId}`);
+    return true;
+  }
+  if (!email) { console.warn('product checkout: no email'); return true; }
+
+  if (SUB_PRODUCT_KEYS.has(productKey)) {
+    await base44.asServiceRole.entities.Entitlement.create({
+      user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
+      stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',
+      current_period_end: session.expires_at || null,
+    });
+    console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
+    return true;
+  }
+
+  await base44.asServiceRole.entities.Entitlement.create({
+    user_email: email, product_key: productKey, scope: 'aircraft',
+    aircraft_registration: (meta.aircraft_registration || '').toUpperCase(), source: 'stripe',
+    stripe_payment_id: session.payment_intent || session.id, stripe_event_id: eventId, status: 'active',
+  });
+  console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${meta.aircraft_registration || 'global'})`);
+  return true;
+}
+
+// subscription.updated/deleted for PRO/BROKER → sync entitlement status (idempotent).
+async function handleProductSubscription(subscription, stripe, base44) {
+  const meta = subscription.metadata || {};
+  const productKey = meta.product_key;
+  if (!productKey || !SUB_PRODUCT_KEYS.has(productKey)) return false;
+  const email = await resolveEmailFromCustomer(stripe, subscription.customer);
+  if (!email) return true;
+  const active = ['active', 'trialing'].includes(subscription.status);
+  const eventId = `sub_${subscription.id}_${subscription.status}`;
+  const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+
+  const existing = await base44.asServiceRole.entities.Entitlement.filter(
+    { user_email: email, product_key: productKey, stripe_subscription_id: subscription.id }, '-created_date', 1
+  );
+  if (existing[0]) {
+    await base44.asServiceRole.entities.Entitlement.update(existing[0].id, {
+      status: active ? 'active' : 'expired',
+      current_period_end: periodEnd,
+      stripe_event_id: eventId,
+    });
+  } else {
+    await base44.asServiceRole.entities.Entitlement.create({
+      user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
+      stripe_subscription_id: subscription.id, stripe_event_id: eventId,
+      status: active ? 'active' : 'expired', current_period_end: periodEnd,
+    });
+  }
+  await markPaymentEvent(base44, eventId, 'customer.subscription.' + (active ? 'active' : subscription.status), email, productKey, '', subscription.id, 0, active ? 'processed' : 'ignored');
+  console.log(`✓ Subscription entitlement synced: ${email} → ${productKey} (${active ? 'active' : 'expired'})`);
+  return true;
 }
 
 Deno.serve(async (req) => {

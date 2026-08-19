@@ -17,8 +17,8 @@ import Stripe from 'npm:stripe@14.25.0';
 
 const PRODUCT_CATALOG = {
   ATI_SCORE:        { name: 'ATI Score',           type: 'one_time',     price_eur: 9.90,  currency: 'eur' },
-  ATI_FULL_REPORT:  { name: 'ATI Full Report',     type: 'one_time',     price_eur: 29.90, currency: 'eur' },
-  VALUATION_STUDIO: { name: 'Valuation Studio',     type: 'one_time',     price_eur: 49.00, currency: 'eur' },
+  ATI_FULL_REPORT:  { name: 'ATI Full Report',     type: 'one_time',     price_eur: 49.00, currency: 'eur' },
+  VALUATION_STUDIO: { name: 'Valuation Studio',     type: 'one_time',     price_eur: 29.00, currency: 'eur' },
   VERIFICATION_PACK:{ name: 'Verification Pack',    type: 'one_time',     price_eur: 19.90, currency: 'eur' },
   PRO:              { name: 'ABOS Professional',    type: 'subscription', price_eur: 99,    currency: 'eur', interval: 'month' },
   BROKER:           { name: 'ABOS Broker / Dealer', type: 'subscription', price_eur: 299,   currency: 'eur', interval: 'month' },

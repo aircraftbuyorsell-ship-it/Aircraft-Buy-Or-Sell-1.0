@@ -118,12 +118,109 @@ export const PRODUCT_CATALOG = [
       'Priority integration features',
     ],
   },
+  // ── Developer API (subscription) ──
+  {
+    key: 'API_PRO',
+    name: 'API Pro',
+    type: 'subscription',
+    price_eur: 49,
+    currency: 'eur',
+    interval: 'month',
+    category: 'developer',
+    icon: 'Code',
+    tagline: 'For developers building with ABOS',
+    features: [
+      '300 requests / min',
+      '20,000 requests / day',
+      'All API scopes (search, valuate, extract, listings)',
+      'ADL & APL protocol access',
+      'MCP server connectivity',
+      'Webhook event delivery',
+      'Integration Kit & Widget Gateway',
+      'Email support',
+    ],
+  },
+  {
+    key: 'API_ENTERPRISE',
+    name: 'API Enterprise',
+    type: 'subscription',
+    price_eur: 199,
+    currency: 'eur',
+    interval: 'month',
+    category: 'developer',
+    icon: 'Crown',
+    tagline: 'For platforms & high-volume partners',
+    features: [
+      'Custom rate limits',
+      'Unlimited daily requests',
+      'All API scopes + white-label',
+      'ADL & APL protocol access',
+      'Dedicated MCP instance',
+      'Webhook event delivery + retries',
+      'Integration Kit & Widget Gateway',
+      'Multiple API keys & team management',
+      'SLA & priority support',
+    ],
+  },
 ];
 
 // Products included (free) under each subscription plan
 export const SUB_INCLUDED = {
   PRO: ['ATI_SCORE', 'VERIFICATION_PACK'],
   BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'],
+};
+
+// Developer API tiers — maps to ApiKey.plan on payment
+export const API_TIERS = {
+  free: {
+    id: 'free',
+    label: 'Free',
+    price_eur: 0,
+    rate_limit_min: 20,
+    rate_limit_day: 500,
+    scopes: ['search:read', 'listing:read'],
+    features: [
+      '20 requests / min',
+      '500 requests / day',
+      'Search & listing read scopes',
+      'Community support',
+    ],
+  },
+  API_PRO: {
+    id: 'API_PRO',
+    label: 'API Pro',
+    price_eur: 49,
+    rate_limit_min: 300,
+    rate_limit_day: 20000,
+    scopes: ['listing:read', 'listing:write', 'search:read', 'intelligence:read'],
+    features: [
+      '300 requests / min',
+      '20,000 requests / day',
+      'All API scopes',
+      'ADL & APL protocol access',
+      'MCP server connectivity',
+      'Webhook delivery',
+      'Email support',
+    ],
+  },
+  API_ENTERPRISE: {
+    id: 'API_ENTERPRISE',
+    label: 'API Enterprise',
+    price_eur: 199,
+    rate_limit_min: null,
+    rate_limit_day: null,
+    scopes: ['listing:read', 'listing:write', 'search:read', 'intelligence:read'],
+    features: [
+      'Custom rate limits',
+      'Unlimited daily requests',
+      'All scopes + white-label',
+      'ADL & APL protocol access',
+      'Dedicated MCP instance',
+      'Webhook + retries',
+      'Multiple API keys',
+      'SLA & priority support',
+    ],
+  },
 };
 
 // Discount applied to paid one-time products under each subscription plan
@@ -134,6 +231,7 @@ export const SUB_DISCOUNT = {
 
 export const ONE_TIME_PRODUCTS = PRODUCT_CATALOG.filter((p) => p.type === 'one_time');
 export const SUBSCRIPTION_PRODUCTS = PRODUCT_CATALOG.filter((p) => p.type === 'subscription');
+export const DEVELOPER_API_PRODUCTS = PRODUCT_CATALOG.filter((p) => p.category === 'developer');
 
 export function getProduct(key) {
   return PRODUCT_CATALOG.find((p) => p.key === key);

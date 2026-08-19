@@ -410,8 +410,18 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
 }
 
 // ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
-const PRODUCT_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'PRO', 'BROKER']);
-const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
+const PRODUCT_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'PRO', 'BROKER', 'API_PRO', 'API_ENTERPRISE']);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER', 'API_PRO', 'API_ENTERPRISE']);
+const API_SUB_KEYS = new Set(['API_PRO', 'API_ENTERPRISE']);
+const API_PLAN_MAP = { API_PRO: 'pro', API_ENTERPRISE: 'enterprise' };
+
+// Upgrades all of a user's active API keys to the purchased plan.
+async function syncApiKeyPlans(base44, userEmail, plan) {
+  const keys = await base44.asServiceRole.entities.ApiKey.filter({ owner_email: userEmail, status: 'active' }, '-created_date', 100);
+  if (!keys.length) { console.log(`No API keys to upgrade for ${userEmail}`); return; }
+  await base44.asServiceRole.entities.ApiKey.bulkUpdate(keys.map((k) => ({ id: k.id, plan })));
+  console.log(`✓ Upgraded ${keys.length} API key(s) for ${userEmail} → plan: ${plan}`);
+}
 
 async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
   const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
@@ -443,6 +453,10 @@ async function handleProductCheckout(session, base44) {
       current_period_end: session.expires_at || null,
     });
     console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
+    // For API subscriptions, upgrade all active API keys to the purchased plan
+    if (API_SUB_KEYS.has(productKey)) {
+      await syncApiKeyPlans(base44, email, API_PLAN_MAP[productKey]);
+    }
     return true;
   }
 
@@ -483,6 +497,10 @@ async function handleProductSubscription(subscription, stripe, base44) {
     });
   }
   await markPaymentEvent(base44, eventId, 'customer.subscription.' + (active ? 'active' : subscription.status), email, productKey, '', subscription.id, 0, active ? 'processed' : 'ignored');
+  // For API subscriptions, sync API key plans on activation/downgrade
+  if (API_SUB_KEYS.has(productKey)) {
+    await syncApiKeyPlans(base44, email, active ? API_PLAN_MAP[productKey] : 'free');
+  }
   console.log(`✓ Subscription entitlement synced: ${email} → ${productKey} (${active ? 'active' : 'expired'})`);
   return true;
 }

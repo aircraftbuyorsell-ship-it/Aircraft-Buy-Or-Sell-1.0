@@ -1,8 +1,9 @@
 import {
-  Code, Store, Wrench, Plug, Bot, GitBranch, Sparkles, Wallet,
+  Code, Store, Wrench, Plug, Bot, GitBranch, Sparkles, Wallet, CreditCard,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
+import DeveloperApiPricing from "@/components/developers/DeveloperApiPricing";
 
 const CoreAPI = lazyPage(() => import("@/pages/CoreAPI"));
 const Marketplace = lazyPage(() => import("@/pages/Marketplace"));
@@ -13,7 +14,10 @@ const Workflows = lazyPage(() => import("@/pages/Workflows"));
 const Skills = lazyPage(() => import("@/pages/Skills"));
 const DeveloperEarnings = lazyPage(() => import("@/pages/DeveloperEarnings"));
 
+const ApiPricingTab = () => <DeveloperApiPricing />;
+
 const TABS = [
+  { key: "pricing", label: "API Pricing", icon: CreditCard, Component: ApiPricingTab },
   { key: "core-api", label: "Core API", icon: Code, Component: CoreAPI },
   { key: "marketplace", label: "Marketplace", icon: Store, Component: Marketplace },
   { key: "developers", label: "Developer Portal", icon: Wallet, Component: Developers },
@@ -34,7 +38,7 @@ export default function ApiHub() {
         subtitle="Core API endpoints, MCP server, SDK references, integration kit, agent connections, workflow management, and the developer marketplace — everything builders need."
         tabCount={TABS.length}
       />
-      <HubTabs tabs={TABS} defaultTab="core-api" />
+      <HubTabs tabs={TABS} defaultTab="pricing" />
     </div>
   );
 }

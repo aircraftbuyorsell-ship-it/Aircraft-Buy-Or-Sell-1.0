@@ -22,12 +22,26 @@ const PRODUCT_CATALOG = {
   VERIFICATION_PACK:{ name: 'Verification Pack',    type: 'one_time',     price_eur: 19.90, currency: 'eur' },
   PRO:              { name: 'ABOS Professional',    type: 'subscription', price_eur: 99,    currency: 'eur', interval: 'month' },
   BROKER:           { name: 'ABOS Broker / Dealer', type: 'subscription', price_eur: 299,   currency: 'eur', interval: 'month' },
+  API_PRO:          { name: 'API Pro',             type: 'subscription', price_eur: 49,    currency: 'eur', interval: 'month' },
+  API_ENTERPRISE:   { name: 'API Enterprise',      type: 'subscription', price_eur: 199,   currency: 'eur', interval: 'month' },
 };
 
 const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'VERIFICATION_PACK'], BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
-const SUB_KEYS = new Set(['PRO', 'BROKER']);
+const SUB_KEYS = new Set(['PRO', 'BROKER', 'API_PRO', 'API_ENTERPRISE']);
 const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
+const API_SUB_KEYS = new Set(['API_PRO', 'API_ENTERPRISE']);
+
+// Maps API subscription product → ApiKey.plan
+const API_PLAN_MAP = { API_PRO: 'pro', API_ENTERPRISE: 'enterprise' };
+
+// Upgrades all of a user's API keys to the plan corresponding to their API subscription.
+async function syncApiKeyPlans(svc, email, plan) {
+  const keys = await svc.entities.ApiKey.filter({ owner_email: email, status: 'active' }, '-created_date', 100);
+  if (!keys.length) return;
+  await svc.entities.ApiKey.bulkUpdate(keys.map((k) => ({ id: k.id, plan })));
+  console.log(`✓ Upgraded ${keys.length} API key(s) for ${email} → plan: ${plan}`);
+}
 
 function isAdmin(user) {
   return user?.role === 'admin' || user?.role === 'super_admin';
@@ -78,6 +92,14 @@ Deno.serve(async (req) => {
         // Subscription product check
         if (SUB_KEYS.has(product_key)) {
           const entitled = subProduct === product_key;
+          // For API products, also check any active API entitlement
+          if (API_SUB_KEYS.has(product_key)) {
+            const apiEnts = await svc.entities.Entitlement.filter(
+              { user_email: user.email, status: 'active', scope: 'global' }, '-created_date', 10
+            );
+            const hasApiSub = apiEnts.some((e) => API_SUB_KEYS.has(e.product_key));
+            return Response.json({ entitled: hasApiSub, reason: hasApiSub ? 'active_api_subscription' : 'no_api_subscription', active_sub_product: subProduct, api_plan: hasApiSub ? apiEnts.find((e) => API_SUB_KEYS.has(e.product_key))?.product_key : null });
+          }
           return Response.json({ entitled, reason: entitled ? 'active_subscription' : 'no_active_subscription', active_sub_product: subProduct });
         }
 
@@ -171,6 +193,23 @@ Deno.serve(async (req) => {
 
         const session = await stripe.checkout.sessions.create(sessionParams);
         return Response.json({ url: session.url, session_id: session.id });
+      }
+
+      // ── Developer API status (current plan + usage) ──
+      case 'list_api_status': {
+        const [ents, keys] = await Promise.all([
+          svc.entities.Entitlement.filter({ user_email: user.email, status: 'active', scope: 'global' }, '-created_date', 10),
+          svc.entities.ApiKey.filter({ owner_email: user.email, status: 'active' }, '-created_date', 50),
+        ]);
+        const apiEnt = ents.find((e) => API_SUB_KEYS.has(e.product_key));
+        const apiPlan = apiEnt ? API_PLAN_MAP[apiEnt.product_key] : 'free';
+        const apiProductKey = apiEnt?.product_key || null;
+        return Response.json({
+          api_plan: apiPlan,
+          api_product_key: apiProductKey,
+          current_period_end: apiEnt?.current_period_end || null,
+          api_keys: keys.map((k) => ({ id: k.id, name: k.name, key_prefix: k.key_prefix, plan: k.plan, scopes: k.scopes, request_count: k.request_count, last_used_at: k.last_used_at })),
+        });
       }
 
       // ── List my entitlements + active subscription ──

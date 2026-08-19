@@ -44,7 +44,7 @@ export default function ListingRow({ listing, onClick, selected, onToggle }) {
     <div
       className="group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 transition-colors last:border-0"
       style={{
-        padding: "14px 14px 14px 18px",
+        padding: "16px 14px 16px 14px",
         borderBottom: `0.5px solid ${T.border}`,
         borderLeft: band.borderLeft,
         background: selected ? T.ink2 : "transparent",
@@ -53,17 +53,36 @@ export default function ListingRow({ listing, onClick, selected, onToggle }) {
       onMouseEnter={(e) => { if (!selected) e.currentTarget.style.background = T.ink2; }}
       onMouseLeave={(e) => { if (!selected) e.currentTarget.style.background = "transparent"; }}
     >
-      {/* Checkbox */}
+      {/* Checkbox — always visible (not hover-only): a hover-gated checkbox is
+          effectively invisible/untappable on touch devices with no mouse. */}
       <button
         onClick={(e) => { e.stopPropagation(); onToggle(listing.id); }}
-        className="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-        style={{ color: T.amber, opacity: selected ? 1 : undefined }}>
-        {selected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" style={{ color: T.w3 }} />}
+        className="shrink-0 transition-opacity"
+        style={{ color: T.amber, opacity: selected ? 1 : 0.55, padding: "4px", margin: "-4px" }}>
+        {selected ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" style={{ color: T.w3 }} />}
       </button>
+
+      {/* Photo thumbnail */}
+      <div
+        onClick={() => !selected && onClick(listing)}
+        className="shrink-0 rounded-lg overflow-hidden"
+        style={{ width: "52px", height: "52px", background: T.ink2, border: `0.5px solid ${T.border}` }}>
+        {listing.photo_url || listing.image_attachments?.[0] ? (
+          <img
+            src={listing.photo_url || listing.image_attachments[0]}
+            alt={`${listing.make} ${listing.model}`}
+            className="w-full h-full object-cover"
+            loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ color: T.w3, fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em" }}>
+            ✈️
+          </div>
+        )}
+      </div>
 
       {/* ATI score value */}
       <div onClick={() => !selected && onClick(listing)} className="shrink-0 w-11 text-center">
-        <span style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-0.03em", color: band.color, fontVariantNumeric: "tabular-nums" }}>
+        <span style={{ fontSize: "17px", fontWeight: 600, letterSpacing: "-0.03em", color: band.color, fontVariantNumeric: "tabular-nums" }}>
           {listing.ati_score ?? "—"}
         </span>
       </div>

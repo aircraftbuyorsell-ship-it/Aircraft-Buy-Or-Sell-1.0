@@ -26,34 +26,6 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Market",
-    mobileLabel: "Market",
-    path: "/listings",
-    icon: Plane,
-    direct: true,
-  },
-  {
-    label: "Activity",
-    mobileLabel: "Activity",
-    path: "/activity",
-    icon: History,
-    direct: true,
-  },
-  {
-    label: "Analytics",
-    mobileLabel: "Analytics",
-    path: "/analytics",
-    icon: BarChart2,
-    direct: true,
-  },
-  {
-    label: "Deal Radar",
-    mobileLabel: "Deals",
-    path: "/deal-radar",
-    icon: Radar,
-    direct: true,
-  },
-  {
     label: "Marketspace",
     mobileLabel: "More",
     path: "/listings",
@@ -80,6 +52,7 @@ export const NAV_TREE = [
           { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
           { path: "/leads", label: "Leads", icon: Users },
           { path: "/community", label: "Community", icon: Users },
+          { path: "/wallet", label: "Wallet", icon: Wallet },
         ],
       },
     ],
@@ -94,6 +67,7 @@ export const NAV_TREE = [
         label: "For Buyers",
         items: [
           { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
+          { path: "/activity", label: "My Activity", icon: History },
           { path: "/market-reports", label: "Market Reports", icon: FileText },
           { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
@@ -152,12 +126,6 @@ export const NAV_TREE = [
     label: "Pricing",
     path: "/pricing",
     icon: CreditCard,
-    direct: true,
-  },
-  {
-    label: "Wallet",
-    path: "/wallet",
-    icon: Wallet,
     direct: true,
   },
 ];

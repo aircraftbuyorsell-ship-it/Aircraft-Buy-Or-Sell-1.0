@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { ONE_TIME_PRODUCTS, SUBSCRIPTION_PRODUCTS, formatEur, effectivePrice } from "@/lib/products";
 import { listMyEntitlements, createCheckout, createCustomerPortal } from "@/lib/entitlements";
-import { ShieldCheck, Loader2, Check, Crown, Building, Lock, ArrowRight } from "lucide-react";
+import { ShieldCheck, Loader2, Check, Crown, Building, Lock, ArrowRight, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 
 const ICONS = { Shield: ShieldCheck, FileBarChart: ShieldCheck, TrendingUp: ShieldCheck, BadgeCheck: ShieldCheck, Crown, Building };
 
@@ -11,10 +12,20 @@ export default function Pricing() {
   const [data, setData] = useState({ active_sub_product: null, entitlements: [], subscriptions: [] });
   const [buying, setBuying] = useState(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [isNewMember, setIsNewMember] = useState(false);
 
   useEffect(() => {
     listMyEntitlements()
-      .then((res) => setData(res))
+      .then((res) => {
+        setData(res);
+        const noPurchases = !(res.entitlements?.length) && !(res.subscriptions?.length);
+        if (noPurchases) {
+          base44.auth.me().then((u) => {
+            const created = new Date(u?.created_date || 0).getTime();
+            if (created && Date.now() - created < 14 * 86400000) setIsNewMember(true);
+          }).catch(() => {});
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -61,6 +72,15 @@ export default function Pricing() {
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-amber-500" /></div>
       ) : (
         <div className="max-w-5xl mx-auto px-4 space-y-10">
+          {isNewMember && (
+            <div className="flex items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-5 py-4">
+              <Gift className="w-6 h-6 text-amber-600 shrink-0" />
+              <div>
+                <p className="text-sm font-black text-amber-700 dark:text-amber-400">New member welcome offer</p>
+                <p className="text-xs text-muted-foreground">30% off your first report or valuation — applied automatically at checkout, valid for 14 days after signup.</p>
+              </div>
+            </div>
+          )}
           {/* ── Individual (one-time) ── */}
           <section>
             <div className="flex items-baseline justify-between mb-4">

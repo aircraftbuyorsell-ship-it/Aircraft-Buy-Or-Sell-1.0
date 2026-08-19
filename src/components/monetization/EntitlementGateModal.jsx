@@ -38,9 +38,14 @@ export default function EntitlementGateModal({ gate, onClose, onCheckout }) {
                 <span className="text-3xl font-black">{formatEur(gate.price)}</span>
                 {gate.discount > 0 && <span className="text-sm line-through text-muted-foreground">{formatEur(gate.originalPrice)}</span>}
                 {gate.discount > 0 && (
-                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-green-500/15 text-green-600">{gate.discount}% off</span>
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-green-500/15 text-green-600">
+                    {Math.round(gate.discount * 100)}% off
+                  </span>
                 )}
               </div>
+            )}
+            {gate.welcome && (
+              <p className="text-[11px] font-bold text-amber-600 mt-1.5">🎁 New member welcome offer — 30% off your first purchase</p>
             )}
             {!isSub && !included && <p className="text-[10px] text-muted-foreground mt-1">one-time · per aircraft · re-access free</p>}
             {isSub && <p className="text-[10px] text-muted-foreground mt-1">per month · cancel anytime</p>}

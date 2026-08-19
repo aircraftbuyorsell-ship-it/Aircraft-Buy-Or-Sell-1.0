@@ -27,6 +27,17 @@ const PRODUCT_CATALOG = {
 const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'VERIFICATION_PACK'], BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER']);
+
+// ── New-member welcome promo: 30% off the first one-time purchase within 14 days of signup ──
+const WELCOME_DISCOUNT = 0.30;
+const WELCOME_WINDOW_DAYS = 14;
+
+async function welcomeDiscountEligible(svc, user) {
+  const created = new Date(user.created_date || 0).getTime();
+  if (!created || Date.now() - created > WELCOME_WINDOW_DAYS * 86400000) return false;
+  const ents = await svc.entities.Entitlement.filter({ user_email: user.email }, '-created_date', 1);
+  return ents.length === 0;
+}
 const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
 
 function isAdmin(user) {
@@ -109,9 +120,14 @@ Deno.serve(async (req) => {
         const product = PRODUCT_CATALOG[product_key];
         let priceEur = product?.price_eur || 0;
         let discountPct = 0;
+        let welcomePromo = false;
         if (subProduct && SUB_DISCOUNT[subProduct]) {
           priceEur = +(priceEur * (1 - SUB_DISCOUNT[subProduct])).toFixed(2);
           discountPct = SUB_DISCOUNT[subProduct];
+        } else if (product?.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
+          priceEur = +(priceEur * (1 - WELCOME_DISCOUNT)).toFixed(2);
+          discountPct = WELCOME_DISCOUNT;
+          welcomePromo = true;
         }
         return Response.json({
           entitled: false,
@@ -119,6 +135,7 @@ Deno.serve(async (req) => {
           checkout_price_eur: priceEur,
           original_price_eur: product?.price_eur || 0,
           discount_pct: discountPct,
+          welcome_promo: welcomePromo,
           active_sub_product: subProduct,
         });
       }
@@ -142,6 +159,8 @@ Deno.serve(async (req) => {
         let unitAmount = Math.round(product.price_eur * 100);
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
           unitAmount = Math.round(product.price_eur * (1 - SUB_DISCOUNT[subProduct]) * 100);
+        } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
+          unitAmount = Math.round(product.price_eur * (1 - WELCOME_DISCOUNT) * 100);
         }
 
         const sessionParams = {

@@ -25,6 +25,7 @@ export function useEntitlementGate() {
         price: res.checkout_price_eur,
         originalPrice: res.original_price_eur,
         discount: res.discount_pct || 0,
+        welcome: res.welcome_promo || false,
         loading: false,
       });
       setChecking(false);

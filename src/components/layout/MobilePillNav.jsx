@@ -12,7 +12,7 @@ export default function MobilePillNav() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-center gap-1.5 w-full">
+      <div className="abos-retro-mobile-nav flex w-full items-center justify-center gap-1">
         {items.map((section) => {
           const active = isPathInSection(section, pathname);
           const Icon = section.icon;

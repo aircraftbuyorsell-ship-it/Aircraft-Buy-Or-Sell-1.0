@@ -15,7 +15,7 @@ const FOOTER_LINKS = [
 
 export default function SiteFooter() {
   return (
-    <footer className="safe-bottom border-t border-border bg-[#0E1014] px-4 py-6">
+    <footer className="abos-retro-footer safe-bottom bg-[#0E1014] px-4 py-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-black tracking-tight text-[#F0EDE6]">ABOS MarketSpace</p>

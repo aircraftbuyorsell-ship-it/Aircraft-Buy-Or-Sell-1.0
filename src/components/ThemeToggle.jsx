@@ -46,12 +46,11 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={cycle}
-      className="relative flex items-center gap-2 px-2.5 h-9 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all overflow-hidden"
+      className="abos-retro-control relative flex h-9 items-center gap-2 overflow-hidden px-2.5 text-[11px] font-bold uppercase"
       style={{
-        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(255,255,255,0.06)",
-        border: "1px solid",
-        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(255,255,255,0.10)",
-        color: isDark ? "#F5C842" : "rgba(255,255,255,0.70)",
+        background: "var(--brand-secondary)",
+        border: "1px solid var(--brand-border)",
+        color: isDark ? "var(--brand-primary)" : "var(--brand-muted-foreground)",
       }}
       aria-label={`Theme: ${mode}. Click to change.`}
       title={mode === "auto" ? "Auto (time-based) — click for dark" : isDark ? "Dark mode — click for light" : "Light mode — click for auto"}

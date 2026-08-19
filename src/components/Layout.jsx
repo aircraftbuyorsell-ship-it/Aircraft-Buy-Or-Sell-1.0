@@ -39,7 +39,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
         <SidebarLogo />
         {/* Time / Location / Theme status bar */}
         <div
-          className="flex items-center justify-between gap-2 mt-3 px-3 py-2 rounded-xl"
+          className="abos-retro-status mt-3 flex items-center justify-between gap-2 px-3 py-2"
           style={{ background: cardBg, border: `0.5px solid ${border}` }}
         >
           <div className="flex items-center gap-1.5 min-w-0">
@@ -124,8 +124,7 @@ function DrawerContent({ pathname, user, onNavigate }) {
             </button>
           </div> :
 
-        <button onClick={() => base44.auth.redirectToLogin()}
-        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0A101E", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
+        <button onClick={() => base44.auth.redirectToLogin()} className="abos-btn-primary w-full">
             <LogIn size={14} /> Log In
           </button>
         }
@@ -173,10 +172,8 @@ export default function Layout() {
     };
   }, []);
 
-  const layoutBg = { background: "var(--brand-background)", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(224,176,52,0.08) 0%, transparent 50%), radial-gradient(ellipse at 92% 88%, rgba(10,60,117,0.10) 0%, transparent 52%)" };
-
   return (
-    <div className="relative flex flex-col min-h-screen font-sans" style={layoutBg}>
+    <div className="abos-retro-shell relative flex min-h-screen flex-col font-sans">
       <DotGrid />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
@@ -197,7 +194,7 @@ export default function Layout() {
           </span>
         </div>
       </div>
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#D4A017] focus:text-[#0A101E] focus:rounded-xl focus:text-sm focus:font-bold">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground">
         Skip to content
       </a>
 
@@ -206,14 +203,13 @@ export default function Layout() {
       <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMobileOpen(false)}
       style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
       }
-      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[320px] overflow-y-auto"
+      <aside className="abos-retro-drawer fixed bottom-0 left-0 top-0 z-[60] flex w-[85vw] max-w-[320px] flex-col overflow-y-auto transition-transform duration-300 lg:hidden"
       style={{
         background: "var(--brand-surface)", borderRight: "1px solid var(--brand-border)",
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
         <div className="flex justify-end px-3 pt-3 safe-top">
-          <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(55,65,81,0.5)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="abos-retro-control flex h-11 w-11 shrink-0 items-center justify-center text-muted-foreground">
             <ChevronLeft size={18} />
           </button>
         </div>
@@ -222,19 +218,17 @@ export default function Layout() {
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {(
-      <header className="sticky top-0 z-40"
+      <header className="abos-retro-header sticky top-0 z-40"
       style={{ background: "rgba(21,25,34,0.94)", backdropFilter: "blur(16px)", borderBottom: "1px solid var(--brand-border)" }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
-        <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
+        <div className="abos-retro-header-row safe-left safe-right flex h-[64px] items-center justify-between gap-3 px-4 sm:gap-6 sm:px-8">
           {/* Left: back + dominant logo — centered with equal flex */}
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            style={{ width: "40px", height: "40px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="abos-retro-control flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground">
               <Menu size={18} />
             </button>
             {showBack &&
-            <button onClick={() => navigate(-1)} aria-label="Go back"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(55,65,81,0.5)", borderRadius: "8px", padding: "8px", color: "rgba(255,255,255,0.7)", flexShrink: 0, width: 40, height: 40 }}>
+            <button onClick={() => navigate(-1)} aria-label="Go back" className="abos-retro-control flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground">
                 <ArrowLeft size={16} />
               </button>
             }
@@ -275,7 +269,7 @@ export default function Layout() {
       )}
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
+      <main id="main-content" className="abos-retro-main relative z-10 flex-1 overflow-x-hidden overflow-y-auto" style={{ background: "transparent" }}>
           <Outlet />
       </main>
 

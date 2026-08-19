@@ -529,31 +529,19 @@ export default function ListingsBody({
       {/* ── Modals ── */}
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
 
-      <QuickPasteImport
-        open={showImport}
-        onClose={() => setShowImport(false)}
+      {/* Add Aircraft and Import now share one flow: paste text (or file/URL) →
+          AI auto-fills the form → add photos → publish. No credit/token gate. */}
+      <ImportAndEditFlow
+        open={showImport || showWizard}
+        onClose={() => {
+          setShowImport(false);
+          setShowWizard(false);
+        }}
         onPublish={() => {
           queryClient.invalidateQueries({ queryKey: ["listings-public"] });
           setShowImport(false);
-        }}
-      />
-
-      <AircraftWizard
-        open={showWizard}
-        onClose={() => setShowWizard(false)}
-        onPublish={() => {
-          queryClient.invalidateQueries({ queryKey: ["listings-public"] });
           setShowWizard(false);
         }}
-      />
-
-      <UpgradeGate
-        open={!!gate}
-        onClose={() => setGate(null)}
-        feature={gate?.feature}
-        requiredTokens={gate?.requiredTokens}
-        userTokens={tokens}
-        isVerified={isVerified}
       />
 
       {/* ── Mini FAQ modal ── */}

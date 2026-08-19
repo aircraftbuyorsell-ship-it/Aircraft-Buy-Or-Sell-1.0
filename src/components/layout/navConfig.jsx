@@ -1,10 +1,8 @@
 import {
-  Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard, Wallet,
-  Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
-  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
-  DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
-  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Bell,
-  History,
+  Plane, Shield, Briefcase, CreditCard, LayoutDashboard, Wallet,
+  Search, Scale, Radar, BarChart2, FileText, Map, Globe,
+  Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
+  Landmark, GitBranch, User, Banknote, Award, Wrench, Bell, History,
 } from "lucide-react";
 
 /**
@@ -49,7 +47,6 @@ export const NAV_TREE = [
           { path: "/solutions/sellers", label: "Seller Solutions", icon: Plane },
           { path: "/solutions/brokers", label: "Broker Solutions", icon: Briefcase },
           { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
-          { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
           { path: "/leads", label: "Leads", icon: Users },
           { path: "/community", label: "Community", icon: Users },
           { path: "/wallet", label: "Wallet", icon: Wallet },
@@ -72,11 +69,6 @@ export const NAV_TREE = [
           { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
           { path: "/investment-brief", label: "Investment Brief", icon: Brain },
           { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
-          { path: "/calculators", label: "All Calculators", icon: Calculator },
-          { path: "/opex-calculator", label: "Operational Costs", icon: Calculator },
-          { path: "/insurance-calculator", label: "Insurance", icon: Shield },
-          { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
-          { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },
         ],
       },
       {
@@ -84,11 +76,6 @@ export const NAV_TREE = [
         items: [
           { path: "/traffic", label: "Live Traffic Map", icon: Plane },
           { path: "/faa-map", label: "FAA Registry Map", icon: Map },
-          { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap },
-          { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket },
-          { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair },
-          { path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles },
-          { path: "/upgrade-comparison", label: "Upgrade Comparison", icon: TrendingUp },
           { path: "/service-intelligence", label: "Service Intelligence", icon: Wrench },
         ],
       },
@@ -104,11 +91,8 @@ export const NAV_TREE = [
         label: "For Buyers",
         items: [
           { path: "/n-lookup", label: "Registry Lookup", icon: Search },
-          { path: "/registry-comparator", label: "Registry Comparator", icon: Layers },
           { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
           { path: "/ati-passport", label: "ATI Passport", icon: Shield },
-          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
         ],
       },
       {

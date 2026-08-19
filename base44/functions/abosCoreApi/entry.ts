@@ -1,6 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import Stripe from 'npm:stripe@14.25.0';
 
-const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read'];
+const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
+const REPORT_CREDIT_PRICE_USD = 29;
 
 async function sha256(text) {
   const data = new TextEncoder().encode(text);
@@ -439,6 +441,110 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       });
     }
 
+    // ═══════════════ REPORT — API-key-native paid ATI Full Report ═══════════════
+    // Two-step entitlement flow, distinct from the web app's subscription-tier
+    // and email-funnel report systems (stripeWebhook / reportCheckout /
+    // reportFulfill), neither of which an x-abos-key caller can reach:
+    //   1) report.checkout — buy N credits, returns a Stripe Checkout URL.
+    //      stripeWebhook grants them on 'checkout.session.completed' via
+    //      metadata.type === 'report_credits' + metadata.api_key_id.
+    //   2) report.get — spends 1 credit, returns the full 8-dimension report.
+    //      No credits → structured payment_required, not a bare 403, so an
+    //      agent can surface a checkout link instead of just failing.
+    if (endpoint === 'report.checkout') {
+      const scopeErr = requireScope('report:paid');
+      if (scopeErr) return scopeErr;
+      if (caller.type !== 'api_key') {
+        return apiError(400, 'api_key_required', 'report.checkout is for API-key callers. Logged-in users buy reports in the ABOS app.');
+      }
+      const credits = Math.max(1, Math.min(100, Number(params.credits) || 1));
+      let session;
+      try {
+        const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+        session = await stripe.checkout.sessions.create({
+          mode: 'payment',
+          payment_method_types: ['card'],
+          customer_email: caller.email || undefined,
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              unit_amount: REPORT_CREDIT_PRICE_USD * 100,
+              product_data: {
+                name: credits === 1 ? 'ABOS ATI Full Report credit' : `ABOS ATI Full Report credits (${credits})`,
+                description: 'Redeemable via the ABOS API / MCP report.get endpoint.',
+              },
+            },
+            quantity: credits,
+          }],
+          success_url: params.success_url || 'https://aircraftbuyorsell.com/api-credits?success=true',
+          cancel_url: params.cancel_url || 'https://aircraftbuyorsell.com/api-credits?canceled=true',
+          metadata: {
+            type: 'report_credits',
+            api_key_id: caller.key.id,
+            credits: String(credits),
+            owner_email: caller.email || '',
+          },
+        });
+      } catch (err) {
+        return apiError(502, 'checkout_unavailable', `Stripe checkout failed: ${err.message}`);
+      }
+      await trackUsage();
+      return apiSuccess({
+        checkout_url: session.url,
+        credits,
+        price_usd: REPORT_CREDIT_PRICE_USD * credits,
+        note: 'Credits are granted automatically once payment completes. Call report.get after paying.',
+      });
+    }
+
+    if (endpoint === 'report.get') {
+      const scopeErr = requireScope('report:paid');
+      if (scopeErr) return scopeErr;
+      const aircraftData = (params.aircraft_data || '').trim();
+      if (!aircraftData) return apiError(400, 'missing_aircraft_data', "'params.aircraft_data' is required (free-text listing / spec dump).");
+
+      if (caller.type === 'api_key') {
+        const remaining = caller.key.report_credits || 0;
+        if (remaining <= 0) {
+          return Response.json({
+            status: 'payment_required',
+            error: {
+              code: 'no_report_credits',
+              message: 'No ATI Full Report credits remaining. Call report.checkout to buy more.',
+            },
+            checkout_endpoint: 'report.checkout',
+          }, { status: 402 });
+        }
+        // Decrement first — if scoring then fails, the credit is still spent
+        // (matches how the email-funnel Stripe charge isn't refunded on a
+        // downstream PDF/email failure either). Acceptable for v1; revisit if
+        // scoring failure rate turns out to be non-trivial.
+        await base44.asServiceRole.entities.ApiKey.update(caller.key.id, {
+          report_credits: remaining - 1,
+        });
+      }
+
+      let report;
+      try {
+        const res = await base44.asServiceRole.functions.invoke('atiReportScoreInternal', {
+          aircraft_data: aircraftData,
+          registration: params.registration || undefined,
+        });
+        report = res.data;
+      } catch (err) {
+        return apiError(502, 'report_generation_failed', `ATI report scoring failed: ${err.message}`);
+      }
+      if (report?.error) {
+        return apiError(502, 'report_generation_failed', report.error);
+      }
+
+      await trackUsage();
+      return apiSuccess({
+        report,
+        credits_remaining: caller.type === 'api_key' ? Math.max(0, (caller.key.report_credits || 0) - 1) : null,
+      });
+    }
+
     return apiError(404, 'unknown_endpoint',
-      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
+      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, report.checkout, report.get, keys.create, keys.list, keys.revoke");
 }

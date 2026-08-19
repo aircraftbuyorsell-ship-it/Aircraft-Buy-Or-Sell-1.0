@@ -55,24 +55,25 @@ function ViewToggle({ viewMode, onViewModeChange }) {
         onClick={() => onViewModeChange(mode)}
         aria-label={label}
         aria-pressed={active}
-        className="w-7 h-7 flex items-center justify-center rounded-md transition-all focus:outline-none focus-visible:ring-2"
+        className="flex items-center gap-1.5 h-8 px-3 rounded-md text-[11px] font-semibold transition-all focus:outline-none focus-visible:ring-2"
         style={{
-          background: active ? "rgba(255,255,255,0.12)" : "transparent",
-          color: active ? "#fff" : "rgba(255,255,255,0.45)",
+          background: active ? AMBER : "transparent",
+          color: active ? INK : "rgba(255,255,255,0.55)",
           "--tw-ring-color": AMBER
         }}>
         
         <Icon className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">{label}</span>
       </button>);
 
   };
   return (
     <div
-      className="flex items-center gap-0.5 p-1 rounded-lg"
-      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      className="flex items-center gap-1 p-1 rounded-lg"
+      style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)" }}>
       
-      {btn("list", List, "List view")}
-      {btn("grid", LayoutGrid, "Grid view")}
+      {btn("list", List, "List")}
+      {btn("grid", LayoutGrid, "Grid")}
     </div>);
 
 }

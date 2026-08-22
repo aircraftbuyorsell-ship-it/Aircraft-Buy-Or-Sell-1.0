@@ -254,8 +254,12 @@ Deno.serve(async (req) => {
         const existing = await svc.entities.PurchasedReport.filter(
           { user_email: user.email, product_key, aircraft_registration: reg }, '-created_date', 1
         );
+        // Shared core ID: reuse the listing's deal_code (or an existing report's) so
+        // Listing ID / ATI Score ID / ATI Report ID all carry the same suffix.
+        const deal_code = existing[0]?.deal_code || await getOrCreateDealCode(svc, reg);
         const payload = {
           product_key,
+          deal_code,
           aircraft_registration: reg,
           aircraft_label: aircraft_label || '',
           report_type: report_type || product_key.toLowerCase(),
@@ -271,10 +275,10 @@ Deno.serve(async (req) => {
         };
         if (existing[0]) {
           await svc.entities.PurchasedReport.update(existing[0].id, payload);
-          return Response.json({ report_id: existing[0].id, updated: true });
+          return Response.json({ report_id: existing[0].id, deal_code, updated: true });
         }
         const created = await svc.entities.PurchasedReport.create({ user_email: user.email, ...payload });
-        return Response.json({ report_id: created.id, updated: false });
+        return Response.json({ report_id: created.id, deal_code, updated: false });
       }
 
       // ── Record usage ──

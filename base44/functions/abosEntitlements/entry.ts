@@ -38,6 +38,35 @@ async function welcomeDiscountEligible(svc, user) {
   const ents = await svc.entities.Entitlement.filter({ user_email: user.email }, '-created_date', 1);
   return ents.length === 0;
 }
+
+// ── Shared Deal Code ──
+// One 6-char alphanumeric core ID per aircraft deal, reused unchanged as the suffix
+// for the Listing ID (LST-XXXXXX), ATI Score ID (SCORE-XXXXXX), and ATI Report ID
+// (ATI-XXXXXX) so all three artifacts for the same aircraft are trivially linkable.
+// The code lives on AircraftListing.deal_code (source of truth when a listing exists)
+// and is copied onto PurchasedReport.deal_code at save time.
+function generateDealCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I ambiguity
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function getOrCreateDealCode(svc, registration) {
+  const reg = (registration || '').toUpperCase().trim();
+  if (reg) {
+    const listings = await svc.entities.AircraftListing.filter({ registration: reg }, '-created_date', 1);
+    if (listings.length) {
+      const listing = listings[0];
+      if (listing.deal_code) return listing.deal_code;
+      const code = generateDealCode();
+      await svc.entities.AircraftListing.update(listing.id, { deal_code: code });
+      return code;
+    }
+  }
+  // No matching listing (ad-hoc / chat evaluation) → fresh standalone code.
+  return generateDealCode();
+}
 const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
 
 function isAdmin(user) {

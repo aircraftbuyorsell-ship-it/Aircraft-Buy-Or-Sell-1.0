@@ -83,6 +83,11 @@ Deno.serve(async (req) => {
         const { product_key, aircraft_registration } = body;
         if (!product_key) return Response.json({ error: 'Missing product_key' }, { status: 400 });
 
+        // Platform owner / admin bypass — always entitled, no charge, no credit dependency.
+        if (isAdmin(user)) {
+          return Response.json({ entitled: true, reason: 'admin_bypass', active_sub_product: 'BROKER' });
+        }
+
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
 

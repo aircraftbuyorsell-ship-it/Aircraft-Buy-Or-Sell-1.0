@@ -65,8 +65,8 @@ export default function ListingRow({ listing, onClick, selected, onToggle }) {
       {/* Photo thumbnail */}
       <div
         onClick={() => !selected && onClick(listing)}
-        className="shrink-0 rounded-lg overflow-hidden"
-        style={{ width: "52px", height: "52px", background: T.ink2, border: `0.5px solid ${T.border}` }}>
+        className="shrink-0 rounded-lg overflow-hidden relative"
+        style={{ width: "64px", height: "64px", background: T.ink2, border: `0.5px solid ${T.border}` }}>
         {listing.photo_url || listing.image_attachments?.[0] ? (
           <img
             src={listing.photo_url || listing.image_attachments[0]}

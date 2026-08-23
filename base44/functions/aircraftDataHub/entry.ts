@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
 const PROJECT_NAME = 'IntraZone';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -15,6 +16,14 @@ Deno.serve(async (req) => {
     let user = null;
     try { user = await base44.auth.me(); } catch (_) { user = null; }
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Access is resolved before any Supabase connector, project discovery, or
+    // aircraft data query. T1 gets only the public/basic surface; T2 unlocks
+    // intelligence/LLM/MCP-backed features; T3 is full/admin access.
+    const access = await resolveAccess(req);
+    if (!access.ok) return Response.json({ error: access.error || 'Unauthorized' }, { status: access.status || 401 });
+    const capabilityError = requireCapability(access, 'advanced_intelligence');
+    if (capabilityError) return capabilityError;
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('supabase');
     const projectsResponse = await fetch('https://api.supabase.com/v1/projects', {

@@ -64,16 +64,18 @@ Deno.serve(async (req) => {
   let activeMode = null;
   try {
     const base44 = createClientFromRequest(req);
-    // Scheduled automations have no user context — allow them to proceed.
-    // Direct HTTP invocations still require admin auth.
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      isAuthorized = user?.role === 'admin';
-    } catch (_) {
-      // No auth context (scheduled automation) — trusted invocation
-      isAuthorized = true;
-    }
+    // Scheduled automations have no user context, so they must prove possession
+    // of the server-side automation secret. Never fail open on auth errors.
+    const user = await base44.auth.me().catch(() => null);
+    const automationSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const suppliedAutomationSecret = req.headers.get('x-abos-automation-secret');
+    const isAutomation = Boolean(
+      automationSecret &&
+      suppliedAutomationSecret &&
+      suppliedAutomationSecret === automationSecret
+    );
+    const isAuthorized = user?.role === 'admin' || user?.role === 'super_admin' || isAutomation;
+
     if (!isAuthorized) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }

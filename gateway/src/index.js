@@ -246,6 +246,48 @@ const CORE_TOOLS = [
     },
   },
   {
+    name: 'report_checkout',
+    endpoint: 'report.checkout',
+    annotations: {
+      // Creates a Stripe Checkout session — no local state changes, but it
+      // does reach out to Stripe, so it isn't a closed-world read.
+      readOnlyHint: false,
+      idempotentHint: false,
+      openWorldHint: true,
+      destructiveHint: false,
+    },
+    description: 'Buy ATI Full Report credits via Stripe Checkout. Returns a checkout_url. Requires the report:paid scope.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        credits: { type: 'number', description: 'Number of report credits to buy (1-100). Defaults to 1.' },
+        success_url: { type: 'string' },
+        cancel_url: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'report_get',
+    endpoint: 'report.get',
+    annotations: {
+      // Spends a purchased credit, so it is a real state change even though
+      // it only reads aircraft data to produce the report.
+      readOnlyHint: false,
+      idempotentHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
+    description: 'Generate the full 8-dimension ATI report for an aircraft, spending one report credit. Returns payment_required (with a checkout_endpoint) if no credits remain. Requires the report:paid scope.',
+    inputSchema: {
+      type: 'object',
+      required: ['aircraft_data'],
+      properties: {
+        aircraft_data: { type: 'string', description: 'Free-text listing or spec dump for the aircraft.' },
+        registration: { type: 'string' },
+      },
+    },
+  },
+  {
     name: 'create_listing',
     endpoint: 'listings.create',
     annotations: {
@@ -269,6 +311,44 @@ const CORE_TOOLS = [
         currency: { type: 'string', enum: ['USD', 'EUR', 'GBP', 'CZK', 'CHF'] },
         hours: { type: 'number' },
         source_url: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'buy_ati_report_credits',
+    endpoint: 'report.checkout',
+    annotations: {
+      readOnlyHint: false,
+      idempotentHint: false,
+      openWorldHint: true, // hits Stripe
+      destructiveHint: false,
+    },
+    description: "Create a Stripe Checkout link to buy ATI Full Report credits ($29/credit). Requires the 'report:paid' scope.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        credits: { type: 'number', description: 'How many report credits to buy, 1-100. Default 1.' },
+        success_url: { type: 'string' },
+        cancel_url: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'get_ati_report',
+    endpoint: 'report.get',
+    annotations: {
+      readOnlyHint: false, // spends a credit
+      idempotentHint: false,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
+    description: "Full 8-dimension ATI report (documentation, technical condition, transparency, transaction readiness, usage, storage, config clarity, market readiness) plus executive summary and OMVM range. Spends 1 report credit. Returns HTTP 402 payment_required with a checkout_endpoint hint if the caller has none — call buy_ati_report_credits first.",
+    inputSchema: {
+      type: 'object',
+      required: ['aircraft_data'],
+      properties: {
+        aircraft_data: { type: 'string', description: 'Free-text listing or spec dump for the aircraft to score.' },
+        registration: { type: 'string' },
       },
     },
   },

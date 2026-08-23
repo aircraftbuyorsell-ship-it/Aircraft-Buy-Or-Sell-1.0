@@ -1,40 +1,36 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, SlidersHorizontal, RotateCcw } from "lucide-react";
+import { SlidersHorizontal, RotateCcw } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import ValuationCanvas from "@/components/valuation-studio/ValuationCanvas";
 import ValuationForm from "@/components/valuation/ValuationForm";
 import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
 import HistoricalPriceCheck from "@/components/valuation-studio/HistoricalPriceCheck";
 import { extractAircraftSpecs, mergeExtractedSpecs } from "@/lib/aircraftInput";
+import { useEntitlementGate } from "@/hooks/useEntitlementGate";
+import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
+import { saveReport, recordUsage } from "@/lib/entitlements";
 
 const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
 
 const INITIAL_FORM = {
-  make: "",
-  model: "",
-  year: "",
-  total_time: "",
-  engine_hours: "",
-  engine_model: "",
-  tbo: "",
-  avionics: "",
-  asking_price: "",
-  listing_text: "",
+  make: "", model: "", year: "", total_time: "", engine_hours: "",
+  engine_model: "", tbo: "", avionics: "", asking_price: "", listing_text: "",
 };
 
 const toNumber = (value) => (value === "" ? undefined : Number(value));
 const numOrUndef = (v) => (v == null ? undefined : Number(v));
 
 export default function ValuationStudio() {
+  const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
+  const [anchor, setAnchor] = useState(null);
+  const [omvmOpen, setOmvmOpen] = useState(false);
   const [formData, setFormData] = useState(() => ({
     ...INITIAL_FORM,
-    make: readParam("make"),
-    model: readParam("model"),
-    year: readParam("year"),
-    total_time: readParam("total_time"),
-    engine_hours: readParam("engine_hours"),
-    tbo: readParam("tbo") || "",
-    avionics: readParam("avionics"),
+    make: readParam("make"), model: readParam("model"), year: readParam("year"),
+    total_time: readParam("total_time"), engine_hours: readParam("engine_hours"),
+    tbo: readParam("tbo") || "", avionics: readParam("avionics"),
     asking_price: readParam("asking_price"),
   }));
   const [model, setModel] = useState("gemini_3_flash");
@@ -44,6 +40,18 @@ export default function ValuationStudio() {
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
   const [error, setError] = useState(null);
+
+  const openOmvm = () => {
+    if (anchor) {
+      setFormData((prev) => ({
+        ...prev,
+        make: anchor.make || prev.make,
+        model: anchor.model || prev.model,
+        year: anchor.year || prev.year,
+      }));
+    }
+    setOmvmOpen(true);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -55,6 +63,7 @@ export default function ValuationStudio() {
       return;
     }
     setError(null);
+    if (!(await requireAccess("VALUATION_STUDIO", anchor?.registration || ""))) return;
     setLoading(true);
 
     try {
@@ -80,8 +89,6 @@ export default function ValuationStudio() {
         }
       }
 
-      // Document-only valuations: extraction must yield make+model so the
-      // backend has an anchor for comparables / live-market search.
       const mergedMake = String(merged.make || "").trim();
       const mergedModel = String(merged.model || "").trim();
       if (!mergedMake || !mergedModel) {
@@ -109,6 +116,16 @@ export default function ValuationStudio() {
       setResult(response?.data ?? response);
       setAircraft(payload);
       setError(null);
+      try {
+        await saveReport({
+          product_key: "VALUATION_STUDIO",
+          aircraft_registration: anchor?.registration || "",
+          aircraft_label: [merged.year, mergedMake, mergedModel].filter(Boolean).join(" "),
+          report_type: "valuation",
+          result_data: response?.data ?? response,
+        });
+        await recordUsage({ product_key: "VALUATION_STUDIO", aircraft_registration: anchor?.registration || "" });
+      } catch (_) {}
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {
         base44.auth.redirectToLogin(window.location.href);
@@ -151,41 +168,49 @@ export default function ValuationStudio() {
 
   return (
     <div className="min-h-screen px-4 py-8 md:px-8 text-foreground">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <div className="rounded-3xl p-6 md:p-8 bg-card border border-border">
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)" }}>
-                <SlidersHorizontal className="h-6 w-6 text-white" />
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4A017]">Valuation studio · multi-model</p>
-              <h1 className="mt-2 max-w-3xl text-3xl font-black tracking-tight text-foreground md:text-5xl" style={{ letterSpacing: "-0.02em" }}>
-                Aircraft valuation with switchable AI engines
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-                Same OMVM v5 core, but you pick the model. Try the default Gemini web-search engine first, then switch to
-                a faster knowledge-based model for a second opinion or when the main one times out.
-              </p>
+      <div className="mx-auto max-w-5xl space-y-6">
+        {/* Compact header */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)" }}>
+              <SlidersHorizontal className="h-5 w-5 text-white" />
             </div>
-            <div className="flex flex-col gap-4 md:items-end">
-              <div className="rounded-2xl p-4 text-sm leading-6 md:max-w-xs border border-[#D4A017]/30 bg-[#D4A017]/[0.06] text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5 font-black text-[#A67C00]"><ShieldCheck className="h-3.5 w-3.5" /> Independent lab</span>
-                <p className="mt-1.5">This studio runs separately from the main Valuation desk — experiments here don't affect the production flow.</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground border border-border bg-card hover:bg-muted/60 transition"
-              >
-                <RotateCcw className="h-4 w-4" /> New valuation
-              </button>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4A017]">Valuation Studio</p>
+              <h1 className="text-xl font-black tracking-tight text-foreground md:text-2xl">Aircraft deal workbench</h1>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-foreground border border-border bg-card hover:bg-muted/60 transition"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Reset
+          </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-6">
-            <div className="rounded-2xl p-5 md:p-6 bg-card border border-border">
+        <p className="-mt-2 max-w-2xl text-sm text-muted-foreground">
+          Verify a tail number, then run any tool on the board — every node links back to your aircraft. OMVM valuation runs right here; calculators open with the aircraft pre-filled.
+        </p>
+
+        {/* Interactive board */}
+        <div className="rounded-3xl border border-border bg-gradient-to-b from-[#FBFAF7] to-[#F3F3EE] p-5 shadow-sm dark:from-[#0F1626] dark:to-[#0B1220] md:p-8">
+          <ValuationCanvas anchor={anchor} onVerified={setAnchor} onRunOmvm={openOmvm} />
+        </div>
+      </div>
+
+      {/* OMVM side panel */}
+      <Sheet open={omvmOpen} onOpenChange={setOmvmOpen}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
+          <SheetHeader className="pr-10">
+            <SheetTitle className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-[#D4A017]" />
+              OMVM Valuation{anchor ? ` · ${anchor.registration}` : ""}
+            </SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-5 px-4 pb-8">
+            <div className="rounded-xl border border-border bg-card p-4">
               <ModelSelector value={model} onChange={setModel} disabled={loading} />
             </div>
             <ValuationForm
@@ -198,9 +223,7 @@ export default function ValuationStudio() {
               onAutoFill={handleAutoFill}
               autoFilling={autoFilling}
             />
-          </div>
 
-          <div className="space-y-4">
             {error && (
               <div className="rounded-xl px-4 py-3 text-sm border border-destructive/30 bg-destructive/10 text-destructive">
                 {error}
@@ -219,8 +242,10 @@ export default function ValuationStudio() {
               year={(aircraft || formData).year}
             />
           </div>
-        </div>
-      </div>
+        </SheetContent>
+      </Sheet>
+
+      <EntitlementGateModal gate={gate} onClose={closeGate} onCheckout={startCheckout} />
     </div>
   );
 }

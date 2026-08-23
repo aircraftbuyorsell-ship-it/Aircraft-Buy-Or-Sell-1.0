@@ -17,6 +17,9 @@ import {
 import {
   T, atiCard, atiAccentLine, atiAccentLineDim, atiBand,
 } from "@/theme/atiPremium";
+import { useEntitlementGate } from "@/hooks/useEntitlementGate";
+import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
+import { saveReport, recordUsage } from "@/lib/entitlements";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -111,6 +114,7 @@ function UpgradeRow({ to, icon: Icon, iconColor = T.amber, title, desc }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ATIQuickScore() {
+  const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
   const [input,     setInput]     = useState(() => readParam("aircraft_data"));
   const [nReg,      setNReg]      = useState(() => readParam("registration"));
   const [details,   setDetails]   = useState(buildInitialDetails);
@@ -181,6 +185,9 @@ export default function ATIQuickScore() {
 
   async function handleScore() {
     if (!canSubmit) return;
+    const preDetected = extractNReg(buildScoreInput());
+    const reg = (nReg || preDetected || "").toUpperCase();
+    if (!(await requireAccess("ATI_SCORE", reg))) return;
     const scoringInput = buildScoreInput();
     setScorePayload(scoringInput);
     setLoading(true);
@@ -194,6 +201,18 @@ export default function ATIQuickScore() {
     try {
       const res = await orchestrateATIScoring({ input: scoringInput, nReg: nReg || detected });
       setResult(res);
+      // Persist the purchased report (re-access without re-charge) + usage record
+      try {
+        await saveReport({
+          product_key: "ATI_SCORE",
+          aircraft_registration: (nReg || detected || "").toUpperCase(),
+          aircraft_label: [details.year, details.make, details.model].filter(Boolean).join(" "),
+          report_type: "ati_score",
+          result_data: res,
+          confidence: res?.data_confidence || "unverified",
+        });
+        await recordUsage({ product_key: "ATI_SCORE", aircraft_registration: (nReg || detected || "").toUpperCase() });
+      } catch (_) {}
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {
         base44.auth.redirectToLogin(window.location.href);
@@ -562,6 +581,8 @@ export default function ATIQuickScore() {
           </div>
         )}
       </div>
+
+      <EntitlementGateModal gate={gate} onClose={closeGate} onCheckout={startCheckout} />
     </div>
   );
 }

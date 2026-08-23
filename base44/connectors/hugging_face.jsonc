@@ -1,0 +1,9 @@
+{
+  "type": "hugging_face",
+  "scopes": [
+    "inference-api",
+    "manage-repos",
+    "openid",
+    "email"
+  ]
+}

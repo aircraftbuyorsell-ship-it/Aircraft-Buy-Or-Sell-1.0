@@ -14,7 +14,6 @@ import ATIPassport from "./pages/ATIPassport";
 import DealRadar from "./pages/DealRadar";
 import MyAccount from "./pages/MyAccount";
 import Leads from "./pages/Leads";
-import Escrow from "./pages/Escrow";
 import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
@@ -102,6 +101,14 @@ import AircraftAlerts from "./pages/AircraftAlerts";
 import Plans from "./pages/Plans";
 import AgentConnect from "./pages/AgentConnect";
 import ActivitySummary from "./pages/ActivitySummary";
+import Billing from "./pages/Billing";
+import MyReports from "./pages/MyReports";
+import AdminMonetization from "./pages/AdminMonetization";
+import WalkthroughScript from "./pages/WalkthroughScript";
+import MarketspaceHub from "./pages/hubs/MarketspaceHub";
+import IntelligenceHub from "./pages/hubs/IntelligenceHub";
+import VerifyHub from "./pages/hubs/VerifyHub";
+import ApiHub from "./pages/hubs/ApiHub";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -134,7 +141,6 @@ const AuthenticatedApp = () => {
         <Route path="/deal-radar" element={<DealRadar />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />
-        <Route path="/escrow" element={<Escrow />} />
         <Route path="/traffic" element={<TrafficMap />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
@@ -218,6 +224,14 @@ const AuthenticatedApp = () => {
         <Route path="/plans" element={<Plans />} />
         <Route path="/connect" element={<AgentConnect />} />
         <Route path="/activity" element={<ActivitySummary />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/my-reports" element={<MyReports />} />
+        <Route path="/admin/monetization" element={<AdminMonetization />} />
+        <Route path="/walkthrough-script" element={<WalkthroughScript />} />
+        <Route path="/marketspace" element={<MarketspaceHub />} />
+        <Route path="/intelligence" element={<IntelligenceHub />} />
+        <Route path="/verify" element={<VerifyHub />} />
+        <Route path="/api" element={<ApiHub />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

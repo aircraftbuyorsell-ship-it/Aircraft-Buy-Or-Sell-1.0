@@ -1,0 +1,9 @@
+name = "abos-core-api-gateway"
+main = "src/index.js"
+compatibility_date = "2026-07-12"
+
+# Intentionally no account_id, routes, or zone configuration.
+# Deployment requires a scoped Cloudflare API token plus an approved production domain.
+# Set secrets only with Wrangler after approval:
+#   ABOS_UPSTREAM_URL
+#   ABOS_UPSTREAM_SHARED_SECRET

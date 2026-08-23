@@ -1,21 +1,17 @@
 import {
-  Plane, Shield, Calculator, Briefcase, CreditCard, LayoutDashboard, Wallet,
-  Search, Scale, Radar, BarChart2, TrendingUp, FileText, Map, Globe,
-  Zap, FileBarChart, Brain, Users, CheckCircle, BadgeCheck, SlidersHorizontal,
-  DollarSign, Landmark, GitBranch, User, Banknote, Award, Layers,
-  Activity, Sparkles, Wrench, PaintBucket, Armchair, Fuel, Gauge, Bell,
-  History,
+  Plane, Shield, Code, CreditCard, LayoutDashboard,
 } from "lucide-react";
 
 /**
- * ABOS Navigation — Final Structure
+ * ABOS Navigation — 4 Mega-Hub Structure
  *
- *  3 Dropdowns (each with For Buyers / For Sellers):
- *    1. Marketspace  → listings, deals, escrow, solutions
- *    2. Intelligence  → analytics, market data, calculators & finance
- *    3. Verify        → registry, compliance, ATI scoring, experts
+ *  4 main pages (each with tabs embedding all tools):
+ *    1. Marketspace  → listings, sales pipeline, escrow, leads, deals
+ *    2. Intelligence  → valuations, analytics, calculators, reports
+ *    3. Verify        → registry, digital twin, pre-buy, experts
+ *    4. API           → core api, mcp, sdk, marketplace, developers
  *
- *  + Direct links: Pricing, Home, Wallet
+ *  + Direct links: Home, Pricing
  */
 export const NAV_TREE = [
   {
@@ -26,138 +22,37 @@ export const NAV_TREE = [
     direct: true,
   },
   {
-    label: "Market",
-    mobileLabel: "Market",
-    path: "/listings",
-    icon: Plane,
-    direct: true,
-  },
-  {
-    label: "Activity",
-    mobileLabel: "Activity",
-    path: "/activity",
-    icon: History,
-    direct: true,
-  },
-  {
-    label: "Analytics",
-    mobileLabel: "Analytics",
-    path: "/analytics",
-    icon: BarChart2,
-    direct: true,
-  },
-  {
-    label: "Deal Radar",
-    mobileLabel: "Deals",
-    path: "/deal-radar",
-    icon: Radar,
-    direct: true,
-  },
-  {
     label: "Marketspace",
-    mobileLabel: "More",
-    path: "/listings",
+    mobileLabel: "Market",
+    path: "/marketspace",
     icon: Plane,
-    categories: [
-      {
-        label: "For Buyers",
-        items: [
-          { path: "/listings", label: "Aircraft Listings", icon: Plane },
-          { path: "/compare", label: "Compare Aircraft", icon: Scale },
-          { path: "/deal-radar", label: "Deal Radar", icon: Radar },
-          { path: "/aircraft-alerts", label: "Aircraft Alerts", icon: Bell },
-          { path: "/sales-pipeline", label: "Sales Pipeline", icon: GitBranch },
-          { path: "/cross-border-bridge", label: "Cross-Border Bridge", icon: Globe },
-          { path: "/solutions/buyers", label: "Buyer Solutions", icon: User },
-        ],
-      },
-      {
-        label: "For Sellers",
-        items: [
-          { path: "/solutions/sellers", label: "Seller Solutions", icon: Plane },
-          { path: "/solutions/brokers", label: "Broker Solutions", icon: Briefcase },
-          { path: "/escrow", label: "Escrow Transactions", icon: Landmark },
-          { path: "/bill-of-sale", label: "Bill of Sale Autofill", icon: FileText },
-          { path: "/leads", label: "Leads", icon: Users },
-          { path: "/community", label: "Community", icon: Users },
-        ],
-      },
-    ],
+    direct: true,
   },
   {
     label: "Intelligence",
     mobileLabel: "Intel",
-    path: "/analytics",
-    icon: BarChart2,
-    categories: [
-      {
-        label: "For Buyers",
-        items: [
-          { path: "/analytics", label: "Market Analytics", icon: BarChart2 },
-          { path: "/market-reports", label: "Market Reports", icon: FileText },
-          { path: "/valuation-studio", label: "Valuation Studio", icon: SlidersHorizontal },
-          { path: "/investment-brief", label: "Investment Brief", icon: Brain },
-          { path: "/finance-advisor", label: "Finance Advisor", icon: Brain },
-          { path: "/calculators", label: "All Calculators", icon: Calculator },
-          { path: "/opex-calculator", label: "Operational Costs", icon: Calculator },
-          { path: "/insurance-calculator", label: "Insurance", icon: Shield },
-          { path: "/leasing-calculator", label: "Leasing + Tax", icon: DollarSign },
-          { path: "/fractional-calculators", label: "Fractional Ownership", icon: Users },
-        ],
-      },
-      {
-        label: "For Sellers",
-        items: [
-          { path: "/traffic", label: "Live Traffic Map", icon: Plane },
-          { path: "/faa-map", label: "FAA Registry Map", icon: Map },
-          { path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap },
-          { path: "/exterior-refurbishment-calculator", label: "Exterior Refurb", icon: PaintBucket },
-          { path: "/interior-refurbishment-calculator", label: "Interior Refurb", icon: Armchair },
-          { path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles },
-          { path: "/upgrade-comparison", label: "Upgrade Comparison", icon: TrendingUp },
-          { path: "/service-intelligence", label: "Service Intelligence", icon: Wrench },
-        ],
-      },
-    ],
+    path: "/intelligence",
+    icon: Shield,
+    direct: true,
   },
   {
     label: "Verify",
     mobileLabel: "Verify",
-    path: "/n-lookup",
+    path: "/verify",
     icon: Shield,
-    categories: [
-      {
-        label: "For Buyers",
-        items: [
-          { path: "/n-lookup", label: "Registry Lookup", icon: Search },
-          { path: "/registry-comparator", label: "Registry Comparator", icon: Layers },
-          { path: "/pre-buy-inspection", label: "Pre-buy Inspection", icon: CheckCircle },
-          { path: "/ati-passport", label: "ATI Passport", icon: Shield },
-          { path: "/ati-quick-score", label: "ATI Quick Score", icon: Zap },
-          { path: "/ati-full-report", label: "ATI Full Report", icon: FileBarChart },
-        ],
-      },
-      {
-        label: "For Sellers",
-        items: [
-          { path: "/ati-standard", label: "ATI Standard", icon: Award },
-          { path: "/ati-verify", label: "Verification Center", icon: CheckCircle },
-          { path: "/experts", label: "Verified Experts", icon: BadgeCheck },
-          { path: "/solutions/lenders", label: "Lender Solutions", icon: Banknote },
-        ],
-      },
-    ],
+    direct: true,
+  },
+  {
+    label: "API",
+    mobileLabel: "API",
+    path: "/api",
+    icon: Code,
+    direct: true,
   },
   {
     label: "Pricing",
     path: "/pricing",
     icon: CreditCard,
-    direct: true,
-  },
-  {
-    label: "Wallet",
-    path: "/wallet",
-    icon: Wallet,
     direct: true,
   },
 ];
@@ -168,7 +63,7 @@ export const NAV_TREE = [
  * Used for font-size and opacity scaling across the nav bar.
  */
 export function navGradientWeight(index, total = NAV_TREE.length) {
-  const peakIndex = 2; // Analytics
+  const peakIndex = 2; // Intelligence
   const maxDist = Math.max(peakIndex, total - 1 - peakIndex);
   const dist = Math.abs(index - peakIndex);
   return Math.max(0, 1 - dist / maxDist);
@@ -176,7 +71,14 @@ export function navGradientWeight(index, total = NAV_TREE.length) {
 
 /** Flatten all leaf paths for active-state matching. */
 export function isPathInSection(section, pathname) {
-  if (section.direct) return pathname === section.path;
+  if (section.direct) {
+    if (pathname === section.path) return true;
+    // Also match sub-paths that belong to this hub
+    if (section.path !== "/") {
+      return pathname === section.path || pathname.startsWith(section.path + "/");
+    }
+    return false;
+  }
   return (section.categories || []).some((cat) =>
     cat.items.some(
       (item) => pathname === item.path || pathname.startsWith(item.path + "/")
@@ -188,15 +90,7 @@ export function isPathInSection(section, pathname) {
 export function flattenNavPages() {
   const out = [];
   for (const section of NAV_TREE) {
-    if (section.direct) {
-      out.push({ path: section.path, label: section.label, icon: section.icon, section: section.label });
-      continue;
-    }
-    for (const cat of section.categories || []) {
-      for (const item of cat.items) {
-        out.push({ ...item, section: section.label });
-      }
-    }
+    out.push({ path: section.path, label: section.label, icon: section.icon, section: section.label });
   }
   return out;
 }

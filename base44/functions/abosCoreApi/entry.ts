@@ -1,6 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import Stripe from 'npm:stripe@14.25.0';
+import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
-const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read'];
+const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
+const REPORT_CREDIT_PRICE_USD = 29;
 
 async function sha256(text) {
   const data = new TextEncoder().encode(text);
@@ -84,7 +87,7 @@ async function handleRequest(req, ctx) {
     if (!endpoint) return apiError(400, 'missing_endpoint', "Request body must include 'endpoint'.");
 
     // ── Resolve caller: API key (external) or logged-in user (in-app console) ──
-    const apiKeyRaw = req.headers.get('x-abos-key') || body.api_key || null;
+    const apiKeyRaw = req.headers.get('x-abos-key') || null;
     let caller = null;
     if (apiKeyRaw) {
       const hash = await sha256(apiKeyRaw);
@@ -101,6 +104,13 @@ async function handleRequest(req, ctx) {
       try { user = await base44.auth.me(); } catch (_e) { user = null; }
       if (!user) return apiError(401, 'unauthorized', 'Provide an x-abos-key header or authenticate as a user.');
       caller = { type: 'user', user, scopes: ['*'], email: user.email };
+
+      // Central ABOS tier gate. Authorization is resolved server-side before any
+      // endpoint data is read. Admin/super_admin are T3; normal users resolve
+      // T1/T2/T3 from UserProfile. Frontend-supplied tier values are ignored.
+      const access = await resolveAccess(req);
+      if (!access.ok) return apiError(access.status, 'unauthorized', access.error || 'Unauthorized');
+      ctx.access = access;
     }
 
     ctx.callerType = caller.type;
@@ -127,6 +137,26 @@ async function handleRequest(req, ctx) {
     }
 
     const hasScope = (s) => caller.scopes.includes('*') || caller.scopes.includes(s);
+    const capabilityForEndpoint = (ep) => {
+      if (ep === 'search' || ep === 'listings.get' || ep === 'listings.list' || ep === 'whoami') return 'api_read';
+      if (ep === 'listings.create') return 'api_write';
+      if (ep === 'valuate') return 'valuation';
+      if (ep === 'intelligence.extract') return 'llm_models';
+      if (ep === 'report.get' || ep === 'report.checkout') return 'advanced_reports';
+      return null;
+    };
+    const capability = capabilityForEndpoint(endpoint);
+    if (capability) {
+      if (caller.type === 'user') {
+        const capErr = requireCapability(ctx.access, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `Feature '${capability}' is not available for the current plan.`);
+      } else {
+        const keyTier = caller.key.plan === 'enterprise' ? 'T3' : caller.key.plan === 'pro' ? 'T2' : 'T1';
+        const keyAccess = { ok: true, tier: keyTier, user: null };
+        const capErr = requireCapability(keyAccess, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `API key plan does not include '${capability}'.`);
+      }
+    }
     const requireScope = (s) => (hasScope(s) ? null : apiError(403, 'insufficient_scope', `This endpoint requires the '${s}' scope.`));
 
     const trackUsage = async () => {
@@ -157,7 +187,9 @@ async function handleRequest(req, ctx) {
         caller_type: caller.type,
         email: caller.email,
         scopes: caller.scopes,
-        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : null,
+        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : (ctx.access?.tier || 'T1'),
+        role: caller.type === 'user' ? (ctx.access?.role || 'user') : 'api_key',
+        tier: caller.type === 'user' ? (ctx.access?.tier || 'T1') : null,
       });
     }
 
@@ -388,7 +420,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (!params.id) return apiError(400, 'missing_id', "'params.id' is required.");
       let listing = null;
       try { listing = await base44.asServiceRole.entities.AircraftListing.get(params.id); } catch (_e) { listing = null; }
-      if (!listing || (listing.visibility !== 'public' && caller.type === 'api_key')) {
+      if (!listing || listing.visibility !== 'public' || listing.status !== 'active') {
         return apiError(404, 'listing_not_found', 'Listing not found.');
       }
       await trackUsage();
@@ -416,13 +448,30 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (scopeErr) return scopeErr;
       const { manufacturer, model } = params;
       if (!manufacturer || !model) return apiError(400, 'missing_aircraft', "'params.manufacturer' and 'params.model' are required.");
+
+      // ── Duplicate gate ────────────────────────────────────────────────
+      // Registration is the aircraft identity key. Normalize before lookup so
+      // n638lk / N638LK / " N638LK " cannot create separate listings.
+      const normalizedRegistration = params.registration
+        ? String(params.registration).trim().toUpperCase()
+        : '';
+      if (normalizedRegistration) {
+        const existing = await base44.asServiceRole.entities.AircraftListing.filter(
+          { registration: normalizedRegistration }, '-created_date', 10,
+        );
+        if (existing.length) {
+          const canonical = existing[0];
+          return apiError(409, 'duplicate_listing',
+            `Aircraft ${normalizedRegistration} already has an ABOS listing (${canonical.id}). Update the existing listing instead of creating another.`);
+        }
+      }
+
       const owners = await base44.asServiceRole.entities.User.filter({ email: caller.email });
       const ownerId = owners[0]?.id;
       const listing = await base44.asServiceRole.entities.AircraftListing.create({
         make: manufacturer,
         model,
         year: params.year || undefined,
-        registration: params.registration || undefined,
         asking_price: params.price || undefined,
         currency: params.currency || 'USD',
         total_time: params.hours || undefined,
@@ -430,6 +479,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         visibility: 'private',
         owner: ownerId || undefined,
         source_url: params.source_url || undefined,
+        registration: normalizedRegistration || undefined,
       });
       await trackUsage();
       return apiSuccess({
@@ -439,6 +489,110 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       });
     }
 
+    // ═══════════════ REPORT — API-key-native paid ATI Full Report ═══════════════
+    // Two-step entitlement flow, distinct from the web app's subscription-tier
+    // and email-funnel report systems (stripeWebhook / reportCheckout /
+    // reportFulfill), neither of which an x-abos-key caller can reach:
+    //   1) report.checkout — buy N credits, returns a Stripe Checkout URL.
+    //      stripeWebhook grants them on 'checkout.session.completed' via
+    //      metadata.type === 'report_credits' + metadata.api_key_id.
+    //   2) report.get — spends 1 credit, returns the full 8-dimension report.
+    //      No credits → structured payment_required, not a bare 403, so an
+    //      agent can surface a checkout link instead of just failing.
+    if (endpoint === 'report.checkout') {
+      const scopeErr = requireScope('report:paid');
+      if (scopeErr) return scopeErr;
+      if (caller.type !== 'api_key') {
+        return apiError(400, 'api_key_required', 'report.checkout is for API-key callers. Logged-in users buy reports in the ABOS app.');
+      }
+      const credits = Math.max(1, Math.min(100, Number(params.credits) || 1));
+      let session;
+      try {
+        const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+        session = await stripe.checkout.sessions.create({
+          mode: 'payment',
+          payment_method_types: ['card'],
+          customer_email: caller.email || undefined,
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              unit_amount: REPORT_CREDIT_PRICE_USD * 100,
+              product_data: {
+                name: credits === 1 ? 'ABOS ATI Full Report credit' : `ABOS ATI Full Report credits (${credits})`,
+                description: 'Redeemable via the ABOS API / MCP report.get endpoint.',
+              },
+            },
+            quantity: credits,
+          }],
+          success_url: params.success_url || 'https://aircraftbuyorsell.com/api-credits?success=true',
+          cancel_url: params.cancel_url || 'https://aircraftbuyorsell.com/api-credits?canceled=true',
+          metadata: {
+            type: 'report_credits',
+            api_key_id: caller.key.id,
+            credits: String(credits),
+            owner_email: caller.email || '',
+          },
+        });
+      } catch (err) {
+        return apiError(502, 'checkout_unavailable', `Stripe checkout failed: ${err.message}`);
+      }
+      await trackUsage();
+      return apiSuccess({
+        checkout_url: session.url,
+        credits,
+        price_usd: REPORT_CREDIT_PRICE_USD * credits,
+        note: 'Credits are granted automatically once payment completes. Call report.get after paying.',
+      });
+    }
+
+    if (endpoint === 'report.get') {
+      const scopeErr = requireScope('report:paid');
+      if (scopeErr) return scopeErr;
+      const aircraftData = (params.aircraft_data || '').trim();
+      if (!aircraftData) return apiError(400, 'missing_aircraft_data', "'params.aircraft_data' is required (free-text listing / spec dump).");
+
+      if (caller.type === 'api_key') {
+        const remaining = caller.key.report_credits || 0;
+        if (remaining <= 0) {
+          return Response.json({
+            status: 'payment_required',
+            error: {
+              code: 'no_report_credits',
+              message: 'No ATI Full Report credits remaining. Call report.checkout to buy more.',
+            },
+            checkout_endpoint: 'report.checkout',
+          }, { status: 402 });
+        }
+        // Decrement first — if scoring then fails, the credit is still spent
+        // (matches how the email-funnel Stripe charge isn't refunded on a
+        // downstream PDF/email failure either). Acceptable for v1; revisit if
+        // scoring failure rate turns out to be non-trivial.
+        await base44.asServiceRole.entities.ApiKey.update(caller.key.id, {
+          report_credits: remaining - 1,
+        });
+      }
+
+      let report;
+      try {
+        const res = await base44.asServiceRole.functions.invoke('atiReportScoreInternal', {
+          aircraft_data: aircraftData,
+          registration: params.registration || undefined,
+        });
+        report = res.data;
+      } catch (err) {
+        return apiError(502, 'report_generation_failed', `ATI report scoring failed: ${err.message}`);
+      }
+      if (report?.error) {
+        return apiError(502, 'report_generation_failed', report.error);
+      }
+
+      await trackUsage();
+      return apiSuccess({
+        report,
+        credits_remaining: caller.type === 'api_key' ? Math.max(0, (caller.key.report_credits || 0) - 1) : null,
+      });
+    }
+
     return apiError(404, 'unknown_endpoint',
-      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, keys.create, keys.list, keys.revoke");
+      "Unknown endpoint. Valid: whoami, search, valuate, intelligence.extract, listings.get, listings.list, listings.create, report.checkout, report.get, keys.create, keys.list, keys.revoke");
 }

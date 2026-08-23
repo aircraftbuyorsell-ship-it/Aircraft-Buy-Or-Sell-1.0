@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Plane } from "lucide-react";
 import ComplianceBadge from "@/components/gcr/ComplianceBadge";
 
 function ATIBadge({ score }) {
@@ -23,6 +23,18 @@ function DealPill({ score, label }) {
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${isHot ? "bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30" : "bg-muted text-muted-foreground border-border"}`}>
       {score != null && <span className="mr-1 font-bold">{score}</span>}
       {label}
+    </span>
+  );
+}
+
+// Deal code badge — shared core ID (LST-XXXXXX) also used by the ATI Score and
+// ATI Full Report for this same aircraft, so the three are trivially linkable.
+function DealCodeBadge({ code }) {
+  if (!code) return null;
+  return (
+    <span className="absolute top-2 left-2 font-mono text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full text-white"
+      style={{ background: "rgba(10,8,30,0.72)", backdropFilter: "blur(2px)" }}>
+      LST-{code}
     </span>
   );
 }

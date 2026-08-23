@@ -47,17 +47,22 @@ export default function ListingCard({ listing: l, onClick }) {
       onClick={onClick}
       className="group rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all cursor-pointer p-5 flex flex-col gap-4"
     >
-      {l.photo_url && l.photo_source !== "hf_generated" && (
-        <div className="relative w-full rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
+      <div className="relative w-full rounded-lg overflow-hidden bg-muted" style={{ aspectRatio: "16/9" }}>
+        {l.photo_url ? (
           <img src={l.photo_url} alt={`${l.make} ${l.model}`} className="w-full h-full object-cover" loading="lazy" />
-          {l.photo_source && l.photo_source !== "none" && (
-            <span className="absolute bottom-1.5 right-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full text-white"
-              style={{ background: "rgba(34,197,94,0.85)" }}>
-              Real
-            </span>
-          )}
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+            <Plane className="w-8 h-8 text-muted-foreground/30" />
+          </div>
+        )}
+        <DealCodeBadge code={l.deal_code} />
+        {l.photo_url && (
+          <span className="absolute bottom-1.5 right-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full text-white"
+            style={{ background: l.photo_source === "hf_generated" ? "rgba(148,163,184,0.85)" : "rgba(34,197,94,0.85)" }}>
+            {l.photo_source === "hf_generated" ? "AI Render" : "Real"}
+          </span>
+        )}
+      </div>
 
       <div className="flex items-start justify-between gap-2">
         <div>

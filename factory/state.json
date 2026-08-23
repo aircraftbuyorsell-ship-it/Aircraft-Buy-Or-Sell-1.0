@@ -21,11 +21,51 @@
       "category": "unused_imports"
     },
     "typecheck": "fail",
-    "focused_hardcoded_secret_pattern_scan": "no_match"
+    "focused_hardcoded_secret_pattern_scan": "no_match",
+    "source_inventory": {
+      "status": "complete",
+      "task_id": "SPRINT1-TASK-001",
+      "report": ".branch-factory/reports/source-inventory.json",
+      "source_commit": "50e1cb2316a93176a1721d6d9b69e304792a8e8d",
+      "total_files": 205,
+      "validation_command": "npm run branch-factory -- validate",
+      "validated_on": "2026-07-19",
+      "control_plane_note": "The Branch Factory queue was reconciled by SPRINT1-CONTROL-001; SPRINT1-TASK-001 is COMPLETED and next-task selection advances to SPRINT1-TASK-002."
+    },
+    "supabase_security_fix_external": {
+      "status": "pending_evidence_ingestion",
+      "task_id": "SPRINT1-SECURITY-EVIDENCE-INTAKE-001",
+      "report": ".branch-factory/reports/supabase-security-fix-evidence-intake-2026-07-19.json",
+      "security_advisor_reported": {
+        "errors": 0,
+        "warnings": 1,
+        "info": 43
+      },
+      "production_sync_executed": false,
+      "independently_verified": false,
+      "reported_independent_verification_files": [
+        "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/task-002-independent-security-review-2026-07-20.json",
+        "C:/Users/REDITEL/Documents/Codex/2026-07-19/ta/outputs/supabase-security-fix-2026-07-19/independent-verification-2026-07-20.json"
+      ],
+      "verification_files_accessible_in_workspace": false
+    },
+    "security_inventory": {
+      "status": "ready_for_validation",
+      "task_id": "SPRINT1-TASK-002",
+      "report": ".branch-factory/reports/security-inventory.json",
+      "data_flow_review": ".branch-factory/reports/security-data-flow-review-2026-07-19.json",
+      "source_commit": "d95a7f67a808443abbe3cda51a4d5f1fce051a7c",
+      "files_scanned": 642,
+      "candidate_secret_scan": "no_match",
+      "external_supabase_evidence": "pending_evidence_ingestion",
+      "independently_validated": false,
+      "blocking_findings": 3,
+      "decision": "ready_for_independent_review"
+    }
   },
   "active_gates": {
     "control_plane": "complete",
-    "source_inventory": "in_progress",
+    "source_inventory": "complete",
     "security_inventory": "in_progress",
     "contract_baseline": "blocked_by_reconciliation",
     "quality_baseline": "complete",
@@ -34,10 +74,22 @@
     "first_extracted_capability": "not_started"
   },
   "ready_tasks": {
-    "TASK-001": { "issue": 5, "status": "ready" },
-    "TASK-002": { "issue": 6, "status": "ready" },
-    "TASK-003": { "issue": 7, "status": "ready" },
-    "TASK-004": { "issue": 8, "status": "ready" }
+    "TASK-001": {
+      "issue": 5,
+      "status": "complete"
+    },
+    "TASK-002": {
+      "issue": 6,
+      "status": "ready"
+    },
+    "TASK-003": {
+      "issue": 7,
+      "status": "ready"
+    },
+    "TASK-004": {
+      "issue": 8,
+      "status": "ready"
+    }
   },
   "blocked_tasks": [
     "TASK-005",
@@ -53,5 +105,5 @@
     "dns_changes",
     "public_v1_release"
   ],
-  "last_updated": "2026-07-15"
+  "last_updated": "2026-07-19"
 }

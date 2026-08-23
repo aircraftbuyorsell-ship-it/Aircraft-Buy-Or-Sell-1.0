@@ -7,8 +7,8 @@ test('branch factory configuration validates', () => {
   assert.deepEqual(result, { ok: true, errors: [] });
 });
 
-test('selects next eligible Sprint 1 task from repository evidence queue', () => {
+test('skips completed work and selects the next eligible Sprint 1 task', () => {
   const task = nextTask();
-  assert.equal(task.id, 'SPRINT1-TASK-001');
+  assert.equal(task.id, 'SPRINT1-TASK-002');
   assert.equal(task.status, 'QUEUED');
 });

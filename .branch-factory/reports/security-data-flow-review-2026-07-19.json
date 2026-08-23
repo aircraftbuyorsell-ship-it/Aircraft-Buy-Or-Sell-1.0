@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "SPRINT1-TASK-002",
+  "capability": "Security inventory baseline data-flow review",
+  "reviewed_on": "2026-07-19",
+  "source_commit": "e7ef9099d6e9f1bf61ae1fb9407193bc76d62dfa",
+  "review_scope": [
+    "src/lib/supabase.js",
+    "src/lib/app-params.js",
+    "83 Base44 function files containing service-role references"
+  ],
+  "frontend_supabase_client": {
+    "finding": "PASS_WITH_LIMITATION",
+    "evidence": "src/lib/supabase.js constructs a browser client from VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.",
+    "service_role_reference_found_under_src": false,
+    "sensitive_vite_env_pattern_matches": 0,
+    "limitation": "A publishable key is not authorization; database RLS and grants remain mandatory and are not reproduced by this repository-only review."
+  },
+  "frontend_token_flow": {
+    "finding": "REVIEW_REQUIRED",
+    "severity": "high",
+    "evidence": "src/lib/app-params.js accepts access_token from the URL, stores it in localStorage, and removes it from the visible URL with history.replaceState.",
+    "risk": "Tokens in query strings can reach browser history, logs, analytics, extensions, referrers, or other observers before replacement; localStorage tokens are accessible to successful same-origin script injection.",
+    "migration_disposition": "Treat this Base44 compatibility flow as migration-source behavior, not the permanent Cloudflare/Supabase authentication contract.",
+    "recommended_follow_up": "Define an explicit authentication contract and replace query-string token ingestion with a short-lived, server-mediated exchange before production cutover."
+  },
+  "backend_service_role_review": {
+    "finding": "REVIEW_REQUIRED",
+    "service_role_reference_files": 83,
+    "files_without_recognized_auth_or_role_marker": 0,
+    "recognized_markers": [
+      "Authorization header handling",
+      "auth.me()",
+      "getUser()",
+      "role/admin/super_admin checks"
+    ],
+    "limitation": "Marker presence is heuristic evidence only and does not prove that authorization executes before every privileged operation or that object-level authorization is correct.",
+    "recommended_follow_up": "Perform function-by-function authorization and object-scope review during capability extraction; do not expose service-role credentials to frontend code."
+  },
+  "scan_commands": [
+    "rg -n --glob 'src/**' 'VITE_[A-Z0-9_]*(SERVICE|SECRET|PRIVATE)'",
+    "rg -n --glob 'src/**' 'access_token' src/lib/app-params.js",
+    "Python classification of service-role reference files against Authorization, auth.me(), getUser(), and role markers"
+  ],
+  "production_actions": {
+    "sync_executed": false,
+    "deployment_executed": false,
+    "database_write_executed": false,
+    "secret_retrieval_executed": false
+  },
+  "contract_drift": "not_applicable_report_only",
+  "decision": "READY_FOR_INDEPENDENT_REVIEW",
+  "blocking_findings": [
+    "Frontend query-string access-token ingestion requires an approved migration disposition before production cutover.",
+    "Service-role call sites require function-level authorization review during extraction.",
+    "External Supabase verification artifacts remain unavailable in this workspace."
+  ],
+  "rollback": "Revert this report and its factory/state.json pointer; no runtime or external state is changed."
+}

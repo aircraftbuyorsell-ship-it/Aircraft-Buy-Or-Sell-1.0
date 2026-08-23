@@ -299,8 +299,13 @@ Return ONLY raw JSON:
         ati_version: "v2",
       });
 
+      // Assign the shared deal_code the first time this listing gets scored, so the
+      // Listing ID, ATI Score, and (later) ATI Full Report all carry the same core ID.
+      const dealCodeUpdate = listing.deal_code ? {} : { deal_code: generateDealCode() };
+
       await base44.entities.AircraftListing.update(listingId, {
         ati_score: ati_total, omvm_value, deal_score, deal_label, discount_pct: discountPct,
+        ...dealCodeUpdate,
       });
 
       const subjectLabel = `${listing.registration || "—"} · ${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim();

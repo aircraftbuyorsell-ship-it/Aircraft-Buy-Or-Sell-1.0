@@ -10,14 +10,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     // Gateway secret check — blocks direct calls that bypass the Cloudflare Worker.
-    // Enforced only when GATEWAY_SECRET is set in Base44 env, so deploying this
-    // patch before the Worker is live does not break anything.
+    // Fail-closed: GATEWAY_SECRET is required. The Worker has been live since
+    // 2026-07-23, so the original bootstrap allowance (skip the check while the
+    // secret was still being provisioned) no longer applies and only left this
+    // endpoint open to unauthenticated calls whenever the secret was unset.
     const expectedSecret = Deno.env.get('GATEWAY_SECRET');
-    if (expectedSecret) {
-      const providedSecret = req.headers.get('x-gateway-secret') || '';
-      if (!timingSafeEqual(providedSecret, expectedSecret)) {
-        return Response.json({ error: 'unauthorized' }, { status: 401 });
-      }
+    if (!expectedSecret) {
+      console.error('widgetGateway: GATEWAY_SECRET not configured in Base44 env');
+      return Response.json({ error: 'gateway_secret_not_configured' }, { status: 503 });
+    }
+    const providedSecret = req.headers.get('x-gateway-secret') || '';
+    if (!timingSafeEqual(providedSecret, expectedSecret)) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 });
     }
 
     const base44 = createClientFromRequest(req);

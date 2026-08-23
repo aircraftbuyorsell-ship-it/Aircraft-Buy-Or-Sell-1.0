@@ -187,7 +187,7 @@ async function handleReportCredits(session, base44) {
   console.log(`✓ Granted ${credits} report credit(s) to ApiKey ${apiKeyId}, balance: ${newBalance}`);
 }
 
-async function handleCheckoutCompleted(session, base44) {
+async function handleCheckoutCompleted(session, base44, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 
   const meta        = session.metadata || {};
@@ -423,7 +423,6 @@ async function handleProductCheckout(session, base44) {
   const productKey = meta.product_key;
   if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
   const email = meta.user_email || session.customer_email || session.customer_details?.email;
-  const eventId = `co_${session.id}`;
   if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'processed'))) {
     console.log(`Duplicate product checkout ignored: ${eventId}`);
     return true;

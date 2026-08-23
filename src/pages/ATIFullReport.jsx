@@ -8,7 +8,7 @@ import {
 import MiniGlobe from "@/components/MiniGlobe";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import { atiBand } from "@/theme/atiPremium";
-import { DIMS, genCode, exportDocx } from "@/lib/exportAtiReport";
+import { DIMS, genCode, buildReportCode, exportDocx } from "@/lib/exportAtiReport";
 import HeroHeader from "@/components/intelligence/HeroHeader";
 import ActionBar from "@/components/intelligence/ActionBar";
 import EmptyState from "@/components/intelligence/EmptyState";

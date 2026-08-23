@@ -187,7 +187,7 @@ async function handleReportCredits(session, base44) {
   console.log(`✓ Granted ${credits} report credit(s) to ApiKey ${apiKeyId}, balance: ${newBalance}`);
 }
 
-async function handleCheckoutCompleted(session, base44, eventId) {
+async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 
   const meta        = session.metadata || {};
@@ -197,7 +197,7 @@ async function handleCheckoutCompleted(session, base44, eventId) {
 
   // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
   if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {
-    await handleProductCheckout(session, base44);
+    await handleProductCheckout(session, base44, eventId);
     return;
   }
 
@@ -223,9 +223,24 @@ async function handleCheckoutCompleted(session, base44, eventId) {
     return;
   }
 
-  const userEmail = session.customer_email || session.customer_details?.email;
   if (!userEmail) {
     console.warn('No verified customer email found; entitlement skipped');
+    return;
+  }
+
+  // Legacy raw token purchase — checkout.session.completed doesn't embed price
+  // info by default, so resolve it from the session's line items.
+  let priceId;
+  try {
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+    priceId = lineItems?.data?.[0]?.price?.id;
+  } catch (err) {
+    console.error(`Failed to fetch line items for session ${session.id}:`, err.message);
+    return;
+  }
+  const mapped = PRICE_TOKEN_MAP[priceId];
+  if (!mapped) {
+    console.warn(`No token map for price ${priceId}, skipping legacy token grant`);
     return;
   }
   const { tokens, tier, sub_tier: subTier, price_usd: priceUsd, pack } = mapped;
@@ -418,7 +433,7 @@ async function markPaymentEvent(base44, eventId, type, email, productKey, paymen
 }
 
 // checkout.session.completed for a product purchase → grant entitlement (idempotent).
-async function handleProductCheckout(session, base44) {
+async function handleProductCheckout(session, base44, eventId) {
   const meta = session.metadata || {};
   const productKey = meta.product_key;
   if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;

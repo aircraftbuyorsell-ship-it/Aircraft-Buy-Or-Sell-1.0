@@ -490,6 +490,14 @@ Return ONLY raw JSON:
                   {listing?.registration && (
                     <p className="text-[rgba(255,255,255,0.60)] font-mono text-[15px] mt-1.5">{listing.registration}</p>
                   )}
+                  {listing?.deal_code && (
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                      <span className="font-mono text-[10px] font-bold tracking-widest px-2 py-0.5 rounded-full text-[#f5c242] border border-[rgba(245,194,66,0.30)] bg-[rgba(245,194,66,0.08)] uppercase">
+                        LST-{listing.deal_code}
+                      </span>
+                      <span className="text-[rgba(255,255,255,0.30)] text-[10px]">same ID on Score &amp; Report</span>
+                    </div>
+                  )}
                   {listing?.asking_price && (
                     <p className="text-[rgba(255,255,255,0.70)] text-[13px] mt-1 font-semibold">Asking ${listing.asking_price.toLocaleString()}</p>
                   )}

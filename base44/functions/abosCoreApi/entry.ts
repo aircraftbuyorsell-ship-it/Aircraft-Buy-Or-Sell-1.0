@@ -146,9 +146,16 @@ async function handleRequest(req, ctx) {
       return null;
     };
     const capability = capabilityForEndpoint(endpoint);
-    if (capability && caller.type === 'user') {
-      const capErr = requireCapability(ctx.access, capability);
-      if (capErr) return apiError(capErr.status, 'feature_not_available', `Feature '${capability}' is not available for the current plan.`);
+    if (capability) {
+      if (caller.type === 'user') {
+        const capErr = requireCapability(ctx.access, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `Feature '${capability}' is not available for the current plan.`);
+      } else {
+        const keyTier = caller.key.plan === 'enterprise' ? 'T3' : caller.key.plan === 'pro' ? 'T2' : 'T1';
+        const keyAccess = { ok: true, tier: keyTier, user: null };
+        const capErr = requireCapability(keyAccess, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `API key plan does not include '${capability}'.`);
+      }
     }
     const requireScope = (s) => (hasScope(s) ? null : apiError(403, 'insufficient_scope', `This endpoint requires the '${s}' scope.`));
 

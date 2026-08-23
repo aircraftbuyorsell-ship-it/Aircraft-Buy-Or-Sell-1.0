@@ -1,6 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+// Robust error serializer — avoids "[object Object]" when an error lacks .message
+const errToStr = (e) => {
+  if (e == null) return 'Unknown error';
+  if (typeof e === 'string') return e;
+  if (e.message) return String(e.message);
+  if (typeof e === 'object') {
+    try { return JSON.stringify(e); } catch (_) { return '[object Object]'; }
+  }
+  return String(e);
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -46,13 +57,13 @@ Deno.serve(async (req) => {
       ]);
       latencyMs = Date.now() - start;
       if (error) {
-        probeError = error.message || String(error);
+        probeError = errToStr(error);
         status = 'error';
       } else {
         tableCount = count;
       }
     } catch (e) {
-      const msg = e.message || String(e);
+      const msg = errToStr(e);
       probeError = msg;
       status = msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('timeout')
         ? 'paused'
@@ -71,6 +82,6 @@ Deno.serve(async (req) => {
       retrievedAt: new Date().toISOString(),
     });
   } catch (error) {
-    return Response.json({ error: error.message || String(error) }, { status: 500 });
+    return Response.json({ error: errToStr(error) }, { status: 500 });
   }
 });

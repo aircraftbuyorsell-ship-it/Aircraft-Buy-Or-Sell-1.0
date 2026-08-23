@@ -253,6 +253,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When federated data was last refreshed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

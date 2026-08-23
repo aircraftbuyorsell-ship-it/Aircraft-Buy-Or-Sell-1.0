@@ -31,6 +31,34 @@ function labelFromTotal(total) {
   return "AVOID";
 }
 
+// ── ABOS monetization gate — one-time purchase per aircraft (server-enforced for web, API and MCP) ──
+async function gateOneTimeProduct(base44, user, productKey, registration) {
+  if (user?.role === 'admin' || user?.role === 'super_admin') return null;
+  const reg = (registration || '').toUpperCase().trim();
+  const check = await base44.functions.invoke('abosEntitlements', {
+    action: 'check', product_key: productKey, aircraft_registration: reg,
+  });
+  const d = check?.data || {};
+  if (d.entitled) return null;
+  let checkoutUrl = null;
+  try {
+    const co = await base44.functions.invoke('abosEntitlements', {
+      action: 'create_checkout', product_key: productKey, aircraft_registration: reg,
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+    });
+    checkoutUrl = co?.data?.url || null;
+  } catch (_) { /* checkout link is optional */ }
+  return Response.json({
+    error: 'payment_required',
+    message: `This is a paid ABOS report (one-time purchase per aircraft${d.checkout_price_eur ? `, \u20ac${d.checkout_price_eur}` : ''}). Open checkout_url to pay, then retry this request.`,
+    product_key: productKey,
+    price_eur: d.checkout_price_eur ?? null,
+    original_price_eur: d.original_price_eur ?? null,
+    aircraft_registration: reg || null,
+    checkout_url: checkoutUrl,
+  }, { status: 402 });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -41,6 +69,10 @@ Deno.serve(async (req) => {
     if (!aircraft_data.trim()) {
       return Response.json({ error: "aircraft_data is required" }, { status: 400 });
     }
+
+    // ── Paid feature: ATI Full Report (€49 one-time per aircraft) ──
+    const gate = await gateOneTimeProduct(base44, user, 'ATI_FULL_REPORT', registration);
+    if (gate) return gate;
 
     // ─── 1) Score each of the 8 dimensions independently ────────────
     const scored = {};

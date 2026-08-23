@@ -88,6 +88,11 @@
     "pdf_url": {
       "type": "string",
       "description": "Generated agreement PDF URL"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

@@ -4,6 +4,7 @@ import { Terminal, FileJson, Loader2 } from "lucide-react";
 import ApiKeysPanel from "@/components/coreapi/ApiKeysPanel";
 import EndpointDoc from "@/components/coreapi/EndpointDoc";
 import TrustScoreApi from "@/components/coreapi/TrustScoreApi";
+import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
 
 const ENDPOINTS = [
   {
@@ -162,6 +163,9 @@ export default function CoreAPI() {
         </div>
 
         <TrustScoreApi />
+
+        {/* Agent connection */}
+        <AgentConnectInstructions />
 
         {/* API keys */}
         <div className="mb-10">

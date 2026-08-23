@@ -1,0 +1,69 @@
+{
+  "name": "PaymentEvent",
+  "type": "object",
+  "properties": {
+    "stripe_event_id": {
+      "type": "string",
+      "description": "Stripe event id \u2014 idempotency key (same event never processed twice)"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "product_key": {
+      "type": "string"
+    },
+    "stripe_payment_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    },
+    "amount_eur": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "processed",
+        "failed",
+        "ignored"
+      ],
+      "default": "processed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "stripe_event_id",
+    "event_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

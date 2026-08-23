@@ -3,7 +3,7 @@ export const NAV_DESCRIPTIONS = {
   "/compare": "Compare aircraft specifications, costs and market position.",
   "/deal-radar": "Surface promising aircraft opportunities and pricing signals.",
   "/analytics": "Explore market trends, pricing activity and demand signals.",
-  "/valuation": "Estimate a market-supported aircraft value with OMVM.",
+  "/valuation-studio": "Estimate a market-supported aircraft value with OMVM.",
   "/market-reports": "Open structured market intelligence and research reports.",
   "/traffic": "Monitor current aircraft activity on the live map.",
   "/faa-map": "Search and explore FAA registry aircraft data.",
@@ -35,7 +35,7 @@ export const NAV_DESCRIPTIONS = {
 };
 
 const DEFAULT_PRIORITY = {
-  Intelligence: ["/valuation", "/ati-quick-score", "/opex-calculator"],
+  Intelligence: ["/valuation-studio", "/ati-quick-score", "/opex-calculator"],
   Marketspace: ["/listings", "/compare", "/deal-radar"],
   Verification: ["/ati-verify", "/n-lookup", "/ati-passport"],
   Services: ["/service-intelligence", "/pre-buy-inspection", "/sales-pipeline"],

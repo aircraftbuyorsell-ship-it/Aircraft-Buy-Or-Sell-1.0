@@ -12,11 +12,28 @@ export const DIMS = [
 ];
 
 export function genCode(reg, score) {
+  // Fallback only — used if the backend deal_code couldn't be fetched (e.g. save_report failed).
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let suffix = "";
   for (let i = 0; i < 5; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
   const r = (reg || "NREG").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 6);
   return `ATI-${r}-${score}-${suffix}`;
+}
+
+// Builds the report code from the shared deal_code (same core ID as the Listing
+// and ATI Score) so ATI-XXXXXX / SCORE-XXXXXX / LST-XXXXXX are trivially linkable.
+export function buildReportCode(reg, score, dealCode) {
+  const r = (reg || "NREG").replace(/[^A-Z0-9]/gi, "").toUpperCase().slice(0, 6);
+  return `ATI-${r}-${score}-${dealCode}`;
+}
+
+// Generates a fresh 6-char shared core ID (same alphabet as the backend's
+// getOrCreateDealCode in abosEntitlements) for a listing that doesn't have one yet.
+export function generateDealCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
 export async function exportDocx(report, code) {

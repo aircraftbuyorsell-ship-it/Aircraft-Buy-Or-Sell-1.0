@@ -1,0 +1,27 @@
+# deploy: 2026-07-23T16:45Z
+name = "abos-widget-gateway"
+main = "src/index.js"
+compatibility_date = "2026-07-21"
+account_id = "0a4bd07b66927cf0cae8d39d150e858a"
+
+# Secrets (set via `wrangler secret put`, never in [vars]):
+#   GATEWAY_SECRET    - shared secret Base44 checks on inbound calls
+#   MCP_BEARER_TOKEN  - static bearer for /mcp (personal/service use); unset just
+#                       disables that one auth path - per-user /oauth/* connections
+#                       (abos_live_... keys) work independently of this secret
+#   ANTHROPIC_API_KEY - ATI narrative scoring; unset = /ati/score returns 503
+
+# APL audit chain (APL-A2). Without this binding the hash chain still emits but
+# every event links to genesis, so it proves nothing.
+[[kv_namespaces]]
+binding = "ABOS_AUDIT"
+id = "4d82602f2546446eb480fee148863922"
+
+[vars]
+# The app's published Base44 subdomain. It moved from 'aviation-marketspace'
+# to 'aircraftbuyorsell'; the old host now answers 404 "App not found" on
+# every path, which took the whole gateway down (all tool calls, plus the
+# OAuth metadata and consent proxies). If tools start failing wholesale with
+# "App not found", check this value first.
+BASE44_APP_BASE_URL = "https://aircraftbuyorsell.base44.app"
+CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com"

@@ -279,7 +279,9 @@ const ATI_RANGE_TEST = {
   unscored: (l) => !l.ati_score || l.ati_score === 0,
 };
 
-export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, focusLocation, onSelectListing }) {
+export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, focusLocation, onSelectListing, extraAircraft = [] }) {
+  const extraAircraftRef = useRef([]);
+  useEffect(() => { extraAircraftRef.current = extraAircraft; }, [extraAircraft]);
   const isDark = useTheme();
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -319,11 +321,13 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   useEffect(() => {listingsRef.current = listings;}, [listings]);
   useEffect(() => {filterRef.current = filter;}, [filter]);
 
-  // Re-render layers when filter changes
+  // Re-render layers when filter changes or SkyLink contacts are added
   useEffect(() => {
-    if (adsbCache.current.length > 0) renderToGlobe(adsbCache.current);
+    if (adsbCache.current.length > 0 || extraAircraftRef.current.length > 0) {
+      renderToGlobe([...adsbCache.current, ...extraAircraftRef.current]);
+    }
     if (liveCache.current.length > 0) renderLiveToGlobe(liveCache.current);
-  }, [filter]);
+  }, [filter, extraAircraft]);
 
   // Animate globe to focus on location
   const focusTargetRef = useRef(null);

@@ -1,0 +1,78 @@
+{
+  "name": "UsageRecord",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "product_key": {
+      "type": "string",
+      "description": "Feature/tool that was used"
+    },
+    "aircraft_registration": {
+      "type": "string"
+    },
+    "entitlement_id": {
+      "type": "string",
+      "relationType": "Entitlement"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Unique request id (for traceability)"
+    },
+    "provider": {
+      "type": "string",
+      "default": "abos_omvm"
+    },
+    "cost_eur": {
+      "type": "number",
+      "default": 0,
+      "description": "Provider cost / usage cost where applicable"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "user_email",
+    "product_key"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -3,9 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin } from "lucide-react";
+  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
+import MarketspaceTour from "@/components/marketspace-tour/MarketspaceTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
@@ -59,50 +60,13 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
         {NAV_TREE.map((section) =>
-          section.direct ?
           <div key={section.label} style={{ marginTop: 8 }}>
             <NavItem
               to={section.path}
               icon={section.icon}
               label={section.label}
-              active={pathname === section.path}
+              active={pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"))}
               onClick={onNavigate} />
-          </div> :
-          <div key={section.label}>
-            <div style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "rgba(212,160,23,0.55)",
-              padding: "16px 16px 4px",
-              marginTop: 4,
-            }}>
-              {section.label}
-            </div>
-            {section.categories.map((cat) =>
-              <div key={cat.label} style={{ marginBottom: 2 }}>
-                <div style={{
-                  fontSize: "8px",
-                  fontWeight: 600,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  color: textDim,
-                  padding: "8px 16px 2px",
-                }}>
-                  {cat.label}
-                </div>
-                {cat.items.map((item) =>
-                  <NavItem
-                    key={item.path}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    active={pathname === item.path || pathname.startsWith(item.path + "/")}
-                    onClick={onNavigate} />
-                )}
-              </div>
-            )}
           </div>
         )}
       </nav>
@@ -117,21 +81,21 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
           © 2026 ABOS s.r.o.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <a href="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Terms of Service
-          </a>
-          <a href="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Privacy Policy
-          </a>
-          <a href="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             DSA — Report Content
-          </a>
-          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             AI Disclosure
-          </a>
-          <a href="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             IP & Trademark Notice
-          </a>
+          </Link>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
             style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: textDim, cursor: "pointer", letterSpacing: "0.02em" }}>
@@ -202,7 +166,15 @@ export default function Layout() {
     };
     document.addEventListener("touchstart", onStart, { passive: true });
     document.addEventListener("touchend", onEnd, { passive: true });
-    return () => {document.removeEventListener("touchstart", onStart);document.removeEventListener("touchend", onEnd);};
+
+    const onOpenDrawer = () => setMobileOpen(true);
+    window.addEventListener("abos-open-drawer", onOpenDrawer);
+
+    return () => {
+      document.removeEventListener("touchstart", onStart);
+      document.removeEventListener("touchend", onEnd);
+      window.removeEventListener("abos-open-drawer", onOpenDrawer);
+    };
   }, []);
 
   const layoutBg = isDark
@@ -236,12 +208,11 @@ export default function Layout() {
       </a>
 
       {/* ── Mobile drawer ── */}
-      {!isHomepage && !isWorkspace && mobileOpen &&
-      <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)}
+      {mobileOpen &&
+      <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMobileOpen(false)}
       style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
       }
-      {!isHomepage && !isWorkspace && (
-      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-50 flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
+      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
       style={{
         background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
         transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
@@ -254,7 +225,6 @@ export default function Layout() {
         </div>
         <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} isDark={isDark} />
       </aside>
-      )}
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && !isWorkspace && (
@@ -264,6 +234,10 @@ export default function Layout() {
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
+            style={{ width: "40px", height: "40px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Menu size={18} />
+            </button>
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
             style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>
@@ -314,6 +288,7 @@ export default function Layout() {
 
       {!isWorkspace && <SiteFooter />}
       <ABOSTour />
+      <MarketspaceTour />
     </div>);
 
 }

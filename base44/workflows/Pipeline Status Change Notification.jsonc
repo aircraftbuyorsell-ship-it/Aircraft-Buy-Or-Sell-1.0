@@ -1,0 +1,34 @@
+{
+  "name": "Pipeline Status Change Notification",
+  "description": "Sends email notification to owner and buyer when pipeline status, step, or progress changes",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "SalesPipeline"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "pipeline_status_change_notification",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPipelineStatusChange",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

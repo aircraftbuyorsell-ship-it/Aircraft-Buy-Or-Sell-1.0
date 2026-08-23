@@ -9,10 +9,11 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"no tests\" && exit 0"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.39",
+    "@base44/sdk": "^0.8.43",
     "@base44/vite-plugin": "^1.0.30",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",

@@ -1,407 +1,195 @@
-import { CheckCircle2, XCircle, ChevronRight, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ONE_TIME_PRODUCTS, SUBSCRIPTION_PRODUCTS, formatEur, effectivePrice } from "@/lib/products";
+import { listMyEntitlements, createCheckout, createCustomerPortal } from "@/lib/entitlements";
+import { ShieldCheck, Loader2, Check, Crown, Building, Lock, ArrowRight, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTheme } from "@/lib/useTheme";
+import { base44 } from "@/api/base44Client";
 
-const INK   = "#0B1220";
-const INK1  = "#111827";
-const AMBER = "#D4A017";
-const TEAL  = "#5dcaa5";
-const BLUE  = "#4e8ef7";
-const W1    = "var(--pricing-text-1)";
-const W2    = "var(--pricing-text-2)";
-const W3    = "var(--pricing-text-3)";
-const BORDER = "var(--pricing-border)";
-
-const TIERS = [
-  {
-    id: "t0", label: "T0 — Free", price: "€0", cadence: "automatic, all listings", accent: "gray",
-    desc: "Baseline N-Reg compliance validation. Every listing gets it.",
-    featured: false,
-    features: [
-      { ok: true,  text: "N-Reg validation vs FAA / EASA dataset" },
-      { ok: true,  text: "ATI PASS badge on match" },
-      { ok: true,  text: "Auto admin report on mismatch" },
-      { ok: true,  text: "Immediate flag — zero human involvement" },
-      { ok: false, text: "No ATI scoring" },
-      { ok: false, text: "No valuation" },
-    ],
-    cta: "Included automatically", ctaVariant: "ghost", link: null,
-  },
-  {
-    id: "t1", label: "T1 — Starter", price: "€29", cadence: "/month", accent: "amber",
-    desc: "ATI scoring and market valuation for active sellers.",
-    featured: false,
-    features: [
-      { ok: true,  text: "Everything in T0" },
-      { ok: true,  text: "ATI Quick Score (120-point)" },
-      { ok: true,  text: "OMVM market valuation estimate" },
-      { ok: true,  text: "PDF scorecard output" },
-      { ok: true,  text: "Up to 10 listings / month" },
-      { ok: false, text: "No .docx branded report" },
-    ],
-    cta: "Get started", ctaVariant: "ghost", link: "/my-account",
-  },
-  {
-    id: "t2", label: "T2 — Pro", price: "€99", cadence: "/month", accent: "amber",
-    desc: "Full ATI report, white-label API, and unlimited listings.",
-    featured: true, badge: "Most popular",
-    features: [
-      { ok: true, text: "Everything in T1" },
-      { ok: true, text: "Full ATI Report (.docx branded)" },
-      { ok: true, text: "White-label API account on ABOS" },
-      { ok: true, text: "ITAR / AD / SB auto-flag" },
-      { ok: true, text: "FAA + EASA registry cross-check" },
-      { ok: true, text: "Unlimited listings" },
-    ],
-    cta: "Start Pro", ctaVariant: "amber", link: "/my-account",
-  },
-  {
-    id: "t3", label: "T3 — Enterprise", price: "€249", cadence: "/month", accent: "blue",
-    desc: "Dedicated API, custom branding, SLA, and compliance audit.",
-    featured: false,
-    features: [
-      { ok: true, text: "Everything in T2" },
-      { ok: true, text: "Dedicated ATI API endpoint" },
-      { ok: true, text: "Custom branding + domain" },
-      { ok: true, text: "SLA + priority support" },
-      { ok: true, text: "Quarterly compliance audit report" },
-      { ok: true, text: "Named account manager" },
-    ],
-    cta: "Contact sales", ctaVariant: "ghost", link: "/contact",
-  },
-];
-
-const ONE_TIME = [
-  { label: "Implementation service", price: "€749", trigger: "Billed at contract signing", desc: "Full API widget integration, onboarding, technical documentation, and setup support." },
-  { label: "Risk identification milestone", price: "€249", trigger: "Billed on dataset delivery", desc: "Complete risky-listing dataset with risk flags, severity classifications (CRITICAL/HIGH), and direct listing URLs." },
-  { label: "White-label API account setup", price: "€500", trigger: "Billed on API account activation", desc: "Creation and configuration of your white-label ATI API management account. Offer ATI under your own brand." },
-];
-
-const VERIFY_FLOW = [
-  { label: "Listing submitted", sub: "seller on your platform", color: W3 },
-  { label: "ABOS ATI engine",   sub: "N-reg extracted",         color: AMBER },
-  { label: "FAA / EASA dataset",sub: "live cross-reference",    color: TEAL },
-  { label: "Match result",      sub: "TRUE or FALSE",           color: W2 },
-];
-
-const CREDIT_BUNDLES = [
-  { id: 'starter',    credits: 50,   price: '€75',    per: '€1.50/cr', label: 'Starter Pack',    popular: false, desc: 'Perfect for occasional use' },
-  { id: 'pro',        credits: 200,  price: '€240',   per: '€1.20/cr', label: 'Pro Pack',        popular: true,  desc: 'Best value for active users' },
-  { id: 'business',   credits: 500,  price: '€500',   per: '€1.00/cr', label: 'Business Pack',   popular: false, desc: 'For brokers & small teams' },
-  { id: 'enterprise', credits: 2000, price: '€1,600', per: '€0.80/cr', label: 'Enterprise Pack', popular: false, desc: 'Volume pricing for fleets' },
-];
-
-const PAY_PER_USE = [
-  { feature: 'ATI Quick Score',       credits: 5,  fiat: '€9',   list: '€199', member: '€59',  free: false },
-  { feature: 'OPEX Calculator',       credits: 3,  fiat: '€5',   list: '€79',  member: '€49',  free: false, note: 'Unlocks avionics, exterior, interior & detailing calcs' },
-  { feature: 'ATI Full Report',       credits: 20, fiat: '€35',  list: '€499', member: '€249', free: false },
-  { feature: 'Insurance Calculator',  credits: 2,  fiat: '€4',   list: null,   member: null,   free: false },
-  { feature: 'Leasing + Tax Benefit', credits: 2,  fiat: '€4',   list: null,   member: null,   free: false },
-  { feature: 'Aircraft Tracking',     credits: 10, fiat: '€19',  list: null,   member: null,   free: false, note: 'Monthly — live ADS-B + history + alerts' },
-  { feature: 'Investment Brief',      credits: 5,  fiat: '€9',   list: null,   member: null,   free: false },
-  { feature: 'Market Report',         credits: 8,  fiat: '€15',  list: null,   member: null,   free: false },
-  { feature: 'Registry / OMVM Lookup',credits: 0,  fiat: 'Free', list: null,   member: null,   free: true },
-];
-
-const AFFILIATE_ROWS = [
-  { tier: "T0 — Free",       price: "—",    abos: "—",   your: "—",   earn: "—"      },
-  { tier: "T1 — Starter",    price: "€29",  abos: "80%", your: "20%", earn: "€5.80"  },
-  { tier: "T2 — Pro",        price: "€99",  abos: "80%", your: "20%", earn: "€19.80" },
-  { tier: "T3 — Enterprise", price: "€249", abos: "80%", your: "20%", earn: "€49.80" },
-];
-
-const ACCENTS = {
-  gray:  { line: BORDER,                      chip: { bg: "rgba(255,255,255,0.06)", color: W3,    border: BORDER }                  },
-  amber: { line: AMBER,                       chip: { bg: "rgba(212,160,23,0.09)",  color: AMBER, border: "rgba(212,160,23,0.22)" } },
-  teal:  { line: "rgba(93,202,165,0.55)",     chip: { bg: "rgba(93,202,165,0.09)",  color: TEAL,  border: "rgba(93,202,165,0.20)" } },
-  blue:  { line: "rgba(78,142,247,0.55)",     chip: { bg: "rgba(78,142,247,0.09)",  color: BLUE,  border: "rgba(78,142,247,0.20)" } },
-};
-
-function CTAButton({ variant, children }) {
-  const styles = {
-    amber: { background: AMBER, color: INK, border: "none" },
-    ghost: { background: "transparent", color: W2, border: `0.5px solid ${BORDER}` },
-  };
-  return (
-    <button
-      className="w-full text-center py-2.5 px-4 rounded-lg text-[13px] font-semibold cursor-pointer transition-opacity hover:opacity-85 outline-none"
-      style={{ letterSpacing: "-0.01em", ...styles[variant] }}
-    >
-      {children}
-    </button>
-  );
-}
-
-const eyebrow = { fontSize: "9px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: W3 };
+const ICONS = { Shield: ShieldCheck, FileBarChart: ShieldCheck, TrendingUp: ShieldCheck, BadgeCheck: ShieldCheck, Crown, Building };
 
 export default function Pricing() {
-  const isDark = useTheme();
-  const pageBackground = isDark
-    ? "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%), radial-gradient(circle, rgba(255,255,255,0.18) 1px, transparent 1px)"
-    : "radial-gradient(ellipse at 8% 12%, rgba(212,160,23,0.05) 0%, transparent 48%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.035) 0%, transparent 48%), radial-gradient(circle, rgba(15,23,42,0.07) 1px, transparent 1px)";
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({ active_sub_product: null, entitlements: [], subscriptions: [] });
+  const [buying, setBuying] = useState(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [isNewMember, setIsNewMember] = useState(false);
+
+  useEffect(() => {
+    listMyEntitlements()
+      .then((res) => {
+        setData(res);
+        const noPurchases = !(res.entitlements?.length) && !(res.subscriptions?.length);
+        if (noPurchases) {
+          base44.auth.me().then((u) => {
+            const created = new Date(u?.created_date || 0).getTime();
+            if (created && Date.now() - created < 14 * 86400000) setIsNewMember(true);
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const buy = async (productKey, aircraftRegistration = "") => {
+    setBuying(productKey);
+    try {
+      const res = await createCheckout(productKey, aircraftRegistration, window.location.href);
+      if (res.url) window.location.href = res.url;
+    } finally {
+      setBuying(null);
+    }
+  };
+
+  const openPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await createCustomerPortal(window.location.origin + "/billing");
+      if (res.url) window.location.href = res.url;
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const hasEntitlement = (key) => data.entitlements?.some((e) => e.product_key === key && e.status === "active") || data.subscriptions?.some((e) => e.product_key === key && e.status === "active");
+  const isSub = (key) => data.active_sub_product === key;
 
   return (
-    <div data-theme-surface="adaptive" style={{
-      "--pricing-text-1": isDark ? "rgba(255,255,255,0.90)" : "#111827",
-      "--pricing-text-2": isDark ? "rgba(255,255,255,0.60)" : "#4b5563",
-      "--pricing-text-3": isDark ? "rgba(255,255,255,0.35)" : "#6b7280",
-      "--pricing-border": isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.10)",
-      background: isDark ? INK : "#f7f8fa",
-      backgroundImage: pageBackground,
-      backgroundSize: isDark ? "100% 100%, 100% 100%, 100% 100%, 24px 24px" : "100% 100%, 100% 100%, 24px 24px",
-      minHeight: "100vh",
-      color: W1,
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-      position: "relative",
-    }}>
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%) rotate(-8deg)", opacity: 0.055, pointerEvents: "none", zIndex: 0 }}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 106" width="480" height="296">
-          <defs>
-            <marker id="wm-arr" markerWidth="9" markerHeight="9" refX="8.5" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-              <polygon points="0,0 9,4.5 0,9" fill={isDark ? "white" : "#111827"} />
-            </marker>
-          </defs>
-          <polyline points="2,98 52,8 70,98" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <polyline points="70,98 86,48 102,70 122,14 140,80 156,57" stroke={isDark ? "white" : "#111827"} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" markerEnd="url(#wm-arr)" />
-        </svg>
+    <div className="min-h-screen pb-20">
+      {/* Hero */}
+      <div className="max-w-5xl mx-auto px-4 pt-12 pb-8 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 bg-amber-400/10 border border-amber-400/30">
+          <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+          <span className="text-[10px] uppercase tracking-[0.2em] font-black text-amber-600">ABOS Monetization</span>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight">Pricing</h1>
+        <p className="text-sm text-muted-foreground mt-3 max-w-xl mx-auto">
+          Pay per aircraft for one-time intelligence, or subscribe for ongoing access. Every purchase is backed by
+          real Stripe checkout and a server-side entitlement system.
+        </p>
       </div>
 
-      <div className="relative z-10">
-        <div className="text-center py-2 text-[11px]" style={{ background: "rgba(255,255,255,0.04)", color: W2, borderBottom: `0.5px solid ${BORDER}` }}>
-          New:&nbsp;<strong style={{ color: AMBER }}>N-Reg Validation</strong>&nbsp;— automatic FAA/EASA dataset matching on every listing, free on all tiers
-        </div>
-
-        <header className="text-center py-12 px-6">
-          <p style={{ ...eyebrow, color: AMBER }} className="mb-2">INTRAZONE — ATI PRICING</p>
-          <h1 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 500, letterSpacing: "-0.04em", color: W1, margin: 0 }}>Aircraft Transparency Index</h1>
-          <p className="text-[14px] max-w-xl mx-auto mt-3" style={{ color: W2 }}>
-            Compliance, valuation, and fraud prevention for aviation marketplaces and individual aircraft buyers &amp; sellers.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
-            {["FAA / EASA registry integrated", "ITAR auto-flag", "White-label API", "Fraud-proof N-Reg validation"].map((badge) => (
-              <span key={badge} className="text-[11px] px-3 py-1 rounded-full font-semibold"
-                style={{ background: "rgba(212,160,23,0.09)", color: AMBER, border: "0.5px solid rgba(212,160,23,0.22)" }}>{badge}</span>
-            ))}
-          </div>
-        </header>
-
-        {/* Tiers */}
-        <section className="max-w-6xl mx-auto px-4 py-8">
-          <p style={eyebrow} className="text-center mb-8">Subscription tiers</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-            {TIERS.map((tier) => {
-              const a = ACCENTS[tier.accent];
-              return (
-                <div key={tier.id} className="rounded-xl relative flex flex-col overflow-hidden"
-                  style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, boxShadow: tier.featured ? "0 12px 40px rgba(0,0,0,0.65), 0 0 0 0.5px rgba(255,255,255,0.10)" : "0 1px 3px rgba(0,0,0,0.35)" }}>
-                  <div style={{ height: "2px", background: a.line }} />
-                  <div className="p-5 flex flex-col flex-1">
-                    {tier.badge && (
-                      <span className="self-start text-[9px] font-bold px-2.5 py-1 rounded-full mb-3" style={{ background: a.chip.bg, color: a.chip.color, border: `0.5px solid ${a.chip.border}`, letterSpacing: "0.08em", textTransform: "uppercase" }}>{tier.badge}</span>
-                    )}
-                    <p style={{ ...eyebrow }} className="mb-2">{tier.label}</p>
-                    <div className="flex items-baseline gap-1">
-                      <span style={{ fontSize: "32px", fontWeight: 500, letterSpacing: "-0.04em", color: W1 }}>{tier.price}</span>
-                      <span style={{ fontSize: "13px", color: W3 }}>{tier.cadence}</span>
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-amber-500" /></div>
+      ) : (
+        <div className="max-w-5xl mx-auto px-4 space-y-10">
+          {isNewMember && (
+            <div className="flex items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-5 py-4">
+              <Gift className="w-6 h-6 text-amber-600 shrink-0" />
+              <div>
+                <p className="text-sm font-black text-amber-700 dark:text-amber-400">New member welcome offer</p>
+                <p className="text-xs text-muted-foreground">30% off your first report or valuation — applied automatically at checkout, valid for 14 days after signup.</p>
+              </div>
+            </div>
+          )}
+          {/* ── Individual (one-time) ── */}
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-xl font-black">Individual</h2>
+              <span className="text-xs text-muted-foreground">One-time purchases · per aircraft</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {ONE_TIME_PRODUCTS.map((p) => {
+                const Icon = ICONS[p.icon] || ShieldCheck;
+                const owned = hasEntitlement(p.key);
+                const price = effectivePrice(p.key, data.active_sub_product);
+                const included = price?.included;
+                return (
+                  <div key={p.key} className="rounded-2xl border bg-card p-5 flex flex-col">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/25 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-amber-600" />
+                      </div>
+                      {owned && <span className="text-[9px] font-black uppercase tracking-wider text-green-600 flex items-center gap-1"><Check className="w-3 h-3" />Owned</span>}
                     </div>
-                    <p className="text-[12px] mt-3 mb-4 min-h-[36px]" style={{ color: W2 }}>{tier.desc}</p>
-                    <ul className="flex-1 mb-5">
-                      {tier.features.map((f, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[13px] py-1.5" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                          {f.ok
-                            ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: tier.accent === "gray" ? TEAL : a.chip.color }} />
-                            : <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: W3 }} />}
-                          <span style={{ color: f.ok ? W2 : W3 }}>{f.text}</span>
+                    <h3 className="font-black text-sm">{p.name}</h3>
+                    <p className="text-[11px] text-muted-foreground mb-3">{p.tagline}</p>
+                    <div className="mb-3">
+                      {included ? (
+                        <span className="text-lg font-black text-green-600">Included</span>
+                      ) : (
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-black">{formatEur(price.eur)}</span>
+                          {price.discount_pct > 0 && <span className="text-xs line-through text-muted-foreground">{formatEur(price.original_eur)}</span>}
+                        </div>
+                      )}
+                    </div>
+                    <ul className="space-y-1.5 mb-4 flex-1">
+                      {p.features.map((f) => (
+                        <li key={f} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                          <Check className="w-3 h-3 mt-0.5 text-green-500 shrink-0" />{f}
                         </li>
                       ))}
                     </ul>
-                    {tier.link ? (
-                      <Link to={tier.link}><CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton></Link>
+                    <button
+                      onClick={() => buy(p.key)}
+                      disabled={buying === p.key || owned || included}
+                      className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 bg-amber-500 hover:bg-amber-600 text-white"
+                    >
+                      {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : owned ? "Purchased" : included ? "Included" : `Buy · ${formatEur(price.eur)}`}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* ── Professional (subscription) ── */}
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-xl font-black">Professional</h2>
+              <span className="text-xs text-muted-foreground">Recurring subscriptions · monthly</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SUBSCRIPTION_PRODUCTS.map((p) => {
+                const Icon = ICONS[p.icon] || ShieldCheck;
+                const active = isSub(p.key);
+                return (
+                  <div key={p.key} className={`rounded-2xl border p-6 flex flex-col ${p.key === "PRO" ? "border-amber-400/40 bg-amber-50/30 dark:bg-amber-950/10" : "bg-card"}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/25 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-amber-600" />
+                      </div>
+                      {active && <span className="text-[9px] font-black uppercase tracking-wider text-green-600 flex items-center gap-1"><Check className="w-3 h-3" />Active</span>}
+                    </div>
+                    <h3 className="font-black text-base">{p.name}</h3>
+                    <p className="text-[11px] text-muted-foreground mb-3">{p.tagline}</p>
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-3xl font-black">{formatEur(p.price_eur)}</span>
+                      <span className="text-xs text-muted-foreground">/month</span>
+                    </div>
+                    <ul className="space-y-1.5 mb-5 flex-1">
+                      {p.features.map((f) => (
+                        <li key={f} className="flex items-start gap-1.5 text-[11px]">
+                          <Check className="w-3 h-3 mt-0.5 text-green-500 shrink-0" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                    {active ? (
+                      <button onClick={openPortal} disabled={portalLoading} className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border border-border hover:bg-muted transition-colors">
+                        {portalLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Manage Subscription"}
+                      </button>
                     ) : (
-                      <CTAButton variant={tier.ctaVariant}>{tier.cta}</CTAButton>
+                      <button onClick={() => buy(p.key)} disabled={buying === p.key} className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50">
+                        {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Subscribe"}
+                      </button>
                     )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Credit Bundles */}
-        <section className="max-w-5xl mx-auto px-4 py-8">
-          <p style={eyebrow} className="text-center mb-1">Credit bundles — pre-paid</p>
-          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Buy credits in bulk and save. Use them across any paid feature. Credits never expire.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {CREDIT_BUNDLES.map((bundle) => (
-              <div key={bundle.id} className="rounded-xl relative overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: bundle.popular ? `0.5px solid rgba(212,160,23,0.35)` : `0.5px solid ${BORDER}`, boxShadow: bundle.popular ? "0 8px 24px rgba(212,160,23,0.12)" : "none" }}>
-                <div style={{ height: "2px", background: bundle.popular ? AMBER : BORDER }} />
-                <div className="p-5 text-center">
-                  {bundle.popular && <span className="text-[9px] font-bold px-2.5 py-1 rounded-full mb-3 inline-block" style={{ background: "rgba(212,160,23,0.09)", color: AMBER, border: "0.5px solid rgba(212,160,23,0.22)" }}>Best Value</span>}
-                  <p style={eyebrow} className="mb-2">{bundle.label}</p>
-                  <p style={{ fontSize: "28px", fontWeight: 600, letterSpacing: "-0.03em", color: W1 }}>{bundle.credits}</p>
-                  <p className="text-[11px] mb-3" style={{ color: W3 }}>credits</p>
-                  <p style={{ fontSize: "22px", fontWeight: 600, color: AMBER, letterSpacing: "-0.03em" }} className="mb-1">{bundle.price}</p>
-                  <p className="text-[10px] mb-3" style={{ color: W3 }}>{bundle.per}</p>
-                  <p className="text-[11px]" style={{ color: W2 }}>{bundle.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Pay-per-use pricing table */}
-        <section className="max-w-4xl mx-auto px-4 py-8">
-          <p style={eyebrow} className="text-center mb-1">Pay-per-use — or use credits</p>
-          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Non-subscribers pay 1.3× fiat. Registered members see instant discounts. <Link to="/my-account" style={{ color: AMBER }}>Register free →</Link></p>
-          <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
-            <div style={{ height: "2px", background: `linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)` }} />
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: `0.5px solid ${BORDER}` }}>
-                    {["Feature","Credits","Fiat (1.3×)","List Price","Member Price","Status"].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left" style={{ ...eyebrow }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PAY_PER_USE.map((row) => (
-                    <tr key={row.feature} style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                      <td className="px-4 py-3" style={{ color: W1 }}>
-                        {row.feature}
-                        {row.note && <p className="text-[10px] mt-0.5" style={{ color: W3 }}>{row.note}</p>}
-                      </td>
-                      <td className="px-4 py-3 font-semibold" style={{ color: AMBER }}>{row.credits || '—'}</td>
-                      <td className="px-4 py-3" style={{ color: W2 }}>{row.fiat}</td>
-                      <td className="px-4 py-3" style={{ color: W3 }}>{row.list ? <span style={{ textDecoration: "line-through" }}>{row.list}</span> : '—'}</td>
-                      <td className="px-4 py-3 font-semibold" style={{ color: TEAL }}>{row.member || '—'}</td>
-                      <td className="px-4 py-3">
-                        {row.free
-                          ? <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "rgba(93,202,165,0.10)", color: TEAL }}>FREE</span>
-                          : <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: "rgba(212,160,23,0.10)", color: AMBER }}>PAID</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                );
+              })}
             </div>
-          </div>
-          <div className="rounded-xl p-4 mt-4 flex items-start gap-2" style={{ background: "rgba(78,142,247,0.06)", border: `0.5px solid rgba(78,142,247,0.20)"` }}>
-            <Zap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: BLUE }} />
-            <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>
-              <strong style={{ color: W1 }}>How it works:</strong> Subscribers use credits (1 credit ≈ €0.15). Non-subscribers pay fiat at 1.3× the credit rate.
-              Buy a credit bundle or subscribe for monthly credits + member pricing. <strong style={{ color: AMBER }}>OPEX purchase unlocks all sub-calculators</strong> (avionics, exterior, interior, detailing) for the session.
-            </p>
-          </div>
-        </section>
+          </section>
 
-        {/* One-time fees */}
-        <section className="py-10 px-4">
-          <div className="max-w-4xl mx-auto">
-            <p style={eyebrow} className="text-center mb-1">One-time implementation fees</p>
-            <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>For marketplace platform partners integrating IntraZone via API</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {ONE_TIME.map((item) => (
-                <div key={item.label} className="rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
-                  <div style={{ height: "2px", background: AMBER }} />
-                  <div className="p-5">
-                    <p style={eyebrow} className="mb-2">{item.label}</p>
-                    <p style={{ fontSize: "24px", fontWeight: 600, letterSpacing: "-0.03em", color: W1 }} className="mb-1">{item.price}</p>
-                    <p className="text-[10px] font-semibold mb-3" style={{ color: AMBER }}>{item.trigger}</p>
-                    <p className="text-[12px] leading-relaxed" style={{ color: W2 }}>{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl px-5 py-4 mt-4 flex justify-between items-center" style={{ background: "rgba(212,160,23,0.06)", border: `0.5px solid rgba(212,160,23,0.22)` }}>
-              <span className="text-[13px]" style={{ color: W2 }}>Total one-time package (all three items)</span>
-              <span style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.03em", color: AMBER }}>€1,498</span>
-            </div>
+          {/* Links */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t">
+            <Link to="/my-reports" className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:underline">
+              My Reports <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link to="/billing" className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:underline">
+              Billing & Usage <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-        </section>
-
-        {/* N-Reg flow */}
-        <section className="max-w-4xl mx-auto px-4 py-10">
-          <p style={eyebrow} className="text-center mb-1">N-Reg validation — how it works</p>
-          <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Autonomous, binary, fraud-proof. No human decision-making in the loop.</p>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 justify-center flex-wrap">
-            {VERIFY_FLOW.map((node, i) => (
-              <div key={node.label} className="flex items-center gap-2">
-                <div className="rounded-lg px-4 py-3 text-center min-w-[110px]" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, borderLeft: `3px solid ${node.color}` }}>
-                  <p className="text-[11px] font-semibold" style={{ color: W1 }}>{node.label}</p>
-                  <p className="text-[9px] mt-0.5" style={{ color: W3 }}>{node.sub}</p>
-                </div>
-                {i < VERIFY_FLOW.length - 1 && <ChevronRight className="w-4 h-4 shrink-0" style={{ color: W3 }} />}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="rounded-xl overflow-hidden" style={{ background: "rgba(93,202,165,0.06)", border: `0.5px solid rgba(93,202,165,0.20)` }}>
-              <div style={{ height: "2px", background: TEAL }} />
-              <div className="p-5">
-                <p className="text-[13px] font-semibold mb-3" style={{ color: TEAL }}>N-Reg match = TRUE → ATI PASS</p>
-                {["Registration confirmed in FAA / EASA dataset","ATI PASS badge displayed on listing","Airworthiness verifiable by any buyer","Seller eligible for paid T1 / T2 / T3 upgrade"].map((item) => (
-                  <p key={item} className="text-[12px] py-1.5" style={{ color: W2, borderBottom: `0.5px solid ${BORDER}` }}>{item}</p>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-xl overflow-hidden" style={{ background: "rgba(226,75,74,0.06)", border: `0.5px solid rgba(226,75,74,0.22)` }}>
-              <div style={{ height: "2px", background: "#e24b4a" }} />
-              <div className="p-5">
-                <p className="text-[13px] font-semibold mb-3" style={{ color: "#e24b4a" }}>N-Reg match = FALSE → Admin report</p>
-                {["No matching registration found in dataset","Automatic report generated instantly","Platform owner notified directly","Zero ABOS influence on this outcome"].map((item, i) => (
-                  <p key={item} className="text-[12px] py-1.5" style={{ color: i === 3 ? "#e24b4a" : W2, fontWeight: i === 3 ? 600 : 400, borderBottom: `0.5px solid ${BORDER}` }}>{item}</p>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="rounded-xl p-5 text-[13px] leading-relaxed" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}`, color: W2 }}>
-            <strong style={{ color: AMBER }}>Structurally fraud-proof:</strong> Affiliate revenue flows from end customer → ABOS → platform partner. The N-Reg validation outcome is computed exclusively against official FAA/EASA registry data. Compliant with EU Digital Services Act requirements for platform compliance mechanisms.
-          </div>
-        </section>
-
-        {/* Affiliate table */}
-        <section className="py-10 px-4">
-          <div className="max-w-3xl mx-auto">
-            <p style={eyebrow} className="text-center mb-1">Affiliate revenue share — for platform partners</p>
-            <p className="text-center text-[12px] mb-8" style={{ color: W3 }}>Earn a passive revenue share on every subscription or report generated through your platform</p>
-            <div className="overflow-hidden rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: `0.5px solid ${BORDER}` }}>
-              <div style={{ height: "2px", background: "linear-gradient(90deg, transparent 5%, rgba(212,160,23,0.40) 50%, transparent 95%)" }} />
-              <div className="overflow-x-auto">
-                <table className="w-full text-[13px]">
-                  <thead>
-                    <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: `0.5px solid ${BORDER}` }}>
-                      {["Tier","Monthly price","ABOS share","Your share","Your earn / user / mo"].map((h) => (
-                        <th key={h} className="px-4 py-3 text-left" style={{ ...eyebrow }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {AFFILIATE_ROWS.map((row) => (
-                      <tr key={row.tier} style={{ borderBottom: `0.5px solid ${BORDER}` }}>
-                        <td className="px-4 py-3" style={{ color: W1 }}>{row.tier}</td>
-                        <td className="px-4 py-3" style={{ color: W2 }}>{row.price}</td>
-                        <td className="px-4 py-3" style={{ color: W2 }}>{row.abos}</td>
-                        <td className="px-4 py-3" style={{ color: W2 }}>{row.your}</td>
-                        <td className="px-4 py-3 font-semibold" style={{ color: AMBER }}>{row.earn}</td>
-                      </tr>
-                    ))}
-                    <tr style={{ background: "rgba(212,160,23,0.06)" }}>
-                      <td className="px-4 py-3 font-semibold" colSpan={4} style={{ color: W1 }}>Example: 50 Pro subscribers via your platform</td>
-                      <td className="px-4 py-3" style={{ fontSize: "15px", fontWeight: 600, color: AMBER }}>€990 / mo</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <footer className="text-center py-8 px-4 text-[12px]" style={{ borderTop: `0.5px solid ${BORDER}`, color: W3 }}>
-          <p className="mb-1"><strong style={{ color: W1 }}>IntraZone</strong> — powered by <Link to="/" style={{ color: AMBER }}>Aircraft Buy Or Sell (ABOS)</Link></p>
-          <p>Aviation intelligence since 2021 · 270,000+ member community · FAA / EASA / ITAR compliant</p>
-        </footer>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

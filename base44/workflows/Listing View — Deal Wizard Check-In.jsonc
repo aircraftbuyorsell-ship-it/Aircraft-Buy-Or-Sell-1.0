@@ -1,0 +1,96 @@
+{
+  "name": "Listing View \u2014 Deal Wizard Check-In",
+  "description": "48h after a listing view with no contract initiated, sends a personalized Deal Wizard check-in email. If the buyer stays unengaged for 3 more days, sends a second message with similar MarketComparables.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "LeadEvent",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.event_type == \"card_viewed\" and (.trigger.data.actor_email // \"\") != \"\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "listing_view_deal_wizard_checkin",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "wait_48_hours": {
+          "wait": "P2D",
+          "then": "send_first_checkin",
+          "x-base44": {
+            "title": "Wait 48 hours",
+            "description": "Grace period after the view"
+          }
+        }
+      },
+      {
+        "send_first_checkin": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "dealCheckInFollowup",
+            "args": {
+              "lead_event_id": "${ .trigger.entity_id }",
+              "stage": "first"
+            }
+          },
+          "then": "check_first_sent",
+          "x-base44": {
+            "title": "Deal Wizard check-in",
+            "description": "Skips if a contract started"
+          }
+        }
+      },
+      {
+        "check_first_sent": {
+          "switch": [
+            {
+              "when": "${ .send_first_checkin.ok == true }",
+              "then": "wait_3_days"
+            },
+            {
+              "when": "${ true }",
+              "then": "end"
+            }
+          ],
+          "x-base44": {
+            "title": "Check-in sent?",
+            "description": "Stop if buyer already engaged"
+          }
+        }
+      },
+      {
+        "wait_3_days": {
+          "wait": "P3D",
+          "then": "send_comparables_followup",
+          "x-base44": {
+            "title": "Wait 3 days",
+            "description": "Time to reply"
+          }
+        }
+      },
+      {
+        "send_comparables_followup": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "dealCheckInFollowup",
+            "args": {
+              "lead_event_id": "${ .trigger.entity_id }",
+              "stage": "second"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Send comparables",
+            "description": "Similar MarketComparables link"
+          }
+        }
+      }
+    ]
+  }
+}

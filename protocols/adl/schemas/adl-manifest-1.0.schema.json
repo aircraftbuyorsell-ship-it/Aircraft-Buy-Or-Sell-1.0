@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abos.aero/protocols/adl/schemas/adl-manifest-1.0.schema.json",
+  "title": "ABOS Agent Definition Language Manifest v1.0",
+  "description": "Trust manifest for an agent, tool, workflow or service. Describes the executor, not the request.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "adl_version", "id", "apl_id", "type", "owner", "skill", "description",
+    "capabilities", "permissions", "autonomy", "trust", "audit",
+    "risk_level", "requires_human_approval", "supported_protocols",
+    "evidence", "status"
+  ],
+  "properties": {
+    "adl_version": { "const": "1.0" },
+    "id": { "type": "string", "pattern": "^abos\\.[a-z0-9]+\\.[a-z0-9_]+$" },
+    "apl_id": { "type": "string", "pattern": "^apl://[a-z0-9.]+(/[a-z0-9-]+){2,3}/v[0-9]+$" },
+    "type": { "enum": ["agent", "tool", "workflow", "service"] },
+    "owner": {
+      "type": "object",
+      "required": ["organization"],
+      "properties": {
+        "organization": { "type": "string" },
+        "contact": { "type": "string" }
+      }
+    },
+    "skill": { "type": "string" },
+    "description": { "type": "string", "minLength": 20 },
+    "capabilities": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "permissions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "autonomy": { "enum": ["A0", "A1", "A2", "A3", "A4"] },
+    "trust": { "enum": ["APL-T0", "APL-T1", "APL-T2", "APL-T3", "APL-T4"] },
+    "audit": { "enum": ["APL-A0", "APL-A1", "APL-A2", "APL-A3"] },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "requires_human_approval": { "type": "boolean" },
+    "supported_protocols": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^apl/[0-9]+\\.[0-9]+$" }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["provenance", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "provenance": { "enum": ["required", "optional", "none"] },
+        "confidence": { "enum": ["required", "optional", "none"] }
+      }
+    },
+    "status": { "enum": ["draft", "registered", "verified", "certified", "revoked"] },
+    "mcp": {
+      "type": "object",
+      "required": ["name", "inputSchema"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "inputSchema": { "type": "object" },
+        "annotations": {
+          "type": "object",
+          "description": "Derived from the manifest, not hand-written. readOnlyHint must be true when no capability writes.",
+          "properties": {
+            "readOnlyHint": { "type": "boolean" },
+            "openWorldHint": { "type": "boolean" },
+            "destructiveHint": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["rest", "plain", "core"] },
+        "endpoint": { "type": "string" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "A high-risk skill must not run autonomously.",
+      "if": { "properties": { "risk_level": { "const": "high" } }, "required": ["risk_level"] },
+      "then": { "properties": { "autonomy": { "not": { "const": "A4" } } } }
+    },
+    {
+      "description": "A verified manifest must carry at least verified trust.",
+      "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
+      "then": { "properties": { "trust": { "enum": ["APL-T2", "APL-T3", "APL-T4"] } } }
+    },
+    {
+      "description": "Deny-default permissions can never be declared by a manifest.",
+      "properties": {
+        "permissions": {
+          "items": {
+            "not": {
+              "enum": [
+                "payment.execute", "money.transfer", "ownership.change",
+                "contract.sign", "registry.modify", "approval.bypass"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

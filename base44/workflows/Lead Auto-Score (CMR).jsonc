@@ -1,0 +1,35 @@
+{
+  "name": "Lead Auto-Score (CMR)",
+  "description": "Automatically scores every new or updated lead using the CMR Lead Engine",
+  "trigger": {
+    "condition": "${ (.trigger.data.status != \"closed\") }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Lead"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "lead_auto_score_cmr",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "cmrLeadScore",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

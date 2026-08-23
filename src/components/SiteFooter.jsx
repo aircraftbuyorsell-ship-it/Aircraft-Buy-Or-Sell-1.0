@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import RegulatoryTrustStrip from "@/components/footer/RegulatoryTrustStrip";
 
 const FOOTER_LINKS = [
   { to: "/developers", label: "Developers" },
@@ -33,6 +34,9 @@ export default function SiteFooter() {
             </Link>
           ))}
         </nav>
+      </div>
+      <div className="mx-auto mt-5 max-w-6xl">
+        <RegulatoryTrustStrip />
       </div>
     </footer>
   );

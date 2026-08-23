@@ -195,6 +195,13 @@ async function checkGcrAccess(base44, user, registration) {
   if (!user || !registration) return false;
   // Admins always have access
   if (user.role === 'admin' || user.role === 'super_admin') return true;
+  // Entitlement engine: VERIFICATION_PACK purchase or PRO/BROKER subscription (tokens are deprecated)
+  try {
+    const entRes = await base44.functions.invoke('abosEntitlements', {
+      action: 'check', product_key: 'VERIFICATION_PACK', aircraft_registration: registration,
+    });
+    if (entRes?.data?.entitled) return true;
+  } catch (_) { /* non-critical */ }
   // Check for GCR unlock TokenTransaction (30-day validity)
   try {
     const records = await base44.asServiceRole.entities.TokenTransaction.filter(

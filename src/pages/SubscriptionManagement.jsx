@@ -12,6 +12,7 @@ import { useBehavior } from "@/lib/useBehavior";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import WithdrawalCard from "@/components/subscription/WithdrawalCard";
 
 // ─── Tier config ──────────────────────────────────────────────────────────────
 const TIER_META = {
@@ -410,6 +411,9 @@ export default function SubscriptionManagement() {
                 </div>
               </GlassCard>
             )}
+
+            {/* EU 14-day right of withdrawal */}
+            <WithdrawalCard />
 
             {/* Enterprise contact */}
             {tier !== "enterprise" && (

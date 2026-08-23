@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://abos.aero/protocols/apl/schemas/apl-response-1.0.schema.json",
+  "title": "APL Response v1.0",
+  "description": "Exactly one of result or error. The shape mirrors what gateway/src/apl.js callAplTool already returns.",
+  "type": "object",
+  "oneOf": [{ "required": ["result"] }, { "required": ["error"] }],
+  "properties": {
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["apl_version", "agent", "skill", "payload", "evidence", "audit"],
+      "properties": {
+        "apl_version": { "const": "1.0" },
+        "agent": { "type": "string", "pattern": "^apl://" },
+        "skill": { "type": "string" },
+        "payload": { "description": "Skill output. Shape is owned by the capability, not by APL." },
+        "evidence": {
+          "type": "object",
+          "required": ["provenance", "confidence"],
+          "description": "Present whenever the manifest declares evidence as required. Null means the skill could not establish it, which is a valid and auditable answer - it is not the same as omitting the field.",
+          "properties": {
+            "provenance": { "type": ["object", "array", "null"] },
+            "confidence": { "type": ["number", "string", "null"] }
+          }
+        },
+        "audit": {
+          "type": "object",
+          "required": ["event_id", "current_hash", "level", "chained"],
+          "properties": {
+            "event_id": { "type": "string" },
+            "current_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "level": { "enum": ["APL-A0", "APL-A1", "APL-A2", "APL-A3"] },
+            "chained": {
+              "type": "boolean",
+              "description": "False when no persistent store was available, so every event links to genesis and tamper-evidence is lost. Degradation is reported, never hidden."
+            },
+            "warning": { "type": "string" }
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": [
+            "APL_AUTH_FAILED",
+            "APL_PERMISSION_DENIED",
+            "APL_SKILL_NOT_FOUND",
+            "APL_VERSION_ERROR",
+            "APL_POLICY_BLOCKED",
+            "APL_EXECUTION_FAILED"
+          ]
+        },
+        "message": { "type": "string" },
+        "details": { "type": "object" },
+        "decision": { "enum": ["DENY", "APPROVAL_REQUIRED"] }
+      }
+    }
+  }
+}

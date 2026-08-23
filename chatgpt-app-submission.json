@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Aircraft Buy Or Sell",
+    "subtitle": "Search and value aircraft",
+    "description": "Aircraft Buy Or Sell helps users search active aircraft listings, inspect listing details, extract structured data from aircraft advertisements, estimate market value, and create private listing drafts for later review.",
+    "category": "SHOPPING"
+  },
+  "tools": {
+    "search": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Searches active public aircraft listings, but records private usage counters and an audit log for the authenticated API key.",
+        "open_world_justification": "Does not publish content or change publicly visible internet state.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "valuate": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Computes an aircraft market-value estimate, but records private usage counters and an audit log for the authenticated API key.",
+        "open_world_justification": "Does not publish content or change publicly visible internet state.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "extract_listing_intelligence": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Extracts structured aircraft details from user-provided listing text, but records private usage counters and an audit log for the authenticated API key.",
+        "open_world_justification": "Does not publish content or change publicly visible internet state.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_listing": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Retrieves one accessible marketplace listing, but records private usage counters and an audit log for the authenticated API key.",
+        "open_world_justification": "Does not publish content or change publicly visible internet state.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "list_listings": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Lists and filters active public marketplace listings, but records private usage counters and an audit log for the authenticated API key.",
+        "open_world_justification": "Does not publish content or change publicly visible internet state.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "create_listing": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates a private draft listing in the authenticated user's ABOS workspace and records usage and audit data.",
+        "open_world_justification": "The new listing remains private and is not published until the user reviews and activates it in ABOS.",
+        "destructive_justification": "Creates a new draft without deleting, overwriting, revoking, or irreversibly changing existing data."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Search active listings using a natural-language aircraft request.",
+      "user_prompt": "Find active Pilatus PC-12 listings priced below 6 million USD.",
+      "file_attachment_urls": null,
+      "tools_triggered": "search",
+      "expected_output": "Returns matching active public listings with aircraft, price, and available intelligence details.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Estimate the market value of a specified aircraft.",
+      "user_prompt": "Estimate the market value of a 2018 Cessna Citation Latitude with 2,500 airframe hours.",
+      "file_attachment_urls": null,
+      "tools_triggered": "valuate",
+      "expected_output": "Returns an estimated USD value, value range, confidence, rationale, and model version.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Extract structured data from an aircraft advertisement.",
+      "user_prompt": "Extract the aircraft details from this listing: 2012 Aviat Husky A-1C-200, N86WY, 757.6 hours, asking $395,000.",
+      "file_attachment_urls": null,
+      "tools_triggered": "extract_listing_intelligence",
+      "expected_output": "Returns structured aircraft, registration, hours, price, currency, intent, and confidence fields.",
+      "expected_output_url": null
+    },
+    {
+      "description": "List a small filtered set of active aircraft listings.",
+      "user_prompt": "List up to 3 active Cessna 172 listings.",
+      "file_attachment_urls": null,
+      "tools_triggered": "list_listings",
+      "expected_output": "Returns no more than three matching public listings and the total number of matches.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Create a private listing draft for later review.",
+      "user_prompt": "Create a private draft listing for a 2008 Cirrus SR22 G3, registration N123AB, price $475,000, 1,450 hours.",
+      "file_attachment_urls": null,
+      "tools_triggered": "create_listing",
+      "expected_output": "Creates a private draft and returns its identifier, draft status, and instruction to review it before activation.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Do not trigger for flight booking requests.",
+      "user_prompt": "Book me the cheapest flight from Prague to London tomorrow.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it does not search or book passenger flights.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for unrelated vehicle valuation.",
+      "user_prompt": "What is my 2022 BMW 5 Series worth?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it only supports aircraft marketplace intelligence.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for aircraft maintenance or repair instructions.",
+      "user_prompt": "Give me step-by-step instructions to overhaul a Lycoming IO-360 engine.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because it does not provide maintenance procedures or repair services.",
+      "expected_output_url": null
+    }
+  ]
+}

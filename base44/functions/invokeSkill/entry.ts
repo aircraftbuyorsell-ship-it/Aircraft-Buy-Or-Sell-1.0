@@ -29,11 +29,37 @@ const SKILL_ROUTING = {
   'abos.skill.fleet_change.v1':          { function: 'invokeSkillFleetChange',       credit_cost: 3, task_type: 'deterministic' },
 };
 
+// ── ABOS monetization gate — active PRO/BROKER subscription required (server-enforced for web, API and MCP) ──
+async function gateProSubscription(base44, user) {
+  if (user?.role === 'admin' || user?.role === 'super_admin') return null;
+  const check = await base44.functions.invoke('abosEntitlements', { action: 'check', product_key: 'PRO' });
+  const d = check?.data || {};
+  if (d.entitled || d.active_sub_product) return null;
+  let checkoutUrl = null;
+  try {
+    const co = await base44.functions.invoke('abosEntitlements', {
+      action: 'create_checkout', product_key: 'PRO',
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+    });
+    checkoutUrl = co?.data?.url || null;
+  } catch (_) { /* checkout link is optional */ }
+  return Response.json({
+    error: 'payment_required',
+    message: 'This is a paid ABOS PRO tool. An active ABOS Professional (\u20ac99/mo) or Broker subscription is required. Open checkout_url to subscribe, then retry this request.',
+    product_key: 'PRO',
+    checkout_url: checkoutUrl,
+  }, { status: 402 });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // ── Paid feature: all financial/upgrade skills require PRO ──
+    const gate = await gateProSubscription(base44, user);
+    if (gate) return gate;
 
     const body = await req.json().catch(() => ({}));
     const { skill_id, inputs, passport_id } = body;

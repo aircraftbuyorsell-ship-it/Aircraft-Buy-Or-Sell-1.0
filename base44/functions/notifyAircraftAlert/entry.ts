@@ -30,11 +30,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
 
-    // Allow platform-triggered automations (event present) or admin manual calls.
     const user = await base44.auth.me().catch(() => null);
-    const isAutomation = !!body?.event;
-    if (!isAutomation && (!user || user.role !== 'admin')) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const sr = base44.asServiceRole;

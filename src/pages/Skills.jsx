@@ -97,7 +97,7 @@ const SKILLS = [
     badge: "Default Skill",
     category: "core",
     color: "#5dcaa5",
-    path: "/valuation",
+    path: "/valuation-studio",
     description:
       "Generates market appraisals from live comparables, condition data and deal-quality scoring with discount detection."
   },

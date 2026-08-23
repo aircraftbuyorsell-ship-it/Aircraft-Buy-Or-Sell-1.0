@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Calculator, TrendingUp, Fuel, Wrench, FileText, Plane, Info, ShieldCheck, MapPin, Gauge, Cpu, Plus, Lock } from "lucide-react";
 import CalculatorPricingBadge from "@/components/calculators/CalculatorPricingBadge";
 import { useQuery } from "@tanstack/react-query";
@@ -522,9 +523,9 @@ export default function OpexCalculator() {
             <GoldLabel>Need real quotes?</GoldLabel>
             <p className="text-sm font-bold mt-1" style={{ color: "rgba(255,255,255,0.90)" }}>Compare insurance, MRO & hangar rates from verified providers near you.</p>
           </div>
-          <a href="/service-finder" className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-90" style={{ background: "#f5c242", color: "#04060a" }}>
+          <Link to="/service-intelligence" className="shrink-0 font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-90" style={{ background: "#f5c242", color: "#04060a" }}>
             <FileText className="w-4 h-4" /> Find services
-          </a>
+          </Link>
         </div>
       </div>
     </div>

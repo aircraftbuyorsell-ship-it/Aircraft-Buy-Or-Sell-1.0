@@ -4,10 +4,10 @@ import HeroGlobe from "@/components/homepage/HeroGlobe";
 import HomeDataCard from "@/components/homepage/HomeDataCard";
 
 const ANNOTATIONS = [
-  { label: "SERIAL", value: "505E01147", style: { top: "16%", left: "8%" } },
-  { label: "ENG", value: "2217 HRS", style: { top: "48%", left: "2%" } },
-  { label: "LANDINGS", value: "1,042", style: { bottom: "22%", right: "30%" } },
-];
+{ label: "SERIAL", value: "505E01147", style: { top: "16%", left: "8%" } },
+{ label: "ENG", value: "2217 HRS", style: { top: "48%", left: "2%" } },
+{ label: "LANDINGS", value: "1,042", style: { bottom: "22%", right: "30%" } }];
+
 
 export default function HomeHeroSection() {
   return (
@@ -23,19 +23,19 @@ export default function HomeHeroSection() {
               Price it right. Verify the tail.
             </span>
             <h1 className="mb-5 tracking-[-0.02em] leading-[1.05] text-foreground"
-              style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700 }}>
+            style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700 }}>
               Price any aircraft<br />by its real condition.
             </h1>
             <p className="mb-7 max-w-[480px] text-[15px] leading-relaxed text-muted-foreground sm:text-[17px]">
               Enter a tail number to pull registry &amp; maintenance data, then get a market value that reflects the aircraft's actual condition — not just the listing price.
             </p>
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link to="/valuation"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
+              <Link to="/valuation-studio"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
                 <Search className="h-5 w-5" /> Check aircraft price
               </Link>
               <Link to="/n-lookup"
-                className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 Look up a tail number <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -43,22 +43,22 @@ export default function HomeHeroSection() {
 
           {/* Right: Aircraft image with annotations + data card */}
           <div className="relative order-1 lg:order-2">
-            <img
-              src="https://images.unsplash.com/photo-1540962351504-03099e0a754b?w=1400&q=80"
-              alt="Business jet on tarmac"
-              className="aspect-[4/3] w-full rounded-2xl object-cover shadow-2xl"
-            />
+            
+
+
+            
+            
 
             {/* Annotations — desktop only */}
-            {ANNOTATIONS.map((a) => (
-              <div key={a.label} className="absolute hidden items-center gap-2 lg:flex" style={a.style}>
-                <div className="h-2 w-2 rounded-full bg-white shadow-lg" />
-                <div className="h-px w-6 bg-white/60" />
-                <span className="whitespace-nowrap rounded-full bg-black/70 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                  {a.label} {a.value}
-                </span>
+            {ANNOTATIONS.map((a) =>
+            <div key={a.label} className="absolute hidden items-center gap-2 lg:flex" style={a.style}>
+                
+                
+                
+
+              
               </div>
-            ))}
+            )}
 
             {/* Data card */}
             <div className="mt-4 lg:absolute lg:bottom-6 lg:right-6 lg:z-10 lg:mt-0 lg:w-[290px]">
@@ -67,6 +67,6 @@ export default function HomeHeroSection() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }

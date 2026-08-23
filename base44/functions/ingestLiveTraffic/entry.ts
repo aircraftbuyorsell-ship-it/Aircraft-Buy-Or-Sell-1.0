@@ -61,10 +61,17 @@ function parseAc(ac) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
+    const automationSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const suppliedAutomationSecret = req.headers.get('x-abos-automation-secret');
+    const isAutomation = Boolean(
+      automationSecret &&
+      suppliedAutomationSecret &&
+      suppliedAutomationSecret === automationSecret
+    );
 
-    // Accept both authenticated and service-role invocations
-    if (!user && req.headers.get("x-scheduled-automation") !== "true") {
+    // Never trust a caller-controlled boolean header such as x-scheduled-automation.
+    if (!user && !isAutomation) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 

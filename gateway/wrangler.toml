@@ -18,5 +18,10 @@ binding = "ABOS_AUDIT"
 id = "4d82602f2546446eb480fee148863922"
 
 [vars]
-BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"
+# The app's published Base44 subdomain. It moved from 'aviation-marketspace'
+# to 'aircraftbuyorsell'; the old host now answers 404 "App not found" on
+# every path, which took the whole gateway down (all tool calls, plus the
+# OAuth metadata and consent proxies). If tools start failing wholesale with
+# "App not found", check this value first.
+BASE44_APP_BASE_URL = "https://aircraftbuyorsell.base44.app"
 CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com"

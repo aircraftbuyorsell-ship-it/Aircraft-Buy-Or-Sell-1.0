@@ -42,7 +42,7 @@ const CALCULATOR_GROUPS = [
         features: ["FAA + international registry", "N-Number / ICAO / S/N", "Owner cross-reference"],
       },
       {
-        path: "/valuation", label: "OMVM Valuation", icon: TrendingUp, featureId: "basic_valuation",
+        path: "/valuation-studio", label: "OMVM Valuation", icon: TrendingUp, featureId: "basic_valuation",
         audience: ["buyer", "seller", "broker"],
         features: ["Market-estimated value", "Comparable sales", "Depreciation curve"],
       },

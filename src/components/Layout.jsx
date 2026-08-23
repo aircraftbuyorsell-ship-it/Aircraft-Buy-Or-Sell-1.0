@@ -6,6 +6,7 @@ import {
   ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
+import MarketspaceTour from "@/components/marketspace-tour/MarketspaceTour";
 import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
@@ -59,50 +60,13 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
         {NAV_TREE.map((section) =>
-          section.direct ?
           <div key={section.label} style={{ marginTop: 8 }}>
             <NavItem
               to={section.path}
               icon={section.icon}
               label={section.label}
-              active={pathname === section.path}
+              active={pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"))}
               onClick={onNavigate} />
-          </div> :
-          <div key={section.label}>
-            <div style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "rgba(212,160,23,0.55)",
-              padding: "16px 16px 4px",
-              marginTop: 4,
-            }}>
-              {section.label}
-            </div>
-            {section.categories.map((cat) =>
-              <div key={cat.label} style={{ marginBottom: 2 }}>
-                <div style={{
-                  fontSize: "8px",
-                  fontWeight: 600,
-                  letterSpacing: "0.10em",
-                  textTransform: "uppercase",
-                  color: textDim,
-                  padding: "8px 16px 2px",
-                }}>
-                  {cat.label}
-                </div>
-                {cat.items.map((item) =>
-                  <NavItem
-                    key={item.path}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.label}
-                    active={pathname === item.path || pathname.startsWith(item.path + "/")}
-                    onClick={onNavigate} />
-                )}
-              </div>
-            )}
           </div>
         )}
       </nav>
@@ -117,21 +81,21 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
           © 2026 ABOS s.r.o.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <a href="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Terms of Service
-          </a>
-          <a href="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             Privacy Policy
-          </a>
-          <a href="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             DSA — Report Content
-          </a>
-          <a href="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             AI Disclosure
-          </a>
-          <a href="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          </Link>
+          <Link to="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
             IP & Trademark Notice
-          </a>
+          </Link>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
             style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: textDim, cursor: "pointer", letterSpacing: "0.02em" }}>
@@ -323,6 +287,7 @@ export default function Layout() {
 
       <SiteFooter />
       <ABOSTour />
+      <MarketspaceTour />
     </div>);
 
 }

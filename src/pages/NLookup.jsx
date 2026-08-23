@@ -5,6 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
+import SkyLinkAirportBlock from "@/components/skylink/SkyLinkAirportBlock";
 
 const AMBER = "#f5c242";
 const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
@@ -19,6 +20,14 @@ function normalizeReg(raw) {
     }
   }
   return registration;
+}
+
+function detectAirportCode(raw) {
+  const q = (raw || "").trim().toUpperCase();
+  if (!/^[A-Z]+$/.test(q)) return null; // must be letters only — excludes registrations like N123AB
+  if (q.length === 4) return q; // ICAO
+  if (q.length === 3) return q; // IATA
+  return null;
 }
 
 export default function NLookup() {
@@ -47,6 +56,8 @@ export default function NLookup() {
 
   const handleSearch = async (e, directQuery = query) => {
     e?.preventDefault();
+    // Airport codes (ICAO/IATA) route to the SkyLink block, not the FAA registry.
+    if (detectAirportCode(directQuery)) return;
     let registration = normalizeReg(directQuery);
     if (!registration) return;
     setLoading(true);
@@ -129,6 +140,12 @@ export default function NLookup() {
         <div className="flex justify-center mb-8">
           <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={(value) => handleSearch(null, value)} loading={loading} />
         </div>
+
+        {detectAirportCode(query) && (
+          <div className="mb-8">
+            <SkyLinkAirportBlock code={detectAirportCode(query)} />
+          </div>
+        )}
 
         {fulfillment && <ReportDeliveredBanner fulfillment={fulfillment} />}
 

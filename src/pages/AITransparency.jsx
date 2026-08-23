@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Brain, AlertTriangle, CheckCircle } from "lucide-react";
+import { getAiDisclosureByCategory } from "@/lib/aiDisclosureRegistry";
 
 const C = {
   ink: "#04060a", ink1: "#0d1117", ink2: "#111620",
@@ -22,24 +23,7 @@ const CONTENT = {
     subtitle: "Informace o využití umělé inteligence · ABOS Marketspace",
     chips: ["AI Act 2024/1689", "Čl. 50 — transparentnost", "Platné od 2. 8. 2026"],
     introTitle: "Používání umělé inteligence na platformě ABOS",
-    intro: "Aircraft Buy Or Sell využívá nástroje umělé inteligence k podpoře následujících funkcí:",
-    features: [
-      {
-        name: "ATI Report (Aircraft Transparency Index)",
-        desc: "Automatizované hodnocení letadla v 8 dimenzích na základě veřejně dostupných dat (registr FAA, databáze nehod NTSB, historie údržby, tržní data).",
-        color: "#f5c242",
-      },
-      {
-        name: "OMVM (odhad tržní hodnoty)",
-        desc: "Statistický/AI model odhadující tržní hodnotu letadla na základě srovnatelných transakcí a historických dat.",
-        color: "#5dcaa5",
-      },
-      {
-        name: "4ir.stream podcast",
-        desc: "Epizody využívající AI generování hlasu (text-to-speech).",
-        color: "rgba(255,255,255,0.35)",
-      },
-    ],
+    intro: "Aircraft Buy Or Sell využívá nástroje umělé inteligence napříč platformou. Níže je úplný, průběžně aktualizovaný seznam všech funkcí využívajících AI, seskupených podle oblasti:",
     disclosureTitle: "Povinné sdělení dle čl. 50 AI Act",
     disclosureItems: [
       "Výše uvedený obsah je generován nebo zásadně podporován AI nástroji",
@@ -56,24 +40,7 @@ const CONTENT = {
     subtitle: "Disclosure of Artificial Intelligence Use · ABOS Marketspace",
     chips: ["AI Act 2024/1689", "Art. 50 — transparency", "Effective 2 Aug 2026"],
     introTitle: "Use of Artificial Intelligence on the ABOS Platform",
-    intro: "Aircraft Buy Or Sell uses artificial intelligence tools to support the following features:",
-    features: [
-      {
-        name: "ATI Report (Aircraft Transparency Index)",
-        desc: "Automated aircraft assessment across 8 dimensions based on publicly available data (FAA registry, NTSB accident database, maintenance history, market data).",
-        color: "#f5c242",
-      },
-      {
-        name: "OMVM (market value estimate)",
-        desc: "A statistical/AI model estimating aircraft market value based on comparable transactions and historical data.",
-        color: "#5dcaa5",
-      },
-      {
-        name: "4ir.stream podcast",
-        desc: "Episodes using AI voice generation (text-to-speech).",
-        color: "rgba(255,255,255,0.35)",
-      },
-    ],
+    intro: "Aircraft Buy Or Sell uses artificial intelligence tools across the platform. Below is a complete, continuously updated list of every AI-powered function, grouped by area:",
     disclosureTitle: "Mandatory Disclosure per AI Act Art. 50",
     disclosureItems: [
       "The content above is generated or substantially supported by AI tools",
@@ -90,6 +57,8 @@ export default function AITransparency() {
   const navigate = useNavigate();
   const [lang, setLang] = useState("en");
   const t = CONTENT[lang];
+  const disclosureCategories = getAiDisclosureByCategory();
+  const CAT_COLORS = ["#f5c242", "#5dcaa5", "#4e8ef7", "#e8895a", "#a86ce8", "rgba(255,255,255,0.35)"];
 
   return (
     <div style={{
@@ -149,18 +118,27 @@ export default function AITransparency() {
           </div>
         </div>
 
-        {/* Intro + Features */}
+        {/* Intro + AI-Powered Functions (from aiDisclosureRegistry.js) */}
         <div style={{ background: "rgba(245,194,66,0.06)", border: `0.5px solid ${C.border}`, borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
           <div style={{ height: "2px", background: C.amber }} />
           <div style={{ padding: "20px 22px" }}>
             <h2 style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 10px", color: C.w1 }}>{t.introTitle}</h2>
             <p style={{ fontSize: "13px", color: C.w2, lineHeight: 1.65, margin: "0 0 16px" }}>{t.intro}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {t.features.map((f) => (
-                <div key={f.name} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: `0.5px solid ${C.border}`, borderRadius: "8px", borderLeft: `3px solid ${f.color}` }}>
-                  <div>
-                    <p style={{ fontSize: "12px", fontWeight: 700, color: C.w1, margin: "0 0 4px" }}>{f.name}</p>
-                    <p style={{ fontSize: "12px", color: C.w2, lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+              {disclosureCategories.map((cat, ci) => (
+                <div key={cat.id}>
+                  <p style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: C.w3, margin: "0 0 8px" }}>
+                    {lang === "cz" ? cat.label_cz : cat.label_en}
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {cat.items.map((f) => (
+                      <div key={f.id} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: `0.5px solid ${C.border}`, borderRadius: "8px", borderLeft: `3px solid ${CAT_COLORS[ci % CAT_COLORS.length]}` }}>
+                        <div>
+                          <p style={{ fontSize: "12px", fontWeight: 700, color: C.w1, margin: "0 0 4px" }}>{lang === "cz" ? f.name_cz : f.name_en}</p>
+                          <p style={{ fontSize: "12px", color: C.w2, lineHeight: 1.6, margin: 0 }}>{lang === "cz" ? f.desc_cz : f.desc_en}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}

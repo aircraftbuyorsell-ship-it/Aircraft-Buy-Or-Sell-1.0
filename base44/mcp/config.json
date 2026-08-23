@@ -5,21 +5,11 @@
   "tools": {
     "excluded_agents": [],
     "entity_overrides": {
-      "AircraftListing": {
-        "operations": [],
-        "description": null
-      },
-      "AircraftListingReview": {
-        "operations": [],
-        "description": null
-      },
       "AviationNewsItem": {
-        "operations": [],
-        "description": null
-      },
-      "MarketForecast": {
         "operations": [
-          "read"
+          "read",
+          "create",
+          "update"
         ],
         "description": null
       },
@@ -31,49 +21,7 @@
         "operations": [],
         "description": null
       },
-      "CommissionLedger": {
-        "operations": [],
-        "description": null
-      },
-      "Settlement": {
-        "operations": [],
-        "description": null
-      },
       "EscrowTransaction": {
-        "operations": [],
-        "description": null
-      },
-      "AircraftAlert": {
-        "operations": [],
-        "description": null
-      },
-      "ExpertProfile": {
-        "operations": [],
-        "description": null
-      },
-      "BrokerProfile": {
-        "operations": [],
-        "description": null
-      },
-      "ExpertCrossCheck": {
-        "operations": [],
-        "description": null
-      },
-      "ExpertBid": {
-        "operations": [],
-        "description": null
-      },
-      "ExpertValuation": {
-        "operations": [],
-        "description": null
-      },
-      "MarketReport": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "MarketComparable": {
         "operations": [],
         "description": null
       },
@@ -113,232 +61,98 @@
         "operations": [],
         "description": null
       },
-      "DeveloperAccount": {
-        "operations": [],
-        "description": null
-      },
-      "PartnerConfig": {
-        "operations": [],
-        "description": null
-      },
-      "PartnerListingFeed": {
-        "operations": [],
-        "description": null
-      },
-      "WebhookConfig": {
-        "operations": [],
-        "description": null
-      },
-      "ToolIntegration": {
-        "operations": [],
-        "description": null
-      },
-      "ToolInvocation": {
-        "operations": [],
-        "description": null
-      },
       "VaultDocument": {
         "operations": [],
         "description": null
       },
       "BillOfSaleDraft": {
-        "operations": [],
+        "operations": [
+          "read",
+          "create",
+          "update"
+        ],
         "description": null
       },
       "BillingEvent": {
-        "operations": [],
-        "description": null
-      },
-      "TokenTransaction": {
-        "operations": [],
-        "description": null
-      },
-      "TierChange": {
-        "operations": [],
-        "description": null
-      },
-      "Order": {
-        "operations": [],
-        "description": null
-      },
-      "Lead": {
-        "operations": [],
-        "description": null
-      },
-      "LeadEvent": {
-        "operations": [],
-        "description": null
-      },
-      "DealerLead": {
-        "operations": [],
-        "description": null
-      },
-      "DealerLocation": {
         "operations": [
-          "read"
+          "read",
+          "create",
+          "update"
         ],
-        "description": null
-      },
-      "SalesFunnel": {
-        "operations": [],
-        "description": null
-      },
-      "DealRadar": {
-        "operations": [],
-        "description": null
-      },
-      "DecisionLog": {
-        "operations": [],
         "description": null
       },
       "AffiliateLink": {
-        "operations": [],
-        "description": null
-      },
-      "RewardMilestone": {
-        "operations": [],
+        "operations": [
+          "read",
+          "create",
+          "update"
+        ],
         "description": null
       },
       "BrokerAgreement": {
-        "operations": [],
+        "operations": [
+          "read",
+          "create",
+          "update"
+        ],
         "description": null
       },
       "BrokerAlert": {
-        "operations": [],
+        "operations": [
+          "read",
+          "create",
+          "update"
+        ],
         "description": null
       },
       "EditorProfile": {
-        "operations": [],
-        "description": null
-      },
-      "ATICard": {
         "operations": [
           "read"
         ],
-        "description": null
-      },
-      "ATICardReview": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "ATIPassport": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "ATIVerifySession": {
-        "operations": [],
-        "description": null
-      },
-      "ATIVerifyScore": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "PreBuyInspection": {
-        "operations": [],
-        "description": null
-      },
-      "OwnershipTrace": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "GlobalRegistry": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "FAAAircraft": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "FAADocIndex": {
-        "operations": [],
-        "description": null
-      },
-      "AirmanReleaseMonitor": {
-        "operations": [],
-        "description": null
-      },
-      "EngineSpec": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "EngineMaintenance": {
-        "operations": [
-          "read"
-        ],
-        "description": null
-      },
-      "AviationService": {
-        "operations": [],
-        "description": null
-      },
-      "NewPlaneBrowser": {
-        "operations": [],
-        "description": null
-      },
-      "TrafficSnapshot": {
-        "operations": [],
-        "description": null
-      },
-      "TrafficAppearance": {
-        "operations": [],
         "description": null
       },
       "ScraperRun": {
         "operations": [],
         "description": null
       },
-      "UserBehavior": {
-        "operations": [],
-        "description": null
-      },
       "FeatureRequest": {
-        "operations": [],
+        "operations": [
+          "read"
+        ],
         "description": null
       },
       "FeatureVote": {
-        "operations": [],
+        "operations": [
+          "read"
+        ],
         "description": null
       },
       "FeatureToggle": {
-        "operations": [],
+        "operations": [
+          "read"
+        ],
         "description": null
       },
       "FeatureRollout": {
-        "operations": [],
+        "operations": [
+          "read"
+        ],
         "description": null
       },
       "FeatureUsageMetric": {
-        "operations": [],
-        "description": null
-      },
-      "ReportRequest": {
-        "operations": [],
-        "description": null
-      },
-      "SkillDefinition": {
-        "operations": [],
+        "operations": [
+          "read"
+        ],
         "description": null
       },
       "StartupProject": {
         "operations": [],
         "description": null
       },
-      "Workflow": {
-        "operations": [],
+      "OAuthAuthorizationCode": {
+        "operations": [
+          "read"
+        ],
         "description": null
       }
     },
@@ -373,20 +187,22 @@
       {
         "name": "registry_lookup",
         "title": "Aircraft Registry Lookup",
-        "description": "FREE. Vyhledá letadlo podle registrace (N-Number nebo mezinárodní prefix OK-/D-/G- atd.) ve FAA entitě, adsbdb.com API a Supabase fallback. Vrací výrobce, model, rok, sériové číslo, vlastníka (state), engine specs a případný ABOS inzerát. Použij vždy, když uživatel zadá registraci a chce základní údaje o letadle.",
+        "description": "FREE. Vyhled\u00e1 letadlo podle registrace (N-Number nebo mezin\u00e1rodn\u00ed prefix OK-/D-/G- atd.) ve FAA entit\u011b, adsbdb.com API a Supabase fallback. Vrac\u00ed v\u00fdrobce, model, rok, s\u00e9riov\u00e9 \u010d\u00edslo, vlastn\u00edka (state), engine specs a p\u0159\u00edpadn\u00fd ABOS inzer\u00e1t. Pou\u017eij v\u017edy, kdy\u017e u\u017eivatel zad\u00e1 registraci a chce z\u00e1kladn\u00ed \u00fadaje o letadle.",
         "input_schema": {
           "type": "object",
           "properties": {
             "registration": {
               "type": "string",
-              "description": "Registrace letadla, např. 'N123AB', 'OK-LAD', 'G-ABCD'"
+              "description": "Registrace letadla, nap\u0159. 'N123AB', 'OK-LAD', 'G-ABCD'"
             },
             "enrich_listing_id": {
               "type": "string",
-              "description": "Volitelné ID ABOS inzerátu pro auto-enrich chybějících polí"
+              "description": "Voliteln\u00e9 ID ABOS inzer\u00e1tu pro auto-enrich chyb\u011bj\u00edc\u00edch pol\u00ed"
             }
           },
-          "required": ["registration"]
+          "required": [
+            "registration"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -400,20 +216,22 @@
       {
         "name": "public_twin_lookup",
         "title": "Digital Twin Public Lookup",
-        "description": "FREE. Veřejný (anonymní) lookup Digital Twin podle registrace nebo sériového čísla. Vrací maskované údaje — registrace, rok, make/model, maskovaný vlastník, zda existuje ATI report, zda je letadlo na prodej. Skóre je zamčené (vyžaduje platbu). Použij pro rychlé veřejné ověření letadla bez citlivých údajů.",
+        "description": "FREE. Ve\u0159ejn\u00fd (anonymn\u00ed) lookup Digital Twin podle registrace nebo s\u00e9riov\u00e9ho \u010d\u00edsla. Vrac\u00ed maskovan\u00e9 \u00fadaje \u2014 registrace, rok, make/model, maskovan\u00fd vlastn\u00edk, zda existuje ATI report, zda je letadlo na prodej. Sk\u00f3re je zam\u010den\u00e9 (vy\u017eaduje platbu). Pou\u017eij pro rychl\u00e9 ve\u0159ejn\u00e9 ov\u011b\u0159en\u00ed letadla bez citliv\u00fdch \u00fadaj\u016f.",
         "input_schema": {
           "type": "object",
           "properties": {
             "query": {
               "type": "string",
-              "description": "N-Number, registrace nebo sériové číslo"
+              "description": "N-Number, registrace nebo s\u00e9riov\u00e9 \u010d\u00edslo"
             },
             "owner_query": {
               "type": "string",
-              "description": "Volitelné jméno vlastníka pro anonymní ověření shody (vrátí owner_match boolean, ne jméno)"
+              "description": "Voliteln\u00e9 jm\u00e9no vlastn\u00edka pro anonymn\u00ed ov\u011b\u0159en\u00ed shody (vr\u00e1t\u00ed owner_match boolean, ne jm\u00e9no)"
             }
           },
-          "required": ["query"]
+          "required": [
+            "query"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -427,20 +245,22 @@
       {
         "name": "aircraft_photo",
         "title": "Aircraft Photo",
-        "description": "FREE. Stáhne fotografii letadla podle registrace nebo Mode-S hex kódu z planespotters.net a adsbdb.com. Vrací photo_url, thumbnail_url, source a fotografa. Použij když uživatel chce vidět fotku letadla.",
+        "description": "FREE. St\u00e1hne fotografii letadla podle registrace nebo Mode-S hex k\u00f3du z planespotters.net a adsbdb.com. Vrac\u00ed photo_url, thumbnail_url, source a fotografa. Pou\u017eij kdy\u017e u\u017eivatel chce vid\u011bt fotku letadla.",
         "input_schema": {
           "type": "object",
           "properties": {
             "registration": {
               "type": "string",
-              "description": "Registrace letadla (např. 'N123AB')"
+              "description": "Registrace letadla (nap\u0159. 'N123AB')"
             },
             "hex": {
               "type": "string",
-              "description": "Volitelný ICAO 24-bit hex kód (Mode-S), např. 'A1B2C3'"
+              "description": "Voliteln\u00fd ICAO 24-bit hex k\u00f3d (Mode-S), nap\u0159. 'A1B2C3'"
             }
           },
-          "required": ["registration"]
+          "required": [
+            "registration"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -454,21 +274,21 @@
       {
         "name": "easa_ad_lookup",
         "title": "EASA Airworthiness Directives Lookup",
-        "description": "FREE. Vyhledá aktuální EASA Airworthiness Directives (AD), Proposed ADs (PAD) a Safety Information Bulletins (SIB) pro daný typ letadla pomocí LLM web search na ad.easa.europa.eu. Použij když uživatel ptá na EASA AD/PAD/SIB pro letadlo.",
+        "description": "FREE. Vyhled\u00e1 aktu\u00e1ln\u00ed EASA Airworthiness Directives (AD), Proposed ADs (PAD) a Safety Information Bulletins (SIB) pro dan\u00fd typ letadla pomoc\u00ed LLM web search na ad.easa.europa.eu. Pou\u017eij kdy\u017e u\u017eivatel pt\u00e1 na EASA AD/PAD/SIB pro letadlo.",
         "input_schema": {
           "type": "object",
           "properties": {
             "registration": {
               "type": "string",
-              "description": "Registrace letadla (make/model se automaticky dohledá)"
+              "description": "Registrace letadla (make/model se automaticky dohled\u00e1)"
             },
             "manufacturer": {
               "type": "string",
-              "description": "Volitelně výrobce (např. 'Cessna')"
+              "description": "Voliteln\u011b v\u00fdrobce (nap\u0159. 'Cessna')"
             },
             "model": {
               "type": "string",
-              "description": "Volitelně model (např. '172S')"
+              "description": "Voliteln\u011b model (nap\u0159. '172S')"
             }
           }
         },
@@ -484,7 +304,7 @@
       {
         "name": "registry_comparator",
         "title": "Registry Comparator (Grounded Detection)",
-        "description": "PRO. Křížově ověřuje registraci napříč FAA/CAA/EASA registry s live ADS-B tracking historií. Detekuje grounded/revoked/inactive letadla (žádný ADS-B sighting 90+ dní = grounded alert). Použij když uživatel chce vědět, zda je letadlo aktivní/grounded nebo chce cross-registry ověření.",
+        "description": "PLACEN\u00c9 (ABOS PRO p\u0159edplatn\u00e9; bez n\u011bj HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz). K\u0159\u00ed\u017eov\u011b ov\u011b\u0159uje registraci nap\u0159\u00ed\u010d FAA/CAA/EASA registry s live ADS-B tracking histori\u00ed. Detekuje grounded/revoked/inactive letadla (\u017e\u00e1dn\u00fd ADS-B sighting 90+ dn\u00ed = grounded alert). Pou\u017eij kdy\u017e u\u017eivatel chce v\u011bd\u011bt, zda je letadlo aktivn\u00ed/grounded nebo chce cross-registry ov\u011b\u0159en\u00ed.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -493,7 +313,9 @@
               "description": "Registrace letadla"
             }
           },
-          "required": ["registration"]
+          "required": [
+            "registration"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -507,21 +329,51 @@
       {
         "name": "omvm_valuation",
         "title": "OMVM v5 Valuation",
-        "description": "PRO (vyžaduje kredit). Off-Market Value Model — AI řízené tržní ocenění letadla s deal skóre, confidence levelem a live market intelligence z Controller.com/Trade-A-Plane. Použij když uživatel chce odhadnout tržní cenu letadla nebo porovnat asking price vs. trh.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Off-Market Value Model \u2014 AI \u0159\u00edzen\u00e9 tr\u017en\u00ed ocen\u011bn\u00ed letadla s deal sk\u00f3re, confidence levelem a live market intelligence z Controller.com/Trade-A-Plane. Pou\u017eij kdy\u017e u\u017eivatel chce odhadnout tr\u017en\u00ed cenu letadla nebo porovnat asking price vs. trh.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "make": { "type": "string", "description": "Výrobce (např. 'Cessna')" },
-            "model": { "type": "string", "description": "Model (např. '172S')" },
-            "year": { "type": "number", "description": "Rok výroby" },
-            "total_time": { "type": "number", "description": "Celkový nálet airframu (hod)" },
-            "engine_hours": { "type": "number", "description": "Engine hours SMOH" },
-            "tbo": { "type": "number", "description": "TBO hod (default 2000)" },
-            "avionics": { "type": "string", "description": "Avionika (comma-separated)" },
-            "asking_price": { "type": "number", "description": "Asking price pro deal scoring" },
-            "listingId": { "type": "string", "description": "Volitelné ID ABOS inzerátu pro persistenci skóre" }
+            "make": {
+              "type": "string",
+              "description": "V\u00fdrobce (nap\u0159. 'Cessna')"
+            },
+            "model": {
+              "type": "string",
+              "description": "Model (nap\u0159. '172S')"
+            },
+            "year": {
+              "type": "number",
+              "description": "Rok v\u00fdroby"
+            },
+            "total_time": {
+              "type": "number",
+              "description": "Celkov\u00fd n\u00e1let airframu (hod)"
+            },
+            "engine_hours": {
+              "type": "number",
+              "description": "Engine hours SMOH"
+            },
+            "tbo": {
+              "type": "number",
+              "description": "TBO hod (default 2000)"
+            },
+            "avionics": {
+              "type": "string",
+              "description": "Avionika (comma-separated)"
+            },
+            "asking_price": {
+              "type": "number",
+              "description": "Asking price pro deal scoring"
+            },
+            "listingId": {
+              "type": "string",
+              "description": "Voliteln\u00e9 ID ABOS inzer\u00e1tu pro persistenci sk\u00f3re"
+            }
           },
-          "required": ["make", "model"]
+          "required": [
+            "make",
+            "model"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -535,28 +387,51 @@
       {
         "name": "market_report",
         "title": "Aviation Market Report",
-        "description": "PRO (vyžaduje kredit). Generuje personalizovaný tržní report s makroekonomickými signály, politickými/regulatorními signály, regionální analýzou a falzifikovatelnými predikcemi. Scope: hourly/daily/weekly/monthly. Použij když uživatel chce tržní report nebo outlook pro daný region/kategorii.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Generuje personalizovan\u00fd tr\u017en\u00ed report s makroekonomick\u00fdmi sign\u00e1ly, politick\u00fdmi/regulatorn\u00edmi sign\u00e1ly, region\u00e1ln\u00ed anal\u00fdzou a falzifikovateln\u00fdmi predikcemi. Scope: hourly/daily/weekly/monthly. Pou\u017eij kdy\u017e u\u017eivatel chce tr\u017en\u00ed report nebo outlook pro dan\u00fd region/kategorii.",
         "input_schema": {
           "type": "object",
           "properties": {
             "scope": {
               "type": "string",
-              "enum": ["hourly", "daily", "weekly", "monthly"],
-              "description": "Frekvence/hloubka reportu (hourly=nejlevnější, monthly=nejhlubší)"
+              "enum": [
+                "hourly",
+                "daily",
+                "weekly",
+                "monthly"
+              ],
+              "description": "Frekvence/hloubka reportu (hourly=nejlevn\u011bj\u0161\u00ed, monthly=nejhlub\u0161\u00ed)"
             },
             "personalization_filters": {
               "type": "object",
-              "description": "Volitelné filtry — aircraft_category, regions[], price_range_min/max, focus_areas[]",
+              "description": "Voliteln\u00e9 filtry \u2014 aircraft_category, regions[], price_range_min/max, focus_areas[]",
               "properties": {
-                "aircraft_category": { "type": "string" },
-                "regions": { "type": "array", "items": { "type": "string" } },
-                "price_range_min": { "type": "number" },
-                "price_range_max": { "type": "number" },
-                "focus_areas": { "type": "array", "items": { "type": "string" } }
+                "aircraft_category": {
+                  "type": "string"
+                },
+                "regions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "price_range_min": {
+                  "type": "number"
+                },
+                "price_range_max": {
+                  "type": "number"
+                },
+                "focus_areas": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
-          "required": ["scope"]
+          "required": [
+            "scope"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -570,13 +445,22 @@
       {
         "name": "global_compliance",
         "title": "Global Compliance Report (GCR)",
-        "description": "PRO (vyžaduje kredit). Triple-check validační engine — agreguje registry lookup, vizuální evidence (fotky) a historickou flight traffic do Compliance Score 0–100 s integrity_flags a doporučeními. Použij když uživatel chce compliance audit letadla napříč zdroji.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Triple-check valida\u010dn\u00ed engine \u2014 agreguje registry lookup, vizu\u00e1ln\u00ed evidence (fotky) a historickou flight traffic do Compliance Score 0\u2013100 s integrity_flags a doporu\u010den\u00edmi. Pou\u017eij kdy\u017e u\u017eivatel chce compliance audit letadla nap\u0159\u00ed\u010d zdroji.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "registration": { "type": "string", "description": "Registrace letadla" },
-            "hex": { "type": "string", "description": "Volitelný ICAO hex kód" },
-            "force": { "type": "boolean", "description": "Přeskočit cache a přepočítat (default false)" }
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla"
+            },
+            "hex": {
+              "type": "string",
+              "description": "Voliteln\u00fd ICAO hex k\u00f3d"
+            },
+            "force": {
+              "type": "boolean",
+              "description": "P\u0159esko\u010dit cache a p\u0159epo\u010d\u00edtat (default false)"
+            }
           }
         },
         "annotations": {
@@ -591,15 +475,20 @@
       {
         "name": "engine_maintenance",
         "title": "Engine Maintenance & Service Bulletins",
-        "description": "PRO (vyžaduje kredit). Spočítá remaining hours do TBO, remaining % a zkontroluje aktuální Service Bulletins pro dané letadlo (až 50 registrací najednou). Použij když uživatel chce engine health overview nebo SB status.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Spo\u010d\u00edt\u00e1 remaining hours do TBO, remaining % a zkontroluje aktu\u00e1ln\u00ed Service Bulletins pro dan\u00e9 letadlo (a\u017e 50 registrac\u00ed najednou). Pou\u017eij kdy\u017e u\u017eivatel chce engine health overview nebo SB status.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "registration": { "type": "string", "description": "Registrace letadla" },
+            "registration": {
+              "type": "string",
+              "description": "Registrace letadla"
+            },
             "registrations": {
               "type": "array",
-              "items": { "type": "string" },
-              "description": "Volitelně pole registrací pro batch lookup (až 50)"
+              "items": {
+                "type": "string"
+              },
+              "description": "Voliteln\u011b pole registrac\u00ed pro batch lookup (a\u017e 50)"
             }
           }
         },
@@ -615,24 +504,27 @@
       {
         "name": "invoke_skill",
         "title": "ABOS Skill Gateway (OPEX / Insurance / Leasing / ROI / Upgrades)",
-        "description": "PRO (vyžaduje kredit). Univerzální gateway pro 18 finančních a upgrade skillů. Předej skill_id z tabulky a inputs. Dostupné skill_id: abos.skill.opex.v1, abos.skill.insurance_estimate.v1, abos.skill.leasing.v1, abos.skill.lease_rate.v1, abos.skill.tax_benefit.v1, abos.skill.rebuild_roi.v1, abos.skill.investment_health.v1, abos.skill.avionics_upgrade.v1, abos.skill.exterior_refurb.v1, abos.skill.interior_refurb.v1, abos.skill.detailing.v1, abos.skill.upgrade_compare.v1, abos.skill.engine_overhaul.v1, abos.skill.prop_overhaul.v1, abos.skill.mro_schedule.v1, abos.skill.fractional_ownership.v1, abos.skill.timebuilding_buy.v1, abos.skill.fleet_change.v1. Použij pro OPEX, leasing, pojištění, daňové výhody, ROI přestaveb, avioniky, renovací, MRO schedule, fractional ownership atd.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Univerz\u00e1ln\u00ed gateway pro 18 finan\u010dn\u00edch a upgrade skill\u016f. P\u0159edej skill_id z tabulky a inputs. Dostupn\u00e9 skill_id: abos.skill.opex.v1, abos.skill.insurance_estimate.v1, abos.skill.leasing.v1, abos.skill.lease_rate.v1, abos.skill.tax_benefit.v1, abos.skill.rebuild_roi.v1, abos.skill.investment_health.v1, abos.skill.avionics_upgrade.v1, abos.skill.exterior_refurb.v1, abos.skill.interior_refurb.v1, abos.skill.detailing.v1, abos.skill.upgrade_compare.v1, abos.skill.engine_overhaul.v1, abos.skill.prop_overhaul.v1, abos.skill.mro_schedule.v1, abos.skill.fractional_ownership.v1, abos.skill.timebuilding_buy.v1, abos.skill.fleet_change.v1. Pou\u017eij pro OPEX, leasing, poji\u0161t\u011bn\u00ed, da\u0148ov\u00e9 v\u00fdhody, ROI p\u0159estaveb, avioniky, renovac\u00ed, MRO schedule, fractional ownership atd.",
         "input_schema": {
           "type": "object",
           "properties": {
             "skill_id": {
               "type": "string",
-              "description": "ID skillu z routing tabulky (např. 'abos.skill.opex.v1')"
+              "description": "ID skillu z routing tabulky (nap\u0159. 'abos.skill.opex.v1')"
             },
             "inputs": {
               "type": "object",
-              "description": "Vstupní parametry konkrétního skillu (aircraft type, hours, prices, region atd.)"
+              "description": "Vstupn\u00ed parametry konkr\u00e9tn\u00edho skillu (aircraft type, hours, prices, region atd.)"
             },
             "passport_id": {
               "type": "string",
-              "description": "Volitelné ID ATIPassport pro kontext letadla"
+              "description": "Voliteln\u00e9 ID ATIPassport pro kontext letadla"
             }
           },
-          "required": ["skill_id", "inputs"]
+          "required": [
+            "skill_id",
+            "inputs"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -646,13 +538,22 @@
       {
         "name": "ati_quick_score",
         "title": "ATI Quick Score",
-        "description": "FREE preview / PRO full. Aircraft Transparency Index — 120bodové skóre (8 dimenzí × 15: dokumentace, maintenance, engine health, avionics, usage, storage, config, market readiness). Může vzít listingId nebo listing_text/aircraft_data. Vrací ati_score, score_label, dimension breakdown, OMVM range a capex estimate. Použij když uživatel chce ATI skóre letadla.",
+        "description": "FREE preview / PRO full. Aircraft Transparency Index \u2014 120bodov\u00e9 sk\u00f3re (8 dimenz\u00ed \u00d7 15: dokumentace, maintenance, engine health, avionics, usage, storage, config, market readiness). M\u016f\u017ee vz\u00edt listingId nebo listing_text/aircraft_data. Vrac\u00ed ati_score, score_label, dimension breakdown, OMVM range a capex estimate. Pou\u017eij kdy\u017e u\u017eivatel chce ATI sk\u00f3re letadla.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "listingId": { "type": "string", "description": "ID ABOS inzerátu (preferováno — natáhne všechna pole)" },
-            "listing_text": { "type": "string", "description": "Volitelně surový text inzerátu pro scoring" },
-            "aircraft_data": { "type": "object", "description": "Volitelně strukturovaná data letadla (year, make, model, engineTime, tbo, annualStatus, avionics atd.)" }
+            "listingId": {
+              "type": "string",
+              "description": "ID ABOS inzer\u00e1tu (preferov\u00e1no \u2014 nat\u00e1hne v\u0161echna pole)"
+            },
+            "listing_text": {
+              "type": "string",
+              "description": "Voliteln\u011b surov\u00fd text inzer\u00e1tu pro scoring"
+            },
+            "aircraft_data": {
+              "type": "object",
+              "description": "Voliteln\u011b strukturovan\u00e1 data letadla (year, make, model, engineTime, tbo, annualStatus, avionics atd.)"
+            }
           }
         },
         "annotations": {
@@ -667,14 +568,22 @@
       {
         "name": "ati_full_report",
         "title": "ATI Full Report (8-Dimension)",
-        "description": "PRO (vyžaduje kredit). Plný due-diligence report — 8 nezávislých LLM analýz (jedna na dimenzi) s justification, strengths, risks, missing data + executive summary, OMVM range a asking price. Vrací score_label: EXCEPTIONAL/STRONG BUY/FAIR/CAUTION/RED FLAGS/AVOID. Použij pro hloubkovou analýzu před koupí/prodejem.",
+        "description": "PLACEN\u00c9 \u2014 vy\u017eaduje aktivn\u00ed ABOS p\u0159edplatn\u00e9 nebo jednor\u00e1zov\u00fd n\u00e1kup. Bez opr\u00e1vn\u011bn\u00ed vr\u00e1t\u00ed HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz a po zaplacen\u00ed volej znovu. Pln\u00fd due-diligence report \u2014 8 nez\u00e1visl\u00fdch LLM anal\u00fdz (jedna na dimenzi) s justification, strengths, risks, missing data + executive summary, OMVM range a asking price. Vrac\u00ed score_label: EXCEPTIONAL/STRONG BUY/FAIR/CAUTION/RED FLAGS/AVOID. Pou\u017eij pro hloubkovou anal\u00fdzu p\u0159ed koup\u00ed/prodejem.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "aircraft_data": { "type": "string", "description": "Surový text inzerátu / specifikace letadla (povinné)" },
-            "registration": { "type": "string", "description": "Volitelná registrace pro kontext" }
+            "aircraft_data": {
+              "type": "string",
+              "description": "Surov\u00fd text inzer\u00e1tu / specifikace letadla (povinn\u00e9)"
+            },
+            "registration": {
+              "type": "string",
+              "description": "Voliteln\u00e1 registrace pro kontext"
+            }
           },
-          "required": ["aircraft_data"]
+          "required": [
+            "aircraft_data"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -688,11 +597,14 @@
       {
         "name": "aviation_news",
         "title": "Aviation News Pipeline",
-        "description": "FREE (admin-trigger). Spustí kurátorovaný aviation news pipeline — InvokeLLM web search (FAA, AOPA, industry), přepíše v ABOS editorial voice, generuje themed image per článek a uloží jako AviationNewsItem. 6h freshness gate (force=true přeskočí). Použij když uživatel chce aktuální letecké zprávy nebo když je news feed zastaralý.",
+        "description": "FREE (admin-trigger). Spust\u00ed kur\u00e1torovan\u00fd aviation news pipeline \u2014 InvokeLLM web search (FAA, AOPA, industry), p\u0159ep\u00ed\u0161e v ABOS editorial voice, generuje themed image per \u010dl\u00e1nek a ulo\u017e\u00ed jako AviationNewsItem. 6h freshness gate (force=true p\u0159esko\u010d\u00ed). Pou\u017eij kdy\u017e u\u017eivatel chce aktu\u00e1ln\u00ed leteck\u00e9 zpr\u00e1vy nebo kdy\u017e je news feed zastaral\u00fd.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "force": { "type": "boolean", "description": "Přeskočit 6h freshness gate (default false)" }
+            "force": {
+              "type": "boolean",
+              "description": "P\u0159esko\u010dit 6h freshness gate (default false)"
+            }
           }
         },
         "annotations": {
@@ -707,15 +619,31 @@
       {
         "name": "negotiation_brief",
         "title": "Negotiation Brief (CMR)",
-        "description": "PRO. Generuje data-backed negotiation strategii pomocí ATI subscores + OMVM + comparable sales. Body: { listingId, side: BUYER|SELLER, leadId? }. Vrací negotiation stance, key arguments, leverage points, target price range. Použij když broker/kupce/prodejce chystá vyjednávání.",
+        "description": "PLACEN\u00c9 (ABOS PRO p\u0159edplatn\u00e9; bez n\u011bj HTTP 402 s checkout_url \u2014 zobraz u\u017eivateli platebn\u00ed odkaz). Generuje data-backed negotiation strategii pomoc\u00ed ATI subscores + OMVM + comparable sales. Body: { listingId, side: BUYER|SELLER, leadId? }. Vrac\u00ed negotiation stance, key arguments, leverage points, target price range. Pou\u017eij kdy\u017e broker/kupce/prodejce chyst\u00e1 vyjedn\u00e1v\u00e1n\u00ed.",
         "input_schema": {
           "type": "object",
           "properties": {
-            "listingId": { "type": "string", "description": "ID ABOS inzerátu (povinné)" },
-            "side": { "type": "string", "enum": ["BUYER", "SELLER"], "description": "Strana pro kterou se generuje brief" },
-            "leadId": { "type": "string", "description": "Volitelné ID leadu pro buyer context" }
+            "listingId": {
+              "type": "string",
+              "description": "ID ABOS inzer\u00e1tu (povinn\u00e9)"
+            },
+            "side": {
+              "type": "string",
+              "enum": [
+                "BUYER",
+                "SELLER"
+              ],
+              "description": "Strana pro kterou se generuje brief"
+            },
+            "leadId": {
+              "type": "string",
+              "description": "Voliteln\u00e9 ID leadu pro buyer context"
+            }
           },
-          "required": ["listingId", "side"]
+          "required": [
+            "listingId",
+            "side"
+          ]
         },
         "annotations": {
           "read_only_hint": true,
@@ -729,18 +657,22 @@
       {
         "name": "abos_guide",
         "title": "ABOS Guide, Suggestions & FAQ",
-        "description": "FREE. Vrací role-aware suggestions (co udělat dál), intent-based tool routing (který nástroj použít pro daný záměr), guided flows (due diligence / příprava prodeje / market intel) a FAQ odpovědi (ATI, OMVM, Digital Twin, FREE vs PRO, alert, EASA, grounded, provoz, MCP). Zavolej když uživatel neví kterým nástrojem začít, ptá se 'Co umíš?', 'Help', 'Jak na…', nebo chce nápovědu. Vždy volat společně s list_abos_capabilities při prvním kontaktu.",
+        "description": "FREE. Vrac\u00ed role-aware suggestions (co ud\u011blat d\u00e1l), intent-based tool routing (kter\u00fd n\u00e1stroj pou\u017e\u00edt pro dan\u00fd z\u00e1m\u011br), guided flows (due diligence / p\u0159\u00edprava prodeje / market intel) a FAQ odpov\u011bdi (ATI, OMVM, Digital Twin, FREE vs PRO, alert, EASA, grounded, provoz, MCP). Zavolej kdy\u017e u\u017eivatel nev\u00ed kter\u00fdm n\u00e1strojem za\u010d\u00edt, pt\u00e1 se 'Co um\u00ed\u0161?', 'Help', 'Jak na\u2026', nebo chce n\u00e1pov\u011bdu. V\u017edy volat spole\u010dn\u011b s list_abos_capabilities p\u0159i prvn\u00edm kontaktu.",
         "input_schema": {
           "type": "object",
           "properties": {
             "role": {
               "type": "string",
-              "enum": ["buyer", "seller", "broker"],
-              "description": "Volitelná role — přizpůsobí suggestions a guided flows"
+              "enum": [
+                "buyer",
+                "seller",
+                "broker"
+              ],
+              "description": "Voliteln\u00e1 role \u2014 p\u0159izp\u016fsob\u00ed suggestions a guided flows"
             },
             "user_intent": {
               "type": "string",
-              "description": "Volitelný popis záměru uživatele (např. 'chci ocenit letadlo', 'prověř registraci') — vrátí matched_intent s suggested_tool + faq_search"
+              "description": "Voliteln\u00fd popis z\u00e1m\u011bru u\u017eivatele (nap\u0159. 'chci ocenit letadlo', 'prov\u011b\u0159 registraci') \u2014 vr\u00e1t\u00ed matched_intent s suggested_tool + faq_search"
             }
           }
         },

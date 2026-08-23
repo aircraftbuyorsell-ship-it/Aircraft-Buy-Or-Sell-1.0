@@ -40,11 +40,39 @@ function cardCode(reg, sequence) {
   return `ATI-US-FAA-${regClean}-${String(sequence).padStart(6, '0')}-V1`;
 }
 
+// Resolve real make/model from FAA's ACFTREF table via mfr_mdl_code.
+// NEVER derive make/model from `data.name` — that field is the FAA
+// registrant's (owner's) name, not the aircraft manufacturer, and writing
+// it into a public-visibility AircraftListing.make / aircraftLabel would
+// leak the registrant's identity. Falls back to 'Unknown' if ACFTREF has
+// no match or Supabase is unreachable — never falls back to owner data.
+async function resolveMakeModel(mfrMdlCode) {
+  if (!mfrMdlCode) return { make: 'Unknown', model: 'Unknown' };
+  try {
+    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('VITE_SUPABASE_PUBLISHABLE_KEY');
+    if (!supabaseUrl || !supabaseKey) return { make: 'Unknown', model: 'Unknown' };
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data: refs } = await supabase
+      .from('faa_acftref')
+      .select('mfr, model')
+      .eq('code', mfrMdlCode.trim())
+      .limit(1);
+    if (refs?.length) {
+      return { make: refs[0].mfr || 'Unknown', model: refs[0].model || 'Unknown' };
+    }
+  } catch (_) { /* non-critical — fall through to Unknown */ }
+  return { make: 'Unknown', model: 'Unknown' };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const isPrivileged = ['admin', 'super_admin', 'broker'].includes(user.role);
+    if (!isPrivileged) return Response.json({ error: 'Privileged role required' }, { status: 403 });
 
     const { n_number, icao24, registration, aircraft_type, callsign } = await req.json();
     const nNum = normalizeNNumber(n_number || registration || '');
@@ -88,9 +116,11 @@ Deno.serve(async (req) => {
     const year = Number(data.year_mfr) || null;
     const reg = nNum;
 
-    // Determine make/model from FAA data
-    const make = data.name?.split(' ').slice(0, 2).join(' ') || 'Unknown';
-    const model = data.mfr_mdl_code || aircraft_type || 'Unknown';
+    // Determine make/model from FAA's ACFTREF reference table — never from
+    // data.name (that's the registrant's/owner's name, not the manufacturer).
+    const resolved = await resolveMakeModel(data.mfr_mdl_code);
+    const make = resolved.make;
+    const model = resolved.model !== 'Unknown' ? resolved.model : (data.mfr_mdl_code || aircraft_type || 'Unknown');
 
     const { dimensions, total } = scoreFromRecord(data);
     const scoreLabel = labelFromTotal(total);
@@ -205,6 +235,6 @@ Deno.serve(async (req) => {
       maintenance,
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'FAA sync failed' }, { status: 500 });
   }
 });

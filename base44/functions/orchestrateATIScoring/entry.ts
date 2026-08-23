@@ -196,7 +196,9 @@ Deno.serve(async (req) => {
     // ─── 0) Fetch live market intelligence for market_readiness enrichment ──
     let marketIntel = null;
     try {
-      const marketRes = await base44.functions.invoke('piloterrTradeProxy', {
+      // asServiceRole: this function is reached from the Cloudflare gateway
+      // with only x-gateway-secret, so there is no Base44 session to inherit.
+      const marketRes = await base44.asServiceRole.functions.invoke('piloterrTradeProxy', {
         make: listing.make, model: listing.model, year: listing.year,
       });
       marketIntel = marketRes?.data || marketRes || null;
@@ -356,7 +358,8 @@ Return JSON:
     // ─── 3) OMVM valuation via omvmV5Score ─────────────
     let omvmValue = null;
     try {
-      const omvmResult = await base44.functions.invoke("omvmV5Score", {
+      // asServiceRole — same reason as piloterrTradeProxy above.
+      const omvmResult = await base44.asServiceRole.functions.invoke("omvmV5Score", {
         listingId,
       });
       omvmValue = omvmResult?.data?.omvm_value ?? omvmResult?.omvm_value ?? null;

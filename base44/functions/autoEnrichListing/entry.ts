@@ -11,15 +11,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Entity automations have no user context — trusted invocation
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      isAuthorized = user?.role === 'admin';
-    } catch (_) {
-      isAuthorized = true; // scheduled/entity automation
-    }
-    if (!isAuthorized) {
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 

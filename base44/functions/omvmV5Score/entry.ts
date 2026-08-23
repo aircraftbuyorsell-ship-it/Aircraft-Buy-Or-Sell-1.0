@@ -62,6 +62,46 @@ async function timingSafeEqual(a: string | null, b: string | null): Promise<bool
   return diff === 0;
 }
 
+// The live-market LLM call (web search + generation) is the slowest step by
+// far — gemini_3_1_pro with add_context_from_internet routinely runs 25-35s,
+// which pushes the whole function past the platform's wall-clock limit when it
+// is chained behind abosCoreApi + the Cloudflare gateway. Cap it so the
+// function always returns within budget and falls back to comps-only.
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
+// ── ABOS monetization gate — one-time purchase per aircraft (server-enforced for web, API and MCP) ──
+async function gateOneTimeProduct(base44, user, productKey, registration) {
+  if (user?.role === 'admin' || user?.role === 'super_admin') return null;
+  const reg = (registration || '').toUpperCase().trim();
+  const check = await base44.functions.invoke('abosEntitlements', {
+    action: 'check', product_key: productKey, aircraft_registration: reg,
+  });
+  const d = check?.data || {};
+  if (d.entitled) return null;
+  let checkoutUrl = null;
+  try {
+    const co = await base44.functions.invoke('abosEntitlements', {
+      action: 'create_checkout', product_key: productKey, aircraft_registration: reg,
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+    });
+    checkoutUrl = co?.data?.url || null;
+  } catch (_) { /* checkout link is optional */ }
+  return Response.json({
+    error: 'payment_required',
+    message: `This is a paid ABOS valuation (one-time purchase per aircraft${d.checkout_price_eur ? `, \u20ac${d.checkout_price_eur}` : ''}). Open checkout_url to pay, then retry this request.`,
+    product_key: productKey,
+    price_eur: d.checkout_price_eur ?? null,
+    original_price_eur: d.original_price_eur ?? null,
+    aircraft_registration: reg || null,
+    checkout_url: checkoutUrl,
+  }, { status: 402 });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -75,8 +115,11 @@ Deno.serve(async (req) => {
       Deno.env.get('GATEWAY_SECRET') ?? null
     );
 
+    let user = null;
     if (!isService) {
-      const user = await base44.auth.me();
+      // auth.me() throws rather than returning null for a sessionless caller,
+      // so a .catch keeps the response a clean 401 instead of a leaked 500.
+      user = await base44.auth.me().catch(() => null);
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -93,8 +136,15 @@ Deno.serve(async (req) => {
       listing = body.aircraft && Object.keys(body.aircraft).length ? body.aircraft : body;
     }
 
+    // ── Paid feature: Valuation Studio (€29 one-time per aircraft) — skipped for the trusted gateway ──
+    if (!isService) {
+      const valGate = await gateOneTimeProduct(base44, user, 'VALUATION_STUDIO', body.registration || listing?.registration || '');
+      if (valGate) return valGate;
+    }
+
     const currentYear = new Date().getFullYear();
-    const age = currentYear - (listing.year || currentYear);
+    const hasYear = Number.isFinite(Number(listing.year)) && Number(listing.year) > 1900;
+    const age = hasYear ? currentYear - Number(listing.year) : 0;
 
     // 1) Pull historical comps for make, then filter by model prefix in code
     const filter = {};
@@ -127,10 +177,15 @@ Deno.serve(async (req) => {
       if (den > 0) { slope = num / den; intercept = sy - slope * sx; }
     }
 
-    // 3) Engine remaining value adjustment
-    const tbo = listing.tbo || 2000;
-    const engineHours = listing.engine_hours || 0;
-    const engineRemainingFrac = Math.max(0, Math.min(1, (tbo - engineHours) / tbo));
+    // 3) Engine remaining value adjustment — only when BOTH the TBO and the
+    // engine hours are genuinely known. Never fabricate a TBO (the old 2000
+    // default is invalid for diesels/turbines) nor assume 0 engine hours; an
+    // unknown engine life is simply skipped, not guessed.
+    const tbo = (Number.isFinite(Number(listing.tbo)) && Number(listing.tbo) > 0) ? Number(listing.tbo) : null;
+    const engineHours = (listing.engine_hours != null && Number.isFinite(Number(listing.engine_hours))) ? Number(listing.engine_hours) : null;
+    const engineRemainingFrac = (tbo != null && engineHours != null)
+      ? Math.max(0, Math.min(1, (tbo - engineHours) / tbo))
+      : null;
 
     // Engine impact: ~$25k premium for fresh engine (fraction = 1.0) vs run-out (0)
     let engineSlope = 25000;
@@ -178,7 +233,10 @@ Deno.serve(async (req) => {
     // 8) Base OMVM calculation — comps first, market fallback second
     let baseValue, confidence, fallbackReason = null;
 
-    if (valid.length >= 10) {
+    // The log-linear depreciation curve requires a real manufacture year;
+    // without one, age is meaningless, so fall through to the comp median
+    // rather than valuing a year-less aircraft as brand-new (age 0).
+    if (valid.length >= 10 && hasYear) {
       baseValue = Math.exp(intercept + slope * age);
       confidence = 'HIGH';
     } else if (valid.length >= 3) {
@@ -191,7 +249,8 @@ Deno.serve(async (req) => {
       confidence = fallback.confidence;
       fallbackReason = fallback.reason;
     }
-    const engineAdj = engineSlope * (engineRemainingFrac - 0.5); // centered at 50% remaining
+    // Engine adjustment only applies when engine life is actually known.
+    const engineAdj = engineRemainingFrac != null ? engineSlope * (engineRemainingFrac - 0.5) : 0;
 
     // ── Live market intelligence via LLM web search ──
     // Searches Controller.com, Trade-A-Plane, AircraftTrader etc. for real
@@ -199,18 +258,33 @@ Deno.serve(async (req) => {
     let liveMarketAvg = null, liveMinPrice = null, liveMaxPrice = null, liveListingsCount = null;
     let marketDataSource = 'none';
     let marketNotes = null;
+    // Caller-selectable model (Valuation Studio). Defaults to the original
+    // gemini_3_flash so existing callers are unaffected. Only the two Gemini
+    // models support live web search; any other model falls back to a
+    // knowledge-based estimate with a tighter timeout.
+    const selectedModel = (typeof body.llm_model === 'string' && body.llm_model.trim()) ? body.llm_model.trim() : 'gemini_3_flash';
+    const useWebSearch = selectedModel === 'gemini_3_flash' || selectedModel === 'gemini_3_1_pro';
     try {
       const aircraftQuery = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
-      const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
+      const webPrompt = `You are an aircraft market valuation expert. Search the web for current asking prices of a ${aircraftQuery} aircraft on marketplaces like Controller.com, Trade-A-Plane, AircraftTrader, Barnstormers, and similar.
 
 Return the current market price range for this aircraft. Include only real, currently listed or recently sold aircraft of the same make and model (within ±5 years if year is specified). All prices in USD.
 
 Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
 
-Return strict JSON only.`,
-        add_context_from_internet: true,
-        model: 'gemini_3_1_pro',
+Return strict JSON only.`;
+      const knowledgePrompt = `You are an aircraft market valuation expert. Estimate the current market value range for this aircraft from your training knowledge of the general aviation market (Controller.com, Trade-A-Plane, Vref, Aircraft Bluebook). Do not pretend to search the web.
+
+Aircraft: ${listing.year || 'Any year'} ${listing.make} ${listing.model || ''}
+${listing.engine_hours != null && tbo != null ? `Engine hours SMOH: ${listing.engine_hours} (TBO ${tbo})` : ''}
+${listing.total_time != null ? `Airframe total time: ${listing.total_time} hours` : ''}
+
+Return your best estimate of the market price range in USD. Return strict JSON only.`;
+      const llmResult = await withTimeout(
+        base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: useWebSearch ? webPrompt : knowledgePrompt,
+        add_context_from_internet: useWebSearch,
+        model: selectedModel,
         response_json_schema: {
           type: 'object',
           properties: {
@@ -222,7 +296,10 @@ Return strict JSON only.`,
             notes: { type: 'string' },
           },
         },
-      });
+      }),
+        useWebSearch ? 20000 : 15000,
+        null
+      );
       const market = llmResult?.data ?? llmResult;
       if (market && market.avg_price != null && market.avg_price > 5000) {
         liveMarketAvg = market.avg_price;
@@ -245,6 +322,7 @@ Return strict JSON only.`,
         return Response.json({
           ok: true,
           status: 'insufficient_comparables',
+          model_used: selectedModel,
           omvm_value: null,
           deal_score: null,
           deal_label: null,
@@ -254,7 +332,7 @@ Return strict JSON only.`,
           comp_sample: valid.length,
           required_comps: 3,
           message: 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
-          engine_remaining_pct: Math.round(engineRemainingFrac * 100),
+          engine_remaining_pct: engineRemainingFrac != null ? Math.round(engineRemainingFrac * 100) : null,
           market_intelligence: {
             live_market_avg: null,
             live_min_price: null,
@@ -337,6 +415,7 @@ Return strict JSON only.`,
     return Response.json({
       ok: true,
       status: 'ok',
+      model_used: selectedModel,
       omvm_value: omvmValue,
       deal_score: dealScore,
       deal_label: dealLabel,
@@ -344,7 +423,7 @@ Return strict JSON only.`,
       confidence,
       fallback_reason: fallbackReason,
       comp_sample: valid.length,
-      engine_remaining_pct: Math.round(engineRemainingFrac * 100),
+      engine_remaining_pct: engineRemainingFrac != null ? Math.round(engineRemainingFrac * 100) : null,
       expert_calibration: { avg_delta_pct: avgExpertDelta, multiplier: calibrationMultiplier, sample: deltas.length },
       ati_transparency_discount: atiDiscount,
       market_intelligence: {

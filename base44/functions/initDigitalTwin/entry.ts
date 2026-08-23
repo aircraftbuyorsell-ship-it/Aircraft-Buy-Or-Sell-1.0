@@ -6,8 +6,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // Every missing provider becomes a data_gaps note — never a hard failure.
 
 function normalizeReg(input) {
-  const clean = String(input || '').trim().toUpperCase().replace(/^N/, '');
-  return clean ? `N${clean}` : '';
+  const clean = String(input || '').trim().toUpperCase().replace(/\s+/g, '');
+  if (!clean) return '';
+  // US N-number: collapse any repeated leading N's into a single prefix
+  if (clean.startsWith('N')) return `N${clean.replace(/^N+/, '')}`;
+  // International registration (OK-, D-, G-, etc.) — preserve as-is
+  return clean;
 }
 
 function registryBaselineScore(faa) {
@@ -37,25 +41,31 @@ function labelFromTotal(total) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
+    }
     const body = await req.json().catch(() => ({}));
     const reg = normalizeReg(body.registration || body.n_number);
     if (!reg) return Response.json({ error: 'registration required' }, { status: 400 });
 
-    const nLookup = reg.replace(/^N/, '');
+    const isUsReg = reg.startsWith('N');
+    const nLookup = isUsReg ? reg.replace(/^N/, '') : reg;
     const svc = base44.asServiceRole.entities;
 
-    // ── CORE provider: FAA registry ──
-    const faaRecs = await svc.FAAAircraft.filter({ n_number: nLookup }, '-created_date', 1);
-    const faa = faaRecs[0];
-    if (!faa) {
+    // ── CORE provider: FAA registry (US N-numbers only) ──
+    const faaRecs = isUsReg ? await svc.FAAAircraft.filter({ n_number: nLookup }, '-created_date', 1) : [];
+    const faa = faaRecs[0] || null;
+    if (isUsReg && !faa) {
       return Response.json({ ok: false, error: `Aircraft ${reg} not found in FAA registry`, found: false }, { status: 404 });
     }
 
     const dataGaps = [];
+    if (!faa) dataGaps.push('FAA registry not applicable — international registration, no US registry record');
 
     // ── OPTIONAL providers — federated, skip-if-missing ──
     const [engineRes, trafficRes, docRes, listingRes, escrowRes, maintenanceRes] = await Promise.allSettled([
-      faa.eng_mfr_mdl
+      faa?.eng_mfr_mdl
         ? svc.EngineSpec.filter({ engine_code: faa.eng_mfr_mdl.trim() }, '-created_date', 1)
         : Promise.resolve([]),
       svc.TrafficAppearance.filter({ registration: reg }, '-captured_at', 100),
@@ -68,9 +78,9 @@ Deno.serve(async (req) => {
     // Engine spec
     const engineSpec = engineRes.status === 'fulfilled' ? engineRes.value[0] : null;
     if (!engineSpec) {
-      dataGaps.push(faa.eng_mfr_mdl
+      dataGaps.push(faa?.eng_mfr_mdl
         ? `Engine spec not mapped for code: ${faa.eng_mfr_mdl}`
-        : 'No engine code on FAA registration');
+        : 'No engine code on FAA registry record');
     }
 
     // ADS-B traffic
@@ -88,7 +98,7 @@ Deno.serve(async (req) => {
     const escrows = escrowRes.status === 'fulfilled' ? escrowRes.value : [];
     if (escrows.length === 0) dataGaps.push('No ABOS escrow transaction history');
 
-    if (!faa.air_worth_date) dataGaps.push('Airworthiness date not on record');
+    if (faa && !faa.air_worth_date) dataGaps.push('Airworthiness date not on record');
     if (!listing) dataGaps.push('Market forecast unavailable — no active market data for this aircraft');
 
     // ── Find or create the passport (keyed by registration, NOT listing) ──
@@ -104,9 +114,9 @@ Deno.serve(async (req) => {
 
     const twinData = {
       registration: reg,
-      faa_aircraft_id: faa.id,
-      icao_hex: faa.mode_s_hex || '',
-      serial_number: faa.serial_number || '',
+      faa_aircraft_id: faa?.id || null,
+      icao_hex: faa?.mode_s_hex || '',
+      serial_number: faa?.serial_number || '',
       data_gaps: dataGaps,
       is_for_sale: !!(listing && listing.status === 'active'),
       engine_spec_id: engineSpec?.id || null,
@@ -121,7 +131,7 @@ Deno.serve(async (req) => {
       passport = existing[0];
       await svc.ATIPassport.update(passport.id, twinData);
     } else {
-      const { dims, total } = registryBaselineScore(faa);
+      const { dims, total } = faa ? registryBaselineScore(faa) : { dims: {}, total: 0 };
       passport = await svc.ATIPassport.create({
         ...twinData,
         ...dims,
@@ -139,7 +149,9 @@ Deno.serve(async (req) => {
       passportId: passport.id,
       registration: reg,
       providers: {
-        faa_registry: { status: 'ok', owner: faa.name, year: faa.year_mfr, status_code: faa.status_code },
+        faa_registry: faa
+          ? { status: 'ok', owner: faa.name, year: faa.year_mfr, status_code: faa.status_code }
+          : { status: 'skipped', reason: 'international registration' },
         engine_spec: engineSpec
           ? { status: 'ok', manufacturer: engineSpec.manufacturer, model: engineSpec.model_name, tbo_hours: engineSpec.tbo_hours }
           : { status: 'skipped' },

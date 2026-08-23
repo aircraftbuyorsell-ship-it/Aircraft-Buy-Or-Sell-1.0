@@ -11,11 +11,21 @@
 // directly, and there is no REST route that needs a Response wrapper.
 
 async function callBridge(env, baseUrl, payload) {
+  // env.GATEWAY_SECRET || '' used to send an empty header on a missing
+  // binding, which Base44 rejects the same way as a wrong value: a 401 with
+  // no signal that the Worker itself is misconfigured. Fail loudly here
+  // instead, before a request goes out at all.
+  if (!env.GATEWAY_SECRET) {
+    const err = new Error('gateway_secret_not_configured');
+    err.status = 500;
+    throw err;
+  }
+
   const res = await fetch(`${baseUrl}/functions/mcpDataBridge`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-gateway-secret': env.GATEWAY_SECRET || '',
+      'x-gateway-secret': env.GATEWAY_SECRET,
     },
     body: JSON.stringify(payload),
   });
@@ -25,9 +35,15 @@ async function callBridge(env, baseUrl, payload) {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error(`mcpDataBridge returned non-JSON (${res.status})`);
+    const err = new Error(`mcpDataBridge returned non-JSON (${res.status})`);
+    err.status = res.status;
+    throw err;
   }
-  if (!res.ok) throw new Error(parsed?.error || `mcpDataBridge failed (${res.status})`);
+  if (!res.ok) {
+    const err = new Error(parsed?.error || `mcpDataBridge failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
   return parsed;
 }
 

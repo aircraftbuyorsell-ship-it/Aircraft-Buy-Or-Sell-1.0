@@ -1,0 +1,9 @@
+{
+  "source": "task001/openapi/abos-core-api-v1.yaml",
+  "sha256": "ebda12785a9482b7c4de37745aef8cbef125c692d25db0c1db9724594a0ea1a0",
+  "operation": "POST /api/v1/search",
+  "operationId": "searchListings",
+  "requestSchema": "SearchRequest",
+  "responseSchema": "SearchResponse",
+  "mode": "Mode A — typed fixture only"
+}

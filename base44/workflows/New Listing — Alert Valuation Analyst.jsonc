@@ -1,0 +1,42 @@
+{
+  "description": "When a new AircraftListing is created, calls expertNotify (new_listing) to email the approved expert / appraiser pool so a human valuation can be submitted.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "new_listing_valuation_alert",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "alert_analyst": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "expertNotify",
+            "args": {
+              "type": "new_listing",
+              "registration": "${ .trigger.data.registration }",
+              "aircraft_info": "${ (.trigger.data.year // \"\") + \" \" + (.trigger.data.make // \"\") + \" \" + (.trigger.data.model // \"\") }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Alert valuation analyst",
+            "description": "Email expert appraisers about the new listing"
+          }
+        }
+      }
+    ]
+  },
+  "name": "New Listing \u2014 Alert Valuation Analyst",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  }
+}

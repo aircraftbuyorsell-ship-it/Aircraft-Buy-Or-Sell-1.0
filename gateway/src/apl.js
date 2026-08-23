@@ -412,7 +412,16 @@ export async function callAplTool(name, args, env, baseUrl) {
   try {
     output = await execute(manifest, args, env, baseUrl);
   } catch (err) {
-    return { error: aplError('APL_POLICY_BLOCKED', `execution failed: ${err.message}`) };
+    // Every failure that reaches here comes from an executor throwing — never
+    // from the policy checks above, which return their own APL_* codes
+    // directly. Reporting it as APL_POLICY_BLOCKED implied a governance
+    // decision that was never made; a plain upstream 401 is not a policy
+    // block. Preserve the upstream HTTP status when the executor recorded
+    // one (see callBridge/callBase44 in data.js/ati.js).
+    const status = Number.isInteger(err?.status) ? err.status : null;
+    return {
+      error: aplError('APL_UPSTREAM_ERROR', `execution failed: ${err.message}`, status != null ? { upstream_status: status } : {}),
+    };
   }
 
   const { event, chained } = await writeAudit(env, manifest, manifest.capabilities[0], args, output);

@@ -1,0 +1,80 @@
+# ADL manifest - create a marketplace listing
+#
+# STATUS: draft. This manifest is published for review and grants nothing.
+#
+# Two things must be decided before it can move to 'verified':
+#
+#   1. 'listing.create' appears in neither the APL allow-default nor the
+#      deny-default set, so checkPermissions() denies it today. It has to be
+#      added to allow-default explicitly - silently widening the allow-default
+#      set inside the runtime would defeat the point of having one.
+#
+#   2. requires_human_approval is set to true here on purpose. This is the only
+#      one of the six Core capabilities that writes, and it publishes
+#      seller-facing content under the caller's identity. If the founder decides
+#      an authenticated agent may publish unattended, flip it to false - but that
+#      should be a recorded decision, not a default.
+adl_version: "1.0"
+id: abos.marketplace.listing_create
+apl_id: apl://aviation.abos/marketplace/listing-writer/v1
+type: tool
+owner:
+  organization: ABOS
+skill: Marketplace Listing Creation
+description: >-
+  Creates a marketplace listing from supplied aircraft data. Write operation:
+  publishes seller-facing content under the calling identity. Extraction of a
+  listing from an advert does not authorise publishing it.
+capabilities:
+  - create_listing
+permissions:
+  - aircraft.read
+  - listing.create
+autonomy: A3
+trust: APL-T2
+audit: APL-A2
+risk_level: medium
+requires_human_approval: true
+supported_protocols:
+  - apl/1.0
+evidence:
+  provenance: required
+  confidence: none
+status: draft
+execution:
+  kind: core
+  endpoint: listings.create
+mcp:
+  name: create_listing
+  inputSchema:
+    type: object
+    required:
+      - manufacturer
+      - model
+    properties:
+      manufacturer:
+        type: string
+      model:
+        type: string
+      year:
+        type: number
+      registration:
+        type: string
+      price:
+        type: number
+      currency:
+        type: string
+        enum:
+          - USD
+          - EUR
+          - GBP
+          - CZK
+          - CHF
+      hours:
+        type: number
+      source_url:
+        type: string
+  annotations:
+    readOnlyHint: false
+    openWorldHint: false
+    destructiveHint: false

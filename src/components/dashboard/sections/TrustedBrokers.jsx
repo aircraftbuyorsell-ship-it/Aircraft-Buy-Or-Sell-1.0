@@ -18,55 +18,34 @@ export default function TrustedBrokers() {
       title="Verified Professionals, Not Strangers"
       subtitle="Every broker on ABOS is identity-verified and ATI-scored. Buy and sell with confidence through vetted aviation professionals."
     >
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {BROKERS.map((b) => (
-          <div key={b.name}
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "0.5px solid rgba(255,255,255,0.07)",
-              borderRadius: 12,
-              padding: 20,
-              transition: "border-color 0.2s ease",
-            }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 10,
-                background: "rgba(212,160,23,0.10)",
-                border: "1px solid rgba(212,160,23,0.22)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Shield size={20} style={{ color: "#D4A017" }} />
+          <div key={b.name} className="rounded-xl p-5 bg-card border border-border transition-colors hover:border-gold-official/30">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="w-11 h-11 rounded-[10px] flex items-center justify-center"
+                style={{ background: "rgba(212,160,23,0.10)", border: "1px solid rgba(212,160,23,0.22)" }}>
+                <Shield size={20} className="text-gold-official" />
               </div>
               {b.verified && (
-                <span style={{
-                  display: "flex", alignItems: "center", gap: 4,
-                  fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em",
-                  color: "#22c55e",
-                  background: "rgba(34,197,94,0.08)",
-                  border: "1px solid rgba(34,197,94,0.22)",
-                  padding: "3px 8px", borderRadius: 999,
-                }}>
+                <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.08em] text-emerald-600 dark:text-[#22c55e] px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.22)" }}>
                   <BadgeCheck size={11} /> Verified
                 </span>
               )}
             </div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{b.name}</h3>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 10 }}>{b.location}</p>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{b.specialty}</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 600, color: "#D4A017" }}>
+            <h3 className="text-[15px] font-bold text-foreground mb-0.5">{b.name}</h3>
+            <p className="text-[11px] text-muted-foreground mb-2.5">{b.location}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground">{b.specialty}</span>
+              <span className="flex items-center gap-1 text-xs font-semibold text-gold-official">
                 <Star size={12} fill="#D4A017" /> {b.rating}
               </span>
             </div>
           </div>
         ))}
       </div>
-      <div style={{ textAlign: "center", marginTop: 32 }}>
-        <Link to="/community"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            fontSize: 13, color: "#D4A017", textDecoration: "none", fontWeight: 600,
-          }}>
+      <div className="text-center mt-8">
+        <Link to="/community" className="inline-flex items-center gap-1.5 text-[13px] text-gold-official font-semibold no-underline">
           Join our broker network <ArrowRight size={14} />
         </Link>
       </div>

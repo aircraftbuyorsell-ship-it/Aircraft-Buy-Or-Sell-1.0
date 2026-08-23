@@ -1,0 +1,34 @@
+{
+  "name": "Buyer Interest \u2014 Notify Brokers",
+  "description": "Notifies all admin/broker users by email when a buyer submits interest via the \"I'm Interested\" button (Lead with source=buyer_interest). Closes the Phase 1.5 notification loop.",
+  "trigger": {
+    "condition": "${ (.trigger.data.source == \"buyer_interest\") }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Lead"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "buyer_interest_notify_brokers",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onBuyerInterest",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

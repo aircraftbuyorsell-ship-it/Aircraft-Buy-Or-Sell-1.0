@@ -1,0 +1,7 @@
+{
+  "type": "gumroad",
+  "scopes": [
+    "edit_products",
+    "edit_sales"
+  ]
+}

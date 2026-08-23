@@ -4,12 +4,14 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Sparkles, ArrowLeft, RefreshCw } from "lucide-react";
 import { getTemplate, detectAircraftClass } from "@/lib/salesBlueprints";
+import { canonicalizeReg } from "@/lib/regUtils";
 import CommandCard from "@/components/pipeline/CommandCard";
 import PipelineNodeCanvas from "@/components/pipeline/PipelineNodeCanvas";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
 import IntegrationHub from "@/components/pipeline/IntegrationHub";
 import PipelinePlanBanner from "@/components/pipeline/PipelinePlanBanner";
+import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 
 export default function SalesPipeline() {
   const { registration: urlReg } = useParams();
@@ -22,7 +24,7 @@ export default function SalesPipeline() {
   const [busyStepId, setBusyStepId] = useState(null);
   const [fileUrls, setFileUrls] = useState({});
 
-  const normalizedReg = (urlReg || "").toUpperCase().trim();
+  const normalizedReg = canonicalizeReg(urlReg);
 
   // Find existing pipeline for this registration
   const { data: pipeline, isLoading } = useQuery({
@@ -47,7 +49,7 @@ export default function SalesPipeline() {
   });
 
   const handleCreate = useCallback(async () => {
-    const reg = regInput.trim().toUpperCase();
+    const reg = canonicalizeReg(regInput);
     if (!reg) return;
 
     setCreating(true);
@@ -287,6 +289,8 @@ export default function SalesPipeline() {
             <CommandCard pipeline={pipeline} passport={passport} />
 
             <IntegrationHub pipeline={pipeline} />
+
+            <FAAFormsLinks context="transaction" compact />
 
             {/* Document upload area for verification steps */}
             {pipeline.steps?.some(s => s.ai_driven && !s.function_name && s.status === "pending") && (

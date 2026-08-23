@@ -13,6 +13,28 @@ import { maskOwnerName } from "@/lib/privacy";
 const ROLE_ICONS = { dealer: ShoppingCart, broker: Building, fbo: MapPin, maintenance: Wrench, other: Cog };
 const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", maintenance: "maintenance shops", other: "services" };
 
+function buildAnalysisParams(result, listing) {
+  const params = new URLSearchParams();
+  const fields = {
+    make: result.make || result.mfr_mdl_code,
+    model: result.model,
+    year: result.year || result.year_mfr,
+    registration: result.registration,
+    serial: result.serial_number,
+    total_time: listing?.total_time || result.total_time,
+    engine_hours: listing?.engine_hours || result.engine_hours,
+    tbo: listing?.tbo || result.tbo,
+    engine_mfr: result.engine_mfr,
+    engine_model: result.engine_model,
+    avionics: listing?.avionics || result.avionics,
+    asking_price: listing?.asking_price,
+  };
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value != null && value !== "") params.set(key, String(value));
+  });
+  return params.toString();
+}
+
 const FAA_STATUS_STYLE = {
   active: { bg: "rgba(34,197,94,0.12)", color: "#22c55e", border: "rgba(34,197,94,0.3)", label: "Active" },
   V: { bg: "rgba(34,197,94,0.12)", color: "#22c55e", border: "rgba(34,197,94,0.3)", label: "Valid" },
@@ -51,6 +73,7 @@ export default function RegistryResultOverlay({
     userProfile.role === "broker"
   );
   const isActive = result?.status === "active" || result?.status === "V";
+  const analysisParams = buildAnalysisParams(result, listingMatch);
 
   const unlockAdStc = async () => {
     setUnlocking("adstc");
@@ -174,14 +197,14 @@ export default function RegistryResultOverlay({
           <ATICardBlock registration={result.registration} atiCard={atiCard} passport={passport} />
 
           {/* ── Aircraft photo ── */}
-          {(photoLoading || photo || atiCard?.image_attachments?.[0]) && (
+          {(photoLoading || (photo?.photo_url && photo.source !== "hf_generated") || atiCard?.image_attachments?.[0]) && (
             <div className="relative w-full rounded-2xl overflow-hidden"
               style={{ aspectRatio: "16/9", background: isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.04)", border: cardBorder }}>
               {photoLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 animate-spin" style={{ color: mutedColor }} />
                 </div>
-              ) : photo?.photo_url ? (
+              ) : photo?.photo_url && photo.source !== "hf_generated" ? (
                 <>
                   {photo.source === "planespotters" && photo.photo_link ? (
                     <a href={photo.photo_link} target="_blank" className="block w-full h-full">
@@ -192,11 +215,10 @@ export default function RegistryResultOverlay({
                   )}
                   <span className="absolute bottom-3 right-3 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{
-                      background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)"
-                        : photo.source === "adsbdb" ? "rgba(34,197,94,0.85)" : "rgba(168,85,247,0.85)",
+                      background: photo.source === "planespotters" ? "rgba(37,99,235,0.85)" : "rgba(34,197,94,0.85)",
                       color: "#fff",
                     }}>
-                    {photo.source === "planespotters" ? "PlaneSpotters" : photo.source === "adsbdb" ? "Real Photo" : "AI Generated"}
+                    {photo.source === "planespotters" ? "PlaneSpotters" : "Real Photo"}
                   </span>
                   {photo.source === "planespotters" && photo.photographer && (
                     <span className="absolute bottom-3 left-3 text-[9px] font-medium px-2.5 py-1 rounded-full max-w-[60%] truncate"
@@ -385,19 +407,19 @@ export default function RegistryResultOverlay({
           {/* ── Quick actions ── */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <Link
-              to={`/ati-quick-score?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}`}
+              to={`/ati-quick-score?${analysisParams}`}
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ background: "rgba(37,99,235,0.10)", border: "1px solid rgba(37,99,235,0.25)", color: "#3b82f6" }}>
               <Shield className="w-4 h-4" /> ATI Score
             </Link>
             <Link
-              to={`/ati-full-report?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&registration=${encodeURIComponent(result.registration || "")}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&serial=${encodeURIComponent(result.serial_number || "")}`}
+              to={`/ati-full-report?${analysisParams}`}
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.25)", color: "#a855f7" }}>
               <FileBarChart className="w-4 h-4" /> ATI Full Report
             </Link>
             <Link
-              to={`/valuation?make=${encodeURIComponent(result.make || result.mfr_mdl_code || "")}&model=${encodeURIComponent(result.model || "")}&year=${result.year || result.year_mfr || ""}&engine_hours=${result.engine_hours || ""}&engine_mfr=${encodeURIComponent(result.engine_mfr || "")}&engine_model=${encodeURIComponent(result.engine_model || "")}&asking_price=${listingMatch?.asking_price || ""}`}
+              to={`/valuation-studio?${analysisParams}`}
               className="rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider transition-all hover:scale-[1.02]"
               style={{ background: "rgba(34,197,94,0.10)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>
               <TrendingUp className="w-4 h-4" /> OMVM Estimate

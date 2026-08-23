@@ -1,0 +1,34 @@
+{
+  "name": "Seller listing fee assignment",
+  "description": "Records the first free seller listing and assigns finder fees to later listings.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "seller_listing_fee_assignment",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "applySellerListingFee",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

@@ -27,12 +27,32 @@ export default function TrafficMap() {
   const [error, setError] = useState(null);
   const [dataTime, setDataTime] = useState(null);
   const [dataSource, setDataSource] = useState(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("registration") || "");
   const [searchError, setSearchError] = useState(null);
   const [snapshots, setSnapshots] = useState([]);
   const [snapOpen, setSnapOpen] = useState(false);
   const [filter, setFilter] = useState(DEFAULT_FILTER);
   const [focusLocation, setFocusLocation] = useState(null);
+  const [skylinkEnabled, setSkylinkEnabled] = useState(false);
+  const [skylinkAircraft, setSkylinkAircraft] = useState([]);
+  const [skylinkStatus, setSkylinkStatus] = useState("idle"); // idle | live | not_configured | error
+
+  const fetchSkylink = useCallback(async () => {
+    try {
+      const res = await base44.functions.invoke("skylinkTracking", { bbox: "-60,-170,60,170", limit: 500 });
+      const d = res.data || res;
+      if (d.configured === false) { setSkylinkStatus("not_configured"); setSkylinkAircraft([]); return; }
+      setSkylinkAircraft(d.aircraft || []);
+      setSkylinkStatus("live");
+    } catch (_) { setSkylinkStatus("error"); }
+  }, []);
+
+  useEffect(() => {
+    if (!skylinkEnabled) { setSkylinkAircraft([]); setSkylinkStatus("idle"); return; }
+    fetchSkylink();
+    const t = setInterval(fetchSkylink, 30000);
+    return () => clearInterval(t);
+  }, [skylinkEnabled, fetchSkylink]);
 
   const loadSnapshots = useCallback(async () => {
     try {
@@ -83,7 +103,7 @@ export default function TrafficMap() {
     setSearchError(null);
     const q = search.trim().toUpperCase().replace(/[-\s]/g, "");
     if (!q) return;
-    const found = aircraft.find((ac) => {
+    const found = [...aircraft, ...skylinkAircraft].find((ac) => {
       const reg = (ac.faa?.n_number || ac.registration || "").toUpperCase().replace(/[-\s]/g, "");
       const icao = (ac.icao24 || "").toUpperCase();
       const cs = (ac.callsign || "").toUpperCase().trim();
@@ -100,15 +120,16 @@ export default function TrafficMap() {
   const sourceLabel = dataSource === "live" ? "🟢 Live" : dataSource === "cache" ? "🔵 Cache" : dataSource?.startsWith("snapshot:") ? `📁 ${dataSource.replace("snapshot:", "")}` : dataSource || "—";
 
   const stats = [
-    { label: "Total loaded", value: aircraft.length },
+    { label: "Total loaded", value: aircraft.length + skylinkAircraft.length },
     { label: "Source", value: sourceLabel },
     { label: "Updated", value: dataTime ? dataTime.toLocaleTimeString() : "—" },
+    ...(skylinkEnabled ? [{ label: "SkyLink", value: skylinkStatus === "not_configured" ? "No key" : skylinkStatus === "live" ? `${skylinkAircraft.length} ADS-B` : "…" }] : []),
   ];
 
   return (
     <div style={{ position: "fixed", inset: 0, background: C.ink, overflow: "hidden" }}>
       {/* ── Globe (full height) ── */}
-      <SkyBossGlobe className="w-full h-full" filter={filter} focusLocation={focusLocation} />
+      <SkyBossGlobe className="w-full h-full" filter={filter} focusLocation={focusLocation} extraAircraft={skylinkAircraft} />
 
       {/* ── Top overlay bar ── */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 30, background: "rgba(13,17,23,0.85)", backdropFilter: "blur(12px)", borderBottom: `0.5px solid ${C.border}` }}>
@@ -138,6 +159,24 @@ export default function TrafficMap() {
 
           {/* Layer filter */}
           <GlobeLayerFilter filter={filter} onChange={setFilter} />
+
+          {/* SkyLink source toggle */}
+          <button onClick={() => setSkylinkEnabled((v) => !v)}
+            title={skylinkStatus === "not_configured" ? "SkyLink API key not set" : "Toggle SkyLink ADS-B source"}
+            style={{
+              display: "flex", alignItems: "center", gap: "7px",
+              background: skylinkEnabled ? C.amber : "rgba(255,255,255,0.04)",
+              color: skylinkEnabled ? C.ink : C.w2,
+              border: `0.5px solid ${skylinkEnabled ? C.amber : C.border}`,
+              borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, cursor: "pointer",
+              opacity: skylinkStatus === "not_configured" ? 0.55 : 1,
+            }}>
+            <Radar size={14} />
+            SkyLink
+            {skylinkEnabled && skylinkAircraft.length > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, opacity: 0.8 }}>· {skylinkAircraft.length}</span>
+            )}
+          </button>
 
           {/* Search */}
           <div style={{ display: "flex", gap: "6px" }}>

@@ -1,11 +1,22 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // ── Helpers (defined before try block so they're in scope in catch) ──
 
+// Robust error serializer — avoids "[object Object]" when an error lacks .message
+const errToStr = (e) => {
+  if (e == null) return 'Unknown error';
+  if (typeof e === 'string') return e;
+  if (e.message) return String(e.message);
+  if (typeof e === 'object') {
+    try { return JSON.stringify(e); } catch (_) { return '[object Object]'; }
+  }
+  return String(e);
+};
+
 // Detect Supabase HTML error pages (522/503 — project paused or down)
 const supabaseErrMsg = (err) => {
-  const msg = err?.message || String(err);
+  const msg = errToStr(err);
   if (msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out')) {
     return 'Supabase project is unreachable (522/503). Check if the Supabase project is paused or down.';
   }
@@ -53,16 +64,18 @@ Deno.serve(async (req) => {
   let activeMode = null;
   try {
     const base44 = createClientFromRequest(req);
-    // Scheduled automations have no user context — allow them to proceed.
-    // Direct HTTP invocations still require admin auth.
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      isAuthorized = user?.role === 'admin';
-    } catch (_) {
-      // No auth context (scheduled automation) — trusted invocation
-      isAuthorized = true;
-    }
+    // Scheduled automations have no user context, so they must prove possession
+    // of the server-side automation secret. Never fail open on auth errors.
+    const user = await base44.auth.me().catch(() => null);
+    const automationSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const suppliedAutomationSecret = req.headers.get('x-abos-automation-secret');
+    const isAutomation = Boolean(
+      automationSecret &&
+      suppliedAutomationSecret &&
+      suppliedAutomationSecret === automationSecret
+    );
+    const isAuthorized = user?.role === 'admin' || user?.role === 'super_admin' || isAutomation;
+
     if (!isAuthorized) {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
@@ -77,7 +90,9 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAdmin = serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : supabase;
 
-    const { mode, page, pageSize, search } = await req.json().catch(() => ({}));
+    // Parse the request body exactly once; Request streams cannot be consumed twice.
+    const payload = await req.json().catch(() => ({}));
+    const { mode, page, pageSize, search } = payload;
     // Default to registry_sync for scheduled automations (no payload = sync 50 records).
     // The UI page always passes an explicit mode, so this only affects automated calls.
     const currentMode = mode || 'registry_sync';
@@ -137,7 +152,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: browse ──
     if (currentMode === 'browse') {
-      const { status_code: statusFilter } = await req.json().catch(() => ({}));
+      const { status_code: statusFilter } = payload;
       const from = (currentPage - 1) * size;
       const to = from + size - 1;
       const searchFilter = search
@@ -333,6 +348,22 @@ Deno.serve(async (req) => {
         updated = toUpdate.length;
       }
 
+      const maintenanceRegistrations = [...new Set([...toCreate, ...toUpdate]
+        .filter((item) => item.eng_mfr_mdl)
+        .map((item) => `N${item.n_number}`))];
+      let maintenanceProcessed = 0;
+      if (maintenanceRegistrations.length) {
+        try {
+          const maintenanceResponse = await base44.asServiceRole.functions.invoke('calculateEngineMaintenance', {
+            registrations: maintenanceRegistrations,
+          });
+          maintenanceProcessed = maintenanceResponse?.data?.processed || maintenanceResponse?.processed || 0;
+        } catch (maintenanceError) {
+          // Maintenance enrichment is optional and must not roll back a successful FAA registry batch.
+          console.warn('Maintenance enrichment skipped:', errToStr(maintenanceError));
+        }
+      }
+
       // Get total for batch tracking
       const { count: realTotal } = await withTimeout(
         supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true })
@@ -357,6 +388,7 @@ Deno.serve(async (req) => {
         processed: (rows || []).length,
         created,
         updated,
+        maintenanceProcessed,
       });
     }
 
@@ -632,7 +664,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: registry_import_single ──
     if (currentMode === 'registry_import_single') {
-      const { n_number } = await req.json().catch(() => ({}));
+      const { n_number } = payload;
       if (!n_number) return Response.json({ error: 'n_number required' }, { status: 400 });
 
       const { data: rows, error: rowErr } = await supabaseAdmin
@@ -662,7 +694,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: acftref_enrich_single ──
     if (currentMode === 'acftref_enrich_single') {
-      const { code } = await req.json().catch(() => ({}));
+      const { code } = payload;
       if (!code) return Response.json({ error: 'code required' }, { status: 400 });
 
       const { data: refs, error: refErr } = await supabaseAdmin
@@ -690,7 +722,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: dealers_import_single ──
     if (currentMode === 'dealers_import_single') {
-      const { cert_num } = await req.json().catch(() => ({}));
+      const { cert_num } = payload;
       if (!cert_num) return Response.json({ error: 'cert_num required' }, { status: 400 });
 
       const { data: rows, error: rowErr } = await supabaseAdmin
@@ -715,7 +747,7 @@ Deno.serve(async (req) => {
 
     // ── MODE: engine_enrich_single ──
     if (currentMode === 'engine_enrich_single') {
-      const { code } = await req.json().catch(() => ({}));
+      const { code } = payload;
       if (!code) return Response.json({ error: 'code required' }, { status: 400 });
 
       const { data: refs, error: refErr } = await supabaseAdmin
@@ -738,7 +770,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ error: 'Invalid mode' }, { status: 400 });
   } catch (error) {
-    const msg = error.message || String(error);
+    const msg = errToStr(error);
     const isSupabaseDown = msg.includes('<!DOCTYPE') || msg.includes('<html') || msg.includes('Connection timed out');
     const isTimeout = msg.includes('timed out') || msg.includes('Timeout');
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
@@ -7,13 +8,32 @@ import {
 import MiniGlobe from "@/components/MiniGlobe";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import { atiBand } from "@/theme/atiPremium";
-import { DIMS, genCode, exportDocx } from "@/lib/exportAtiReport";
+import { DIMS, genCode, buildReportCode, exportDocx } from "@/lib/exportAtiReport";
 import HeroHeader from "@/components/intelligence/HeroHeader";
 import ActionBar from "@/components/intelligence/ActionBar";
 import EmptyState from "@/components/intelligence/EmptyState";
 import DimensionAnalyticsRow from "@/components/report/DimensionAnalyticsRow";
+import { useEntitlementGate } from "@/hooks/useEntitlementGate";
+import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
+import { saveReport, recordUsage } from "@/lib/entitlements";
 
 const TABS = ["Overview", "Identity", "Dimensions", "Market", "Risk"];
+const readParam = (key) => new URLSearchParams(window.location.search).get(key) || "";
+
+function buildInitialReportInput() {
+  if (readParam("aircraft_data")) return readParam("aircraft_data");
+  return [
+    [readParam("year"), readParam("make"), readParam("model")].filter(Boolean).join(" "),
+    readParam("registration") && `Registration: ${readParam("registration")}`,
+    readParam("serial") && `Serial number: ${readParam("serial")}`,
+    readParam("total_time") && `Airframe Total Time: ${readParam("total_time")} hrs`,
+    readParam("engine_hours") && `Engine SMOH: ${readParam("engine_hours")} hrs`,
+    readParam("tbo") && `TBO: ${readParam("tbo")} hrs`,
+    readParam("engine_mfr") && `Engine: ${readParam("engine_mfr")} ${readParam("engine_model")}`.trim(),
+    readParam("avionics") && `Avionics: ${readParam("avionics")}`,
+    readParam("asking_price") && `Asking Price: $${readParam("asking_price")}`,
+  ].filter(Boolean).join("\n");
+}
 
 function BulletList({ items, colorCls = "text-emerald-500" }) {
   if (!items?.length) return <p className="text-xs text-muted-foreground">None identified.</p>;
@@ -39,19 +59,21 @@ function AINotice() {
         (FAA registry, NTSB database, market comparables). These outputs are for informational purposes only and do not
         replace a professional technical inspection or formal appraisal. Any final purchase or sale decision should include
         an independent pre-buy inspection.{" "}
-        <a href="/legal/ai-transparency" className="text-gold-official hover:underline">Full AI disclosure (EU AI Act Art. 50) →</a>
+        <Link to="/legal/ai-transparency" className="text-gold-official hover:underline">Full AI disclosure (EU AI Act Art. 50) →</Link>
       </p>
     </div>
   );
 }
 
 export default function ATIFullReport() {
-  const [input, setInput] = useState("");
+  const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
+  const [input, setInput] = useState(buildInitialReportInput);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
   const [reportCode, setReportCode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [regExtracted, setRegExtracted] = useState("");
+  const [regExtracted, setRegExtracted] = useState(() => readParam("registration"));
   const [tab, setTab] = useState("Overview");
   const [copied, setCopied] = useState(false);
 
@@ -82,8 +104,10 @@ export default function ATIFullReport() {
 
   async function handleGenerate() {
     if (!input.trim()) return;
+    if (!(await requireAccess("ATI_FULL_REPORT", (regExtracted || "").toUpperCase()))) return;
     setLoading(true);
     setResult(null);
+    setError("");
     try {
       const response = await base44.functions.invoke("atiFullReportScore", {
         aircraft_data: input,
@@ -107,13 +131,55 @@ export default function ATIFullReport() {
           Object.entries(res.dimensions || {}).map(([k, v]) => [k, v.justification])
         ),
       };
+
+      const make = readParam("make");
+      const model = readParam("model");
+      const year = Number(readParam("year"));
+      if (make && model && year) {
+        try {
+          const omvmResponse = await base44.functions.invoke("omvmV5Score", {
+            make,
+            model,
+            year,
+            total_time: Number(readParam("total_time")) || undefined,
+            engine_hours: Number(readParam("engine_hours")) || undefined,
+            tbo: Number(readParam("tbo")) || undefined,
+            avionics: readParam("avionics"),
+            asking_price: Number(readParam("asking_price")) || undefined,
+          });
+          const omvmValue = omvmResponse.data?.omvm_value;
+          if (omvmValue) {
+            flatResult.omvm_low = Math.round(omvmValue * 0.9 / 1000) * 1000;
+            flatResult.omvm_high = Math.round(omvmValue * 1.1 / 1000) * 1000;
+          }
+        } catch (_) {}
+      }
+
       const reg = regExtracted || res.registration_extracted || "NREG";
-      const code = genCode(reg, res.total);
       setResult(flatResult);
-      setReportCode(code);
       setTab("Overview");
+      // Persist the purchased report (re-access without re-charge) + usage record.
+      // The report code is built from the shared deal_code returned here, so it stays
+      // identical to the Listing ID / ATI Score ID for this same aircraft.
+      try {
+        const saved = await saveReport({
+          product_key: "ATI_FULL_REPORT",
+          aircraft_registration: (reg || "").toUpperCase(),
+          report_type: "ati_full_report",
+          result_data: flatResult,
+          confidence: "caution",
+        });
+        setReportCode(buildReportCode(reg, res.total, saved.deal_code));
+        await recordUsage({ product_key: "ATI_FULL_REPORT", aircraft_registration: (reg || "").toUpperCase() });
+      } catch (_) {
+        setReportCode(genCode(reg, res.total)); // backend unavailable — fall back to a standalone code
+      }
     } catch (e) {
-      console.error(e);
+      if ([401, 403].includes(e?.response?.status || e?.status)) {
+        base44.auth.redirectToLogin(window.location.href);
+        return;
+      }
+      setError(e?.response?.data?.error || e.message || "Report generation failed. Please try again.");
     }
     setLoading(false);
   }
@@ -180,6 +246,11 @@ export default function ATIFullReport() {
             <FileText className="w-4 h-4" />
             {loading ? "Scoring 8 dimensions via LLM…" : "Generate ATI Full Report"}
           </button>
+          {error && (
+            <p className="mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
         </div>
 
         {/* ── Report output ── */}
@@ -348,6 +419,8 @@ export default function ATIFullReport() {
           )}
         </div>
       </div>
+
+      <EntitlementGateModal gate={gate} onClose={closeGate} onCheckout={startCheckout} />
     </div>
   );
 }

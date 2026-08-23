@@ -14,9 +14,11 @@ function normalizeReg(input) {
 }
 
 function maskOwner(name) {
-  if (!name) return null;
-  const parts = String(name).trim().split(/\s+/);
-  return parts.map(p => p.length > 1 ? `${p[0]}${'*'.repeat(Math.min(p.length - 1, 6))}` : p).join(' ');
+  return name ? '****' : null;
+}
+
+function normalizeOwner(name) {
+  return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 Deno.serve(async (req) => {
@@ -24,6 +26,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const query = String(body.query || '').trim().toUpperCase();
+    const ownerQuery = normalizeOwner(body.owner_query);
     if (!query || query.length < 2) {
       return Response.json({ error: 'query required (N-Number, registration or serial number)' }, { status: 400 });
     }
@@ -66,6 +69,8 @@ Deno.serve(async (req) => {
       make,
       model,
       owner_masked: maskOwner(faa.name),
+      owner_match: ownerQuery ? normalizeOwner(faa.name) === ownerQuery : null,
+      owner_match_label: ownerQuery ? (normalizeOwner(faa.name) === ownerQuery ? 'Match' : 'Match failed') : null,
       owner_state: faa.state || null,
       registration_status: faa.status_code === 'V' ? 'Valid' : faa.status_code || 'Unknown',
       has_ati_report: !!passport,

@@ -1,0 +1,14 @@
+{
+  "name": "@abos/task001-contract-validation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/canonical-contract-decision.test.mjs"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "yaml": "^2.9.0"
+  }
+}

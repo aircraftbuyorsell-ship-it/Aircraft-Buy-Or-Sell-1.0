@@ -1,0 +1,74 @@
+{
+  "name": "AirmanReleaseMonitor",
+  "type": "object",
+  "properties": {
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "latest_upload_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_upload_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "download_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "import_status": {
+      "type": "string",
+      "enum": [
+        "imported",
+        "pending",
+        "unavailable"
+      ],
+      "default": "unavailable"
+    },
+    "last_import_run_id": {
+      "type": "string"
+    },
+    "last_notified_upload_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "source_url",
+    "import_status",
+    "checked_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

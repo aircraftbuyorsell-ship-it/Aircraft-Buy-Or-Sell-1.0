@@ -40,6 +40,32 @@ function cardCode(reg, sequence) {
   return `ATI-US-FAA-${regClean}-${String(sequence).padStart(6, '0')}-V1`;
 }
 
+// Resolve real make/model from FAA's ACFTREF table via mfr_mdl_code.
+// NEVER derive make/model from `data.name` — that field is the FAA
+// registrant's (owner's) name, not the aircraft manufacturer, and writing
+// it into a public-visibility AircraftListing.make / aircraftLabel would
+// leak the registrant's identity. Falls back to 'Unknown' if ACFTREF has
+// no match or Supabase is unreachable — never falls back to owner data.
+async function resolveMakeModel(mfrMdlCode) {
+  if (!mfrMdlCode) return { make: 'Unknown', model: 'Unknown' };
+  try {
+    const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('VITE_SUPABASE_PUBLISHABLE_KEY');
+    if (!supabaseUrl || !supabaseKey) return { make: 'Unknown', model: 'Unknown' };
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { data: refs } = await supabase
+      .from('faa_acftref')
+      .select('mfr, model')
+      .eq('code', mfrMdlCode.trim())
+      .limit(1);
+    if (refs?.length) {
+      return { make: refs[0].mfr || 'Unknown', model: refs[0].model || 'Unknown' };
+    }
+  } catch (_) { /* non-critical — fall through to Unknown */ }
+  return { make: 'Unknown', model: 'Unknown' };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -90,9 +116,11 @@ Deno.serve(async (req) => {
     const year = Number(data.year_mfr) || null;
     const reg = nNum;
 
-    // Determine make/model from FAA data
-    const make = data.name?.split(' ').slice(0, 2).join(' ') || 'Unknown';
-    const model = data.mfr_mdl_code || aircraft_type || 'Unknown';
+    // Determine make/model from FAA's ACFTREF reference table — never from
+    // data.name (that's the registrant's/owner's name, not the manufacturer).
+    const resolved = await resolveMakeModel(data.mfr_mdl_code);
+    const make = resolved.make;
+    const model = resolved.model !== 'Unknown' ? resolved.model : (data.mfr_mdl_code || aircraft_type || 'Unknown');
 
     const { dimensions, total } = scoreFromRecord(data);
     const scoreLabel = labelFromTotal(total);
@@ -126,6 +154,8 @@ Deno.serve(async (req) => {
     // 4) Create ATIPassport
     const passport = await base44.entities.ATIPassport.create({
       listing: listing.id,
+      registration: reg,
+      faa_aircraft_id: faaRecord.id,
       triggered_by: user.id,
       ati_total: total,
       ...dimensions,
@@ -184,6 +214,13 @@ Deno.serve(async (req) => {
       issued_at: new Date().toISOString(),
     });
 
+    const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
+      registration: reg,
+      listing_id: listing.id,
+      passport_id: passport.id,
+    });
+    const maintenance = maintenanceResponse.data?.results?.[0] || null;
+
     return Response.json({
       ok: true,
       action: 'created',
@@ -195,6 +232,7 @@ Deno.serve(async (req) => {
       registration: reg,
       aircraftLabel,
       dimensions,
+      maintenance,
     });
   } catch (error) {
     return Response.json({ error: 'FAA sync failed' }, { status: 500 });

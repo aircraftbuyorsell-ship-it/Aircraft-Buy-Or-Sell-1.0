@@ -11,8 +11,8 @@ function isNightHour() {
 function resolveIsDark(mode) {
   if (mode === "dark") return true;
   if (mode === "light") return false;
-  // auto → time-based
-  return isNightHour();
+  // Default to dark mode (main mode)
+  return true;
 }
 
 export default function ThemeToggle() {

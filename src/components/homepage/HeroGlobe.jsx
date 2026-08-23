@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
+import { useTheme } from "@/lib/useTheme";
 
 const CITY_PAIRS = [
   [[40.7, -74.0], [51.5, -0.1]],
@@ -27,6 +28,7 @@ function latLonToVec3(lat, lon, r) {
 export default function HeroGlobe() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const isDark = useTheme();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -42,7 +44,7 @@ export default function HeroGlobe() {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
-    camera.position.set(0, 0.3, 4.5);
+    camera.position.set(0, 0.3, 6.2);
 
     const globe = new THREE.Group();
     scene.add(globe);
@@ -50,42 +52,77 @@ export default function HeroGlobe() {
     const SPHERE_R = 1.8;
     const GOLD = 0xf5c242;
 
+    // ── Sphere ── light: matte aluminum; dark: deep space
     const sphereMat = new THREE.MeshPhongMaterial({
-      color: 0x0A0E14,
-      emissive: 0x05080c,
-      shininess: 4,
-      specular: 0x0a0f1a,
+      color: isDark ? 0x0A0E14 : 0x2a2a35,
+      emissive: isDark ? 0x05080c : 0x0d0d12,
+      shininess: isDark ? 4 : 28,
+      specular: isDark ? 0x0a0f1a : 0xb0b0b0,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
 
-    const gridPts = [];
-    const gr = SPHERE_R + 0.004;
-    for (let lat = -75; lat <= 75; lat += 15) {
-      for (let lon = 0; lon < 360; lon += 4) {
-        const v1 = latLonToVec3(lat, lon, gr);
-        const v2 = latLonToVec3(lat, lon + 4, gr);
-        gridPts.push(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+    // ── Rivet texture ── circular dot with raised-head gradient
+    const rivetTexture = (() => {
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 32;
+      const ctx = cv.getContext("2d");
+      const g = ctx.createRadialGradient(16, 14, 0, 16, 16, 16);
+      if (isDark) {
+        // Classic gold rivet
+        g.addColorStop(0, "rgba(255,222,130,1)");
+        g.addColorStop(0.3, "rgba(212,160,23,0.85)");
+        g.addColorStop(0.7, "rgba(166,124,0,0.35)");
+        g.addColorStop(1, "rgba(166,124,0,0)");
+      } else {
+        // Brushed aluminum rivet — strong dark contrast on dark light-mode sphere
+        g.addColorStop(0, "rgba(245,200,66,1)");
+        g.addColorStop(0.3, "rgba(212,160,23,0.9)");
+        g.addColorStop(0.7, "rgba(166,124,0,0.4)");
+        g.addColorStop(1, "rgba(166,124,0,0)");
       }
-    }
-    for (let lon = 0; lon < 360; lon += 30) {
-      for (let lat = -75; lat <= 75; lat += 4) {
-        const v1 = latLonToVec3(lat, lon, gr);
-        const v2 = latLonToVec3(lat + 4, lon, gr);
-        gridPts.push(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
-      }
-    }
-    const gridGeo = new THREE.BufferGeometry();
-    gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(gridPts, 3));
-    const grid = new THREE.LineSegments(gridGeo, new THREE.LineBasicMaterial({
-      color: 0x2a3540,
-      transparent: true,
-      opacity: 0.18,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    }));
-    globe.add(grid);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(16, 16, 16, 0, Math.PI * 2);
+      ctx.fill();
+      const tex = new THREE.CanvasTexture(cv);
+      tex.flipY = false;
+      return tex;
+    })();
 
+    // ── Rivet positions ── dots along parallels & meridians
+    const rivetPositions = [];
+    const rr = SPHERE_R + 0.006;
+
+    // Parallels (latitude rings)
+    for (let lat = -75; lat <= 75; lat += 15) {
+      for (let lon = 0; lon < 360; lon += 5) {
+        const v = latLonToVec3(lat, lon, rr);
+        rivetPositions.push(v.x, v.y, v.z);
+      }
+    }
+    // Meridians (longitude lines)
+    for (let lon = 0; lon < 360; lon += 30) {
+      for (let lat = -78; lat <= 78; lat += 5) {
+        const v = latLonToVec3(lat, lon, rr);
+        rivetPositions.push(v.x, v.y, v.z);
+      }
+    }
+
+    const rivetGeo = new THREE.BufferGeometry();
+    rivetGeo.setAttribute("position", new THREE.Float32BufferAttribute(rivetPositions, 3));
+    const rivets = new THREE.Points(rivetGeo, new THREE.PointsMaterial({
+      map: rivetTexture,
+      size: 0.038,
+      transparent: true,
+      alphaTest: 0.06,
+      depthWrite: false,
+      sizeAttenuation: true,
+      opacity: isDark ? 0.88 : 0.85,
+    }));
+    globe.add(rivets);
+
+    // ── Flight path arcs ──
     const arcGroup = new THREE.Group();
     globe.add(arcGroup);
 
@@ -99,13 +136,14 @@ export default function HeroGlobe() {
       const tubeMat = new THREE.MeshBasicMaterial({
         color: GOLD,
         transparent: true,
-        opacity: 0.55,
+        opacity: isDark ? 0.55 : 0.85,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
       arcGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
     });
 
+    // ── City markers ──
     const markerTexture = (() => {
       const cv = document.createElement("canvas");
       cv.width = cv.height = 64;
@@ -143,31 +181,35 @@ export default function HeroGlobe() {
       markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
     });
 
-    scene.add(new THREE.AmbientLight(0x1a2030, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xfff1d6, 1.1);
+    // ── Lights ── bright for aluminum, moody for dark
+    scene.add(new THREE.AmbientLight(isDark ? 0x1a2030 : 0x6a6a78, isDark ? 0.5 : 0.35));
+    const dirLight = new THREE.DirectionalLight(0xfff1d6, isDark ? 1.1 : 1.4);
     dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x4a6a9a, 0.25);
+    const fillLight = new THREE.DirectionalLight(isDark ? 0x4a6a9a : 0x8090a8, isDark ? 0.25 : 0.4);
     fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 
-    const sg = new THREE.BufferGeometry();
-    const sp = [];
-    for (let i = 0; i < 500; i++) {
-      const v = new THREE.Vector3(
-        Math.random() - 0.5,
-        Math.random() - 0.5,
-        Math.random() - 0.5
-      ).normalize().multiplyScalar(18 + Math.random() * 22);
-      sp.push(v.x, v.y, v.z);
+    // ── Stars ── dark mode only
+    if (isDark) {
+      const sg = new THREE.BufferGeometry();
+      const sp = [];
+      for (let i = 0; i < 500; i++) {
+        const v = new THREE.Vector3(
+          Math.random() - 0.5,
+          Math.random() - 0.5,
+          Math.random() - 0.5
+        ).normalize().multiplyScalar(18 + Math.random() * 22);
+        sp.push(v.x, v.y, v.z);
+      }
+      sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
+      scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
+        color: 0x8fa8cc,
+        size: 0.05,
+        transparent: true,
+        opacity: 0.5,
+      })));
     }
-    sg.setAttribute("position", new THREE.Float32BufferAttribute(sp, 3));
-    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
-      color: 0x8fa8cc,
-      size: 0.05,
-      transparent: true,
-      opacity: 0.5,
-    })));
 
     let rafId;
     const startTime = performance.now();
@@ -203,7 +245,7 @@ export default function HeroGlobe() {
       renderer.dispose();
       scene.clear();
     };
-  }, []);
+  }, [isDark]);
 
   return (
     <div ref={containerRef} className="absolute inset-0" style={{ pointerEvents: "none" }}>

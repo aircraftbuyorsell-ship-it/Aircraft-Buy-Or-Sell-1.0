@@ -4,7 +4,7 @@
  * keeping the API key server-side.
  */
 
-const GEMINI_MODEL = "gemini-2.0-flash-live-001";
+const GEMINI_MODEL = "gemini-3.1-flash-live-preview";
 const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent`;
 
 const SYSTEM_INSTRUCTION = `You are Max, an expert aviation pre-buy inspection assistant for ABOS.
@@ -30,7 +30,7 @@ RESPONSE STYLE:
 
 Always frame findings in terms of how they affect the ATI score and transaction confidence.`;
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
 Deno.serve(async (req) => {
   const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
@@ -44,12 +44,20 @@ Deno.serve(async (req) => {
     return Response.json({ error: "WebSocket upgrade required" }, { status: 426 });
   }
 
-  // Authenticate user BEFORE upgrading to WebSocket
-  const base44 = createClientFromRequest(req);
-  const user = await base44.auth.me();
-  if (!user) {
+  // Browser WebSockets cannot set Authorization headers, so promote the
+  // authenticated app token from the encrypted query string for SDK auth.
+  const token = new URL(req.url).searchParams.get("token");
+  const authHeaders = new Headers(req.headers);
+  if (token) authHeaders.set("Authorization", `Bearer ${token}`);
+  const authRequest = new Request(req.url, { method: req.method, headers: authHeaders });
+  const base44 = createClientFromRequest(authRequest);
+  let user;
+  try {
+    user = await base44.auth.me();
+  } catch {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   // Only now upgrade to WebSocket
   const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
@@ -65,47 +73,35 @@ Deno.serve(async (req) => {
   let clientClosed = false;
 
   geminiSocket.onopen = () => {
-    geminiReady = true;
-
-    // Send setup message
     const setup = {
       setup: {
         model: `models/${GEMINI_MODEL}`,
-        generation_config: {
-          response_modalities: ["AUDIO"],
-          speech_config: {
-            voice_config: {
-              prebuilt_voice_config: { voice_name: "Charon" }
-            }
-          }
-        },
-        system_instruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }]
-        }
+        responseModalities: ["AUDIO"],
+        outputAudioTranscription: {},
+        systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] }
       }
     };
     geminiSocket.send(JSON.stringify(setup));
-
-    // Flush any queued messages (if client still connected)
-    if (!clientClosed) {
-      for (const msg of pendingMessages) {
-        geminiSocket.send(msg);
-      }
-    }
-    pendingMessages.length = 0;
   };
 
-  // Pipe Gemini → client
+  // Wait for setupComplete before sending video frames.
   geminiSocket.onmessage = (event) => {
-    if (clientSocket.readyState === WebSocket.OPEN) {
-      clientSocket.send(event.data);
+    let message;
+    try { message = JSON.parse(event.data); } catch { message = null; }
+    if (message?.setupComplete) {
+      geminiReady = true;
+      if (!clientClosed) {
+        for (const pending of pendingMessages) geminiSocket.send(pending);
+      }
+      pendingMessages.length = 0;
     }
+    if (clientSocket.readyState === WebSocket.OPEN) clientSocket.send(event.data);
   };
 
   geminiSocket.onerror = () => {
     if (clientSocket.readyState === WebSocket.OPEN) {
-      clientSocket.send(JSON.stringify({ error: "Gemini connection error" }));
-      clientSocket.close();
+      clientSocket.send(JSON.stringify({ error: "Google Live API connection failed." }));
+      clientSocket.close(1011, "Live API connection failed");
     }
   };
 

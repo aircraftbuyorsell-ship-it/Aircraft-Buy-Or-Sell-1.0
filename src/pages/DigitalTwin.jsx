@@ -6,6 +6,8 @@ import TwinProviderBlock from "@/components/twin/TwinProviderBlock";
 import BrokerAssignPanel from "@/components/twin/BrokerAssignPanel";
 import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
 import DataConflictAlert from "@/components/twin/DataConflictAlert";
+import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
+import EasaAdPanel from "@/components/twin/EasaAdPanel";
 import { maskOwnerName } from "@/lib/privacy";
 
 const AMBER = "#f5c242";
@@ -43,14 +45,14 @@ export default function DigitalTwin() {
 
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.25em] font-black" style={{ color: AMBER }}>
               ATI Verify · Digital Twin
             </p>
-            <h1 className="text-2xl md:text-3xl font-black text-[rgba(255,255,255,0.92)] font-mono tracking-wider">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground font-mono tracking-wider truncate">
               {registration?.toUpperCase()}
             </h1>
             {passport?.data_confidence && (
@@ -60,17 +62,17 @@ export default function DigitalTwin() {
             )}
           </div>
           <button onClick={loadTwin} disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold disabled:opacity-40"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-[12px] font-bold disabled:opacity-40 flex-shrink-0"
             style={{ background: "rgba(245,194,66,0.08)", border: "0.5px solid rgba(245,194,66,0.25)", color: AMBER }}>
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
 
         {loading && (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: "rgba(255,255,255,0.04)" }} />
+              <div key={i} className="h-24 rounded-xl animate-pulse bg-muted/40" />
             ))}
           </div>
         )}
@@ -78,7 +80,7 @@ export default function DigitalTwin() {
         {error && !loading && (
           <div className="rounded-xl px-5 py-6 text-center"
             style={{ background: "rgba(226,75,74,0.06)", border: "0.5px solid rgba(226,75,74,0.25)" }}>
-            <p className="text-[#e24b4a] font-bold text-sm">{error}</p>
+            <p className="text-destructive font-bold text-sm">{error}</p>
           </div>
         )}
 
@@ -124,6 +126,8 @@ export default function DigitalTwin() {
               ] : []}
               emptyText="No transactional documents indexed (Bill of Sale, Security Agreements)"
             />
+            <FAAFormsLinks context="technical" />
+            <EasaAdPanel registration={data.registration} />
             <TwinProviderBlock
               title="Marketplace Status"
               status={p?.marketplace?.status}
@@ -143,14 +147,14 @@ export default function DigitalTwin() {
 
             {/* Data gaps */}
             {data.data_gaps?.length > 0 && (
-              <div className="rounded-xl px-5 py-4"
+              <div className="rounded-xl px-4 sm:px-5 py-4"
                 style={{ background: "rgba(245,194,66,0.04)", border: "0.5px solid rgba(245,194,66,0.15)" }}>
                 <p className="text-[10px] uppercase tracking-[0.15em] font-black mb-2" style={{ color: AMBER }}>
                   Data Gaps
                 </p>
                 <ul className="space-y-1">
                   {data.data_gaps.map((g) => (
-                    <li key={g} className="text-[12px] text-[rgba(255,255,255,0.5)]">· {g}</li>
+                    <li key={g} className="text-[12px] text-muted-foreground/60">· {g}</li>
                   ))}
                 </ul>
               </div>
@@ -160,8 +164,8 @@ export default function DigitalTwin() {
             <BrokerAssignPanel registration={data.registration} passportId={data.passportId} />
 
             <div className="flex items-center gap-2 justify-center pt-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-[rgba(255,255,255,0.3)]" />
-              <p className="text-[10px] text-[rgba(255,255,255,0.3)]">
+              <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground/40" />
+              <p className="text-[10px] text-muted-foreground/40 text-center">
                 Independent technical verification · not a pre-purchase inspection or sales recommendation
               </p>
             </div>

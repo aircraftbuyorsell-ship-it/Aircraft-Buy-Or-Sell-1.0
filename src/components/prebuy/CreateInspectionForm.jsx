@@ -1,0 +1,14 @@
+import { useState } from 'react';
+import { DEFAULT_PREBUY_CHECKLIST } from '@/lib/prebuyChecklist';
+export default function CreateInspectionForm({ onCreate, busy }) {
+  const [form,setForm]=useState({ registration:'',make:'',model:'',year:'',aircraft_class:'sep',selection:'later',inspectorEmail:'',sellerEmail:'' });
+  const submit=e=>{e.preventDefault();onCreate({ aircraft:{ registration:form.registration.toUpperCase(),make:form.make,model:form.model,year:Number(form.year)||undefined,aircraft_class:form.aircraft_class }, inspectorSelection:form.selection, inspector:form.inspectorEmail?{email:form.inspectorEmail}:undefined, participants:form.sellerEmail?[{email:form.sellerEmail,role:'seller',status:'invited'}]:[], checklist:DEFAULT_PREBUY_CHECKLIST });};
+  return <form onSubmit={submit} className="grid gap-4 rounded-2xl border border-border bg-card p-5 md:grid-cols-2">
+    <div><label className="text-xs font-bold">Registration</label><input required value={form.registration} onChange={e=>setForm({...form,registration:e.target.value})} className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="N123AB" /></div>
+    <div><label className="text-xs font-bold">Year / Make / Model</label><div className="mt-1 grid grid-cols-3 gap-2"><input value={form.year} onChange={e=>setForm({...form,year:e.target.value})} className="rounded-xl border px-3 py-2" placeholder="Year"/><input required value={form.make} onChange={e=>setForm({...form,make:e.target.value})} className="rounded-xl border px-3 py-2" placeholder="Make"/><input required value={form.model} onChange={e=>setForm({...form,model:e.target.value})} className="rounded-xl border px-3 py-2" placeholder="Model"/></div></div>
+    <div><label className="text-xs font-bold">Inspector selection</label><select value={form.selection} onChange={e=>setForm({...form,selection:e.target.value})} className="mt-1 w-full rounded-xl border px-3 py-2"><option value="own">Own inspector</option><option value="abos_partner">ABOS Partner Inspector</option><option value="later">Request later</option></select></div>
+    <div><label className="text-xs font-bold">Inspector email</label><input type="email" value={form.inspectorEmail} onChange={e=>setForm({...form,inspectorEmail:e.target.value})} className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="Optional"/></div>
+    <div><label className="text-xs font-bold">Seller / broker email</label><input type="email" value={form.sellerEmail} onChange={e=>setForm({...form,sellerEmail:e.target.value})} className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="Optional"/></div>
+    <div className="flex items-end"><button disabled={busy} className="w-full rounded-xl bg-primary px-5 py-2.5 font-bold text-primary-foreground">{busy?'Creating…':'Create Inspection Workspace'}</button></div>
+  </form>;
+}

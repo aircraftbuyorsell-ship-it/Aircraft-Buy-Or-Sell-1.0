@@ -74,7 +74,7 @@ export default function AviationNewsTicker() {
       <div className="flex items-center h-9">
         {/* Left label — stays as is */}
         <Link
-          to={isSubscriber ? "/weekly-briefing" : "/pricing"}
+          to="/weekly-briefing"
           className="flex items-center gap-1.5 px-4 h-full shrink-0 border-r hover:opacity-80 transition-opacity"
           style={{ borderColor: ringBorder }}
         >
@@ -84,12 +84,12 @@ export default function AviationNewsTicker() {
           </span>
         </Link>
 
-        {/* Scrolling marquee — entire area links to /pricing */}
-        <Link to="/pricing" className="flex-1 overflow-hidden relative h-full cursor-pointer group">
+        {/* Scrolling marquee — entire area links to weekly briefing */}
+        <Link to="/weekly-briefing" className="flex-1 overflow-hidden relative h-full cursor-pointer group">
           <div
             className="inline-flex items-center h-full whitespace-nowrap"
             style={{
-              animation: "marquee-ring 50s linear infinite",
+              animation: "marquee-ring 80s linear infinite",
               animationPlayState: "running",
             }}
           >
@@ -98,16 +98,16 @@ export default function AviationNewsTicker() {
               return (
                 <span key={i} className="inline-flex items-center gap-1.5 mx-4 group-hover:[animation-play-state:paused]">
                   <span
-                    className="text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                     style={{ color: accent, background: `${accent}14`, whiteSpace: "nowrap" }}
                   >
                     {h.category}
                   </span>
-                  <span className="text-[10px] leading-none flex items-center gap-1.5" style={{ color: textHeadline, whiteSpace: "nowrap" }}>
+                  <span className="text-[13px] leading-none flex items-center gap-1.5" style={{ color: textHeadline, whiteSpace: "nowrap" }}>
                     <span className="inline-block w-1 h-1 rounded-full shrink-0" style={{ background: sentColor }} />
                     {h.headline}
                   </span>
-                  <span className="text-[10px] opacity-15 mx-0.5" style={{ color: textMuted }}>•</span>
+                  <span className="text-[13px] opacity-15 mx-0.5" style={{ color: textMuted }}>•</span>
                 </span>
               );
             })}
@@ -125,12 +125,12 @@ export default function AviationNewsTicker() {
 
         {/* Right CTA */}
         <Link
-          to={isSubscriber ? "/weekly-briefing" : "/pricing"}
+          to="/weekly-briefing"
           className="flex items-center gap-1 px-4 h-full shrink-0 border-l hover:opacity-80 transition-opacity group/cta"
           style={{ borderColor: ringBorder }}
         >
           <span className="text-[9px] font-bold whitespace-nowrap" style={{ color: accent }}>
-            {isSubscriber ? "Full Report" : "Upgrade"}
+            {isSubscriber ? "Full Report" : "Subscribe"}
           </span>
           <ArrowRight className="w-3 h-3 group-hover/cta:translate-x-0.5 transition-transform" style={{ color: accent }} />
         </Link>

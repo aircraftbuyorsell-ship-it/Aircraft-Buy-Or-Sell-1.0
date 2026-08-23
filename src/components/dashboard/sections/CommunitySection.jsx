@@ -9,44 +9,29 @@ export default function CommunitySection() {
       title="Join 250,000 Aviation Professionals"
       subtitle="The largest aircraft trading community in the world. Buy, sell, learn, and connect with dealers, brokers, and pilots across 150+ countries."
     >
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 32,
-      }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
           { icon: Users, value: "250,000+", label: "Community Members", color: "#D4A017" },
           { icon: MessageCircle, value: "4,200+", label: "Posts per Year", color: "#5dcaa5" },
           { icon: TrendingUp, value: "11.5M+", label: "Monthly Impressions", color: "#4e8ef7" },
         ].map(({ icon: Icon, value, label, color }) => (
-          <div key={label} style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "0.5px solid rgba(255,255,255,0.07)",
-            borderRadius: 12, padding: 28, textAlign: "center",
-          }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 10,
-              background: `${color}12`, border: `1px solid ${color}28`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto 16px",
-            }}>
+          <div key={label} className="rounded-xl p-7 text-center bg-card border border-border">
+            <div className="w-11 h-11 rounded-[10px] flex items-center justify-center mx-auto mb-4"
+              style={{ background: `${color}12`, border: `1px solid ${color}28` }}>
               <Icon size={20} style={{ color }} />
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color, letterSpacing: "-0.03em", marginBottom: 4 }}>
+            <div className="text-[28px] font-bold tracking-[-0.03em] mb-1" style={{ color }}>
               {value}
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
+            <div className="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted-foreground">
               {label}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ textAlign: "center" }}>
+      <div className="text-center">
         <Link to="/community"
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "#D4A017", color: "#0B1220",
-            padding: "14px 28px", borderRadius: 10,
-            fontSize: 14, fontWeight: 700, textDecoration: "none",
-          }}>
+          className="inline-flex items-center gap-2 bg-gold-official text-[#0B1220] px-7 py-3.5 rounded-[10px] text-sm font-bold no-underline hover:opacity-90">
           Join the Community <ArrowRight size={16} />
         </Link>
       </div>

@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import {
   Newspaper, ArrowLeft, TrendingUp, Fuel, DollarSign,
-  Shield, Plane, Zap, Building2, Globe
+  Shield, Plane, Zap, Building2, Globe, Check, Loader2
 } from "lucide-react";
 
 const SECTIONS = [
@@ -109,19 +109,35 @@ const SECTIONS = [
 export default function WeeklyBriefing() {
   const isDark = useTheme();
   const [hasAccess, setHasAccess] = useState(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(user => {
       base44.entities.UserProfile.filter({ user_email: user.email }).then(profiles => {
         if (profiles.length > 0) {
-          const tier = profiles[0].tier;
-          setHasAccess(tier === "pro" || tier === "enterprise");
+          const profile = profiles[0];
+          const tier = profile.tier;
+          const newsletterFlag = profile.feature_flags?.newsletter_subscribed === true;
+          setHasAccess(tier === "pro" || tier === "enterprise" || newsletterFlag);
         } else {
           setHasAccess(false);
         }
       });
     }).catch(() => setHasAccess(false));
   }, []);
+
+  const handleNewsletterCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const returnUrl = `${window.location.origin}/weekly-briefing`;
+      const res = await base44.functions.invoke('newsletterCheckout', { returnUrl });
+      if (res.data?.sessionUrl) {
+        window.location.href = res.data.sessionUrl;
+      }
+    } catch {
+      setCheckingOut(false);
+    }
+  };
 
   const bg = isDark ? "#0A0A14" : "#f8fafc";
   const cardBg = isDark ? "rgba(22,22,38,0.9)" : "#ffffff";
@@ -142,21 +158,76 @@ export default function WeeklyBriefing() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: bg }}>
-        <div className="max-w-md text-center">
-          <Newspaper className="w-12 h-12 mx-auto mb-4" style={{ color: accent }} />
-          <h1 className="text-xl font-bold mb-2" style={{ color: text }}>Weekly Aviation Briefing</h1>
-          <p className="text-sm mb-6 leading-relaxed" style={{ color: muted }}>
-            The ABOS Weekly Briefing is available to Pro and Enterprise subscribers. Get comprehensive
-            market intelligence across eight aviation sectors — delivered every week.
-          </p>
-          <Link
-            to="/pricing"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors"
-            style={{ background: accent, color: "#fff" }}
+      <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: bg }}>
+        <div className="max-w-lg w-full">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ background: isDark ? "rgba(212,160,23,0.12)" : "rgba(212,160,23,0.10)" }}>
+              <Newspaper className="w-7 h-7" style={{ color: "#D4A017" }} />
+            </div>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: text }}>Weekly Aviation Briefing</h1>
+            <p className="text-sm leading-relaxed" style={{ color: muted }}>
+              Comprehensive market intelligence across 8 aviation sectors — delivered every week.
+            </p>
+          </div>
+
+          {/* Newsletter subscription card */}
+          <div
+            className="rounded-2xl p-6 mb-4"
+            style={{
+              background: isDark ? "rgba(212,160,23,0.06)" : "rgba(212,160,23,0.04)",
+              border: `1px solid ${isDark ? "rgba(212,160,23,0.25)" : "rgba(212,160,23,0.20)"}`,
+            }}
           >
-            Upgrade to Pro <ArrowLeft className="w-4 h-4 rotate-180" />
-          </Link>
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-3xl font-black chrome-text">€12</span>
+              <span className="text-sm font-medium" style={{ color: muted }}>/month</span>
+            </div>
+            <p className="text-xs mb-4" style={{ color: muted }}>Cancel anytime · €1.50 per sector</p>
+
+            <div className="space-y-2 mb-5">
+              {[
+                "GA secondary market & turboprop pricing",
+                "Business jet transactions & charter demand",
+                "Aviation financing rates & leasing trends",
+                "Fuel & operating cost analysis",
+                "FAA / EASA regulatory updates",
+                "Aviation stocks & M&A activity",
+                "Sustainability, SAF & eVTOL developments",
+                "Hangar availability & airport real estate",
+              ].map((feat) => (
+                <div key={feat} className="flex items-start gap-2">
+                  <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "#D4A017" }} />
+                  <span className="text-[12px] leading-snug" style={{ color: isDark ? "rgba(255,255,255,0.80)" : "#334155" }}>{feat}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleNewsletterCheckout}
+              disabled={checkingOut}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+              style={{ background: "#D4A017", color: "#fff" }}
+            >
+              {checkingOut ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting to checkout…</>
+              ) : (
+                <>Subscribe to Weekly Briefing</>
+              )}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs mb-2" style={{ color: muted }}>
+              Already a Pro or Enterprise member?
+            </p>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold hover:opacity-70 transition-opacity"
+              style={{ color: accent }}
+            >
+              View full subscription plans <ArrowLeft className="w-3 h-3 rotate-180" />
+            </Link>
+          </div>
         </div>
       </div>
     );

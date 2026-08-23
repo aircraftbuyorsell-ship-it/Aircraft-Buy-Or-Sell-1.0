@@ -1,0 +1,417 @@
+{
+  "name": "PreBuyInspection",
+  "type": "object",
+  "properties": {
+    "report_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "minimum": 1,
+      "default": 1
+    },
+    "previous_version_id": {
+      "type": "string",
+      "relationType": "PreBuyInspection"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "scheduled",
+        "in_progress",
+        "analysis_ready",
+        "finalized"
+      ],
+      "default": "requested"
+    },
+    "aircraft": {
+      "type": "object",
+      "properties": {
+        "registration": {
+          "type": "string"
+        },
+        "year": {
+          "type": "number"
+        },
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "serial_number": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "aircraft_class": {
+          "type": "string",
+          "enum": [
+            "sep",
+            "mep",
+            "turboprop",
+            "jet",
+            "helicopter"
+          ],
+          "default": "sep"
+        }
+      }
+    },
+    "buyer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "inspector": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "selection": {
+          "type": "string",
+          "enum": [
+            "own",
+            "abos_partner",
+            "later"
+          ]
+        }
+      }
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "inspector",
+              "broker",
+              "seller"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "invited",
+              "active"
+            ],
+            "default": "invited"
+          }
+        }
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "pass",
+              "fail",
+              "not_applicable"
+            ],
+            "default": "pending"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "evidence_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "airworthiness",
+              "maintenance",
+              "cosmetic",
+              "documentation"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "major",
+              "minor",
+              "observation"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "immediate",
+              "before_purchase",
+              "monitor",
+              "cosmetic"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "inspector_comments": {
+            "type": "string"
+          },
+          "seller_response": {
+            "type": "string"
+          },
+          "buyer_notes": {
+            "type": "string"
+          },
+          "recommended_action": {
+            "type": "string"
+          },
+          "media_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "document_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "ai_camera",
+              "document_ai"
+            ],
+            "default": "manual"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "uploaded_by": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "executive_summary": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "risk_assessment": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "recommended_next_actions": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "decision_guidance": {
+      "type": "string",
+      "enum": [
+        "Buy",
+        "Negotiate",
+        "Walk Away",
+        "Pending"
+      ],
+      "default": "Pending"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "inspector_signed",
+        "abos_verified"
+      ],
+      "default": "unverified"
+    },
+    "shared_sections": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "summary",
+          "findings",
+          "media",
+          "checklist",
+          "documents"
+        ]
+      }
+    },
+    "inspector_signature": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "certificate": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "audit_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "actor_name": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "pipeline_id": {
+      "type": "string",
+      "relationType": "SalesPipeline"
+    },
+    "inspection_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "finalized_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "report_id",
+    "aircraft",
+    "buyer"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

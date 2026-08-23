@@ -11,15 +11,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Entity automations have no user context — trusted invocation
-    let isAuthorized = false;
-    try {
-      const user = await base44.auth.me();
-      isAuthorized = user?.role === 'admin';
-    } catch (_) {
-      isAuthorized = true; // scheduled/entity automation
-    }
-    if (!isAuthorized) {
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -39,6 +32,13 @@ Deno.serve(async (req) => {
     if (!registration || !/^N/i.test(registration)) {
       return Response.json({ skipped: true, reason: 'no N-registration' });
     }
+
+    const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
+      registration,
+      engine_hours: data.engine_hours,
+      listing_id: listingId,
+    });
+    const maintenance = maintenanceResponse.data?.results?.[0] || null;
 
     // Skip if make and model are already filled — nothing to enrich, prevents loops
     if (data.make && data.model && data.make !== 'Unknown' && data.model !== 'Unknown') {
@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
       enrichedFields: lookupData.enrichedFields || [],
       photo: photoResult?.photo_url || null,
       photoSource: photoResult?.source || null,
+      maintenance,
       aircraft: {
         make: lookupData.aircraft.make,
         model: lookupData.aircraft.model,

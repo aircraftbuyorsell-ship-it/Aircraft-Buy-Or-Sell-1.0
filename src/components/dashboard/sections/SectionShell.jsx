@@ -1,7 +1,7 @@
 /**
  * SectionShell — Core Platform section wrapper.
  * Provides consistent max-width, padding, eyebrow/title/subtitle, and top border.
- * Use across all Core Platform pages for uniform spacing & typography.
+ * Uses semantic Tailwind tokens for automatic light/dark mode support.
  */
 export default function SectionShell({
   eyebrow,
@@ -15,61 +15,25 @@ export default function SectionShell({
 }) {
   return (
     <section
-      style={{
-        background: bg,
-        padding,
-        borderTop: topBorder ? "0.5px solid rgba(212,160,23,0.08)" : "none",
-      }}
+      className={topBorder ? "border-t border-border" : ""}
+      style={{ background: bg, padding }}
     >
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8">
         {(eyebrow || title) && (
-          <div
-            style={{
-              marginBottom: 32,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              flexWrap: "wrap",
-              gap: 16,
-            }}
-          >
+          <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
             <div>
               {eyebrow && (
-                <p
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    color: "#D4A017",
-                    marginBottom: 8,
-                  }}
-                >
+                <p className="text-[10px] tracking-[0.14em] uppercase text-gold-official mb-2">
                   {eyebrow}
                 </p>
               )}
               {title && (
-                <h2
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 500,
-                    letterSpacing: "-0.03em",
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
+                <h2 className="text-2xl md:text-[28px] font-medium tracking-[-0.03em] text-foreground m-0">
                   {title}
                 </h2>
               )}
               {subtitle && (
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(255,255,255,0.4)",
-                    maxWidth: 560,
-                    lineHeight: 1.6,
-                    marginTop: 8,
-                  }}
-                >
+                <p className="text-[13px] text-muted-foreground max-w-[560px] leading-[1.6] mt-2">
                   {subtitle}
                 </p>
               )}

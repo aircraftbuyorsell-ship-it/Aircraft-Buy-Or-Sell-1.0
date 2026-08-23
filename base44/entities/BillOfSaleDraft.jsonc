@@ -1,0 +1,203 @@
+{
+  "name": "BillOfSaleDraft",
+  "type": "object",
+  "properties": {
+    "aircraft_id": {
+      "type": "string"
+    },
+    "deal_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string",
+      "relationType": "AircraftListing"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "needs_review",
+        "ready_for_signature",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "consideration_amount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "registration_number": {
+      "type": "string"
+    },
+    "manufacturer": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "serial_number": {
+      "type": "string"
+    },
+    "sale_day": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 31
+    },
+    "sale_month": {
+      "type": "string"
+    },
+    "sale_year": {
+      "type": "number",
+      "minimum": 1900,
+      "maximum": 2100
+    },
+    "purchaser_name": {
+      "type": "string"
+    },
+    "registration_applicant_name": {
+      "type": "string"
+    },
+    "purchaser_street": {
+      "type": "string"
+    },
+    "purchaser_apt_suite": {
+      "type": "string"
+    },
+    "purchaser_city": {
+      "type": "string"
+    },
+    "purchaser_state": {
+      "type": "string"
+    },
+    "purchaser_zip": {
+      "type": "string"
+    },
+    "purchaser_phone": {
+      "type": "string"
+    },
+    "purchaser_email": {
+      "type": "string"
+    },
+    "dealer_certificate_number": {
+      "type": "string"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "seller_email": {
+      "type": "string"
+    },
+    "faa_registered_owner": {
+      "type": "string"
+    },
+    "seller_title": {
+      "type": "string"
+    },
+    "owner_count": {
+      "type": "number",
+      "minimum": 1,
+      "default": 1
+    },
+    "signature_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "chain_of_ownership_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "field_confidence": {
+      "type": "object"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "price_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "sale_date_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "purchaser_name_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "user_reviewed": {
+      "type": "boolean",
+      "default": false
+    },
+    "source_context": {
+      "type": "object"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

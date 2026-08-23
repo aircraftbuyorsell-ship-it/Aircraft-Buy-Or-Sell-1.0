@@ -86,6 +86,11 @@
       "minimum": 0,
       "default": 0,
       "description": "Requests in the current per-day window"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

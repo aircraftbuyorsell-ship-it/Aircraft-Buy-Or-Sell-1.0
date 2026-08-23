@@ -442,7 +442,6 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         make: manufacturer,
         model,
         year: params.year || undefined,
-        registration: params.registration || undefined,
         asking_price: params.price || undefined,
         currency: params.currency || 'USD',
         total_time: params.hours || undefined,

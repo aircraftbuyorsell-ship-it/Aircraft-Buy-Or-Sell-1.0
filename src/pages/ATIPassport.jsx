@@ -18,6 +18,7 @@ import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
 import EventTimeline from "@/components/cards/EventTimeline";
 import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
+import { generateDealCode } from "@/lib/exportAtiReport";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
 import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";

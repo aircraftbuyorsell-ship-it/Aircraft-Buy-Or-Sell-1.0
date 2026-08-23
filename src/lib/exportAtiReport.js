@@ -27,6 +27,15 @@ export function buildReportCode(reg, score, dealCode) {
   return `ATI-${r}-${score}-${dealCode}`;
 }
 
+// Generates a fresh 6-char shared core ID (same alphabet as the backend's
+// getOrCreateDealCode in abosEntitlements) for a listing that doesn't have one yet.
+export function generateDealCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
 export async function exportDocx(report, code) {
   const verdictFor = atiBand;
   const lines = [];

@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.25.0';
+import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
 const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
 const REPORT_CREDIT_PRICE_USD = 29;
@@ -103,6 +104,13 @@ async function handleRequest(req, ctx) {
       try { user = await base44.auth.me(); } catch (_e) { user = null; }
       if (!user) return apiError(401, 'unauthorized', 'Provide an x-abos-key header or authenticate as a user.');
       caller = { type: 'user', user, scopes: ['*'], email: user.email };
+
+      // Central ABOS tier gate. Authorization is resolved server-side before any
+      // endpoint data is read. Admin/super_admin are T3; normal users resolve
+      // T1/T2/T3 from UserProfile. Frontend-supplied tier values are ignored.
+      const access = await resolveAccess(req);
+      if (!access.ok) return apiError(access.status, 'unauthorized', access.error || 'Unauthorized');
+      ctx.access = access;
     }
 
     ctx.callerType = caller.type;
@@ -129,6 +137,19 @@ async function handleRequest(req, ctx) {
     }
 
     const hasScope = (s) => caller.scopes.includes('*') || caller.scopes.includes(s);
+    const capabilityForEndpoint = (ep) => {
+      if (ep === 'search' || ep === 'listings.get' || ep === 'listings.list' || ep === 'whoami') return 'api_read';
+      if (ep === 'listings.create') return 'api_write';
+      if (ep === 'valuate') return 'valuation';
+      if (ep === 'intelligence.extract') return 'llm_models';
+      if (ep === 'report.get' || ep === 'report.checkout') return 'advanced_reports';
+      return null;
+    };
+    const capability = capabilityForEndpoint(endpoint);
+    if (capability && caller.type === 'user') {
+      const capErr = requireCapability(ctx.access, capability);
+      if (capErr) return apiError(capErr.status, 'feature_not_available', `Feature '${capability}' is not available for the current plan.`);
+    }
     const requireScope = (s) => (hasScope(s) ? null : apiError(403, 'insufficient_scope', `This endpoint requires the '${s}' scope.`));
 
     const trackUsage = async () => {
@@ -159,7 +180,9 @@ async function handleRequest(req, ctx) {
         caller_type: caller.type,
         email: caller.email,
         scopes: caller.scopes,
-        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : null,
+        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : (ctx.access?.tier || 'T1'),
+        role: caller.type === 'user' ? (ctx.access?.role || 'user') : 'api_key',
+        tier: caller.type === 'user' ? (ctx.access?.tier || 'T1') : null,
       });
     }
 

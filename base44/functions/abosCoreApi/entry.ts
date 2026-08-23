@@ -418,6 +418,24 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (scopeErr) return scopeErr;
       const { manufacturer, model } = params;
       if (!manufacturer || !model) return apiError(400, 'missing_aircraft', "'params.manufacturer' and 'params.model' are required.");
+
+      // ── Duplicate gate ────────────────────────────────────────────────
+      // Registration is the aircraft identity key. Normalize before lookup so
+      // n638lk / N638LK / " N638LK " cannot create separate listings.
+      const normalizedRegistration = params.registration
+        ? String(params.registration).trim().toUpperCase()
+        : '';
+      if (normalizedRegistration) {
+        const existing = await base44.asServiceRole.entities.AircraftListing.filter(
+          { registration: normalizedRegistration }, '-created_date', 10,
+        );
+        if (existing.length) {
+          const canonical = existing[0];
+          return apiError(409, 'duplicate_listing',
+            `Aircraft ${normalizedRegistration} already has an ABOS listing (${canonical.id}). Update the existing listing instead of creating another.`);
+        }
+      }
+
       const owners = await base44.asServiceRole.entities.User.filter({ email: caller.email });
       const ownerId = owners[0]?.id;
       const listing = await base44.asServiceRole.entities.AircraftListing.create({
@@ -432,6 +450,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         visibility: 'private',
         owner: ownerId || undefined,
         source_url: params.source_url || undefined,
+        registration: normalizedRegistration || undefined,
       });
       await trackUsage();
       return apiSuccess({

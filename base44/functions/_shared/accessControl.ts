@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 export type AccessTier = 'T1' | 'T2' | 'T3';
 export type AccessRole = 'user' | 'admin' | 'super_admin';
+export type Capability = 'api_read' | 'api_write' | 'llm_models' | 'mcp' | 'valuation' | 'advanced_reports' | 'advanced_intelligence' | 'ati_score' | 'ati_full_report' | 'verification_pack' | 'broker';
 
 const TIER_RANK: Record<AccessTier, number> = { T1: 1, T2: 2, T3: 3 };
 
@@ -20,49 +21,61 @@ export async function resolveAccess(req: Request) {
   const base44 = createClientFromRequest(req);
   let user: any = null;
   try { user = await base44.auth.me(); } catch (_) { user = null; }
-
   if (!user) return { ok: false, status: 401, error: 'Unauthorized', base44, user: null };
 
   if (isPrivileged(user)) {
-    return { ok: true, status: 200, base44, user, role: user.role as AccessRole, tier: 'T3' as AccessTier, source: 'admin' };
+    return { ok: true, status: 200, base44, user, role: user.role as AccessRole, tier: 'T3' as AccessTier, source: 'admin', entitlements: ['*'] };
   }
 
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: user.email }, '-created_date', 1);
   const profile = profiles[0] || null;
+  if (profile?.status === 'suspended') return { ok: false, status: 403, error: 'Account suspended', base44, user, profile };
+
   const tier = normalizeTier(profile?.tier || user?.tier);
-
-  if (profile?.status === 'suspended') {
-    return { ok: false, status: 403, error: 'Account suspended', base44, user, profile, role: 'user' as AccessRole, tier };
-  }
-
-  return { ok: true, status: 200, base44, user, profile, role: 'user' as AccessRole, tier, source: 'profile' };
+  const entitlements = await base44.asServiceRole.entities.Entitlement.filter({ user_email: user.email, status: 'active' }, '-created_date', 100);
+  return { ok: true, status: 200, base44, user, profile, role: 'user' as AccessRole, tier, source: 'profile', entitlements };
 }
 
 export function allowsTier(access: any, minimumTier: AccessTier): boolean {
   return !!access?.ok && TIER_RANK[access.tier as AccessTier] >= TIER_RANK[minimumTier];
 }
 
-export function requireTier(access: any, minimumTier: AccessTier) {
-  if (!access?.ok) return Response.json({ error: access?.error || 'Unauthorized' }, { status: access?.status || 401 });
-  if (!allowsTier(access, minimumTier)) {
-    return Response.json({ error: 'Upgrade required', required_tier: minimumTier, current_tier: access.tier }, { status: 403 });
+function hasEntitlement(access: any, productKey: string): boolean {
+  if (access?.tier === 'T3' && (access?.role === 'admin' || access?.role === 'super_admin')) return true;
+  return (access?.entitlements || []).some((e: any) => e.product_key === productKey && e.status === 'active');
+}
+
+export function canUseCapability(access: any, capability: Capability): boolean {
+  if (!access?.ok) return false;
+  if (access.role === 'admin' || access.role === 'super_admin') return true;
+  switch (capability) {
+    case 'api_read': return allowsTier(access, 'T1');
+    case 'api_write': return allowsTier(access, 'T2');
+    case 'llm_models':
+    case 'mcp': return allowsTier(access, 'T2') || hasEntitlement(access, 'PRO');
+    case 'valuation': return allowsTier(access, 'T2') || hasEntitlement(access, 'VALUATION_STUDIO');
+    case 'advanced_reports': return allowsTier(access, 'T2') || hasEntitlement(access, 'ATI_FULL_REPORT');
+    case 'advanced_intelligence': return allowsTier(access, 'T2');
+    case 'ati_score': return allowsTier(access, 'T1') || hasEntitlement(access, 'ATI_SCORE');
+    case 'ati_full_report': return allowsTier(access, 'T2') || hasEntitlement(access, 'ATI_FULL_REPORT');
+    case 'verification_pack': return allowsTier(access, 'T2') || hasEntitlement(access, 'VERIFICATION_PACK');
+    case 'broker': return allowsTier(access, 'T3') || hasEntitlement(access, 'BROKER');
+    default: return false;
   }
+}
+
+export function requireCapability(access: any, capability: Capability) {
+  if (!access?.ok) return Response.json({ error: access?.error || 'Unauthorized' }, { status: access?.status || 401 });
+  if (!canUseCapability(access, capability)) return Response.json({ error: 'Feature not available for this account or entitlement', capability }, { status: 403 });
   return null;
 }
 
-export function requireCapability(access: any, capability: string) {
-  if (!access?.ok) return Response.json({ error: access?.error || 'Unauthorized' }, { status: access?.status || 401 });
-  if (isPrivileged(access.user)) return null;
-
-  const t = access.tier as AccessTier;
-  const free = new Set(['basic_search', 'listing_read', 'registry_lookup', 'aircraft_photo', 'easa_ad_lookup', 'ati_quick_score', 'aviation_news', 'api_read']);
-  const pro = new Set(['llm_models', 'mcp', 'advanced_intelligence', 'advanced_reports', 'valuation', 'market_report', 'listing_write', 'api_write']);
-  const enterprise = new Set(['enterprise_api', 'full_intelligence', 'full_verification', 'integrations', 'white_label', 'contract_entitlement']);
-
-  const allowed = t === 'T1' ? free.has(capability)
-    : t === 'T2' ? (free.has(capability) || pro.has(capability))
-    : (free.has(capability) || pro.has(capability) || enterprise.has(capability));
-
-  if (!allowed) return Response.json({ error: 'Feature not available on current plan', capability, current_tier: t }, { status: 403 });
-  return null;
+export async function requirePaidEntitlement(req: Request, productKey: string, aircraftRegistration?: string) {
+  const access = await resolveAccess(req);
+  if (!access.ok) return { access, response: Response.json({ error: access.error || 'Unauthorized' }, { status: access.status || 401 }) };
+  if (access.role === 'admin' || access.role === 'super_admin') return { access, response: null };
+  if (access.tier === 'T2' && productKey === 'ATI_FULL_REPORT') return { access, response: null };
+  const match = (access.entitlements || []).some((e: any) => e.product_key === productKey && e.status === 'active' && (e.scope === 'global' || !aircraftRegistration || String(e.aircraft_registration || '').toUpperCase() === String(aircraftRegistration).toUpperCase()));
+  if (!match) return { access, response: Response.json({ error: 'Paid entitlement required', product_key: productKey, aircraft_registration: aircraftRegistration || null }, { status: 403 }) };
+  return { access, response: null };
 }

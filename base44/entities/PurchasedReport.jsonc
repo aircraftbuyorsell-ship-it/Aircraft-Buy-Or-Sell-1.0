@@ -1,0 +1,147 @@
+{
+  "name": "PurchasedReport",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Owner of this purchased report"
+    },
+    "product_key": {
+      "type": "string",
+      "enum": [
+        "ATI_SCORE",
+        "ATI_FULL_REPORT",
+        "VALUATION_STUDIO",
+        "VERIFICATION_PACK"
+      ],
+      "description": "The one-time product this report was purchased under"
+    },
+    "aircraft_registration": {
+      "type": "string",
+      "description": "Aircraft this report covers (re-access key \u2014 no double charging)"
+    },
+    "aircraft_label": {
+      "type": "string",
+      "description": "Human-readable aircraft summary (year make model reg)"
+    },
+    "entitlement_id": {
+      "type": "string",
+      "relationType": "Entitlement",
+      "description": "Entitlement that authorized this report"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "entitled",
+        "processing",
+        "ready",
+        "failed"
+      ],
+      "default": "entitled"
+    },
+    "report_type": {
+      "type": "string",
+      "description": "e.g. ati_score, ati_full_report, valuation, verification"
+    },
+    "result_data": {
+      "type": "object",
+      "description": "Full report payload (provenance, score, valuation, verification, etc.)"
+    },
+    "pdf_url": {
+      "type": "string"
+    },
+    "data_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Independent data sources used (provenance)"
+    },
+    "provider": {
+      "type": "string",
+      "default": "abos_omvm",
+      "description": "Valuation/intelligence provider (abos_omvm, vref, bluebook, jetnet\u2026)"
+    },
+    "provider_request_id": {
+      "type": "string",
+      "description": "External provider request id (for provider abstraction)"
+    },
+    "methodology_version": {
+      "type": "string",
+      "default": "v1"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Inputs used to produce the report (snapshot for reproducibility)"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "caution",
+        "unverified"
+      ]
+    },
+    "verification_status": {
+      "type": "string"
+    },
+    "source_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "user_email",
+    "product_key",
+    "aircraft_registration",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

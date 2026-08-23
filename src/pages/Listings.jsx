@@ -35,18 +35,10 @@ export default function Listings() {
   const clearSelection = () => setSelectedIds([]);
 
   useAutoTrack("listings");
-  const { tokens, tier, isVerified, track } = useBehavior();
+  const { tokens, isVerified } = useBehavior();
 
-  const requireFeature = (feature, requiredTokens, openFn) => {
-    const isFree = tier === "free_explorer" && !isVerified;
-    const outOfCredits = tokens < requiredTokens;
-    if (isFree || outOfCredits) {
-      track("limit_hit", { feature });
-      setGate({ feature, requiredTokens });
-      return;
-    }
-    openFn();
-  };
+  // Credits/tokens are deprecated — features open directly.
+  const requireFeature = (feature, requiredTokens, openFn) => openFn();
 
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ["listings-public"],

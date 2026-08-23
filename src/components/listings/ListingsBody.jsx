@@ -8,10 +8,7 @@ import BulkActionsBar    from "@/components/listings/BulkActionsBar";
 import ListingRow        from "@/components/listings/ListingRow";
 import SelectAllCheckbox from "@/components/listings/SelectAllCheckbox";
 import ListingDrawer     from "@/components/listings/ListingDrawer";
-import QuickPasteImport  from "@/components/listings/QuickPasteImport";
-import AircraftWizard    from "@/components/aircraft-wizard/AircraftWizard";
-import UpgradeGate       from "@/components/marketing/UpgradeGate";
-import { TOKEN_COSTS }   from "@/lib/pricing";
+import ImportAndEditFlow from "@/components/listings/ImportAndEditFlow";
 
 // ─── v2 design tokens ─────────────────────────────────────────────────────────
 const T = {
@@ -139,13 +136,7 @@ export default function ListingsBody({
           </p>
 
           <button
-            onClick={() =>
-              requireFeature(
-                "ati_passport_full",
-                TOKEN_COSTS.ati_passport_full,
-                () => setShowImport(true),
-              )
-            }
+            onClick={() => setShowWizard(true)}
             style={{
               display:     "inline-flex",
               alignItems:  "center",
@@ -538,31 +529,19 @@ export default function ListingsBody({
       {/* ── Modals ── */}
       <ListingDrawer listing={selected} onClose={() => setSelected(null)} />
 
-      <QuickPasteImport
-        open={showImport}
-        onClose={() => setShowImport(false)}
+      {/* Add Aircraft and Import now share one flow: paste text (or file/URL) →
+          AI auto-fills the form → add photos → publish. No credit/token gate. */}
+      <ImportAndEditFlow
+        open={showImport || showWizard}
+        onClose={() => {
+          setShowImport(false);
+          setShowWizard(false);
+        }}
         onPublish={() => {
           queryClient.invalidateQueries({ queryKey: ["listings-public"] });
           setShowImport(false);
-        }}
-      />
-
-      <AircraftWizard
-        open={showWizard}
-        onClose={() => setShowWizard(false)}
-        onPublish={() => {
-          queryClient.invalidateQueries({ queryKey: ["listings-public"] });
           setShowWizard(false);
         }}
-      />
-
-      <UpgradeGate
-        open={!!gate}
-        onClose={() => setGate(null)}
-        feature={gate?.feature}
-        requiredTokens={gate?.requiredTokens}
-        userTokens={tokens}
-        isVerified={isVerified}
       />
 
       {/* ── Mini FAQ modal ── */}

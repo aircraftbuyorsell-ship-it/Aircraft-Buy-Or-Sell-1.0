@@ -13,8 +13,19 @@ Deno.serve(async (req) => {
     const leadEventId = body?.lead_event_id;
 
     const user = await base44.auth.me().catch(() => null);
-    const isAutomation = !!leadEventId && !user;
-    if (!isAutomation && user && user.role !== 'admin') {
+    const automationSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const suppliedAutomationSecret = req.headers.get('x-abos-automation-secret');
+    const isAutomation = Boolean(
+      automationSecret &&
+      suppliedAutomationSecret &&
+      suppliedAutomationSecret === automationSecret
+    );
+
+    // Never infer trusted automation from request payload. A lead_event_id is attacker-controlled.
+    if (!user && !isAutomation) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (user && user.role !== 'admin' && !isAutomation) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (!leadEventId) return Response.json({ skipped: 'no lead_event_id' });

@@ -14,14 +14,22 @@ Deno.serve(async (req) => {
 
     // ── SSRF protection: validate URL scheme, block private/internal hosts, resolve DNS ──
     function isPrivateIPv4(ip: string): boolean {
-      if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) return false;
+      if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) return true;
       const [a, b] = ip.split('.').map(Number);
-      if (a === 127 || a === 10) return true;            // loopback, 10.0.0.0/8
-      if (a === 172 && b >= 16 && b <= 31) return true;   // 172.16.0.0/12
-      if (a === 192 && b === 168) return true;            // 192.168.0.0/16
-      if (a === 169 && b === 254) return true;             // link-local / cloud metadata
-      if (a === 0) return true;
+      if ([a, b].some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) return true;
+      if (a === 0 || a === 10 || a === 127) return true;
+      if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+      if (a === 169 && b === 254) return true; // link-local / cloud metadata
+      if (a === 172 && b >= 16 && b <= 31) return true;
+      if (a === 192 && (b === 0 || b === 168)) return true;
+      if (a === 198 && b >= 18 && b <= 19) return true; // benchmarking
+      if (a >= 224) return true; // multicast/reserved
       return false;
+    }
+
+    function isBlockedIPv6(host: string): boolean {
+      const normalized = host.replace(/^\[/, '').replace(/\]$/, '').toLowerCase();
+      return normalized === '::1' || normalized.startsWith('fc') || normalized.startsWith('fd') || normalized.startsWith('fe8') || normalized.startsWith('fe9') || normalized.startsWith('fea') || normalized.startsWith('feb');
     }
     async function assertSafeUrl(raw: string) {
       let parsed: URL;
@@ -34,7 +42,7 @@ Deno.serve(async (req) => {
       if (!host.endsWith('.base44.com')) throw new Error('Only ABOS storage URLs are allowed');
       if (host === 'localhost' || host.endsWith('.localhost')) throw new Error('Blocked host');
       // Block IPv6 loopback and link-local
-      if (host === '::1' || host === '0:0:0:0:0:0:0:1' || host.startsWith('fe80:')) throw new Error('Blocked IPv6');
+      if (isBlockedIPv6(host)) throw new Error('Blocked IPv6');
       // Literal IPv4 — never allowed (storage is a domain name)
       if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) throw new Error('Blocked private IP');
       // Domain name — resolve DNS and reject if any resolved IP is private/internal
@@ -56,7 +64,14 @@ Deno.serve(async (req) => {
     // Fetch the file content to compute hash
     let fileContent = '';
     try {
-      const fileRes = await fetch(file_url);
+      // Disable redirects so a trusted storage hostname cannot redirect the server
+      // into an internal/private destination after the DNS check.
+      const fileRes = await fetch(file_url, { redirect: 'error' });
+      if (!fileRes.ok) throw new Error(`File fetch failed with HTTP ${fileRes.status}`);
+      const finalHost = new URL(fileRes.url || file_url).hostname.toLowerCase();
+      if (!finalHost.endsWith('.base44.com') || isBlockedIPv6(finalHost) || /^\d{1,3}(\.\d{1,3}){3}$/.test(finalHost)) {
+        throw new Error('Fetched URL host rejected');
+      }
       const buf = await fileRes.arrayBuffer();
       const bytes = new Uint8Array(buf);
       // Simple hex from bytes

@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
       registration: reg,
       email,
       status: 'email_captured',
-      price_eur: 29,
+      price_eur: 49,
       passport_id: passport?.id || null,
     });
 
@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       line_items: [{
         price_data: {
           currency: 'eur',
-          unit_amount: 2900,
+          unit_amount: 4900,
           product_data: {
             name: `ATI Aircraft Report — ${reg}`,
             description: 'Full Aircraft Transparency Index report delivered as PDF to your email',

@@ -4,7 +4,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
  * Skill: abos.skill.tax_benefit.v1 (RFC-232, Batch D)
  * Tax shield calculator for aircraft lease revenue.
  * Dependencies: B1 (OPEX).
- * Supports CZ, US, EU jurisdictions with rental/school usage tax relief.
+ *
+ * IMPORTANT: ATI Pro Tax must never silently fall back to CZ. A missing or
+ * unsupported jurisdiction is an input error so the report cannot be built
+ * against the wrong tax regime.
  */
 
 const TAX_BRACKETS = {
@@ -14,11 +17,28 @@ const TAX_BRACKETS = {
 };
 
 const USAGE_RELIEF_FACTORS = {
-  private:  0.0,
-  rental:   1.0,
-  school:   0.85,
+  private: 0.0,
+  rental: 1.0,
+  school: 0.85,
   business: 0.7,
 };
+
+function normalizeJurisdiction(inputs) {
+  const explicit = String(
+    inputs.jurisdiction ?? inputs.country ?? inputs.tax_jurisdiction ?? ''
+  ).trim().toUpperCase();
+
+  // A US state is sufficient to establish the US federal regime when the
+  // caller does not separately provide jurisdiction.
+  const state = String(inputs.state ?? inputs.us_state ?? '').trim().toUpperCase();
+  if (state && /^[A-Z]{2}$/.test(state)) return 'US';
+
+  if (explicit === 'UNITED STATES' || explicit === 'USA' || explicit === 'US') return 'US';
+  if (explicit === 'CZECH REPUBLIC' || explicit === 'CZECHIA' || explicit === 'CZ') return 'CZ';
+  if (explicit === 'EUROPEAN UNION' || explicit === 'EU') return 'EU';
+
+  return explicit;
+}
 
 Deno.serve(async (req) => {
   try {
@@ -29,15 +49,28 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const inputs = body.inputs || body;
 
-    const annualOpex = Math.max(0, Number(inputs.annual_opex) || 0);
-    const leaseRevenue = Math.max(0, Number(inputs.lease_revenue) || 0);
-    const taxBracketPct = Number(inputs.tax_bracket_pct) || null;
-    const jurisdiction = (inputs.jurisdiction || 'CZ').toUpperCase();
-    const usageType = inputs.usage_type || 'private';
+    const jurisdiction = normalizeJurisdiction(inputs);
+    if (!TAX_BRACKETS[jurisdiction]) {
+      return Response.json({
+        ok: false,
+        error: 'tax_jurisdiction_required',
+        message: 'A supported tax jurisdiction is required. Provide jurisdiction (US/CZ/EU) or a US state.',
+      }, { status: 400 });
+    }
 
-    const taxConfig = TAX_BRACKETS[jurisdiction] || TAX_BRACKETS.CZ;
-    const effectiveBracket = taxBracketPct !== null ? taxBracketPct / 100 : taxConfig.corporate;
-    const reliefFactor = USAGE_RELIEF_FACTORS[usageType] || 0;
+    const annualOpex = Math.max(0, Number(inputs.annual_opex ?? inputs.total_opex_annual) || 0);
+    const leaseRevenue = Math.max(0, Number(inputs.lease_revenue ?? inputs.annual_lease_revenue) || 0);
+    const taxBracketPct = Number(inputs.tax_bracket_pct);
+    const usageType = String(inputs.usage_type || 'private').toLowerCase();
+    const state = String(inputs.state ?? inputs.us_state ?? '').trim().toUpperCase() || null;
+
+    const taxConfig = TAX_BRACKETS[jurisdiction];
+    const effectiveBracket = Number.isFinite(taxBracketPct) && taxBracketPct > 0
+      ? taxBracketPct / 100
+      : taxConfig.corporate;
+    const reliefFactor = Object.prototype.hasOwnProperty.call(USAGE_RELIEF_FACTORS, usageType)
+      ? USAGE_RELIEF_FACTORS[usageType]
+      : 0;
 
     const grossIncome = leaseRevenue;
     const deductibleCosts = annualOpex * reliefFactor;
@@ -57,6 +90,7 @@ Deno.serve(async (req) => {
       tax_shield_pct: parseFloat(taxShieldPct.toFixed(2)),
       effective_tax_rate: parseFloat((effectiveBracket * 100).toFixed(2)),
       jurisdiction,
+      state: jurisdiction === 'US' ? state : null,
       usage_type: usageType,
       relief_factor: reliefFactor,
       vat_recoverable: taxConfig.vat_recoverable,
@@ -69,7 +103,7 @@ Deno.serve(async (req) => {
       result,
       confidence: 0.8,
       evidence: [
-        `Jurisdiction: ${jurisdiction} (${(effectiveBracket * 100).toFixed(1)}% tax rate)`,
+        `Jurisdiction: ${jurisdiction}${state ? ` / ${state}` : ''} (${(effectiveBracket * 100).toFixed(1)}% tax rate)`,
         `Usage: ${usageType} (${(reliefFactor * 100).toFixed(0)}% deductibility)`,
         `Gross lease revenue: $${Math.round(grossIncome).toLocaleString()}`,
         `Deductible OPEX: $${Math.round(deductibleCosts).toLocaleString()}`,

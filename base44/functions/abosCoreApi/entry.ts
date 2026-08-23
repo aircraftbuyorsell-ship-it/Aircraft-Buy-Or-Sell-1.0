@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.25.0';
+import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
 const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
 const REPORT_CREDIT_PRICE_USD = 29;
@@ -86,7 +87,7 @@ async function handleRequest(req, ctx) {
     if (!endpoint) return apiError(400, 'missing_endpoint', "Request body must include 'endpoint'.");
 
     // ── Resolve caller: API key (external) or logged-in user (in-app console) ──
-    const apiKeyRaw = req.headers.get('x-abos-key') || body.api_key || null;
+    const apiKeyRaw = req.headers.get('x-abos-key') || null;
     let caller = null;
     if (apiKeyRaw) {
       const hash = await sha256(apiKeyRaw);
@@ -103,6 +104,13 @@ async function handleRequest(req, ctx) {
       try { user = await base44.auth.me(); } catch (_e) { user = null; }
       if (!user) return apiError(401, 'unauthorized', 'Provide an x-abos-key header or authenticate as a user.');
       caller = { type: 'user', user, scopes: ['*'], email: user.email };
+
+      // Central ABOS tier gate. Authorization is resolved server-side before any
+      // endpoint data is read. Admin/super_admin are T3; normal users resolve
+      // T1/T2/T3 from UserProfile. Frontend-supplied tier values are ignored.
+      const access = await resolveAccess(req);
+      if (!access.ok) return apiError(access.status, 'unauthorized', access.error || 'Unauthorized');
+      ctx.access = access;
     }
 
     ctx.callerType = caller.type;
@@ -129,6 +137,26 @@ async function handleRequest(req, ctx) {
     }
 
     const hasScope = (s) => caller.scopes.includes('*') || caller.scopes.includes(s);
+    const capabilityForEndpoint = (ep) => {
+      if (ep === 'search' || ep === 'listings.get' || ep === 'listings.list' || ep === 'whoami') return 'api_read';
+      if (ep === 'listings.create') return 'api_write';
+      if (ep === 'valuate') return 'valuation';
+      if (ep === 'intelligence.extract') return 'llm_models';
+      if (ep === 'report.get' || ep === 'report.checkout') return 'advanced_reports';
+      return null;
+    };
+    const capability = capabilityForEndpoint(endpoint);
+    if (capability) {
+      if (caller.type === 'user') {
+        const capErr = requireCapability(ctx.access, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `Feature '${capability}' is not available for the current plan.`);
+      } else {
+        const keyTier = caller.key.plan === 'enterprise' ? 'T3' : caller.key.plan === 'pro' ? 'T2' : 'T1';
+        const keyAccess = { ok: true, tier: keyTier, user: null };
+        const capErr = requireCapability(keyAccess, capability);
+        if (capErr) return apiError(capErr.status, 'feature_not_available', `API key plan does not include '${capability}'.`);
+      }
+    }
     const requireScope = (s) => (hasScope(s) ? null : apiError(403, 'insufficient_scope', `This endpoint requires the '${s}' scope.`));
 
     const trackUsage = async () => {
@@ -159,7 +187,9 @@ async function handleRequest(req, ctx) {
         caller_type: caller.type,
         email: caller.email,
         scopes: caller.scopes,
-        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : null,
+        plan: caller.type === 'api_key' ? (caller.key.plan || 'free') : (ctx.access?.tier || 'T1'),
+        role: caller.type === 'user' ? (ctx.access?.role || 'user') : 'api_key',
+        tier: caller.type === 'user' ? (ctx.access?.tier || 'T1') : null,
       });
     }
 
@@ -390,7 +420,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (!params.id) return apiError(400, 'missing_id', "'params.id' is required.");
       let listing = null;
       try { listing = await base44.asServiceRole.entities.AircraftListing.get(params.id); } catch (_e) { listing = null; }
-      if (!listing || (listing.visibility !== 'public' && caller.type === 'api_key')) {
+      if (!listing || listing.visibility !== 'public' || listing.status !== 'active') {
         return apiError(404, 'listing_not_found', 'Listing not found.');
       }
       await trackUsage();
@@ -418,13 +448,30 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (scopeErr) return scopeErr;
       const { manufacturer, model } = params;
       if (!manufacturer || !model) return apiError(400, 'missing_aircraft', "'params.manufacturer' and 'params.model' are required.");
+
+      // ── Duplicate gate ────────────────────────────────────────────────
+      // Registration is the aircraft identity key. Normalize before lookup so
+      // n638lk / N638LK / " N638LK " cannot create separate listings.
+      const normalizedRegistration = params.registration
+        ? String(params.registration).trim().toUpperCase()
+        : '';
+      if (normalizedRegistration) {
+        const existing = await base44.asServiceRole.entities.AircraftListing.filter(
+          { registration: normalizedRegistration }, '-created_date', 10,
+        );
+        if (existing.length) {
+          const canonical = existing[0];
+          return apiError(409, 'duplicate_listing',
+            `Aircraft ${normalizedRegistration} already has an ABOS listing (${canonical.id}). Update the existing listing instead of creating another.`);
+        }
+      }
+
       const owners = await base44.asServiceRole.entities.User.filter({ email: caller.email });
       const ownerId = owners[0]?.id;
       const listing = await base44.asServiceRole.entities.AircraftListing.create({
         make: manufacturer,
         model,
         year: params.year || undefined,
-        registration: params.registration || undefined,
         asking_price: params.price || undefined,
         currency: params.currency || 'USD',
         total_time: params.hours || undefined,
@@ -432,6 +479,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
         visibility: 'private',
         owner: ownerId || undefined,
         source_url: params.source_url || undefined,
+        registration: normalizedRegistration || undefined,
       });
       await trackUsage();
       return apiSuccess({

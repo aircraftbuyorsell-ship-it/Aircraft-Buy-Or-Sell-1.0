@@ -74,6 +74,34 @@ function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
   ]);
 }
 
+// ── ABOS monetization gate — one-time purchase per aircraft (server-enforced for web, API and MCP) ──
+async function gateOneTimeProduct(base44, user, productKey, registration) {
+  if (user?.role === 'admin' || user?.role === 'super_admin') return null;
+  const reg = (registration || '').toUpperCase().trim();
+  const check = await base44.functions.invoke('abosEntitlements', {
+    action: 'check', product_key: productKey, aircraft_registration: reg,
+  });
+  const d = check?.data || {};
+  if (d.entitled) return null;
+  let checkoutUrl = null;
+  try {
+    const co = await base44.functions.invoke('abosEntitlements', {
+      action: 'create_checkout', product_key: productKey, aircraft_registration: reg,
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+    });
+    checkoutUrl = co?.data?.url || null;
+  } catch (_) { /* checkout link is optional */ }
+  return Response.json({
+    error: 'payment_required',
+    message: `This is a paid ABOS valuation (one-time purchase per aircraft${d.checkout_price_eur ? `, \u20ac${d.checkout_price_eur}` : ''}). Open checkout_url to pay, then retry this request.`,
+    product_key: productKey,
+    price_eur: d.checkout_price_eur ?? null,
+    original_price_eur: d.original_price_eur ?? null,
+    aircraft_registration: reg || null,
+    checkout_url: checkoutUrl,
+  }, { status: 402 });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -87,11 +115,11 @@ Deno.serve(async (req) => {
       Deno.env.get('GATEWAY_SECRET') ?? null
     );
 
+    let user = null;
     if (!isService) {
       // auth.me() throws rather than returning null for a sessionless caller,
-      // so the check below was dead code and the SDK's error message ("Authentication
-      // required to view users") leaked to the client as a 500 instead of a clean 401.
-      const user = await base44.auth.me().catch(() => null);
+      // so a .catch keeps the response a clean 401 instead of a leaked 500.
+      user = await base44.auth.me().catch(() => null);
       if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -106,6 +134,12 @@ Deno.serve(async (req) => {
       if (!listing) return Response.json({ error: 'Listing not found' }, { status: 404 });
     } else {
       listing = body.aircraft && Object.keys(body.aircraft).length ? body.aircraft : body;
+    }
+
+    // ── Paid feature: Valuation Studio (€29 one-time per aircraft) — skipped for the trusted gateway ──
+    if (!isService) {
+      const valGate = await gateOneTimeProduct(base44, user, 'VALUATION_STUDIO', body.registration || listing?.registration || '');
+      if (valGate) return valGate;
     }
 
     const currentYear = new Date().getFullYear();

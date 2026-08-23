@@ -87,7 +87,7 @@ async function handleRequest(req, ctx) {
     if (!endpoint) return apiError(400, 'missing_endpoint', "Request body must include 'endpoint'.");
 
     // ── Resolve caller: API key (external) or logged-in user (in-app console) ──
-    const apiKeyRaw = req.headers.get('x-abos-key') || body.api_key || null;
+    const apiKeyRaw = req.headers.get('x-abos-key') || null;
     let caller = null;
     if (apiKeyRaw) {
       const hash = await sha256(apiKeyRaw);
@@ -420,7 +420,7 @@ Return ONLY valid JSON with: intent (SELL/BUY/CHARTER/INFO), manufacturer, model
       if (!params.id) return apiError(400, 'missing_id', "'params.id' is required.");
       let listing = null;
       try { listing = await base44.asServiceRole.entities.AircraftListing.get(params.id); } catch (_e) { listing = null; }
-      if (!listing || (listing.visibility !== 'public' && caller.type === 'api_key')) {
+      if (!listing || listing.visibility !== 'public' || listing.status !== 'active') {
         return apiError(404, 'listing_not_found', 'Listing not found.');
       }
       await trackUsage();

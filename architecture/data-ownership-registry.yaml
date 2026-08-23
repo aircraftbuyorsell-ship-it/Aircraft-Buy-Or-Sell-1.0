@@ -1,0 +1,47 @@
+version: 1
+last_reviewed: "2026-07-12"
+evidence:
+  - "Base44 application directly reads and writes AircraftListing through the Base44 SDK."
+  - "Supabase public.aircraftbuyorsell_listings exists with RLS, but the current production write path has not been proven."
+  - "Supabase public.faa_registry is a governed local projection of external registry data."
+  - "Stripe remains authoritative for payment state; existing Base44 functions maintain local payment-related records."
+domains:
+  aircraft_listing:
+    current_authoritative_store: base44
+    target_authoritative_store: supabase
+    migration_status: legacy_authoritative
+    write_policy: base44_only
+    synchronization: none
+    migration_guard: "Do not enable a Supabase write path until a backfill, validation query, cutover, rollback, and legacy-write removal plan are approved."
+  aircraft:
+    current_authoritative_store: not_established
+    target_authoritative_store: supabase
+    migration_status: planned
+    write_policy: core_api_only
+    synchronization: none
+  aircraft_identity:
+    current_authoritative_store: external_registry
+    local_projection_store: supabase
+    target_authoritative_store: supabase_normalized_projection
+    migration_status: planned
+    write_policy: core_api_only
+    synchronization: explicit_one_directional
+  api_credentials:
+    current_authoritative_store: base44
+    target_authoritative_store: supabase
+    migration_status: legacy_authoritative
+    write_policy: core_api_only
+    synchronization: none
+  organizations:
+    current_authoritative_store: supabase_candidate
+    target_authoritative_store: supabase
+    migration_status: requires_write_path_verification
+    write_policy: core_api_only
+    synchronization: none
+  payments:
+    current_authoritative_store: stripe
+    local_projection_store: base44
+    target_authoritative_store: supabase_projection
+    migration_status: planned
+    write_policy: stripe_webhook_projection
+    synchronization: explicit_one_directional

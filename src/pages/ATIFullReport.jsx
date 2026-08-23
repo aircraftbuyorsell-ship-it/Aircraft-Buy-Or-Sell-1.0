@@ -156,21 +156,24 @@ export default function ATIFullReport() {
       }
 
       const reg = regExtracted || res.registration_extracted || "NREG";
-      const code = genCode(reg, res.total);
       setResult(flatResult);
-      setReportCode(code);
       setTab("Overview");
-      // Persist the purchased report (re-access without re-charge) + usage record
+      // Persist the purchased report (re-access without re-charge) + usage record.
+      // The report code is built from the shared deal_code returned here, so it stays
+      // identical to the Listing ID / ATI Score ID for this same aircraft.
       try {
-        await saveReport({
+        const saved = await saveReport({
           product_key: "ATI_FULL_REPORT",
           aircraft_registration: (reg || "").toUpperCase(),
           report_type: "ati_full_report",
           result_data: flatResult,
           confidence: "caution",
         });
+        setReportCode(buildReportCode(reg, res.total, saved.deal_code));
         await recordUsage({ product_key: "ATI_FULL_REPORT", aircraft_registration: (reg || "").toUpperCase() });
-      } catch (_) {}
+      } catch (_) {
+        setReportCode(genCode(reg, res.total)); // backend unavailable — fall back to a standalone code
+      }
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {
         base44.auth.redirectToLogin(window.location.href);

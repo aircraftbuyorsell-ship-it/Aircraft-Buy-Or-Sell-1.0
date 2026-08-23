@@ -421,6 +421,9 @@ Return ONLY raw JSON:
                 {listing?.year} {safeMake} {listing?.model}
               </h2>
               {listing?.registration && <p className="text-white/40 font-mono text-sm mb-4">{listing.registration}</p>}
+              {listing?.deal_code && (
+                <p className="text-[#f5c242]/70 font-mono text-[10px] tracking-widest mb-4 uppercase">Deal Code · {listing.deal_code}</p>
+              )}
               <p className="text-white/60 text-sm max-w-sm mx-auto leading-relaxed">
                 Generate a comprehensive ATI report — 8 dimensions of aircraft condition, market value, and deal quality.
               </p>

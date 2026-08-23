@@ -240,17 +240,22 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Detect scheduled automation context (no user auth).
-    // System-generated reports are free — no token charge.
-    let user = null;
-    let isScheduled = false;
-    try {
-      user = await base44.auth.me();
-    } catch (_) {
-      isScheduled = true;
-    }
+    // Scheduled automation must prove possession of a server-side secret.
+    // Never treat an auth exception as evidence of an internal scheduler.
+    const user = await base44.auth.me().catch(() => null);
+    const automationSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const suppliedAutomationSecret = req.headers.get('x-abos-automation-secret');
+    const isScheduled = Boolean(
+      automationSecret &&
+      suppliedAutomationSecret &&
+      suppliedAutomationSecret === automationSecret
+    );
+
     if (!user && !isScheduled) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (user && !['admin', 'super_admin'].includes(user.role) && !isScheduled) {
+      // User-driven reports are still permitted for entitled users; the subscription gate below enforces access.
     }
 
     const body = await req.json().catch(() => ({}));

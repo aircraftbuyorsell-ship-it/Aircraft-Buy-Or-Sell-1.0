@@ -254,10 +254,6 @@ Deno.serve(async (req) => {
     if (!user && !isScheduled) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (user && !['admin', 'super_admin'].includes(user.role) && !isScheduled) {
-      // User-driven reports are still permitted for entitled users; the subscription gate below enforces access.
-    }
-
     const body = await req.json().catch(() => ({}));
     const { scope = "daily", filters = {} } = body;
 

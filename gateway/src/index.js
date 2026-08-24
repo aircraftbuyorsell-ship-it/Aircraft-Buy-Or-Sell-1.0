@@ -354,6 +354,52 @@ const CORE_TOOLS = [
   },
 ];
 
+// Explicit semantic aliases for ChatGPT/App tool selection. The canonical
+// Core API endpoints remain unchanged; these names make common ABOS intents
+// unambiguous to an agent (for example: "find Cessna 172 under $300k").
+CORE_TOOLS.push(
+  {
+    name: 'search_aircraft',
+    endpoint: 'search',
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
+    description: 'Search active ABOS aircraft listings using structured filters and natural-language intent. Use for requests such as Cessna 172 under $300,000.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Natural-language aircraft search, e.g. "Cessna 172 under $300,000"' },
+        manufacturer: { type: 'string' },
+        model: { type: 'string' },
+        max_price: { type: 'number' },
+        min_price: { type: 'number' },
+        year_min: { type: 'number' },
+        year_max: { type: 'number' },
+        limit: { type: 'number', maximum: 50 },
+      },
+    },
+  },
+  {
+    name: 'get_aircraft',
+    endpoint: 'listings.get',
+    annotations: {
+      readOnlyHint: true,
+      idempotentHint: true,
+      openWorldHint: false,
+      destructiveHint: false,
+    },
+    description: 'Get one ABOS aircraft listing by listing id.',
+    inputSchema: {
+      type: 'object',
+      required: ['id'],
+      properties: { id: { type: 'string' } },
+    },
+  },
+);
+
 function rpcResult(id, result) {
   return json({ jsonrpc: '2.0', id, result });
 }

@@ -22,7 +22,7 @@ const PRODUCT_CATALOG = {
 const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'ATI_BASIC_REPORT'], BROKER: ['ATI_SCORE', 'ATI_BASIC_REPORT'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER']);
-const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
+const ONE_TIME_KEYS = new Set(['ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
 
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
@@ -205,7 +205,20 @@ Deno.serve(async (req) => {
           return Response.json({ included_in_subscription: true, product_key });
         }
 
-        let unitAmount = Math.round(product.price_eur * 100);
+        // Canonical ATI tiers use the pre-created Stripe Price. This keeps Stripe authoritative.
+        if (product.stripe_price_id) {
+          const session = await stripe.checkout.sessions.create({
+            mode: 'payment', payment_method_types: ['card'], customer_email: user.email,
+            client_reference_id: user.id,
+            metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
+            success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
+            cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
+            line_items: [{ price: product.stripe_price_id, quantity: 1 }],
+          });
+          return Response.json({ url: session.url, session_id: session.id, product_key });
+        }
+
+        let unitAmount = Math.round((product.price_eur ?? 0) * 100);
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
           unitAmount = Math.round(product.price_eur * (1 - SUB_DISCOUNT[subProduct]) * 100);
         } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {

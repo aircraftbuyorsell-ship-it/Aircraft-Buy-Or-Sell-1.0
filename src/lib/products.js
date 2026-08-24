@@ -27,7 +27,6 @@ export const PRODUCT_CATALOG = [
     price_usd: 49.00,
     currency: 'usd',
     stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki',
-    currency: 'eur',
     category: 'individual',
     icon: 'FileBarChart',
     tagline: 'Complete due diligence report',
@@ -180,6 +179,13 @@ export function formatEur(amount) {
   return `€${Number(amount).toFixed(2)}`;
 }
 
+export function formatProductPrice(product) {
+  if (!product) return '';
+  const amount = product.price_usd ?? product.price_eur;
+  if (amount == null) return '';
+  return product.currency === 'usd' ? `$${Number(amount).toFixed(2)}` : `€${Number(amount).toFixed(2)}`;
+}
+
 // Compute the effective price for a one-time product given the user's active subscription.
 export function effectivePrice(productKey, activeSubProduct) {
   const p = getProduct(productKey);
@@ -187,9 +193,11 @@ export function effectivePrice(productKey, activeSubProduct) {
   if (activeSubProduct && SUB_INCLUDED[activeSubProduct]?.includes(productKey)) {
     return { eur: 0, included: true, original_eur: p.price_eur };
   }
-  let eur = p.price_eur;
+  const baseAmount = p.price_usd ?? p.price_eur;
+  const currency = p.currency || 'eur';
+  let amount = baseAmount;
   if (activeSubProduct && SUB_DISCOUNT[activeSubProduct]) {
-    eur = +(eur * (1 - SUB_DISCOUNT[activeSubProduct])).toFixed(2);
+    amount = +(baseAmount * (1 - SUB_DISCOUNT[activeSubProduct])).toFixed(2);
   }
-  return { eur, included: false, original_eur: p.price_eur, discount_pct: activeSubProduct ? SUB_DISCOUNT[activeSubProduct] : 0 };
+  return { amount, currency, included: false, original_amount: baseAmount, discount_pct: activeSubProduct ? SUB_DISCOUNT[activeSubProduct] : 0 };
 }

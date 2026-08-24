@@ -3,32 +3,24 @@ import Stripe from 'npm:stripe@14.25.0';
 
 /**
  * ABOS Entitlement Engine
- * ───────────────────────
  * Server-side authorization for all paid features. Never trusts the frontend.
  * The same check() is used by the web app, the Core API, and MCP/AI agents.
- *
- * Products (mirror of src/lib/products.js):
- *  - One-time (per-aircraft): ATI_SCORE, ATI_FULL_REPORT, VALUATION_STUDIO, VERIFICATION_PACK
- *  - Subscription (global):   PRO (€99/mo), BROKER (€299/mo)
- *
- * Flow: create_checkout → Stripe → webhook (stripeWebhook) grants Entitlement →
- *       check() returns entitled → frontend runs existing tool → save_report + record_usage.
  */
 
 const PRODUCT_CATALOG = {
   ATI_SCORE:        { name: 'ATI Score',           type: 'one_time',     price_eur: 9.90,  currency: 'eur' },
   ATI_FULL_REPORT:  { name: 'ATI Full Report',     type: 'one_time',     price_eur: 49.00, currency: 'eur' },
-  VALUATION_STUDIO: { name: 'Valuation Studio',     type: 'one_time',     price_eur: 29.00, currency: 'eur' },
-  VERIFICATION_PACK:{ name: 'Verification Pack',    type: 'one_time',     price_eur: 19.90, currency: 'eur' },
-  PRO:              { name: 'ABOS Professional',    type: 'subscription', price_eur: 99,    currency: 'eur', interval: 'month' },
-  BROKER:           { name: 'ABOS Broker / Dealer', type: 'subscription', price_eur: 299,   currency: 'eur', interval: 'month' },
+  VALUATION_STUDIO: { name: 'Valuation Studio',   type: 'one_time',     price_eur: 29.00, currency: 'eur' },
+  VERIFICATION_PACK:{ name: 'Verification Pack',  type: 'one_time',     price_eur: 19.90, currency: 'eur' },
+  PRO:              { name: 'ABOS Professional',  type: 'subscription', price_eur: 99,    currency: 'eur', interval: 'month' },
+  BROKER:           { name: 'ABOS Broker / Dealer',type: 'subscription', price_eur: 299,   currency: 'eur', interval: 'month' },
 };
 
 const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'VERIFICATION_PACK'], BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER']);
+const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
 
-// ── New-member welcome promo: 30% off the first one-time purchase within 14 days of signup ──
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
 
@@ -39,14 +31,8 @@ async function welcomeDiscountEligible(svc, user) {
   return ents.length === 0;
 }
 
-// ── Shared Deal Code ──
-// One 6-char alphanumeric core ID per aircraft deal, reused unchanged as the suffix
-// for the Listing ID (LST-XXXXXX), ATI Score ID (SCORE-XXXXXX), and ATI Report ID
-// (ATI-XXXXXX) so all three artifacts for the same aircraft are trivially linkable.
-// The code lives on AircraftListing.deal_code (source of truth when a listing exists)
-// and is copied onto PurchasedReport.deal_code at save time.
 function generateDealCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I ambiguity
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return code;
@@ -64,16 +50,13 @@ async function getOrCreateDealCode(svc, registration) {
       return code;
     }
   }
-  // No matching listing (ad-hoc / chat evaluation) → fresh standalone code.
   return generateDealCode();
 }
-const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
 
 function isAdmin(user) {
   return user?.role === 'admin' || user?.role === 'super_admin';
 }
 
-// Resolve the user's active subscription product (PRO/BROKER) or null.
 async function activeSubProduct(svc, email) {
   const ents = await svc.entities.Entitlement.filter(
     { user_email: email, status: 'active', scope: 'global' }, '-created_date', 10
@@ -84,7 +67,57 @@ async function activeSubProduct(svc, email) {
   return null;
 }
 
-// Idempotency: check a PaymentEvent was already recorded for this event id.
+/**
+ * Canonical server-side authorization helper.
+ * Paid write paths MUST call this instead of trusting the caller.
+ */
+async function requireEntitlement(svc, user, productKey, registration) {
+  if (!productKey || !ONE_TIME_KEYS.has(productKey)) {
+    return { ok: false, status: 400, error: 'Invalid paid product_key' };
+  }
+  if (isAdmin(user)) {
+    return { ok: true, reason: 'admin_bypass', entitlement_id: null };
+  }
+
+  const reg = (registration || '').toUpperCase().trim();
+  if (!reg) {
+    return { ok: false, status: 400, error: 'aircraft_registration is required for paid aircraft features' };
+  }
+
+  const subProduct = await activeSubProduct(svc, user.email);
+
+  // A ready purchased report is a durable entitlement for the same aircraft/product.
+  const existingReports = await svc.entities.PurchasedReport.filter(
+    { user_email: user.email, product_key: productKey, aircraft_registration: reg, status: 'ready' },
+    '-created_date', 1
+  );
+  if (existingReports.length) {
+    return { ok: true, reason: 'report_already_purchased', entitlement_id: null, report_id: existingReports[0].id };
+  }
+
+  // Subscription-included products are entitled without a one-time purchase.
+  if (subProduct && SUB_INCLUDED[subProduct]?.includes(productKey)) {
+    return { ok: true, reason: 'subscription_included', entitlement_id: null };
+  }
+
+  // Explicit per-aircraft entitlement granted by Stripe webhook/payment processing.
+  const ents = await svc.entities.Entitlement.filter(
+    { user_email: user.email, product_key: productKey, aircraft_registration: reg, status: 'active' },
+    '-created_date', 1
+  );
+  if (ents.length) {
+    return { ok: true, reason: 'one_time_entitlement', entitlement_id: ents[0].id };
+  }
+
+  return {
+    ok: false,
+    status: 402,
+    error: 'payment_required',
+    product_key: productKey,
+    aircraft_registration: reg,
+  };
+}
+
 async function paymentProcessed(svc, eventId) {
   if (!eventId) return false;
   const existing = await svc.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
@@ -102,32 +135,27 @@ Deno.serve(async (req) => {
 
   try {
     switch (action) {
-      // ── Catalog ──
       case 'list_products': {
         return Response.json({ products: Object.entries(PRODUCT_CATALOG).map(([k, v]) => ({ key: k, ...v })) });
       }
 
-      // ── Entitlement check (the gate) ──
       case 'check': {
         const { product_key, aircraft_registration } = body;
         if (!product_key) return Response.json({ error: 'Missing product_key' }, { status: 400 });
-
-        // Platform owner / admin bypass — always entitled, no charge, no credit dependency.
-        if (isAdmin(user)) {
-          return Response.json({ entitled: true, reason: 'admin_bypass', active_sub_product: 'BROKER' });
-        }
+        if (isAdmin(user)) return Response.json({ entitled: true, reason: 'admin_bypass', active_sub_product: 'BROKER' });
 
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
 
-        // Subscription product check
         if (SUB_KEYS.has(product_key)) {
           const entitled = subProduct === product_key;
           return Response.json({ entitled, reason: entitled ? 'active_subscription' : 'no_active_subscription', active_sub_product: subProduct });
         }
 
-        // One-time product check
-        // 1. Already purchased a ready report? → re-access (no charge)
+        if (!ONE_TIME_KEYS.has(product_key)) {
+          return Response.json({ entitled: false, reason: 'unknown_product' }, { status: 400 });
+        }
+
         const existingReports = reg
           ? await svc.entities.PurchasedReport.filter({ user_email: user.email, product_key, aircraft_registration: reg, status: 'ready' }, '-created_date', 1)
           : [];
@@ -135,22 +163,17 @@ Deno.serve(async (req) => {
           return Response.json({ entitled: true, reason: 'report_already_purchased', existing_report_id: existingReports[0].id, active_sub_product: subProduct });
         }
 
-        // 2. Included in active subscription?
         if (subProduct && SUB_INCLUDED[subProduct]?.includes(product_key)) {
           return Response.json({ entitled: true, reason: 'subscription_included', active_sub_product: subProduct });
         }
 
-        // 3. Per-aircraft entitlement exists? (also matches registration-less purchases)
-        {
-          const ents = await svc.entities.Entitlement.filter(
-            { user_email: user.email, product_key, aircraft_registration: reg, status: 'active' }, '-created_date', 1
-          );
-          if (ents.length > 0) {
-            return Response.json({ entitled: true, reason: 'one_time_entitlement', entitlement_id: ents[0].id, active_sub_product: subProduct });
-          }
+        const ents = await svc.entities.Entitlement.filter(
+          { user_email: user.email, product_key, aircraft_registration: reg, status: 'active' }, '-created_date', 1
+        );
+        if (ents.length > 0) {
+          return Response.json({ entitled: true, reason: 'one_time_entitlement', entitlement_id: ents[0].id, active_sub_product: subProduct });
         }
 
-        // 4. Not entitled → payment required
         const product = PRODUCT_CATALOG[product_key];
         let priceEur = product?.price_eur || 0;
         let discountPct = 0;
@@ -163,18 +186,9 @@ Deno.serve(async (req) => {
           discountPct = WELCOME_DISCOUNT;
           welcomePromo = true;
         }
-        return Response.json({
-          entitled: false,
-          reason: 'payment_required',
-          checkout_price_eur: priceEur,
-          original_price_eur: product?.price_eur || 0,
-          discount_pct: discountPct,
-          welcome_promo: welcomePromo,
-          active_sub_product: subProduct,
-        });
+        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_eur: priceEur, original_price_eur: product?.price_eur || 0, discount_pct: discountPct, welcome_promo: welcomePromo, active_sub_product: subProduct });
       }
 
-      // ── Create Stripe Checkout ──
       case 'create_checkout': {
         const { product_key, aircraft_registration, return_url } = body;
         const product = PRODUCT_CATALOG[product_key];
@@ -184,8 +198,6 @@ Deno.serve(async (req) => {
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
-
-        // If the product is included in the user's subscription, no checkout needed.
         if (subProduct && SUB_INCLUDED[subProduct]?.includes(product_key)) {
           return Response.json({ included_in_subscription: true, product_key });
         }
@@ -204,29 +216,18 @@ Deno.serve(async (req) => {
           metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
           success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
           cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-          line_items: [{
-            price_data: {
-              currency: product.currency,
-              product_data: { name: product.name },
-              unit_amount: unitAmount,
-              ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}),
-            },
-            quantity: 1,
-          }],
+          line_items: [{ price_data: { currency: product.currency, product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
         };
-
         if (product.type === 'subscription') {
           sessionParams.mode = 'subscription';
           sessionParams.subscription_data = { metadata: { user_id: user.id, user_email: user.email, product_key } };
         } else {
           sessionParams.mode = 'payment';
         }
-
         const session = await stripe.checkout.sessions.create(sessionParams);
         return Response.json({ url: session.url, session_id: session.id });
       }
 
-      // ── List my entitlements + active subscription ──
       case 'list_mine': {
         const [ents, reports] = await Promise.all([
           svc.entities.Entitlement.filter({ user_email: user.email }, '-created_date', 100),
@@ -238,24 +239,21 @@ Deno.serve(async (req) => {
         return Response.json({ entitlements: oneTime, subscriptions, active_sub_product: subProduct, reports });
       }
 
-      // ── List my purchased reports ──
       case 'list_reports': {
         const reports = await svc.entities.PurchasedReport.filter({ user_email: user.email }, '-created_date', 100);
         return Response.json({ reports });
       }
 
-      // ── Save report result (after a paid tool runs) ──
       case 'save_report': {
         const { product_key, aircraft_registration, aircraft_label, report_type, result_data, data_sources, provider, confidence, verification_status, inputs, methodology_version } = body;
         if (!product_key || !aircraft_registration) return Response.json({ error: 'Missing product_key/aircraft_registration' }, { status: 400 });
         const reg = aircraft_registration.toUpperCase().trim();
+        const authz = await requireEntitlement(svc, user, product_key, reg);
+        if (!authz.ok) return Response.json(authz, { status: authz.status });
 
-        // Idempotent per (user, product, aircraft): update existing ready report, else create.
         const existing = await svc.entities.PurchasedReport.filter(
           { user_email: user.email, product_key, aircraft_registration: reg }, '-created_date', 1
         );
-        // Shared core ID: reuse the listing's deal_code (or an existing report's) so
-        // Listing ID / ATI Score ID / ATI Report ID all carry the same suffix.
         const deal_code = existing[0]?.deal_code || await getOrCreateDealCode(svc, reg);
         const payload = {
           product_key,
@@ -281,49 +279,42 @@ Deno.serve(async (req) => {
         return Response.json({ report_id: created.id, deal_code, updated: false });
       }
 
-      // ── Record usage ──
       case 'record_usage': {
         const { product_key, aircraft_registration, provider, cost_eur } = body;
         if (!product_key) return Response.json({ error: 'Missing product_key' }, { status: 400 });
         const reg = (aircraft_registration || '').toUpperCase().trim();
-        const subProduct = await activeSubProduct(svc, user.email);
-        await svc.entities.UsageRecord.create({
+        const authz = await requireEntitlement(svc, user, product_key, reg);
+        if (!authz.ok) return Response.json(authz, { status: authz.status });
+
+        const usage = await svc.entities.UsageRecord.create({
           user_email: user.email,
           product_key,
           aircraft_registration: reg,
           request_id: crypto.randomUUID(),
           provider: provider || 'abos_omvm',
-          cost_eur: cost_eur || 0,
-          ...(subProduct ? { entitlement_id: null } : {}),
+          cost_eur: Number.isFinite(Number(cost_eur)) ? Number(cost_eur) : 0,
+          entitlement_id: authz.entitlement_id || null,
         });
-        return Response.json({ recorded: true });
+        return Response.json({ recorded: true, usage_id: usage.id, authorization_reason: authz.reason });
       }
 
-      // ── Customer portal (manage subscription) ──
       case 'customer_portal': {
         const { return_url } = body;
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
         const customers = await stripe.customers.list({ email: user.email, limit: 1 });
         if (!customers.data.length) return Response.json({ error: 'No Stripe customer found' }, { status: 404 });
-        const session = await stripe.billingPortal.sessions.create({
-          customer: customers.data[0].id,
-          return_url: return_url || Deno.env.get('BASE44_APP_URL') || '/',
-        });
+        const session = await stripe.billingPortal.sessions.create({ customer: customers.data[0].id, return_url: return_url || Deno.env.get('BASE44_APP_URL') || '/' });
         return Response.json({ url: session.url });
       }
 
-      // ── Usage summary ──
       case 'usage_summary': {
         const records = await svc.entities.UsageRecord.filter({ user_email: user.email }, '-created_date', 500);
         const subProduct = await activeSubProduct(svc, user.email);
         const byProduct = {};
-        for (const r of records) {
-          byProduct[r.product_key] = (byProduct[r.product_key] || 0) + 1;
-        }
+        for (const r of records) byProduct[r.product_key] = (byProduct[r.product_key] || 0) + 1;
         return Response.json({ total: records.length, by_product: byProduct, active_sub_product: subProduct });
       }
 
-      // ── Admin monetization stats ──
       case 'admin_stats': {
         if (!isAdmin(user)) return Response.json({ error: 'Admin only' }, { status: 403 });
         const [ents, reports, usage, payments] = await Promise.all([
@@ -335,9 +326,7 @@ Deno.serve(async (req) => {
         const subscriptions = ents.filter((e) => SUB_KEYS.has(e.product_key) && e.status === 'active');
         const oneTimeEnts = ents.filter((e) => ONE_TIME_KEYS.has(e.product_key) && e.status === 'active');
         const revenueByProduct = {};
-        for (const p of payments) {
-          if (p.product_key) revenueByProduct[p.product_key] = (revenueByProduct[p.product_key] || 0) + (p.amount_eur || 0);
-        }
+        for (const p of payments) if (p.product_key) revenueByProduct[p.product_key] = (revenueByProduct[p.product_key] || 0) + (p.amount_eur || 0);
         const failedPayments = payments.filter((p) => p.status === 'failed').length;
         return Response.json({
           total_revenue_eur: payments.reduce((s, p) => s + (p.amount_eur || 0), 0),

@@ -197,7 +197,7 @@ async function handleCheckoutCompleted(session, base44, stripe, eventId) {
 
   // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
   if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {
-    await handleProductCheckout(session, base44, eventId);
+    await handleProductCheckout(session, base44, eventId, stripe);
     return;
   }
 
@@ -419,7 +419,24 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
 }
 
 // ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
-const PRODUCT_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'PRO', 'BROKER']);
+// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
+const STRIPE_ATI_PRODUCT_MAP = {
+  level_2_basic: 'ATI_BASIC_REPORT',
+  ati_pro: 'ATI_PRO',
+  ati_pro_tax: 'ATI_PRO_TAX',
+};
+const LEGACY_PRODUCT_ALIASES = {
+  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
+  ATI_SCORE: 'ATI_SCORE',
+  VALUATION_STUDIO: 'VALUATION_STUDIO',
+  VERIFICATION_PACK: 'VERIFICATION_PACK',
+  PRO: 'PRO',
+  BROKER: 'BROKER',
+};
+const PRODUCT_KEYS = new Set([
+  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
+  ...Object.keys(LEGACY_PRODUCT_ALIASES),
+]);
 const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
 
 async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
@@ -433,9 +450,22 @@ async function markPaymentEvent(base44, eventId, type, email, productKey, paymen
 }
 
 // checkout.session.completed for a product purchase → grant entitlement (idempotent).
-async function handleProductCheckout(session, base44, eventId) {
+async function handleProductCheckout(session, base44, eventId, stripe) {
   const meta = session.metadata || {};
-  const productKey = meta.product_key;
+  let productKey = meta.product_key;
+
+  // Prefer canonical Stripe product metadata over client-supplied product_key.
+  // This makes Stripe's active catalog authoritative while retaining legacy compatibility.
+  try {
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1, expand: ['data.price.product'] });
+    const price = lineItems?.data?.[0]?.price;
+    const productMeta = price?.product && typeof price.product === 'object' ? price.product.metadata : null;
+    const stripeTier = productMeta?.abos_tier_id;
+    if (stripeTier && STRIPE_ATI_PRODUCT_MAP[stripeTier]) productKey = STRIPE_ATI_PRODUCT_MAP[stripeTier];
+  } catch (err) {
+    console.warn(`Unable to resolve Stripe product metadata for ${session.id}: ${err.message}`);
+  }
+
   if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
   const email = meta.user_email || session.customer_email || session.customer_details?.email;
   if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'processed'))) {

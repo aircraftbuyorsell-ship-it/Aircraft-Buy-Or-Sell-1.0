@@ -8,15 +8,18 @@ import Stripe from 'npm:stripe@14.25.0';
  */
 
 const PRODUCT_CATALOG = {
-  ATI_SCORE:        { name: 'ATI Score',           type: 'one_time',     price_eur: 9.90,  currency: 'eur' },
-  ATI_FULL_REPORT:  { name: 'ATI Full Report',     type: 'one_time',     price_eur: 49.00, currency: 'eur' },
-  VALUATION_STUDIO: { name: 'Valuation Studio',   type: 'one_time',     price_eur: 29.00, currency: 'eur' },
-  VERIFICATION_PACK:{ name: 'Verification Pack',  type: 'one_time',     price_eur: 19.90, currency: 'eur' },
-  PRO:              { name: 'ABOS Professional',  type: 'subscription', price_eur: 99,    currency: 'eur', interval: 'month' },
-  BROKER:           { name: 'ABOS Broker / Dealer',type: 'subscription', price_eur: 299,   currency: 'eur', interval: 'month' },
+  ATI_BASIC_REPORT: { name: 'ATI Report — Level 2', type: 'one_time', price_usd: 49, currency: 'usd', stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki' },
+  ATI_PRO:          { name: 'ATI Pro — Investment Brief', type: 'one_time', price_usd: 199, currency: 'usd', stripe_price_id: 'price_1U7dkYAT7Be3WR6Jaf9jqrVV' },
+  ATI_PRO_TAX:      { name: 'ATI Pro Tax — Tax & Insurance Upgrade', type: 'one_time', price_usd: 499, currency: 'usd', stripe_price_id: 'price_1U7dkbAT7Be3WR6JDOjfF3Eg' },
+  ATI_SCORE:        { name: 'ATI Score (legacy)', type: 'one_time', price_eur: 9.90, currency: 'eur', legacy: true },
+  ATI_FULL_REPORT:  { name: 'ATI Full Report (legacy)', type: 'one_time', price_eur: 49.00, currency: 'eur', legacy: true },
+  VALUATION_STUDIO: { name: 'Valuation Studio (legacy)', type: 'one_time', price_eur: 29.00, currency: 'eur', legacy: true },
+  VERIFICATION_PACK:{ name: 'Verification Pack (legacy)', type: 'one_time', price_eur: 19.90, currency: 'eur', legacy: true },
+  PRO:              { name: 'ABOS Professional', type: 'subscription', price_eur: 99, currency: 'eur', interval: 'month' },
+  BROKER:           { name: 'ABOS Broker / Dealer', type: 'subscription', price_eur: 299, currency: 'eur', interval: 'month' },
 };
 
-const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'VERIFICATION_PACK'], BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'] };
+const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'ATI_BASIC_REPORT'], BROKER: ['ATI_SCORE', 'ATI_BASIC_REPORT'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER']);
 const ONE_TIME_KEYS = new Set(['ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);

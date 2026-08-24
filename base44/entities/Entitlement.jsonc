@@ -10,6 +10,9 @@
       "type": "string",
       "enum": [
         "ATI_SCORE",
+        "ATI_BASIC_REPORT",
+        "ATI_PRO",
+        "ATI_PRO_TAX",
         "ATI_FULL_REPORT",
         "VALUATION_STUDIO",
         "VERIFICATION_PACK",
@@ -29,7 +32,7 @@
     },
     "aircraft_registration": {
       "type": "string",
-      "description": "Required for aircraft-scoped one-time products (ATI_SCORE, ATI_FULL_REPORT, VALUATION_STUDIO, VERIFICATION_PACK)"
+      "description": "Required for aircraft-scoped one-time products (ATI_SCORE, ATI_BASIC_REPORT, ATI_PRO, ATI_PRO_TAX, ATI_FULL_REPORT, VALUATION_STUDIO, VERIFICATION_PACK)"
     },
     "source": {
       "type": "string",

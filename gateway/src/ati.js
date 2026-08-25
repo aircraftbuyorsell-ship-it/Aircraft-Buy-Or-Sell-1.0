@@ -61,6 +61,25 @@ function canonicalise(aircraft = {}, listingText = '') {
   return parts.join('|');
 }
 
+// ── Reproducible judgement ─────────────────────────────────────────────
+// The cache key is deliberately NOT card_id: card_id embeds the current year,
+// so reusing it would silently re-score every aircraft each 1 January. This
+// keys on the input hash plus the two things that legitimately change a
+// judgement - the scoring prompt version and the model - so a prompt revision
+// or a model swap invalidates every entry on its own, and nothing else does.
+const CACHE_PREFIX = `ati:${SCORE_VERSION}`;
+
+async function judgementKey(canonicalInput, model) {
+  const digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(`${CACHE_PREFIX}|${model}|${canonicalInput}`)
+  );
+  const hex = [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `${CACHE_PREFIX}:${model}:${hex}`;
+}
+
 // ── Base44 calls ───────────────────────────────────────────────────────
 
 async function callBase44(env, baseUrl, fn, payload) {
@@ -256,7 +275,10 @@ async function scoreWithClaude(env, aircraft, listingText, omvm) {
     body: JSON.stringify({
       model: env.ATI_MODEL || DEFAULT_MODEL,
       max_tokens: 3000,
-      temperature: 0, // 0, not 0.2 — the same listing must score the same twice
+      // temperature:0 used to be what made the same listing score the same
+      // twice. claude-sonnet-5 rejects the parameter outright ('temperature is
+      // deprecated for this model', HTTP 400), so reproducibility moved to the
+      // ABOS_ATI_CACHE lookup in handleAtiScore. Do not reintroduce it here.
       system: buildSystemPrompt(),
       messages: [{ role: 'user', content: buildUserPrompt(aircraft, listingText, omvm) }],
     }),

@@ -30,7 +30,7 @@ jobs:
           cache: npm
           cache-dependency-path: gateway/package-lock.json
 
-      - name: Install dependencies and refresh lock state
+      - name: Install dependencies
         run: npm install --no-audit --no-fund
 
       - name: Verify Wrangler
@@ -40,15 +40,23 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GATEWAY_SECRET: ${{ secrets.GATEWAY_SECRET }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           missing=""
           [ -z "$CLOUDFLARE_API_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
           [ -z "$GATEWAY_SECRET" ] && missing="$missing GATEWAY_SECRET"
-          [ -z "$ANTHROPIC_API_KEY" ] && missing="$missing ANTHROPIC_API_KEY"
           if [ -n "$missing" ]; then
             echo "::error::Missing required repository secret(s):$missing"
             exit 1
+          fi
+
+      - name: Check optional Anthropic secret
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY is not configured. Worker deployment will continue; Anthropic-dependent runtime paths may be unavailable until the secret is configured."
+          else
+            echo "ANTHROPIC_API_KEY is configured."
           fi
 
       - name: Deploy Worker

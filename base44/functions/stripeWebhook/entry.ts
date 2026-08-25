@@ -440,13 +440,29 @@ const PRODUCT_KEYS = new Set([
 const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
 
 async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
+  if (!eventId) return true;
   const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
-  if (existing.length > 0) return false;
+  if (existing.length > 0 && existing[0].status === 'processed') return false;
+  if (existing.length > 0) {
+    await base44.asServiceRole.entities.PaymentEvent.update(existing[0].id, {
+      event_type: type, user_email: email || '', product_key: productKey || '',
+      stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '',
+      amount_eur: amountEur || 0, status: status || 'processing',
+    });
+    return true;
+  }
   await base44.asServiceRole.entities.PaymentEvent.create({
     stripe_event_id: eventId, event_type: type, user_email: email || '', product_key: productKey || '',
-    stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '', amount_eur: amountEur || 0, status: status || 'processed',
+    stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '', amount_eur: amountEur || 0,
+    status: status || 'processing',
   });
   return true;
+}
+
+async function finalizePaymentEvent(base44, eventId, status) {
+  if (!eventId) return;
+  const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
+  if (existing[0]) await base44.asServiceRole.entities.PaymentEvent.update(existing[0].id, { status });
 }
 
 // checkout.session.completed for a product purchase → grant entitlement (idempotent).
@@ -481,23 +497,29 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
   }
   if (!email) { console.warn('product checkout: no email'); return true; }
 
-  if (SUB_PRODUCT_KEYS.has(productKey)) {
-    await base44.asServiceRole.entities.Entitlement.create({
-      user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
-      stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',
-      current_period_end: session.expires_at || null,
-    });
-    console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
+  try {
+    if (SUB_PRODUCT_KEYS.has(productKey)) {
+      await base44.asServiceRole.entities.Entitlement.create({
+        user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
+        stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',
+        current_period_end: session.expires_at || null,
+      });
+      console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
+    } else {
+      await base44.asServiceRole.entities.Entitlement.create({
+        user_email: email, product_key: productKey, scope: 'aircraft',
+        aircraft_registration: aircraftRegistration, source: 'stripe',
+        stripe_payment_id: session.payment_intent || session.id, stripe_event_id: eventId, status: 'active',
+      });
+      console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${aircraftRegistration})`);
+    }
+    await finalizePaymentEvent(base44, eventId, 'processed');
     return true;
+  } catch (err) {
+    await finalizePaymentEvent(base44, eventId, 'failed');
+    console.error(`Product entitlement grant failed for ${eventId}: ${err.message}`);
+    throw err;
   }
-
-  await base44.asServiceRole.entities.Entitlement.create({
-    user_email: email, product_key: productKey, scope: 'aircraft',
-    aircraft_registration: aircraftRegistration, source: 'stripe',
-    stripe_payment_id: session.payment_intent || session.id, stripe_event_id: eventId, status: 'active',
-  });
-  console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${aircraftRegistration})`);
-  return true;
 }
 
 // subscription.updated/deleted for PRO/BROKER → sync entitlement status (idempotent).

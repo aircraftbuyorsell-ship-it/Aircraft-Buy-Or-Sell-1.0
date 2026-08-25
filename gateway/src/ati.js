@@ -8,10 +8,17 @@
 //   the NUMBER    -> omvmV5Score in Base44. Deterministic arithmetic. The model
 //                    never sees a blank price field to fill in; it is handed the
 //                    figure and told not to change it.
-//   the JUDGEMENT -> Claude. Eight dimension scores and prose. Temperature 0.
+//   the JUDGEMENT -> Claude. Eight dimension scores and prose, cached against
+//                    a hash of the canonical input so a re-score of unchanged
+//                    input replays the identical judgement.
 //
 // The old pipeline asked one prompt for both, which is why the same aircraft
 // scored differently on consecutive runs.
+//
+// Reproducibility used to rest on temperature:0. claude-sonnet-5 removed that
+// parameter (HTTP 400, 'temperature is deprecated for this model'), so it now
+// rests on ABOS_ATI_CACHE instead. Same input, same score - enforced by the
+// cache rather than by sampling settings.
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-sonnet-5';

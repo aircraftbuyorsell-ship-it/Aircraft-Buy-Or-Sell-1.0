@@ -456,7 +456,12 @@ export async function handleAtiScore(request, env, baseUrl) {
     disclosure: {
       ai_generated: ['dimensions.*.notes', 'verdict', 'review_text', 'red_flags', 'strengths'],
       deterministic: ['ati_score', 'omvm.value'],
-      model: env.ATI_MODEL || DEFAULT_MODEL,
+      model,
+      // Whether this judgement came from the model on this request or was
+      // replayed from cache. Published rather than hidden: a reader comparing
+      // two identical cards is entitled to know the second one was not a
+      // second independent opinion.
+      cached: cached,
       notice: 'Dimension notes and narrative are AI-generated. The ATI total and the market valuation are computed, not generated.',
     },
     generated_at: new Date().toISOString(),

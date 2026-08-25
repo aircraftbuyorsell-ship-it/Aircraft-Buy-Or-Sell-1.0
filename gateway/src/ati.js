@@ -16,6 +16,18 @@
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-sonnet-5';
 
+// Bump this whenever buildSystemPrompt or the DIMENSIONS table changes. It is
+// stamped on every card AND mixed into the judgement cache key, so a revision
+// here is what retires previously cached judgements. Leaving it alone after a
+// prompt change would serve scores from the old rubric under the new version
+// number - the one failure mode this cache can produce.
+const SCORE_VERSION = 'ati-v2.1';
+
+// How long a cached judgement stays reproducible. Null = forever, which is the
+// strict reading of a transparency index. The default trades a little of that
+// for bounded KV growth; override with ATI_CACHE_TTL_SECONDS.
+const DEFAULT_CACHE_TTL = 60 * 60 * 24 * 180; // 180 days
+
 // Keys are the ATIPassport column names. The MEANINGS are the ones
 // orchestrateATIScoring uses, which is the canonical mapping — the same three
 // columns were being used for entirely different quantities by
@@ -372,7 +384,7 @@ export async function handleAtiScore(request, env, baseUrl) {
   const card = {
     status: 'ok',
     card_id: id,
-    score_version: 'ati-v2.1',
+    score_version: SCORE_VERSION,
     ati_score: total,
     score_label: label,
     dimensions,

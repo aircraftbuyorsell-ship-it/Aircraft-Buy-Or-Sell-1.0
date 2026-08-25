@@ -34,7 +34,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      - run: npm ci
+      # package.json is the source of truth for the Wrangler major version.
+      # npm install is intentional here because this gateway's existing lockfile
+      # was generated with Wrangler 3; install reconciles it to Wrangler 4 in CI.
+      - name: Install gateway dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify Wrangler
+        run: npx wrangler --version
       # Fail loudly before deploying if a required secret is missing, so a
       # misconfigured repo never ships a Worker with an empty gateway secret
       # or silently drops ANTHROPIC_API_KEY (which --keep-vars would otherwise
@@ -55,8 +61,7 @@ jobs:
           fi
       # CLOUDFLARE_API_TOKEN is scoped to the wrangler steps only, so it is never
       # exposed to npm lifecycle scripts during checkout / setup / install.
-      # --keep-vars preserves the existing GATEWAY_SECRET binding so it is not
-      # dropped between this deploy and the secret-put step below.
+      # --keep-vars preserves existing non-secret vars/bindings during deploy.
       - name: Deploy worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -348,11 +348,57 @@ export async function handleAtiScore(request, env, baseUrl) {
   }
 
   // 2. Judgement second, with the number pinned.
-  let scored;
-  try {
-    scored = await scoreWithClaude(env, aircraft, listingText, omvm);
-  } catch (err) {
-    return json({ error: 'scoring_failed', detail: err.message }, 502);
+  //
+  // The valuation is part of the key, not just the listing. scoreWithClaude
+  // feeds omvm into the prompt, so a judgement formed against one valuation
+  // cannot be replayed against another without the prose quietly citing a
+  // price that is no longer on the card. Keying on both means: same listing +
+  // same valuation -> byte-identical judgement, every time; a genuine move in
+  // the comparables re-scores, which is correct rather than a cache miss.
+  const canonical = canonicalise(aircraft, listingText);
+  const model = env.ATI_MODEL || DEFAULT_MODEL;
+  const valuationStamp = omvm.status === 'ok' ? `ok:${omvm.omvm_value}` : omvm.status;
+  const key = await judgementKey(`${canonical}|omvm=${valuationStamp}`, model);
+
+  // Callers can force a fresh judgement past the cache. Anything that is not
+  // strictly true stays cached - a stray 'refresh=0' must not re-score.
+  const bypassCache = body.refresh === true || body.no_cache === true;
+
+  let scored = null;
+  let cached = false;
+
+  if (env.ABOS_ATI_CACHE && !bypassCache) {
+    try {
+      const hit = await env.ABOS_ATI_CACHE.get(key, 'json');
+      if (hit && hit.dimensions) {
+        scored = hit;
+        cached = true;
+      }
+    } catch {
+      // A cache read failure must never cost the caller a score. Fall through
+      // to the model and let the request succeed unreproducibly rather than
+      // fail reproducibly.
+    }
+  }
+
+  if (!scored) {
+    try {
+      scored = await scoreWithClaude(env, aircraft, listingText, omvm);
+    } catch (err) {
+      return json({ error: 'scoring_failed', detail: err.message }, 502);
+    }
+
+    if (env.ABOS_ATI_CACHE) {
+      const ttl = Number(env.ATI_CACHE_TTL_SECONDS) || DEFAULT_CACHE_TTL;
+      try {
+        await env.ABOS_ATI_CACHE.put(key, JSON.stringify(scored), {
+          expirationTtl: ttl,
+        });
+      } catch {
+        // Same reasoning: an unwritten cache entry costs reproducibility on the
+        // next call, not this response.
+      }
+    }
   }
 
   // 3. Trust the arithmetic over the model's own total.
@@ -379,7 +425,7 @@ export async function handleAtiScore(request, env, baseUrl) {
       ? Number((((askingPrice - omvm.omvm_value) / omvm.omvm_value) * 100).toFixed(1))
       : null;
 
-  const id = await cardId(canonicalise(aircraft, listingText));
+  const id = await cardId(canonical);
 
   const card = {
     status: 'ok',

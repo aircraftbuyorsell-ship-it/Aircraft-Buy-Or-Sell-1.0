@@ -30,8 +30,8 @@ jobs:
           cache: npm
           cache-dependency-path: gateway/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies and refresh lock state
+        run: npm install --no-audit --no-fund
 
       - name: Verify Wrangler
         run: npx wrangler --version

@@ -76,11 +76,15 @@ jobs:
       # never been pushed there before, so push it whenever the GitHub
       # secret is present; skip (not fail) when it's absent.
       - name: Set Anthropic secret
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ANTHROPIC_API_KEY_VALUE: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: printf '%s' "$ANTHROPIC_API_KEY_VALUE" | npx wrangler secret put ANTHROPIC_API_KEY
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY_VALUE" ]; then
+            echo "Skipping: ANTHROPIC_API_KEY is not configured."
+          else
+            printf '%s' "$ANTHROPIC_API_KEY_VALUE" | npx wrangler secret put ANTHROPIC_API_KEY
+          fi
 
       - name: Smoke test
         run: |

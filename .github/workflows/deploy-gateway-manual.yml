@@ -31,7 +31,7 @@ jobs:
           cache-dependency-path: gateway/package-lock.json
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci
 
       - name: Verify Wrangler
         run: npx wrangler --version
@@ -62,10 +62,36 @@ jobs:
       - name: Deploy Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --keep-vars
+        run: npx wrangler deploy --keep-vars | tee deploy_output.txt
 
       - name: Set gateway secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GATEWAY_SECRET_VALUE: ${{ secrets.GATEWAY_SECRET }}
         run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET
+
+      # ATI narrative scoring (/ati/score) reads env.ANTHROPIC_API_KEY at
+      # request time and returns 503 when it's unset — it never blocks
+      # deploy. --keep-vars alone won't get it onto the Worker if it has
+      # never been pushed there before, so push it whenever the GitHub
+      # secret is present; skip (not fail) when it's absent.
+      - name: Set Anthropic secret
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ANTHROPIC_API_KEY_VALUE: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: printf '%s' "$ANTHROPIC_API_KEY_VALUE" | npx wrangler secret put ANTHROPIC_API_KEY
+
+      - name: Smoke test
+        run: |
+          WORKER_URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy_output.txt | head -1)
+          if [ -z "$WORKER_URL" ]; then
+            echo "::warning::Could not determine deployed worker URL from wrangler output; skipping smoke test."
+            exit 0
+          fi
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$WORKER_URL/.well-known/oauth-protected-resource")
+          echo "GET $WORKER_URL/.well-known/oauth-protected-resource -> HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Smoke test failed: expected HTTP 200 from oauth-protected-resource, got $STATUS"
+            exit 1
+          fi

@@ -17,6 +17,16 @@ account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 binding = "ABOS_AUDIT"
 id = "4d82602f2546446eb480fee148863922"
 
+# ATI judgement cache. claude-sonnet-5 dropped the `temperature` parameter, so
+# temperature:0 can no longer be what guarantees the same listing scores the
+# same twice. This replaces it: the model's eight dimension scores are cached
+# against a hash of the canonical input, so identical input returns the
+# identical judgement regardless of sampling. Unset just disables caching -
+# scoring still works, it simply stops being reproducible.
+[[kv_namespaces]]
+binding = "ABOS_ATI_CACHE"
+id = "93a7598bbc4a4b6bab83b55de3245340"
+
 [vars]
 # The app's published Base44 subdomain. It moved from 'aviation-marketspace'
 # to 'aircraftbuyorsell'; the old host now answers 404 "App not found" on

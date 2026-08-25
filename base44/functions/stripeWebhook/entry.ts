@@ -468,6 +468,13 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
 
   if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
   const email = meta.user_email || session.customer_email || session.customer_details?.email;
+  const aircraftRegistration = (meta.aircraft_registration || '').toUpperCase().trim();
+  const aircraftScopedProduct = !SUB_PRODUCT_KEYS.has(productKey);
+  if (aircraftScopedProduct && !aircraftRegistration) {
+    console.warn(`product checkout rejected: ${productKey} requires aircraft_registration`);
+    await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'ignored');
+    return true;
+  }
   if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'processed'))) {
     console.log(`Duplicate product checkout ignored: ${eventId}`);
     return true;
@@ -486,7 +493,7 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
 
   await base44.asServiceRole.entities.Entitlement.create({
     user_email: email, product_key: productKey, scope: 'aircraft',
-    aircraft_registration: (meta.aircraft_registration || '').toUpperCase(), source: 'stripe',
+    aircraft_registration: aircraftRegistration, source: 'stripe',
     stripe_payment_id: session.payment_intent || session.id, stripe_event_id: eventId, status: 'active',
   });
   console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${meta.aircraft_registration || 'global'})`);

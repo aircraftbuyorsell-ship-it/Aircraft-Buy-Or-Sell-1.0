@@ -484,6 +484,7 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
 
   if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
   const email = meta.user_email || session.customer_email || session.customer_details?.email;
+  if (!email) { console.warn('product checkout: no verified customer email'); return true; }
   const aircraftRegistration = (meta.aircraft_registration || '').toUpperCase().trim();
   const aircraftScopedProduct = !SUB_PRODUCT_KEYS.has(productKey);
   if (aircraftScopedProduct && !aircraftRegistration) {
@@ -495,8 +496,6 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
     console.log(`Duplicate product checkout ignored: ${eventId}`);
     return true;
   }
-  if (!email) { console.warn('product checkout: no email'); return true; }
-
   try {
     if (SUB_PRODUCT_KEYS.has(productKey)) {
       await base44.asServiceRole.entities.Entitlement.create({

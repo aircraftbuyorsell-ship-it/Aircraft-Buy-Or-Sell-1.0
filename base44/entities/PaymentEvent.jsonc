@@ -28,6 +28,7 @@
     "status": {
       "type": "string",
       "enum": [
+        "processing",
         "processed",
         "failed",
         "ignored"

@@ -505,10 +505,20 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
       });
       console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
     } else {
+      const paymentId = session.payment_intent || session.id;
+      const existingEntitlements = await base44.asServiceRole.entities.Entitlement.filter({
+        user_email: email, product_key: productKey, scope: 'aircraft',
+        aircraft_registration: aircraftRegistration, stripe_payment_id: paymentId,
+      }, '-created_date', 1);
+      if (existingEntitlements.length > 0) {
+        await finalizePaymentEvent(base44, eventId, 'processed');
+        console.log(`↩️ Existing entitlement reused: ${email} → ${productKey} (${aircraftRegistration})`);
+        return true;
+      }
       await base44.asServiceRole.entities.Entitlement.create({
         user_email: email, product_key: productKey, scope: 'aircraft',
         aircraft_registration: aircraftRegistration, source: 'stripe',
-        stripe_payment_id: session.payment_intent || session.id, stripe_event_id: eventId, status: 'active',
+        stripe_payment_id: paymentId, stripe_event_id: eventId, status: 'active',
       });
       console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${aircraftRegistration})`);
     }

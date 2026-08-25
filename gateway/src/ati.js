@@ -449,6 +449,13 @@ export async function handleAtiScore(request, env, baseUrl) {
     capex: scored.capex || null,
     omvm: {
       status: omvm.status,
+      // Why the valuation is missing, not just that it is. callBase44's error
+      // was being caught into omvm.message and then dropped before the card
+      // was built, so an engine_unavailable card looked identical whether the
+      // shared secret was wrong, the function 500'd, or there were simply no
+      // comparables. On a transparency product that is the wrong thing to
+      // hide. Only set on failure, so an ok card gains no new field.
+      ...(omvm.status !== 'ok' && omvm.message ? { detail: String(omvm.message).slice(0, 200) } : {}),
       value: omvm.status === 'ok' ? omvm.omvm_value : null,
       confidence: omvm.status === 'ok' ? omvm.confidence : null,
       comp_sample: omvm.comp_sample ?? 0,

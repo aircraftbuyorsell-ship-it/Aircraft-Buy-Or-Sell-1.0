@@ -27,7 +27,6 @@ import ATITrustBlock from "@/components/ati/ATITrustBlock";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
-import ATIGuideChat from "@/components/ati/ATIGuideChat";
 import GCRSection from "@/components/gcr/GCRSection";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
@@ -857,7 +856,6 @@ Return ONLY raw JSON:
       <UpgradeGate open={showGate} onClose={() => setShowGate(false)} feature="ati_passport_full"
         requiredTokens={TOKEN_COSTS.ati_passport_full} userTokens={tokens} isVerified={isVerified} />
       <ATIWizard open={wizardOpen} onClose={() => setWizardOpen(false)} listing={listing} />
-      {listing && <ATIGuideChat listing={listing} />}
     </div>
   );
 }

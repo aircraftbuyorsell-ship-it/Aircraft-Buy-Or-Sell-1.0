@@ -1,11 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
 
-// Server-side allowlist. Never trust a priceId supplied by the browser.
+// Server-side allowlist. Never trust a priceId (or any price/token amount) supplied by the browser.
 const PRICE_CONFIG = {
-  'price_1TaO0mAT7Be3WR6Jepz0eQQS': { tokens: 100, tier: 'pro', sub_tier: 'starter', product_key: 'ATI_SCORE' },
-  'price_1TaO1rAT7Be3WR6JaWnMa7mx': { tokens: 500, tier: 'pro', sub_tier: 'plus', product_key: 'ATI_FULL_REPORT' },
-  'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', product_key: 'PRO' },
+  'price_1TaO0mAT7Be3WR6Jepz0eQQS': { tokens: 100, tier: 'pro', sub_tier: 'starter', product_key: 'ATI_SCORE', price_usd: 29 },
+  'price_1TaO1rAT7Be3WR6JaWnMa7mx': { tokens: 500, tier: 'pro', sub_tier: 'plus', product_key: 'ATI_FULL_REPORT', price_usd: 99 },
+  'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', product_key: 'PRO', price_usd: 299 },
 };
 
 const BUYER_PLANS = {
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl, plan_type } = await req.json();
+    const { priceId, returnUrl, plan_type } = await req.json();
     if (!returnUrl || !allowedReturnOrigin(returnUrl)) return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
 
     const buyerPlan = BUYER_PLANS[plan_type];
@@ -61,7 +61,13 @@ Deno.serve(async (req) => {
       client_reference_id: user.id, line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
-      metadata: { user_id: user.id, user_email: user.email, pack_name: packName || '', tokens: String(configuredPrice.tokens), price_usd: String(configuredPrice.tokens ? (priceUsd || 0) : 0), tier: configuredPrice.tier, sub_tier: configuredPrice.sub_tier, product_key: configuredPrice.product_key },
+      // Only fields actually read downstream (stripeWebhook's handleProductCheckout /
+      // legacy token-purchase path) belong here — tokens/tier/sub_tier/price_usd used
+      // to be written from this endpoint but were never consumed by anything; the
+      // webhook always re-derives grant amounts itself from priceId (PRICE_TOKEN_MAP)
+      // or product_key (PRODUCT_KEYS), never from this metadata, so there is nothing
+      // left here for a caller to influence.
+      metadata: { user_id: user.id, user_email: user.email, product_key: configuredPrice.product_key },
     });
     return Response.json({ sessionId: session.id, sessionUrl: session.url });
   } catch (_) {

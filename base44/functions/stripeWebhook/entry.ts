@@ -192,7 +192,6 @@ async function handleCheckoutCompleted(session, base44, stripe, eventId) {
 
   const meta        = session.metadata || {};
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
-  const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
 
   // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)

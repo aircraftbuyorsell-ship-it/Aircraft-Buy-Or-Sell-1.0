@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
+import { mapListing } from '../_shared/listingMapper.mjs';
 
 const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
 const REPORT_CREDIT_PRICE_USD = 29;
@@ -17,27 +18,6 @@ function apiError(status, code, message) {
 
 function apiSuccess(data) {
   return Response.json({ status: 'success', data });
-}
-
-function mapListing(l) {
-  return {
-    id: l.id,
-    registration: l.registration || null,
-    aircraft: { manufacturer: l.make, model: l.model, year: l.year || null },
-    price: l.asking_price ? { value: l.asking_price, currency: l.currency || 'USD' } : null,
-    location: null,
-    status: l.status,
-    intelligence: {
-      ati_score: l.ati_score ?? null,
-      omvm_value: l.omvm_value ?? null,
-      deal_score: l.deal_score ?? null,
-      deal_label: l.deal_label || null,
-      discount_pct: l.discount_pct ?? null,
-    },
-    summary: l.ai_summary || null,
-    photo_url: l.photo_url || null,
-    created_at: l.created_date,
-  };
 }
 
 const PLAN_LIMITS = {

@@ -8,10 +8,24 @@ import {
   canTenantUseCapability,
   defaultCapabilitiesForPlan,
   checkRateLimit,
+  isValidTenantId,
+  validateProvisionRequest,
+  capabilityForEndpoint,
+  isKnownEndpoint,
+  listEndpoints,
   WHITE_LABEL_CAPABILITIES,
   PLAN_CAPABILITIES,
   PLAN_RATE_LIMITS,
 } from "../base44/functions/_shared/tenantLicense.mjs";
+
+const validProvisionInput = {
+  tenant_id: "skydeals_europe",
+  display_name: "SkyDeals Europe",
+  contact_email: "ops@skydealseurope.example",
+  plan: "professional",
+  agreement_version: "2026-08-26",
+  accepted_by_email: "legal@skydealseurope.example",
+};
 
 test("generateTenantApiKey produces a well-formed, unique key each time", () => {
   const a = generateTenantApiKey();
@@ -111,4 +125,122 @@ test("checkRateLimit enforces the daily cap independently of the minute window",
 test("checkRateLimit uses the free plan when given an unknown plan name", () => {
   const result = checkRateLimit(undefined, "not_a_real_plan", Date.now());
   assert.equal(result.limits, PLAN_RATE_LIMITS.free);
+});
+
+test("isValidTenantId enforces the slug format and rejects reserved names", () => {
+  assert.equal(isValidTenantId("skydeals_europe"), true);
+  assert.equal(isValidTenantId("a1b"), true);
+
+  assert.equal(isValidTenantId("SkyDeals"), false, "uppercase rejected");
+  assert.equal(isValidTenantId("1skydeals"), false, "must start with a letter");
+  assert.equal(isValidTenantId("sky-deals"), false, "hyphen rejected");
+  assert.equal(isValidTenantId("sky deals"), false, "space rejected");
+  assert.equal(isValidTenantId("ab"), false, "too short");
+  assert.equal(isValidTenantId("a".repeat(51)), false, "too long");
+  assert.equal(isValidTenantId("../etc/passwd"), false, "path traversal rejected");
+  assert.equal(isValidTenantId(""), false);
+  assert.equal(isValidTenantId(undefined), false);
+
+  for (const reserved of ["abos", "admin", "api", "core", "system", "www"]) {
+    assert.equal(isValidTenantId(reserved), false, `${reserved} must be reserved`);
+  }
+});
+
+test("validateProvisionRequest accepts a well-formed request and normalizes casing", () => {
+  const result = validateProvisionRequest({
+    ...validProvisionInput,
+    tenant_id: "  SkyDeals_Europe  ",
+    contact_email: "  OPS@SkyDealsEurope.example ",
+  });
+  assert.equal(result.valid, true, `unexpected errors: ${result.errors.join("; ")}`);
+  assert.equal(result.normalized.tenantId, "skydeals_europe");
+  assert.equal(result.normalized.contactEmail, "ops@skydealseurope.example");
+  assert.deepEqual(result.errors, []);
+});
+
+test("validateProvisionRequest requires a recorded contract acceptance", () => {
+  const noAgreement = validateProvisionRequest({ ...validProvisionInput, agreement_version: "" });
+  assert.equal(noAgreement.valid, false);
+  assert.ok(noAgreement.errors.some((e) => e.includes("agreement_version")));
+
+  const noSigner = validateProvisionRequest({ ...validProvisionInput, accepted_by_email: "" });
+  assert.equal(noSigner.valid, false);
+  assert.ok(noSigner.errors.some((e) => e.includes("accepted_by_email")));
+});
+
+test("validateProvisionRequest rejects bad plans, emails and tenant ids", () => {
+  const badPlan = validateProvisionRequest({ ...validProvisionInput, plan: "unlimited_free" });
+  assert.equal(badPlan.valid, false);
+  assert.ok(badPlan.errors.some((e) => e.includes("plan must be one of")));
+
+  const badEmail = validateProvisionRequest({ ...validProvisionInput, contact_email: "not-an-email" });
+  assert.equal(badEmail.valid, false);
+
+  const badId = validateProvisionRequest({ ...validProvisionInput, tenant_id: "abos" });
+  assert.equal(badId.valid, false);
+
+  const empty = validateProvisionRequest({});
+  assert.equal(empty.valid, false);
+  assert.ok(empty.errors.length >= 5, "an empty request should report every missing field");
+});
+
+test("validateProvisionRequest never throws on hostile input", () => {
+  for (const input of [null, undefined, "", 42, [], { tenant_id: { nested: true } }]) {
+    const result = validateProvisionRequest(input);
+    assert.equal(result.valid, false);
+    assert.ok(Array.isArray(result.errors));
+  }
+});
+
+test("capabilityForEndpoint maps every known endpoint to a real capability and is closed by default", () => {
+  assert.equal(capabilityForEndpoint("ati.score"), "ati_score");
+  assert.equal(capabilityForEndpoint("valuate"), "valuation");
+  assert.equal(capabilityForEndpoint("search"), "search");
+
+  assert.equal(capabilityForEndpoint("not.a.real.endpoint"), null);
+  assert.equal(capabilityForEndpoint(""), null);
+  assert.equal(capabilityForEndpoint(undefined), null);
+  assert.equal(isKnownEndpoint("not.a.real.endpoint"), false);
+
+  // Prototype keys must not leak through as "known" endpoints.
+  assert.equal(isKnownEndpoint("constructor"), false);
+  assert.equal(isKnownEndpoint("toString"), false);
+  assert.equal(capabilityForEndpoint("constructor"), null);
+
+  // Every mapped capability must be a real white-label capability.
+  for (const endpoint of listEndpoints()) {
+    const capability = capabilityForEndpoint(endpoint);
+    assert.ok(
+      WHITE_LABEL_CAPABILITIES.includes(capability),
+      `endpoint ${endpoint} maps to unknown capability ${capability}`,
+    );
+  }
+});
+
+test("starter plan cannot reach professional/enterprise-only endpoints", () => {
+  const starter = { status: "active", allowed_capabilities: [...PLAN_CAPABILITIES.starter] };
+  assert.equal(canTenantUseCapability(starter, capabilityForEndpoint("ati.score")), true);
+  assert.equal(canTenantUseCapability(starter, capabilityForEndpoint("valuate")), false);
+  assert.equal(canTenantUseCapability(starter, capabilityForEndpoint("intelligence.advanced")), false);
+
+  const enterprise = { status: "active", allowed_capabilities: [...PLAN_CAPABILITIES.enterprise] };
+  assert.equal(canTenantUseCapability(enterprise, capabilityForEndpoint("intelligence.advanced")), true);
+});
+
+test("lookup tables cannot resolve inherited Object.prototype members", () => {
+  // Regression: these tables were plain frozen object literals, so a
+  // caller-supplied key like "constructor" resolved to Object.prototype's
+  // member (truthy), letting plan:"constructor" pass validation and then
+  // crash provisioning on the capability spread.
+  for (const key of ["constructor", "toString", "hasOwnProperty", "__proto__", "valueOf"]) {
+    assert.equal(capabilityForEndpoint(key), null, `capabilityForEndpoint(${key})`);
+    assert.equal(isKnownEndpoint(key), false, `isKnownEndpoint(${key})`);
+
+    const result = validateProvisionRequest({ ...validProvisionInput, plan: key });
+    assert.equal(result.valid, false, `plan=${key} must be rejected`);
+
+    // Must fall back to least privilege rather than throwing.
+    assert.deepEqual(defaultCapabilitiesForPlan(key), [...PLAN_CAPABILITIES.starter]);
+    assert.equal(checkRateLimit(undefined, key, 1_000_000).limits, PLAN_RATE_LIMITS.free);
+  }
 });

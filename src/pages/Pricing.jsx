@@ -93,6 +93,7 @@ export default function Pricing() {
                 const owned = hasEntitlement(p.key);
                 const price = effectivePrice(p.key, data.active_sub_product);
                 const included = price?.included;
+                const free = !!p.free;
                 return (
                   <div key={p.key} className="rounded-2xl border bg-card p-5 flex flex-col">
                     <div className="flex items-center justify-between mb-3">
@@ -106,6 +107,8 @@ export default function Pricing() {
                     <div className="mb-3">
                       {included ? (
                         <span className="text-lg font-black text-green-600">Included</span>
+                      ) : free ? (
+                        <span className="text-lg font-black text-green-600">Free</span>
                       ) : (
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-black">{formatPrice(price.amount, price.currency)}</span>
@@ -122,10 +125,10 @@ export default function Pricing() {
                     </ul>
                     <button
                       onClick={() => buy(p.key)}
-                      disabled={buying === p.key || owned || included}
+                      disabled={buying === p.key || owned || included || free}
                       className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 bg-amber-500 hover:bg-amber-600 text-white"
                     >
-                      {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : owned ? "Purchased" : included ? "Included" : `Buy · ${formatPrice(price.amount, price.currency)}`}
+                      {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : owned ? "Purchased" : included ? "Included" : free ? "Free" : `Buy · ${formatPrice(price.amount, price.currency)}`}
                     </button>
                   </div>
                 );

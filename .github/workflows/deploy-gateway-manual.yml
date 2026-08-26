@@ -62,13 +62,13 @@ jobs:
       - name: Deploy Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --keep-vars | tee deploy_output.txt
+        run: npx wrangler deploy --config wrangler.toml --keep-vars | tee deploy_output.txt
 
       - name: Set gateway secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GATEWAY_SECRET_VALUE: ${{ secrets.GATEWAY_SECRET }}
-        run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET
+        run: printf '%s' "$GATEWAY_SECRET_VALUE" | npx wrangler secret put GATEWAY_SECRET --config wrangler.toml
 
       # ATI narrative scoring (/ati/score) reads env.ANTHROPIC_API_KEY at
       # request time and returns 503 when it's unset — it never blocks
@@ -83,7 +83,7 @@ jobs:
           if [ -z "$ANTHROPIC_API_KEY_VALUE" ]; then
             echo "Skipping: ANTHROPIC_API_KEY is not configured."
           else
-            printf '%s' "$ANTHROPIC_API_KEY_VALUE" | npx wrangler secret put ANTHROPIC_API_KEY
+            printf '%s' "$ANTHROPIC_API_KEY_VALUE" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.toml
           fi
 
       - name: Smoke test

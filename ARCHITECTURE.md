@@ -135,11 +135,57 @@ genuinely need independent versioning/release cadence from the core app.
 |---|---|
 | 0 — Discovery | Done |
 | 1 — Product spec | This document; living |
-| 2/3 — Foundation + core integration | Data model + entitlement engine done; HTTP wiring not started |
-| 4 — White-label UI | Not started |
-| 5 — License + distribution | Data model done; provisioning endpoint + package builder not started |
-| 6 — Installer | Not started |
-| 7 — SkyDeals reference tenant | Not started (no `Tenant` record created yet) |
-| 8 — Security review | Ongoing as each piece lands (see commit history for fixes already made to existing Stripe checkout metadata as a side effect of restoring full test coverage) |
-| 9 — Testing | Unit tests exist for what's built (`test/tenant-license.test.mjs`, `test/tenant-access-control.test.mjs`); integration/e2e not applicable until there's an endpoint to test against |
-| 10 — Release | Not started |
+| 2/3 — Foundation + core integration | Done — entities, entitlement engine, `tenantProvision`, `tenantCoreApi` |
+| 4 — White-label UI | Done — theme system, SDK, `AtiScoreCard`, `AircraftIntelligenceCard` |
+| 5 — License + distribution | Done — deterministic package builder, Partner Portal, credential rotation |
+| 6 — Installer | Done — 12-step CLI, 6 platform adapters, e2e verified |
+| 7 — SkyDeals reference tenant | **Config only.** `skydeals_europe.json` exists and packages build for it. No live `Tenant`/`License` record — that writes to production Base44 and needs the account owner. |
+| 8 — Security review | Ongoing per-piece (see §9). No dedicated adversarial pass yet. |
+| 9 — Testing | 134 tests, green on Node 18 and 22, including installer e2e and a full package round-trip |
+| 10 — Release | **Not started.** No v1.0.0 tag. |
+
+### What is NOT done, stated plainly
+
+The brief's Definition of Done is **not** met. Specifically:
+
+1. **No live SkyDeals tenant.** Provisioning writes to production Base44. The
+   code path is tested; it has not been run against production.
+2. **No Stripe products/prices for white-label plans.** What Starter /
+   Professional / Enterprise cost is a pricing decision, not an engineering
+   one. Until those exist, the payment → licence half of the commercial flow
+   cannot be wired.
+3. **`tenantCoreApi` serves listings only.** `ati.score`, `valuate`,
+   `passport.get`, `registry.lookup` and the intelligence endpoints are
+   capability-gated and return an honest 501. Wiring them means routing to the
+   existing Base44 scoring functions — deliberately deferred rather than
+   faked.
+4. **Contract acceptance is a mechanism, not a contract.** `ContractAcceptance`
+   records who accepted which version and when. It does not make the agreement
+   text legally reviewed or enforceable; that is still gated on the CZ legal
+   review already tracked on the platform roadmap.
+5. **Package delivery is manual.** The Portal shows what's available and the
+   builder produces checksummed archives, but there is no authenticated
+   download endpoint yet — packages are issued by an ABOS operator.
+6. **No v1.0.0 tag or GitHub release.**
+
+### Verified claims
+
+Everything below was executed, not asserted:
+
+- 134 tests pass on Node 18.20.5 and Node 22.
+- `npm run build` exits 0 with the Partner Portal in the bundle.
+- A package builds, its checksum verifies, `unzip` extracts it, the installer
+  runs **from the extracted package** into a throwaway Next.js project, and the
+  generated adapter proxies a live request with the key as a header while
+  rejecting a non-allowlisted endpoint.
+- Two builds of identical inputs are byte-identical.
+
+### Bugs found and fixed while building this
+
+| Bug | Impact |
+|---|---|
+| `npm test` globbed only `*.test.js` | 4 of 5 test files never ran in CI |
+| `metadata.price_usd` sourced from the client request body | Client-controlled value in Stripe's audit trail (not exploitable — nothing consumed it) |
+| Prototype-chain lookup on frozen object literals | `plan: "constructor"` passed validation, then crashed provisioning |
+| `0o100644 << 16` signed overflow | Zip writer produced an invalid external-attributes field |
+| Global `crypto` used in portable `.mjs` | Broke the suite on Node 18, which the CI matrix declares support for |

@@ -161,12 +161,11 @@ The brief's Definition of Done is **not** met. Specifically:
    cannot be wired.
 3. **`tenantCoreApi` does not serve every mapped endpoint yet.** Served:
    `whoami`, `search`, `listings.*`, `ati.score`, `valuate`, `ati.report`,
-   `ati.report.pro`. Still 501: `passport.get`, `registry.lookup`,
-   `intelligence.market`, `intelligence.advanced`. All four are
-   capability-gated and return an honest "not yet available" rather than an
-   empty success that looks like real data. `intelligence.market` is the one
-   that matters commercially — it is in the Professional plan's capability
-   set, so it is sold and not yet served.
+   `ati.report.pro`, `intelligence.market`. Still 501: `passport.get`,
+   `registry.lookup`, `intelligence.advanced`. All three are capability-gated
+   and return an honest "not yet available" rather than an empty success that
+   looks like real data. None of the three is in the Starter or Professional
+   capability set, so nothing currently sold is unserved.
 4. **Contract acceptance is a mechanism, not a contract.** `ContractAcceptance`
    records who accepted which version and when. It does not make the agreement
    text legally reviewed or enforceable; that is still gated on the CZ legal

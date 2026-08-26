@@ -167,3 +167,37 @@ test("the 501 fallback no longer claims to cover implemented endpoints", () => {
   assert.doesNotMatch(comment, /ati\.report/, "ati.report is served, not deferred");
   assert.match(comment, /passport\.get/, "the endpoints still deferred should stay listed");
 });
+
+test("intelligence.market aggregates only public listings", () => {
+  // computeMarketAnalytics reads the WHOLE pool with .list(), which is correct
+  // for ABOS's own dashboard and wrong here: aggregates over non-public
+  // listings would leak their existence, prices and volume to a tenant.
+  const start = tenantApi.indexOf("endpoint === 'intelligence.market'");
+  assert.ok(start > -1, "intelligence.market must be served");
+  const block = tenantApi.slice(start, start + 1600);
+  assert.match(block, /AircraftListing\.filter\(\s*\{ visibility: 'public' \}/);
+  assert.doesNotMatch(block, /AircraftListing\.list\(/, "must not read the unfiltered pool");
+});
+
+test("both surfaces compute market analytics from the one shared module", () => {
+  // Two copies of this arithmetic would drift, and a tenant being told a
+  // different median price than ABOS's own dashboard shows is the kind of
+  // discrepancy nobody notices until a customer does.
+  assert.match(tenantApi, /from '\.\.\/_shared\/marketAnalytics\.mjs'/);
+  assert.match(tenantApi, /computeMarketAnalytics\(listings, new Date\(\)\)/);
+});
+
+test("the market cache holds nothing tenant-specific", () => {
+  // One global entry is correct BECAUSE the payload describes ABOS's listing
+  // pool, not any tenant. A cache key derived from tenant data — or a payload
+  // that varied by tenant — would make this a cross-tenant leak.
+  const start = tenantApi.indexOf("MARKET_CACHE");
+  const block = tenantApi.slice(start, tenantApi.indexOf("intelligence.market") + 1600);
+  assert.doesNotMatch(block, /MARKET_CACHE\.(get|set)\([^'`]*tenant/i);
+  assert.match(tenantApi, /MARKET_CACHE\.get\('global'\)/);
+});
+
+test("tenants receive the mapped v1 contract, not the dashboard's internal shape", () => {
+  assert.match(tenantApi, /from '\.\.\/_shared\/marketIntelligenceMapper\.mjs'/);
+  assert.match(tenantApi, /mapMarketIntelligence\(analytics\)/);
+});

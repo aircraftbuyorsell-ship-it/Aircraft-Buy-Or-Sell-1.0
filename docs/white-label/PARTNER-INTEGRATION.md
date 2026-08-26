@@ -126,7 +126,24 @@ Both clients expose the same surface:
 | `valuate(params)` | `valuate` | `valuation` |
 | `call('ati.report', params)` | `ati.report` | `ati_basic_report` |
 | `call('ati.report.pro', params)` | `ati.report.pro` | `ati_pro_report` |
+| `call('intelligence.market')` | `intelligence.market` | `market_intelligence` |
 | `call(endpoint, params)` | any allowlisted | varies |
+
+### Market intelligence
+
+`intelligence.market` takes no parameters. It returns aggregate statistics over
+the **public** listings ABOS knows about: totals, median asking price, average
+ATI score, a twelve-month price trend, top models, days-on-market, and price
+trends by aircraft category.
+
+Two behaviours worth designing around:
+
+- **`sufficient_data` can be `false`.** Below a minimum sample size the
+  aggregates are omitted (`market: null`, empty arrays) and `note` explains
+  why. Render that state — do not treat a missing median as zero.
+- **Values are cached for up to five minutes** and are identical for every
+  tenant, since they describe ABOS's listing pool rather than anything about
+  you. `generated_at` tells you how fresh the sample is.
 
 ### ATI reports
 

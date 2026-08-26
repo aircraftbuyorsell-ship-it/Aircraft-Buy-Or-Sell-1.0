@@ -83,3 +83,45 @@ test("tenant API key plaintext is returned once and only its hash is stored", ()
   assert.doesNotMatch(provision, /key:\s*plaintext,\s*\n\s*status: 'active'/);
   assert.match(provision, /shown only once/);
 });
+
+test("valuate uses asServiceRole for the internal engine invoke", () => {
+  // This surface authenticates with x-abos-tenant-key, which Base44 knows
+  // nothing about, so the plain client carries no Base44 credentials and an
+  // internal invoke through it cannot resolve the app. abosCoreApi shipped
+  // this bug once already — valuate was the only broken endpoint on that
+  // whole surface — so it is guarded here rather than rediscovered.
+  assert.match(tenantApi, /base44\.asServiceRole\.functions\.invoke\('omvmV5Score'/);
+  assert.doesNotMatch(
+    tenantApi,
+    /base44\.functions\.invoke\('omvmV5Score'/,
+    "must not invoke the engine through the plain client",
+  );
+});
+
+test("valuate and ati.score never invent a number when ABOS has none", () => {
+  // A refused valuation and an unscored aircraft must be distinguishable from
+  // a genuinely low one — collapsing them would misrepresent an assessment to
+  // a buyer.
+  assert.match(tenantApi, /mapValuation\(v5, aircraft\)/);
+  assert.match(tenantApi, /scored: score !== null/);
+  assert.match(tenantApi, /has not been scored by ABOS yet/);
+  assert.doesNotMatch(tenantApi, /ati_score: score \|\| 0/);
+  assert.doesNotMatch(tenantApi, /ati_score: listing\.ati_score \|\| 0/);
+});
+
+test("ati.score only reads public, active listings", () => {
+  // Same visibility guard as every other read on this surface.
+  assert.match(tenantApi, /\{ registration, status: 'active', visibility: 'public' \}/);
+});
+
+test("both API surfaces shape valuations through the shared mapper", async () => {
+  // If either stops using it, the documented v1 contract can silently diverge
+  // between white-label and direct API customers.
+  const coreApi = await readFile(
+    new URL("../base44/functions/abosCoreApi/entry.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(coreApi, /mapValuation\(/);
+  assert.match(coreApi, /from '\.\.\/_shared\/valuationMapper\.mjs'/);
+  assert.match(tenantApi, /from '\.\.\/_shared\/valuationMapper\.mjs'/);
+});

@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 import { mapListing } from '../_shared/listingMapper.mjs';
+import { mapValuation } from '../_shared/valuationMapper.mjs';
 
 const VALID_SCOPES = ['listing:read', 'listing:write', 'search:read', 'intelligence:read', 'report:paid'];
 const REPORT_CREDIT_PRICE_USD = 29;
@@ -331,31 +332,16 @@ Return ONLY valid JSON.`,
 
       await trackUsage();
 
-      if (!v5 || v5.status === 'insufficient_comparables' || v5.omvm_value == null) {
-        return apiSuccess({
-          aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
-          estimated_value: null,
-          range: { min: null, max: null },
-          currency: 'USD',
-          confidence: null,
-          rationale: v5?.message || 'No comparable listings and no live market data — not enough evidence for a defensible valuation.',
-          model_version: 'omvm-v5',
-        });
-      }
-
-      const spread = Math.round(v5.omvm_value * 0.15);
-      return apiSuccess({
-        aircraft: { manufacturer, model, year: params.year || null, hours: params.hours || null },
-        estimated_value: v5.omvm_value,
-        range: {
-          min: v5.market_intelligence?.live_min_price ?? Math.max(0, v5.omvm_value - spread),
-          max: v5.market_intelligence?.live_max_price ?? v5.omvm_value + spread,
-        },
-        currency: 'USD',
-        confidence: typeof v5.confidence === 'string' ? v5.confidence.toLowerCase() : v5.confidence,
-        rationale: v5.market_intelligence?.notes || `OMVM v5 comp-based valuation (${v5.comp_sample ?? 0} comparable listing(s), ${v5.confidence || 'unknown'} confidence).`,
-        model_version: 'omvm-v5',
-      });
+      // Shaped by _shared/valuationMapper so this surface and the white-label
+      // tenant surface cannot drift on the documented v1 valuation contract.
+      // Behavior is unchanged: a refused valuation still returns a null value
+      // and the engine's reason rather than an invented number.
+      return apiSuccess(mapValuation(v5, {
+        manufacturer,
+        model,
+        year: params.year || null,
+        hours: params.hours || null,
+      }));
     }
 
     // ═══════════════ INTELLIGENCE — free-text listing extraction ═══════════════

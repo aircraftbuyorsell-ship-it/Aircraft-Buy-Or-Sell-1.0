@@ -8,6 +8,7 @@ import {
   listEndpoints,
 } from '../_shared/tenantLicense.mjs';
 import { mapListing } from '../_shared/listingMapper.mjs';
+import { mapValuation } from '../_shared/valuationMapper.mjs';
 
 /**
  * ABOS Core API — White-Label tenant surface.
@@ -152,10 +153,80 @@ async function handleEndpoint(endpoint: string, params: any, access: any): Promi
     return ok({ total: matches.length, listings: matches.slice(0, limit).map(mapListing) });
   }
 
-  // Remaining mapped endpoints (ati.score, ati.report, ati.report.pro,
-  // valuate, passport.get, registry.lookup, intelligence.*) are capability-
-  // gated above but not yet served here. Returning 501 is deliberate: a
-  // tenant whose license grants the capability gets an honest "not yet
-  // available" rather than a silent empty success that looks like real data.
+  if (endpoint === 'valuate') {
+    const manufacturer = String(params.manufacturer || '').trim();
+    const model = String(params.model || '').trim();
+    if (!manufacturer || !model) {
+      return fail(400, 'aircraft_required', "'params.manufacturer' and 'params.model' are required.");
+    }
+
+    const aircraft = {
+      manufacturer,
+      model,
+      year: Number.isFinite(Number(params.year)) ? Number(params.year) : null,
+      hours: Number.isFinite(Number(params.hours)) ? Number(params.hours) : null,
+    };
+
+    let v5: any;
+    try {
+      // MUST be asServiceRole. Like abosCoreApi, this is a key-authenticated
+      // surface: the caller presents x-abos-tenant-key, which Base44 knows
+      // nothing about, so the plain client carries no Base44 credentials and
+      // an internal invoke through it cannot resolve the app. abosCoreApi hit
+      // exactly this and left a comment about it — valuate was the only
+      // broken endpoint on that whole surface.
+      const response = await base44.asServiceRole.functions.invoke('omvmV5Score', {
+        aircraft: {
+          make: aircraft.manufacturer,
+          model: aircraft.model,
+          year: aircraft.year,
+          engine_hours: aircraft.hours,
+        },
+      });
+      v5 = response.data;
+    } catch (error) {
+      return fail(502, 'valuation_engine_unavailable', `OMVM engine call failed: ${(error as any)?.message}`);
+    }
+
+    // A refusal ("no defensible comparables") is a successful, meaningful
+    // answer, not an error — mapValuation returns it with a null value and
+    // the engine's reason rather than inventing a number.
+    return ok(mapValuation(v5, aircraft));
+  }
+
+  if (endpoint === 'ati.score') {
+    const registration = String(params.registration || '').trim().toUpperCase();
+    if (!registration) return fail(400, 'registration_required', "'params.registration' is required.");
+
+    // ATI scores are read from the stored listing rather than triggering a
+    // fresh scoring run: scoring is expensive, calls a model, and is
+    // orchestrated by ABOS on its own schedule. A tenant asking for a score
+    // gets the current authoritative one or an honest "not scored yet".
+    const listings = await base44.asServiceRole.entities.AircraftListing.filter(
+      { registration, status: 'active', visibility: 'public' }, '-created_date', 1,
+    );
+    const listing = listings[0];
+    if (!listing) return fail(404, 'aircraft_not_found', 'No public listing found for that registration.');
+
+    const score = listing.ati_score ?? null;
+    return ok({
+      registration,
+      ati_score: score,
+      // Explicitly distinguishes "we have not scored this" from a low score.
+      // Collapsing the two would let an unscored aircraft read as a bad one.
+      scored: score !== null,
+      omvm_value: listing.omvm_value ?? null,
+      deal_score: listing.deal_score ?? null,
+      deal_label: listing.deal_label || null,
+      summary: listing.ai_summary || null,
+      message: score === null ? 'This aircraft has not been scored by ABOS yet.' : null,
+    });
+  }
+
+  // Remaining mapped endpoints (ati.report, ati.report.pro, passport.get,
+  // registry.lookup, intelligence.*) are capability-gated above but not yet
+  // served here. Returning 501 is deliberate: a tenant whose license grants
+  // the capability gets an honest "not yet available" rather than a silent
+  // empty success that looks like real data.
   return fail(501, 'not_implemented', `Endpoint '${endpoint}' is not yet available on the white-label surface.`);
 }

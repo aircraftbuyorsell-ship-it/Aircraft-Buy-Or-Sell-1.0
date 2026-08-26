@@ -8,7 +8,8 @@ export const PRODUCT_CATALOG = [
     key: 'ATI_SCORE',
     name: 'ATI Score',
     type: 'one_time',
-    price_eur: 9.90,
+    price_eur: 0,
+    free: true,
     currency: 'eur',
     category: 'individual',
     icon: 'Shield',
@@ -22,7 +23,7 @@ export const PRODUCT_CATALOG = [
   },
   {
     key: 'ATI_BASIC_REPORT',
-    name: 'ATI Report — Level 2',
+    name: 'ATI Report',
     type: 'one_time',
     price_usd: 49.00,
     currency: 'usd',

@@ -8,10 +8,10 @@ import Stripe from 'npm:stripe@14.25.0';
  */
 
 const PRODUCT_CATALOG = {
-  ATI_BASIC_REPORT: { name: 'ATI Report — Level 2', type: 'one_time', price_usd: 49, currency: 'usd', stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki' },
+  ATI_BASIC_REPORT: { name: 'ATI Report', type: 'one_time', price_usd: 49, currency: 'usd', stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki' },
   ATI_PRO:          { name: 'ATI Pro — Investment Brief', type: 'one_time', price_usd: 199, currency: 'usd', stripe_price_id: 'price_1U7dkYAT7Be3WR6Jaf9jqrVV' },
   ATI_PRO_TAX:      { name: 'ATI Pro Tax — Tax & Insurance Upgrade', type: 'one_time', price_usd: 499, currency: 'usd', stripe_price_id: 'price_1U7dkbAT7Be3WR6JDOjfF3Eg' },
-  ATI_SCORE:        { name: 'ATI Score (legacy)', type: 'one_time', price_eur: 9.90, currency: 'eur', legacy: true },
+  ATI_SCORE:        { name: 'ATI Score', type: 'one_time', price_eur: 0, currency: 'eur', free: true },
   ATI_FULL_REPORT:  { name: 'ATI Full Report (legacy)', type: 'one_time', price_eur: 49.00, currency: 'eur', legacy: true },
   VALUATION_STUDIO: { name: 'Valuation Studio (legacy)', type: 'one_time', price_eur: 29.00, currency: 'eur', legacy: true },
   VERIFICATION_PACK:{ name: 'Verification Pack (legacy)', type: 'one_time', price_eur: 19.90, currency: 'eur', legacy: true },
@@ -80,6 +80,9 @@ async function requireEntitlement(svc, user, productKey, registration) {
   }
   if (isAdmin(user)) {
     return { ok: true, reason: 'admin_bypass', entitlement_id: null };
+  }
+  if (PRODUCT_CATALOG[productKey]?.free) {
+    return { ok: true, reason: 'free_product', entitlement_id: null };
   }
 
   const reg = (registration || '').toUpperCase().trim();
@@ -159,6 +162,10 @@ Deno.serve(async (req) => {
           return Response.json({ entitled: false, reason: 'unknown_product' }, { status: 400 });
         }
 
+        if (PRODUCT_CATALOG[product_key]?.free) {
+          return Response.json({ entitled: true, reason: 'free_product', active_sub_product: subProduct });
+        }
+
         const existingReports = reg
           ? await svc.entities.PurchasedReport.filter({ user_email: user.email, product_key, aircraft_registration: reg, status: 'ready' }, '-created_date', 1)
           : [];
@@ -196,6 +203,9 @@ Deno.serve(async (req) => {
         const { product_key, aircraft_registration, return_url } = body;
         const product = PRODUCT_CATALOG[product_key];
         if (!product) return Response.json({ error: 'Unknown product' }, { status: 400 });
+        if (product.free) {
+          return Response.json({ free: true, granted: true, product_key });
+        }
         if (!return_url) return Response.json({ error: 'Missing return_url' }, { status: 400 });
 
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));

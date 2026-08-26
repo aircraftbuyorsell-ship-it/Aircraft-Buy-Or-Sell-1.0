@@ -36,3 +36,21 @@ test("tenant access control delegates decisions to the shared pure module instea
   assert.match(source, /from '\.\/tenantLicense\.mjs'/);
   assert.match(source, /canUseCapabilityPure\(access\.license, capability\)/);
 });
+
+test("a key whose tenant disagrees with its licence's tenant is refused", () => {
+  // The tenant is resolved from the LICENCE, so a key pointing at another
+  // tenant's licence would otherwise operate as that tenant — reading their
+  // data and spending their quota. Nothing should be able to create such a
+  // pairing, so it is treated as corruption and refused rather than resolved
+  // in either direction.
+  assert.match(source, /apiKey\.tenant_id && apiKey\.tenant_id !== license\.tenant_id/);
+  assert.match(source, /status: 403/);
+  assert.match(source, /Credential is not valid for this licence/);
+
+  // The mismatch check must run BEFORE the tenant is loaded, so a mismatched
+  // key never reaches another tenant's record at all.
+  const mismatchIndex = source.indexOf("apiKey.tenant_id !== license.tenant_id");
+  const tenantLoadIndex = source.indexOf("entities.Tenant.filter");
+  assert.ok(mismatchIndex > -1 && tenantLoadIndex > mismatchIndex,
+    "the tenant must not be loaded before the key/licence tenant match is verified");
+});

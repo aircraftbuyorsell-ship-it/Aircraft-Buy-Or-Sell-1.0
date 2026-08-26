@@ -46,6 +46,20 @@ export async function resolveTenantAccess(req: Request): Promise<TenantAccess> {
     return { ok: false, status: 403, error: 'License is not active', base44, apiKey };
   }
 
+  // Defence in depth: the key and the licence each carry a tenant_id, and the
+  // tenant below is resolved from the LICENCE. If those two ever disagree —
+  // admin error, a bad migration, or some future provisioning path — the key
+  // would silently operate as whichever tenant the licence names, reading that
+  // tenant's data and spending their quota. Nothing should be able to create
+  // such a pairing (tenantProvision writes both from one value), so treat it
+  // as corruption and refuse rather than picking a side.
+  if (apiKey.tenant_id && apiKey.tenant_id !== license.tenant_id) {
+    console.error(
+      `Refusing tenant key ${apiKey.id}: key tenant '${apiKey.tenant_id}' does not match licence tenant '${license.tenant_id}'`,
+    );
+    return { ok: false, status: 403, error: 'Credential is not valid for this licence', base44, apiKey };
+  }
+
   const tenants = await base44.asServiceRole.entities.Tenant.filter({ tenant_id: license.tenant_id }, '-created_date', 1);
   const tenant = tenants[0];
   if (!tenant || tenant.status !== 'active') {

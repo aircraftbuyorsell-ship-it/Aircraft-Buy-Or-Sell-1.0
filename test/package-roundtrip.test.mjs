@@ -101,6 +101,18 @@ test("full journey: build package -> extract -> install -> working integration",
     assert.equal(contents.length, file.bytes, `${file.path} size does not match the manifest`);
   }
 
+  // ── 3b. Customer-facing documentation must actually be in the package ──
+  // The packager treats missing docs as a non-fatal note, so without this a
+  // package could quietly ship with no documentation at all.
+  for (const doc of ["README.md", "docs/INSTALLATION.md", "docs/PARTNER-INTEGRATION.md", "docs/SECURITY.md"]) {
+    const contents = await readFile(path.join(extractDir, doc), "utf8");
+    assert.ok(contents.length > 500, `${doc} is missing or a stub`);
+  }
+  // The security doc must state the one rule that matters most.
+  const securityDoc = await readFile(path.join(extractDir, "docs/SECURITY.md"), "utf8");
+  assert.match(securityDoc, /NEXT_PUBLIC_/, "must warn against public env prefixes");
+  assert.match(securityDoc, /server-side credential/i);
+
   // ── 4. The extracted package must carry no credentials ──
   const walk = async (dir) => {
     const out = [];

@@ -13,6 +13,7 @@ export default function Pricing() {
   const [buying, setBuying] = useState(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [isNewMember, setIsNewMember] = useState(false);
+  const [regPrompt, setRegPrompt] = useState(null); // { productKey, value } — aircraft-scoped one-time products need a tail number before checkout
 
   useEffect(() => {
     listMyEntitlements()
@@ -124,7 +125,7 @@ export default function Pricing() {
                       ))}
                     </ul>
                     <button
-                      onClick={() => buy(p.key)}
+                      onClick={() => setRegPrompt({ productKey: p.key, value: "" })}
                       disabled={buying === p.key || owned || included || free}
                       className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 bg-amber-500 hover:bg-amber-600 text-white"
                     >
@@ -190,6 +191,56 @@ export default function Pricing() {
             <Link to="/billing" className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:underline">
               Billing & Usage <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Aircraft registration prompt — one-time products are entitlements scoped to a single aircraft.
+          Without a registration here, Stripe would charge the card but the webhook has nothing to attach
+          the entitlement to, so the buyer would pay and receive no access. */}
+      {regPrompt && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+          onClick={() => setRegPrompt(null)}
+        >
+          <div className="relative w-full max-w-sm rounded-2xl bg-card border border-border shadow-2xl p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-sm font-black mb-1">Which aircraft is this for?</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              One-time purchases are tied to a specific tail number — you get free re-access to this product for that aircraft going forward.
+            </p>
+            <input
+              autoFocus
+              value={regPrompt.value}
+              onChange={(e) => setRegPrompt((r) => ({ ...r, value: e.target.value.toUpperCase() }))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && regPrompt.value.trim()) {
+                  const { productKey, value } = regPrompt;
+                  setRegPrompt(null);
+                  buy(productKey, value.trim());
+                }
+              }}
+              placeholder="e.g. N12345"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm mb-4 outline-none focus:border-amber-500"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setRegPrompt(null)} className="flex-1 py-2.5 rounded-xl text-xs font-bold border border-border hover:bg-muted transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const reg = regPrompt.value.trim();
+                  if (!reg) return;
+                  const { productKey } = regPrompt;
+                  setRegPrompt(null);
+                  buy(productKey, reg);
+                }}
+                disabled={!regPrompt.value.trim()}
+                className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50"
+              >
+                Continue to checkout
+              </button>
+            </div>
           </div>
         </div>
       )}

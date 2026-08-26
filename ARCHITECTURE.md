@@ -148,17 +148,25 @@ genuinely need independent versioning/release cadence from the core app.
 
 The brief's Definition of Done is **not** met. Specifically:
 
-1. **No live SkyDeals tenant.** Provisioning writes to production Base44. The
-   code path is tested; it has not been run against production.
+1. **SkyDeals has a Tenant record but no licence.** The `Tenant` row exists on
+   production Base44 with `status: 'pending'`. It has no `License` and no
+   `TenantApiKey`, because it has no `ContractAcceptance` — nobody has actually
+   accepted agreement version `2026-08-26`, and that version is still marked
+   NOT LEGALLY REVIEWED. Writing an acceptance record for an acceptance that
+   did not happen would forge the one thing the record exists to evidence, so
+   the remaining three writes wait on a real acceptance.
 2. **No Stripe products/prices for white-label plans.** What Starter /
    Professional / Enterprise cost is a pricing decision, not an engineering
    one. Until those exist, the payment → licence half of the commercial flow
    cannot be wired.
-3. **`tenantCoreApi` serves listings only.** `ati.score`, `valuate`,
-   `passport.get`, `registry.lookup` and the intelligence endpoints are
-   capability-gated and return an honest 501. Wiring them means routing to the
-   existing Base44 scoring functions — deliberately deferred rather than
-   faked.
+3. **`tenantCoreApi` does not serve every mapped endpoint yet.** Served:
+   `whoami`, `search`, `listings.*`, `ati.score`, `valuate`, `ati.report`,
+   `ati.report.pro`. Still 501: `passport.get`, `registry.lookup`,
+   `intelligence.market`, `intelligence.advanced`. All four are
+   capability-gated and return an honest "not yet available" rather than an
+   empty success that looks like real data. `intelligence.market` is the one
+   that matters commercially — it is in the Professional plan's capability
+   set, so it is sold and not yet served.
 4. **Contract acceptance is a mechanism, not a contract.** `ContractAcceptance`
    records who accepted which version and when. It does not make the agreement
    text legally reviewed or enforceable; that is still gated on the CZ legal

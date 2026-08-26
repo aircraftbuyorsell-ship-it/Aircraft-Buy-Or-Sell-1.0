@@ -124,7 +124,26 @@ Both clients expose the same surface:
 | `getListing(id)` | `listings.get` | `search` |
 | `atiScore(params)` | `ati.score` | `ati_score` |
 | `valuate(params)` | `valuate` | `valuation` |
+| `call('ati.report', params)` | `ati.report` | `ati_basic_report` |
+| `call('ati.report.pro', params)` | `ati.report.pro` | `ati_pro_report` |
 | `call(endpoint, params)` | any allowlisted | varies |
+
+### ATI reports
+
+`ati.report` takes `params.aircraft_data` — a free-text listing or spec dump —
+and optionally `params.registration`. It returns the assessment: total score,
+rating band, per-dimension scores, executive summary, extracted spec table and
+OMVM range.
+
+`ati.report.pro` returns the same assessment plus ABOS's reasoning: each
+dimension's justification, strengths, risks and missing data, and the
+recommendations. The score itself is identical between tiers — the tier
+changes how much analysis you receive, never the assessment.
+
+Report generation is LLM-backed and considerably slower and costlier than the
+other endpoints. It is billed through your plan rather than per report, so
+your licence's rate limit is what bounds it — budget for that when calling it
+on a user-facing path.
 
 ### Errors
 

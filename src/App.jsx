@@ -34,6 +34,7 @@ import AdminMarketplace from "./pages/AdminMarketplace";
 import AdminSettings from "./pages/AdminSettings";
 import DeveloperEarnings from "./pages/DeveloperEarnings";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
+import PartnerPortal from "./pages/PartnerPortal";
 
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
@@ -165,6 +166,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/developer-earnings" element={<DeveloperEarnings />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
+        <Route path="/partner-portal" element={<PartnerPortal />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/admin/listings" element={<AdminListings />} />
         <Route path="/feature-requests" element={<FeatureRequests />} />

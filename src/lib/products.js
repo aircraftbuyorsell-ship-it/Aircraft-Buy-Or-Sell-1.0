@@ -179,6 +179,11 @@ export function formatEur(amount) {
   return `€${Number(amount).toFixed(2)}`;
 }
 
+export function formatPrice(amount, currency = 'eur') {
+  const symbol = currency === 'usd' ? '$' : '€';
+  return `${symbol}${Number(amount).toFixed(2)}`;
+}
+
 export function formatProductPrice(product) {
   if (!product) return '';
   const amount = product.price_usd ?? product.price_eur;
@@ -190,11 +195,11 @@ export function formatProductPrice(product) {
 export function effectivePrice(productKey, activeSubProduct) {
   const p = getProduct(productKey);
   if (!p || p.type !== 'one_time') return null;
-  if (activeSubProduct && SUB_INCLUDED[activeSubProduct]?.includes(productKey)) {
-    return { eur: 0, included: true, original_eur: p.price_eur };
-  }
   const baseAmount = p.price_usd ?? p.price_eur;
   const currency = p.currency || 'eur';
+  if (activeSubProduct && SUB_INCLUDED[activeSubProduct]?.includes(productKey)) {
+    return { amount: 0, currency, included: true, original_amount: baseAmount, discount_pct: 0 };
+  }
   let amount = baseAmount;
   if (activeSubProduct && SUB_DISCOUNT[activeSubProduct]) {
     amount = +(baseAmount * (1 - SUB_DISCOUNT[activeSubProduct])).toFixed(2);

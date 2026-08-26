@@ -25,6 +25,8 @@ function frozenLookup(entries) {
   return Object.freeze(Object.assign(Object.create(null), entries));
 }
 
+import { webcrypto } from './webcrypto.mjs';
+
 export const WHITE_LABEL_CAPABILITIES = Object.freeze([
   'ati_score',
   'ati_basic_report',
@@ -66,7 +68,7 @@ function hex(bytes) {
  */
 export function generateTenantApiKey() {
   const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
+  webcrypto.getRandomValues(bytes);
   const plaintext = `${KEY_PREFIX}${hex(bytes)}`;
   return { plaintext, prefix: `${plaintext.slice(0, 20)}…` };
 }
@@ -74,7 +76,7 @@ export function generateTenantApiKey() {
 /** SHA-256 hex digest, using Web Crypto (available in both Deno and Node 18+). */
 export async function hashApiKey(plaintext) {
   const data = new TextEncoder().encode(String(plaintext || ''));
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const digest = await webcrypto.subtle.digest('SHA-256', data);
   return hex(new Uint8Array(digest));
 }
 

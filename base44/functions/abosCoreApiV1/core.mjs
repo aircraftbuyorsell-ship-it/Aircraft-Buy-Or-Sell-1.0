@@ -1,3 +1,5 @@
+import { webcrypto } from '../_shared/webcrypto.mjs';
+
 export class ApiError extends Error {
   constructor(status, code, message, details = {}) {
     super(message);
@@ -75,7 +77,7 @@ export function createRouter({ authenticate, listingRepository, aircraftReposito
   }
 
   return async function handle(request) {
-    const requestId = request.headers.get("x-request-id") || `req_${crypto.randomUUID()}`;
+    const requestId = request.headers.get("x-request-id") || `req_${webcrypto.randomUUID()}`;
     const origin = request.headers.get("origin");
     const headers = { "x-request-id": requestId, vary: "Origin" };
     if (origin && corsAllowlist.includes(origin)) headers["access-control-allow-origin"] = origin;
@@ -129,7 +131,7 @@ export function createRouter({ authenticate, listingRepository, aircraftReposito
         requireScope(principal, "intelligence:request");
         const result = await valuationProvider.valuate(normalizeValuation(await parseJson(request)));
         responseBody = {
-          valuation_id: `val_${crypto.randomUUID()}`,
+          valuation_id: `val_${webcrypto.randomUUID()}`,
           status: result.status,
           estimated_value: result.estimated_value ?? null,
           range: result.range ?? { minimum: null, maximum: null, currency: "USD" },

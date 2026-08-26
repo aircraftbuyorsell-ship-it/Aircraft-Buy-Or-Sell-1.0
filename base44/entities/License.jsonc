@@ -1,0 +1,90 @@
+{
+  "name": "License",
+  "type": "object",
+  "description": "A White-Label Toolset license: what a Tenant is entitled to use. The single authoritative source for tenant-level entitlement decisions — enforced server-side in tenantAccessControl.ts, never trusted from the client.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "References Tenant.tenant_id"
+    },
+    "plan": {
+      "type": "string",
+      "enum": ["starter", "professional", "enterprise"],
+      "description": "Commercial plan name — see _shared/tenantLicense.mjs PLAN_CAPABILITIES for the default capability set per plan"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "active", "suspended", "expired", "revoked"],
+      "default": "pending",
+      "description": "pending = created, contract/payment not yet confirmed; active = usable; suspended = temporarily blocked; expired = past expires_at; revoked = permanently terminated"
+    },
+    "allowed_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ati_score",
+          "ati_basic_report",
+          "ati_pro_report",
+          "valuation",
+          "aircraft_passport",
+          "n_reg_lookup",
+          "market_intelligence",
+          "advanced_intelligence",
+          "search"
+        ]
+      },
+      "description": "Capabilities this license grants. Defaults to the plan's capability set at creation, but can be adjusted per-license (e.g. add-ons)."
+    },
+    "api_rate_plan": {
+      "type": "string",
+      "enum": ["free", "pro", "enterprise"],
+      "default": "free",
+      "description": "Rate-limit tier applied to this license's API keys — same limits as the individual-developer ApiKey entity (free 20/min 500/day, pro 300/min 20k/day, enterprise custom)"
+    },
+    "version_channel": {
+      "type": "string",
+      "enum": ["stable", "beta"],
+      "default": "stable",
+      "description": "Which installer/package builder release channel this tenant receives"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When status first became 'active'"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional expiry. Absent = no fixed term."
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Stripe Customer id for this tenant's billing account"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe Subscription id backing this license, if plan is subscription-billed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Internal notes"
+    }
+  },
+  "required": ["tenant_id", "plan", "status"],
+  "rls": {
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
+    "read": {
+      "user_condition": { "role": "admin" }
+    },
+    "update": {
+      "user_condition": { "role": "admin" }
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

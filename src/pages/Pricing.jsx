@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ONE_TIME_PRODUCTS, SUBSCRIPTION_PRODUCTS, formatEur, effectivePrice } from "@/lib/products";
+import { ONE_TIME_PRODUCTS, SUBSCRIPTION_PRODUCTS, formatEur, formatPrice, effectivePrice } from "@/lib/products";
 import { listMyEntitlements, createCheckout, createCustomerPortal } from "@/lib/entitlements";
 import { ShieldCheck, Loader2, Check, Crown, Building, Lock, ArrowRight, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -108,8 +108,8 @@ export default function Pricing() {
                         <span className="text-lg font-black text-green-600">Included</span>
                       ) : (
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-black">{formatEur(price.eur)}</span>
-                          {price.discount_pct > 0 && <span className="text-xs line-through text-muted-foreground">{formatEur(price.original_eur)}</span>}
+                          <span className="text-2xl font-black">{formatPrice(price.amount, price.currency)}</span>
+                          {price.discount_pct > 0 && <span className="text-xs line-through text-muted-foreground">{formatPrice(price.original_amount, price.currency)}</span>}
                         </div>
                       )}
                     </div>
@@ -125,7 +125,7 @@ export default function Pricing() {
                       disabled={buying === p.key || owned || included}
                       className="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 bg-amber-500 hover:bg-amber-600 text-white"
                     >
-                      {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : owned ? "Purchased" : included ? "Included" : `Buy · ${formatEur(price.eur)}`}
+                      {buying === p.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : owned ? "Purchased" : included ? "Included" : `Buy · ${formatPrice(price.amount, price.currency)}`}
                     </button>
                   </div>
                 );

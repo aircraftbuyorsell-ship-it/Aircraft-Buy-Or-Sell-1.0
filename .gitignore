@@ -30,3 +30,6 @@ dist-ssr
 .env
 .vite
 base44/.app.jsonc
+
+# Claude Code agent worktrees (local scratch space, not repo content)
+.claude/worktrees/

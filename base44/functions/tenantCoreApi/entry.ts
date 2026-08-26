@@ -9,6 +9,17 @@ import {
 } from '../_shared/tenantLicense.mjs';
 import { mapListing } from '../_shared/listingMapper.mjs';
 import { mapValuation } from '../_shared/valuationMapper.mjs';
+import { mapReport, hasUsableReport } from '../_shared/reportMapper.mjs';
+import { computeMarketAnalytics } from '../_shared/marketAnalytics.mjs';
+import { mapMarketIntelligence } from '../_shared/marketIntelligenceMapper.mjs';
+
+// Aggregate market data is identical for every tenant — it describes ABOS's
+// listing pool, not anything tenant-specific — so one global cache entry is
+// correct and carries no cross-tenant leak: there is nothing per-tenant in it
+// to leak. Mirrors computeMarketAnalytics' own 5-minute TTL. Without this,
+// every intelligence.market call would re-read and re-aggregate 1000 listings.
+const MARKET_CACHE = new Map(); // key: 'global', value: { at: ms, data }
+const MARKET_TTL_MS = 5 * 60 * 1000;
 
 /**
  * ABOS Core API — White-Label tenant surface.
@@ -223,10 +234,72 @@ async function handleEndpoint(endpoint: string, params: any, access: any): Promi
     });
   }
 
-  // Remaining mapped endpoints (ati.report, ati.report.pro, passport.get,
-  // registry.lookup, intelligence.*) are capability-gated above but not yet
-  // served here. Returning 501 is deliberate: a tenant whose license grants
-  // the capability gets an honest "not yet available" rather than a silent
-  // empty success that looks like real data.
+  if (endpoint === 'ati.report' || endpoint === 'ati.report.pro') {
+    const aircraftData = String(params.aircraft_data || '').trim();
+    if (!aircraftData) {
+      return fail(400, 'aircraft_data_required', "'params.aircraft_data' is required (free-text listing / spec dump).");
+    }
+
+    // No per-report credit check here, unlike abosCoreApi's report.get. A
+    // tenant pays by subscription, not per report, so the licence capability
+    // IS the entitlement — already enforced above. The cost control is the
+    // licence's rate plan, applied in resolveTenantAccess; report generation
+    // is LLM-heavy, so that limit is doing real work on this endpoint.
+    let raw: any;
+    try {
+      // asServiceRole for the same reason as valuate: the caller authenticated
+      // with x-abos-tenant-key, which Base44 knows nothing about, so the plain
+      // client carries no Base44 credentials and cannot resolve the app.
+      const response = await base44.asServiceRole.functions.invoke('atiReportScoreInternal', {
+        aircraft_data: aircraftData,
+        registration: String(params.registration || '').trim() || undefined,
+      });
+      raw = response.data;
+    } catch (error) {
+      return fail(502, 'report_engine_unavailable', `ATI report scoring failed: ${(error as any)?.message}`);
+    }
+
+    // atiReportScoreInternal reports failure as a property, not a throw, so
+    // this must be checked explicitly — otherwise a failed run would be mapped
+    // into a report-shaped object with a null score and read as a real answer.
+    if (!hasUsableReport(raw)) {
+      return fail(502, 'report_generation_failed', raw?.error || 'ATI report scoring returned no usable result.');
+    }
+
+    return ok(mapReport(raw, endpoint === 'ati.report.pro' ? 'pro' : 'basic'));
+  }
+
+  if (endpoint === 'intelligence.market') {
+    let analytics: any;
+    const cached = MARKET_CACHE.get('global');
+    if (cached && Date.now() - cached.at < MARKET_TTL_MS) {
+      analytics = cached.data;
+    } else {
+      try {
+        // Same aggregation code the ABOS dashboard runs, over a DIFFERENT set
+        // of listings — and that difference is deliberate. computeMarketAnalytics
+        // reads the whole pool with .list(), which is right for ABOS's own
+        // dashboard and wrong here: aggregates over non-public listings would
+        // leak their existence, prices and volume to a tenant. Sold listings
+        // are kept (they are public history, and dropping them would zero the
+        // sold count and gut days-on-market), private ones are not.
+        const listings = await base44.asServiceRole.entities.AircraftListing.filter(
+          { visibility: 'public' }, '-created_date', 1000,
+        );
+        analytics = computeMarketAnalytics(listings, new Date());
+      } catch (error) {
+        return fail(502, 'market_data_unavailable', `Market aggregation failed: ${(error as any)?.message}`);
+      }
+      MARKET_CACHE.set('global', { at: Date.now(), data: analytics });
+    }
+
+    return ok(mapMarketIntelligence(analytics));
+  }
+
+  // Remaining mapped endpoints (passport.get, registry.lookup,
+  // intelligence.advanced) are capability-gated above but not yet served here.
+  // Returning 501 is deliberate: a tenant whose license grants the capability
+  // gets an honest "not yet available" rather than a silent empty success that
+  // looks like real data.
   return fail(501, 'not_implemented', `Endpoint '${endpoint}' is not yet available on the white-label surface.`);
 }

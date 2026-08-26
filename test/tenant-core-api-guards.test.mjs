@@ -125,3 +125,79 @@ test("both API surfaces shape valuations through the shared mapper", async () =>
   assert.match(coreApi, /from '\.\.\/_shared\/valuationMapper\.mjs'/);
   assert.match(tenantApi, /from '\.\.\/_shared\/valuationMapper\.mjs'/);
 });
+
+test("ati.report uses asServiceRole for the report engine invoke", () => {
+  // Same failure mode valuate hit: this surface authenticates with
+  // x-abos-tenant-key, which Base44 knows nothing about, so the plain client
+  // carries no Base44 credentials and an internal invoke through it cannot
+  // resolve the app.
+  const invokeIndex = tenantApi.indexOf("invoke('atiReportScoreInternal'");
+  assert.ok(invokeIndex > -1, "ati.report must invoke the report engine");
+  const before = tenantApi.slice(Math.max(0, invokeIndex - 120), invokeIndex);
+  assert.match(before, /asServiceRole\.functions\./);
+});
+
+test("ati.report refuses to pass an engine failure off as a report", () => {
+  // atiReportScoreInternal returns { error } instead of throwing, so a
+  // try/catch alone would map a failure into a report-shaped object with a
+  // null score — indistinguishable to a tenant from a real assessment.
+  assert.match(tenantApi, /hasUsableReport\(raw\)/);
+  assert.match(tenantApi, /report_generation_failed/);
+  assert.match(tenantApi, /report_engine_unavailable/);
+});
+
+test("the pro report tier is granted only by the pro endpoint", () => {
+  // The tier string must be derived from the endpoint (whose capability is
+  // gated above), never from anything in the request body.
+  assert.match(tenantApi, /endpoint === 'ati\.report\.pro' \? 'pro' : 'basic'/);
+  assert.doesNotMatch(tenantApi, /params\.tier/);
+});
+
+test("report responses are shaped by the shared mapper, not built inline", () => {
+  assert.match(tenantApi, /from '\.\.\/_shared\/reportMapper\.mjs'/);
+  assert.match(tenantApi, /mapReport\(raw,/);
+});
+
+test("the 501 fallback no longer claims to cover implemented endpoints", () => {
+  // A stale comment here is how an implemented endpoint gets re-broken: the
+  // next person reads it and assumes the fallback still owns those names.
+  const start = tenantApi.indexOf("// Remaining mapped endpoints");
+  assert.ok(start > -1, "the 501 fallback should still explain which endpoints it covers");
+  const comment = tenantApi.slice(start, tenantApi.indexOf("not_implemented", start));
+  assert.doesNotMatch(comment, /ati\.report/, "ati.report is served, not deferred");
+  assert.match(comment, /passport\.get/, "the endpoints still deferred should stay listed");
+});
+
+test("intelligence.market aggregates only public listings", () => {
+  // computeMarketAnalytics reads the WHOLE pool with .list(), which is correct
+  // for ABOS's own dashboard and wrong here: aggregates over non-public
+  // listings would leak their existence, prices and volume to a tenant.
+  const start = tenantApi.indexOf("endpoint === 'intelligence.market'");
+  assert.ok(start > -1, "intelligence.market must be served");
+  const block = tenantApi.slice(start, start + 1600);
+  assert.match(block, /AircraftListing\.filter\(\s*\{ visibility: 'public' \}/);
+  assert.doesNotMatch(block, /AircraftListing\.list\(/, "must not read the unfiltered pool");
+});
+
+test("both surfaces compute market analytics from the one shared module", () => {
+  // Two copies of this arithmetic would drift, and a tenant being told a
+  // different median price than ABOS's own dashboard shows is the kind of
+  // discrepancy nobody notices until a customer does.
+  assert.match(tenantApi, /from '\.\.\/_shared\/marketAnalytics\.mjs'/);
+  assert.match(tenantApi, /computeMarketAnalytics\(listings, new Date\(\)\)/);
+});
+
+test("the market cache holds nothing tenant-specific", () => {
+  // One global entry is correct BECAUSE the payload describes ABOS's listing
+  // pool, not any tenant. A cache key derived from tenant data — or a payload
+  // that varied by tenant — would make this a cross-tenant leak.
+  const start = tenantApi.indexOf("MARKET_CACHE");
+  const block = tenantApi.slice(start, tenantApi.indexOf("intelligence.market") + 1600);
+  assert.doesNotMatch(block, /MARKET_CACHE\.(get|set)\([^'`]*tenant/i);
+  assert.match(tenantApi, /MARKET_CACHE\.get\('global'\)/);
+});
+
+test("tenants receive the mapped v1 contract, not the dashboard's internal shape", () => {
+  assert.match(tenantApi, /from '\.\.\/_shared\/marketIntelligenceMapper\.mjs'/);
+  assert.match(tenantApi, /mapMarketIntelligence\(analytics\)/);
+});

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   Building2, KeyRound, Download, ShieldCheck, AlertTriangle, Loader2,
-  Copy, Check, RefreshCw, FileText, BookOpen, XCircle, Clock,
+  Copy, Check, RefreshCw, FileText, BookOpen, XCircle, Clock, CreditCard,
 } from "lucide-react";
 
 /**
@@ -281,6 +281,75 @@ export default function PartnerPortal() {
                 Capabilities are enforced by the ABOS API on every request, not by your integration.
               </p>
             </div>
+          </>
+        )}
+      </Card>
+
+      {/* ── Subscription & Payment ── */}
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="w-4 h-4 opacity-60" />
+          <h2 className="font-semibold">Subscription &amp; Payment</h2>
+        </div>
+
+        {!license ? (
+          <p className="text-sm opacity-70">
+            No subscription is active yet. Contact your ABOS representative to set up billing.
+          </p>
+        ) : (
+          <>
+            <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm mb-4">
+              <div>
+                <dt className="text-xs opacity-50 mb-0.5">Billing Cycle</dt>
+                <dd className="font-semibold capitalize">{license.billing_cycle || "Annual"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs opacity-50 mb-0.5">Amount</dt>
+                <dd className="font-semibold">
+                  {license.amount ? `$${(license.amount / 100).toFixed(2)}` : "Custom pricing"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs opacity-50 mb-0.5">Next Billing</dt>
+                <dd>{license.next_billing_date ? formatDate(license.next_billing_date) : "—"}</dd>
+              </div>
+            </dl>
+
+            {license.trial_end && new Date(license.trial_end) > new Date() && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-900">
+                  <strong>Trial period active</strong><br />
+                  Trial ends on {formatDate(license.trial_end)}
+                </p>
+              </div>
+            )}
+
+            {license.status === "active" && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.open('https://billing.stripe.com/self', '_blank')}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                  style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+                >
+                  Manage Billing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/plans'}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                  style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+                >
+                  Change Plan
+                </button>
+              </div>
+            )}
+
+            {license.status !== "active" && (
+              <p className="text-xs opacity-60">
+                Payment management is available once your subscription is active.
+              </p>
+            )}
           </>
         )}
       </Card>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
+import { normalizePaymentError, logPaymentError } from "@/utils/paymentErrors";
 
 export default function PlanCheckoutButton({ planType, label = "Subscribe", variant = "default", returnUrl, onCheckoutStarted }) {
   const [loading, setLoading] = useState(false);
@@ -48,8 +49,8 @@ export default function PlanCheckoutButton({ planType, label = "Subscribe", vari
         return;
       }
 
-      const errorMsg = e?.response?.data?.error || e?.message || "Could not start checkout. Please try again.";
-      console.error("Checkout error:", e);
+      const errorMsg = normalizePaymentError(e);
+      logPaymentError('checkout_button_click', e);
       setError(errorMsg);
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import {
   resolveTenantAccess,
   requireTenantCapability,
@@ -50,6 +51,45 @@ function fail(status: number, code: string, message: string, extra: Record<strin
 }
 
 Deno.serve(async (req: Request) => {
+  // Download installer endpoint (special: returns binary, not JSON)
+  if (req.method === 'POST' && req.url.includes('/download-installer')) {
+    try {
+      const base44 = createClientFromRequest(req);
+      const tenantAccess = await resolveTenantAccess(req);
+      if (!tenantAccess.ok) {
+        return fail(tenantAccess.status, 'unauthorized', tenantAccess.error || 'Unauthorized');
+      }
+
+      const { tenant, license } = tenantAccess;
+      if (!license) return fail(403, 'no_license', 'Tenant has no active license.');
+
+      // For demo: just serve the pre-built package from dist-packages
+      // Real implementation would look up tenant-specific package or rebuild
+      const packageName = `ABOS-SkyDeals-Europe-v1.0.0.zip`;
+      const packagePath = `./dist-packages/${packageName}`;
+
+      try {
+        const pkg = await Deno.readFile(packagePath);
+        console.log(`Installer download: ${tenant.tenant_id} - ${packageName} (${pkg.length} bytes)`);
+        return new Response(pkg, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/zip',
+            'Content-Disposition': `attachment; filename="${packageName}"`,
+            'Content-Length': String(pkg.length),
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+        });
+      } catch (e) {
+        console.error('Package file not found:', packagePath, e);
+        return fail(404, 'package_not_found', `Installer package not available.`);
+      }
+    } catch (error) {
+      console.error('Download endpoint error:', (error as any)?.message);
+      return fail(500, 'download_failed', `Failed to process download request.`);
+    }
+  }
+
   const requestId = crypto.randomUUID();
   const started = Date.now();
   let access: any = null;

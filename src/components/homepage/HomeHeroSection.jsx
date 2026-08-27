@@ -20,19 +20,19 @@ export default function HomeHeroSection() {
           {/* Left: Text content */}
           <div className="flex flex-col items-start text-left order-2 lg:order-1">
             <span className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Price it right. Verify the tail.
+              Know before you buy. Not just the listing price.
             </span>
             <h1 className="mb-5 tracking-[-0.02em] leading-[1.05] text-foreground"
             style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700 }}>
-              Price any aircraft<br />by its real condition.
+              Know the real condition<br />of any aircraft.
             </h1>
             <p className="mb-7 max-w-[480px] text-[15px] leading-relaxed text-muted-foreground sm:text-[17px]">
-              Enter a tail number to pull registry &amp; maintenance data, then get a market value that reflects the aircraft's actual condition — not just the listing price.
+              Enter a tail number and get a free ATI Score in seconds — registry data, maintenance signals, and objective risk indicators. Need the full picture? Unlock a complete due-diligence report for one aircraft at a time.
             </p>
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link to="/valuation-studio"
+              <Link to="/ati-verify"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
-                <Search className="h-5 w-5" /> Check aircraft price
+                <Search className="h-5 w-5" /> Get ATI Score free
               </Link>
               <Link to="/n-lookup"
               className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground transition-colors">

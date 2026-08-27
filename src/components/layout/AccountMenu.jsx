@@ -6,6 +6,8 @@ import {
   ChevronDown, LayoutDashboard, User, CreditCard, Zap, Users, FileText,
   GitBranch, BadgeCheck, Shield, Plane, Database, LogOut, Building2, Wand2,
 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
+import { unwrapPortalResponse } from "@/utils/portalEnvelope";
 
 function initials(user) {
   const name = user?.full_name || user?.email || "?";
@@ -79,14 +81,14 @@ export default function AccountMenu({ user }) {
     queryKey: ["tenantPortal"],
     queryFn: async () => {
       const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
-      return response.data;
+      return unwrapPortalResponse(response);
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
 
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isAdmin = isAdminRole(user);
   const groups = [
     ...BASE_GROUPS,
     ...(partner?.tenant ? [PARTNER_GROUP] : []),

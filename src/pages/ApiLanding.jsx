@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
 import { Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Mail, Search, LockKeyhole, FileJson, Download, Loader2 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 const CARD_BORDER = "rgba(255,255,255,0.09)";
 const AMBER = "#f5c242";
@@ -26,7 +27,7 @@ export default function ApiLanding() {
   const [error, setError] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("");
-  const isStaff = isAuthenticated && (user?.role === "admin" || user?.role === "super_admin");
+  const isStaff = isAuthenticated && isAdminRole(user);
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
   const submitRequest = async e => {
     e.preventDefault(); setError("");

@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import ATICardBlock from "@/components/dashboard/ATICardBlock";
 import { maskOwnerName } from "@/lib/privacy";
+import { isAdminRole } from "@/utils/roles";
 
 const ROLE_ICONS = { dealer: ShoppingCart, broker: Building, fbo: MapPin, maintenance: Wrench, other: Cog };
 const ROLE_LABELS = { dealer: "dealers", broker: "brokers", fbo: "FBOs", maintenance: "maintenance shops", other: "services" };
@@ -68,8 +69,7 @@ export default function RegistryResultOverlay({
   const statusStyle = FAA_STATUS_STYLE[result.status] || null;
   const isOwnerOrBroker = userProfile && listingMatch && (
     listingMatch.owner === userProfile.id ||
-    userProfile.role === "admin" ||
-    userProfile.role === "super_admin" ||
+    isAdminRole(userProfile) ||
     userProfile.role === "broker"
   );
   const isActive = result?.status === "active" || result?.status === "V";

@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
+import { isAdminRole } from "@/utils/roles";
 
 const STATUS_OPTIONS = ["active", "sold", "draft"];
 const ATI_PRESETS = [
@@ -57,7 +58,7 @@ export default function AdminListings() {
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ["admin-all-listings"],
     queryFn: () => base44.entities.AircraftListing.list("-created_date", 500),
-    enabled: currentUser?.role === "admin",
+    enabled: isAdminRole(currentUser),
   });
 
   const filtered = useMemo(() => listings.filter(l => {

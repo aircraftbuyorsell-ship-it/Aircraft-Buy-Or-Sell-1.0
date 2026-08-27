@@ -6,6 +6,7 @@ import {
   Plane, Radar, Zap, ShoppingCart, BarChart3,
   Shield, Settings, Database, Trash2, Menu, X
 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 const NAV_LINKS = [
   { to: "/listings",       icon: Plane,       label: "Listings" },
@@ -32,7 +33,7 @@ export default function GlobeNav({ isDark }) {
     retry: false,
     staleTime: 60000,
   });
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user);
 
   const glassBg = isDark
     ? "rgba(255,255,255,0.08)"

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Zap, Crown, ArrowRight } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 // Free plan: 100 starter credits · ABOS Pro: €350/month unlimited pipelines
 export default function PipelinePlanBanner() {
@@ -20,7 +21,7 @@ export default function PipelinePlanBanner() {
   if (!user) return null;
 
   const tier = user.subscription_tier || user.tier || "free_explorer";
-  const isPro = tier === "pro" || tier === "enterprise" || user.role === "admin";
+  const isPro = tier === "pro" || tier === "enterprise" || isAdminRole(user);
   const balance = lastTx?.[0]?.balance_after ?? 100;
 
   return (

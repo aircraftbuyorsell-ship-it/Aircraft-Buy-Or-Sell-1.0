@@ -6,6 +6,7 @@ import {
   Building2, KeyRound, Download, ShieldCheck, AlertTriangle, Loader2,
   Copy, Check, RefreshCw, FileText, BookOpen, XCircle, Clock, CreditCard, Wand2,
 } from "lucide-react";
+import { unwrapPortalResponse } from "@/utils/portalEnvelope";
 
 /**
  * ABOS Partner Portal.
@@ -123,10 +124,7 @@ export default function PartnerPortal() {
     queryKey: ["tenantPortal"],
     queryFn: async () => {
       const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
-      if (response?.status !== "success") {
-        throw new Error(response?.error?.message || "Unable to load the Partner Portal.");
-      }
-      return response.data;
+      return unwrapPortalResponse(response);
     },
   });
 
@@ -136,10 +134,7 @@ export default function PartnerPortal() {
         action: "rotate_key",
         tenant_id: data?.tenant?.tenant_id,
       });
-      if (response?.status !== "success") {
-        throw new Error(response?.error?.message || "Could not issue a new key.");
-      }
-      return response.data;
+      return unwrapPortalResponse(response);
     },
     onSuccess: (result) => {
       setNewKey(result.api_key);
@@ -154,10 +149,7 @@ export default function PartnerPortal() {
         tenant_id: data?.tenant?.tenant_id,
         key_id: keyId,
       });
-      if (response?.status !== "success") {
-        throw new Error(response?.error?.message || "Could not revoke that key.");
-      }
-      return response.data;
+      return unwrapPortalResponse(response);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenantPortal"] }),
   });

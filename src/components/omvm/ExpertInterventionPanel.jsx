@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { UserCheck, Plus, Loader2, TestTube2 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 const FACTORS = ["engine", "avionics", "airframe", "damage", "market_timing", "region", "paint_interior", "stc_mods", "usage", "other"];
 
@@ -38,7 +39,7 @@ export default function ExpertInterventionPanel({ target, modelOMVM, calibration
         expert_omvm: expert,
         delta_pct,
         expert_email: me?.email,
-        expert_role: me?.role === "admin" ? "admin" : "appraiser",
+        expert_role: isAdminRole(me) ? "admin" : "appraiser",
         rationale,
         factors_tagged: factors,
         confidence,

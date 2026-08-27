@@ -7,6 +7,7 @@ import {
   Filter, X, Loader2, CheckCircle2, Clock, Rocket,
   AlertCircle, Ban, Trash2
 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 const STATUS_CONFIG = {
   under_review: { label: "Under Review", icon: Clock, color: "#D4A017" },
@@ -109,7 +110,7 @@ export default function FeatureRequests() {
   });
 
   const userEmail = currentUser?.email || "";
-  const isAdmin = currentUser?.role === "admin";
+  const isAdmin = isAdminRole(currentUser);
 
   const myVotedIds = new Set(
     votes.filter((v) => v.voter_email === userEmail).map((v) => v.feature_request)

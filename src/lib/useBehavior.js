@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useEffect, useRef } from "react";
+import { isAdminRole } from "@/utils/roles";
 
 // Event weights (feed into engagement score 0-100)
 const EVENT_WEIGHTS = {
@@ -64,7 +65,7 @@ export function useBehavior() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user-behavior"] }),
   });
 
-  const isAdmin = behavior?._user?.role === "admin";
+  const isAdmin = isAdminRole(behavior?._user);
 
   return {
     behavior,

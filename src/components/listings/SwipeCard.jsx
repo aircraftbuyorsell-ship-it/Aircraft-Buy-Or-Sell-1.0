@@ -10,6 +10,7 @@ import { motion, useMotionValue, useTransform, useAnimation } from "framer-motio
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import CardAdminEditor from "@/components/listings/CardAdminEditor";
+import { isAdminRole } from "@/utils/roles";
 
 const SWIPE_THRESHOLD = 100;
 
@@ -58,7 +59,7 @@ function Card({ listing: l }) {
     staleTime: 60000
   });
   const isOwner = currentUser && l.owner === currentUser.id;
-  const isAdmin = currentUser?.role === "admin";
+  const isAdmin = isAdminRole(currentUser);
 
   const handleDelete = async (e) => {
     e.stopPropagation();

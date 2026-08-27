@@ -11,6 +11,7 @@ import { PLATFORMS, PLATFORM_LABELS, BROWSER_ONLY_PLATFORMS } from "../../instal
 import { buildArtifacts } from "../../installer/lib/generate.mjs";
 import { createZipBlob } from "@/utils/browserZip";
 import { PLATFORM_ORDER } from "@/utils/installPlatforms";
+import { unwrapPortalResponse } from "@/utils/portalEnvelope";
 
 /**
  * ABOS Install Wizard.
@@ -107,7 +108,7 @@ export default function InstallWizard() {
     queryKey: ["tenantPortal"],
     queryFn: async () => {
       const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
-      return response.data;
+      return unwrapPortalResponse(response);
     },
     staleTime: 60000,
   });

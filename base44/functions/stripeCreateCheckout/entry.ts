@@ -14,20 +14,8 @@ const PRICE_CONFIG = {
 // PLAN_CAPABILITIES for what each plan grants. Enterprise is deliberately
 // absent: it is Contact Sales only, never self-serve checkout.
 const TENANT_PLAN_PRICES = {
-  // Verified against the Aircraftbuyorsell LIVE Stripe account.
-  // Do not replace these with test-mode Price IDs.
-  wl_starter: {
-    priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym',
-    plan: 'starter',
-    label: 'ABOS White-Label — Starter',
-    amount_eur: 690,
-  },
-  wl_professional: {
-    priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC',
-    plan: 'professional',
-    label: 'ABOS White-Label — Professional',
-    amount_eur: 1890,
-  },
+  wl_starter: { priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym', plan: 'starter', label: 'ABOS White-Label — Starter' },
+  wl_professional: { priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC', plan: 'professional', label: 'ABOS White-Label — Professional' },
 };
 
 const BUYER_PLANS = {
@@ -55,6 +43,15 @@ const DEFAULT_RETURN_ORIGINS = [
   'https://www.abos-marketspace.com',
 ];
 
+// Hosting namespaces only ABOS can publish into: Base44-hosted builds of this
+// app, and this Cloudflare account's own workers.dev subdomain (production and
+// per-branch/per-commit previews both land there). The leading dot matters —
+// without it 'notbase44.app' and 'evilaircraftbuyorsell.workers.dev' would match.
+const DEFAULT_RETURN_ORIGIN_SUFFIXES = [
+  '.base44.app',
+  '.aircraftbuyorsell.workers.dev',
+];
+
 function allowedReturnOrigin(returnUrl: string): boolean {
   try {
     const url = new URL(returnUrl);
@@ -67,9 +64,10 @@ function allowedReturnOrigin(returnUrl: string): boolean {
     if (configured.length > 0) return configured.includes(url.origin);
 
     if (DEFAULT_RETURN_ORIGINS.includes(url.origin)) return true;
-    // Base44-hosted preview/staging builds of this app. Only trusted while no
-    // explicit allowlist is configured — setting the env var turns this off.
-    return url.hostname === 'base44.app' || url.hostname.endsWith('.base44.app');
+    // Only trusted while no explicit allowlist is configured — setting the env
+    // var turns these off along with the defaults above.
+    if (url.hostname === 'base44.app') return true;
+    return DEFAULT_RETURN_ORIGIN_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix));
   } catch (_) { return false; }
 }
 
@@ -130,7 +128,7 @@ Deno.serve(async (req) => {
         cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
         metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
       });
-      return Response.json({ sessionId: session.id, sessionUrl: session.url, url: session.url });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url });
     }
 
     if (!priceId) return Response.json({ error: 'Missing priceId' }, { status: 400 });

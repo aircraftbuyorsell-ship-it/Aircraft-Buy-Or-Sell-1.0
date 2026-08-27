@@ -375,3 +375,46 @@ export default function InstallWizard() {
           </div>
         </Card>
       )}
+
+      {step === 3 && (
+        <Card>
+          <div className="flex items-center gap-2 mb-1">
+            <Terminal className="w-4 h-4 opacity-60" />
+            <h2 className="font-semibold">Almost there</h2>
+          </div>
+          <p className="text-sm opacity-60 mb-5">
+            Add the generated files to your project, then issue credentials in the Partner Portal
+            and store them in your server environment. ABOS never needs access to your code.
+          </p>
+          <div
+            className="rounded-lg p-3 mb-5"
+            style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+          >
+            <p className="text-xs opacity-70 leading-relaxed">
+              Prefer the terminal? The same files can be generated in your project directory with{" "}
+              <code className="font-mono">npx abos-install</code>.
+            </p>
+          </div>
+          <div className="flex justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
+              style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to files
+            </button>
+            <Link
+              to="/partner-portal"
+              className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
+              style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+            >
+              Done
+            </Link>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
 import {
   defaultCapabilitiesForPlan,
@@ -15,6 +15,27 @@ const PRICE_TOKEN_MAP = {
   'price_1TaO1rAT7Be3WR6JaWnMa7mx': { tokens: 500, tier: 'pro', sub_tier: 'plus',    pack: 'ABOS Pro',     price_usd: 99 },
   'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', pack: 'ABOS Enterprise', price_usd: 299 },
 };
+
+// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
+// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
+const STRIPE_ATI_PRODUCT_MAP = {
+  level_2_basic: 'ATI_BASIC_REPORT',
+  ati_pro: 'ATI_PRO',
+  ati_pro_tax: 'ATI_PRO_TAX',
+};
+const LEGACY_PRODUCT_ALIASES = {
+  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
+  ATI_SCORE: 'ATI_SCORE',
+  VALUATION_STUDIO: 'VALUATION_STUDIO',
+  VERIFICATION_PACK: 'VERIFICATION_PACK',
+  PRO: 'PRO',
+  BROKER: 'BROKER',
+};
+const PRODUCT_KEYS = new Set([
+  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
+  ...Object.keys(LEGACY_PRODUCT_ALIASES),
+]);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
 
 // Sync UserProfile tier + sub_tier based on a resolved tier/sub_tier
 async function syncUserProfileTier(base44, userEmail, tier, subTier) {
@@ -587,27 +608,6 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
     await base44.asServiceRole.entities.UserBehavior.update(behaviors[0].id, { tier: 'free_explorer' });
   }
 }
-
-// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
-// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
-const STRIPE_ATI_PRODUCT_MAP = {
-  level_2_basic: 'ATI_BASIC_REPORT',
-  ati_pro: 'ATI_PRO',
-  ati_pro_tax: 'ATI_PRO_TAX',
-};
-const LEGACY_PRODUCT_ALIASES = {
-  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
-  ATI_SCORE: 'ATI_SCORE',
-  VALUATION_STUDIO: 'VALUATION_STUDIO',
-  VERIFICATION_PACK: 'VERIFICATION_PACK',
-  PRO: 'PRO',
-  BROKER: 'BROKER',
-};
-const PRODUCT_KEYS = new Set([
-  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
-  ...Object.keys(LEGACY_PRODUCT_ALIASES),
-]);
-const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
 
 async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
   if (!eventId) return true;

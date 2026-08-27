@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function PlanCheckoutButton({ planType, label = "Subscribe", variant = "default" }) {
+export default function PlanCheckoutButton({ planType, label = "Subscribe", variant = "default", returnUrl }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -13,7 +13,7 @@ export default function PlanCheckoutButton({ planType, label = "Subscribe", vari
     try {
       const res = await base44.functions.invoke("stripeCreateCheckout", {
         plan_type: planType,
-        returnUrl: window.location.href,
+        returnUrl: returnUrl || window.location.href,
       });
       if (res.data?.sessionUrl) window.location.href = res.data.sessionUrl;
       else setError("Could not start checkout. Please try again.");

@@ -324,6 +324,203 @@ async function syncTenantLicenseStatus(base44, subscriptionId, status) {
   console.log(`✓ Tenant License ${license.id} (tenant ${license.tenant_id}) status → ${status}`);
 }
 
+
+// ── White-Label self-serve tenant provisioning ──────────────────────────────
+// A paid Starter/Professional Checkout session (see stripeCreateCheckout's
+// TENANT_PLAN_PRICES) becomes a Tenant + License here. This is the unattended
+// twin of functions/tenantProvision, which is admin-only and returns the first
+// key to its caller. Both derive capabilities and key format from
+// _shared/tenantLicense.mjs rather than re-deriving them, so a self-serve
+// tenant and an admin-provisioned one cannot end up with different grants.
+//
+// Deliberately NOT minted here: the first TenantApiKey. Its plaintext is shown
+// exactly once and only its hash is stored, and a webhook has no user to show
+// it to — minting one here would create a live credential nobody can ever
+// hold. The Partner Portal's "Issue new key" (tenantPortal rotate_key) is the
+// first-key path, and already tells a partner with no keys to do exactly that.
+
+const SELF_SERVE_TENANT_PLANS = new Set(['starter', 'professional']);
+
+/** The License a Stripe subscription backs, or null if none is recorded yet. */
+async function findLicenseBySubscription(base44, subscriptionId) {
+  if (!subscriptionId || typeof subscriptionId !== 'string') return null;
+  const licenses = await base44.asServiceRole.entities.License.filter(
+    { stripe_subscription_id: subscriptionId }, '-created_date', 1,
+  );
+  return licenses[0] || null;
+}
+
+/**
+ * Picks a tenant_id that is both valid and free. tenant_id is referenced by
+ * License, TenantApiKey and ContractAcceptance and appears in generated
+ * package filenames, so a collision must never silently reuse another
+ * customer's tenant — on exhaustion this returns null and the caller fails
+ * loudly rather than guessing.
+ */
+async function allocateTenantId(base44, seed) {
+  const base = slugifyTenantId(seed);
+  for (let attempt = 0; attempt < 25; attempt++) {
+    const suffix = attempt === 0 ? '' : `_${attempt + 1}`;
+    const candidate = `${base.slice(0, 50 - suffix.length)}${suffix}`;
+    if (!isValidTenantId(candidate)) continue;
+    const existing = await base44.asServiceRole.entities.Tenant.filter(
+      { tenant_id: candidate }, '-created_date', 1,
+    );
+    if (existing.length === 0) return candidate;
+  }
+  return null;
+}
+
+/** The company name the buyer typed into Checkout's required custom field. */
+function companyNameFromSession(session) {
+  const field = (session.custom_fields || []).find((f) => f.key === 'company_name');
+  return String(field?.text?.value || '').trim();
+}
+
+async function handleTenantCheckout(session, base44, eventId, stripe) {
+  const meta = session.metadata || {};
+  const plan = String(meta.plan || '').trim();
+  if (!SELF_SERVE_TENANT_PLANS.has(plan)) {
+    console.warn(`tenant checkout: unknown plan '${plan}', refusing to provision`);
+    return;
+  }
+
+  const email = meta.user_email || session.customer_email || session.customer_details?.email;
+  if (!email) { console.warn('tenant checkout: no verified customer email'); return; }
+
+  const subscriptionId = typeof session.subscription === 'string' ? session.subscription : '';
+
+  // Idempotency, two independent ways. The PaymentEvent guard catches a Stripe
+  // redelivery of this same event; the subscription lookup catches a different
+  // event arriving for a subscription already provisioned (e.g. checkout
+  // completed replayed after subscription.updated already created records).
+  if (await findLicenseBySubscription(base44, subscriptionId)) {
+    console.log(`↩️ Tenant already provisioned for subscription ${subscriptionId}, ignoring`);
+    return;
+  }
+  if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, `WL_${plan.toUpperCase()}`, session.payment_intent || session.id, subscriptionId, (session.amount_total || 0) / 100, 'processed'))) {
+    console.log(`Duplicate tenant checkout ignored: ${eventId}`);
+    return;
+  }
+
+  try {
+    const companyName = companyNameFromSession(session);
+    const displayName = companyName || email.split('@')[0];
+    const tenantId = await allocateTenantId(base44, companyName || email.split('@')[0]);
+    if (!tenantId) {
+      await finalizePaymentEvent(base44, eventId, 'failed');
+      console.error(`tenant checkout: could not allocate a free tenant_id for '${displayName}' (${email})`);
+      return;
+    }
+
+    // Stripe Checkout is configured with consent_collection.terms_of_service:
+    // 'required', so a completed session normally carries proof the buyer
+    // accepted the agreement. If that proof is missing, the payment is still
+    // real and the tenant is still created — withholding what they bought
+    // would be worse — but no ContractAcceptance is fabricated and the licence
+    // opens as 'pending' rather than 'active', so a human completes it. This
+    // preserves tenantProvision's invariant: no usable licence without a
+    // recorded acceptance.
+    const consented = session.consent?.terms_of_service === 'accepted';
+    const nowIso = new Date().toISOString();
+
+    let acceptance = null;
+    if (consented) {
+      acceptance = await base44.asServiceRole.entities.ContractAcceptance.create({
+        tenant_id: tenantId,
+        agreement_type: WHITE_LABEL_AGREEMENT_TYPE,
+        agreement_version: CURRENT_AGREEMENT_VERSION,
+        accepted_by_email: email,
+        accepted_by_name: session.customer_details?.name || undefined,
+        accepted_at: session.created ? new Date(session.created * 1000).toISOString() : nowIso,
+        description: `Accepted via Stripe Checkout session ${session.id}.`,
+      });
+    } else {
+      console.error(`tenant checkout ${session.id}: no terms_of_service consent on session — licence opens as pending`);
+    }
+
+    const tenant = await base44.asServiceRole.entities.Tenant.create({
+      tenant_id: tenantId,
+      display_name: displayName,
+      contact_email: email,
+      status: 'active',
+      brand_name: displayName,
+      // Empty = server-to-server only. A self-serve buyer has not told us any
+      // origin yet, and defaulting to a permissive value would let a browser
+      // call tenant endpoints from anywhere.
+      allowed_domains: [],
+    });
+
+    // Capabilities come from the plan's server-side set — never from anything
+    // in the Stripe session, which a buyer influences.
+    const capabilities = defaultCapabilitiesForPlan(plan);
+    const license = await base44.asServiceRole.entities.License.create({
+      tenant_id: tenantId,
+      plan,
+      status: consented ? 'active' : 'pending',
+      allowed_capabilities: capabilities,
+      api_rate_plan: plan === 'professional' ? 'pro' : 'free',
+      version_channel: 'stable',
+      activated_at: consented ? nowIso : undefined,
+      stripe_customer_id: typeof session.customer === 'string' ? session.customer : undefined,
+      stripe_subscription_id: subscriptionId || undefined,
+    });
+
+    if (acceptance) {
+      await base44.asServiceRole.entities.ContractAcceptance.update(acceptance.id, { license_id: license.id })
+        .catch((err) => console.warn(`Failed to link acceptance ${acceptance.id} to license ${license.id}: ${err.message}`));
+    }
+
+    await finalizePaymentEvent(base44, eventId, 'processed');
+    console.log(`✓ Self-serve tenant '${tenantId}' provisioned (${plan}, licence ${license.id}, ${consented ? 'active' : 'PENDING — no consent'}) for ${email}, tenant ${tenant.id}`);
+  } catch (err) {
+    await finalizePaymentEvent(base44, eventId, 'failed');
+    console.error(`Tenant provisioning failed for ${eventId}: ${err.message}`);
+    throw err;
+  }
+}
+
+/**
+ * Mirrors a Stripe subscription's state onto the License it backs.
+ *
+ * This is the reverse path: a failed payment or a cancellation must actually
+ * stop the tenant using the API, not just show a badge somewhere. License
+ * status is what tenantCoreApi enforces on every request, so writing it here
+ * is what makes non-payment bite.
+ */
+async function syncTenantLicenseFromSubscription(base44, subscription) {
+  const license = await findLicenseBySubscription(base44, subscription.id);
+  if (!license) {
+    console.warn(`No tenant licence for subscription ${subscription.id}, nothing to sync`);
+    return false;
+  }
+  const nextStatus = mapStripeStatusToLicenseStatus(subscription.status);
+  // A null mapping means "Stripe status we have no rule for" — leave the
+  // licence alone rather than writing a guess.
+  if (!nextStatus) {
+    console.log(`Stripe status '${subscription.status}' has no licence mapping, leaving licence ${license.id} at '${license.status}'`);
+    return true;
+  }
+  // Never resurrect a licence a human revoked or that expired on its own terms.
+  if (['revoked', 'expired'].includes(license.status) && nextStatus === 'active') {
+    console.log(`Licence ${license.id} is '${license.status}', not reactivating from Stripe`);
+    return true;
+  }
+  if (license.status === nextStatus) return true;
+
+  await base44.asServiceRole.entities.License.update(license.id, {
+    status: nextStatus,
+    ...(nextStatus === 'active' && !license.activated_at ? { activated_at: new Date().toISOString() } : {}),
+  });
+  console.log(`${nextStatus === 'active' ? '✓' : '⚠️'} Licence ${license.id} (${license.tenant_id}) ${license.status} → ${nextStatus} from subscription ${subscription.id} (${subscription.status})`);
+  return true;
+}
+
+/** True when this Stripe subscription is a white-label tenant subscription. */
+function isTenantSubscription(subscription) {
+  return (subscription?.metadata || {}).type === 'tenant_subscription';
+}
+
 async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 

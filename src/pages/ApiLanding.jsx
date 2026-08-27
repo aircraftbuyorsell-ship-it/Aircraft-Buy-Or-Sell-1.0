@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { createCheckout } from "@/lib/entitlements";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
 import {
@@ -21,12 +22,12 @@ const VALUE_PROPS = [
   {
     icon: Zap,
     title: "Brokers & dealers",
-    text: "Drop ATI scoring and OMVM valuation into your own site or CRM — the same intelligence engine that powers aircraftbuyorsell.com, under your brand.",
+    text: "Bring ABOS aircraft intelligence into your workflow — ATI scoring, valuation, market intelligence and broker/dealer tools from one connected platform."
   },
   {
     icon: Building2,
     title: "Platform builders",
-    text: "Search, valuation, listing extraction and structured marketplace data behind one authenticated contract — build a connector once, not per data source.",
+    text: "Use ABOS API / MCP access when enabled to connect search, valuation, verification and marketplace intelligence to your own stack."
   },
   {
     icon: Bot,
@@ -36,40 +37,30 @@ const VALUE_PROPS = [
 ];
 
 const HOW_IT_WORKS = [
-  { step: "1", title: "Pick a plan", text: "Starter or Professional, self-serve. Enterprise is a short conversation with us." },
-  { step: "2", title: "Checkout & get your key", text: "Card required at signup for the 14-day trial — we'll show you the exact charge date before you confirm. A tenant-scoped licence key is issued the moment checkout completes." },
-  { step: "3", title: "Install & deploy", text: "The installer reads your key and configures the SDK for exactly what your licence covers — nothing more." },
+  { step: "1", title: "Pick your plan", text: "Choose ABOS Professional for individual buyers and scouts, or Broker / Dealer for teams and API / MCP access when enabled." },
+  { step: "2", title: "Checkout", text: "Stripe handles the subscription securely. Your access is granted server-side after successful checkout." },
+  { step: "3", title: "Connect", text: "Use the ABOS workspace directly, or use the enabled API / MCP capabilities available with your plan." },
 ];
 
 const PLANS = [
   {
-    id: "wl_starter",
-    name: "Starter",
-    price: "€690",
-    period: "/mo",
-    tagline: "Search and ATI Score, self-serve.",
-    features: ["ATI Score", "Search", "14-day free trial", "Tenant-scoped API key"],
-    cta: "Start 14-day trial",
-    highlighted: false,
-  },
-  {
-    id: "wl_professional",
-    name: "Professional",
-    price: "€1,890",
-    period: "/mo",
-    tagline: "Everything in Starter, plus reporting and valuation.",
-    features: ["Everything in Starter", "ATI Report", "OMVM Valuation", "Market Intelligence", "14-day free trial"],
-    cta: "Start 14-day trial",
+    id: "PRO",
+    name: "ABOS Professional",
+    price: "€99",
+    period: "/month",
+    tagline: "For active buyers & scouts.",
+    features: ["Increased search limits", "ATI Score access included", "Discounted ATI Full Reports", "Discounted Valuation Studio", "Advanced aircraft intelligence", "Market comparables", "Saved aircraft & reports", "Workspace functionality"],
+    cta: "Subscribe",
     highlighted: true,
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "from €3,900",
-    period: "/mo + €2,500 setup",
-    tagline: "Full capability set, contracted terms.",
-    features: ["Every capability", "Aircraft Passport & registry lookup", "Advanced intelligence", "Dedicated onboarding"],
-    cta: "Contact sales",
+    id: "BROKER",
+    name: "ABOS Broker / Dealer",
+    price: "€299",
+    period: "/month",
+    tagline: "For brokers, dealers & teams.",
+    features: ["Everything in Professional", "Higher usage limits", "Multiple aircraft / workspace management", "Bulk aircraft analysis", "Broker / dealer workflow", "Listing intelligence & advanced reports", "Team / workspace support", "API / MCP access when enabled", "Priority integration features"],
+    cta: "Subscribe",
     highlighted: false,
   },
 ];
@@ -138,14 +129,14 @@ export default function ApiLanding() {
     setCheckoutError("");
     setLoading(planType);
     try {
-      const returnUrl = `${window.location.origin}/partner-portal?checkout=success`;
-      const res = await base44.functions.invoke("stripeCreateCheckout", { plan_type: planType, returnUrl });
-      const checkoutUrl = res.data?.sessionUrl || res.data?.url || res.sessionUrl || res.url;
+      const returnUrl = `${window.location.origin}/pricing?checkout=success`;
+      const res = await createCheckout(planType, "", returnUrl);
+      const checkoutUrl = res?.url || res?.sessionUrl;
       if (checkoutUrl) {
         window.location.assign(checkoutUrl);
         return;
       }
-      setCheckoutError(res.data?.error || res.error || "Couldn't start checkout. Please try again.");
+      setCheckoutError(res?.error || "Couldn't start checkout. Please try again.");
     } catch (err) {
       setCheckoutError(err?.message || "Couldn't start checkout. Please try again.");
     } finally {
@@ -154,10 +145,6 @@ export default function ApiLanding() {
   };
 
   const handleSelect = (plan) => {
-    if (plan.id === "enterprise") {
-      window.location.href = "mailto:partnerships@aircraftbuyorsell.com?subject=ABOS%20Enterprise%20White-Label";
-      return;
-    }
     startCheckout(plan.id);
   };
 
@@ -171,7 +158,7 @@ export default function ApiLanding() {
             style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
             <Terminal size={12} style={{ color: AMBER }} />
             <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color: AMBER }}>
-              ABOS Core API · White-Label
+              ABOS Core API · API / MCP Access
             </span>
           </div>
           <h1 className="tracking-[-0.03em] leading-[1.06] mb-4" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 500 }}>
@@ -236,9 +223,7 @@ export default function ApiLanding() {
             <h2 className="text-[16px] font-bold" style={{ color: "rgba(255,255,255,0.92)" }}>Plans &amp; pricing</h2>
           </div>
           <p className="text-[12px] mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
-            Starter and Professional include a 14-day free trial — a card is required at signup and Stripe
-            shows you the exact charge date and amount before you confirm. Cancel anytime from your Partner
-            Portal before the trial ends and you won't be charged.
+            Subscription pricing follows the ABOS monetization catalog. Professional is €99/month and Broker / Dealer is €299/month. API / MCP access is available when enabled for the Broker / Dealer plan.
           </p>
 
           {checkoutError && (
@@ -254,8 +239,7 @@ export default function ApiLanding() {
           </div>
 
           <p className="text-[11px] mt-5" style={{ color: "rgba(255,255,255,0.40)" }}>
-            Capabilities are enforced server-side by your licence, not by the code you install — the
-            installer refuses to configure anything your plan doesn't grant.
+            Capabilities are enforced server-side by your entitlement, not by the browser — access is granted only for the products and capabilities your account actually owns.
           </p>
         </div>
 

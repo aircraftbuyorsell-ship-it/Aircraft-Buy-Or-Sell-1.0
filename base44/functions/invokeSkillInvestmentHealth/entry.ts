@@ -26,7 +26,7 @@ async function callLlama4Maverick(prompt, contextData) {
     body: JSON.stringify({
       model: 'meta/llama-4-maverick',
       messages: [
-        { role: 'system', content: 'You are the ABOS Finance Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
+        { role: 'system', content: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
         { role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }
       ],
       temperature: 0.4,
@@ -47,7 +47,7 @@ async function callGPT4o(prompt, contextData) {
     body: JSON.stringify({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: 'You are the ABOS Finance Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
+        { role: 'system', content: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
         { role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }
       ],
       temperature: 0.4,
@@ -68,7 +68,7 @@ async function callClaude(prompt, contextData) {
     body: JSON.stringify({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
-      system: 'You are the ABOS Finance Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).',
+      system: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).',
       messages: [{ role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }],
     }),
   });
@@ -214,13 +214,13 @@ Deno.serve(async (req) => {
     }
 
     // 5) Compute investment health score
-    const opexResult = skillResults['abos.skill.opex.v1']?.result;
+    const opexResultValue = skillResults['abos.skill.opex.v1']?.result;
     const healthScore = computeInvestmentHealthScore({
       atiTotal: twinContext.ati_total,
       omvmValue: twinContext.omvm_value,
       engineRemainingPct: twinContext.engine_remaining_pct,
-      opexAnnual: opexResult?.total_annual,
-      clarityScore: opexResult?.clarity_score,
+      opexAnnual: opexResultValue?.total_annual,
+      clarityScore: opexResultValue?.clarity_score,
     });
 
     // 6) Check live traffic status (grounded vs active)
@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       live_status: liveStatus,
     };
 
-    const narrativePrompt = `As ABOS Finance Advisor, analyze this aircraft investment opportunity. Registration: ${passport.registration}. Investment Health Score: ${healthScore}/100. Live status: ${liveStatus}. Synthesize all skill results into an actionable investment brief.`;
+    const narrativePrompt = `As ABOS Pricing Assistant, analyze this aircraft investment opportunity. Registration: ${passport.registration}. Investment Health Score: ${healthScore}/100. Live status: ${liveStatus}. Synthesize all skill results into an actionable investment brief.`;
 
     let narrative = null;
     let modelUsed = 'none';
@@ -267,6 +267,7 @@ Deno.serve(async (req) => {
       modelUsed = 'none';
     }
 
+    const executedSkills = Object.keys(skillResults).map(skillId => ({ skill_id: skillId }));
     const result = {
       investment_health_score: healthScore,
       live_status: liveStatus,
@@ -274,7 +275,7 @@ Deno.serve(async (req) => {
       twin_context: twinContext,
       skill_results: skillResults,
       ai_brief: narrative,
-      recommended_skills_to_run: skillsToRun.map(s => s.skill_id),
+      recommended_skills_to_run: executedSkills.map(s => s.skill_id),
     };
 
     return Response.json({

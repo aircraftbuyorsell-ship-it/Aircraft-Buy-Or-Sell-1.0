@@ -8,6 +8,16 @@ const PRICE_CONFIG = {
   'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', product_key: 'PRO', price_usd: 299 },
 };
 
+// White-Label self-serve subscription plans (Starter/Professional). Server-side
+// allowlist mapping our internal plan_type to the real Stripe Price — see
+// docs/white-label/agreements/2026-08-26.md and _shared/tenantLicense.mjs's
+// PLAN_CAPABILITIES for what each plan grants. Enterprise is deliberately
+// absent: it is Contact Sales only, never self-serve checkout.
+const TENANT_PLAN_PRICES = {
+  wl_starter: { priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym', plan: 'starter', label: 'ABOS White-Label — Starter' },
+  wl_professional: { priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC', plan: 'professional', label: 'ABOS White-Label — Professional' },
+};
+
 const BUYER_PLANS = {
   buyer_monthly: { amount: 19900, interval: 'month', plan: 'monthly', label: 'ABOS Buyer Pro Monthly', currency: 'usd' },
   buyer_annual: { amount: 99900, interval: 'year', plan: 'annual', label: 'ABOS Buyer Pro Annual', currency: 'usd' },

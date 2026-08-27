@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
     const normalized = n_number.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
     // Use multi-source registryLookup (FAAAircraft entity → adsbdb API → Supabase)
-    const lookupRes = await base44.functions.invoke('registryLookup', { n_number: normalized });
+    const lookupRes = await base44.functions.invoke('registryLookup', { registration: `N${normalized}` });
     const lookup = lookupRes.data;
 
     if (!lookup?.found) {

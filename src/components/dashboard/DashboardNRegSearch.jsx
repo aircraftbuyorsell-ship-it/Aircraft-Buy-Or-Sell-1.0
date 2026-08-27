@@ -32,7 +32,7 @@ export default function DashboardNRegSearch() {
     setShowDropdown(true);
 
     try {
-      const res = await base44.functions.invoke("nregSearch", { n_number: nNumber });
+      const res = await base44.functions.invoke("globalAircraftLookup", { registration: `N${nNumber}` });
       const data = res.data;
 
       if (!data.found) {

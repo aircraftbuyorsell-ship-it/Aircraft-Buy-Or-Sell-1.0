@@ -353,8 +353,10 @@ function mapAdsbdb(ac, fullReg, country) {
 }
 
 function mapFAA(faa, fullReg) {
+  const nNumber = fullReg.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '');
   return {
     registration: fullReg,
+    n_number: nNumber || null,
     make: faa.make || null,
     model: faa.model || null,
     year: faa.year_mfr || null,

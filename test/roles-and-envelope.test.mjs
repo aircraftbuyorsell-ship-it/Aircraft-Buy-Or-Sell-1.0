@@ -23,6 +23,7 @@ test("the admin role set cannot be mutated by a caller", () => {
 });
 
 test("unwraps the payload out of both envelope layers", () => {
+  // axios response -> body -> tenantPortal envelope -> payload
   const response = { status: 200, data: { status: "success", data: { tenant: { tenant_id: "skydeals" } } } };
   assert.deepEqual(unwrapPortalResponse(response), { tenant: { tenant_id: "skydeals" } });
 });

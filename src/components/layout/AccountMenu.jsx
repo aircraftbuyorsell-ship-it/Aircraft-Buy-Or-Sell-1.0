@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ChevronDown, LayoutDashboard, User, CreditCard, Zap, Users, FileText,
-  GitBranch, BadgeCheck, Shield, Plane, Database, LogOut,
+  GitBranch, BadgeCheck, Shield, Plane, Database, LogOut, Building2, Wand2,
 } from "lucide-react";
 
 function initials(user) {
@@ -37,6 +38,16 @@ const BASE_GROUPS = [
   },
 ];
 
+// Only rendered for accounts that actually resolve to a white-label tenant —
+// otherwise the Partner Portal is dead weight in every other user's menu.
+const PARTNER_GROUP = {
+  label: "Partner",
+  items: [
+    { path: "/partner-portal", label: "Partner Portal", icon: Building2 },
+    { path: "/install", label: "Set up integration", icon: Wand2 },
+  ],
+};
+
 const ADMIN_GROUP = {
   label: "Administration",
   items: [
@@ -62,7 +73,25 @@ export default function AccountMenu({ user }) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const groups = user?.role === "admin" ? [...BASE_GROUPS, ADMIN_GROUP] : BASE_GROUPS;
+  // Shares its cache with the Partner Portal page, which queries the same key,
+  // so opening the menu does not cost an extra round trip.
+  const { data: partner } = useQuery({
+    queryKey: ["tenantPortal"],
+    queryFn: async () => {
+      const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
+      return response.data;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const groups = [
+    ...BASE_GROUPS,
+    ...(partner?.tenant ? [PARTNER_GROUP] : []),
+    ...(isAdmin ? [ADMIN_GROUP] : []),
+  ];
 
   const go = (path) => {
     setOpen(false);

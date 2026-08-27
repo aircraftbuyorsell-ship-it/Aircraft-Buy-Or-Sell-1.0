@@ -104,7 +104,7 @@ export default function InstallWizard() {
   const [zipError, setZipError] = useState("");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["install-wizard-overview"],
+    queryKey: ["tenantPortal"],
     queryFn: async () => {
       const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
       return response.data;

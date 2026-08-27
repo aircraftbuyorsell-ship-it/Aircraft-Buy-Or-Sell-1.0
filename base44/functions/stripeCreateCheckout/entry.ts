@@ -14,8 +14,20 @@ const PRICE_CONFIG = {
 // PLAN_CAPABILITIES for what each plan grants. Enterprise is deliberately
 // absent: it is Contact Sales only, never self-serve checkout.
 const TENANT_PLAN_PRICES = {
-  wl_starter: { priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym', plan: 'starter', label: 'ABOS White-Label — Starter' },
-  wl_professional: { priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC', plan: 'professional', label: 'ABOS White-Label — Professional' },
+  // Verified against the Aircraftbuyorsell LIVE Stripe account.
+  // Do not replace these with test-mode Price IDs.
+  wl_starter: {
+    priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym',
+    plan: 'starter',
+    label: 'ABOS White-Label — Starter',
+    amount_eur: 690,
+  },
+  wl_professional: {
+    priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC',
+    plan: 'professional',
+    label: 'ABOS White-Label — Professional',
+    amount_eur: 1890,
+  },
 };
 
 const BUYER_PLANS = {
@@ -118,7 +130,7 @@ Deno.serve(async (req) => {
         cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
         metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
       });
-      return Response.json({ sessionId: session.id, sessionUrl: session.url });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url, url: session.url });
     }
 
     if (!priceId) return Response.json({ error: 'Missing priceId' }, { status: 400 });

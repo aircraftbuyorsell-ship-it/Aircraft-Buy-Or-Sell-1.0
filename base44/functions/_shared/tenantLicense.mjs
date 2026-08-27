@@ -214,3 +214,54 @@ export function isKnownEndpoint(endpoint) {
 export function listEndpoints() {
   return Object.keys(ENDPOINT_CAPABILITIES);
 }
+
+// ── Self-serve tenant checkout (Stripe) ─────────────────────────────────────
+// Pure mapping + slug helpers used by stripeWebhook when a paid Stripe
+// Checkout session (Starter/Professional self-serve plans) needs to become a
+// Tenant/License/TenantApiKey. Kept here rather than in stripeWebhook/entry.ts
+// so they get real `node --test` coverage — stripeWebhook's own Deno `npm:`
+// imports mean it can otherwise only be verified by static source inspection.
+
+/**
+ * Maps a Stripe Subscription status to the License.status this app persists.
+ * License has no "trialing" state of its own (see the entity schema) — a
+ * trialing subscription from self-serve checkout already has a card on file
+ * (Stripe Checkout's default; this app never sets payment_method_collection:
+ * 'if_required'), so it is treated as a normal active license for capability
+ * purposes. Only a failed, unpaid or cancelled subscription moves a license
+ * to 'suspended'. Returns null for a Stripe status with no defined mapping —
+ * callers must treat null as "leave the License alone", not as a value to write.
+ */
+export function mapStripeStatusToLicenseStatus(stripeStatus) {
+  switch (stripeStatus) {
+    case 'trialing':
+    case 'active':
+      return 'active';
+    case 'past_due':
+    case 'unpaid':
+    case 'incomplete_expired':
+    case 'canceled':
+    case 'paused':
+      return 'suspended';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Turns free text (a company name, an email local-part) into a tenant_id
+ * candidate matching TENANT_ID_PATTERN: lowercase letters/digits/underscore,
+ * starting with a letter, 3-50 chars. Does not guarantee uniqueness or that
+ * the result isn't reserved — callers still check isValidTenantId() and look
+ * for an existing Tenant before using the result.
+ */
+export function slugifyTenantId(input) {
+  let slug = String(input || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  if (!slug || !/^[a-z]/.test(slug)) slug = `tenant_${slug}`;
+  slug = slug.replace(/_+$/, '') || 'tenant';
+  if (slug.length < 3) slug = `${slug}_org`;
+  return slug.slice(0, 50);
+}

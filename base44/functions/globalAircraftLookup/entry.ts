@@ -267,7 +267,7 @@ Deno.serve(async (req) => {
 
 // Prefixes that use a dash separator in their canonical form.
 // Used to auto-insert the dash when the user omits it (e.g. "OK2001" → "OK-2001").
-const DASH_PREFIXES = ['OK', 'D', 'G', 'F', 'I', 'EC', 'EA', 'SE', 'OO', 'PH', 'HB', 'OE', 'LN', 'OY', 'ZK', 'VH', 'CS', 'B', '9M'];
+const DASH_PREFIXES = ['OK', 'D', 'G', 'F', 'I', 'EC', 'EA', 'SE', 'OO', 'PH', 'HB', 'OE', 'LN', 'OY', 'ZK', 'VH', 'CS', 'SP', 'HA', 'LV', 'LY', 'ES', 'UR', '9A', 'LZ', 'OM', 'T7', 'T9', '9H', '5B', '4O', 'ER', 'EW', 'E7', '9M', '9V', 'A7', 'RP', 'RA', 'C-F', 'C-G'];
 
 function normalizeRegistration(raw) {
   if (!raw) return '';
@@ -309,6 +309,24 @@ function detectCountry(reg) {
   if (r.startsWith('B-')) return { code: 'CN', label: 'China' };
   if (r.startsWith('A7')) return { code: 'QA', label: 'Qatar' };
   if (r.startsWith('9M')) return { code: 'MY', label: 'Malaysia' };
+  if (r.startsWith('9V-')) return { code: 'SG', label: 'Singapore' };
+  if (r.startsWith('A7-') || r.startsWith('A7')) return { code: 'QA', label: 'Qatar' };
+  if (r.startsWith('RP-')) return { code: 'PH', label: 'Philippines' };
+  if (r.startsWith('RA-')) return { code: 'RU', label: 'Russia' };
+  if (r.startsWith('SP-')) return { code: 'PL', label: 'Poland' };
+  if (r.startsWith('HA-')) return { code: 'HU', label: 'Hungary' };
+  if (r.startsWith('LV-')) return { code: 'AR', label: 'Argentina' };
+  if (r.startsWith('LY-')) return { code: 'LT', label: 'Lithuania' };
+  if (r.startsWith('ES-')) return { code: 'EE', label: 'Estonia' };
+  if (r.startsWith('UR-')) return { code: 'UA', label: 'Ukraine' };
+  if (r.startsWith('9A-')) return { code: 'HR', label: 'Croatia' };
+  if (r.startsWith('LZ-')) return { code: 'BG', label: 'Bulgaria' };
+  if (r.startsWith('OM-')) return { code: 'SK', label: 'Slovakia' };
+  if (r.startsWith('T7-')) return { code: 'SM', label: 'San Marino' };
+  if (r.startsWith('9H-')) return { code: 'MT', label: 'Malta' };
+  if (r.startsWith('5B-')) return { code: 'CY', label: 'Cyprus' };
+  if (r.startsWith('4O-')) return { code: 'ME', label: 'Montenegro' };
+  if (r.startsWith('ER-')) return { code: 'MD', label: 'Moldova' };
   return { code: 'XX', label: 'International' };
 }
 

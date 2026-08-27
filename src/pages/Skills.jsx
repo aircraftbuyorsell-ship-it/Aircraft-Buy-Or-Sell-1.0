@@ -303,7 +303,7 @@ const SKILLS = [
   },
   {
     icon: Bot,
-    title: "Finance Advisor",
+    title: "Pricing Assistant",
     badge: "AI Agent",
     category: "advisory",
     color: "#5dcaa5",

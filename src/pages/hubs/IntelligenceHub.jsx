@@ -18,7 +18,7 @@ const TABS = [
   { key: "valuation", label: "Valuation Studio", icon: SlidersHorizontal, Component: ValuationStudio },
   { key: "reports", label: "Market Reports", icon: FileText, Component: MarketReports },
   { key: "investment", label: "Investment Brief", icon: Brain, Component: InvestmentBrief },
-  { key: "finance-advisor", label: "Finance Advisor", icon: BrainCircuit, Component: FinanceAdvisorChat },
+  { key: "finance-advisor", label: "Pricing Assistant", icon: BrainCircuit, Component: FinanceAdvisorChat },
   { key: "calculators", label: "Calculators", icon: Calculator, Component: CalculatorsHub },
   { key: "service-intel", label: "Service Intel", icon: Wrench, Component: ServiceIntelligence },
 ];

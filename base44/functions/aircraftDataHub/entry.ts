@@ -5,7 +5,7 @@ const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
 const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-const sqlText = (value) => String(value || '').replaceAll("'", "''");
+const sqlText = (value) => String(value || '').replaceAll("'", "''"); // rebuild
 
 Deno.serve(async (req) => {
   try {

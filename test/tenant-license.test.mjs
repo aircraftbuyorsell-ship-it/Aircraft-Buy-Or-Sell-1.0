@@ -229,6 +229,47 @@ test("starter plan cannot reach professional/enterprise-only endpoints", () => {
   assert.equal(canTenantUseCapability(enterprise, capabilityForEndpoint("intelligence.advanced")), true);
 });
 
+test("mapStripeStatusToLicenseStatus maps active/trialing to active and lapsed states to suspended", () => {
+  assert.equal(mapStripeStatusToLicenseStatus("trialing"), "active");
+  assert.equal(mapStripeStatusToLicenseStatus("active"), "active");
+  assert.equal(mapStripeStatusToLicenseStatus("past_due"), "suspended");
+  assert.equal(mapStripeStatusToLicenseStatus("unpaid"), "suspended");
+  assert.equal(mapStripeStatusToLicenseStatus("incomplete_expired"), "suspended");
+  assert.equal(mapStripeStatusToLicenseStatus("canceled"), "suspended");
+  assert.equal(mapStripeStatusToLicenseStatus("paused"), "suspended");
+  // Unmapped statuses (e.g. Stripe's transient "incomplete") must not be
+  // silently coerced into either bucket — callers treat null as "don't write".
+  assert.equal(mapStripeStatusToLicenseStatus("incomplete"), null);
+  assert.equal(mapStripeStatusToLicenseStatus("not_a_real_status"), null);
+  assert.equal(mapStripeStatusToLicenseStatus(undefined), null);
+});
+
+test("slugifyTenantId always produces a valid tenant_id", () => {
+  assert.equal(slugifyTenantId("SkyDeals Europe"), "skydeals_europe");
+  assert.ok(isValidTenantId(slugifyTenantId("SkyDeals Europe")));
+
+  // Starts with a digit — must be prefixed to still start with a letter.
+  assert.ok(isValidTenantId(slugifyTenantId("42 Aviation")));
+  assert.match(slugifyTenantId("42 Aviation"), /^[a-z]/);
+
+  // Too short on its own — must be padded to the 3-char minimum.
+  assert.ok(isValidTenantId(slugifyTenantId("ab")));
+
+  // Empty / garbage input must still produce something valid, never throw.
+  for (const input of ["", undefined, null, "___", "!!!", "a".repeat(200)]) {
+    const slug = slugifyTenantId(input);
+    assert.equal(typeof slug, "string");
+    assert.ok(slug.length > 0);
+    assert.ok(slug.length <= 50, `slug too long: ${slug}`);
+  }
+
+  // A reserved word alone isn't rejected by slugifyTenantId itself (that's
+  // isValidTenantId's job) — callers combine the two, e.g. by appending a
+  // numeric suffix until isValidTenantId passes.
+  assert.equal(slugifyTenantId("admin"), "admin");
+  assert.equal(isValidTenantId("admin"), false);
+});
+
 test("lookup tables cannot resolve inherited Object.prototype members", () => {
   // Regression: these tables were plain frozen object literals, so a
   // caller-supplied key like "constructor" resolved to Object.prototype's

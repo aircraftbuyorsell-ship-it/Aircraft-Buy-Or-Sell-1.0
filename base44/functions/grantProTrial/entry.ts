@@ -14,7 +14,17 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const userEmail = user.email;
-    const body = await req.json().catch(() => ({}));
+    let body = {};
+    try {
+      const rawBody = await req.json();
+      if (rawBody && typeof rawBody === 'object') {
+        body = rawBody;
+      }
+    } catch (err) {
+      console.error('JSON parse error (will use empty body):', err.message);
+      // Empty body is ok, will just use default values
+    }
+
     const { checkOnly, giftChoice } = body;
 
     // ── Check if trial already exists for this user ──
@@ -87,6 +97,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Default to bonus_tokens if no choice or invalid choice provided
     const validGift = GIFT_OPTIONS.find(g => g.id === giftChoice);
     const chosenGift = validGift ? giftChoice : 'bonus_tokens';
     const TRIAL_DAYS = chosenGift === 'extended_trial' ? 45 : 30;
@@ -100,12 +111,19 @@ Deno.serve(async (req) => {
       metadata.pro_trial_voucher = 'ABOS25-' + Math.random().toString(36).substring(2, 8).toUpperCase();
       metadata.voucher_amount = 25;
     }
-    const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
+    const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }).catch(err => {
+      console.error('UserProfile filter error:', err);
+      return null;
+    });
+
     if (existingProfiles && existingProfiles.length > 0) {
       await base44.asServiceRole.entities.UserProfile.update(existingProfiles[0].id, {
         tier: 'pro',
         sub_tier: 'plus',
         metadata: { ...(existingProfiles[0].metadata || {}), ...metadata },
+      }).catch(err => {
+        console.error('UserProfile update error:', err.message);
+        throw new Error(`Failed to update UserProfile: ${err.message}`);
       });
     } else {
       await base44.asServiceRole.entities.UserProfile.create({
@@ -115,6 +133,9 @@ Deno.serve(async (req) => {
         sub_tier: 'plus',
         status: 'active',
         metadata,
+      }).catch(err => {
+        console.error('UserProfile create error:', err.message);
+        throw new Error(`Failed to create UserProfile: ${err.message}`);
       });
     }
 
@@ -135,12 +156,19 @@ Deno.serve(async (req) => {
       confirmation_timestamp: now.toISOString(),
       processing_notes: `${TRIAL_DAYS}-day Pro trial — expires ${trialEnd.toISOString()}`,
       description: `${TRIAL_DAYS}-day free Pro trial. Gift: ${chosenGift}. Personal investment gift referral enabled.`,
+    }).catch(err => {
+      console.error('TierChange create error:', err.message);
+      throw new Error(`Failed to create TierChange: ${err.message}`);
     });
 
     // 3. Bonus tokens
     const existingTx = await base44.asServiceRole.entities.TokenTransaction.filter(
       { user_email: userEmail }, '-created_date', 1
-    );
+    ).catch(err => {
+      console.error('TokenTransaction filter error:', err);
+      return null;
+    });
+
     const currentBalance = existingTx?.[0]?.balance_after || 0;
     await base44.asServiceRole.entities.TokenTransaction.create({
       user_email: userEmail,
@@ -149,6 +177,9 @@ Deno.serve(async (req) => {
       feature: 'pro_trial_bonus',
       balance_after: currentBalance + BONUS_TOKENS,
       description: `Pro trial welcome gift — ${BONUS_TOKENS} bonus tokens. Choice: ${chosenGift}.`,
+    }).catch(err => {
+      console.error('TokenTransaction create error:', err.message);
+      throw new Error(`Failed to create TokenTransaction: ${err.message}`);
     });
 
     // 4. Referral gift link
@@ -160,6 +191,9 @@ Deno.serve(async (req) => {
       target_type: 'checkout',
       is_active: true,
       notes: 'Personal investment gift referral',
+    }).catch(err => {
+      console.error('AffiliateLink create error:', err.message);
+      throw new Error(`Failed to create AffiliateLink: ${err.message}`);
     });
 
     return Response.json({
@@ -174,6 +208,7 @@ Deno.serve(async (req) => {
       slotsLeft: slotsLeft - 1,
     });
   } catch (error) {
+    console.error('grantProTrial failed:', error?.message || error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

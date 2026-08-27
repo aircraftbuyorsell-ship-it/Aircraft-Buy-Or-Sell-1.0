@@ -1,0 +1,32 @@
+name: Verify Main Branch Protection
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly on Monday at 9 AM UTC
+  push:
+    paths:
+      - 'GOVERNANCE.md'
+      - 'scripts/verify-branch-protection.sh'
+      - '.github/workflows/verify-branch-protection.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-protection:
+    runs-on: ubuntu-latest
+    name: Verify branch protection rules
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify branch protection
+        run: |
+          chmod +x scripts/verify-branch-protection.sh
+          ./scripts/verify-branch-protection.sh \
+            "${{ github.repository_owner }}" \
+            "${{ github.event.repository.name }}" \
+            "${{ secrets.GITHUB_TOKEN }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

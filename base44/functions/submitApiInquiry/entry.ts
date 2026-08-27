@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+// Collect only business-demographic data required to personalize an ABOS offer.
+// Submitted data is not intended for third-party sharing or unrelated use cases.
+
 /** Public API inquiry gate.
  * Accepts a visitor email + optional aircraft registration/use case, records a
  * lead, notifies ABOS admins, and returns the current API pricing catalog.

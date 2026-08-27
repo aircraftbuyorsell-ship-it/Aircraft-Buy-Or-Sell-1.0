@@ -71,7 +71,7 @@ export default function ReportEmailModal({ registration, onClose }) {
             className="w-full mt-4 py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 disabled:opacity-40"
             style={{ background: AMBER, color: "#0B1220" }}>
             <Mail className="w-4 h-4" />
-            {loading ? "Preparing checkout…" : "Continue to payment — €29"}
+            {loading ? "Preparing checkout…" : "Continue to payment — $49"}
           </button>
 
           <p className="text-[10px] text-[rgba(255,255,255,0.35)] mt-3 leading-relaxed text-center">

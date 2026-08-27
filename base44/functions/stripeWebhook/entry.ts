@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.25.0';
+import {
+  defaultCapabilitiesForPlan,
+  generateTenantApiKey,
+  hashApiKey,
+  isValidTenantId,
+  mapStripeStatusToLicenseStatus,
+  slugifyTenantId,
+} from '../_shared/tenantLicense.mjs';
 
 // Map Stripe price IDs → token grants + tier
 const PRICE_TOKEN_MAP = {

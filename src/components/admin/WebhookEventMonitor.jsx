@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle, XCircle, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, XCircle, RefreshCw, RotateCcw } from "lucide-react";
 
 const STATUS_COLORS = {
   completed: { bg: "bg-green-50", text: "text-green-700", icon: CheckCircle },
@@ -13,6 +13,7 @@ export default function WebhookEventMonitor({ limit = 20 }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retrying, setRetrying] = useState(new Set());
 
   const loadEvents = async () => {
     setLoading(true);
@@ -27,6 +28,32 @@ export default function WebhookEventMonitor({ limit = 20 }) {
       console.error("Webhook event load error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const retryEvent = async (eventId) => {
+    const newRetrying = new Set(retrying);
+    newRetrying.add(eventId);
+    setRetrying(newRetrying);
+
+    try {
+      const res = await base44.functions.invoke("stripeRetryWebhook", {
+        stripe_event_id: eventId,
+      });
+
+      if (res.data?.success) {
+        // Reload events after retry
+        setTimeout(loadEvents, 1000);
+      } else {
+        alert("Failed to retry webhook event");
+      }
+    } catch (err) {
+      console.error("Retry error:", err);
+      alert("Error retrying webhook: " + (err.message || "Unknown error"));
+    } finally {
+      const updated = new Set(retrying);
+      updated.delete(eventId);
+      setRetrying(updated);
     }
   };
 
@@ -90,6 +117,7 @@ export default function WebhookEventMonitor({ limit = 20 }) {
                 <th className="text-left py-2 px-3 font-semibold">Status</th>
                 <th className="text-left py-2 px-3 font-semibold">Timestamp</th>
                 <th className="text-left py-2 px-3 font-semibold">Event ID</th>
+                <th className="text-left py-2 px-3 font-semibold">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -114,6 +142,22 @@ export default function WebhookEventMonitor({ limit = 20 }) {
                       <code className="text-xs font-mono text-gray-500 truncate max-w-xs">
                         {event.stripe_event_id}
                       </code>
+                    </td>
+                    <td className="py-3 px-3">
+                      {event.status === "failed" && (
+                        <button
+                          onClick={() => retryEvent(event.stripe_event_id)}
+                          disabled={retrying.has(event.stripe_event_id)}
+                          className="text-xs flex items-center gap-1 px-2 py-1 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 disabled:opacity-50"
+                        >
+                          {retrying.has(event.stripe_event_id) ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-3 h-3" />
+                          )}
+                          Retry
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

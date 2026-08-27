@@ -297,3 +297,81 @@ export default function InstallWizard() {
           </div>
         </Card>
       )}
+
+      {/* ── Step 2: review ── */}
+      {step === 2 && (
+        <Card>
+          <div className="flex items-center gap-2 mb-1">
+            <PackageOpen className="w-4 h-4 opacity-60" />
+            <h2 className="font-semibold">Your integration files</h2>
+          </div>
+          <p className="text-sm opacity-60 mb-4">
+            Generated for {PLATFORM_LABELS[platform]}. Add them to your project — copy each one, or
+            download the archive.
+          </p>
+
+          <div
+            className="rounded-lg p-3 mb-4 flex items-start gap-2.5"
+            style={{ background: "rgba(5,150,105,0.07)", border: "1px solid rgba(5,150,105,0.25)" }}
+          >
+            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#059669" }} />
+            <p className="text-xs leading-relaxed">
+              These files carry no secret and are safe to commit. Your tenant API key goes in the
+              environment variable documented in <code>.env.abos.example</code>, read only by your
+              server.
+            </p>
+          </div>
+
+          {buildError ? (
+            <div
+              className="rounded-lg p-3 flex items-start gap-2.5"
+              style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.30)" }}
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#dc2626" }} />
+              <p className="text-xs">{buildError}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {files.map((file) => (
+                <FileBlock key={file.path} file={file} />
+              ))}
+            </div>
+          )}
+
+          {zipError && <p className="text-xs mt-3" style={{ color: "#dc2626" }}>{zipError}</p>}
+
+          <div className="flex justify-between gap-3 mt-6 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
+              style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={downloadZip}
+                disabled={!files.length}
+                className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 disabled:opacity-50"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+              >
+                <Download className="w-4 h-4" />
+                Download .zip
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                disabled={!files.length}
+                className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5 disabled:opacity-50"
+                style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+              >
+                Finish setup
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}

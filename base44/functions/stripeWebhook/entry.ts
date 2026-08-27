@@ -427,10 +427,20 @@ async function handleChargeFailed(charge) {
 // Subscription activated or renewed
 async function handleSubscriptionUpdated(subscription, stripe, base44) {
   console.log(`🔄 subscription updated: ${subscription.id} status=${subscription.status}`);
+  const subMeta = subscription.metadata || {};
+
+  // Tenant (White-Label) subscriptions are resolved by subscription id
+  // against License, not by customer email — the contact on a Stripe
+  // customer need not match the tenant's contact_email, and this sync must
+  // not depend on a successful Stripe customer lookup.
+  if (subMeta.type === 'tenant_subscription') {
+    await syncTenantLicenseStatus(base44, subscription.id, mapStripeStatusToLicenseStatus(subscription.status));
+    return;
+  }
+
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
-  const subMeta = subscription.metadata || {};
   if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
     await handleProductSubscription(subscription, stripe, base44);
     return;

@@ -202,6 +202,13 @@ async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const paymentId   = session.payment_intent || session.id;
 
+  // Self-serve White-Label tenant subscription (Starter/Professional) —
+  // see stripeCreateCheckout's TENANT_PLAN_PRICES.
+  if (meta.type === 'tenant_subscription') {
+    await handleTenantCheckout(session, base44, eventId, stripe);
+    return;
+  }
+
   // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
   if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {
     await handleProductCheckout(session, base44, eventId, stripe);

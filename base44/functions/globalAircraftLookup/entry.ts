@@ -193,7 +193,62 @@ Deno.serve(async (req) => {
       } catch (_) { /* non-critical */ }
     }
 
-    // ── 4. ABOS listing match (all countries) ──
+    // ── 4. Official-registry web fallback for international marks ──
+    // ADS-B databases are not registries and can miss aircraft that are not
+    // actively tracked. Use web-grounded retrieval only after structured
+    // sources fail, and require the model to return an official registry
+    // source URL plus a confidence level so the UI can distinguish evidence.
+    if (!result.found && country.code !== 'US') {
+      try {
+        const llmRes = await base44.integrations.Core.InvokeLLM({
+          prompt: `Research aircraft registration ${fullReg}. Identify the aircraft using the registering civil aviation authority or official aircraft register first. Use secondary aviation databases only to cross-check identity. Return data only when you have evidence that the registration belongs to the aircraft. Prefer the official registry source URL. Do not guess or invent missing fields.`,
+          add_context_from_internet: true,
+          model: 'gemini_3_flash',
+          response_json_schema: {
+            type: 'object',
+            properties: {
+              registration: { type: 'string' },
+              make: { type: 'string' },
+              model: { type: 'string' },
+              year: { type: 'number' },
+              serial_number: { type: 'string' },
+              icao_type: { type: 'string' },
+              mode_s_hex: { type: 'string' },
+              country: { type: 'string' },
+              status: { type: 'string' },
+              source_url: { type: 'string' },
+              source_name: { type: 'string' },
+              confidence: { type: 'string', enum: ['high', 'medium'] },
+            },
+            required: ['registration', 'source_name', 'confidence'],
+          },
+        });
+        const returnedReg = normalizeRegistration(llmRes?.registration || '');
+        if (returnedReg && returnedReg === fullReg && llmRes?.source_name) {
+          result.found = true;
+          result.source = 'official_registry_web';
+          result.aircraft = {
+            registration: fullReg,
+            make: llmRes.make || null,
+            model: llmRes.model || null,
+            year: llmRes.year || null,
+            serial_number: llmRes.serial_number || null,
+            icao_type: llmRes.icao_type || null,
+            mode_s_hex: llmRes.mode_s_hex || null,
+            country: llmRes.country || country.label,
+            country_iso: country.code,
+            status: llmRes.status || 'unknown',
+            registered_owner: null,
+            origin_country: country.code,
+            registry_source_name: llmRes.source_name,
+            registry_source_url: llmRes.source_url || null,
+            registry_confidence: llmRes.confidence,
+          };
+        }
+      } catch (_) { /* web fallback unavailable — preserve structured result */ }
+    }
+
+    // ── 5. ABOS listing match (all countries) ──
     if (!result.listing && result.found) {
       try {
         const listings = await base44.asServiceRole.entities.AircraftListing.filter(

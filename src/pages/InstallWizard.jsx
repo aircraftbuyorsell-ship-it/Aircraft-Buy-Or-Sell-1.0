@@ -188,6 +188,14 @@ export default function InstallWizard() {
     );
   }
 
+  // Built once and used for both the shown text and the copy button, so what
+  // a partner copies is exactly what they were shown.
+  const envVar = "ABOS_TENANT_KEY";
+  const verifyCommand =
+    `curl -X POST localhost:3000${adapterUrl || "/api/abos"}` +
+    ` -H 'content-type: application/json'` +
+    ` -d '{"endpoint":"search","payload":{}}'`;
+
   const licenceInactive = license?.status !== "active";
 
   return (
@@ -380,14 +388,60 @@ export default function InstallWizard() {
         <Card>
           <div className="flex items-center gap-2 mb-1">
             <Terminal className="w-4 h-4 opacity-60" />
-            <h2 className="font-semibold">Almost there</h2>
+            <h2 className="font-semibold">Three steps left</h2>
           </div>
           <p className="text-sm opacity-60 mb-5">
-            Add the generated files to your project, then issue credentials in the Partner Portal
-            and store them in your server environment. ABOS never needs access to your code.
+            These run in your own project — ABOS never needs access to your code or servers.
           </p>
+
+          <ol className="space-y-4">
+            <li>
+              <p className="text-sm font-medium mb-1.5">1 · Issue an API key</p>
+              <p className="text-xs opacity-60 mb-2">
+                The Partner Portal shows a new key exactly once — copy it before closing the panel.
+              </p>
+              <Link
+                to="/partner-portal"
+                className="text-xs font-medium underline inline-flex items-center gap-1"
+              >
+                Open API credentials
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </li>
+
+            <li>
+              <p className="text-sm font-medium mb-1.5">2 · Put it in your server environment</p>
+              <div
+                className="rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+              >
+                <code className="text-[11px] font-mono truncate">{envVar}=&lt;your key&gt;</code>
+                <CopyButton text={envVar + "="} />
+              </div>
+              <p className="text-xs opacity-50 mt-1.5">
+                Never commit it. On Cloudflare Workers store it as a Worker secret rather than in a
+                file.
+              </p>
+            </li>
+
+            <li>
+              <p className="text-sm font-medium mb-1.5">3 · Check the adapter answers</p>
+              <div
+                className="rounded-lg px-3 py-2 flex items-center justify-between gap-3"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+              >
+                <code className="text-[11px] font-mono truncate">{verifyCommand}</code>
+                <CopyButton text={verifyCommand} />
+              </div>
+              <p className="text-xs opacity-50 mt-1.5">
+                A JSON response means the adapter is wired up. A 500 usually means the environment
+                variable is missing.
+              </p>
+            </li>
+          </ol>
+
           <div
-            className="rounded-lg p-3 mb-5"
+            className="rounded-lg p-3 mt-5"
             style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
           >
             <p className="text-xs opacity-70 leading-relaxed">
@@ -395,7 +449,8 @@ export default function InstallWizard() {
               <code className="font-mono">npx abos-install</code>.
             </p>
           </div>
-          <div className="flex justify-between gap-3">
+
+          <div className="flex justify-between gap-3 mt-6">
             <button
               type="button"
               onClick={() => setStep(2)}

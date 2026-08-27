@@ -31,7 +31,14 @@ export default function PlanCheckoutButton({ planType, label = "Subscribe", vari
         onCheckoutStarted(res.data.sessionId);
       }
 
-      // Redirect to Stripe Checkout
+      // Store session ID for post-checkout verification
+      if (res.data.sessionId) {
+        sessionStorage.setItem('stripeSessionId', res.data.sessionId);
+      }
+
+      // Redirect to Stripe Checkout with return URL pointing to success page
+      const successUrl = new URL('/checkout-success', window.location.origin);
+      successUrl.searchParams.set('session_id', res.data.sessionId);
       window.location.href = res.data.sessionUrl;
     } catch (e) {
       const status = e?.response?.status || e?.status;

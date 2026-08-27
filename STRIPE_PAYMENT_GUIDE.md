@@ -303,7 +303,22 @@ STRIPE_WEBHOOK_SECRET=whsec_test_...
 # Optional
 STRIPE_WEBHOOK_TIMEOUT=30000
 STRIPE_WEBHOOK_RETRY_MAX_ATTEMPTS=3
+
+# Optional — comma-separated allowlist of origins checkout may return the buyer
+# to. When set it is authoritative and replaces the built-in defaults entirely,
+# so it must list EVERY origin the app is served from (custom domain, www, and
+# any Base44 or Cloudflare preview host). Leave it unset to use the built-in
+# defaults: aircraftbuyorsell.com and abos-marketspace.com (both with and
+# without www), plus *.base44.app and *.aircraftbuyorsell.workers.dev.
+ABOS_CHECKOUT_RETURN_ORIGINS=https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com
 ```
+
+> **Checkout returns HTTP 400 `Invalid checkout return origin`?**
+> The origin the buyer is browsing is not in the effective allowlist. Either add
+> it to `ABOS_CHECKOUT_RETURN_ORIGINS` or unset that variable to fall back to the
+> defaults. The rejected origin is written to the `stripeCreateCheckout` function
+> logs. Note that setting the variable to a partial list silently disables the
+> defaults — that is the most common cause of this error.
 
 ### Stripe Dashboard Configuration
 

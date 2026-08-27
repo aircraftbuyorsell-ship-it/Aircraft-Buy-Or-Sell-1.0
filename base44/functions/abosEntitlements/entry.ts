@@ -16,13 +16,21 @@ const PRODUCT_CATALOG = {
   VALUATION_STUDIO: { name: 'Valuation Studio (legacy)', type: 'one_time', price_eur: 29.00, currency: 'eur', legacy: true },
   VERIFICATION_PACK:{ name: 'Verification Pack (legacy)', type: 'one_time', price_eur: 19.90, currency: 'eur', legacy: true },
   PRO:              { name: 'ABOS Professional', type: 'subscription', price_eur: 99, currency: 'eur', interval: 'month' },
-  BROKER:           { name: 'ABOS Broker / Dealer', type: 'subscription', price_eur: 299, currency: 'eur', interval: 'month' },
+  BROKER:           { name: 'ABOS Broker / Dealer (legacy)', type: 'subscription', price_eur: 299, currency: 'eur', interval: 'month', legacy: true },
+  ATI_REPORT_PACK_5: { name: 'ATI Report — 5 Pack', type: 'report_pack', price_usd: 199, currency: 'usd', credits: 5 },
+  ATI_REPORT_PACK_10:{ name: 'ATI Report — 10 Pack', type: 'report_pack', price_usd: 290, currency: 'usd', credits: 10 },
+  ATI_REPORT_PACK_25:{ name: 'ATI Report — 25 Pack', type: 'report_pack', price_usd: 625, currency: 'usd', credits: 25 },
+  API_STARTER: { name: 'ABOS API — Starter', type: 'subscription', price_eur: 690, currency: 'eur', interval: 'month' },
+  API_PROFESSIONAL: { name: 'ABOS API — Professional', type: 'subscription', price_eur: 1890, currency: 'eur', interval: 'month' },
+  API_ENTERPRISE: { name: 'ABOS API — Enterprise', type: 'contract', price_eur: 3900, currency: 'eur' },
+  WHITE_LABEL_LICENSE: { name: 'ABOS White-Label Integration License', type: 'one_time', price_eur: 2500, currency: 'eur' },
 };
 
 const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'ATI_BASIC_REPORT'], BROKER: ['ATI_SCORE', 'ATI_BASIC_REPORT'] };
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
-const SUB_KEYS = new Set(['PRO', 'BROKER']);
-const ONE_TIME_KEYS = new Set(['ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK']);
+const SUB_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
+const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
+const ONE_TIME_KEYS = new Set(['ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'WHITE_LABEL_LICENSE']);
 
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
@@ -152,6 +160,19 @@ Deno.serve(async (req) => {
 
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
+        if (product.type === 'contract') return Response.json({ contact_sales: true, product_key });
+        if (product.type === 'subscription' && (product_key === 'API_STARTER' || product_key === 'API_PROFESSIONAL')) {
+          const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+          const session = await stripe.checkout.sessions.create({
+            mode:'subscription', payment_method_types:['card'], customer_email:user.email, client_reference_id:user.id,
+            metadata:{user_id:user.id,user_email:user.email,product_key},
+            subscription_data:{metadata:{user_id:user.id,user_email:user.email,product_key}},
+            success_url:`${return_url}${return_url.includes('?')?'&':'?'}paid=1&product=${product_key}`,
+            cancel_url:`${return_url}${return_url.includes('?')?'&':'?'}canceled=1`,
+            line_items:[{price_data:{currency:'eur',product_data:{name:product.name},unit_amount:product.price_eur*100,recurring:{interval:'month'}},quantity:1}],
+          });
+          return Response.json({url:session.url,session_id:session.id,product_key});
+        }
 
         if (SUB_KEYS.has(product_key)) {
           const entitled = subProduct === product_key;
@@ -203,6 +224,18 @@ Deno.serve(async (req) => {
         const { product_key, aircraft_registration, return_url } = body;
         const product = PRODUCT_CATALOG[product_key];
         if (!product) return Response.json({ error: 'Unknown product' }, { status: 400 });
+        if (REPORT_PACK_KEYS.has(product_key)) {
+          const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
+          if (!return_url) return Response.json({ error: 'Missing return_url' }, { status: 400 });
+          const session = await stripe.checkout.sessions.create({
+            mode: 'payment', payment_method_types: ['card'], customer_email: user.email, client_reference_id: user.id,
+            metadata: { user_id: user.id, user_email: user.email, product_key, report_credits: String(product.credits) },
+            success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}`,
+            cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
+            line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: product.price_usd * 100 }, quantity: 1 }],
+          });
+          return Response.json({ url: session.url, session_id: session.id, product_key });
+        }
         if (product.free) {
           return Response.json({ free: true, granted: true, product_key });
         }

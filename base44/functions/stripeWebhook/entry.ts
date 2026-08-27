@@ -34,8 +34,10 @@ const LEGACY_PRODUCT_ALIASES = {
 const PRODUCT_KEYS = new Set([
   ...Object.values(STRIPE_ATI_PRODUCT_MAP),
   ...Object.keys(LEGACY_PRODUCT_ALIASES),
+  'ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25','API_STARTER','API_PROFESSIONAL','API_ENTERPRISE','WHITE_LABEL_LICENSE',
 ]);
-const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
+const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
 
 // Sync UserProfile tier + sub_tier based on a resolved tier/sub_tier
 async function syncUserProfileTier(base44, userEmail, tier, subTier) {
@@ -667,7 +669,16 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
     return true;
   }
   try {
-    if (SUB_PRODUCT_KEYS.has(productKey)) {
+    if (REPORT_PACK_KEYS.has(productKey)) {
+      const credits = { ATI_REPORT_PACK_5: 5, ATI_REPORT_PACK_10: 10, ATI_REPORT_PACK_25: 25 }[productKey];
+      const balances = await base44.asServiceRole.entities.ReportCreditBalance.filter({ user_email: email }, '-created_date', 1);
+      if (balances[0]) {
+        await base44.asServiceRole.entities.ReportCreditBalance.update(balances[0].id, { balance: (balances[0].balance||0)+credits, lifetime_purchased:(balances[0].lifetime_purchased||0)+credits, updated_at:new Date().toISOString() });
+      } else {
+        await base44.asServiceRole.entities.ReportCreditBalance.create({ user_email:email, balance:credits, lifetime_purchased:credits, lifetime_used:0, updated_at:new Date().toISOString() });
+      }
+      console.log(`✓ Report credits granted: ${email} → ${credits}`);
+    } else if (SUB_PRODUCT_KEYS.has(productKey)) {
       await base44.asServiceRole.entities.Entitlement.create({
         user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
         stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',

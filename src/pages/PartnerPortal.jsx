@@ -352,31 +352,60 @@ export default function PartnerPortal() {
 
       {/* ── Downloads ── */}
       <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <Download className="w-4 h-4 opacity-60" />
-          <h2 className="font-semibold">Toolset &amp; installer</h2>
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Download className="w-4 h-4 opacity-60" />
+            <h2 className="font-semibold">Toolset &amp; installer</h2>
+          </div>
+          {license?.status === "active" && (
+            <button
+              type="button"
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = `/api/tenantCoreApi/download-installer`;
+                link.click();
+              }}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+              style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+            >
+              <Download className="w-4 h-4" />
+              Download installer
+            </button>
+          )}
         </div>
 
-        {downloads.length === 0 ? (
+        {!license || license.status !== "active" ? (
           <p className="text-sm opacity-70">
-            Downloads become available once your licence is active.
+            Installer becomes available once your licence is active.
           </p>
         ) : (
-          downloads.map((download) => (
-            <div key={download.name} className="flex items-center justify-between gap-3 flex-wrap">
+          <>
+            <div className="space-y-3 mb-3">
               <div>
-                <p className="font-medium text-sm">{download.name}</p>
-                <p className="text-xs opacity-50">
-                  Version {download.version} · {download.channel} channel
+                <p className="font-medium text-sm">ABOS White-Label Installer v1.0.0</p>
+                <p className="text-xs opacity-50 mt-0.5">
+                  Self-contained CLI tool with 6 platform adapters
                 </p>
               </div>
-              <p className="text-xs opacity-60 max-w-sm">
-                Packages are generated per organization on request. Ask your ABOS representative
-                to issue your build — each one is checksummed so you can verify it before
-                installing.
+              <p className="text-xs opacity-60">
+                The installer reads your API key, configures the SDK for your plan's capabilities,
+                and generates a ready-to-deploy adapter for your platform. All packages are
+                deterministically built and checksummed.
               </p>
             </div>
-          ))
+            {downloads.length > 0 && (
+              <div className="border-t pt-3" style={{ borderColor: "var(--glass-border)" }}>
+                <p className="text-xs font-semibold opacity-60 mb-2">Previous builds</p>
+                <ul className="space-y-2">
+                  {downloads.map((download) => (
+                    <li key={download.name} className="text-xs opacity-60">
+                      {download.name} ({download.version}) — {download.channel}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </Card>
 

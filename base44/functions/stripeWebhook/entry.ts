@@ -545,10 +545,19 @@ async function handleInvoicePaymentFailed(invoice, stripe, base44) {
 // Subscription deleted/cancelled
 async function handleSubscriptionDeleted(subscription, stripe, base44) {
   console.log(`🗑️ subscription.deleted: ${subscription.id}`);
+  const subMeta = subscription.metadata || {};
+
+  // Tenant (White-Label) subscriptions: suspend regardless of whether the
+  // buyer-side email lookup below succeeds — this reverse path (cancel/
+  // lapse → suspend the License) must not depend on it.
+  if (subMeta.type === 'tenant_subscription') {
+    await syncTenantLicenseStatus(base44, subscription.id, 'suspended');
+    return;
+  }
+
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) return;
 
-  const subMeta = subscription.metadata || {};
   if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
     await handleProductSubscription(subscription, stripe, base44);
     return;

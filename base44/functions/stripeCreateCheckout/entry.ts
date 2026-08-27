@@ -8,6 +8,24 @@ const PRICE_CONFIG = {
   'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', product_key: 'PRO' },
 };
 
+// White-label tenant plan prices (EUR, monthly subscription)
+const TENANT_PLAN_PRICES = {
+  wl_starter: {
+    priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym',
+    plan: 'starter',
+    interval: 'month',
+    currency: 'eur',
+    label: 'ABOS White-Label — Starter',
+  },
+  wl_professional: {
+    priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC',
+    plan: 'professional',
+    interval: 'month',
+    currency: 'eur',
+    label: 'ABOS White-Label — Professional',
+  },
+};
+
 const BUYER_PLANS = {
   buyer_monthly: { amount: 19900, interval: 'month', plan: 'monthly', label: 'ABOS Buyer Pro Monthly', currency: 'usd' },
   buyer_annual: { amount: 99900, interval: 'year', plan: 'annual', label: 'ABOS Buyer Pro Annual', currency: 'usd' },
@@ -35,8 +53,45 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl, plan_type } = await req.json();
+    const { priceId, packName, tokens, priceUsd, tier, subTier, returnUrl, plan_type, type, company_name, contact_email } = await req.json();
     if (!returnUrl || !allowedReturnOrigin(returnUrl)) return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
+
+    // White-label tenant subscription checkout
+    if (type === 'tenant_subscription') {
+      const tenantPlan = TENANT_PLAN_PRICES[plan_type];
+      if (!tenantPlan) return Response.json({ error: 'Invalid tenant plan' }, { status: 400 });
+      if (!company_name) return Response.json({ error: 'company_name required for tenant checkout' }, { status: 400 });
+
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        customer_email: contact_email || user.email,
+        client_reference_id: user.id,
+        line_items: [{ price: tenantPlan.priceId, quantity: 1 }],
+        subscription_data: {
+          trial_period_days: 14,
+          metadata: {
+            type: 'tenant_subscription',
+            plan: tenantPlan.plan,
+            company_name,
+            contact_email: contact_email || user.email,
+          },
+        },
+        success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
+        metadata: {
+          type: 'tenant_subscription',
+          plan: tenantPlan.plan,
+          company_name,
+          contact_email: contact_email || user.email,
+        },
+        // Require agreement acceptance for white-label license
+        consent_collection: {
+          terms_of_service: 'required',
+        },
+      });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url });
+    }
 
     const buyerPlan = BUYER_PLANS[plan_type];
     if (buyerPlan) {

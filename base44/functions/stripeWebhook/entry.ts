@@ -187,6 +187,144 @@ async function handleReportCredits(session, base44) {
   console.log(`✓ Granted ${credits} report credit(s) to ApiKey ${apiKeyId}, balance: ${newBalance}`);
 }
 
+async function uniqueTenantId(base44, baseTenantId) {
+  let candidate = baseTenantId;
+  let collision = await base44.asServiceRole.entities.Tenant.filter({ tenant_id: candidate });
+  if (collision.length === 0) return candidate;
+  for (let i = 1; i < 100; i++) {
+    candidate = `${baseTenantId}${i}`;
+    collision = await base44.asServiceRole.entities.Tenant.filter({ tenant_id: candidate });
+    if (collision.length === 0) return candidate;
+  }
+  throw new Error(`Cannot allocate unique tenant_id for ${baseTenantId}`);
+}
+
+async function handleTenantCheckout(session, base44, eventId, stripe) {
+  console.log('✅ tenant_subscription checkout.session.completed:', session.id);
+  const meta = session.metadata || {};
+  const contactEmail = meta.contact_email || session.customer_email || session.customer_details?.email;
+  const companyName = meta.company_name || '';
+  const plan = meta.plan || 'starter';
+
+  if (!contactEmail || !companyName) {
+    console.warn('Tenant checkout missing contact_email or company_name, skipping');
+    return;
+  }
+
+  // Prevent duplicate provisioning
+  const existing = await base44.asServiceRole.entities.PaymentEvent.filter({
+    stripe_event_id: eventId,
+    event_type: 'checkout.session.completed',
+  });
+  if (existing.length > 0 && existing[0].status === 'processed') {
+    console.log(`Duplicate tenant checkout ignored: ${eventId}`);
+    return;
+  }
+
+  // Allocate unique tenant_id based on company name
+  const baseTenantId = companyName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const tenantId = await uniqueTenantId(base44, baseTenantId);
+
+  // Mark event as processing before provisioning
+  await base44.asServiceRole.entities.PaymentEvent.create({
+    stripe_event_id: eventId,
+    event_type: 'checkout.session.completed',
+    user_email: contactEmail,
+    product_key: 'TENANT_SUBSCRIPTION',
+    stripe_payment_id: session.payment_intent || session.id,
+    stripe_subscription_id: session.subscription || '',
+    amount_eur: (session.amount_total || 0) / 100,
+    status: 'processing',
+  });
+
+  try {
+    // Import tenant license utilities (avoids circular deps at module level)
+    const {
+      CURRENT_AGREEMENT_VERSION,
+      WHITE_LABEL_AGREEMENT_TYPE,
+      defaultCapabilitiesForPlan,
+      getRateLimitsForPlan,
+      generateTenantApiKey,
+      hashApiKey,
+    } = await import('../_shared/tenantLicense.mjs');
+
+    // Create Tenant
+    const tenant = await base44.asServiceRole.entities.Tenant.create({
+      tenant_id: tenantId,
+      display_name: companyName,
+      plan: plan,
+      status: 'active',
+      contact_email: contactEmail,
+      created_via: 'stripe_checkout',
+      stripe_subscription_id: session.subscription,
+    });
+
+    // Record contract acceptance
+    await base44.asServiceRole.entities.ContractAcceptance.create({
+      tenant_id: tenantId,
+      agreement_type: WHITE_LABEL_AGREEMENT_TYPE,
+      agreement_version: CURRENT_AGREEMENT_VERSION,
+      accepted_by_email: contactEmail,
+      accepted_at: new Date().toISOString(),
+    });
+
+    // Create License
+    const capabilities = defaultCapabilitiesForPlan(plan);
+    const rateLimits = getRateLimitsForPlan(plan);
+    const license = await base44.asServiceRole.entities.License.create({
+      tenant_id: tenantId,
+      plan: plan,
+      status: 'active',
+      capabilities: capabilities,
+      rate_limit_rpm: rateLimits.rpm,
+      rate_limit_rpd: rateLimits.rpd,
+      subscription_id: session.subscription,
+      trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    // Generate and store API key (plaintext for return, hash stored)
+    const plaintextKey = generateTenantApiKey(tenantId);
+    const keyHash = await hashApiKey(plaintextKey);
+    await base44.asServiceRole.entities.TenantApiKey.create({
+      tenant_id: tenantId,
+      key_hash: keyHash,
+      status: 'active',
+      created_by_email: contactEmail,
+      note: 'Initial key issued at checkout',
+    });
+
+    // Update payment event to processed
+    const paymentEvents = await base44.asServiceRole.entities.PaymentEvent.filter({
+      stripe_event_id: eventId,
+    });
+    if (paymentEvents[0]) {
+      await base44.asServiceRole.entities.PaymentEvent.update(paymentEvents[0].id, {
+        status: 'processed',
+      });
+    }
+
+    console.log(`✓ Tenant ${tenantId} provisioned (${companyName}) with plan ${plan}`);
+    console.log(`  License active with capabilities: ${capabilities.join(', ')}`);
+    console.log(`  Initial API key stored (hash only). Plaintext delivered at signup.`);
+  } catch (error) {
+    console.error(`✗ Tenant checkout failed for ${tenantId}: ${error.message}`);
+    const paymentEvents = await base44.asServiceRole.entities.PaymentEvent.filter({
+      stripe_event_id: eventId,
+    });
+    if (paymentEvents[0]) {
+      await base44.asServiceRole.entities.PaymentEvent.update(paymentEvents[0].id, {
+        status: 'failed',
+      });
+    }
+    throw error;
+  }
+}
+
 async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 
@@ -194,6 +332,12 @@ async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
   const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  // White-label tenant subscription
+  if (meta.type === 'tenant_subscription') {
+    await handleTenantCheckout(session, base44, eventId, stripe);
+    return;
+  }
 
   // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
   if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {

@@ -4,7 +4,6 @@ import { PRODUCT_CATALOG, formatPrice } from "@/lib/products";
 
 export default function MonetizationCTA({ user }) {
   const isRegistered = !!user?.email;
-  const tier = user?.subscription_tier || "free";
 
   const byKey = (key) => PRODUCT_CATALOG.find((p) => p.key === key);
 
@@ -44,7 +43,7 @@ export default function MonetizationCTA({ user }) {
           </div>
 
           <h2 className="text-xl md:text-2xl font-black tracking-tight mb-2 text-foreground">
-            {isRegistered ? "Your Aviation Intelligence Toolkit" : "Get Full Aviation Intelligence — Save 30% Today"}
+            {isRegistered ? "Your Aviation Intelligence Toolkit" : "Aircraft Intelligence, Priced Per Aircraft"}
           </h2>
 
           <p className="text-sm mb-5 max-w-2xl text-muted-foreground">
@@ -78,7 +77,7 @@ export default function MonetizationCTA({ user }) {
               <Link to="/pricing"
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-black transition-opacity hover:opacity-90"
                 style={{ background: "#f5c242", color: "#04060a" }}>
-                Register Free — Save 30% <ArrowRight className="w-4 h-4" />
+                Register Free <ArrowRight className="w-4 h-4" />
               </Link>
             ) : (
               <Link to="/pricing"

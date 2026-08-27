@@ -324,6 +324,135 @@ async function syncTenantLicenseStatus(base44, subscriptionId, status) {
   console.log(`✓ Tenant License ${license.id} (tenant ${license.tenant_id}) status → ${status}`);
 }
 
+// ── Self-serve White-Label tenant checkout ──────────────────────────────────
+// checkout.session.completed for a Starter/Professional self-serve
+// subscription (see stripeCreateCheckout's TENANT_PLAN_PRICES) provisions a
+// Tenant, ContractAcceptance, License and first TenantApiKey — the same four
+// records tenantProvision creates for an admin-run onboarding (e.g. the
+// SkyDeals Europe tenant), using the same _shared/tenantLicense.mjs helpers
+// so key generation/hashing and capability derivation never fork into a
+// second implementation.
+const TENANT_AGREEMENT_VERSION = '2026-08-26'; // see docs/white-label/agreements/2026-08-26.md
+const TENANT_AGREEMENT_TYPE = 'white_label_license_agreement';
+
+// Turns a seed (company name / email local-part) into a tenant_id that is
+// both well-formed (slugifyTenantId + isValidTenantId) and not already taken,
+// appending a numeric suffix on collision. Bounded so a pathological run of
+// collisions can never loop forever.
+async function uniqueTenantId(base44, seed) {
+  const base = slugifyTenantId(seed) || 'tenant';
+  for (let suffix = 0; suffix < 1000; suffix++) {
+    const candidate = suffix === 0 ? base : `${base}_${suffix}`.slice(0, 50);
+    if (!isValidTenantId(candidate)) continue;
+    const existing = await base44.asServiceRole.entities.Tenant.filter({ tenant_id: candidate }, '-created_date', 1);
+    if (existing.length === 0) return candidate;
+  }
+  return `tenant_${Date.now()}`;
+}
+
+async function handleTenantCheckout(session, base44, eventId, stripe) {
+  const meta = session.metadata || {};
+  const plan = meta.plan;
+  if (plan !== 'starter' && plan !== 'professional') {
+    console.warn(`tenant_subscription checkout with unrecognized plan '${plan}' (session ${session.id}), skipping`);
+    return;
+  }
+
+  const subscriptionId = session.subscription || '';
+  const customerId = session.customer || '';
+  const email = (meta.user_email || session.customer_email || session.customer_details?.email || '').toLowerCase();
+  if (!email) { console.warn(`tenant checkout ${session.id}: no verified customer email, skipping provisioning`); return; }
+
+  // Idempotency: checkout.session.completed can be redelivered by Stripe, and
+  // this same subscription later fires customer.subscription.updated — a
+  // License already carrying this subscription id means provisioning already
+  // ran, so never create a second Tenant/License/key for one purchase.
+  if (subscriptionId) {
+    const already = await base44.asServiceRole.entities.License.filter(
+      { stripe_subscription_id: subscriptionId }, '-created_date', 1,
+    );
+    if (already.length > 0) {
+      console.log(`Tenant checkout already provisioned for subscription ${subscriptionId}, skipping`);
+      return;
+    }
+  }
+
+  const companyField = (session.custom_fields || []).find((f) => f.key === 'company_name');
+  const displayName = (companyField?.text?.value || '').trim() || email.split('@')[0];
+  const tenantId = await uniqueTenantId(base44, displayName);
+  const nowIso = new Date().toISOString();
+
+  // Contract acceptance is recorded first: if a later step fails, the
+  // acceptance record is still the truthful account of what was agreed and
+  // when (same ordering as tenantProvision).
+  const acceptance = await base44.asServiceRole.entities.ContractAcceptance.create({
+    tenant_id: tenantId,
+    agreement_type: TENANT_AGREEMENT_TYPE,
+    agreement_version: TENANT_AGREEMENT_VERSION,
+    accepted_by_email: email,
+    accepted_at: nowIso,
+  });
+
+  const tenant = await base44.asServiceRole.entities.Tenant.create({
+    tenant_id: tenantId,
+    display_name: displayName,
+    contact_email: email,
+    status: 'active',
+    brand_name: displayName,
+  });
+
+  const capabilities = defaultCapabilitiesForPlan(plan);
+  // License has no "trialing" state (see the entity schema) — self-serve
+  // checkout always collects a card (Stripe Checkout's default; this app
+  // never sets payment_method_collection: 'if_required'), so a trialing
+  // subscription is treated as a normal active license from the moment
+  // checkout completes. invoice.payment_failed / customer.subscription.
+  // deleted below move it to 'suspended' if the trial doesn't convert.
+  const license = await base44.asServiceRole.entities.License.create({
+    tenant_id: tenantId,
+    plan,
+    status: 'active',
+    allowed_capabilities: capabilities,
+    api_rate_plan: plan === 'professional' ? 'pro' : 'free',
+    version_channel: 'stable',
+    activated_at: nowIso,
+    stripe_customer_id: customerId || undefined,
+    stripe_subscription_id: subscriptionId || undefined,
+  });
+
+  await base44.asServiceRole.entities.ContractAcceptance.update(acceptance.id, { license_id: license.id })
+    .catch((err) => console.warn(`Failed to link acceptance ${acceptance.id} to license ${license.id}: ${err?.message}`));
+
+  const { plaintext, prefix } = generateTenantApiKey();
+  await base44.asServiceRole.entities.TenantApiKey.create({
+    tenant_id: tenantId,
+    license_id: license.id,
+    name: 'Self-serve checkout key',
+    key_prefix: prefix,
+    key_hash: await hashApiKey(plaintext),
+    status: 'active',
+  });
+
+  console.log(`✓ Self-serve tenant provisioned: ${tenantId} (${plan}) for ${email} — subscription ${subscriptionId || 'n/a'} (tenant record ${tenant.id})`);
+}
+
+// Moves a tenant's License to `status` when its Stripe subscription id
+// matches one on file. A no-op (not an error) when subscriptionId doesn't
+// belong to any tenant License — callers may call this unconditionally for
+// every invoice/subscription event without first checking whether it's a
+// tenant subscription.
+async function syncTenantLicenseStatus(base44, subscriptionId, status) {
+  if (!subscriptionId || !status) return;
+  const licenses = await base44.asServiceRole.entities.License.filter(
+    { stripe_subscription_id: subscriptionId }, '-created_date', 1,
+  );
+  const license = licenses[0];
+  if (!license) return; // not a tenant subscription
+  if (license.status === status) return;
+  await base44.asServiceRole.entities.License.update(license.id, { status });
+  console.log(`✓ Tenant License ${license.id} (tenant ${license.tenant_id}) status → ${status}`);
+}
+
 async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 

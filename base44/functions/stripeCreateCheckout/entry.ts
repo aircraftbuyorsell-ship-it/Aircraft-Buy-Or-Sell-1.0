@@ -30,11 +30,34 @@ const BUYER_PLANS = {
   abos_market_enterprise: { amount: 199900, interval: 'month', plan: 'monthly', label: 'ABOS Marketplace — Enterprise', currency: 'eur' },
 };
 
+// Origins checkout may hand the buyer back to. ABOS_CHECKOUT_RETURN_ORIGINS
+// (comma-separated) stays authoritative when set. When it is NOT set we fall
+// back to these known-good ABOS origins rather than an empty allowlist —
+// an empty allowlist rejects *every* checkout with a 400, which is exactly how
+// this shipped: the variable was never configured, so "Start 14-day trial"
+// (and every other plan) died on 'Invalid checkout return origin'.
+const DEFAULT_RETURN_ORIGINS = [
+  'https://aircraftbuyorsell.com',
+  'https://www.aircraftbuyorsell.com',
+  'https://abos-marketspace.com',
+  'https://www.abos-marketspace.com',
+];
+
 function allowedReturnOrigin(returnUrl: string): boolean {
   try {
     const url = new URL(returnUrl);
-    const configured = (Deno.env.get('ABOS_CHECKOUT_RETURN_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean);
-    return configured.includes(url.origin);
+    // Never hand a buyer back over a non-TLS (or javascript:/data:) target.
+    if (url.protocol !== 'https:') return false;
+
+    const configured = (Deno.env.get('ABOS_CHECKOUT_RETURN_ORIGINS') || '')
+      .split(',').map(s => s.trim()).filter(Boolean);
+
+    if (configured.length > 0) return configured.includes(url.origin);
+
+    if (DEFAULT_RETURN_ORIGINS.includes(url.origin)) return true;
+    // Base44-hosted preview/staging builds of this app. Only trusted while no
+    // explicit allowlist is configured — setting the env var turns this off.
+    return url.hostname === 'base44.app' || url.hostname.endsWith('.base44.app');
   } catch (_) { return false; }
 }
 
@@ -46,7 +69,14 @@ Deno.serve(async (req) => {
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const { priceId, returnUrl, plan_type } = await req.json();
-    if (!returnUrl || !allowedReturnOrigin(returnUrl)) return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
+    if (!returnUrl || !allowedReturnOrigin(returnUrl)) {
+      // Log the rejected origin so a misconfigured allowlist is diagnosable
+      // from the function logs instead of surfacing as a bare 400.
+      let rejected = 'unparseable';
+      try { rejected = new URL(returnUrl).origin; } catch (_) { /* keep placeholder */ }
+      console.error('Checkout rejected: return origin not allowed', { rejected, plan_type });
+      return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
+    }
 
     const buyerPlan = BUYER_PLANS[plan_type];
     if (buyerPlan) {
@@ -109,7 +139,11 @@ Deno.serve(async (req) => {
       metadata: { user_id: user.id, user_email: user.email, product_key: configuredPrice.product_key },
     });
     return Response.json({ sessionId: session.id, sessionUrl: session.url });
-  } catch (_) {
+  } catch (error) {
+    // Response stays generic (never leak Stripe internals to the browser), but
+    // the cause must reach the function logs — swallowing it made every
+    // checkout failure indistinguishable from every other.
+    console.error('Checkout session creation failed:', error?.message || error);
     return Response.json({ error: 'Unable to create checkout session' }, { status: 500 });
   }
 });

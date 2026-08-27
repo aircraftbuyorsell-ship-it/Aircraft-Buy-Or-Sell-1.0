@@ -140,11 +140,12 @@ export default function ApiLanding() {
     try {
       const returnUrl = `${window.location.origin}/partner-portal?checkout=success`;
       const res = await base44.functions.invoke("stripeCreateCheckout", { plan_type: planType, returnUrl });
-      if (res.data?.sessionUrl) {
-        window.location.href = res.data.sessionUrl;
+      const checkoutUrl = res.data?.sessionUrl || res.data?.url || res.sessionUrl || res.url;
+      if (checkoutUrl) {
+        window.location.assign(checkoutUrl);
         return;
       }
-      setCheckoutError(res.data?.error || "Couldn't start checkout. Please try again.");
+      setCheckoutError(res.data?.error || res.error || "Couldn't start checkout. Please try again.");
     } catch (err) {
       setCheckoutError(err?.message || "Couldn't start checkout. Please try again.");
     } finally {

@@ -1,10 +1,19 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Terminal, FileJson, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import { Terminal, FileJson, Loader2, Lock } from "lucide-react";
 import ApiKeysPanel from "@/components/coreapi/ApiKeysPanel";
 import EndpointDoc from "@/components/coreapi/EndpointDoc";
 import TrustScoreApi from "@/components/coreapi/TrustScoreApi";
 import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
+
+/**
+ * Full Core API reference — endpoint docs, the OpenAPI spec, and live API-key
+ * management. This used to be what every anonymous visitor to /api saw by
+ * default; it now requires a signed-in account (see ApiLanding.jsx, the new
+ * public page at /api). Reachable from the Developer Portal once signed in,
+ * or directly at /developers/core-api.
+ */
 
 const ENDPOINTS = [
   {
@@ -120,8 +129,38 @@ x-abos-key: abos_live_...
   },
 ];
 
+function SignInGate({ navigateToLogin }) {
+  return (
+    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24 flex items-start justify-center" style={{ color: "#fff" }}>
+      <div className="max-w-[520px] w-full mt-16 rounded-2xl p-8 text-center"
+        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="w-11 h-11 mx-auto rounded-xl flex items-center justify-center mb-5"
+          style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
+          <Lock size={18} style={{ color: "#f5c242" }} />
+        </div>
+        <h1 className="text-[20px] font-bold mb-2" style={{ color: "rgba(255,255,255,0.92)" }}>Sign in to view API documentation</h1>
+        <p className="text-[13px] leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
+          Endpoint reference, the OpenAPI specification and API key management are available to
+          signed-in accounts. Looking for pricing instead? See the{" "}
+          <a href="/api" style={{ color: "#f5c242" }}>API overview</a>.
+        </p>
+        <button onClick={navigateToLogin}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide"
+          style={{ background: "#f5c242", color: "#04060a", border: "none", cursor: "pointer" }}>
+          Sign in
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CoreAPI() {
+  const { isAuthenticated, navigateToLogin } = useAuth();
   const [loadingSpec, setLoadingSpec] = useState(false);
+
+  if (!isAuthenticated) {
+    return <SignInGate navigateToLogin={navigateToLogin} />;
+  }
 
   const openSpec = async () => {
     setLoadingSpec(true);

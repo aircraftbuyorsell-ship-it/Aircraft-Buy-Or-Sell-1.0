@@ -1,5 +1,5 @@
 import {
-  Code, Store, Wrench, Plug, Bot, GitBranch, Sparkles, Wallet,
+  Code, Store, Plug, Bot, GitBranch, Sparkles, Wallet,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";

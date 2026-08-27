@@ -5,6 +5,9 @@ export default function TrialPromoBanner({ trial, onClaimGift }) {
   const { user, navigateToLogin } = useAuth();
 
   if (trial?.alreadyGranted) return null;
+  // No trial data (still loading, signed out, or the trial service is down) —
+  // stay hidden rather than advertising an offer we cannot honour.
+  if (!trial?.ok) return null;
 
   const slotsLeft = trial?.slotsLeft;
   const isLoggedIn = !!user;

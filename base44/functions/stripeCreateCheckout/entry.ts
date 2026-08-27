@@ -62,6 +62,35 @@ Deno.serve(async (req) => {
       return Response.json({ sessionId: session.id, sessionUrl: session.url });
     }
 
+    const tenantPlan = TENANT_PLAN_PRICES[plan_type];
+    if (tenantPlan) {
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription', payment_method_types: ['card'], customer_email: user.email,
+        client_reference_id: user.id,
+        line_items: [{ price: tenantPlan.priceId, quantity: 1 }],
+        // Card required at signup (Stripe Checkout's default) — never set
+        // payment_method_collection: 'if_required' here. A real Price (not
+        // price_data) paired with subscription_data.trial_period_days makes
+        // Stripe Checkout itself render the exact trial-end charge date and
+        // amount to the buyer, satisfying the card-network trial-disclosure
+        // requirement without this function having to compute a date.
+        subscription_data: {
+          trial_period_days: 14,
+          metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
+        },
+        custom_fields: [{
+          key: 'company_name',
+          label: { type: 'custom', custom: 'Company / organization name' },
+          type: 'text',
+          optional: false,
+        }],
+        success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
+        metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
+      });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url });
+    }
+
     if (!priceId) return Response.json({ error: 'Missing priceId' }, { status: 400 });
     const configuredPrice = PRICE_CONFIG[priceId];
     if (!configuredPrice) return Response.json({ error: 'Price is not allowed' }, { status: 403 });

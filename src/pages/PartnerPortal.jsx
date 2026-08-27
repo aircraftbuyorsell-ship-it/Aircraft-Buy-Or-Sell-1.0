@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import {
   Building2, KeyRound, Download, ShieldCheck, AlertTriangle, Loader2,
-  Copy, Check, RefreshCw, FileText, BookOpen, XCircle, Clock, CreditCard,
+  Copy, Check, RefreshCw, FileText, BookOpen, XCircle, Clock, CreditCard, Wand2,
 } from "lucide-react";
 
 /**
@@ -427,19 +428,29 @@ export default function PartnerPortal() {
             <h2 className="font-semibold">Toolset &amp; installer</h2>
           </div>
           {license?.status === "active" && (
-            <button
-              type="button"
-              onClick={() => {
-                const link = document.createElement("a");
-                link.href = `/api/tenantCoreApi/download-installer`;
-                link.click();
-              }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
-              style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
-            >
-              <Download className="w-4 h-4" />
-              Download installer
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                to="/install"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+                style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+              >
+                <Wand2 className="w-4 h-4" />
+                Set up integration
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = `/api/tenantCoreApi/download-installer`;
+                  link.click();
+                }}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5"
+                style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+              >
+                <Download className="w-4 h-4" />
+                Download CLI
+              </button>
+            </div>
           )}
         </div>
 
@@ -457,9 +468,11 @@ export default function PartnerPortal() {
                 </p>
               </div>
               <p className="text-xs opacity-60">
-                The installer reads your API key, configures the SDK for your plan's capabilities,
-                and generates a ready-to-deploy adapter for your platform. All packages are
-                deterministically built and checksummed.
+                <strong>Set up integration</strong> walks you through it in the browser: pick your
+                framework, review the generated files, download them as a .zip. The{" "}
+                <strong>CLI</strong> produces the same files inside an existing project directory
+                via <code className="font-mono">npx abos-install</code> — use whichever suits your
+                workflow. All packages are deterministically built and checksummed.
               </p>
             </div>
             {downloads.length > 0 && (

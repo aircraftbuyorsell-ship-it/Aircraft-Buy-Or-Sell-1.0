@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
-const PROJECT_NAME = 'IntraZone';
+const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
+const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 const sqlText = (value) => String(value || '').replaceAll("'", "''");
@@ -31,8 +32,10 @@ Deno.serve(async (req) => {
     });
     if (!projectsResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
     const projects = await projectsResponse.json();
-    const project = projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase());
-    if (!project) return Response.json({ error: 'IntraZone data source not found' }, { status: 502 });
+    const project = projects.find((item) => item.id === PROJECT_REF || item.ref === PROJECT_REF)
+      || projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase())
+      || (projects.length === 1 ? projects[0] : null);
+    if (!project) return Response.json({ error: 'Aircraft data source not found' }, { status: 502 });
 
     const keysResponse = await fetch(`https://api.supabase.com/v1/projects/${project.id}/api-keys`, {
       headers: { Authorization: `Bearer ${accessToken}` },

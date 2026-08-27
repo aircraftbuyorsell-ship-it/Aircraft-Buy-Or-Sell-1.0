@@ -234,20 +234,6 @@ export const CURRENT_AGREEMENT_VERSION = '2026-08-26';
 /** ContractAcceptance.agreement_type for the white-label licence agreement. */
 export const WHITE_LABEL_AGREEMENT_TYPE = 'white_label_license_agreement';
 
-/**
- * The agreement version a self-serve checkout records acceptance of.
- *
- * MUST correspond to a real file at docs/white-label/agreements/<version>.md —
- * a ContractAcceptance pointing at text nobody can produce is worthless as
- * evidence, which is the whole reason the record exists. test/
- * agreement-versions.test.mjs pins that correspondence.
- *
- * When a new agreement version is published, bump this. Existing acceptances
- * keep pointing at the version their signer actually saw; they are never
- * rewritten.
- */
-export const CURRENT_AGREEMENT_VERSION = '2026-08-26';
-
 // Pure mapping + slug helpers used by stripeWebhook when a paid Stripe
 // Checkout session (Starter/Professional self-serve plans) needs to become a
 // Tenant/License/TenantApiKey. Kept here rather than in stripeWebhook/entry.ts

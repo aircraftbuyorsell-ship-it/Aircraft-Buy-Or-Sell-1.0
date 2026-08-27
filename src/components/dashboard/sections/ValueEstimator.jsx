@@ -30,7 +30,7 @@ export default function ValueEstimator() {
         ))}
       </div>
       <div className="text-center">
-        <Link to="/valuation"
+        <Link to="/valuation-studio"
           className="inline-flex items-center gap-2 px-7 py-3.5 rounded-[10px] text-sm font-bold no-underline hover:opacity-90"
           style={{ background: "rgba(212,160,23,0.10)", border: "1px solid rgba(212,160,23,0.30)", color: "#D4A017" }}>
           <TrendingUp size={16} /> Estimate Aircraft Value <ArrowRight size={16} />

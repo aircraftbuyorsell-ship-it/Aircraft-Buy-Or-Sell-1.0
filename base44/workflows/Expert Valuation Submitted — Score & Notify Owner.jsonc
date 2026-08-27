@@ -1,0 +1,61 @@
+{
+  "name": "Expert Valuation Submitted \u2014 Score & Notify Owner",
+  "description": "When an ExpertValuation is accepted, runs atiFullReportScore to refresh the listing's ATI score, then calls applyValuationToListing to persist the score and email the owner a summary.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "ExpertValuation",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"accepted\" and .trigger.old_data.status != \"accepted\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "expert_valuation_finalize",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_full_score": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "atiFullReportScore",
+            "args": {
+              "aircraft_data": "${ .trigger.data.aircraft_label // \"N/A\" } \u2014 Expert valuation submitted. Expert-adjusted OMVM: ${ .trigger.data.expert_omvm } USD. Delta vs model: ${ .trigger.data.delta_pct } percent. Rationale: ${ .trigger.data.rationale // \"N/A\" }",
+              "registration": "${ .trigger.data.aircraft_label // \"\" }"
+            }
+          },
+          "then": "apply_to_listing",
+          "x-base44": {
+            "title": "Run ATI full report",
+            "description": "Refresh 8-dimension ATI score"
+          }
+        }
+      },
+      {
+        "apply_to_listing": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "applyValuationToListing",
+            "args": {
+              "valuation_id": "${ .trigger.entity_id }",
+              "ati_total": "${ .run_full_score.total }",
+              "score_label": "${ .run_full_score.score_label }",
+              "summary": "${ .run_full_score.summary }",
+              "omvm_high": "${ .run_full_score.omvm_high }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Update listing & email owner",
+            "description": "Persist score and send valuation summary"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "name": "Entitlement",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the ABOS user who holds this entitlement"
+    },
+    "product_key": {
+      "type": "string",
+      "enum": [
+        "ATI_SCORE",
+        "ATI_BASIC_REPORT",
+        "ATI_PRO",
+        "ATI_PRO_TAX",
+        "ATI_FULL_REPORT",
+        "VALUATION_STUDIO",
+        "VERIFICATION_PACK",
+        "PRO",
+        "BROKER"
+      ],
+      "description": "ABOS product this entitlement grants access to"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "global",
+        "aircraft"
+      ],
+      "default": "aircraft",
+      "description": "global = subscription plan; aircraft = per-aircraft one-time purchase"
+    },
+    "aircraft_registration": {
+      "type": "string",
+      "description": "Required for aircraft-scoped one-time products (ATI_SCORE, ATI_BASIC_REPORT, ATI_PRO, ATI_PRO_TAX, ATI_FULL_REPORT, VALUATION_STUDIO, VERIFICATION_PACK)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "admin",
+        "trial",
+        "gifted"
+      ],
+      "default": "stripe"
+    },
+    "stripe_payment_id": {
+      "type": "string",
+      "description": "Stripe PaymentIntent / Checkout Session id (one-time)"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe Subscription id (PRO/BROKER)"
+    },
+    "stripe_event_id": {
+      "type": "string",
+      "description": "Idempotency key \u2014 the Stripe event id that created/updated this entitlement"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "refunded",
+        "canceled"
+      ],
+      "default": "active"
+    },
+    "current_period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Subscription current period end (PRO/BROKER)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "user_email",
+    "product_key",
+    "scope",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

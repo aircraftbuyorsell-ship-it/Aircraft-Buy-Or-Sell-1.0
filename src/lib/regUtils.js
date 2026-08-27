@@ -50,6 +50,22 @@ const EASA_PREFIXES = new Set([
 const FAA_PREFIXES = new Set(["N"]);
 
 /**
+ * Canonicalize a registration to one consistent form:
+ * uppercase, no spaces; international regs get a single dash after the prefix.
+ * "ok lad" / "OK-LAD" / "OKLAD" → "OK-LAD"; "n4757x" → "N4757X"
+ */
+export function canonicalizeReg(raw) {
+  if (!raw) return "";
+  const reg = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!reg || reg.startsWith("N")) return reg;
+  const p2 = reg.substring(0, 2);
+  if (reg.length > 2 && EASA_PREFIXES.has(p2)) return `${p2}-${reg.slice(2)}`;
+  const p1 = reg.substring(0, 1);
+  if (reg.length > 1 && EASA_PREFIXES.has(p1)) return `${p1}-${reg.slice(1)}`;
+  return reg;
+}
+
+/**
  * Detect registration type from a registration string.
  * Returns "faa" | "easa" | "other" | null
  */

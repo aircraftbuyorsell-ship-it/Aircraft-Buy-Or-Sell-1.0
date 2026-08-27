@@ -18,14 +18,15 @@ import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
 import EventTimeline from "@/components/cards/EventTimeline";
 import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
+import { generateDealCode } from "@/lib/exportAtiReport";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";
+import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
 import ATIWizard from "@/components/ati-wizard/ATIWizard";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import ATITrustBlock from "@/components/ati/ATITrustBlock";
 import { ensureCardForListing } from "@/lib/atiCard";
 import { logDecision } from "@/lib/logDecision";
 import { exportATIPassportPDF } from "@/components/ati/ATIPassportPDF";
-import ATIGuideChat from "@/components/ati/ATIGuideChat";
 import GCRSection from "@/components/gcr/GCRSection";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
 import ConfidenceBadge from "@/components/twin/ConfidenceBadge";
@@ -298,8 +299,13 @@ Return ONLY raw JSON:
         ati_version: "v2",
       });
 
+      // Assign the shared deal_code the first time this listing gets scored, so the
+      // Listing ID, ATI Score, and (later) ATI Full Report all carry the same core ID.
+      const dealCodeUpdate = listing.deal_code ? {} : { deal_code: generateDealCode() };
+
       await base44.entities.AircraftListing.update(listingId, {
         ati_score: ati_total, omvm_value, deal_score, deal_label, discount_pct: discountPct,
+        ...dealCodeUpdate,
       });
 
       const subjectLabel = `${listing.registration || "—"} · ${listing.year || ""} ${listing.make || ""} ${listing.model || ""}`.trim();
@@ -420,6 +426,9 @@ Return ONLY raw JSON:
                 {listing?.year} {safeMake} {listing?.model}
               </h2>
               {listing?.registration && <p className="text-white/40 font-mono text-sm mb-4">{listing.registration}</p>}
+              {listing?.deal_code && (
+                <p className="text-[#f5c242]/70 font-mono text-[10px] tracking-widest mb-4 uppercase">Deal Code · {listing.deal_code}</p>
+              )}
               <p className="text-white/60 text-sm max-w-sm mx-auto leading-relaxed">
                 Generate a comprehensive ATI report — 8 dimensions of aircraft condition, market value, and deal quality.
               </p>
@@ -485,6 +494,14 @@ Return ONLY raw JSON:
                   </h1>
                   {listing?.registration && (
                     <p className="text-[rgba(255,255,255,0.60)] font-mono text-[15px] mt-1.5">{listing.registration}</p>
+                  )}
+                  {listing?.deal_code && (
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                      <span className="font-mono text-[10px] font-bold tracking-widest px-2 py-0.5 rounded-full text-[#f5c242] border border-[rgba(245,194,66,0.30)] bg-[rgba(245,194,66,0.08)] uppercase">
+                        LST-{listing.deal_code}
+                      </span>
+                      <span className="text-[rgba(255,255,255,0.30)] text-[10px]">same ID on Score &amp; Report</span>
+                    </div>
                   )}
                   {listing?.asking_price && (
                     <p className="text-[rgba(255,255,255,0.70)] text-[13px] mt-1 font-semibold">Asking ${listing.asking_price.toLocaleString()}</p>
@@ -833,12 +850,12 @@ Return ONLY raw JSON:
             <OwnershipTrace listingId={listingId} />
           </>
         )}
+        {listing && <ListingReviewsPanel listing={listing} />}
       </div>
 
       <UpgradeGate open={showGate} onClose={() => setShowGate(false)} feature="ati_passport_full"
         requiredTokens={TOKEN_COSTS.ati_passport_full} userTokens={tokens} isVerified={isVerified} />
       <ATIWizard open={wizardOpen} onClose={() => setWizardOpen(false)} listing={listing} />
-      {listing && <ATIGuideChat listing={listing} />}
     </div>
   );
 }

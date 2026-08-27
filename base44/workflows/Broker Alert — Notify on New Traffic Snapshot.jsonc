@@ -1,0 +1,35 @@
+{
+  "name": "Broker Alert \u2014 Notify on New Traffic Snapshot",
+  "description": "Checks all active BrokerAlerts and sends email notifications when matching aircraft are detected near dealer locations",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "TrafficSnapshot"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "broker_alert_notify_on_new_traffic_snapshot",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "brokerAlertNotify",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

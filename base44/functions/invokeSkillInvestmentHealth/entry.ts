@@ -148,55 +148,69 @@ Deno.serve(async (req) => {
       twin_last_synced_at: passport.twin_last_synced_at || null,
     };
 
-    // 4) Run dependent skills if inputs are available
+    // 4) Run dependent skills IN DEPENDENCY ORDER.
+    // FIX (2026-08-23): Batch D skills (tax_benefit, lease_rate) were gated on
+    // the raw caller inputs instead of the actual OPEX skill OUTPUT, so they
+    // silently skipped or ran with $0 opex whenever the caller only passed
+    // annual_hours/aircraft_preset_id (the normal Finance Advisor call shape).
+    // Also: jurisdiction defaulted to 'CZ' unconditionally instead of being
+    // inferred from the aircraft's own registration.
     const skillResults = {};
-    const skillsToRun = [];
 
-    // OPEX — if we have enough data
-    if (inputs.annual_hours || inputs.opex_annual) {
-      skillsToRun.push({
-        skill_id: 'abos.skill.opex.v1',
-        function_name: 'invokeSkillOpex',
-        payload: { inputs: { aircraft_preset_id: inputs.aircraft_preset_id, annual_hours: inputs.annual_hours, engine_hours: inputs.engine_hours, ...inputs } },
-      });
-    }
-
-    // Insurance — if hull value available
-    if (inputs.hull_value || passport.omvm_value) {
-      skillsToRun.push({
-        skill_id: 'abos.skill.insurance_estimate.v1',
-        function_name: 'invokeSkillInsurance',
-        payload: { inputs: { hull_value: inputs.hull_value || passport.omvm_value, aircraft_type: inputs.aircraft_type || 'sep', ...inputs } },
-      });
-    }
-
-    // Tax Benefit — if opex + lease revenue
-    if (inputs.annual_opex || inputs.lease_revenue) {
-      skillsToRun.push({
-        skill_id: 'abos.skill.tax_benefit.v1',
-        function_name: 'invokeSkillTaxBenefit',
-        payload: { inputs: { annual_opex: inputs.annual_opex, lease_revenue: inputs.lease_revenue, jurisdiction: inputs.jurisdiction || 'CZ', usage_type: inputs.usage_type || 'rental', ...inputs } },
-      });
-    }
-
-    // Lease Rate — if opex available
-    if (inputs.total_opex_annual || inputs.annual_opex) {
-      skillsToRun.push({
-        skill_id: 'abos.skill.lease_rate.v1',
-        function_name: 'invokeSkillLeaseRate',
-        payload: { inputs: { total_opex_annual: inputs.total_opex_annual || inputs.annual_opex, ...inputs } },
-      });
-    }
-
-    for (const skill of skillsToRun) {
+    async function runSkill(skillId, functionName, payload) {
       try {
-        const res = await base44.functions.invoke(skill.function_name, skill.payload);
+        const res = await base44.functions.invoke(functionName, payload);
         if (res.data?.ok) {
-          skillResults[skill.skill_id] = res.data;
+          skillResults[skillId] = res.data;
+          return res.data;
         }
+        skillResults[skillId] = res.data || { ok: false, error: 'empty_response' };
+        return null;
       } catch (e) {
-        skillResults[skill.skill_id] = { ok: false, error: e.message };
+        skillResults[skillId] = { ok: false, error: e.message };
+        return null;
       }
+    }
+
+    // 4a) OPEX (Batch B1) — must complete before any Batch D skill runs.
+    let opexResult = null;
+    if (inputs.annual_hours || inputs.opex_annual || inputs.total_opex_annual || inputs.annual_opex) {
+      const opexData = await runSkill('abos.skill.opex.v1', 'invokeSkillOpex', {
+        inputs: { aircraft_preset_id: inputs.aircraft_preset_id, annual_hours: inputs.annual_hours, engine_hours: inputs.engine_hours, ...inputs },
+      });
+      opexResult = opexData?.result || null;
+    }
+    const resolvedAnnualOpex = opexResult?.total_annual ?? inputs.total_opex_annual ?? inputs.annual_opex ?? null;
+
+    // 4b) Insurance (Batch B2) — feeds lease_rate's insurance_surcharge.
+    let insuranceResult = null;
+    if (inputs.hull_value || passport.omvm_value) {
+      const insData = await runSkill('abos.skill.insurance_estimate.v1', 'invokeSkillInsurance', {
+        inputs: { hull_value: inputs.hull_value || passport.omvm_value, aircraft_type: inputs.aircraft_type || 'sep', ...inputs },
+      });
+      insuranceResult = insData?.result || null;
+    }
+    const resolvedInsuranceAnnual = insuranceResult?.annual_premium ?? inputs.insurance_surcharge ?? 0;
+
+    // Jurisdiction: infer from FAA registration prefix instead of hardcoding
+    // CZ. N-prefix = US-registered aircraft. Explicit input always wins.
+    const inferredJurisdiction = inputs.jurisdiction
+      ? inputs.jurisdiction
+      : /^N/i.test(passport.registration || '') ? 'US' : 'EU';
+
+    // 4c) Tax Benefit (Batch D) — gated on the RESOLVED opex value.
+    if (resolvedAnnualOpex || inputs.lease_revenue) {
+      await runSkill('abos.skill.tax_benefit.v1', 'invokeSkillTaxBenefit', {
+        inputs: { annual_opex: resolvedAnnualOpex, lease_revenue: inputs.lease_revenue, jurisdiction: inferredJurisdiction, usage_type: inputs.usage_type || 'rental', ...inputs },
+      });
+    }
+
+    // 4d) Lease Rate (Batch D) — gated + populated from resolved OPEX/insurance,
+    // not raw caller inputs. This is the fix for the empty lease_rate result.
+    if (resolvedAnnualOpex) {
+      await runSkill('abos.skill.lease_rate.v1', 'invokeSkillLeaseRate', {
+        inputs: { total_opex_annual: resolvedAnnualOpex, insurance_surcharge: resolvedInsuranceAnnual, ...inputs },
+      });
     }
 
     // 5) Compute investment health score

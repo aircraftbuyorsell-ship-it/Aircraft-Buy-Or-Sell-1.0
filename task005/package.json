@@ -1,0 +1,25 @@
+{
+  "name": "@abos/task005-aircraft-search-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test:unit": "node --test test/*.test.mjs",
+    "test": "npm run typecheck && npm run build && npm run test:unit"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.8.2"
+  }
+}

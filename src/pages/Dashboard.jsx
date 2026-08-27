@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import NotificationStack from "@/components/notifications/NotificationStack";
 import HomepageHeader from "@/components/homepage/HomepageHeader";
 import HomeHeroSection from "@/components/homepage/HomeHeroSection";
+import HomeFeatureBar from "@/components/homepage/HomeFeatureBar";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import SalesPipelinePromo from "@/components/dashboard/sections/SalesPipelinePromo";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
@@ -15,6 +16,12 @@ import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
 import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
+import AgentConnectCard from "@/components/dashboard/sections/AgentConnectCard";
+import { useState } from "react";
+import { useProTrial } from "@/hooks/useProTrial";
+import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
+import WelcomeGiftModal from "@/components/onboarding/WelcomeGiftModal";
+import TrialPromoBanner from "@/components/onboarding/TrialPromoBanner";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -34,6 +41,20 @@ export default function Dashboard() {
     staleTime: 60000,
   });
 
+  const { data: trial, grantTrial, refresh: refreshTrial } = useProTrial(user);
+  const [giftModalDismissed, setGiftModalDismissed] = useState(false);
+  const [giftModalOpen, setGiftModalOpen] = useState(false);
+
+  const showGiftModal = trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0
+    && (!giftModalDismissed || giftModalOpen);
+
+  const handleClaimGift = () => setGiftModalOpen(true);
+  const handleCloseGiftModal = () => {
+    setGiftModalDismissed(true);
+    setGiftModalOpen(false);
+    refreshTrial();
+  };
+
   return (
     <div
       className="text-foreground"
@@ -49,21 +70,37 @@ export default function Dashboard() {
       {/* 1. Hero (with Globe) */}
       <HomeHeroSection />
 
-      {/* Running news bar — directly below the globe */}
-      <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
-        <AviationNewsTicker />
-      </div>
+      <HomeFeatureBar />
 
-      {/* 2. Featured Aircraft */}
+      {/* 2. Featured Aircraft — moved up for search-first flow */}
       <ListingsShowcase
         listings={listings}
         isLoading={listingsLoading}
         eyebrow="Featured Aircraft"
-        title="Handpicked Aircraft from Verified Sellers"
+        title="Browse Aircraft from Verified Sellers"
         layout="carousel"
         actionTo="/listings"
-        actionLabel="View all"
+        actionLabel="Browse all aircraft"
       />
+
+      {trial?.ok && trial?.alreadyGranted
+        ? <ProTrialBanner trial={trial} />
+        : <TrialPromoBanner trial={trial} onClaimGift={handleClaimGift} />
+      }
+
+      {showGiftModal && (
+        <WelcomeGiftModal
+          giftOptions={trial.giftOptions}
+          slotsLeft={trial.slotsLeft}
+          onSelect={grantTrial}
+          onClose={handleCloseGiftModal}
+        />
+      )}
+
+      {/* Running news bar */}
+      <div className="relative z-20 mx-auto w-full max-w-[1500px] px-4 pt-3 md:px-8">
+        <AviationNewsTicker />
+      </div>
 
       {/* 3. ATI Passport Verification */}
       <ATIPassportVerification />
@@ -91,7 +128,10 @@ export default function Dashboard() {
       {/* 8. Aviation News Feed — curated from FAA + AOPA */}
       <HomeNewsFeed />
 
-      {/* 9. Market Intelligence — hides itself when the feed is unavailable */}
+      {/* 9b. Agent connection — condensed MCP setup card */}
+      <AgentConnectCard />
+
+      {/* 9c. Market Intelligence — hides itself when the feed is unavailable */}
       <LiveMarketIntelligence />
     </div>
   );

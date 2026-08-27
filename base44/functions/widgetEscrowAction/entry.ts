@@ -10,6 +10,17 @@ import Stripe from 'npm:stripe@14.25.0';
  */
 Deno.serve(async (req) => {
   try {
+    // Gateway secret check — blocks direct calls that bypass the Cloudflare Worker.
+    // Mirrors widgetGateway's auth exactly. Enforced only when GATEWAY_SECRET is
+    // set in Base44 env, so deploying this before the Worker is live doesn't break.
+    const expectedSecret = Deno.env.get('GATEWAY_SECRET');
+    if (expectedSecret) {
+      const providedSecret = req.headers.get('x-gateway-secret') || '';
+      if (!timingSafeEqual(providedSecret, expectedSecret)) {
+        return Response.json({ error: 'unauthorized' }, { status: 401 });
+      }
+    }
+
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const { embed_token, action, payload } = body;
@@ -20,6 +31,20 @@ Deno.serve(async (req) => {
     );
     if (partners.length === 0) return Response.json({ error: 'Invalid embed token' }, { status: 403 });
     const partner = partners[0];
+
+    // Per-partner origin lock — fail-open when partner has no domains configured.
+    // Origin is forwarded by the Cloudflare Worker as x-widget-origin. Mirrors
+    // widgetGateway's origin lock exactly.
+    const widgetOrigin = req.headers.get('x-widget-origin') || '';
+    const allowedDomains = Array.isArray(partner.allowed_domains) ? partner.allowed_domains : [];
+    if (allowedDomains.length > 0) {
+      const originHost = widgetOrigin.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+      const ok = originHost && allowedDomains.some((d) => {
+        const dom = String(d).toLowerCase().trim();
+        return originHost === dom || originHost.endsWith('.' + dom);
+      });
+      if (!ok) return Response.json({ error: 'origin_not_allowed' }, { status: 403 });
+    }
 
     switch (action) {
       case 'create_escrow': return await createEscrow(base44, payload, partner);
@@ -249,4 +274,16 @@ Thank you for using ${partner.brand_name || 'ABOS'}.`;
   }
 
   return Response.json({ escrow_id, status: 'closed', closed_at: new Date().toISOString() });
+}
+
+// Constant-time string comparison to avoid timing attacks on the secret.
+// Mirrors widgetGateway's implementation exactly.
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
 }

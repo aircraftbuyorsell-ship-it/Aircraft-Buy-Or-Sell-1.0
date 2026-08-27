@@ -1,0 +1,34 @@
+{
+  "name": "P0 \u2014 DeveloperAccount 1:1 per user on create",
+  "description": "P0 guard \u2014 when a DeveloperAccount is created, if another exists with the same user_email, keep the oldest (with earnings/payout) and delete the duplicate.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "DeveloperAccount"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "p0_developeraccount_1_1_per_user_on_create",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enforceUniqueOnCreate",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

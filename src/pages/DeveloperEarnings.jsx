@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Coins } from "lucide-react";
 import EarningsSummary from "@/components/developers/EarningsSummary";
@@ -39,7 +40,7 @@ export default function DeveloperEarnings() {
   if (!account) {
     return (
       <div className="flex items-center justify-center h-64" style={{ background: "transparent", minHeight: "100vh" }}>
-        <p className="text-sm" style={{ color: W2 }}>No developer account found. Register on the <a href="/developers" className="underline" style={{ color: AMBER }}>Developers</a> page.</p>
+        <p className="text-sm" style={{ color: W2 }}>No developer account found. Register on the <Link to="/developers" className="underline" style={{ color: AMBER }}>Developers</Link> page.</p>
       </div>
     );
   }

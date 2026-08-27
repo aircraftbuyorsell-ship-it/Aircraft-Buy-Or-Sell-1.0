@@ -15,6 +15,15 @@
       "type": "string",
       "maxLength": 600,
       "default": "Market analyses currently do not factor in internal ABOS platform listing data due to insufficient data volume for statistically relevant results. Analyses are based exclusively on external macroeconomic and industry signals."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    },
+    "value": {
+      "type": "object",
+      "description": "Generic JSON-serializable value for non-global config rows (e.g. { batch: 42 } for key 'faa_sync_batch'). Not used by the 'global' row."
     }
   },
   "required": [

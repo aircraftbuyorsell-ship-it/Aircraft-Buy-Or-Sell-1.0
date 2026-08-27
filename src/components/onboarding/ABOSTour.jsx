@@ -86,7 +86,7 @@ const TOUR_STEPS = [
   title: "Valuation Engine",
   desc: "Expert aircraft valuation using Off-Market Value Model with market comparables and depreciation curves.",
   icon: TrendingUp,
-  route: "/valuation",
+  route: "/valuation-studio",
   speech: "Get an expert valuation for any aircraft using our OMVM engine — it factors in market comparables, age, condition, and equipment."
 },
 {

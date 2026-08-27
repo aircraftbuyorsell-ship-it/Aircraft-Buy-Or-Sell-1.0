@@ -70,15 +70,19 @@
   "context_files": [],
   "app_user_connector_configs": [],
   "selected_skill_names": [],
-  "selected_workspace_skill_ids": [],
+  "selected_workspace_skill_ids": [
+    "69d5cce47c5dd44d5a8e5248"
+  ],
   "model": "automatic",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "both",
+    "include_other_conversation_context": false,
     "instructions": null
   },
+  "allow_anonymous_access": false,
   "name": "deal_wizard"
 }

@@ -28,7 +28,7 @@ export const FEATURE_PRICING = {
 
   // ── PAID: Intelligence ──
   ati_quick_score:        { free: false, credits: 5,  fiat_eur: 9,   label: 'ATI Quick Score',            desc: '120-point aircraft transparency score', list_price_eur: 199, member_price_eur: 59 },
-  ati_full_report:        { free: false, credits: 20, fiat_eur: 35,  label: 'ATI Full Report',            desc: 'Complete due diligence report with PDF', list_price_eur: 499, member_price_eur: 249 },
+  ati_full_report:        { free: false, credits: 20, fiat_eur: 49,  label: 'ATI Full Report',            desc: 'Complete due diligence report with PDF', list_price_eur: 99, member_price_eur: 49 },
   ati_verify:             { free: false, credits: 15, fiat_eur: 26,  label: 'ATI Verify Session',         desc: 'Live expert verification session' },
 
   // ── PAID: Financial Calculators ──

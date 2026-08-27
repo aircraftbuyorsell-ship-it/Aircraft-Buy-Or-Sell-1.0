@@ -1,0 +1,63 @@
+{
+  "name": "ContractAcceptance",
+  "type": "object",
+  "description": "Auditable record that a tenant accepted a specific version of the White-Label license agreement before receiving a license/package. This entity records the ACT of acceptance (who, what version, when, from where) — it does not itself make the underlying agreement text legally reviewed or enforceable. The agreement_version referenced here must correspond to a specific, dated document version tracked outside this schema.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "References Tenant.tenant_id"
+    },
+    "license_id": {
+      "type": "string",
+      "description": "References License.id this acceptance is tied to, if the license already existed at acceptance time"
+    },
+    "agreement_type": {
+      "type": "string",
+      "enum": ["white_label_license_agreement"],
+      "default": "white_label_license_agreement"
+    },
+    "agreement_version": {
+      "type": "string",
+      "description": "Identifier for the exact document text accepted, e.g. a date stamp ('2026-08-26') or semantic version. Must be resolvable back to the literal text shown to the signer."
+    },
+    "accepted_by_email": {
+      "type": "string",
+      "description": "Email of the individual who accepted on the tenant's behalf"
+    },
+    "accepted_by_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Best-effort request IP at acceptance time, for the audit trail"
+    },
+    "user_agent": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": ["tenant_id", "agreement_version", "accepted_by_email", "accepted_at"],
+  "rls": {
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
+    "read": {
+      "user_condition": { "role": "admin" }
+    },
+    "update": {
+      "user_condition": { "role": "admin" }
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

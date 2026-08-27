@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Code2, Plus, Coins } from "lucide-react";
+import { Code2, Plus, Coins, Terminal, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import DeveloperOnboarding from "@/components/developers/DeveloperOnboarding";
 import DeveloperDashboard from "@/components/developers/DeveloperDashboard";
 import SubmitToolModal from "@/components/developers/SubmitToolModal";
+import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
 
 const W1 = "rgba(255,255,255,0.90)";
 const W2 = "rgba(255,255,255,0.60)";
@@ -104,6 +105,29 @@ export default function Developers() {
           onSubmitTool={() => setShowSubmitModal(true)}
         />
       )}
+
+      {/* Core API reference — endpoint docs, OpenAPI spec, key management. Signed-in only. */}
+      <Link
+        to="/developers/core-api"
+        className="mt-6 flex items-center justify-between gap-4 rounded-2xl p-6 transition-opacity hover:opacity-90"
+        style={{ background: "rgba(245,194,66,0.05)", border: "0.5px solid rgba(245,194,66,0.20)" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
+            <Terminal className="w-4 h-4" style={{ color: AMBER }} />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold" style={{ color: W1 }}>Core API reference &amp; keys</h2>
+            <p className="text-xs mt-0.5" style={{ color: W2 }}>Endpoint docs, the OpenAPI spec, and your API keys.</p>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 shrink-0" style={{ color: AMBER }} />
+      </Link>
+
+      {/* Agent connection instructions — public MCP connector */}
+      <div className="mt-6 rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.03)", border: `0.5px solid ${BORDER}` }}>
+        <AgentConnectInstructions />
+      </div>
 
       {showSubmitModal && (
         <SubmitToolModal

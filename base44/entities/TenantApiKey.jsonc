@@ -1,0 +1,76 @@
+{
+  "name": "TenantApiKey",
+  "type": "object",
+  "description": "Server-to-server credential a Tenant's backend/installer uses to call ABOS Core on the Tenant's License. Mirrors the ApiKey entity's hashing/rate-limit pattern (owner_email -> tenant_id).",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "References Tenant.tenant_id"
+    },
+    "license_id": {
+      "type": "string",
+      "description": "References License.id — the key inherits whatever capabilities/rate plan that license currently grants"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Friendly key name (e.g. 'Production installer', 'Staging')"
+    },
+    "key_prefix": {
+      "type": "string",
+      "description": "First characters of the key for display (e.g. abos_tenant_3f9a...). Plaintext is never stored."
+    },
+    "key_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the full API key"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "revoked"],
+      "default": "active"
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rate_minute_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the current per-minute rate window"
+    },
+    "rate_minute_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "rate_day_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the current per-day rate window"
+    },
+    "rate_day_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": ["tenant_id", "license_id", "key_hash"],
+  "rls": {
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
+    "read": {
+      "user_condition": { "role": "admin" }
+    },
+    "update": {
+      "user_condition": { "role": "admin" }
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

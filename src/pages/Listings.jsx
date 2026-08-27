@@ -18,6 +18,10 @@ export default function Listings() {
   const [makeFilter, setMakeFilter] = useState("");
   const [minATI, setMinATI] = useState(0);
   const [regRegion, setRegRegion] = useState("all"); // "all" | "faa" | "easa"
+  const [yearFrom, setYearFrom] = useState("");
+  const [yearTo, setYearTo] = useState("");
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [gate, setGate] = useState(null);
@@ -31,18 +35,10 @@ export default function Listings() {
   const clearSelection = () => setSelectedIds([]);
 
   useAutoTrack("listings");
-  const { tokens, tier, isVerified, track } = useBehavior();
+  const { tokens, isVerified } = useBehavior();
 
-  const requireFeature = (feature, requiredTokens, openFn) => {
-    const isFree = tier === "free_explorer" && !isVerified;
-    const outOfCredits = tokens < requiredTokens;
-    if (isFree || outOfCredits) {
-      track("limit_hit", { feature });
-      setGate({ feature, requiredTokens });
-      return;
-    }
-    openFn();
-  };
+  // Credits/tokens are deprecated — features open directly.
+  const requireFeature = (feature, requiredTokens, openFn) => openFn();
 
   const { data: listings = [], isLoading, refetch } = useQuery({
     queryKey: ["listings-public"],
@@ -52,6 +48,7 @@ export default function Listings() {
   const { distance, pulling, refreshing } = usePullToRefresh({ onRefresh: () => refetch() });
 
   const makes = useMemo(() => [...new Set(listings.map((l) => l.make).filter(Boolean))].sort(), [listings]);
+  const currentYear = new Date().getFullYear();
 
   const filtered = useMemo(() => listings.filter((l) => {
     const q = search.toLowerCase();
@@ -62,8 +59,12 @@ export default function Listings() {
       const rt = detectRegType(l.registration);
       if (rt !== regRegion) return false;
     }
+    if (yearFrom && (l.year || 0) < +yearFrom) return false;
+    if (yearTo && (l.year || 0) > +yearTo) return false;
+    if (priceMin && (l.asking_price || 0) < +priceMin) return false;
+    if (priceMax && (l.asking_price || 0) > +priceMax) return false;
     return true;
-  }), [listings, search, makeFilter, minATI, regRegion]);
+  }), [listings, search, makeFilter, minATI, regRegion, yearFrom, yearTo, priceMin, priceMax]);
 
   const selectAll = useCallback(() => setSelectedIds(filtered.map((l) => l.id)), [filtered]);
 
@@ -122,7 +123,7 @@ export default function Listings() {
 
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Filters</span>
-            {(makeFilter || minATI > 0 || regRegion !== "all") && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+            {(makeFilter || minATI > 0 || regRegion !== "all" || yearFrom || yearTo || priceMin || priceMax) && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
           </button>
         </div>
 
@@ -159,8 +160,32 @@ export default function Listings() {
             onChange={(e) => setMinATI(+e.target.value)}
             className="w-36 accent-[#f5c242] touch-target-compact" />
             </div>
-            {(makeFilter || minATI > 0 || regRegion !== "all") &&
-          <button onClick={() => {setMakeFilter("");setMinATI(0);setRegRegion("all");}}
+            <div className="min-w-[200px]">
+              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Year of manufacture</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={1960} max={currentYear} placeholder="From" value={yearFrom}
+                  onChange={(e) => setYearFrom(e.target.value)}
+                  className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", color: "#fff" }} />
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>
+                <input type="number" min={1960} max={currentYear} placeholder="To" value={yearTo}
+                  onChange={(e) => setYearTo(e.target.value)}
+                  className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", color: "#fff" }} />
+              </div>
+            </div>
+            <div className="min-w-[200px]">
+              <label className="text-[10px] uppercase tracking-wider font-semibold block mb-1.5" style={{ color: "rgba(255,255,255,0.5)" }}>Price range (USD)</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={0} step={5000} placeholder="Min" value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", color: "#fff" }} />
+                <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>
+                <input type="number" min={0} step={5000} placeholder="Max" value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  className="w-full rounded-lg text-[13px] h-9 px-3 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)", color: "#fff" }} />
+              </div>
+            </div>
+            {(makeFilter || minATI > 0 || regRegion !== "all" || yearFrom || yearTo || priceMin || priceMax) &&
+          <button onClick={() => {setMakeFilter("");setMinATI(0);setRegRegion("all");setYearFrom("");setYearTo("");setPriceMin("");setPriceMax("");}}
           className="text-[11px] text-[#e24b4a] font-semibold hover:underline pb-1 touch-target-compact">
                 Clear filters
               </button>
@@ -169,7 +194,7 @@ export default function Listings() {
         }
 
         {/* Active filter pills */}
-        {(makeFilter || minATI > 0 || regRegion !== "all") && !showFilters &&
+        {(makeFilter || minATI > 0 || regRegion !== "all" || yearFrom || yearTo || priceMin || priceMax) && !showFilters &&
         <div className="flex gap-1.5 mt-2 flex-wrap">
             {regRegion !== "all" &&
           <span className="flex items-center gap-1 text-[10px] text-[#04060a] px-2.5 py-1 rounded-full font-semibold" style={{ background: "#f5c242" }}>
@@ -184,6 +209,16 @@ export default function Listings() {
             {minATI > 0 &&
           <span className="flex items-center gap-1 text-[10px] text-[#04060a] px-2.5 py-1 rounded-full font-semibold" style={{ background: "#f5c242" }}>
                 ATI ≥ {minATI} <button onClick={() => setMinATI(0)}><X className="w-2.5 h-2.5" /></button>
+              </span>
+          }
+            {(yearFrom || yearTo) &&
+          <span className="flex items-center gap-1 text-[10px] text-[#04060a] px-2.5 py-1 rounded-full font-semibold" style={{ background: "#f5c242" }}>
+                Yr {yearFrom || "…"}–{yearTo || "…"} <button onClick={() => {setYearFrom("");setYearTo("");}}><X className="w-2.5 h-2.5" /></button>
+              </span>
+          }
+            {(priceMin || priceMax) &&
+          <span className="flex items-center gap-1 text-[10px] text-[#04060a] px-2.5 py-1 rounded-full font-semibold" style={{ background: "#f5c242" }}>
+                ${priceMin ? (+priceMin).toLocaleString() : "0"}–${priceMax ? (+priceMax).toLocaleString() : "∞"} <button onClick={() => {setPriceMin("");setPriceMax("");}}><X className="w-2.5 h-2.5" /></button>
               </span>
           }
           </div>

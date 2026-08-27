@@ -28,17 +28,24 @@ export default function TopModelsTable({ rows, isDark }) {
           <p className="text-[9px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Avg Price</p>
           <p className="text-[9px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Avg ATI</p>
         </div>
+        {/* Mobile header */}
+        <div className="md:hidden grid grid-cols-[1fr_50px_65px_45px] gap-2 px-4 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+          <p className="text-[8px] uppercase tracking-wider font-bold" style={{ color: W3 }}>Model</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Qty</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Price</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>ATI</p>
+        </div>
       </div>
       <div>
         {rows.length === 0 ? (
           <p className="text-sm text-center py-10" style={{ color: W3 }}>No data yet</p>
         ) : rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[1fr_80px_100px_80px] gap-3 px-5 py-3 items-center"
+          <div key={i} className="grid grid-cols-[1fr_50px_65px_45px] md:grid-cols-[1fr_80px_100px_80px] gap-2 md:gap-3 px-4 md:px-5 py-3 items-center"
             style={{ borderBottom: i < rows.length - 1 ? `0.5px solid ${BORDER}` : "none" }}>
-            <p className="text-sm font-bold truncate" style={{ color: W1 }}>{r.model}</p>
-            <p className="text-sm font-black text-right" style={{ color: AMBER }}>{r.count}</p>
-            <p className="text-sm text-right" style={{ color: W1 }}>{fmtPrice(r.avgPrice)}</p>
-            <p className="text-sm text-right">
+            <p className="text-[13px] md:text-sm font-bold truncate" style={{ color: W1 }}>{r.model}</p>
+            <p className="text-[13px] md:text-sm font-black text-right" style={{ color: AMBER }}>{r.count}</p>
+            <p className="text-[13px] md:text-sm text-right" style={{ color: W1 }}>{fmtPrice(r.avgPrice)}</p>
+            <p className="text-[13px] md:text-sm text-right">
               {r.avgAti != null ? (
                 <span className="font-black" style={{ color: r.avgAti >= 85 ? TEAL : r.avgAti >= 65 ? AMBER : RED }}>
                   {r.avgAti}

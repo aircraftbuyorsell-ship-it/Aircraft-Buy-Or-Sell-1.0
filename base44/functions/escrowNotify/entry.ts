@@ -39,10 +39,9 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
 
-    // Validate caller — must be an authenticated user or an entity automation event
-    const user = await base44.auth.me();
-    if (!user && !body?.event) {
-      return Response.json({ error: 'Forbidden: must be authenticated or triggered by entity automation' }, { status: 403 });
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Admin access required' }, { status: 403 });
     }
 
     const newStatus = body?.data?.status;

@@ -1,10 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
-/**
- * Skill: abos.skill.lease_rate.v1 (RFC-233, Batch D)
- * Dry-lease breakeven rate calculator (Breakeven Sazba).
- * Dependencies: B1 (OPEX), B2 (Insurance).
- */
+function firstNumber(...values) {
+  for (const value of values) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+  return 0;
+}
 
 Deno.serve(async (req) => {
   try {
@@ -15,18 +17,31 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const inputs = body.inputs || body;
 
-    const totalOpexAnnual = Math.max(0, Number(inputs.total_opex_annual) || 0);
-    const desiredProfitMarginPct = Math.max(0, Number(inputs.desired_profit_margin_pct) || 15);
-    const estimatedAnnualHours = Math.max(1, Number(inputs.estimated_annual_hours) || 300);
-    const insuranceSurcharge = Math.max(0, Number(inputs.insurance_surcharge) || 0);
+    const totalOpexAnnual = firstNumber(
+      inputs.total_opex_annual, inputs.annual_opex, inputs.opex_annual,
+      inputs.annual_total_opex, inputs.opex?.annual_total, inputs.opex?.total_annual,
+      inputs.result?.total_opex_annual, inputs.result?.annual_opex
+    );
+    const desiredProfitMarginPct = Math.max(0,
+      Number(inputs.desired_profit_margin_pct ?? inputs.profit_margin_pct) || 15);
+    const estimatedAnnualHours = Math.max(1,
+      Number(inputs.estimated_annual_hours ?? inputs.annual_hours ?? inputs.hours_per_year ?? inputs.result?.estimated_annual_hours) || 300);
+    const insuranceSurcharge = firstNumber(
+      inputs.insurance_surcharge, inputs.annual_insurance, inputs.insurance_annual,
+      inputs.insurance?.annual, inputs.result?.insurance_surcharge, inputs.result?.annual_insurance
+    );
+
+    if (totalOpexAnnual <= 0) {
+      return Response.json({ ok: false, error: 'lease_rate_opex_required',
+        message: 'Lease-rate calculation requires annual OPEX from the OPEX skill.' }, { status: 400 });
+    }
 
     const minDryLeaseRateHr = (totalOpexAnnual + insuranceSurcharge) / estimatedAnnualHours;
     const profitComponent = minDryLeaseRateHr * (desiredProfitMarginPct / 100);
     const recommendedLeaseRateHr = minDryLeaseRateHr + profitComponent;
     const monthlyGrossRevenueAtRate = recommendedLeaseRateHr * (estimatedAnnualHours / 12);
-    const breakevenUtilizationHrs = insuranceSurcharge > 0
-      ? Math.ceil(totalOpexAnnual / (recommendedLeaseRateHr - (insuranceSurcharge / estimatedAnnualHours)))
-      : Math.ceil(estimatedAnnualHours);
+    const denominator = recommendedLeaseRateHr - (insuranceSurcharge / estimatedAnnualHours);
+    const breakevenUtilizationHrs = denominator > 0 ? Math.ceil(totalOpexAnnual / denominator) : null;
 
     const result = {
       min_dry_lease_rate_hr: Math.round(minDryLeaseRateHr),
@@ -39,11 +54,7 @@ Deno.serve(async (req) => {
       estimated_annual_hours: estimatedAnnualHours,
     };
 
-    return Response.json({
-      ok: true,
-      skill_id: 'abos.skill.lease_rate.v1',
-      version: 'v1',
-      result,
+    return Response.json({ ok: true, skill_id: 'abos.skill.lease_rate.v1', version: 'v1', result,
       confidence: 0.85,
       evidence: [
         `Annual OPEX: $${Math.round(totalOpexAnnual).toLocaleString()}`,
@@ -52,11 +63,9 @@ Deno.serve(async (req) => {
         `Breakeven rate: $${Math.round(minDryLeaseRateHr)}/hr`,
         `Recommended rate (${desiredProfitMarginPct}% margin): $${Math.round(recommendedLeaseRateHr)}/hr`,
         `Monthly gross at recommended rate: $${Math.round(monthlyGrossRevenueAtRate).toLocaleString()}`,
-        `Breakeven utilization: ${breakevenUtilizationHrs} hrs/yr`,
+        `Breakeven utilization: ${breakevenUtilizationHrs ?? 'n/a'} hrs/yr`,
       ],
-      model_used: 'engine:pure_math',
-      executed_at: new Date().toISOString(),
-    });
+      model_used: 'engine:pure_math', executed_at: new Date().toISOString() });
   } catch (error) {
     return Response.json({ ok: false, error: error.message }, { status: 500 });
   }

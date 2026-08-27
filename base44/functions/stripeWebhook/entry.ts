@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import Stripe from 'npm:stripe@14.25.0';
+import {
+  defaultCapabilitiesForPlan,
+  generateTenantApiKey,
+  hashApiKey,
+  isValidTenantId,
+  mapStripeStatusToLicenseStatus,
+  slugifyTenantId,
+} from '../_shared/tenantLicense.mjs';
 
 // Map Stripe price IDs → token grants + tier
 const PRICE_TOKEN_MAP = {
@@ -33,6 +41,71 @@ async function syncUserProfileTier(base44, userEmail, tier, subTier) {
     });
     console.log(`✓ UserProfile created for ${userEmail} → tier: ${resolvedTier}`);
   }
+}
+
+// Plan types that grant ABOS Pro / Marketplace access (see stripeCreateCheckout)
+const ABOS_PLAN_TYPES = [
+  'buyer_monthly', 'buyer_annual',
+  'abos_pro_monthly', 'abos_pro_annual',
+  'abos_seller_starter', 'abos_seller_pro',
+  'abos_market_growth', 'abos_market_scale', 'abos_market_enterprise',
+];
+const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
+
+// ── Aircraft listing permissions per plan ──
+// Free / lapsed: 1 active listing. Seller Starter (T1): 10. Pro / Marketplace: unlimited.
+const LISTING_LIMITS = {
+  abos_seller_starter: 10,
+  abos_seller_pro: Infinity,
+  abos_pro_monthly: Infinity,
+  abos_pro_annual: Infinity,
+  abos_market_growth: Infinity,
+  abos_market_scale: Infinity,
+  abos_market_enterprise: Infinity,
+};
+const FREE_LISTING_LIMIT = 1;
+
+// Sync AircraftListing permissions with the user's subscription status.
+// Over-limit active listings are unpublished (status=draft, visibility=private), oldest kept live.
+async function syncListingPermissions(base44, userEmail, planType, active) {
+  if (planType === 'buyer_monthly' || planType === 'buyer_annual') return; // buyer plans don't grant listing rights
+  const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+  const owner = users[0];
+  if (!owner) { console.warn(`No user account for ${userEmail}, skipping listing permission sync`); return; }
+
+  const limit = active ? (LISTING_LIMITS[planType] ?? FREE_LISTING_LIMIT) : FREE_LISTING_LIMIT;
+  const activeListings = await base44.asServiceRole.entities.AircraftListing.filter(
+    { owner: owner.id, status: 'active' }, 'created_date', 500
+  );
+  if (activeListings.length <= limit) {
+    console.log(`✓ Listing permissions OK for ${userEmail}: ${activeListings.length}/${limit === Infinity ? '∞' : limit} active`);
+    return;
+  }
+  const excess = activeListings.slice(limit);
+  await base44.asServiceRole.entities.AircraftListing.bulkUpdate(
+    excess.map((l) => ({ id: l.id, status: 'draft', visibility: 'private' }))
+  );
+  console.log(`⬇️ Listing permissions enforced for ${userEmail}: ${excess.length} listing(s) unpublished (limit ${limit === Infinity ? '∞' : limit})`);
+}
+
+async function syncBuyerSubscription(base44, userEmail, planType, active) {
+  const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail }, '-created_date', 1);
+  const plan = ['buyer_annual', 'abos_pro_annual'].includes(planType) ? 'annual' : 'monthly';
+  const isMarketplace = planType.startsWith('abos_market_');
+  const SELLER_SUB_TIERS = { abos_seller_starter: 'starter', abos_seller_pro: 'premium' };
+  const update = {
+    buyer_pro_active: active,
+    buyer_plan: active ? plan : 'none',
+    status: 'active',
+    tier: active ? (isMarketplace ? 'enterprise' : 'pro') : 'free_explorer',
+    sub_tier: active ? (isMarketplace ? 'scale' : (SELLER_SUB_TIERS[planType] || 'premium')) : 'none',
+  };
+  if (profiles[0]) {
+    await base44.asServiceRole.entities.UserProfile.update(profiles[0].id, update);
+  } else {
+    await base44.asServiceRole.entities.UserProfile.create({ user_email: userEmail, role: 'viewer', tier: 'free_explorer', sub_tier: 'none', pipeline_role: 'buyer', ...update });
+  }
+  await syncListingPermissions(base44, userEmail, planType, active);
 }
 
 // Downgrade UserProfile to free_explorer on subscription end
@@ -76,21 +149,211 @@ async function resolveEmailFromCustomer(stripe, customerId) {
   return customer?.email || null;
 }
 
-async function hasProcessedPayment(base44, paymentId) {
+async function hasProcessedPayment(base44, paymentId, eventId) {
   if (!paymentId) return false;
   const existing = await base44.asServiceRole.entities.TokenTransaction.filter(
     { type: 'purchase', stripe_payment_id: paymentId }, '-created_date', 1
   );
-  return existing.length > 0;
+  if (existing.length > 0) return true;
+  if (!eventId) return false;
+  const eventRecords = await base44.asServiceRole.entities.TokenTransaction.filter(
+    { type: 'purchase', stripe_event_id: eventId }, '-created_date', 1
+  );
+  return eventRecords.length > 0;
 }
 
-async function handleCheckoutCompleted(session, base44) {
+async function handleReportCredits(session, base44) {
+  const meta = session.metadata || {};
+  const apiKeyId = meta.api_key_id;
+  const credits  = parseInt(meta.credits || '0', 10);
+  const paymentId = session.payment_intent || session.id;
+  if (!apiKeyId || !credits) { console.warn('report_credits checkout missing api_key_id/credits, skipping'); return; }
+
+  if (await hasProcessedPayment(base44, paymentId)) {
+    console.log(`Duplicate report_credits payment ignored: ${paymentId}`);
+    return;
+  }
+
+  const key = await base44.asServiceRole.entities.ApiKey.get(apiKeyId).catch(() => null);
+  if (!key) { console.warn(`ApiKey ${apiKeyId} not found, cannot grant report credits`); return; }
+
+  const newBalance = (key.report_credits || 0) + credits;
+  await base44.asServiceRole.entities.ApiKey.update(apiKeyId, { report_credits: newBalance });
+
+  // Reuse TokenTransaction as the audit trail for this purchase too — same
+  // hasProcessedPayment() idempotency check reads from it above.
+  await base44.asServiceRole.entities.TokenTransaction.create({
+    user_email:        meta.owner_email || key.owner_email || '',
+    type:              'purchase',
+    amount:            credits,
+    pack:              'ati_report_credits',
+    price_usd:         credits * 29,
+    stripe_payment_id: paymentId,
+    balance_after:     newBalance,
+  });
+
+  console.log(`✓ Granted ${credits} report credit(s) to ApiKey ${apiKeyId}, balance: ${newBalance}`);
+}
+
+// ── Self-serve White-Label tenant checkout ──────────────────────────────────
+// checkout.session.completed for a Starter/Professional self-serve
+// subscription (see stripeCreateCheckout's TENANT_PLAN_PRICES) provisions a
+// Tenant, ContractAcceptance, License and first TenantApiKey — the same four
+// records tenantProvision creates for an admin-run onboarding (e.g. the
+// SkyDeals Europe tenant), using the same _shared/tenantLicense.mjs helpers
+// so key generation/hashing and capability derivation never fork into a
+// second implementation.
+const TENANT_AGREEMENT_VERSION = '2026-08-26'; // see docs/white-label/agreements/2026-08-26.md
+const TENANT_AGREEMENT_TYPE = 'white_label_license_agreement';
+
+// Turns a seed (company name / email local-part) into a tenant_id that is
+// both well-formed (slugifyTenantId + isValidTenantId) and not already taken,
+// appending a numeric suffix on collision. Bounded so a pathological run of
+// collisions can never loop forever.
+async function uniqueTenantId(base44, seed) {
+  const base = slugifyTenantId(seed) || 'tenant';
+  for (let suffix = 0; suffix < 1000; suffix++) {
+    const candidate = suffix === 0 ? base : `${base}_${suffix}`.slice(0, 50);
+    if (!isValidTenantId(candidate)) continue;
+    const existing = await base44.asServiceRole.entities.Tenant.filter({ tenant_id: candidate }, '-created_date', 1);
+    if (existing.length === 0) return candidate;
+  }
+  return `tenant_${Date.now()}`;
+}
+
+async function handleTenantCheckout(session, base44, eventId, stripe) {
+  const meta = session.metadata || {};
+  const plan = meta.plan;
+  if (plan !== 'starter' && plan !== 'professional') {
+    console.warn(`tenant_subscription checkout with unrecognized plan '${plan}' (session ${session.id}), skipping`);
+    return;
+  }
+
+  const subscriptionId = session.subscription || '';
+  const customerId = session.customer || '';
+  const email = (meta.user_email || session.customer_email || session.customer_details?.email || '').toLowerCase();
+  if (!email) { console.warn(`tenant checkout ${session.id}: no verified customer email, skipping provisioning`); return; }
+
+  // Idempotency: checkout.session.completed can be redelivered by Stripe, and
+  // this same subscription later fires customer.subscription.updated — a
+  // License already carrying this subscription id means provisioning already
+  // ran, so never create a second Tenant/License/key for one purchase.
+  if (subscriptionId) {
+    const already = await base44.asServiceRole.entities.License.filter(
+      { stripe_subscription_id: subscriptionId }, '-created_date', 1,
+    );
+    if (already.length > 0) {
+      console.log(`Tenant checkout already provisioned for subscription ${subscriptionId}, skipping`);
+      return;
+    }
+  }
+
+  const companyField = (session.custom_fields || []).find((f) => f.key === 'company_name');
+  const displayName = (companyField?.text?.value || '').trim() || email.split('@')[0];
+  const tenantId = await uniqueTenantId(base44, displayName);
+  const nowIso = new Date().toISOString();
+
+  // Contract acceptance is recorded first: if a later step fails, the
+  // acceptance record is still the truthful account of what was agreed and
+  // when (same ordering as tenantProvision).
+  const acceptance = await base44.asServiceRole.entities.ContractAcceptance.create({
+    tenant_id: tenantId,
+    agreement_type: TENANT_AGREEMENT_TYPE,
+    agreement_version: TENANT_AGREEMENT_VERSION,
+    accepted_by_email: email,
+    accepted_at: nowIso,
+  });
+
+  const tenant = await base44.asServiceRole.entities.Tenant.create({
+    tenant_id: tenantId,
+    display_name: displayName,
+    contact_email: email,
+    status: 'active',
+    brand_name: displayName,
+  });
+
+  const capabilities = defaultCapabilitiesForPlan(plan);
+  // License has no "trialing" state (see the entity schema) — self-serve
+  // checkout always collects a card (Stripe Checkout's default; this app
+  // never sets payment_method_collection: 'if_required'), so a trialing
+  // subscription is treated as a normal active license from the moment
+  // checkout completes. invoice.payment_failed / customer.subscription.
+  // deleted below move it to 'suspended' if the trial doesn't convert.
+  const license = await base44.asServiceRole.entities.License.create({
+    tenant_id: tenantId,
+    plan,
+    status: 'active',
+    allowed_capabilities: capabilities,
+    api_rate_plan: plan === 'professional' ? 'pro' : 'free',
+    version_channel: 'stable',
+    activated_at: nowIso,
+    stripe_customer_id: customerId || undefined,
+    stripe_subscription_id: subscriptionId || undefined,
+  });
+
+  await base44.asServiceRole.entities.ContractAcceptance.update(acceptance.id, { license_id: license.id })
+    .catch((err) => console.warn(`Failed to link acceptance ${acceptance.id} to license ${license.id}: ${err?.message}`));
+
+  const { plaintext, prefix } = generateTenantApiKey();
+  await base44.asServiceRole.entities.TenantApiKey.create({
+    tenant_id: tenantId,
+    license_id: license.id,
+    name: 'Self-serve checkout key',
+    key_prefix: prefix,
+    key_hash: await hashApiKey(plaintext),
+    status: 'active',
+  });
+
+  console.log(`✓ Self-serve tenant provisioned: ${tenantId} (${plan}) for ${email} — subscription ${subscriptionId || 'n/a'} (tenant record ${tenant.id})`);
+}
+
+// Moves a tenant's License to `status` when its Stripe subscription id
+// matches one on file. A no-op (not an error) when subscriptionId doesn't
+// belong to any tenant License — callers may call this unconditionally for
+// every invoice/subscription event without first checking whether it's a
+// tenant subscription.
+async function syncTenantLicenseStatus(base44, subscriptionId, status) {
+  if (!subscriptionId || !status) return;
+  const licenses = await base44.asServiceRole.entities.License.filter(
+    { stripe_subscription_id: subscriptionId }, '-created_date', 1,
+  );
+  const license = licenses[0];
+  if (!license) return; // not a tenant subscription
+  if (license.status === status) return;
+  await base44.asServiceRole.entities.License.update(license.id, { status });
+  console.log(`✓ Tenant License ${license.id} (tenant ${license.tenant_id}) status → ${status}`);
+}
+
+async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   console.log('✅ checkout.session.completed:', session.id);
 
   const meta        = session.metadata || {};
   const userEmail   = meta.user_email || session.customer_email || session.customer_details?.email;
-  const packName    = meta.pack_name  || '';
   const paymentId   = session.payment_intent || session.id;
+
+  // Self-serve White-Label tenant subscription (Starter/Professional) —
+  // see stripeCreateCheckout's TENANT_PLAN_PRICES.
+  if (meta.type === 'tenant_subscription') {
+    await handleTenantCheckout(session, base44, eventId, stripe);
+    return;
+  }
+
+  // ABOS product entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER)
+  if (meta.product_key && PRODUCT_KEYS.has(meta.product_key)) {
+    await handleProductCheckout(session, base44, eventId, stripe);
+    return;
+  }
+
+  if (meta.type === 'report_credits') {
+    await handleReportCredits(session, base44);
+    return;
+  }
+
+  if (isAbosPlan(meta.plan_type)) {
+    if (!userEmail) { console.warn('No email found in buyer checkout session'); return; }
+    await syncBuyerSubscription(base44, userEmail, meta.plan_type, true);
+    return;
+  }
 
   // Newsletter subscription — set flag, no tokens
   if (meta.product === 'newsletter_subscription') {
@@ -103,50 +366,54 @@ async function handleCheckoutCompleted(session, base44) {
     return;
   }
 
-  // Resolve tokens from metadata (set by stripeCreateCheckout) or fall back to price map
-  let tokens  = parseInt(meta.tokens   || '0', 10);
-  let priceUsd = parseFloat(meta.price_usd || '0');
-  let tier    = meta.tier || 'pro';
-
-  // If metadata is sparse, look up via line items price
-  let subTier = meta.sub_tier || '';
-  if (!tokens) {
-    const priceId = session.line_items?.data?.[0]?.price?.id;
-    const mapped  = PRICE_TOKEN_MAP[priceId];
-    if (mapped) { tokens = mapped.tokens; tier = mapped.tier; subTier = mapped.sub_tier; priceUsd = mapped.price_usd; }
+  if (!userEmail) {
+    console.warn('No verified customer email found; entitlement skipped');
+    return;
   }
 
-  if (!userEmail) { console.warn('No email found in session, skipping grant'); return; }
-  if (!tokens)    { console.warn('No tokens resolved, skipping grant'); return; }
-
+  // Legacy raw token purchase — checkout.session.completed doesn't embed price
+  // info by default, so resolve it from the session's line items.
+  let priceId;
+  try {
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+    priceId = lineItems?.data?.[0]?.price?.id;
+  } catch (err) {
+    console.error(`Failed to fetch line items for session ${session.id}:`, err.message);
+    return;
+  }
+  const mapped = PRICE_TOKEN_MAP[priceId];
+  if (!mapped) {
+    console.warn(`No token map for price ${priceId}, skipping legacy token grant`);
+    return;
+  }
+  const { tokens, tier, sub_tier: subTier, price_usd: priceUsd, pack } = mapped;
   const behaviors = await base44.asServiceRole.entities.UserBehavior.filter({ user_email: userEmail });
-  const behavior  = behaviors[0];
-  if (!behavior)  { console.warn(`UserBehavior not found for ${userEmail}`); return; }
+  const behavior = behaviors[0];
+  if (!behavior) {
+    console.warn('UserBehavior not found; entitlement skipped');
+    return;
+  }
 
   const newBalance = (behavior.tokens_remaining || 0) + tokens;
   await base44.asServiceRole.entities.UserBehavior.update(behavior.id, {
     tier,
-    tokens_remaining:       newBalance,
+    tokens_remaining: newBalance,
     tokens_purchased_total: (behavior.tokens_purchased_total || 0) + tokens,
-    active_offer:           null,
+    active_offer: null,
   });
-
   await base44.asServiceRole.entities.TokenTransaction.create({
-    user_email:        userEmail,
-    type:              'purchase',
-    amount:            tokens,
-    pack:              packName || tier,
-    price_usd:         priceUsd,
+    user_email: userEmail,
+    type: 'purchase',
+    amount: tokens,
+    pack,
+    price_usd: priceUsd,
     stripe_payment_id: paymentId,
-    balance_after:     newBalance,
+    stripe_event_id: eventId,
+    balance_after: newBalance,
   });
-
-  // Sync UserProfile tier
   await syncUserProfileTier(base44, userEmail, tier, subTier);
-
-  console.log(`✓ Granted ${tokens} tokens to ${userEmail} (tier: ${tier}, sub_tier: ${subTier}), balance: ${newBalance}`);
+  console.log(`Granted ${tokens} tokens to ${userEmail} (tier: ${tier}, sub_tier: ${subTier})`);
 }
-
 async function handleChargeSucceeded(charge) {
   console.log(`💳 charge.succeeded: ${charge.id} — ${charge.receipt_email} — ${charge.amount / 100} ${charge.currency.toUpperCase()}`);
   // Audit log — extend here to write to a Payments entity if needed
@@ -160,11 +427,30 @@ async function handleChargeFailed(charge) {
 // Subscription activated or renewed
 async function handleSubscriptionUpdated(subscription, stripe, base44) {
   console.log(`🔄 subscription updated: ${subscription.id} status=${subscription.status}`);
+  const subMeta = subscription.metadata || {};
+
+  // Tenant (White-Label) subscriptions are resolved by subscription id
+  // against License, not by customer email — the contact on a Stripe
+  // customer need not match the tenant's contact_email, and this sync must
+  // not depend on a successful Stripe customer lookup.
+  if (subMeta.type === 'tenant_subscription') {
+    await syncTenantLicenseStatus(base44, subscription.id, mapStripeStatusToLicenseStatus(subscription.status));
+    return;
+  }
+
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) { console.warn('No email for subscription customer, skipping'); return; }
 
+  if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
+    await handleProductSubscription(subscription, stripe, base44);
+    return;
+  }
+  if (isAbosPlan(subMeta.plan_type)) {
+    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, ['active', 'trialing'].includes(subscription.status));
+    return;
+  }
+
   // Newsletter subscription — manage flag, skip token logic
-  const subMeta = subscription.metadata || {};
   if (subMeta.product === 'newsletter_subscription') {
     if (subscription.status === 'active' || subscription.status === 'trialing') {
       await setNewsletterFlag(base44, userEmail, true);
@@ -246,6 +532,14 @@ async function handleInvoicePaid(invoice, stripe, base44) {
 // Invoice payment failed — flag the user but don't downgrade immediately (Stripe retries)
 async function handleInvoicePaymentFailed(invoice, stripe, base44) {
   console.warn(`⚠️ invoice.payment_failed: ${invoice.id}`);
+
+  // Tenant (White-Label) subscriptions: suspend the License regardless of
+  // whether the buyer-side email lookup below succeeds. A no-op when this
+  // invoice's subscription isn't a tenant subscription.
+  if (invoice.subscription) {
+    await syncTenantLicenseStatus(base44, invoice.subscription, 'suspended');
+  }
+
   const userEmail = invoice.customer_email || await resolveEmailFromCustomer(stripe, invoice.customer);
   if (!userEmail) return;
 
@@ -259,11 +553,29 @@ async function handleInvoicePaymentFailed(invoice, stripe, base44) {
 // Subscription deleted/cancelled
 async function handleSubscriptionDeleted(subscription, stripe, base44) {
   console.log(`🗑️ subscription.deleted: ${subscription.id}`);
+  const subMeta = subscription.metadata || {};
+
+  // Tenant (White-Label) subscriptions: suspend regardless of whether the
+  // buyer-side email lookup below succeeds — this reverse path (cancel/
+  // lapse → suspend the License) must not depend on it.
+  if (subMeta.type === 'tenant_subscription') {
+    await syncTenantLicenseStatus(base44, subscription.id, 'suspended');
+    return;
+  }
+
   const userEmail = await resolveEmailFromCustomer(stripe, subscription.customer);
   if (!userEmail) return;
 
+  if (subMeta.product_key && SUB_PRODUCT_KEYS.has(subMeta.product_key)) {
+    await handleProductSubscription(subscription, stripe, base44);
+    return;
+  }
+  if (isAbosPlan(subMeta.plan_type)) {
+    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, false);
+    return;
+  }
+
   // Newsletter subscription — clear flag only, don't touch tier
-  const subMeta = subscription.metadata || {};
   if (subMeta.product === 'newsletter_subscription') {
     await setNewsletterFlag(base44, userEmail, false);
     return;
@@ -274,6 +586,151 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   if (behaviors[0]) {
     await base44.asServiceRole.entities.UserBehavior.update(behaviors[0].id, { tier: 'free_explorer' });
   }
+}
+
+// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
+// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
+const STRIPE_ATI_PRODUCT_MAP = {
+  level_2_basic: 'ATI_BASIC_REPORT',
+  ati_pro: 'ATI_PRO',
+  ati_pro_tax: 'ATI_PRO_TAX',
+};
+const LEGACY_PRODUCT_ALIASES = {
+  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
+  ATI_SCORE: 'ATI_SCORE',
+  VALUATION_STUDIO: 'VALUATION_STUDIO',
+  VERIFICATION_PACK: 'VERIFICATION_PACK',
+  PRO: 'PRO',
+  BROKER: 'BROKER',
+};
+const PRODUCT_KEYS = new Set([
+  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
+  ...Object.keys(LEGACY_PRODUCT_ALIASES),
+]);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
+
+async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
+  if (!eventId) return true;
+  const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
+  if (existing.length > 0 && existing[0].status === 'processed') return false;
+  if (existing.length > 0) {
+    await base44.asServiceRole.entities.PaymentEvent.update(existing[0].id, {
+      event_type: type, user_email: email || '', product_key: productKey || '',
+      stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '',
+      amount_eur: amountEur || 0, status: status || 'processing',
+    });
+    return true;
+  }
+  await base44.asServiceRole.entities.PaymentEvent.create({
+    stripe_event_id: eventId, event_type: type, user_email: email || '', product_key: productKey || '',
+    stripe_payment_id: paymentId || '', stripe_subscription_id: subId || '', amount_eur: amountEur || 0,
+    status: status || 'processing',
+  });
+  return true;
+}
+
+async function finalizePaymentEvent(base44, eventId, status) {
+  if (!eventId) return;
+  const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
+  if (existing[0]) await base44.asServiceRole.entities.PaymentEvent.update(existing[0].id, { status });
+}
+
+// checkout.session.completed for a product purchase → grant entitlement (idempotent).
+async function handleProductCheckout(session, base44, eventId, stripe) {
+  const meta = session.metadata || {};
+  let productKey = meta.product_key;
+
+  // Prefer canonical Stripe product metadata over client-supplied product_key.
+  // This makes Stripe's active catalog authoritative while retaining legacy compatibility.
+  try {
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1, expand: ['data.price.product'] });
+    const price = lineItems?.data?.[0]?.price;
+    const productMeta = price?.product && typeof price.product === 'object' ? price.product.metadata : null;
+    const stripeTier = productMeta?.abos_tier_id;
+    if (stripeTier && STRIPE_ATI_PRODUCT_MAP[stripeTier]) productKey = STRIPE_ATI_PRODUCT_MAP[stripeTier];
+  } catch (err) {
+    console.warn(`Unable to resolve Stripe product metadata for ${session.id}: ${err.message}`);
+  }
+
+  if (!productKey || !PRODUCT_KEYS.has(productKey)) return false;
+  const email = meta.user_email || session.customer_email || session.customer_details?.email;
+  if (!email) { console.warn('product checkout: no verified customer email'); return true; }
+  const aircraftRegistration = (meta.aircraft_registration || '').toUpperCase().trim();
+  const aircraftScopedProduct = !SUB_PRODUCT_KEYS.has(productKey);
+  if (aircraftScopedProduct && !aircraftRegistration) {
+    console.warn(`product checkout rejected: ${productKey} requires aircraft_registration`);
+    await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'ignored');
+    return true;
+  }
+  if (!(await markPaymentEvent(base44, eventId, 'checkout.session.completed', email, productKey, session.payment_intent || session.id, session.subscription || '', (session.amount_total || 0) / 100, 'processed'))) {
+    console.log(`Duplicate product checkout ignored: ${eventId}`);
+    return true;
+  }
+  try {
+    if (SUB_PRODUCT_KEYS.has(productKey)) {
+      await base44.asServiceRole.entities.Entitlement.create({
+        user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
+        stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',
+        current_period_end: session.expires_at || null,
+      });
+      console.log(`✓ Subscription entitlement granted: ${email} → ${productKey}`);
+    } else {
+      const paymentId = session.payment_intent || session.id;
+      const existingEntitlements = await base44.asServiceRole.entities.Entitlement.filter({
+        user_email: email, product_key: productKey, scope: 'aircraft',
+        aircraft_registration: aircraftRegistration, stripe_payment_id: paymentId,
+      }, '-created_date', 1);
+      if (existingEntitlements.length > 0) {
+        await finalizePaymentEvent(base44, eventId, 'processed');
+        console.log(`↩️ Existing entitlement reused: ${email} → ${productKey} (${aircraftRegistration})`);
+        return true;
+      }
+      await base44.asServiceRole.entities.Entitlement.create({
+        user_email: email, product_key: productKey, scope: 'aircraft',
+        aircraft_registration: aircraftRegistration, source: 'stripe',
+        stripe_payment_id: paymentId, stripe_event_id: eventId, status: 'active',
+      });
+      console.log(`✓ One-time entitlement granted: ${email} → ${productKey} (${aircraftRegistration})`);
+    }
+    await finalizePaymentEvent(base44, eventId, 'processed');
+    return true;
+  } catch (err) {
+    await finalizePaymentEvent(base44, eventId, 'failed');
+    console.error(`Product entitlement grant failed for ${eventId}: ${err.message}`);
+    throw err;
+  }
+}
+
+// subscription.updated/deleted for PRO/BROKER → sync entitlement status (idempotent).
+async function handleProductSubscription(subscription, stripe, base44) {
+  const meta = subscription.metadata || {};
+  const productKey = meta.product_key;
+  if (!productKey || !SUB_PRODUCT_KEYS.has(productKey)) return false;
+  const email = await resolveEmailFromCustomer(stripe, subscription.customer);
+  if (!email) return true;
+  const active = ['active', 'trialing'].includes(subscription.status);
+  const eventId = `sub_${subscription.id}_${subscription.status}`;
+  const periodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null;
+
+  const existing = await base44.asServiceRole.entities.Entitlement.filter(
+    { user_email: email, product_key: productKey, stripe_subscription_id: subscription.id }, '-created_date', 1
+  );
+  if (existing[0]) {
+    await base44.asServiceRole.entities.Entitlement.update(existing[0].id, {
+      status: active ? 'active' : 'expired',
+      current_period_end: periodEnd,
+      stripe_event_id: eventId,
+    });
+  } else {
+    await base44.asServiceRole.entities.Entitlement.create({
+      user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
+      stripe_subscription_id: subscription.id, stripe_event_id: eventId,
+      status: active ? 'active' : 'expired', current_period_end: periodEnd,
+    });
+  }
+  await markPaymentEvent(base44, eventId, 'customer.subscription.' + (active ? 'active' : subscription.status), email, productKey, '', subscription.id, 0, active ? 'processed' : 'ignored');
+  console.log(`✓ Subscription entitlement synced: ${email} → ${productKey} (${active ? 'active' : 'expired'})`);
+  return true;
 }
 
 Deno.serve(async (req) => {
@@ -303,7 +760,7 @@ Deno.serve(async (req) => {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object, base44);
+        await handleCheckoutCompleted(event.data.object, base44, stripe, event.id);
         break;
       case 'charge.succeeded':
         await handleChargeSucceeded(event.data.object);
@@ -331,6 +788,6 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 });

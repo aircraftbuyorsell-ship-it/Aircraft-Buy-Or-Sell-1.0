@@ -1,0 +1,35 @@
+{
+  "name": "Auto-Enrich Listing from Registry",
+  "description": "Auto-fills missing make/model/year on AircraftListing from FAA registry + adsbdb backup when a listing is created or updated",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "AircraftListing"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_enrich_listing_from_registry",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoEnrichListing",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

@@ -16,6 +16,64 @@ export default function AdminSettings() {
   const [frozen, setFrozen] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  // ── AppConfig dedupe state ──
+  // Cleans up leftover duplicate key:"global" (and other) AppConfig rows left
+  // behind by the historical Save-mutation race condition. Dry-run first,
+  // then confirm. See base44/functions/dedupeAppConfig for details.
+  const [dedupeReport, setDedupeReport] = useState(null);
+  const [dedupeLoading, setDedupeLoading] = useState(false);
+
+  const runDedupeCheck = async () => {
+    setDedupeLoading(true);
+    try {
+      const res = await base44.functions.invoke("dedupeAppConfig", {});
+      setDedupeReport(res.data);
+    } catch (err) {
+      setDedupeReport({ error: err.message || "Check failed" });
+    }
+    setDedupeLoading(false);
+  };
+
+  const runDedupeConfirm = async () => {
+    setDedupeLoading(true);
+    try {
+      const res = await base44.functions.invoke("dedupeAppConfig", { confirm: true });
+      setDedupeReport(res.data);
+      queryClient.invalidateQueries({ queryKey: ["app-config"] });
+    } catch (err) {
+      setDedupeReport({ error: err.message || "Delete failed" });
+    }
+    setDedupeLoading(false);
+  };
+
+  // ── FAA LADD list sync state ──
+  const [laddMonth, setLaddMonth] = useState("");
+  const [laddEntries, setLaddEntries] = useState("");
+  const [laddReport, setLaddReport] = useState(null);
+  const [laddLoading, setLaddLoading] = useState(false);
+
+  const runLaddCheck = async () => {
+    setLaddLoading(true);
+    try {
+      const res = await base44.functions.invoke("syncLaddList", { list_month: laddMonth, entries: laddEntries });
+      setLaddReport(res.data);
+    } catch (err) {
+      setLaddReport({ error: err.response?.data?.error || err.message || "Check failed" });
+    }
+    setLaddLoading(false);
+  };
+
+  const runLaddConfirm = async () => {
+    setLaddLoading(true);
+    try {
+      const res = await base44.functions.invoke("syncLaddList", { list_month: laddMonth, entries: laddEntries, confirm: true });
+      setLaddReport(res.data);
+    } catch (err) {
+      setLaddReport({ error: err.response?.data?.error || err.message || "Import failed" });
+    }
+    setLaddLoading(false);
+  };
+
   // ── Global Data Sync state ──
   const [syncing, setSyncing] = useState(false);
   const [syncSteps, setSyncSteps] = useState([
@@ -55,9 +113,12 @@ export default function AdminSettings() {
     retry: false,
   });
 
-  const { data: configs = [], isLoading } = useQuery({
+  const { data: configs = [], isLoading, isSuccess } = useQuery({
     queryKey: ["app-config"],
-    queryFn: () => base44.entities.AppConfig.filter({ key: "global" }),
+    // Must match the sort used by generateMarketReport / generateMarketForecast
+    // ("-created_date", 1) or the admin panel reads and writes a different row
+    // than the engines. Duplicate key:"global" rows exist in prod.
+    queryFn: () => base44.entities.AppConfig.filter({ key: "global" }, "-created_date", 1),
     enabled: user?.role === "admin" || user?.role === "super_admin",
   });
 
@@ -75,11 +136,15 @@ export default function AdminSettings() {
         freezeAbosDataInfluence: frozen,
         abosDataFreezeMessage: message,
       };
-      if (configs.length > 0) {
-        return base44.entities.AppConfig.update(configs[0].id, data);
-      } else {
-        return base44.entities.AppConfig.create(data);
+      if (configs.length === 0) {
+        // Never create here. `configs` defaults to [] on a failed/pending read,
+        // and a create on that path is what produced the duplicate key:"global"
+        // rows. The row is seeded by migration; if it's missing, fail loudly.
+        throw new Error(
+          "AppConfig key:\"global\" not loaded \u2014 refusing to write. Reload and retry."
+        );
       }
+      return base44.entities.AppConfig.update(configs[0].id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["app-config"] });
@@ -186,7 +251,7 @@ export default function AdminSettings() {
 
         <Button
           onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || isLoading}
+          disabled={saveMutation.isPending || isLoading || !isSuccess}
           className="w-full font-bold uppercase tracking-wide"
           style={{ background: "linear-gradient(135deg,#4e8ef7,#143C75)" }}
         >
@@ -275,6 +340,144 @@ export default function AdminSettings() {
             <><RefreshCw className="w-4 h-4" /> Sync All Metrics</>
           )}
         </Button>
+      </div>
+
+      {/* Database Maintenance — AppConfig dedupe */}
+      <div className="rounded-2xl p-7 mt-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-start gap-4 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-[#f5c242]/10 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5 text-[#f5c242]" />
+          </div>
+          <div>
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
+              Database Maintenance
+            </h2>
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
+              Clean up duplicate AppConfig rows left over from a historical Save-mutation race condition. Keeps the most recently edited row per key.
+            </p>
+          </div>
+        </div>
+
+        {dedupeReport && (
+          <div className={`rounded-xl p-4 mb-5 text-sm ${dedupeReport.error ? "bg-[#e24b4a]/08 border border-[#e24b4a]/20 text-[#e24b4a]" : "bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5]"}`}>
+            {dedupeReport.error ? (
+              <p>{dedupeReport.error}</p>
+            ) : (
+              <>
+                <p className="font-bold">{dedupeReport.message || (dedupeReport.dryRun === false ? `Deleted ${dedupeReport.deleted} duplicate row(s).` : "")}</p>
+                {dedupeReport.report?.length > 0 && (
+                  <ul className="mt-2 space-y-1 text-xs text-[rgba(255,255,255,0.70)]">
+                    {dedupeReport.report.map((r) => (
+                      <li key={r.key}>
+                        <strong>{r.key}</strong>: {r.totalRows} rows found — keeping 1, {r.deleting.length} {dedupeReport.dryRun === false ? "deleted" : "would be deleted"}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {dedupeReport.errors?.length > 0 && (
+                  <p className="mt-2 text-xs text-[#e24b4a]">{dedupeReport.errors.length} row(s) failed to delete — see logs.</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button
+            onClick={runDedupeCheck}
+            disabled={dedupeLoading}
+            variant="outline"
+            className="flex-1 font-bold uppercase tracking-wide"
+          >
+            {dedupeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Check for Duplicates
+          </Button>
+          {dedupeReport && !dedupeReport.error && dedupeReport.dryRun && dedupeReport.report?.length > 0 && (
+            <Button
+              onClick={runDedupeConfirm}
+              disabled={dedupeLoading}
+              className="flex-1 font-bold uppercase tracking-wide text-white"
+              style={{ background: "linear-gradient(135deg,#e24b4a,#b91c1c)" }}
+            >
+              Confirm Delete
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* FAA LADD (Limiting Aircraft Data Displayed) Compliance */}
+      <div className="rounded-2xl p-7 mt-6" style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-start gap-4 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-[#4e8ef7]/10 flex items-center justify-center shrink-0">
+            <ShieldAlert className="w-5 h-5 text-[#4e8ef7]" />
+          </div>
+          <div>
+            <h2 className="font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight text-base">
+              FAA LADD Compliance
+            </h2>
+            <p className="text-sm text-[rgba(255,255,255,0.60)] mt-1">
+              Import the monthly IndustryLADD list from the FAA ADX portal (adx.faa.gov — requires a signed Data Access User Agreement). Blocked registrations are withheld from registry lookups and the live traffic map.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3 mb-4">
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[rgba(255,255,255,0.60)] mb-2 block">
+              List Month
+            </label>
+            <input
+              value={laddMonth}
+              onChange={(e) => setLaddMonth(e.target.value)}
+              placeholder="2026-08"
+              className="w-full px-3 py-2.5 rounded-xl text-sm font-mono"
+              style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.10)", color: "white" }}
+            />
+          </div>
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.15em] font-bold text-[rgba(255,255,255,0.60)] mb-2 block">
+              IndustryLADD Entries (N-numbers, one per line or comma-separated)
+            </label>
+            <Textarea
+              value={laddEntries}
+              onChange={(e) => setLaddEntries(e.target.value)}
+              placeholder={"N12345\nN6789A\n..."}
+              className="resize-none min-h-[90px] text-sm font-mono"
+            />
+          </div>
+        </div>
+
+        {laddReport && (
+          <div className={`rounded-xl p-4 mb-5 text-sm ${laddReport.error ? "bg-[#e24b4a]/08 border border-[#e24b4a]/20 text-[#e24b4a]" : "bg-[rgba(93,202,165,0.06)] border border-[rgba(93,202,165,0.20)] text-[#5dcaa5]"}`}>
+            {laddReport.error ? (
+              <p>{laddReport.error}</p>
+            ) : (
+              <>
+                <p className="font-bold">{laddReport.message || `Imported: ${laddReport.created} new, ${laddReport.refreshed} refreshed, ${laddReport.deactivated} deactivated.`}</p>
+              </>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <Button
+            onClick={runLaddCheck}
+            disabled={laddLoading || !laddMonth || !laddEntries}
+            variant="outline"
+            className="flex-1 font-bold uppercase tracking-wide"
+          >
+            {laddLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Check Import
+          </Button>
+          {laddReport && !laddReport.error && laddReport.dryRun && (
+            <Button
+              onClick={runLaddConfirm}
+              disabled={laddLoading}
+              className="flex-1 font-bold uppercase tracking-wide text-white"
+              style={{ background: "linear-gradient(135deg,#4e8ef7,#143C75)" }}
+            >
+              Confirm Import
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Smart Contracts — Coming Soon */}

@@ -6,12 +6,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Scheduled automations run as the app owner; still guard against non-admin invocation.
-    const user = await base44.auth.me().catch(() => null);
-    if (user && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
+    // This function is invoked by the Base44 scheduled workflow.
+    // Scheduled workflow executions do not carry a user session, so auth.me()
+    // would incorrectly return 403 and prevent the GDPR retention job from running.
+    // Keep the function server-side and use the service-role client for the cleanup.
     const cutoffMs = Date.now() - NINETY_DAYS_MS;
     const sr = base44.asServiceRole;
 

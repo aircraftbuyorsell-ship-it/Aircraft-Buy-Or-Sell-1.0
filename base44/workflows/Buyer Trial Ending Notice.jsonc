@@ -1,0 +1,41 @@
+{
+  "name": "Buyer Trial Ending Notice",
+  "description": "Sends registered BUY trial users one reminder when six hours remain.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 1,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-08-05T06:00:00",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "buyer_trial_ending_notice",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyBuyerTrialEnding",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

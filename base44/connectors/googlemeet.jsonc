@@ -1,0 +1,7 @@
+{
+  "type": "googlemeet",
+  "scopes": [
+    "https://www.googleapis.com/auth/meetings.space.created",
+    "email"
+  ]
+}

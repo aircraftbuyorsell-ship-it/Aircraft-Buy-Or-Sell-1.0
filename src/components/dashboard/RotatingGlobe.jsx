@@ -238,7 +238,7 @@ function ListingPopup({ listing, pos, onClose, onOpen }) {
   );
 }
 
-export default function RotatingGlobe({ className = "", theme = "light", listings = [] }) {
+export default function RotatingGlobe({ className = "", theme = "light", listings = [], showFallbackMarkers = true }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const themeRef = useRef(theme);
@@ -463,7 +463,7 @@ export default function RotatingGlobe({ className = "", theme = "light", listing
       });
 
       // Fallback: default markers if no listings
-      if (lm.length === 0) {
+      if (lm.length === 0 && showFallbackMarkers) {
         const dm = DEFAULT_MARKERS;
         const hi = dm[hlIdx % dm.length];
         const hp = project(hi.lon, hi.lat);

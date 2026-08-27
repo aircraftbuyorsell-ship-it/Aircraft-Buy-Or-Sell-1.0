@@ -1,0 +1,41 @@
+{
+  "name": "Live Traffic Ingestion",
+  "description": "Fetches global ADS-B traffic every 5 minutes and stores all aircraft positions in the database for persistent tracking and flight history.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 5,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-06-13T22:59:21.950000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "live_traffic_ingestion",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "ingestLiveTraffic",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

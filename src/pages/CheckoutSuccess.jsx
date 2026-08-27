@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { checkoutDedup } from "@/utils/checkoutDedup";
 
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,10 @@ export default function CheckoutSuccess() {
         if (res.data?.status === "complete") {
           setStatus("success");
           setSession(res.data);
+          // Clear checkout dedup state on success
+          if (res.data?.product_key) {
+            checkoutDedup.clear(res.data.product_key);
+          }
         } else if (res.data?.status === "open") {
           setStatus("pending");
           setSession(res.data);

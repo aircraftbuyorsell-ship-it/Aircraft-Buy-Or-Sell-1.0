@@ -3,14 +3,23 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
 import { normalizePaymentError, logPaymentError } from "@/utils/paymentErrors";
+import { checkoutDedup } from "@/utils/checkoutDedup";
 
 export default function PlanCheckoutButton({ planType, label = "Subscribe", variant = "default", returnUrl, onCheckoutStarted }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const start = async () => {
+    // Check for duplicate checkout attempt
+    if (checkoutDedup.isDuplicate(planType)) {
+      setError("A checkout is already in progress. Please wait or check your email.");
+      return;
+    }
+
     setLoading(true);
     setError("");
+    checkoutDedup.markActive(planType);
+
     try {
       // Validate return URL exists and is absolute
       const finalReturnUrl = returnUrl || window.location.href;

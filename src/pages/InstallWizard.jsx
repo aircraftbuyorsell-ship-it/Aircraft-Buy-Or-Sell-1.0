@@ -96,3 +96,204 @@ function StepDots({ step, total }) {
     </div>
   );
 }
+
+export default function InstallWizard() {
+  const [step, setStep] = useState(1);
+  const [platform, setPlatform] = useState(PLATFORMS.NEXT_APP);
+  const [adapterUrl, setAdapterUrl] = useState("/api/abos");
+  const [zipError, setZipError] = useState("");
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["install-wizard-overview"],
+    queryFn: async () => {
+      const response = await base44.functions.invoke("tenantPortal", { action: "overview" });
+      return response.data;
+    },
+    staleTime: 60000,
+  });
+
+  const tenant = data?.tenant || null;
+  const license = data?.license || null;
+  const features = license?.features || [];
+  const isBrowserOnly = BROWSER_ONLY_PLATFORMS.includes(platform);
+
+  // Regenerated whenever the tenant, plan or chosen platform changes. Failures
+  // surface as a message rather than a blank screen: buildArtifacts throws by
+  // design if anything credential-shaped reached a file.
+  const { files, buildError } = useMemo(() => {
+    if (!tenant) return { files: [], buildError: "" };
+    try {
+      return {
+        files: buildArtifacts({
+          tenant,
+          license,
+          features,
+          branding: tenant.branding || {},
+          platform,
+          baseUrl: DEFAULT_BASE_URL,
+          adapterUrl: adapterUrl || "/api/abos",
+        }),
+        buildError: "",
+      };
+    } catch (err) {
+      return { files: [], buildError: err?.message || "Could not generate the integration files." };
+    }
+  }, [tenant, license, features, platform, adapterUrl]);
+
+  const downloadZip = async () => {
+    setZipError("");
+    try {
+      const blob = createZipBlob(files.map((f) => ({ path: f.path, contents: f.contents })));
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `abos-integration-${tenant?.tenant_id || "kit"}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Revoke on the next tick so the download has certainly started.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      setZipError(err?.message || "Could not build the archive.");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin opacity-50" />
+      </div>
+    );
+  }
+
+  if (error || !tenant) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <Card>
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
+            <div>
+              <h1 className="font-semibold mb-1">No white-label organization on this account</h1>
+              <p className="text-sm opacity-70 mb-4">
+                The install wizard configures an existing ABOS white-label tenant. Once your
+                licence is active it will appear here.
+              </p>
+              <Link to="/partner-portal" className="text-sm font-medium underline">
+                Back to Partner Portal
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  const licenceInactive = license?.status !== "active";
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 py-10 space-y-5">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <Link
+            to="/partner-portal"
+            className="text-xs opacity-60 inline-flex items-center gap-1.5 mb-2 hover:opacity-100"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Partner Portal
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight">Install ABOS</h1>
+          <p className="text-sm opacity-60 mt-1">
+            {tenant.display_name || tenant.tenant_id} · {license?.plan || "no plan"}
+          </p>
+        </div>
+        <StepDots step={step} total={3} />
+      </div>
+
+      {licenceInactive && (
+        <Card>
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
+            <div>
+              <p className="font-semibold text-sm mb-1">Licence is not active</p>
+              <p className="text-xs opacity-70">
+                You can preview the integration files, but the API will reject requests until the
+                licence is active.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ── Step 1: platform ── */}
+      {step === 1 && (
+        <Card>
+          <div className="flex items-center gap-2 mb-1">
+            <FileCode2 className="w-4 h-4 opacity-60" />
+            <h2 className="font-semibold">Where does ABOS need to run?</h2>
+          </div>
+          <p className="text-sm opacity-60 mb-5">
+            Pick the framework your application already uses. The adapter is generated for it.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-2 mb-5">
+            {PLATFORM_ORDER.map((id) => {
+              const selected = platform === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setPlatform(id)}
+                  className="flex items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-left text-sm transition-colors"
+                  style={{
+                    background: selected ? "var(--gold-bg, rgba(184,134,11,0.10))" : "var(--glass-bg)",
+                    border: `1px solid ${selected ? "var(--gold-deep, #b8860b)" : "var(--glass-border)"}`,
+                  }}
+                >
+                  <span className="font-medium">{PLATFORM_LABELS[id]}</span>
+                  {selected && <Check className="w-4 h-4 shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+
+          {isBrowserOnly && (
+            <div
+              className="rounded-lg p-3 mb-5 flex items-start gap-2.5"
+              style={{ background: "rgba(217,119,6,0.08)", border: "1px solid rgba(217,119,6,0.30)" }}
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
+              <p className="text-xs leading-relaxed">
+                A pure single-page app has nowhere safe to keep your tenant key — anything shipped
+                to the browser is readable by anyone. Host the generated adapter on a server or
+                serverless function and have the SPA call that instead.
+              </p>
+            </div>
+          )}
+
+          <label className="block">
+            <span className="text-xs font-semibold opacity-60">Adapter route</span>
+            <input
+              value={adapterUrl}
+              onChange={(e) => setAdapterUrl(e.target.value)}
+              placeholder="/api/abos"
+              className="mt-1.5 w-full rounded-lg px-3 py-2 text-sm font-mono outline-none"
+              style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
+            />
+            <span className="text-xs opacity-50 mt-1.5 block">
+              The path your app will expose. Keep the default unless it collides with an existing route.
+            </span>
+          </label>
+
+          <div className="flex justify-end mt-6">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-1.5"
+              style={{ background: "var(--gold-bg)", color: "var(--gold-deep)", border: "1px solid var(--glass-border)" }}
+            >
+              Generate files
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </Card>
+      )}

@@ -1,247 +1,173 @@
-import { useState } from "react";
-import { createCheckout } from "@/lib/entitlements";
-import { useAuth } from "@/lib/AuthContext";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import { submitApiInquiry } from '@/lib/entitlements';
 import {
-  Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Loader2, Check, KeyRound,
-} from "lucide-react";
+  Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Loader2, Check,
+  KeyRound, FileText, LockKeyhole, Sparkles, Mail, Download, Server,
+} from 'lucide-react';
 
-/**
- * Public front door for aircraftbuyorsell.com/api.
- *
- * This replaced a page that shipped full endpoint documentation, an OpenAPI
- * spec link and a live API-key panel to every anonymous visitor. That
- * content still exists — it moved to the Developer Portal (/developers) and
- * the full reference (/developers/core-api), both of which now require a
- * signed-in account. What belongs on the public marketing page is the pitch
- * and the price, not the internals.
- */
-
-const VALUE_PROPS = [
-  {
-    icon: Zap,
-    title: "Brokers & dealers",
-    text: "Bring ABOS aircraft intelligence into your workflow — ATI scoring, valuation, market intelligence and broker/dealer tools from one connected platform."
-  },
-  {
-    icon: Building2,
-    title: "Platform builders",
-    text: "Use ABOS API / MCP access when enabled to connect search, valuation, verification and marketplace intelligence to your own stack."
-  },
-  {
-    icon: Bot,
-    title: "AI agents & assistants",
-    text: "MCP-native. Point Claude, Cursor or your own agent at the endpoint and it can search, value and extract listings without you writing a client.",
-  },
-];
-
-const HOW_IT_WORKS = [
-  { step: "1", title: "Pick your plan", text: "Choose ABOS Professional for individual buyers and scouts, or Broker / Dealer for teams and API / MCP access when enabled." },
-  { step: "2", title: "Checkout", text: "Stripe handles the subscription securely. Your access is granted server-side after successful checkout." },
-  { step: "3", title: "Connect", text: "Use the ABOS workspace directly, or use the enabled API / MCP capabilities available with your plan." },
-];
+const AMBER = '#f5c242';
+const TEAL = '#5dcaa5';
+const BORDER = 'rgba(255,255,255,0.08)';
 
 const PLANS = [
   {
-    id: "PRO",
-    name: "ABOS Professional",
-    price: "€99",
-    period: "/month",
-    tagline: "For active buyers & scouts.",
-    features: ["Increased search limits", "ATI Score access included", "Discounted ATI Full Reports", "Discounted Valuation Studio", "Advanced aircraft intelligence", "Market comparables", "Saved aircraft & reports", "Workspace functionality"],
-    cta: "Subscribe",
-    highlighted: true,
+    name: 'API Starter', price: '€690', period: '/month',
+    tagline: 'Search & ATI Score for teams and product integrations.',
+    features: ['ABOS Core API access', 'Search', 'ATI Score', 'Tenant-scoped API key', 'Usage monitoring', 'Production access'],
   },
   {
-    id: "BROKER",
-    name: "ABOS Broker / Dealer",
-    price: "€299",
-    period: "/month",
-    tagline: "For brokers, dealers & teams.",
-    features: ["Everything in Professional", "Higher usage limits", "Multiple aircraft / workspace management", "Bulk aircraft analysis", "Broker / dealer workflow", "Listing intelligence & advanced reports", "Team / workspace support", "API / MCP access when enabled", "Priority integration features"],
-    cta: "Subscribe",
-    highlighted: false,
+    name: 'API Professional', price: '€1,890', period: '/month', highlighted: true,
+    tagline: 'Reporting, valuation and market intelligence.',
+    features: ['Everything in Starter', 'ATI Report API', 'OMVM Valuation', 'Market Intelligence', 'Advanced intelligence endpoints', 'Expanded monthly usage'],
+  },
+  {
+    name: 'Enterprise', price: 'from €3,900', period: '/month',
+    tagline: 'Full capability set with contracted terms.',
+    features: ['Everything in Professional', 'Aircraft Passport & registry lookup', 'Advanced intelligence', 'Custom integration', 'Dedicated onboarding', 'Contracted enterprise terms'],
   },
 ];
 
-const CARD_BORDER = "rgba(255,255,255,0.08)";
-const AMBER = "#f5c242";
-const TEAL = "#5dcaa5";
+const WHITE_LABEL = {
+  name: 'ABOS White-Label Integration License',
+  price: '€2,500',
+  tagline: 'One-time integration / license setup. Usage remains governed by the selected API plan.',
+};
 
-function PlanCard({ plan, onSelect, loading }) {
+const VALUE_PROPS = [
+  { icon: Zap, title: 'Aircraft intelligence', text: 'Search, ATI scoring, reports, valuation and market intelligence through one connected API layer.' },
+  { icon: Building2, title: 'Built for platforms', text: 'Tenant-scoped access for aviation marketplaces, brokers, dealers and software products.' },
+  { icon: Bot, title: 'Agent-ready', text: 'ABOS is designed for API and MCP workflows so your applications and AI agents can work from the same intelligence layer.' },
+];
+
+function PricingCard({ plan }) {
   return (
-    <div
-      className="rounded-2xl p-6 flex flex-col relative"
-      style={{
-        background: plan.highlighted ? "rgba(245,194,66,0.06)" : "rgba(255,255,255,0.03)",
-        border: plan.highlighted ? "1px solid rgba(245,194,66,0.35)" : `1px solid ${CARD_BORDER}`,
-      }}
-    >
-      {plan.highlighted && (
-        <span
-          className="absolute -top-3 left-6 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-          style={{ background: AMBER, color: "#04060a" }}
-        >
-          Most popular
-        </span>
-      )}
-      <h3 className="text-[15px] font-bold mb-1" style={{ color: "rgba(255,255,255,0.92)" }}>{plan.name}</h3>
-      <p className="text-[12px] mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>{plan.tagline}</p>
+    <div className="rounded-2xl p-6 flex flex-col relative" style={{
+      background: plan.highlighted ? 'rgba(245,194,66,0.065)' : 'rgba(255,255,255,0.03)',
+      border: plan.highlighted ? '1px solid rgba(245,194,66,0.38)' : `1px solid ${BORDER}`,
+    }}>
+      {plan.highlighted && <span className="absolute -top-3 left-6 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ background: AMBER, color: '#04060a' }}>Most popular</span>}
+      <h3 className="text-[16px] font-bold mb-1" style={{ color: 'rgba(255,255,255,.94)' }}>{plan.name}</h3>
+      <p className="text-[12px] leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,.52)' }}>{plan.tagline}</p>
       <div className="flex items-baseline gap-1 mb-5">
-        <span className="text-[28px] font-black" style={{ color: "rgba(255,255,255,0.95)" }}>{plan.price}</span>
-        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>{plan.period}</span>
+        <span className="text-[29px] font-black" style={{ color: 'rgba(255,255,255,.96)' }}>{plan.price}</span>
+        <span className="text-[12px]" style={{ color: 'rgba(255,255,255,.45)' }}>{plan.period}</span>
       </div>
-      <ul className="flex flex-col gap-2 mb-6 flex-1">
-        {plan.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-[12px]" style={{ color: "rgba(255,255,255,0.70)" }}>
-            <Check size={13} className="mt-0.5 shrink-0" style={{ color: TEAL }} />
-            {f}
-          </li>
-        ))}
+      <ul className="flex flex-col gap-2">
+        {plan.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-[12px]" style={{ color: 'rgba(255,255,255,.70)' }}><Check size={13} className="mt-0.5 shrink-0" style={{ color: TEAL }} />{feature}</li>)}
       </ul>
-      <button
-        onClick={() => onSelect(plan)}
-        disabled={loading === plan.id}
-        className="w-full py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wide disabled:opacity-50"
-        style={
-          plan.highlighted
-            ? { background: AMBER, color: "#04060a", border: "none", cursor: "pointer" }
-            : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.85)", border: `0.5px solid ${CARD_BORDER}`, cursor: "pointer" }
-        }
-      >
-        {loading === plan.id ? <Loader2 size={14} className="animate-spin mx-auto" /> : plan.cta}
-      </button>
     </div>
   );
 }
 
 export default function ApiLanding() {
-  const { isAuthenticated, navigateToLogin } = useAuth();
-  const [loading, setLoading] = useState(null);
-  const [checkoutError, setCheckoutError] = useState("");
+  const { user, isAuthenticated } = useAuth();
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', company: '', use_case: '', volume: '', plan_interest: '', website: '' });
 
-  const startCheckout = async (planType) => {
-    if (!isAuthenticated) {
-      navigateToLogin();
+  useEffect(() => {
+    if (!user) return;
+    setForm((current) => ({
+      ...current,
+      name: current.name || user.full_name || user.name || '',
+      email: current.email || user.email || '',
+    }));
+  }, [user]);
+
+  const setField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setError('');
+    if (!form.email || !form.email.includes('@')) {
+      setError('Please enter a valid email address.');
       return;
     }
-    setCheckoutError("");
-    setLoading(planType);
+    setLoading(true);
     try {
-      const returnUrl = `${window.location.origin}/pricing?checkout=success`;
-      const res = await createCheckout(planType, "", returnUrl);
-      const checkoutUrl = res?.url || res?.sessionUrl;
-      if (checkoutUrl) {
-        window.location.assign(checkoutUrl);
-        return;
-      }
-      setCheckoutError(res?.error || "Couldn't start checkout. Please try again.");
+      const result = await submitApiInquiry({ ...form, source: 'aircraftbuyorsell.com/api' });
+      if (!result?.ok && !result?.request_received) throw new Error(result?.error || 'Request could not be submitted.');
+      setSubmitted(true);
+      window.setTimeout(() => document.getElementById('api-pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
     } catch (err) {
-      setCheckoutError(err?.message || "Couldn't start checkout. Please try again.");
+      setError(err?.message || 'Request could not be submitted. Please try again.');
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
-  const handleSelect = (plan) => {
-    startCheckout(plan.id);
-  };
+  const fileLabel = useMemo(() => submitted ? 'API Integration Package — available' : 'API Integration Package — request access', [submitted]);
 
   return (
-    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: "#fff" }}>
-      <div className="max-w-[980px] mx-auto">
-
-        {/* ── Hero ── */}
-        <div className="mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-            style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
+    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: '#fff' }}>
+      <div className="max-w-[1080px] mx-auto">
+        <section className="mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5" style={{ background: 'rgba(245,194,66,.09)', border: '1px solid rgba(245,194,66,.22)' }}>
             <Terminal size={12} style={{ color: AMBER }} />
-            <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color: AMBER }}>
-              ABOS Core API · API / MCP Access
-            </span>
+            <span className="text-[10px] font-bold tracking-[.16em] uppercase" style={{ color: AMBER }}>ABOS Core API · Integration</span>
           </div>
-          <h1 className="tracking-[-0.03em] leading-[1.06] mb-4" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 500 }}>
-            One API. <span style={{ color: AMBER, fontWeight: 700 }}>Every channel.</span>
+          <h1 className="tracking-[-.035em] leading-[1.02] mb-5" style={{ fontSize: 'clamp(32px, 5vw, 58px)', fontWeight: 500 }}>
+            Aircraft intelligence.<br /><span style={{ color: AMBER, fontWeight: 750 }}>Built into your product.</span>
           </h1>
-          <p className="text-[14px] leading-relaxed max-w-[600px] mb-7" style={{ color: "rgba(255,255,255,0.60)" }}>
-            The same aviation intelligence engine behind aircraftbuyorsell.com — ATI scoring, OMVM
-            valuation, listing extraction and market data — licensed to run under your own brand,
-            authenticated with a tenant-scoped key.
+          <p className="text-[15px] leading-relaxed max-w-[720px] mb-7" style={{ color: 'rgba(255,255,255,.62)' }}>
+            ABOS Core API connects aircraft search, ATI scoring, due diligence, valuation and market intelligence to your application, marketplace, broker workflow or AI agent.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a href="#pricing"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide"
-              style={{ background: AMBER, color: "#04060a" }}>
-              See plans &amp; pricing <ArrowRight size={14} />
-            </a>
-            <Link to="/partner-portal"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide"
-              style={{ background: "rgba(255,255,255,0.05)", border: `0.5px solid ${CARD_BORDER}`, color: "rgba(255,255,255,0.80)" }}>
-              <KeyRound size={13} /> Already a partner? Sign in
-            </Link>
+          <div className="flex flex-wrap gap-3">
+            <a href="#request" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{ background: AMBER, color: '#04060a' }}>Request API pricing <ArrowRight size={14} /></a>
+            <Link to="/partner-portal" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{ background: 'rgba(255,255,255,.05)', border: `1px solid ${BORDER}`, color: 'rgba(255,255,255,.82)' }}><KeyRound size={13} /> Existing partner</Link>
           </div>
-        </div>
+        </section>
 
-        {/* ── Value props ── */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-14">
-          {VALUE_PROPS.map(({ icon: Icon, title, text }) => (
-            <div key={title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${CARD_BORDER}` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
-                <Icon size={16} style={{ color: AMBER }} />
+        <section className="grid sm:grid-cols-3 gap-4 mb-14">
+          {VALUE_PROPS.map(({ icon: Icon, title, text }) => <div key={title} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${BORDER}` }}><div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ background: 'rgba(245,194,66,.09)' }}><Icon size={16} style={{ color: AMBER }} /></div><h3 className="text-[14px] font-bold mb-1.5">{title}</h3><p className="text-[12px] leading-relaxed" style={{ color: 'rgba(255,255,255,.55)' }}>{text}</p></div>)}
+        </section>
+
+        <section className="grid lg:grid-cols-[1.05fr_.95fr] gap-6 mb-16" id="request">
+          <div className="rounded-3xl p-7 sm:p-9" style={{ background: 'linear-gradient(145deg, rgba(245,194,66,.09), rgba(255,255,255,.025))', border: '1px solid rgba(245,194,66,.22)' }}>
+            <div className="flex items-center gap-2 mb-3"><Sparkles size={16} style={{ color: AMBER }} /><span className="text-[10px] font-bold uppercase tracking-[.16em]" style={{ color: AMBER }}>Get API access</span></div>
+            <h2 className="text-[25px] font-bold mb-3">Request pricing &amp; integration access</h2>
+            <p className="text-[13px] leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,.60)' }}>Tell us how you plan to use ABOS. If you are signed in, your account name and email are filled automatically. Submit the request and the API pricing becomes available immediately.</p>
+            <form onSubmit={submit} className="space-y-3">
+              <input aria-label="Website" tabIndex="-1" autoComplete="off" value={form.website} onChange={(e) => setField('website', e.target.value)} className="hidden" />
+              <div className="grid sm:grid-cols-2 gap-3">
+                <input required value={form.name} onChange={(e) => setField('name', e.target.value)} placeholder="Name" className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: 'rgba(0,0,0,.24)', border: `1px solid ${BORDER}`, color: '#fff' }} />
+                <input required type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} placeholder="Work email" className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: 'rgba(0,0,0,.24)', border: `1px solid ${BORDER}`, color: '#fff' }} />
               </div>
-              <h3 className="text-[14px] font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.90)" }}>{title}</h3>
-              <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>{text}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── How it works ── */}
-        <div className="mb-14">
-          <h2 className="text-[16px] font-bold mb-5" style={{ color: "rgba(255,255,255,0.92)" }}>How it works</h2>
-          <div className="grid sm:grid-cols-3 gap-5">
-            {HOW_IT_WORKS.map(({ step, title, text }) => (
-              <div key={step} className="flex gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold"
-                  style={{ background: "rgba(245,194,66,0.10)", border: "0.5px solid rgba(245,194,66,0.28)", color: AMBER }}>
-                  {step}
-                </span>
-                <div>
-                  <p className="text-[13px] font-bold mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</p>
-                  <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>{text}</p>
-                </div>
+              <input value={form.company} onChange={(e) => setField('company', e.target.value)} placeholder="Company / platform" className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: 'rgba(0,0,0,.24)', border: `1px solid ${BORDER}`, color: '#fff' }} />
+              <div className="grid sm:grid-cols-2 gap-3">
+                <select value={form.use_case} onChange={(e) => setField('use_case', e.target.value)} className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: '#11151a', border: `1px solid ${BORDER}`, color: 'rgba(255,255,255,.82)' }}><option value="">Primary use case</option><option>Marketplace</option><option>Broker / dealer</option><option>Aircraft data product</option><option>AI agent / MCP</option><option>Internal aviation workflow</option><option>Other</option></select>
+                <select value={form.volume} onChange={(e) => setField('volume', e.target.value)} className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: '#11151a', border: `1px solid ${BORDER}`, color: 'rgba(255,255,255,.82)' }}><option value="">Expected monthly volume</option><option>Under 100</option><option>100–1,000</option><option>1,000–10,000</option><option>10,000+</option><option>Custom / unknown</option></select>
               </div>
-            ))}
+              <select value={form.plan_interest} onChange={(e) => setField('plan_interest', e.target.value)} className="w-full rounded-xl px-4 py-3 text-[13px] outline-none" style={{ background: '#11151a', border: `1px solid ${BORDER}`, color: 'rgba(255,255,255,.82)' }}><option value="">Plan of interest</option><option>API Starter — €690/month</option><option>API Professional — €1,890/month</option><option>Enterprise — from €3,900/month</option><option>White-Label — €2,500 one-time + API plan</option><option>Not sure — recommend a plan</option></select>
+              {error && <div className="rounded-xl px-4 py-3 text-[12px]" style={{ background: 'rgba(226,75,74,.08)', border: '1px solid rgba(226,75,74,.25)', color: '#f0a3a2' }}>{error}</div>}
+              <button disabled={loading} className="w-full py-3.5 rounded-xl text-[12px] font-bold uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: AMBER, color: '#04060a' }}>{loading ? <Loader2 size={15} className="animate-spin" /> : <Mail size={15} />}{loading ? 'Submitting…' : submitted ? 'Request submitted' : 'Submit request & reveal pricing'}</button>
+            </form>
           </div>
-        </div>
 
-        {/* ── Pricing ── */}
-        <div id="pricing" className="mb-10 scroll-mt-8">
-          <div className="flex items-center gap-2 mb-2">
-            <ShieldCheck size={15} style={{ color: AMBER }} />
-            <h2 className="text-[16px] font-bold" style={{ color: "rgba(255,255,255,0.92)" }}>Plans &amp; pricing</h2>
-          </div>
-          <p className="text-[12px] mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
-            Subscription pricing follows the ABOS monetization catalog. Professional is €99/month and Broker / Dealer is €299/month. API / MCP access is available when enabled for the Broker / Dealer plan.
-          </p>
-
-          {checkoutError && (
-            <div className="mb-4 px-4 py-3 rounded-xl text-[12px]" style={{ background: "rgba(226,75,74,0.08)", border: "1px solid rgba(226,75,74,0.25)", color: "#f0a3a2" }}>
-              {checkoutError}
+          <div className="space-y-4">
+            <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,.03)', border: `1px solid ${BORDER}` }}>
+              <div className="flex items-center gap-3 mb-5"><div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(245,194,66,.09)' }}><FileText size={18} style={{ color: AMBER }} /></div><div><div className="text-[14px] font-bold">{fileLabel}</div><div className="text-[11px]" style={{ color: 'rgba(255,255,255,.42)' }}>PDF · OpenAPI · Integration Kit</div></div></div>
+              <div className="rounded-2xl p-4 mb-4" style={{ background: 'rgba(0,0,0,.20)', border: `1px solid ${BORDER}` }}><div className="text-[10px] uppercase tracking-[.14em] mb-2" style={{ color: AMBER }}>What is included</div><div className="grid grid-cols-2 gap-2 text-[12px]" style={{ color: 'rgba(255,255,255,.66)' }}><span>• API overview</span><span>• Endpoint map</span><span>• Authentication</span><span>• Usage model</span><span>• Pricing</span><span>• Integration path</span></div></div>
+              {!submitted && <div className="flex items-center gap-2 text-[11px]" style={{ color: 'rgba(255,255,255,.42)' }}><LockKeyhole size={13} /> File package is unlocked after the request is submitted.</div>}
+              {submitted && <div className="flex items-center gap-2 text-[11px]" style={{ color: TEAL }}><Download size={13} /> Pricing and integration package is now available below.</div>}
             </div>
-          )}
-
-          <div className="grid sm:grid-cols-3 gap-4">
-            {PLANS.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onSelect={handleSelect} loading={loading} />
-            ))}
+            <div className="rounded-3xl p-6" style={{ background: 'rgba(255,255,255,.025)', border: `1px solid ${BORDER}` }}><div className="flex items-center gap-2 mb-3"><Server size={15} style={{ color: TEAL }} /><h3 className="text-[14px] font-bold">One integration layer</h3></div><p className="text-[12px] leading-relaxed" style={{ color: 'rgba(255,255,255,.54)' }}>Your application uses one tenant-scoped API identity. ABOS enforces capability access server-side, so the browser never decides what an account is entitled to use.</p></div>
           </div>
+        </section>
 
-          <p className="text-[11px] mt-5" style={{ color: "rgba(255,255,255,0.40)" }}>
-            Capabilities are enforced server-side by your entitlement, not by the browser — access is granted only for the products and capabilities your account actually owns.
-          </p>
-        </div>
+        {submitted && <section id="api-pricing" className="scroll-mt-8 mb-16">
+          <div className="flex items-end justify-between gap-4 mb-6"><div><div className="flex items-center gap-2 mb-2"><ShieldCheck size={15} style={{ color: TEAL }} /><span className="text-[10px] font-bold uppercase tracking-[.16em]" style={{ color: TEAL }}>Pricing unlocked</span></div><h2 className="text-[26px] font-bold">API plans</h2><p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,.48)' }}>Transparent list pricing. Enterprise usage and contractual terms are finalized after the integration review.</p></div></div>
+          <div className="grid md:grid-cols-3 gap-4">{PLANS.map((plan) => <PricingCard key={plan.name} plan={plan} />)}</div>
+          <div className="mt-4 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ background: 'rgba(245,194,66,.06)', border: '1px solid rgba(245,194,66,.18)' }}><div><h3 className="text-[14px] font-bold">{WHITE_LABEL.name}</h3><p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,.50)' }}>{WHITE_LABEL.tagline}</p></div><div className="text-[22px] font-black" style={{ color: AMBER }}>{WHITE_LABEL.price}</div></div>
+          <div className="mt-5 text-[11px]" style={{ color: 'rgba(255,255,255,.42)' }}>White-label is a license/setup fee, not unlimited usage. API usage is governed by the selected Starter, Professional or Enterprise plan.</div>
+        </section>}
 
+        <section className="rounded-2xl p-5 text-[11px] leading-relaxed" style={{ background: 'rgba(255,255,255,.025)', border: `1px solid ${BORDER}`, color: 'rgba(255,255,255,.45)' }}>
+          <strong style={{ color: 'rgba(255,255,255,.68)' }}>Access model:</strong> API capabilities are tenant-scoped and enforced server-side. Exact usage allowances, overage terms, SLA and custom data requirements may vary by contract. The API catalog above is the current public starting price, not a promise of unlimited calls.
+        </section>
       </div>
     </div>
   );

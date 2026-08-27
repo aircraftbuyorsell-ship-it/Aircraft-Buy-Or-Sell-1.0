@@ -109,6 +109,12 @@ async function requireEntitlement(svc, user, productKey, registration) {
     return { ok: true, reason: 'report_already_purchased', entitlement_id: null, report_id: existingReports[0].id };
   }
 
+  // Report-pack credits can be redeemed for ATI Report on any aircraft.
+  if (productKey === 'ATI_BASIC_REPORT') {
+    const balances = await svc.entities.ReportCreditBalance.filter({ user_email: user.email }, '-created_date', 1);
+    if (balances[0]?.balance > 0) return { ok: true, reason: 'report_credit', entitlement_id: null, report_credit_balance_id: balances[0].id };
+  }
+
   // Subscription-included products are entitled without a one-time purchase.
   if (subProduct && SUB_INCLUDED[subProduct]?.includes(productKey)) {
     return { ok: true, reason: 'subscription_included', entitlement_id: null };
@@ -332,7 +338,14 @@ Deno.serve(async (req) => {
         };
         if (existing[0]) {
           await svc.entities.PurchasedReport.update(existing[0].id, payload);
-          return Response.json({ report_id: existing[0].id, deal_code, updated: true });
+  
+        if (product_key === 'ATI_BASIC_REPORT' && authz.reason === 'report_credit') {
+          const balances = await svc.entities.ReportCreditBalance.filter({ user_email: user.email }, '-created_date', 1);
+          if (balances[0] && balances[0].balance > 0) {
+            await svc.entities.ReportCreditBalance.update(balances[0].id, { balance: balances[0].balance - 1, lifetime_used: (balances[0].lifetime_used || 0) + 1, updated_at: new Date().toISOString() });
+          }
+        }
+        return Response.json({ report_id: existing[0].id, deal_code, updated: true });
         }
         const created = await svc.entities.PurchasedReport.create({ user_email: user.email, ...payload });
         return Response.json({ report_id: created.id, deal_code, updated: false });

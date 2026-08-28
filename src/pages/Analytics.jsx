@@ -63,7 +63,7 @@ export default function Analytics() {
   const faaAdTotal = faaSummary?.faaAdTotal ?? null;
   const faaDealersTotal = faaSummary?.faaDealersTotal ?? null;
   const faaEngineTotal = faaSummary?.faaEngineTotal ?? null;
-  const num = (value) => (typeof value === "number" ? value.toLocaleString() : "\u2014");
+  const num = (value) => (typeof value === "number" ? value.toLocaleString() : "—");
   const pct = (part, whole) =>
     typeof whole === "number" && whole > 0 ? `${Math.round((part / whole) * 100)}% synced` : "sync status unavailable";
 
@@ -140,7 +140,7 @@ export default function Analytics() {
               <div className="glass-card p-3 flex items-start gap-2.5" style={{ border: "1px solid rgba(217,119,6,0.30)" }}>
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
                 <p className="text-xs opacity-80">
-                  Supabase registry counts could not be loaded \u2014 the figures below show \u201c\u2014\u201d rather than a
+                  Supabase registry counts could not be loaded — the figures below show “—” rather than a
                   stale number. Everything else on this page is unaffected.
                 </p>
               </div>

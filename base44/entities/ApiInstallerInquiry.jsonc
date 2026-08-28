@@ -1,0 +1,30 @@
+{
+  "name": "ApiInstallerInquiry",
+  "type": "object",
+  "properties": {
+    "full_name": { "type": "string", "maxLength": 200 },
+    "email": { "type": "string", "format": "email" },
+    "company_name": { "type": "string", "maxLength": 200 },
+    "company_url": { "type": "string", "maxLength": 500 },
+    "position": { "type": "string", "maxLength": 100 },
+    "aircraft_registration": { "type": "string", "maxLength": 32 },
+    "monthly_listing_views": { "type": "string", "maxLength": 100 },
+    "monthly_unique_visitors": { "type": "string", "maxLength": 100 },
+    "marketing_channels": { "type": "array", "items": { "type": "string", "maxLength": 80 } },
+    "target_audience": { "type": "array", "items": { "type": "string", "maxLength": 80 } },
+    "use_case": { "type": "string", "maxLength": 2000 },
+    "requested_plan": { "type": "string", "maxLength": 200 },
+    "privacy_acknowledged": { "type": "boolean" },
+    "source": { "type": "string", "maxLength": 100, "default": "api-installer-request" },
+    "pricing_unlocked": { "type": "boolean", "default": false },
+    "recommended_plan": { "type": "string", "maxLength": 200 },
+    "created_at_client": { "type": "string", "format": "date-time" }
+  },
+  "required": ["full_name", "email", "company_name", "company_url", "position", "privacy_acknowledged"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

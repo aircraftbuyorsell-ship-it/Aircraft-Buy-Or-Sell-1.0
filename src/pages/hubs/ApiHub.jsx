@@ -1,5 +1,5 @@
 import {
-  Code, Store, Plug, Bot, GitBranch, Sparkles, Wallet,
+  Code, Store, Plug, Bot, GitBranch, Sparkles, Wallet, Download,
 } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
@@ -12,9 +12,11 @@ const AgentConnect = lazyPage(() => import("@/pages/AgentConnect"));
 const Workflows = lazyPage(() => import("@/pages/Workflows"));
 const Skills = lazyPage(() => import("@/pages/Skills"));
 const DeveloperEarnings = lazyPage(() => import("@/pages/DeveloperEarnings"));
+const ApiInstallerRequest = lazyPage(() => import("@/pages/ApiInstallerRequest"));
 
 const TABS = [
   { key: "core-api", label: "Overview", icon: Code, Component: ApiLanding },
+  { key: "installer", label: "Self-Hosted Installer", icon: Download, Component: ApiInstallerRequest },
   { key: "marketplace", label: "Marketplace", icon: Store, Component: Marketplace },
   { key: "developers", label: "Developer Portal", icon: Wallet, Component: Developers },
   { key: "integration-kit", label: "Integration Kit", icon: Plug, Component: IntegrationKit },
@@ -31,7 +33,7 @@ export default function ApiHub() {
         icon={Code}
         eyebrow="Developer API"
         title="API, MCP & Developer Hub"
-        subtitle="White-label licensing, MCP server, SDK references, integration kit, agent connections, workflow management, and the developer marketplace — everything builders need. Full endpoint docs and key management live in the Developer Portal tab once you're signed in."
+        subtitle="White-label licensing, MCP server, SDK references, self-hosted installer, integration kit, agent connections, workflow management, and the developer marketplace — everything builders need. Full endpoint docs and key management live in the Developer Portal tab once you're signed in."
         tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="core-api" />

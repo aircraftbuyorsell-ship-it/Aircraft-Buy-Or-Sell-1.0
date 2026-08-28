@@ -107,6 +107,10 @@ export default function NLookup() {
         listingMatch: data.listing || null,
         areaServices: data.areaServices?.byRole || null,
         areaState: data.areaServices?.state || "",
+        // aircraftDataHub has always returned this from Supabase faa_dealers;
+        // until now nothing consumed it, so the rows were fetched and dropped.
+        dealers: data.service_network?.active_dealers || null,
+        dealerState: data.service_network?.state || "",
       });
     } catch (err) {
       setError(err?.response?.data?.error || err.message || "Failed to search registry. Please try again.");

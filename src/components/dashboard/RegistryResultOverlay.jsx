@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   X, Loader2, Lock, CheckCircle2, Clock, BadgeCheck, AlertTriangle,
   Zap, User, ArrowRight, TrendingUp, Gauge, MapPin, Cog, ShoppingCart,
-  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart, Landmark,
+  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart, Landmark, Store,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -46,7 +46,7 @@ const FAA_STATUS_STYLE = {
 
 export default function RegistryResultOverlay({
   result, photo, photoLoading, listingMatch, areaServices, areaState,
-  atiCard, passport, userProfile, onClose,
+  dealers, dealerState, atiCard, passport, userProfile, onClose,
 }) {
   const isDark = useTheme();
   const [adstcUnlocked, setAdstcUnlocked] = useState(false);
@@ -275,6 +275,37 @@ export default function RegistryResultOverlay({
                   })}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ── FAA-certificated dealers in the aircraft's state ── */}
+          {Array.isArray(dealers) && dealers.length > 0 && (
+            <div className="rounded-2xl p-5"
+              style={{ background: "rgba(6,182,212,0.05)", border: "1px solid rgba(6,182,212,0.18)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Store className="w-5 h-5 shrink-0" style={{ color: "#06b6d4" }} />
+                <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: "#06b6d4" }}>
+                  FAA-certificated dealers{dealerState ? ` in ${dealerState}` : ""}
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-x-5 gap-y-2">
+                {dealers.slice(0, 10).map((dealer) => (
+                  <div key={dealer.cert_num} className="min-w-0">
+                    <p className="text-[12px] font-semibold truncate" style={{ color: textColor }}>
+                      {dealer.name}
+                    </p>
+                    <p className="text-[10px] truncate" style={{ color: mutedColor }}>
+                      {[dealer.city, dealer.state].filter(Boolean).join(", ")}
+                      {dealer.cert_num ? ` · cert ${dealer.cert_num}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {dealers.length > 10 && (
+                <p className="text-[10px] mt-3" style={{ color: mutedColor }}>
+                  +{dealers.length - 10} more certificated in {dealerState}
+                </p>
+              )}
             </div>
           )}
 

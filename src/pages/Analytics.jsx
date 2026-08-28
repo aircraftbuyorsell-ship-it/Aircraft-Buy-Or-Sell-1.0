@@ -45,7 +45,7 @@ export default function Analytics() {
     staleTime: 60000,
   });
 
-  const { data: faaSummary } = useQuery({
+  const { data: faaSummary, isError: faaSummaryFailed } = useQuery({
     queryKey: ["analytics-faa-summary"],
     queryFn: async () => {
       const res = await base44.functions.invoke("syncFaaFromSupabase", { mode: "registry_summary" });
@@ -54,11 +54,18 @@ export default function Analytics() {
     staleTime: 300000,
   });
 
-  const faaRegistryTotal = faaSummary?.faaRegistryTotal || 308985;
-  const faaAcftrefTotal = faaSummary?.faaAcftrefTotal || 93572;
-  const faaAdTotal = faaSummary?.faaAdTotal || 187;
-  const faaDealersTotal = faaSummary?.faaDealersTotal || 12507;
-  const faaEngineTotal = faaSummary?.faaEngineTotal || 4743;
+  // These are Supabase row counts. They used to fall back to literals that
+  // matched the live counts at the time of writing, so a failed summary call
+  // rendered plausible-looking numbers and nobody could tell the difference.
+  // Missing now stays visibly missing.
+  const faaRegistryTotal = faaSummary?.faaRegistryTotal ?? null;
+  const faaAcftrefTotal = faaSummary?.faaAcftrefTotal ?? null;
+  const faaAdTotal = faaSummary?.faaAdTotal ?? null;
+  const faaDealersTotal = faaSummary?.faaDealersTotal ?? null;
+  const faaEngineTotal = faaSummary?.faaEngineTotal ?? null;
+  const num = (value) => (typeof value === "number" ? value.toLocaleString() : "\u2014");
+  const pct = (part, whole) =>
+    typeof whole === "number" && whole > 0 ? `${Math.round((part / whole) * 100)}% synced` : "sync status unavailable";
 
   const sum = analytics?.summary || { total: 0, active: 0, sold: 0, avgAti: null, medianPrice: null };
   const monthly = analytics?.monthly || [];
@@ -129,15 +136,24 @@ export default function Analytics() {
         {!isLoading && (
           <div className="space-y-5">
             <SectionHeader eyebrow="Data Infrastructure" title="Database & Registry Intelligence" sub="Registry coverage, enrichment and sync health" />
+            {faaSummaryFailed && (
+              <div className="glass-card p-3 flex items-start gap-2.5" style={{ border: "1px solid rgba(217,119,6,0.30)" }}>
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
+                <p className="text-xs opacity-80">
+                  Supabase registry counts could not be loaded \u2014 the figures below show \u201c\u2014\u201d rather than a
+                  stale number. Everything else on this page is unaffected.
+                </p>
+              </div>
+            )}
             <RocketMetrics
               metrics={[
                 { icon: Plane, label: "Aircraft Register", value: sum.active.toLocaleString(), sub: `${sum.total.toLocaleString()} total · ${engineEnriched} ATI scored · avg ${avgAti}`, link: "/listings", color: "#f48120" },
-                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${faaRegistryTotal.toLocaleString()}`, sub: `${matchedToFaa} N‑reg matched · ${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% synced`, link: "/admin/supabase-sync", color: GOLD },
-                { icon: Store, label: "Dealer Network", value: dealers.length.toLocaleString(), sub: `ABOS sync · ${faaDealersTotal.toLocaleString()} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
+                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${num(faaRegistryTotal)}`, sub: `${matchedToFaa} N‑reg matched · ${pct(faaSynced, faaRegistryTotal)}`, link: "/admin/supabase-sync", color: GOLD },
+                { icon: Store, label: "Dealer Network", value: dealers.length.toLocaleString(), sub: `${dealers.length.toLocaleString()} in ABOS · ${num(faaDealersTotal)} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
                 { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
-                { icon: TrendingUp, label: "ACFTREF Database", value: faaAcftrefTotal.toLocaleString(), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
-                { icon: Radar, label: "FAA Engine Specs", value: faaEngineTotal.toLocaleString(), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
-                { icon: AlertTriangle, label: "Airworthiness Dir.", value: faaAdTotal.toLocaleString(), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
+                { icon: TrendingUp, label: "ACFTREF Database", value: num(faaAcftrefTotal), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
+                { icon: Radar, label: "FAA Engine Specs", value: num(faaEngineTotal), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
+                { icon: AlertTriangle, label: "Airworthiness Dir.", value: num(faaAdTotal), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
                 { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
               ]}
             />
@@ -145,11 +161,11 @@ export default function Analytics() {
               <DatabaseCharts
                 faaAircraft={faaAircraft}
                 matchedCount={matchedToFaa}
-                faaTotalRegistry={faaRegistryTotal}
-                faaAcftrefTotal={faaAcftrefTotal}
-                faaAdTotal={faaAdTotal}
-                faaDealersTotal={faaDealersTotal}
-                faaEngineTotal={faaEngineTotal}
+                faaTotalRegistry={faaRegistryTotal ?? 0}
+                faaAcftrefTotal={faaAcftrefTotal ?? 0}
+                faaAdTotal={faaAdTotal ?? 0}
+                faaDealersTotal={faaDealersTotal ?? 0}
+                faaEngineTotal={faaEngineTotal ?? 0}
               />
             </div>
             <FaaRegistryPanel />

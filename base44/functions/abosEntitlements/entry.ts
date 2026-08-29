@@ -166,6 +166,8 @@ Deno.serve(async (req) => {
 
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
+        const product = PRODUCT_CATALOG[product_key];
+        if (!product) return Response.json({ entitled: false, reason: 'unknown_product' }, { status: 400 });
         if (product.type === 'contract') return Response.json({ contact_sales: true, product_key });
         if (product.type === 'subscription' && (product_key === 'API_STARTER' || product_key === 'API_PROFESSIONAL')) {
           const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
@@ -173,7 +175,7 @@ Deno.serve(async (req) => {
             mode:'subscription', payment_method_types:['card'], customer_email:user.email, client_reference_id:user.id,
             metadata:{user_id:user.id,user_email:user.email,product_key},
             subscription_data:{metadata:{user_id:user.id,user_email:user.email,product_key}},
-            success_url:`${return_url}${return_url.includes('?')?'&':'?'}paid=1&product=${product_key}`,
+            success_url:`${return_url}${return_url.includes('?')?'&':'?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}`,
             cancel_url:`${return_url}${return_url.includes('?')?'&':'?'}canceled=1`,
             line_items:[{price_data:{currency:'eur',product_data:{name:product.name},unit_amount:product.price_eur*100,recurring:{interval:'month'}},quantity:1}],
           });
@@ -211,7 +213,6 @@ Deno.serve(async (req) => {
           return Response.json({ entitled: true, reason: 'one_time_entitlement', entitlement_id: ents[0].id, active_sub_product: subProduct });
         }
 
-        const product = PRODUCT_CATALOG[product_key];
         let priceEur = product?.price_eur || 0;
         let discountPct = 0;
         let welcomePromo = false;
@@ -260,7 +261,7 @@ Deno.serve(async (req) => {
             mode: 'payment', payment_method_types: ['card'], customer_email: user.email,
             client_reference_id: user.id,
             metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
-            success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
+            success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
             cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
             line_items: [{ price: product.stripe_price_id, quantity: 1 }],
           });
@@ -279,7 +280,7 @@ Deno.serve(async (req) => {
           customer_email: user.email,
           client_reference_id: user.id,
           metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
-          success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
+          success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
           cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
           line_items: [{ price_data: { currency: product.currency, product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
         };

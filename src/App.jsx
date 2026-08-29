@@ -18,6 +18,7 @@ import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
 import ValuationStudio from "./pages/ValuationStudio";
+import OmvmValuationPage from "./pages/OmvmValuationPage";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -147,6 +148,7 @@ const AuthenticatedApp = () => {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/valuation-studio" element={<ValuationStudio />} />
+        <Route path="/omvm-valuation" element={<OmvmValuationPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/terms" element={<TermsOfService />} />

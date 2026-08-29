@@ -1,0 +1,108 @@
+{
+  "adl_version": "1.0",
+  "id": "abos.valuation.omvm-valuation-v2-0",
+  "apl_id": "apl://aviation.abos/valuation/omvm-valuation-v2-0/v1",
+  "type": "tool",
+  "owner": {
+    "organization": "ABOS Platform",
+    "contact": "aviation@abos.aero"
+  },
+  "skill": "OMVM 2.0 Valuation Engine",
+  "description": "Stateless Bayesian aircraft valuation engine. Accepts aircraft identity, optional market listings, and returns posterior value distribution with confidence intervals via precision-weighted fusion of depreciation prior and live market evidence.",
+  "capabilities": [
+    "value_aircraft",
+    "estimate_posterior",
+    "quantify_uncertainty",
+    "audit_valuation"
+  ],
+  "permissions": [
+    "aircraft.read",
+    "market.analyze",
+    "models.compare",
+    "recommendation.generate",
+    "documentation.verify",
+    "audit.log"
+  ],
+  "autonomy": "A2",
+  "trust": "APL-T2",
+  "audit": "APL-A2",
+  "risk_level": "low",
+  "requires_human_approval": false,
+  "supported_protocols": ["apl/1.0"],
+  "evidence": {
+    "provenance": "required",
+    "confidence": "required"
+  },
+  "status": "verified",
+  "mcp": {
+    "name": "omvm_valuation_v2_0",
+    "inputSchema": {
+      "type": "object",
+      "required": ["registration", "make", "model", "year"],
+      "properties": {
+        "registration": {
+          "type": "string",
+          "description": "Aircraft registration (N-number)"
+        },
+        "make": {
+          "type": "string",
+          "description": "Aircraft manufacturer"
+        },
+        "model": {
+          "type": "string",
+          "description": "Aircraft model"
+        },
+        "year": {
+          "type": "integer",
+          "minimum": 1940,
+          "maximum": 2026,
+          "description": "Year of manufacture"
+        },
+        "engine_hours": {
+          "type": "number",
+          "description": "Total aircraft hours"
+        },
+        "tbo_remaining_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percent of engine TBO remaining"
+        },
+        "avionics_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Avionics quality score (0-1)"
+        },
+        "market_listings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "enum": ["controller", "tap", "barnstormers", "aso"],
+                "description": "Market data source"
+              },
+              "price_usd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "description": "Optional live asking-price listings for market fusion"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  "execution": {
+    "kind": "rest",
+    "endpoint": "/api/valuation/omvm/v2.0"
+  }
+}

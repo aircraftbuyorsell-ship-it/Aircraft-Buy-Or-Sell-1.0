@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OMVM 2.0 Request",
+  "description": "Aircraft valuation request with aircraft identity and optional market evidence",
+  "type": "object",
+  "required": ["registration", "make", "model", "year"],
+  "properties": {
+    "registration": {
+      "type": "string",
+      "pattern": "^N[A-Z0-9]{5}$",
+      "description": "FAA N-number, e.g., N38DV"
+    },
+    "make": {
+      "type": "string",
+      "description": "Aircraft manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100,
+      "description": "Year of manufacture"
+    },
+    "serial": {
+      "type": "string",
+      "description": "Aircraft serial number (optional, for identity resolution)"
+    },
+    "engine_hours": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total engine hours (optional)"
+    },
+    "tbo_remaining_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Time between overhaul remaining as percentage (optional)"
+    },
+    "avionics_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Avionics modernity score 0-1 (optional)"
+    },
+    "engine_status": {
+      "type": "string",
+      "enum": ["unknown", "major_overhaul", "minor_overhaul", "original", "hours_remaining"],
+      "description": "Engine condition indicator (optional)"
+    },
+    "damage_flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["accident_history", "airworthiness_issue", "service_difficulty"]
+      },
+      "description": "Known damage/maintenance flags (optional)"
+    },
+    "market_listings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["controller", "trade_a_plane", "barnstormers", "aso", "other"]
+          },
+          "listing_id": {
+            "type": "string"
+          },
+          "price_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "hours": {
+            "type": "number",
+            "minimum": 0
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "feature_completeness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "0-1 score for data completeness"
+          }
+        },
+        "required": ["source", "price_usd"]
+      },
+      "description": "Live market listings (optional, for runtime market model)"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Idempotency token"
+    }
+  }
+}

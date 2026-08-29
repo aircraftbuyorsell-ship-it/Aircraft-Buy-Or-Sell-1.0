@@ -1,0 +1,181 @@
+{
+  "version": "2.0.1",
+  "calibration_date": "2026-08-29",
+  "calibration_hash": "omvm-2.0.1-20260829",
+  "parameter_sets": [
+    {
+      "aircraft_class": "piston_single",
+      "model_family": "cessna_172",
+      "model": null,
+      "year_from": 1960,
+      "year_to": 2000,
+      "v_new_usd": 180000,
+      "floor_ratio": 0.19,
+      "depreciation_rate_k": 0.052,
+      "prior_sigma_log": 0.17,
+      "ridge_lambda": 0.1,
+      "model_features": {
+        "engine_hours": {
+          "coefficient": -0.00008,
+          "sigma": 0.000012
+        },
+        "tbo_remaining_pct": {
+          "coefficient": 0.0015,
+          "sigma": 0.0003
+        },
+        "avionics_score": {
+          "coefficient": 0.28,
+          "sigma": 0.04
+        }
+      },
+      "notes": "Low-hour personal singles, well-established depreciation, rich market data"
+    },
+    {
+      "aircraft_class": "piston_single",
+      "model_family": "beechcraft_bonanza",
+      "model": null,
+      "year_from": 1970,
+      "year_to": 2005,
+      "v_new_usd": 280000,
+      "floor_ratio": 0.22,
+      "depreciation_rate_k": 0.048,
+      "prior_sigma_log": 0.16,
+      "ridge_lambda": 0.08,
+      "model_features": {
+        "engine_hours": {
+          "coefficient": -0.0001,
+          "sigma": 0.000015
+        },
+        "tbo_remaining_pct": {
+          "coefficient": 0.0018,
+          "sigma": 0.0004
+        },
+        "avionics_score": {
+          "coefficient": 0.35,
+          "sigma": 0.05
+        }
+      },
+      "notes": "Complex singles, historically stable valuation, premium market"
+    },
+    {
+      "aircraft_class": "piston_twin",
+      "model_family": "piper_seneca",
+      "model": null,
+      "year_from": 1975,
+      "year_to": 2010,
+      "v_new_usd": 450000,
+      "floor_ratio": 0.18,
+      "depreciation_rate_k": 0.055,
+      "prior_sigma_log": 0.19,
+      "ridge_lambda": 0.12,
+      "model_features": {
+        "engine_hours": {
+          "coefficient": -0.000095,
+          "sigma": 0.000018
+        },
+        "tbo_remaining_pct": {
+          "coefficient": 0.0016,
+          "sigma": 0.0005
+        },
+        "avionics_score": {
+          "coefficient": 0.32,
+          "sigma": 0.06
+        }
+      },
+      "notes": "Twin-engine risk premium, maintenance cost sensitivity"
+    },
+    {
+      "aircraft_class": "turboprop",
+      "model_family": "socata_tbm",
+      "model": null,
+      "year_from": 2000,
+      "year_to": 2024,
+      "v_new_usd": 4500000,
+      "floor_ratio": 0.25,
+      "depreciation_rate_k": 0.042,
+      "prior_sigma_log": 0.14,
+      "ridge_lambda": 0.06,
+      "model_features": {
+        "engine_hours": {
+          "coefficient": -0.00015,
+          "sigma": 0.000025
+        },
+        "tbo_remaining_pct": {
+          "coefficient": 0.0012,
+          "sigma": 0.0002
+        },
+        "avionics_score": {
+          "coefficient": 0.18,
+          "sigma": 0.03
+        }
+      },
+      "notes": "High-value singles, rich market, avionics less sensitive (built-in premium)"
+    },
+    {
+      "aircraft_class": "jet",
+      "model_family": "citation_excel",
+      "model": null,
+      "year_from": 1990,
+      "year_to": 2024,
+      "v_new_usd": 8000000,
+      "floor_ratio": 0.20,
+      "depreciation_rate_k": 0.038,
+      "prior_sigma_log": 0.18,
+      "ridge_lambda": 0.14,
+      "model_features": {
+        "engine_hours": {
+          "coefficient": -0.0002,
+          "sigma": 0.00004
+        },
+        "tbo_remaining_pct": {
+          "coefficient": 0.0008,
+          "sigma": 0.0001
+        },
+        "avionics_score": {
+          "coefficient": 0.14,
+          "sigma": 0.02
+        }
+      },
+      "notes": "Fractional-owner market, thin data, higher uncertainty"
+    }
+  ],
+  "fallback": {
+    "aircraft_class": "generic",
+    "v_new_multiplier": 1.0,
+    "floor_ratio": 0.20,
+    "depreciation_rate_k": 0.050,
+    "prior_sigma_log": 0.22
+  },
+  "damage_adjustments": {
+    "no_ntsb_record": 1.00,
+    "weak_ntsb_evidence": 0.97,
+    "material_ntsb_evidence": 0.91,
+    "confirmed_major_event": 0.75
+  },
+  "storage_adjustments": {
+    "unknown": 1.00,
+    "active_use": 1.00,
+    "occasional_use": 0.99,
+    "stored_dry_hangar": 0.98,
+    "stored_outside": 0.94,
+    "coastal_exposure": 0.91
+  },
+  "usage_profile_adjustments": {
+    "unknown": 1.00,
+    "private_owner": 1.00,
+    "flight_training": 1.02,
+    "commercial_charter": 1.05,
+    "corporate": 1.03,
+    "government": 1.02
+  },
+  "metadata": {
+    "description": "OMVM 2.0 parameter bundle v1: stateless Bayesian engine calibrated from FAA, NTSB, SDR, and historical valuation sources",
+    "sources": [
+      "FAA aircraft registry daily snapshot",
+      "NTSB aviation accident/incident dataset",
+      "FAA Service Difficulty Reports (SDR)",
+      "Historical valuation references (VREF, Aircraft Bluebook archives)"
+    ],
+    "maintenance": "Recalibrated quarterly via GitHub Actions pipeline; parameters frozen until next release"
+  }
+}

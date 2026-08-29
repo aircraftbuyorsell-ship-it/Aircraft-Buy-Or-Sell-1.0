@@ -1,0 +1,101 @@
+{
+  "adl_version": "1.0",
+  "id": "abos.market.omvm-market-analysis",
+  "apl_id": "apl://aviation.abos/market/omvm-market-analysis/v1",
+  "type": "tool",
+  "owner": {
+    "organization": "ABOS Platform",
+    "contact": "aviation@abos.aero"
+  },
+  "skill": "OMVM 2.0 Market Analysis Engine",
+  "description": "Real-time market intelligence tool. Ingests live asking-price listings from Controller, Trade-A-Plane, Barnstormers, ASO; deduplicates and weights by source/freshness/identity; calculates effective sample size and market mode; detects anomalies and market trends. Returns weighted market evidence ready for Bayesian fusion.",
+  "capabilities": [
+    "analyze_market_listings",
+    "detect_market_anomalies",
+    "estimate_market_dispersion",
+    "calculate_effective_sample_size",
+    "monitor_market_trends"
+  ],
+  "permissions": [
+    "market.analyze",
+    "documentation.verify",
+    "audit.log",
+    "partner.read"
+  ],
+  "autonomy": "A2",
+  "trust": "APL-T2",
+  "audit": "APL-A2",
+  "risk_level": "low",
+  "requires_human_approval": false,
+  "supported_protocols": ["apl/1.0"],
+  "evidence": {
+    "provenance": "required",
+    "confidence": "required"
+  },
+  "status": "verified",
+  "mcp": {
+    "name": "omvm_market_analysis",
+    "inputSchema": {
+      "type": "object",
+      "required": ["make", "model"],
+      "properties": {
+        "make": {
+          "type": "string",
+          "description": "Aircraft manufacturer"
+        },
+        "model": {
+          "type": "string",
+          "description": "Aircraft model"
+        },
+        "year_from": {
+          "type": "integer",
+          "minimum": 1940,
+          "maximum": 2026,
+          "description": "Earliest year to include in market analysis"
+        },
+        "year_to": {
+          "type": "integer",
+          "minimum": 1940,
+          "maximum": 2026,
+          "description": "Latest year to include in market analysis"
+        },
+        "market_listings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source", "price_usd", "observed_at"],
+            "properties": {
+              "source": {
+                "enum": ["controller", "tap", "barnstormers", "aso"],
+                "description": "Market data source"
+              },
+              "listing_id": {
+                "type": "string"
+              },
+              "price_usd": {
+                "type": "number",
+                "minimum": 5000
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "hours": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "Raw market listings to analyze"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true
+    }
+  },
+  "execution": {
+    "kind": "rest",
+    "endpoint": "/api/market/omvm/v2.0"
+  }
+}

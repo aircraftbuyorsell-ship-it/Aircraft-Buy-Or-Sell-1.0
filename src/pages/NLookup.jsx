@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { lookupAircraft } from "@/lib/aircraftLookup";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, MessageSquare, FileText, ImagePlus, Video, Camera, ClipboardPaste, ArrowRight, Loader2, ScanSearch } from "lucide-react";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
@@ -31,6 +32,7 @@ function detectAirportCode(raw) {
 }
 
 export default function NLookup() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("registration") || params.get("serial") || params.get("owner") || "";
@@ -39,6 +41,39 @@ export default function NLookup() {
   const [overlayData, setOverlayData] = useState(null);
   const [error, setError] = useState(null);
   const [fulfillment, setFulfillment] = useState(null);
+  const [listingText, setListingText] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [cameraMode, setCameraMode] = useState(false);
+
+  const sendToAgent = (extra = {}) => {
+    const registration = normalizeReg(query);
+    const params = new URLSearchParams();
+    if (registration) params.set("registration", registration);
+    if (listingText.trim()) params.set("listing", listingText.trim());
+    if (attachments.length) params.set("attachments", attachments.join(","));
+    Object.entries(extra).forEach(([k, v]) => { if (v) params.set(k, v); });
+    navigate(`/max-chat?${params.toString()}`);
+  };
+
+  const handleAttachments = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const result = await base44.integrations.Core.UploadFile({ file });
+        if (result?.file_url) uploaded.push(result.file_url);
+      }
+      setAttachments(prev => [...prev, ...uploaded]);
+    } catch (e) {
+      setError(e?.message || "Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
 
   // Handle return from Stripe checkout → trigger PDF delivery
   useEffect(() => {
@@ -131,18 +166,68 @@ export default function NLookup() {
               ATI Verify · Independent Aircraft Intelligence
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-[rgba(255,255,255,0.92)] tracking-tight">
-            Check any aircraft before you buy
+          <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
+            Start with the aircraft. Let ABOS Agent do the rest.
           </h1>
-          <p className="text-sm text-[rgba(255,255,255,0.55)] mt-3 max-w-md mx-auto leading-relaxed">
-            Enter an N-Number, registration marking or serial number. We verify against the FAA registry,
-            ADS-B flight data, document filings and market records.
+          <p className="text-sm text-muted-foreground mt-3 max-w-xl mx-auto leading-relaxed">
+            Enter a registration, paste a listing, upload logbooks or photos, or start a live inspection. Everything feeds the same ABOS Agent, Digital Twin and verification workflow.
           </p>
         </div>
 
-        {/* Unified smart search */}
-        <div className="flex justify-center mb-8">
-          <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={(value) => handleSearch(null, value)} loading={loading} />
+        {/* Universal ABOS Agent intake */}
+        <div className="rounded-3xl border border-border bg-card shadow-sm p-5 md:p-6 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <MessageSquare className="w-4 h-4" style={{ color: AMBER }} />
+            <span className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">ABOS Agent intake</span>
+          </div>
+          <div className="flex justify-center mb-5">
+            <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={(value) => { setQuery(value); sendToAgent({ intent: "identify" }); }} loading={loading} />
+          </div>
+
+          <textarea
+            value={listingText}
+            onChange={(e) => setListingText(e.target.value)}
+            placeholder="Paste the aircraft listing, seller description, maintenance notes, or anything you want ABOS Agent to analyse…"
+            className="w-full min-h-28 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none resize-y placeholder:text-muted-foreground/60"
+          />
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+            <label className="cursor-pointer rounded-xl border border-border bg-background px-3 py-3 flex items-center gap-2 text-xs font-bold text-foreground hover:bg-muted transition">
+              <FileText className="w-4 h-4" /> Upload docs
+              <input type="file" multiple accept=".pdf,.txt,.csv,.jpg,.jpeg,.png,.webp" onChange={handleAttachments} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer rounded-xl border border-border bg-background px-3 py-3 flex items-center gap-2 text-xs font-bold text-foreground hover:bg-muted transition">
+              <ImagePlus className="w-4 h-4" /> Upload photos
+              <input type="file" multiple accept="image/*" onChange={handleAttachments} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer rounded-xl border border-border bg-background px-3 py-3 flex items-center gap-2 text-xs font-bold text-foreground hover:bg-muted transition">
+              <Camera className="w-4 h-4" /> Live camera
+              <input type="file" accept="image/*" capture="environment" onChange={handleAttachments} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer rounded-xl border border-border bg-background px-3 py-3 flex items-center gap-2 text-xs font-bold text-foreground hover:bg-muted transition">
+              <Video className="w-4 h-4" /> Live video
+              <input type="file" accept="video/*" capture="environment" onChange={handleAttachments} className="hidden" disabled={uploading} />
+            </label>
+          </div>
+
+          {(uploading || attachments.length > 0) && (
+            <div className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
+              {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {uploading ? "Uploading evidence…" : `${attachments.length} evidence file${attachments.length === 1 ? "" : "s"} attached`}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <button onClick={() => sendToAgent({ intent: "verify" })} className="inline-flex items-center gap-2 rounded-xl bg-[#D4A017] text-white px-4 py-2.5 text-sm font-black hover:opacity-90">
+              <ScanSearch className="w-4 h-4" /> Start Verification
+            </button>
+            <button onClick={() => sendToAgent({ intent: "analyse" })} className="inline-flex items-center gap-2 rounded-xl border border-border bg-background text-foreground px-4 py-2.5 text-sm font-bold hover:bg-muted">
+              <ClipboardPaste className="w-4 h-4" /> Analyse with Agent
+            </button>
+            <button onClick={() => sendToAgent({ intent: "inspect" })} className="inline-flex items-center gap-2 rounded-xl border border-border bg-background text-foreground px-4 py-2.5 text-sm font-bold hover:bg-muted">
+              <Camera className="w-4 h-4" /> Inspect live
+            </button>
+          </div>
         </div>
 
         {detectAirportCode(query) && (
@@ -159,6 +244,11 @@ export default function NLookup() {
             {error}
           </div>
         )}
+
+        <div className="rounded-2xl border border-border bg-card p-4 mb-6">
+          <p className="text-xs font-black uppercase tracking-wider text-foreground mb-2">One intake · one Agent · one Digital Twin</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">Registry data, listing text, documents, photos and inspection evidence are combined into the same aircraft context. The Agent can then run Registry, Identity, Ownership, Activity, Service, Document, ATI, valuation and transaction workflows without creating duplicate aircraft records.</p>
+        </div>
 
         {/* Trust footer */}
         <div className="mt-12 grid grid-cols-3 gap-3 text-center">

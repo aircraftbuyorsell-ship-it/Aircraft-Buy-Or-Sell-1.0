@@ -396,7 +396,7 @@ export default function MaxChat() {
         </div>
       )}
 
-      {/* ── Cockpit Panel ── */
+      {/* ── Cockpit Panel ── */}
       <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>
         {/* Outer ring */}
         <div

@@ -36,6 +36,24 @@ function blockedReason(missing = []) {
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
+/**
+ * Some engines fan out internally and swallow their own failures:
+ * runVerificationAssistant runs five sub-checks and reports each as
+ * { name, status: "error" } rather than throwing. The step then reads "ran"
+ * while part of its evidence is missing. Surface those, or the ledger overstates
+ * what came back — exactly what it exists to prevent.
+ */
+export function degradedChecks(evidence = {}) {
+  const degraded = [];
+  for (const [key, value] of Object.entries(evidence)) {
+    const checks = Array.isArray(value?.checks) ? value.checks : null;
+    if (!checks) continue;
+    const failed = checks.filter((check) => check?.status === "error");
+    if (failed.length) degraded.push({ evidence: key, failed, total: checks.length });
+  }
+  return degraded;
+}
+
 function stepLine(step) {
   const engine = step.engine ? ` · \`${step.engine}\`` : "";
   switch (step.status) {
@@ -84,6 +102,16 @@ export function renderStElmoAnswer({ reasoning = null, run = null } = {}) {
   const gathered = Object.keys(run.evidence).filter((key) => key !== "registration");
   if (gathered.length) {
     lines.push("", `**Evidence returned:** ${gathered.map((key) => LABELS[key] || key).join(", ")}.`);
+  }
+
+  // A step can report "ran" while an engine that fans out internally lost some of
+  // its own sources. Say so rather than letting partial evidence read as complete.
+  for (const { evidence, failed, total } of degradedChecks(run.evidence)) {
+    lines.push(
+      "",
+      `**${LABELS[evidence] || evidence} is partial** — ${failed.length} of ${total} sources failed:`,
+      ...failed.map((check) => `- ${check.name}: ${check.error || "unknown error"}`),
+    );
   }
 
   if (blocked.length) {

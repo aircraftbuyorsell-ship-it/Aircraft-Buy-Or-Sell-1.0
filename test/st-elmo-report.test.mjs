@@ -78,3 +78,36 @@ test("a failed engine is reported, not smoothed over", async () => {
 test("the chat carries the registration across follow-up turns", () => {
   assert.match(chat, /lastRegistrationRef/, '"go" after "n5511r check nreg" must keep the aircraft');
 });
+
+// An engine that fans out internally (runVerificationAssistant runs five sub-checks)
+// swallows its own failures into { status: "error" }. The step reads "ran" while
+// part of its evidence never arrived — the ledger must not let that read as complete.
+test("a step that ran with failed sub-checks is reported as partial", async () => {
+  const run = await runStElmoWorker({
+    plan: ["VERIFY_AIRCRAFT"],
+    context: { registration: "N5511R" },
+    engines: {
+      VERIFY_AIRCRAFT: async () => ({
+        checks: [
+          { name: "digital_twin", status: "ok" },
+          { name: "aircraft_data", status: "error", error: "Request failed with status code 502" },
+          { name: "registry", status: "ok" },
+        ],
+      }),
+    },
+  });
+  const answer = renderStElmoAnswer({ reasoning: {}, run });
+
+  assert.match(answer, /Verification is partial/);
+  assert.match(answer, /1 of 3 sources failed/);
+  assert.match(answer, /aircraft_data: Request failed with status code 502/);
+});
+
+test("fully healthy evidence is not labelled partial", async () => {
+  const run = await runStElmoWorker({
+    plan: ["VERIFY_AIRCRAFT"],
+    context: { registration: "N5511R" },
+    engines: { VERIFY_AIRCRAFT: async () => ({ checks: [{ name: "registry", status: "ok" }] }) },
+  });
+  assert.ok(!renderStElmoAnswer({ reasoning: {}, run }).includes("partial"));
+});

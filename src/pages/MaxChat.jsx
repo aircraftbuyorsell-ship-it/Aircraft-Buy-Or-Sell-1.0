@@ -363,23 +363,23 @@ export default function MaxChat() {
     : "Tap mic for voice · tap chat to type";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B1A33] to-[#0D2244] flex flex-col items-center justify-start px-4 py-6 md:py-10">
+    <div className="min-h-screen bg-[#fbfaf7] text-[#1a1a1a] flex flex-col items-center justify-start px-4 py-6 md:py-10 dark:bg-[#0B1220] dark:text-white">
 
       {/* ── Title ── */}
       <div className="text-center mb-6">
-        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Agent · Aviation Intelligence</p>
-        <h1 className="text-white text-2xl font-black tracking-tight">ABOS Agent</h1>
-        <p className="text-white/40 text-[11px] mt-0.5">{statusText}</p>
+        <p className="text-[#A67C00] dark:text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Agent · Aviation Intelligence</p>
+        <h1 className="text-[#1a1814] dark:text-white text-2xl font-black tracking-tight">ABOS Agent</h1>
+        <p className="text-black/45 dark:text-white/40 text-[11px] mt-0.5">{statusText}</p>
       </div>
 
       {agentWorkflow && (
-        <div className="w-full max-w-3xl mb-5 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur p-4">
+        <div className="w-full max-w-3xl mb-5 rounded-2xl border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/[0.04] backdrop-blur p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-[#E8A83A] font-black">ABOS Workflow · ADL / APL</p>
-              <p className="text-white text-sm font-bold mt-1">{agentWorkflow.registration || "Market discovery"}</p>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#A67C00] dark:text-[#E8A83A] font-black">ABOS Workflow · ADL / APL</p>
+              <p className="text-[#1a1814] dark:text-white text-sm font-bold mt-1">{agentWorkflow.registration || "Market discovery"}</p>
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-white/40">{agentWorkflow.workflow.current.replaceAll("_", " ")}</span>
+            <span className="text-[10px] uppercase tracking-widest text-black/45 dark:text-white/40">{agentWorkflow.workflow.current.replaceAll("_", " ")}</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {workflowSteps.map(step => {

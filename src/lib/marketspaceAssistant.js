@@ -51,7 +51,7 @@ export async function runMarketspaceAssistant(request, options = {}) {
     } else {
       result.aircraft = [...result.aircraft].sort((a, b) => (b.deal_score ?? -1) - (a.deal_score ?? -1)).slice(0, 10);
     }
-    result.nextActions = ["Open Deal Radar", "Verify top candidate", "Review OMVM and ATI"];
+    if (!result.premiumLocked) result.nextActions = ["Open Deal Radar", "Verify top candidate", "Review OMVM and ATI"];
   } else if (intent === "discover") {
     result.nextActions = ["Shortlist aircraft", "Compare candidates", "Verify selected aircraft"];
   } else if (intent === "compare") {

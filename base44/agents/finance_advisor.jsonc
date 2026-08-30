@@ -81,6 +81,18 @@
     {
       "function_name": "invokeSkillFleetChange",
       "description": "Flight school fleet change JIT calculator skill"
+    },
+    {
+      "function_name": "generateMarketReport",
+      "description": "Generate synthesized aviation market reports using current market data and filters"
+    },
+    {
+      "function_name": "aviationServiceIntel",
+      "description": "Retrieve aviation service provider, MRO, FBO, fuel and service-market intelligence"
+    },
+    {
+      "function_name": "invokeOmvmValuation",
+      "description": "Run the canonical OMVM valuation engine"
     }
   ],
   "context_files": [],

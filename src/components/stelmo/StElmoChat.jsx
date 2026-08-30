@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { createStElmoTask, updateStElmoTask, getStElmoTask, listActiveStElmoTasks, subscribeToStElmoTask } from "@/lib/stElmoTaskEngine";
-import { BrainCircuit, ChevronDown, Loader2, Maximize2, Minimize2, Send, Sparkles, X } from "lucide-react";
+import { createStElmoTask, updateStElmoTask, listActiveStElmoTasks, subscribeToStElmoTask } from "@/lib/stElmoTaskEngine";
+import { runStElmoWorker } from "@/lib/stElmo/worker";
+import { buildStElmoEngines } from "@/lib/stElmo/engines";
+import { renderStElmoAnswer, describePhase } from "@/lib/stElmo/report";
+import { extractRegistration } from "@/lib/abosAgent";
+import { BrainCircuit, ChevronDown, Loader2, Maximize2, Minimize2, Send, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const STORAGE_KEY = "abos_st_elmo_chat_v1";
@@ -29,6 +33,10 @@ export default function StElmoChat() {
   const [backgroundTask, setBackgroundTask] = useState(null);
   const [taskId, setTaskId] = useState(null);
   const endRef = useRef(null);
+  // "n5511r check nreg" then "go" then "show results": the aircraft is named once
+  // and every follow-up depends on it. Without carrying it, each later turn loses
+  // the registration and every capability blocks on a missing precondition.
+  const lastRegistrationRef = useRef(null);
 
   useEffect(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES))), [messages]);
   useEffect(() => localStorage.setItem(OPEN_KEY, open ? "1" : "0"), [open]);
@@ -105,8 +113,26 @@ export default function StElmoChat() {
       };
       const result = await base44.functions.invoke("stElmoReasoning", { request: text, context, task_id: task.id });
       const data = result?.data || result || {};
-      const answer = data.answer || data.response || data.synthesis || (Array.isArray(data.plan) ? `Plan ready:\n${data.plan.map((x) => `- ${x}`).join("\n")}` : "St. Elmo completed the reasoning step.");
-      await updateStElmoTask(task.id, { status: "completed", phase: "synthesis", result: data });
+
+      // Execute the plan. Rendering it as text was the old behaviour: St. Elmo
+      // planned and nothing ran. The worker gathers the evidence through the
+      // ABOS engines and the answer is built from what actually came back.
+      const registration = extractRegistration(text) || lastRegistrationRef.current;
+      if (registration) lastRegistrationRef.current = registration;
+
+      const run = await runStElmoWorker({
+        plan: data.plan,
+        engines: buildStElmoEngines({ entry: "global_st_elmo_chat" }),
+        context: { registration, request: text },
+        onPhase: (phase) => {
+          updateStElmoTask(task.id, { status: phase, phase }).catch(() => {});
+          setBackgroundTask({ startedAt: Date.now(), status: describePhase(phase), taskId: task.id });
+        },
+        onStep: (step) => setBackgroundTask({ startedAt: Date.now(), status: describePhase("tools", step.capability), taskId: task.id }),
+      });
+
+      const answer = data.answer || data.response || data.synthesis || renderStElmoAnswer({ reasoning: data, run });
+      await updateStElmoTask(task.id, { status: "completed", phase: "synthesis", result: { ...data, worker: run } });
       setMessages(prev => [...prev, { role: "assistant", content: answer, meta: { model: data.model || "St. Elmo M_1.0", provider: data.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
     } catch (error) {
       await updateStElmoTask(task.id, { status: "failed", phase: "failed", error: error?.message || "The reasoning backend is temporarily unavailable." });

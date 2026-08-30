@@ -261,7 +261,7 @@ export default function Leads() {
             </div>
           </div>
         </div>
-      )
+      )}
 
       <AddLeadModal
         open={addOpen}

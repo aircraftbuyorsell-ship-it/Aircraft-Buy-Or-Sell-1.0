@@ -24,11 +24,22 @@ export async function runABOSAgent(request, options = {}) {
   let reasoning = null;
   if (options.useReasoning !== false) {
     try {
-      const response = await base44.functions.invoke("stElmoReasoning", {
-        request: text,
-        context: { registration, intent: requestedIntent || null },
+      const response = await fetch("https://abos-st-elmo.aircraftbuyorsell.workers.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "abos-st-elmo",
+          messages: [
+            { role: "user", content: `ABOS request: ${text}\nContext: ${JSON.stringify({ registration, intent: requestedIntent || null })}` },
+          ],
+          temperature: 0.2,
+          max_tokens: 4096,
+        }),
       });
-      reasoning = response?.data || null;
+      if (!response.ok) throw new Error(`St. Elmo Worker returned ${response.status}`);
+      const payload = await response.json();
+      const content = payload?.choices?.[0]?.message?.content;
+      reasoning = { ...payload, answer: content || null };
     } catch (_) {
       // Deterministic ABOS routing remains the safe fallback when the reasoning backend is unavailable.
     }

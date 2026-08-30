@@ -1,0 +1,95 @@
+{
+  "name": "ApiAccessApproval",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "revoked"
+      ],
+      "default": "pending"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "partner",
+        "developer",
+        "api",
+        "enterprise"
+      ],
+      "default": "api"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "listing:read",
+          "listing:write",
+          "search:read",
+          "intelligence:read"
+        ]
+      }
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by": {
+      "type": "string",
+      "format": "email"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "company_name": {
+      "type": "string",
+      "maxLength": 150
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "user_email",
+    "status",
+    "access_level"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

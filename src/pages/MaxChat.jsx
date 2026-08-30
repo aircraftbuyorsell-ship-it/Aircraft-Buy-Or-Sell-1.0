@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant, marketspaceSummary } from "@/lib/marketspaceAssistant";
 import { runABOSAgent } from "@/lib/abosAgent";
-import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video, Check, AlertTriangle, Lock, ArrowRight, Search, ShieldCheck, BarChart3, Handshake } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
@@ -138,6 +138,7 @@ export default function MaxChat() {
   const [showChat, setShowChat] = useState(false);
   const [showAti, setShowAti] = useState(false);
   const [showLog, setShowLog] = useState(false);
+  const [agentWorkflow, setAgentWorkflow] = useState(null);
 
   // Voice / TTS
   const [voiceMode, setVoiceMode] = useState(false);
@@ -158,7 +159,10 @@ export default function MaxChat() {
   }, [messages, loading, showLog]);
 
   useEffect(() => {
+    const onWorkflow = (event) => setAgentWorkflow(event.detail || null);
+    window.addEventListener("abos:agent-workflow", onWorkflow);
     return () => {
+      window.removeEventListener("abos:agent-workflow", onWorkflow);
       synthRef.current?.cancel();
       recognitionRef.current?.stop();
     };
@@ -338,6 +342,20 @@ export default function MaxChat() {
   };
 
   // Status text
+  const workflowSteps = agentWorkflow ? [
+    { key: "identify", label: "Identify", icon: Search, state: agentWorkflow.workflow.completed.includes("verification") || agentWorkflow.registration ? "done" : "next" },
+    { key: "verify", label: "Verify", icon: ShieldCheck, state: agentWorkflow.workflow.completed.includes("verification") ? "done" : agentWorkflow.registration ? "next" : "locked" },
+    { key: "analyse", label: "Analyse", icon: BarChart3, state: agentWorkflow.workflow.current === "analysis" && agentWorkflow.workflow.completed.includes("marketspace") ? "next" : agentWorkflow.workflow.completed.includes("marketspace") ? "done" : "locked" },
+    { key: "transact", label: "Transact", icon: Handshake, state: agentWorkflow.workflow.completed.includes("transaction_context") ? "next" : "locked" },
+  ] : [];
+
+  const runWorkflowAction = (step) => {
+    const reg = agentWorkflow?.registration;
+    if (!reg) return;
+    const prompts = { verify: `Verify ${reg}`, analyse: `Analyse ${reg} and calculate ATI and OMVM`, transact: `Start transaction pipeline for ${reg}` };
+    if (prompts[step]) sendMessage(prompts[step]);
+  };
+
   const statusText = loading ? "Thinking…"
     : speaking ? "Speaking…"
     : listening ? "Listening…"
@@ -349,10 +367,34 @@ export default function MaxChat() {
 
       {/* ── Title ── */}
       <div className="text-center mb-6">
-        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Cockpit · Aviation Assistant</p>
-        <h1 className="text-white text-2xl font-black tracking-tight">Max</h1>
+        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Agent · Aviation Intelligence</p>
+        <h1 className="text-white text-2xl font-black tracking-tight">ABOS Agent</h1>
         <p className="text-white/40 text-[11px] mt-0.5">{statusText}</p>
       </div>
+
+      {agentWorkflow && (
+        <div className="w-full max-w-3xl mb-5 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#E8A83A] font-black">ABOS Workflow · ADL / APL</p>
+              <p className="text-white text-sm font-bold mt-1">{agentWorkflow.registration || "Market discovery"}</p>
+            </div>
+            <span className="text-[10px] uppercase tracking-widest text-white/40">{agentWorkflow.workflow.current.replaceAll("_", " ")}</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {workflowSteps.map(step => {
+              const Icon = step.icon;
+              const actionable = step.state === "next" && step.key !== "identify";
+              return <button key={step.key} disabled={!actionable} onClick={() => runWorkflowAction(step.key)} className={`text-left rounded-xl border p-3 transition ${step.state === "done" ? "border-emerald-400/30 bg-emerald-400/5" : step.state === "next" ? "border-[#E8A83A]/50 bg-[#E8A83A]/10 hover:bg-[#E8A83A]/15" : "border-white/10 bg-white/[0.02]"}`}>
+                <div className="flex items-center justify-between"><Icon className={`w-4 h-4 ${step.state === "done" ? "text-emerald-400" : step.state === "next" ? "text-[#E8A83A]" : "text-white/25"}`} />{step.state === "done" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : step.state === "next" ? <ArrowRight className="w-3.5 h-3.5 text-[#E8A83A]" /> : <Lock className="w-3 h-3 text-white/20" />}</div>
+                <p className={`mt-2 text-[11px] font-black uppercase tracking-wider ${step.state === "locked" ? "text-white/30" : "text-white"}`}>{step.label}</p>
+                {step.state === "next" && <p className="mt-1 text-[9px] text-white/40">Click to continue</p>}
+              </button>;
+            })}
+          </div>
+          {agentWorkflow.workflow.next?.length > 0 && <div className="mt-3 flex items-center gap-2 text-[10px] text-white/50"><AlertTriangle className="w-3.5 h-3.5 text-[#E8A83A]" /><span>Next best action: {agentWorkflow.workflow.next[0]}</span></div>}
+        </div>
+      )
 
       {/* ── Cockpit Panel ── */}
       <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>

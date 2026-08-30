@@ -1,4 +1,4 @@
-import { ST_ELMO_MODEL } from "./config";
+import { ST_ELMO_MODEL } from "./config.js";
 
 /**
  * Model adapter contract for St. Elmo M_1.0.

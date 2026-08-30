@@ -58,9 +58,7 @@ export const NAV_TREE = [
         { label: "Leasing + Tax", path: "/leasing-calculator", icon: CreditCard },
       ]},
       { label: "Invest", items: [
-        { label: "Investment Brief", path: "/investment-brief", icon: Brain },
-        { label: "Pricing Assistant", path: "/finance-advisor", icon: Brain },
-        { label: "Calculators", path: "/calculators", icon: Calculator },
+        { label: "ABOS Assistant", path: "/finance-advisor", icon: Brain },
       ]},
       { label: "Improve", items: [
         { label: "Avionics Upgrade", path: "/avionics-upgrade-calculator", icon: Wrench },

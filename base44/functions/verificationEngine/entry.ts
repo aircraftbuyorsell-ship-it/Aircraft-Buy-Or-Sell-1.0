@@ -68,8 +68,8 @@ async function activity(base44: any, reg: string) {
   if (!appearances.length) appearances = await entityRows(base44, 'TrafficAppearance', { registration: reg }, 50);
   let live: any = null;
   try { const r = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(reg)}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }); const j = r.ok ? await r.json() : null; live = j?.response?.aircraft || null; } catch (_) {}
-  const last = appearances[0]; const days = last?.captured_at ? Math.floor((Date.now() - new Date(last.captured_at).getTime()) / DAY_MS) : null;
-  return { appearances_count: appearances.length, last_seen: last?.captured_at || null, days_since_last_seen: days, live, status: days == null ? (live ? 'LIVE_UNKNOWN_HISTORY' : 'NO_TRACKING') : days < 30 ? 'ACTIVE' : days < 90 ? 'INACTIVE' : days < 120 ? 'GROUNDED_90D' : 'LONG_GROUNDED' };
+  const last = appearances[0]; const lastSeen = last?.recorded_at || last?.captured_at || null; const days = lastSeen ? Math.floor((Date.now() - new Date(lastSeen).getTime()) / DAY_MS) : null;
+  return { appearances_count: appearances.length, last_seen: lastSeen, days_since_last_seen: days, live, status: days == null ? (live ? 'LIVE_UNKNOWN_HISTORY' : 'NO_TRACKING') : days < 30 ? 'ACTIVE' : days < 90 ? 'INACTIVE' : days < 120 ? 'GROUNDED_90D' : 'LONG_GROUNDED' };
 }
 
 async function moduleProbe(base44: any, reg: string, names: string[]) {

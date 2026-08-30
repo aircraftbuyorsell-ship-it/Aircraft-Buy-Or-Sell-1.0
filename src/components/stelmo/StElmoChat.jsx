@@ -60,7 +60,7 @@ export default function StElmoChat() {
       if (!task) return;
       setBackgroundTask({ startedAt: Date.now(), status: task.phase || task.status, taskId });
       if (task.status === "completed" && task.result) {
-        const answer = task.result.answer || task.result.response || task.result.synthesis || String(task.result);
+        const answer = String(task.result.answer || task.result.response || task.result.synthesis || "St. Elmo completed the background run.");
         setMessages(prev => [...prev, { role: "assistant", content: answer, meta: { model: task.result.model || "St. Elmo M_1.0", provider: task.result.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
         setBusy(false);
         setTaskId(null);
@@ -96,15 +96,21 @@ export default function StElmoChat() {
     setBusy(true);
     setBackgroundTask(null);
 
-    const task = await createStElmoTask({
-      prompt: text,
-      conversationId: "global_st_elmo_chat",
-      metadata: { page: window.location.pathname }
-    });
-    setTaskId(task.id);
-    await updateStElmoTask(task.id, { status: "reasoning", phase: "reasoning" });
-
+    let task = null;
     try {
+      // Task persistence is best-effort. A database/local-storage problem must
+      // never be allowed to crash the entire React application.
+      task = await createStElmoTask({
+        prompt: text,
+        conversationId: "global_st_elmo_chat",
+        metadata: { page: window.location.pathname }
+      });
+      if (task?.id) {
+        setTaskId(task.id);
+        await updateStElmoTask(task.id, { status: "reasoning", phase: "reasoning" });
+      }
+
+      if (!task?.id) throw new Error("St. Elmo task could not be initialized");
       const context = {
         source: "global_st_elmo_chat",
         page: window.location.pathname,
@@ -148,9 +154,11 @@ export default function StElmoChat() {
 
       const answer = data.answer || data.response || data.synthesis || renderStElmoAnswer({ reasoning: data, run });
       await updateStElmoTask(task.id, { status: "completed", phase: "synthesis", result: { ...data, worker: run } });
-      setMessages(prev => [...prev, { role: "assistant", content: answer, meta: { model: data.model || "St. Elmo M_1.0", provider: data.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
+      setMessages(prev => [...prev, { role: "assistant", content: String(answer || "St. Elmo completed the run but returned no text response."), meta: { model: data.model || "St. Elmo M_1.0", provider: data.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
     } catch (error) {
-      await updateStElmoTask(task.id, { status: "failed", phase: "failed", error: error?.message || "The reasoning backend is temporarily unavailable." });
+      if (task?.id) {
+        try { await updateStElmoTask(task.id, { status: "failed", phase: "failed", error: error?.message || "The reasoning backend is temporarily unavailable." }); } catch {}
+      }
       setMessages(prev => [...prev, { role: "assistant", content: `I couldn't complete that reasoning run. ${error?.message || "The reasoning backend is temporarily unavailable."}` }].slice(-MAX_MESSAGES));
     } finally {
       setBusy(false);

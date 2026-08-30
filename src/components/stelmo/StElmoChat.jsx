@@ -111,8 +111,23 @@ export default function StElmoChat() {
         recent_messages: next.slice(-12),
         timestamp: new Date().toISOString(),
       };
-      const result = await base44.functions.invoke("stElmoReasoning", { request: text, context, task_id: task.id });
-      const data = result?.data || result || {};
+      const response = await fetch("https://abos-st-elmo.aircraftbuyorsell.workers.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "abos-st-elmo",
+          messages: [
+            ...next.slice(-12).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content })),
+            { role: "user", content: `ABOS context: ${JSON.stringify(context)}\nRequest: ${text}` },
+          ],
+          temperature: 0.2,
+          max_tokens: 4096,
+        }),
+      });
+      if (!response.ok) throw new Error(`St. Elmo Worker returned ${response.status}`);
+      const payload = await response.json();
+      const content = payload?.choices?.[0]?.message?.content;
+      const data = { ...payload, answer: content || null };
 
       // Execute the plan. Rendering it as text was the old behaviour: St. Elmo
       // planned and nothing ran. The worker gathers the evidence through the

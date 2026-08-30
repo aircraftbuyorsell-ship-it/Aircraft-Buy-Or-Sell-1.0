@@ -8,6 +8,7 @@ import {
   TrendingUp, Package, Clock
 } from "lucide-react";
 import { TOKEN_PACKS, TIERS, toCredits, CREDIT_RATIO } from "@/lib/pricing";
+import { createCustomerPortal, listMyEntitlements } from "@/lib/entitlements";
 import { useBehavior } from "@/lib/useBehavior";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -187,6 +188,15 @@ function CancelDialog({ open, onClose, onConfirm }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SubscriptionManagement() {
   const { behavior, tier, tokens, isAdmin } = useBehavior();
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const { data: billingData = null } = useQuery({
+    queryKey: ["subscription-entitlements"],
+    queryFn: listMyEntitlements,
+    enabled: !!behavior?.user_email,
+    staleTime: 30_000,
+    retry: false,
+  });
   const queryClient = useQueryClient();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -202,12 +212,26 @@ export default function SubscriptionManagement() {
 
   const tierMeta = TIER_META[tier] || TIER_META.free_explorer;
   const TierIcon = tierMeta.icon;
-  const credits = toCredits(tokens);
+  const safeTokens = Number.isFinite(Number(tokens)) ? Math.max(0, Number(tokens)) : 0;
+  const credits = toCredits(safeTokens);
+  const activeSubscription = billingData?.subscriptions?.find((s) => ["active", "trialing"].includes(s.status));
+  const activeProduct = activeSubscription?.product_key ? billingData?.entitlements?.find((e) => e.product_key === activeSubscription.product_key) : null;
+
+  const openBillingPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await createCustomerPortal(window.location.origin + "/subscription");
+      if (res?.url) window.location.href = res.url;
+    } catch (e) {
+      console.error("Stripe customer portal failed:", e?.message || e);
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
   const handleCancelConfirm = async () => {
-    // Log intent — actual Stripe cancellation would go through a backend function
     setCancelOpen(false);
-    setCancelDone(true);
+    await openBillingPortal();
   };
 
   return (
@@ -244,7 +268,7 @@ export default function SubscriptionManagement() {
                   </div>
                   <div>
                     <p className="text-lg font-black text-[rgba(255,255,255,0.90)]">{tierMeta.label}</p>
-                    <p className="text-xs text-[rgba(255,255,255,0.60)]">{TIERS[tier]?.price_label || "Custom"}</p>
+                    <p className="text-xs text-[rgba(255,255,255,0.60)]">{activeSubscription?.current_period_end ? `Active · renews ${new Date(activeSubscription.current_period_end).toLocaleDateString()}` : (TIERS[tier]?.price_label || "Free")}</p>
                   </div>
                 </div>
 
@@ -337,11 +361,11 @@ export default function SubscriptionManagement() {
                     <p className="text-xs text-[rgba(255,255,255,0.60)]">Secure payment processing · All major cards</p>
                   </div>
                 </div>
-                <a href="https://billing.stripe.com/p/login/fZedQQfYycx74Da288" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#4e8ef7] border border-[#4e8ef7]/20 hover:bg-[#4e8ef7]/[0.06] transition-all"
+                <button onClick={openBillingPortal} disabled={portalLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#4e8ef7] border border-[#4e8ef7]/20 hover:bg-[#4e8ef7]/[0.06] transition-all disabled:opacity-50"
                   title="Open the Stripe customer portal to update your payment details">
-                  <RefreshCw className="w-3.5 h-3.5" /> Manage Billing
-                </a>
+                  {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Manage Billing
+                </button>
               </div>
               <p className="text-[11px] text-[rgba(255,255,255,0.35)] mt-3 flex items-center gap-1.5">
                 <Info className="w-3 h-3" />
@@ -379,9 +403,9 @@ export default function SubscriptionManagement() {
                         </div>
                         <div className="text-right shrink-0">
                           <p className={`text-sm font-black ${isPositive ? "text-[#5dcaa5]" : "text-[#e24b4a]"}`}>
-                            {isPositive ? "+" : ""}{toCredits(tx.amount)} cr
+                            {isPositive ? "+" : ""}{toCredits(Number.isFinite(Number(tx.amount)) ? Number(tx.amount) : 0).toLocaleString()} cr
                           </p>
-                          {tx.price_usd && <p className="text-[10px] text-[rgba(255,255,255,0.35)]">${tx.price_usd}</p>}
+                          {Number.isFinite(Number(tx.price_usd)) && <p className="text-[10px] text-[rgba(255,255,255,0.35)]">${Number(tx.price_usd).toFixed(2)}</p>}
                         </div>
                       </div>
                     );

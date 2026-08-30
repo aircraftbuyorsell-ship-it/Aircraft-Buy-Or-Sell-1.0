@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronRight, Circle, FileCheck2, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight, Circle, FileCheck2, Loader2, ShieldCheck, Sparkles, Map, Radio, Plane, ClipboardCheck, Award, UserCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const MODULES = [
@@ -36,6 +36,14 @@ export default function VerificationAssistant() {
   };
 
   const overall = useMemo(() => result?.verification_confidence ?? null, [result]);
+
+  const ACTIONS = [
+    ['registry', 'Identity & Registry', 'Registry lookup, FAA map and aircraft identity', SearchIcon],
+    ['activity', 'Aircraft Activity', 'Live traffic, history and anomalies', Radio],
+    ['twin', 'Aircraft Digital Twin', 'Unified aircraft record and evidence graph', Plane],
+    ['records', 'Records & Inspection', 'Pre-buy, service, maintenance and documents', ClipboardCheck],
+    ['trust', 'ATI & Trust', 'ATI Passport, ATI Standard and expert review', Award],
+  ];
 
   return (
     <div className="min-h-[70vh] px-4 py-8 md:px-8">
@@ -81,6 +89,18 @@ export default function VerificationAssistant() {
           </div>
 
           {result && (
+            <>
+              <div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {ACTIONS.map(([key, title, desc, Icon]) => (
+                  <button key={key} type="button" onClick={() => window.dispatchEvent(new CustomEvent('abos:verification-module', { detail: { module: key, result } }))} className="group rounded-2xl border border-border bg-background/60 p-4 text-left transition hover:border-gold/40 hover:bg-gold/5">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-xl border border-border bg-card p-2"><Icon className="h-4 w-4 text-gold" /></div>
+                      <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><span className="font-bold text-sm">{title}</span><ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5" /></div><p className="mt-1 text-xs leading-5 text-muted-foreground">{desc}</p></div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 rounded-2xl border border-gold/20 bg-gold/5 p-4 text-xs text-muted-foreground"><span className="font-bold text-foreground">All modules use the same aircraft state.</span> Registry Map, Live Traffic, Digital Twin, Pre-Buy, ATI Passport, Verification Center and Verified Experts are now capabilities of this Verification Assistant—not separate verification workflows.</div>
             <div className="mt-8 grid gap-4 md:grid-cols-[1fr_auto]">
               <div className="rounded-2xl border border-border p-5">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[.18em] text-gold"><FileCheck2 className="h-4 w-4" /> Evidence trail</div>
@@ -97,6 +117,7 @@ export default function VerificationAssistant() {
                 <button onClick={() => window.dispatchEvent(new CustomEvent('abos:assistant-handoff', { detail: result }))} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-xs font-black">Investigate / Analyse <ChevronRight className="h-4 w-4" /></button>
               </div>
             </div>
+            </>
           )}
         </div>
       </div>
@@ -104,4 +125,5 @@ export default function VerificationAssistant() {
   );
 }
 
+function SearchIcon({ className }) { return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>; }
 function Metric({ label, value }) { return <div className="rounded-xl border border-border bg-card px-3 py-3"><div className="text-lg font-black">{value}</div><div className="mt-1 text-[9px] font-black uppercase tracking-wider text-muted-foreground">{label}</div></div>; }

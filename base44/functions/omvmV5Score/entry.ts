@@ -136,9 +136,9 @@ Deno.serve(async (req) => {
       listing = body.aircraft && Object.keys(body.aircraft).length ? body.aircraft : body;
     }
 
-    // ── Paid feature: Valuation Studio (€29 one-time per aircraft) — skipped for the trusted gateway ──
+    // ── Paid feature: Deal Analysis ($99 one-time per aircraft) — skipped for the trusted gateway ──
     if (!isService) {
-      const valGate = await gateOneTimeProduct(base44, user, 'VALUATION_STUDIO', body.registration || listing?.registration || '');
+      const valGate = await gateOneTimeProduct(base44, user, 'DEAL_ANALYSIS', body.registration || listing?.registration || '');
       if (valGate) return valGate;
     }
 

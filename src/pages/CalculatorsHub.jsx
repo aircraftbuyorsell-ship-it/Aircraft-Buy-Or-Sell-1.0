@@ -247,8 +247,6 @@ function CalculatorCard({ item, color }) {
 }
 
 export default function CalculatorsHub() {
-  const { isRegistered } = useMonetization();
-
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
       <div className="max-w-5xl mx-auto">

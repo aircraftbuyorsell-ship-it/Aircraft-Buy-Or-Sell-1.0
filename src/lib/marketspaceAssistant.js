@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { authorizeCapability } from "@/lib/entitlements";
 
 /** Shared Marketspace orchestration. UI and ABOS Assistant can call the same workflow. */
 export async function runMarketspaceAssistant(request, options = {}) {
@@ -41,7 +42,15 @@ export async function runMarketspaceAssistant(request, options = {}) {
   }
 
   if (intent === "evaluate") {
-    result.aircraft = [...result.aircraft].sort((a, b) => (b.deal_score ?? -1) - (a.deal_score ?? -1)).slice(0, 10);
+    if (registration) {
+      result.entitlement = await authorizeCapability("market.deal_analysis", registration).catch(() => ({ allowed: false, reason: "entitlement_check_unavailable" }));
+    }
+    if (result.entitlement?.allowed === false) {
+      result.premiumLocked = true;
+      result.nextActions = ["Review free market signals", "Verify aircraft", "Unlock Deal Analysis — $99"];
+    } else {
+      result.aircraft = [...result.aircraft].sort((a, b) => (b.deal_score ?? -1) - (a.deal_score ?? -1)).slice(0, 10);
+    }
     result.nextActions = ["Open Deal Radar", "Verify top candidate", "Review OMVM and ATI"];
   } else if (intent === "discover") {
     result.nextActions = ["Shortlist aircraft", "Compare candidates", "Verify selected aircraft"];
@@ -87,6 +96,7 @@ export function marketspaceSummary(result) {
   if (result.transaction?.existingPipelineId) return `The aircraft is connected to an active transaction pipeline at ${result.transaction.progressPct}% progress. Continue verification, valuation and deal execution from the same aircraft state.`;
   if (result.intent === "verify") return `Verification workflow is ready for ${result.requestedRegistration || 'the aircraft'}. Continue in Verification Assistant using the same Digital Twin and evidence state.`;
   const count = result.aircraft?.length || 0;
+  if (result.intent === "evaluate" && result.premiumLocked) return `I found ${count} active aircraft, but Deal Analysis / OMVM / Deal Score is locked for this aircraft. Unlock Deal Analysis to run the premium evaluation.`;
   if (result.intent === "evaluate") return `I found ${count} active aircraft and ranked the strongest market opportunities by Deal Score. The next step is to verify and review OMVM/ATI for the top candidates.`;
   if (result.intent === "discover") return `I found ${count} active aircraft matching the current market search space. Select candidates to shortlist, compare or verify.`;
   if (result.intent === "compare") return `I prepared ${count} active aircraft as the comparison pool. Select the aircraft you want to compare.`;

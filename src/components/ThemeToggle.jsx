@@ -11,12 +11,12 @@ function isNightHour() {
 function resolveIsDark(mode) {
   if (mode === "dark") return true;
   if (mode === "light") return false;
-  // Default to dark mode (main mode)
-  return true;
+  // Default to light mode (main mode)
+  return false;
 }
 
 export default function ThemeToggle() {
-  const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "auto");
+  const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "light");
 
   const isDark = resolveIsDark(mode);
 
@@ -35,9 +35,9 @@ export default function ThemeToggle() {
     return () => clearInterval(interval);
   }, [mode]);
 
-  // Cycle: auto → dark → light → auto
+  // Cycle: light → dark → auto → light
   const cycle = () => {
-    setMode((prev) => (prev === "auto" ? "dark" : prev === "dark" ? "light" : "auto"));
+    setMode((prev) => (prev === "light" ? "dark" : prev === "dark" ? "auto" : "light"));
   };
 
   const Icon = mode === "auto" ? Monitor : isDark ? Moon : Sun;

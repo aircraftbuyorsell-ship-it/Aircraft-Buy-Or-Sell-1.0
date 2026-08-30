@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "abos-st-elmo-m1",
+  "name": "abos-st-elmo",
   "main": "index.js",
   "compatibility_date": "2026-08-30",
   "observability": {

@@ -45,7 +45,29 @@ export async function runMarketspaceAssistant(request, options = {}) {
     result.nextActions = ["Identify aircraft", "Verify aircraft", "Review cross-border requirements", "Evaluate landed transaction"];
   }
 
+  // Transaction layer: Sales Pipeline is the execution state for a market opportunity.
+  // It reuses the same registration / aircraft context instead of creating a second aircraft record.
+  if (intent === "sell" || intent === "buyers" || intent === "evaluate") {
+    const registration = extractRegistration(text);
+    if (registration) {
+      const pipelines = await base44.entities.SalesPipeline.filter({ registration }, "-updated_date", 1).catch(() => []);
+      result.transaction = {
+        registration,
+        existingPipelineId: pipelines[0]?.id || null,
+        status: pipelines[0]?.status || "not_started",
+        progressPct: pipelines[0]?.progress_pct ?? 0,
+      };
+      result.nextActions = [...result.nextActions, pipelines[0] ? "Open Transaction Pipeline" : "Create Transaction Pipeline"];
+    }
+  }
+
   return result;
+}
+
+export function extractRegistration(text) {
+  const match = String(text || "").toUpperCase().match(/\\b(?:N\\d{1,5}[A-Z]{0,3}|[A-Z]{1,2}-[A-Z0-9]{2,6})\\b/);
+  return match?.[0] || null;
+}
 }
 
 export function marketspaceSummary(result) {

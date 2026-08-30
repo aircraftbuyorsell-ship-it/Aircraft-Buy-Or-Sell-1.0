@@ -40,6 +40,21 @@ const SUB_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
 const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
 const ONE_TIME_KEYS = new Set(['ATI_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT', 'PROFESSIONAL', 'ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'WHITE_LABEL_LICENSE']);
 
+// Capability-to-product policy. Assistants may orchestrate capabilities, but the same
+// server-side entitlement decision applies regardless of entry point (UI, assistant, API).
+const CAPABILITY_PRODUCT_MAP = {
+  'verification.basic': null,
+  'verification.full_report': 'ATI_REPORT',
+  'verification.expert_review': 'PROFESSIONAL',
+  'ati.full': 'ATI_REPORT',
+  'market.deal_analysis': 'DEAL_ANALYSIS',
+  'market.omvm': 'DEAL_ANALYSIS',
+  'market.deal_score': 'DEAL_ANALYSIS',
+  'market.investment_brief': 'INVESTMENT',
+  'market.reports': 'INVESTMENT',
+  'transaction.professional': 'PROFESSIONAL',
+};
+
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
 
@@ -167,6 +182,15 @@ Deno.serve(async (req) => {
         return Response.json({ products: Object.entries(PRODUCT_CATALOG).filter(([_, v]) => !v.legacy).map(([k, v]) => ({ key: k, ...v })) });
       }
 
+      case 'authorize_capability': {
+        const { capability, aircraft_registration } = body;
+        if (!capability || !(capability in CAPABILITY_PRODUCT_MAP)) return Response.json({ allowed: false, reason: 'unknown_capability' }, { status: 400 });
+        const productKey = CAPABILITY_PRODUCT_MAP[capability];
+        if (!productKey) return Response.json({ allowed: true, reason: 'free_capability', capability });
+        const authz = await requireEntitlement(svc, user, productKey, aircraft_registration);
+        return Response.json({ allowed: authz.ok, capability, product_key: productKey, reason: authz.reason || authz.error, entitlement_id: authz.entitlement_id || null, report_id: authz.report_id || null, checkout_required: !authz.ok, status: authz.status || 200 });
+      }
+
       case 'check': {
         const { product_key, aircraft_registration } = body;
         if (!product_key) return Response.json({ error: 'Missing product_key' }, { status: 400 });
@@ -178,16 +202,7 @@ Deno.serve(async (req) => {
         if (!product) return Response.json({ entitled: false, reason: 'unknown_product' }, { status: 400 });
         if (product.type === 'contract') return Response.json({ contact_sales: true, product_key });
         if (product.type === 'subscription' && (product_key === 'API_STARTER' || product_key === 'API_PROFESSIONAL')) {
-          const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-          const session = await stripe.checkout.sessions.create({
-            mode:'subscription', payment_method_types:['card'], customer_email:user.email, client_reference_id:user.id,
-            metadata:{user_id:user.id,user_email:user.email,product_key},
-            subscription_data:{metadata:{user_id:user.id,user_email:user.email,product_key}},
-            success_url:`${return_url}${return_url.includes('?')?'&':'?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}`,
-            cancel_url:`${return_url}${return_url.includes('?')?'&':'?'}canceled=1`,
-            line_items:[{price_data:{currency:'eur',product_data:{name:product.name},unit_amount:product.price_eur*100,recurring:{interval:'month'}},quantity:1}],
-          });
-          return Response.json({url:session.url,session_id:session.id,product_key});
+          return Response.json({ entitled: false, reason: 'no_active_subscription', product_key, active_sub_product: subProduct });
         }
 
         if (SUB_KEYS.has(product_key)) {

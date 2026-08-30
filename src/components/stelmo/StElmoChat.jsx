@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createStElmoTask, updateStElmoTask, listActiveStElmoTasks, subscribeToStElmoTask } from "@/lib/stElmoTaskEngine";
+import { createStElmoTask, updateStElmoTask, listActiveStElmoTasks, getStElmoTask } from "@/lib/stElmoTaskEngine";
 import { runStElmoWorker } from "@/lib/stElmo/worker";
 import { buildStElmoEngines } from "@/lib/stElmo/engines";
 import { renderStElmoAnswer, describePhase } from "@/lib/stElmo/report";
@@ -48,32 +48,68 @@ export default function StElmoChat() {
   useEffect(() => localStorage.setItem(OPEN_KEY, open ? "1" : "0"), [open]);
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
 
+  // Recover active work without Supabase realtime subscriptions. Polling is deliberately
+  // used here because React effect cleanup must remain completely synchronous and the
+  // Supabase channel lifecycle can otherwise throw during unmount in some browser builds.
   useEffect(() => {
     let cancelled = false;
-    listActiveStElmoTasks().then((tasks) => {
-      if (cancelled || !tasks.length) return;
-      const latest = tasks[0];
-      setTaskId(latest.id);
-      setBackgroundTask({ startedAt: Date.now(), status: latest.phase || latest.status, taskId: latest.id });
-    }).catch(() => {});
-    return () => { cancelled = true; };
+    let timer = null;
+
+    const poll = async () => {
+      try {
+        const tasks = await listActiveStElmoTasks();
+        if (!cancelled && tasks.length) {
+          const latest = tasks[0];
+          setTaskId(latest.id);
+          setBackgroundTask({ startedAt: Date.now(), status: latest.phase || latest.status, taskId: latest.id });
+        }
+      } catch {}
+      if (!cancelled) timer = window.setTimeout(poll, 5000);
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
   }, []);
 
+  // Poll a selected background task. No realtime channel is created or destroyed here.
   useEffect(() => {
-    if (!taskId) return;
-    return subscribeToStElmoTask(taskId, (task) => {
-      if (!task) return;
-      setBackgroundTask({ startedAt: Date.now(), status: task.phase || task.status, taskId });
-      if (task.status === "completed" && task.result) {
-        const answer = String(task.result.answer || task.result.response || task.result.synthesis || "St. Elmo completed the background run.");
-        setMessages((prev) => [...prev, { role: "assistant", content: answer, meta: { model: task.result.model || "St. Elmo M_1.0", provider: task.result.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
-        setBusy(false); setTaskId(null); setBackgroundTask(null);
-      }
-      if (task.status === "failed") {
-        setMessages((prev) => [...prev, { role: "assistant", content: `Background reasoning failed. ${task.error || "Please retry."}` }].slice(-MAX_MESSAGES));
-        setBusy(false); setTaskId(null); setBackgroundTask(null);
-      }
-    });
+    if (!taskId) return undefined;
+    let cancelled = false;
+    let timer = null;
+
+    const poll = async () => {
+      try {
+        const task = await getStElmoTask(taskId);
+        if (!cancelled && task) {
+          setBackgroundTask({ startedAt: Date.now(), status: task.phase || task.status, taskId });
+          if (task.status === "completed" && task.result) {
+            const answer = String(task.result.answer || task.result.response || task.result.synthesis || "St. Elmo completed the background run.");
+            setMessages((prev) => [...prev, { role: "assistant", content: answer, meta: { model: task.result.model || "St. Elmo M_1.0", provider: task.result.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
+            setBusy(false);
+            setBackgroundTask(null);
+            setTaskId(null);
+            return;
+          }
+          if (task.status === "failed") {
+            setMessages((prev) => [...prev, { role: "assistant", content: `Background reasoning failed. ${task.error || "Please retry."}` }].slice(-MAX_MESSAGES));
+            setBusy(false);
+            setBackgroundTask(null);
+            setTaskId(null);
+            return;
+          }
+        }
+      } catch {}
+      if (!cancelled) timer = window.setTimeout(poll, 3000);
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
   }, [taskId]);
 
   useEffect(() => {

@@ -150,11 +150,16 @@ export function isPathInSection(section, pathname) {
   );
 }
 
-/** All navigable leaf pages — used by UniversalSearchBar. */
+/** All navigable pages — used by UniversalSearchBar and command navigation. */
 export function flattenNavPages() {
   const out = [];
   for (const section of NAV_TREE) {
     out.push({ path: section.path, label: section.label, icon: section.icon, section: section.label });
+    for (const category of section.categories || []) {
+      for (const item of category.items || []) {
+        out.push({ ...item, section: section.label, category: category.label });
+      }
+    }
   }
   return out;
 }

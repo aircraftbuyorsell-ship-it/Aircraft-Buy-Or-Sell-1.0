@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "aircraft_registration": {
+      "type": "string"
+    },
+    "product_key": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "credits_charged": {
+      "type": "number"
+    },
+    "unlocked_at": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "name": "AircraftIntelligenceUnlock"
+}

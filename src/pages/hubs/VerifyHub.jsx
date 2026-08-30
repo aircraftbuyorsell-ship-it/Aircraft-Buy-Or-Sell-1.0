@@ -49,5 +49,6 @@ export default function VerifyHub() {
       />
       <HubTabs tabs={TABS} defaultTab="registry" />
     </div>
+    </div>
   );
 }

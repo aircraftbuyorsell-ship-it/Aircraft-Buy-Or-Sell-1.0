@@ -1,29 +1,22 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { normalizeRegistration, resolveAircraftTwin, supabaseRest, evidenceConfidence, buildAircraftTwinPatch } from '../_shared/aircraftTwin.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || Deno.env.get('ABOS_SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('ABOS_SUPABASE_SERVICE_ROLE_KEY');
 const DAY_MS = 86400000;
 const MODULES = ['registry', 'identity', 'ownership', 'activity', 'service', 'documents'];
 
-function normalizeRegistration(value: string) { return (value || '').trim().toUpperCase().replace(/\s+/g, ''); }
-function aircraftId(registration: string, serial?: string | null) { return registration || (serial ? `SN:${serial}` : `UNKNOWN:${crypto.randomUUID()}`); }
+async function sb(path: string, init: RequestInit = {}) { return supabaseRest(path, init); }
 
-async function sb(path: string, init: RequestInit = {}) {
+async function createSession(userId: string | null, twin: any, registration: string, inputType: string, context: unknown) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...init, headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json', ...(init.headers || {}) } });
-  if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
-  return res.status === 204 ? null : res.json();
-}
-
-async function createSession(userId: string | null, registration: string, inputType: string, context: unknown) {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  const rows = await sb('verification_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ aircraft_id: registration, registration, input_type: inputType, status: 'running', user_id: userId, started_at: new Date().toISOString(), context }) });
+  const rows = await sb('verification_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ aircraft_id: twin?.id || registration, passport_id: twin?.id || null, registration, input_type: inputType, status: 'running', user_id: userId, started_at: new Date().toISOString(), context }) });
   return rows?.[0] || null;
 }
 
-async function writeEvidence(sessionId: string | null, aircraft: string, items: any[]) {
+async function writeEvidence(sessionId: string | null, aircraft: string, passportId: string | null, items: any[]) {
   if (!sessionId || !items.length || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
-  await sb('verification_evidence', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(items.map((x) => ({ session_id: sessionId, aircraft_id: aircraft, source_type: x.source_type || 'system', source_name: x.source_name || 'ABOS Verification Engine', claim_key: x.claim_key, observed_value: x.observed_value ?? null, normalized_value: x.normalized_value ?? null, status: x.status || 'observed', confidence: x.confidence ?? null, evidence: x.evidence || {}, module: x.module || null, observed_at: new Date().toISOString(), timestamp: new Date().toISOString() }))) });
+  await sb('verification_evidence', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(items.map((x) => ({ session_id: sessionId, passport_id: passportId, aircraft_id: aircraft, source_type: x.source_type || 'system', source_name: x.source_name || 'ABOS Verification Engine', claim_key: x.claim_key, observed_value: x.observed_value ?? null, normalized_value: x.normalized_value ?? null, status: x.status || 'observed', confidence: evidenceConfidence(x.confidence), evidence: x.evidence || {}, module: x.module || null, observed_at: new Date().toISOString(), timestamp: new Date().toISOString() }))) });
 }
 
 async function finishSession(sessionId: string | null, summary: any) {
@@ -87,9 +80,11 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({})); const raw = body.registration || body.serial || body.query;
     if (!raw) return Response.json({ error: 'registration, serial or query required' }, { status: 400 });
     const inputType = body.serial ? 'serial' : body.registration ? 'registration' : 'query';
-    const resolved = await resolveInput(base44, raw, inputType); const reg = resolved.registration;
-    const session = await createSession(user.id || null, reg, inputType, { entry: body.entry || 'verify', original_input: raw, requested_modules: MODULES });
-    const aircraft = aircraftId(reg, resolved.serial); const evidence: any[] = [];
+    const resolved = await resolveInput(base44, raw, inputType); const reg = normalizeRegistration(resolved.registration);
+    let twin = await resolveAircraftTwin(reg, { serial_number: resolved.serial || null });
+    if (!twin?.id) throw new Error('Unable to resolve canonical aircraft Digital Twin');
+    const session = await createSession(user.id || null, twin, reg, inputType, { entry: body.entry || 'verify', original_input: raw, requested_modules: MODULES });
+    const aircraft = twin.id; const evidence: any[] = [];
 
     const r = await registry(base44, reg); const registryVerified = r.found && !!r.registration;
     const identityConflict = r.found && reg !== normalizeRegistration(r.registration || reg);
@@ -106,8 +101,10 @@ Deno.serve(async (req) => {
     if (identityConflict) evidence.push({ module: 'identity', source_type: 'consistency', source_name: 'ABOS Verification Engine', claim_key: 'registration.identity_conflict', observed_value: { input: reg, registry: r.registration }, normalized_value: { conflict: true }, confidence: 99, status: 'conflict' });
 
     const verificationConfidence = confidence(modules); const atiScore = atiFromVerification(verificationConfidence, conflicts);
+    const twinPatch = buildAircraftTwinPatch({ registration: reg, registry: r, activity: act });
+    await sb(`aircraft_passports?id=eq.${encodeURIComponent(twin.id)}`, { method: 'PATCH', body: JSON.stringify(twinPatch) });
     const result = { verification_session_id: session?.id || null, aircraft_id: aircraft, registration: reg, original_input: raw, status: conflicts ? 'verified_with_conflicts' : 'verified', verification_confidence: verificationConfidence, ati_score: atiScore, conflicts, modules, evidence_trail: evidence, handoff: { target: 'ABOS Assistant', available: true, prompt: conflicts ? `Investigate ${conflicts} verification discrepancy(ies) for ${reg}.` : `Continue intelligence analysis for ${reg}.` } };
-    await writeEvidence(session?.id || null, aircraft, evidence); await finishSession(session?.id || null, result);
+    await writeEvidence(session?.id || null, aircraft, twin.id, evidence); await finishSession(session?.id || null, result);
     return Response.json(result);
   } catch (error) { return Response.json({ error: error?.message || 'Verification engine failed' }, { status: 500 }); }
 });

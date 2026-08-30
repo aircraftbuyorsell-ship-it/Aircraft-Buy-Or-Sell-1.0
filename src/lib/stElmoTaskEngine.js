@@ -87,10 +87,27 @@ export async function listActiveStElmoTasks() {
 }
 
 export function subscribeToStElmoTask(id, onChange) {
-  if (!supabase) return () => {};
+  if (!supabase || !id) return () => {};
+
+  let active = true;
   const channel = supabase
-    .channel(`st-elmo-task-${id}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'st_elmo_tasks', filter: `id=eq.${id}` }, payload => onChange(payload.new))
+    .channel(`st-elmo-task-${id}-${Math.random().toString(36).slice(2)}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'st_elmo_tasks', filter: `task_id=eq.${id}` },
+      payload => {
+        if (!active) return;
+        try { onChange(payload.new); } catch {}
+      }
+    )
     .subscribe();
-  return () => supabase.removeChannel(channel);
+
+  // React effect cleanup must be synchronous and must never throw.
+  return () => {
+    active = false;
+    try {
+      const result = supabase.removeChannel(channel);
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch {}
+  };
 }

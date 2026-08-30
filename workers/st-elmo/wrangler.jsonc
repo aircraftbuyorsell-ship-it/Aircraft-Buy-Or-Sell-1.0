@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "abos-st-elmo",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-30",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  }
+}

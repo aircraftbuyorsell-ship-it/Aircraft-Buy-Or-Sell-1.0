@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { runVerificationAssistant } from "@/lib/verificationAssistant";
+import { runMarketspaceAssistant, marketspaceSummary } from "@/lib/marketspaceAssistant";
 import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
@@ -194,10 +196,25 @@ export default function MaxChat() {
 
     try {
       const history = [...messages, userMsg].slice(-10);
+      let orchestrationContext = "";
+      const aircraftMatch = text.trim().toUpperCase().match(/\b([A-Z]{1,2}-?[A-Z0-9]{2,6}|N\d{1,5}[A-Z]{0,3})\b/);
+      if (/\b(verify|verification|registry check|check this aircraft)\b/i.test(text) && aircraftMatch) {
+        try {
+          const verification = await runVerificationAssistant(aircraftMatch[1], { entry: "abos_assistant" });
+          orchestrationContext = `\n\n--- SHARED VERIFICATION WORKFLOW ---\nAircraft ${verification.registration} verification workflow completed. Use only entitlement-safe/high-level conclusions from this context. Do not disclose premium evidence or internal scoring methodology.\n--- END VERIFICATION WORKFLOW ---`;
+          window.dispatchEvent(new CustomEvent('abos:assistant-verification', { detail: verification }));
+        } catch (e) { orchestrationContext = `\n\nVerification workflow could not be completed: ${e?.message || 'unavailable'}`; }
+      } else if (/\b(find|search|show|compare|deal|undervalued|below market|sell|buyers|market)\b/i.test(text)) {
+        try {
+          const market = await runMarketspaceAssistant(text, { entry: "abos_assistant" });
+          orchestrationContext = `\n\n--- SHARED MARKETSPACE WORKFLOW ---\n${marketspaceSummary(market)} Intent: ${market.intent}. Candidate count: ${market.aircraft?.length || 0}. Next actions: ${(market.nextActions || []).join(', ')}. Do not invent candidate facts not present in the conversation.\n--- END MARKETSPACE WORKFLOW ---`;
+          window.dispatchEvent(new CustomEvent('abos:assistant-marketspace', { detail: market }));
+        } catch (e) { orchestrationContext = `\n\nMarketspace workflow could not be completed: ${e?.message || 'unavailable'}`; }
+      }
       const atiSection = atiContext.trim()
         ? `\n\n--- ATI REPORT DATA ---\n${atiContext.trim()}\n--- END ---`
         : "";
-      const prompt = `${SYSTEM_PROMPT}${atiSection}\n\n--- Conversation ---\n${
+      const prompt = `${SYSTEM_PROMPT}${atiSection}${orchestrationContext}\n\n--- Conversation ---\n${
         history.map(m => `${m.role === "user" ? "User" : "Max"}: ${m.content}`).join("\n")
       }\n\nMax:`;
 

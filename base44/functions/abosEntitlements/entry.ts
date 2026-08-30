@@ -8,16 +8,24 @@ import Stripe from 'npm:stripe@14.25.0';
  */
 
 const PRODUCT_CATALOG = {
-  ATI_BASIC_REPORT: { name: 'ATI Report', type: 'one_time', price_usd: 49, currency: 'usd', stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki' },
-  ATI_PRO:          { name: 'ATI Pro — Investment Brief', type: 'one_time', price_usd: 199, currency: 'usd', stripe_price_id: 'price_1U7dkYAT7Be3WR6Jaf9jqrVV' },
-  ATI_PRO_TAX:      { name: 'ATI Pro Tax — Tax & Insurance Upgrade', type: 'one_time', price_usd: 499, currency: 'usd', stripe_price_id: 'price_1U7dkbAT7Be3WR6JDOjfF3Eg' },
-  ATI_SCORE:        { name: 'ATI Score', type: 'one_time', price_eur: 0, currency: 'eur', free: true },
+  // ── ABOS V1 customer-facing products ──
+  ATI_SCORE:        { name: 'ATI Score', type: 'one_time', price_usd: 0, currency: 'usd', free: true },
+  ATI_REPORT:       { name: 'ATI Report', type: 'one_time', price_usd: 39, currency: 'usd' },
+  DEAL_ANALYSIS:    { name: 'Deal Analysis', type: 'one_time', price_usd: 99, currency: 'usd' },
+  INVESTMENT:       { name: 'Investment', type: 'one_time', price_usd: 149, currency: 'usd' },
+  PROFESSIONAL:     { name: 'Professional Review', type: 'one_time', price_usd: 499, currency: 'usd' },
+
+  // ── Legacy compatibility — not customer-facing V1 products ──
+  ATI_BASIC_REPORT: { name: 'ATI Report (legacy)', type: 'one_time', price_usd: 39, currency: 'usd', legacy: true },
+  ATI_PRO:          { name: 'ATI Pro (legacy)', type: 'one_time', price_usd: 149, currency: 'usd', legacy: true },
+  ATI_PRO_TAX:      { name: 'ATI Pro Tax (legacy)', type: 'one_time', price_usd: 499, currency: 'usd', legacy: true },
+
   ATI_FULL_REPORT:  { name: 'ATI Full Report (legacy)', type: 'one_time', price_eur: 49.00, currency: 'eur', legacy: true },
   VALUATION_STUDIO: { name: 'Valuation Studio (legacy)', type: 'one_time', price_eur: 29.00, currency: 'eur', legacy: true },
   VERIFICATION_PACK:{ name: 'Verification Pack (legacy)', type: 'one_time', price_eur: 19.90, currency: 'eur', legacy: true },
   PRO:              { name: 'ABOS Professional', type: 'subscription', price_eur: 99, currency: 'eur', interval: 'month' },
   BROKER:           { name: 'ABOS Broker / Dealer (legacy)', type: 'subscription', price_eur: 299, currency: 'eur', interval: 'month', legacy: true },
-  ATI_REPORT_PACK_5: { name: 'ATI Report — 5 Pack', type: 'report_pack', price_usd: 199, currency: 'usd', credits: 5 },
+  ATI_REPORT_PACK_5: { name: 'ATI Report — 5 Pack (legacy)', type: 'report_pack', price_usd: 199, currency: 'usd', credits: 5, legacy: true },
   ATI_REPORT_PACK_10:{ name: 'ATI Report — 10 Pack', type: 'report_pack', price_usd: 290, currency: 'usd', credits: 10 },
   ATI_REPORT_PACK_25:{ name: 'ATI Report — 25 Pack', type: 'report_pack', price_usd: 625, currency: 'usd', credits: 25 },
   API_STARTER: { name: 'ABOS API — Starter', type: 'subscription', price_eur: 690, currency: 'eur', interval: 'month' },
@@ -30,7 +38,7 @@ const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'ATI_BASIC_REPORT'], BROKER: ['ATI_SCO
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
 const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
-const ONE_TIME_KEYS = new Set(['ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'WHITE_LABEL_LICENSE']);
+const ONE_TIME_KEYS = new Set(['ATI_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT', 'PROFESSIONAL', 'ATI_BASIC_REPORT', 'ATI_PRO', 'ATI_PRO_TAX', 'ATI_SCORE', 'ATI_FULL_REPORT', 'VALUATION_STUDIO', 'VERIFICATION_PACK', 'WHITE_LABEL_LICENSE']);
 
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
@@ -156,7 +164,7 @@ Deno.serve(async (req) => {
   try {
     switch (action) {
       case 'list_products': {
-        return Response.json({ products: Object.entries(PRODUCT_CATALOG).map(([k, v]) => ({ key: k, ...v })) });
+        return Response.json({ products: Object.entries(PRODUCT_CATALOG).filter(([_, v]) => !v.legacy).map(([k, v]) => ({ key: k, ...v })) });
       }
 
       case 'check': {
@@ -213,18 +221,18 @@ Deno.serve(async (req) => {
           return Response.json({ entitled: true, reason: 'one_time_entitlement', entitlement_id: ents[0].id, active_sub_product: subProduct });
         }
 
-        let priceEur = product?.price_eur || 0;
+        let priceUsd = product?.price_usd || 0;
         let discountPct = 0;
         let welcomePromo = false;
         if (subProduct && SUB_DISCOUNT[subProduct]) {
-          priceEur = +(priceEur * (1 - SUB_DISCOUNT[subProduct])).toFixed(2);
+          priceUsd = +(priceUsd * (1 - SUB_DISCOUNT[subProduct])).toFixed(2);
           discountPct = SUB_DISCOUNT[subProduct];
         } else if (product?.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
-          priceEur = +(priceEur * (1 - WELCOME_DISCOUNT)).toFixed(2);
+          priceUsd = +(priceUsd * (1 - WELCOME_DISCOUNT)).toFixed(2);
           discountPct = WELCOME_DISCOUNT;
           welcomePromo = true;
         }
-        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_eur: priceEur, original_price_eur: product?.price_eur || 0, discount_pct: discountPct, welcome_promo: welcomePromo, active_sub_product: subProduct });
+        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_usd: priceUsd, original_price_usd: product?.price_usd || 0, discount_pct: discountPct, welcome_promo: welcomePromo, active_sub_product: subProduct });
       }
 
       case 'create_checkout': {
@@ -255,24 +263,25 @@ Deno.serve(async (req) => {
           return Response.json({ included_in_subscription: true, product_key });
         }
 
-        // Canonical ATI tiers use the pre-created Stripe Price. This keeps Stripe authoritative.
-        if (product.stripe_price_id) {
+        // V1 one-time products use a server-defined price_data line item. The browser
+        // never supplies an amount or Stripe Price ID, so the server-side catalog remains authoritative.
+        if (product.price_usd != null && ['ATI_REPORT','DEAL_ANALYSIS','INVESTMENT','PROFESSIONAL'].includes(product_key)) {
           const session = await stripe.checkout.sessions.create({
             mode: 'payment', payment_method_types: ['card'], customer_email: user.email,
             client_reference_id: user.id,
             metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
             success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
             cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-            line_items: [{ price: product.stripe_price_id, quantity: 1 }],
+            line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: Math.round(product.price_usd * 100) }, quantity: 1 }],
           });
           return Response.json({ url: session.url, session_id: session.id, product_key });
         }
 
-        let unitAmount = Math.round((product.price_eur ?? 0) * 100);
+        let unitAmount = Math.round((product.price_usd ?? 0) * 100);
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
-          unitAmount = Math.round(product.price_eur * (1 - SUB_DISCOUNT[subProduct]) * 100);
+          unitAmount = Math.round(product.price_usd * (1 - SUB_DISCOUNT[subProduct]) * 100);
         } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
-          unitAmount = Math.round(product.price_eur * (1 - WELCOME_DISCOUNT) * 100);
+          unitAmount = Math.round(product.price_usd * (1 - WELCOME_DISCOUNT) * 100);
         }
 
         const sessionParams = {
@@ -282,7 +291,7 @@ Deno.serve(async (req) => {
           metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
           success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
           cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-          line_items: [{ price_data: { currency: product.currency, product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
+          line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
         };
         if (product.type === 'subscription') {
           sessionParams.mode = 'subscription';

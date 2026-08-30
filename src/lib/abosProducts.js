@@ -21,9 +21,17 @@ export const ABOS_PRODUCTS = {
     key: 'PROFESSIONAL', name: 'Professional Review', price: 499, currency: 'usd', displayPrice: '$499+',
     entitlement: 'PROFESSIONAL', path: '/experts', tier: 'professional',
   },
+  API_STARTER: {
+    key: 'API_STARTER', name: 'ABOS API — Starter', price: 690, currency: 'usd', displayPrice: '$690/mo',
+    entitlement: 'API_STARTER', path: '/api', tier: 'business', recurring: true,
+  },
+  API_PROFESSIONAL: {
+    key: 'API_PROFESSIONAL', name: 'ABOS API — Professional', price: 1890, currency: 'usd', displayPrice: '$1,890/mo',
+    entitlement: 'API_PROFESSIONAL', path: '/api', tier: 'business', recurring: true,
+  },
 };
 
-export const ABOS_PRODUCT_ORDER = ['ADVISOR', 'ATI_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT', 'PROFESSIONAL'];
+export const ABOS_PRODUCT_ORDER = ['ADVISOR', 'ATI_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT', 'PROFESSIONAL', 'API_STARTER', 'API_PROFESSIONAL'];
 export const ABOS_PAID_PRODUCTS = ABOS_PRODUCT_ORDER.map(k => ABOS_PRODUCTS[k]).filter(p => p.price > 0);
 export const ABOS_PUBLIC_PRICES = Object.fromEntries(ABOS_PRODUCT_ORDER.map(k => [k, ABOS_PRODUCTS[k].displayPrice]));
 

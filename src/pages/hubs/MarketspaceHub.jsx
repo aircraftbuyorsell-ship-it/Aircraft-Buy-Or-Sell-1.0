@@ -1,26 +1,12 @@
-import { Plane, GitBranch, Radar, Scale, Users, Globe, Bell, Users2, Sparkles } from "lucide-react";
+import { Plane, Users2, Sparkles } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
 
-const Listings = lazyPage(() => import("@/pages/Listings"));
-const SalesPipeline = lazyPage(() => import("@/pages/SalesPipeline"));
-const DealRadar = lazyPage(() => import("@/pages/DealRadar"));
-const Compare = lazyPage(() => import("@/pages/Compare"));
-const Leads = lazyPage(() => import("@/pages/Leads"));
 const Community = lazyPage(() => import("@/pages/Community"));
-const AircraftAlerts = lazyPage(() => import("@/pages/AircraftAlerts"));
-const CrossBorderBridge = lazyPage(() => import("@/pages/CrossBorderBridge"));
 const MarketspaceAssistant = lazyPage(() => import("@/pages/MarketspaceAssistant"));
 
 const TABS = [
   { key: "assistant", label: "Marketspace Assistant", icon: Sparkles, Component: MarketspaceAssistant },
-  { key: "listings", label: "Listings", icon: Plane, Component: Listings },
-  { key: "deal-room", label: "Deal Room", icon: GitBranch, Component: SalesPipeline },
-  { key: "radar", label: "Deal Radar", icon: Radar, Component: DealRadar },
-  { key: "compare", label: "Compare", icon: Scale, Component: Compare },
-  { key: "leads", label: "Leads", icon: Users, Component: Leads },
-  { key: "alerts", label: "Aircraft Alerts", icon: Bell, Component: AircraftAlerts },
-  { key: "cross-border", label: "Cross-Border", icon: Globe, Component: CrossBorderBridge },
   { key: "community", label: "Community", icon: Users2, Component: Community },
 ];
 
@@ -31,7 +17,7 @@ export default function MarketspaceHub() {
         icon={Plane}
         eyebrow="Marketspace"
         title="Aircraft Trading Hub"
-        subtitle="Browse listings, manage deals through the sales pipeline, handle escrow, track leads, and match buyers with sellers."
+        subtitle="Find aircraft, evaluate opportunities, verify aircraft, match buyers and sellers, and move transactions forward from one market workflow."
         tabCount={TABS.length}
       />
       <HubTabs tabs={TABS} defaultTab="assistant" />

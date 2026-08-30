@@ -11,8 +11,10 @@ export async function runABOSAgent(request, options = {}) {
   if (!text) throw new Error("ABOS Agent request is required");
 
   const registration = extractRegistration(text);
-  const wantsVerify = /\b(verify|verification|registry|ownership|serial|maintenance|service|pre-buy)\b/i.test(text);
-  const wantsMarket = /\b(find|search|show|compare|deal|undervalued|below market|sell|buyer|buyers|market|listing|valuation|omvm)\b/i.test(text);
+  const requestedIntent = String(options.intent || "").toLowerCase();
+  const wantsVerify = requestedIntent === "verify" || /\b(verify|verification|registry|ownership|serial|maintenance|service|pre-buy)\b/i.test(text);
+  const wantsMarket = requestedIntent === "analyse" || /\b(find|search|show|compare|deal|undervalued|below market|sell|buyer|buyers|market|listing|valuation|omvm)\b/i.test(text);
+  const wantsInspect = requestedIntent === "inspect" || /\b(inspect|inspection|camera|video|visual|vision)\b/i.test(text);
   const wantsTransaction = /\b(deal|buy|purchase|sell|seller|buyer|offer|pipeline|transaction|deal room|closing)\b/i.test(text);
 
   const result = {
@@ -25,6 +27,7 @@ export async function runABOSAgent(request, options = {}) {
     transaction: null,
     timestamp: new Date().toISOString(),
     options,
+    inspection: wantsInspect ? { status: "requested", capability: "APL.VISION_INSPECTION", engine: "vision_adapter" } : null,
   };
 
   if (registration && wantsVerify) {

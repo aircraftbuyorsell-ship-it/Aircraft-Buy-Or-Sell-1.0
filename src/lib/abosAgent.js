@@ -3,6 +3,8 @@ import { runMarketspaceAssistant } from "@/lib/marketspaceAssistant";
 import { buildAgentWorkflow } from "@/lib/abosAgentProtocol";
 import { base44 } from "@/api/base44Client";
 import { ST_ELMO_MODEL } from "@/lib/model/provider/nemotron/config";
+import { runStElmoWorker } from "@/lib/stElmo/worker";
+import { buildStElmoEngines } from "@/lib/stElmo/engines";
 
 /**
  * ABOS Agent orchestration layer.
@@ -45,18 +47,39 @@ export async function runABOSAgent(request, options = {}) {
     timestamp: new Date().toISOString(),
     options,
     inspection: wantsInspect ? { status: "requested", capability: "APL.VISION_INSPECTION", engine: "vision_adapter" } : null,
+    worker: null,
   };
 
-  if (registration && wantsVerify) {
+  // Execute the reasoning plan instead of only displaying it. The worker gathers
+  // evidence through the ABOS engines; the deterministic routing below still runs
+  // so the agent behaves identically when the reasoning backend is unavailable.
+  if (reasoning?.plan?.length && options.executePlan !== false) {
+    result.worker = await runStElmoWorker({
+      plan: reasoning.plan,
+      engines: options.engines || buildStElmoEngines(options),
+      context: { registration, request: text, intent: requestedIntent || null },
+      onPhase: options.onWorkerPhase,
+      onStep: options.onWorkerStep,
+    });
+    result.verification = result.worker.evidence.verification ?? result.verification;
+    result.marketspace = result.worker.evidence.marketspace ?? result.marketspace;
+    result.workflow.completed.push(...result.worker.steps.filter((s) => s.status === "ok").map((s) => s.capability));
+    result.workflow.blocked.push(...result.worker.steps.filter((s) => s.status === "blocked").map((s) => s.capability));
+  }
+
+  if (registration && wantsVerify && !result.verification) {
     result.verification = await runVerificationAssistant(registration, { ...options, entry: "abos_agent" });
     result.workflow.completed.push("verification");
   }
 
-  if (wantsMarket || (!wantsVerify && registration)) {
+  if (!result.marketspace && (wantsMarket || (!wantsVerify && registration))) {
     result.marketspace = await runMarketspaceAssistant(text, { ...options, entry: "abos_agent" });
     result.workflow.completed.push("marketspace");
+  }
+  if (result.marketspace) {
     result.aircraft = result.marketspace.digitalTwin || result.marketspace.aircraft?.[0] || null;
   }
+  result.aircraft = result.aircraft || result.worker?.evidence?.aircraft || null;
 
   if (registration && wantsTransaction) {
     result.transaction = {

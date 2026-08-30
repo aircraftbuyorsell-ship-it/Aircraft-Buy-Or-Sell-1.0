@@ -87,7 +87,7 @@ export async function runMarketspaceAssistant(request, options = {}) {
 }
 
 export function extractRegistration(text) {
-  const match = String(text || "").toUpperCase().match(/\\b(?:N\\d{1,5}[A-Z]{0,3}|[A-Z]{1,2}-[A-Z0-9]{2,6})\\b/);
+  const match = String(text || "").toUpperCase().match(/\b(?:N\d{1,5}[A-Z]{0,3}|[A-Z]{1,2}-[A-Z0-9]{2,6})\b/);
   return match?.[0] || null;
 }
 

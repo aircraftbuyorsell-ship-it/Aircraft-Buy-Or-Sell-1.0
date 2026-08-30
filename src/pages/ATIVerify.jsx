@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
+import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import {
   ShieldCheck, Plus, Search, FileText, CheckCircle2, AlertTriangle, Clock, XCircle,
   ClipboardList, Database, Sparkles, BadgeCheck, Printer, Share2,
@@ -29,6 +30,8 @@ const PROCESS_STEPS = [
 export default function ATIVerify() {
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [assistantReg, setAssistantReg] = useState("");
+  const [assistantBusy, setAssistantBusy] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -78,6 +81,13 @@ export default function ATIVerify() {
       />
 
       <div className="px-4 md:px-8 pb-12 max-w-6xl mx-auto space-y-8">
+        <div className="glass-card p-5 border-gold-official/20">
+          <div className="flex flex-col md:flex-row md:items-end gap-3">
+            <div className="flex-1"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-gold-official">ABOS Verification Assistant</p><p className="mt-1 text-sm text-muted-foreground">One engine for registry, identity, ownership, activity, live traffic, service intelligence and dealer intelligence.</p></div>
+            <input value={assistantReg} onChange={e => setAssistantReg(e.target.value.toUpperCase())} placeholder="N123AB" className="h-10 rounded-lg border border-input bg-background px-3 font-mono text-sm" />
+            <button disabled={assistantBusy || !assistantReg.trim()} onClick={async () => { setAssistantBusy(true); try { await runVerificationAssistant(assistantReg); } finally { setAssistantBusy(false); } }} className="h-10 rounded-lg bg-gold-official px-4 text-sm font-bold text-black disabled:opacity-40">{assistantBusy ? "Verifying…" : "Run Verification"}</button>
+          </div>
+        </div>
         {/* Summary cards */}
         {isLoading ? (
           <LoadingSkeleton variant="cards" count={6} />

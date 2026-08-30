@@ -31,11 +31,11 @@ export const NAV_TREE = [
       { label: "Evaluate", items: [
         { label: "Deal Radar", path: "/deal-radar", icon: Radar },
         { label: "Deal Intelligence", path: "/deal-intelligence", icon: Search },
-        { label: "Aircraft Passport", path: "/ati-passport", icon: ShieldCheck },
+        { label: "Aircraft Passport", path: "/verify?tab=passport", icon: ShieldCheck },
       ]},
       { label: "Transact", items: [
         { label: "Deal Room", path: "/sales-pipeline", icon: GitBranch },
-        { label: "Escrow", path: "/escrow", icon: Wallet },
+        { label: "Escrow / Settlement", path: "/sales-pipeline?stage=escrow", icon: Wallet },
         { label: "Cross-Border", path: "/cross-border-bridge", icon: Globe },
       ]},
       { label: "Manage", items: [
@@ -75,12 +75,12 @@ export const NAV_TREE = [
       { label: "Identity", items: [
         { label: "Registry Lookup", path: "/n-lookup", icon: Search },
         { label: "FAA Registry Map", path: "/faa-map", icon: Map },
-        { label: "Digital Twin", path: "/twin", icon: Shield },
+        { label: "Digital Twin", path: "/verify?tab=twin", icon: Shield },
       ]},
       { label: "ATI", items: [
         { label: "ATI Score", path: "/ati-quick-score", icon: Award },
         { label: "ATI Report", path: "/ati-full-report", icon: FileText },
-        { label: "ATI Passport", path: "/ati-passport", icon: ShieldCheck },
+        { label: "ATI Passport", path: "/verify?tab=passport", icon: ShieldCheck },
         { label: "ATI Standard", path: "/ati-standard", icon: BadgeCheck },
       ]},
       { label: "Inspect", items: [

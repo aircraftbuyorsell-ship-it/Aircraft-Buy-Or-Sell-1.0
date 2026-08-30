@@ -1,5 +1,6 @@
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant } from "@/lib/marketspaceAssistant";
+import { buildAgentWorkflow } from "@/lib/abosAgentProtocol";
 
 /**
  * ABOS Agent orchestration layer.
@@ -49,7 +50,8 @@ export async function runABOSAgent(request, options = {}) {
   }
 
   result.workflow.current = result.transaction ? "transaction" : result.verification ? "analysis" : result.marketspace ? "marketspace" : "discovery";
-  result.workflow.next = result.marketspace?.nextActions || [];
+  result.workflow = { ...result.workflow, ...buildAgentWorkflow({ aircraft: result.aircraft, verification: result.verification, marketspace: result.marketspace, transaction: result.transaction }) };
+  result.workflow.nextActions = result.marketspace?.nextActions || [];
   return result;
 }
 

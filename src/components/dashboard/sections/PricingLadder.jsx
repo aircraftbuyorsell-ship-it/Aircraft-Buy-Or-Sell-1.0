@@ -5,18 +5,18 @@ import { ABOS_PRODUCTS } from "@/lib/abosProducts";
 
 const PLANS = [
   {
-    key: "ati_score",
-    name: "ATI Score",
-    price: "Free",
-    tagline: "Know the aircraft at a glance.",
+    key: "advisor",
+    name: ABOS_PRODUCTS.ADVISOR.name,
+    price: ABOS_PRODUCTS.ADVISOR.displayPrice,
+    tagline: "Your AI aircraft buying and selling advisor.",
     features: [
-      "ATI transparency score",
-      "Key risk signals",
-      "Data-quality indicators",
-      "Locked report preview",
+      "Ask ABOS anything",
+      "Aircraft and listing analysis",
+      "ATI Score and risk signals",
+      "Guides you to the right product",
     ],
-    cta: "Get ATI Score free",
-    to: "/ati-verify",
+    cta: "Ask ABOS",
+    to: "/finance-advisor",
     featured: false,
   },
   {

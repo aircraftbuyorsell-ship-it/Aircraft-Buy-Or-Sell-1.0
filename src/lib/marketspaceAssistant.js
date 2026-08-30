@@ -25,6 +25,11 @@ export async function runMarketspaceAssistant(request, options = {}) {
   if (["discover", "evaluate", "compare"].includes(intent)) {
     const listings = await base44.entities.AircraftListing.filter({ status: "active" }, "-updated_date", 100);
     result.aircraft = listings.slice(0, 25);
+    const registration = extractRegistration(text);
+    if (registration) {
+      result.aircraft = result.aircraft.filter(a => String(a.registration || "").toUpperCase() === registration);
+      result.requestedRegistration = registration;
+    }
     result.evidence.push({ source: "base44", type: "active_listings", count: listings.length });
   }
 
@@ -47,7 +52,7 @@ export async function runMarketspaceAssistant(request, options = {}) {
 
   // Transaction layer: Sales Pipeline is the execution state for a market opportunity.
   // It reuses the same registration / aircraft context instead of creating a second aircraft record.
-  if (intent === "sell" || intent === "buyers" || intent === "evaluate") {
+  if (intent === "sell" || intent === "buyers" || intent === "evaluate" || intent === "discover" || intent === "compare") {
     const registration = extractRegistration(text);
     if (registration) {
       const pipelines = await base44.entities.SalesPipeline.filter({ registration }, "-updated_date", 1).catch(() => []);
@@ -57,7 +62,7 @@ export async function runMarketspaceAssistant(request, options = {}) {
         status: pipelines[0]?.status || "not_started",
         progressPct: pipelines[0]?.progress_pct ?? 0,
       };
-      result.nextActions = [...result.nextActions, pipelines[0] ? "Open Transaction Pipeline" : "Create Transaction Pipeline"];
+      result.nextActions = [...result.nextActions, pipelines[0] ? "Open Transaction Pipeline" : "Create Transaction Pipeline", "Verify aircraft", "Review Digital Twin", "Review ATI / OMVM"];
     }
   }
 
@@ -71,6 +76,7 @@ export function extractRegistration(text) {
 
 export function marketspaceSummary(result) {
   if (!result) return "";
+  if (result.transaction?.existingPipelineId) return `The aircraft is connected to an active transaction pipeline at ${result.transaction.progressPct}% progress. Continue verification, valuation and deal execution from the same aircraft state.`;
   const count = result.aircraft?.length || 0;
   if (result.intent === "evaluate") return `I found ${count} active aircraft and ranked the strongest market opportunities by Deal Score. The next step is to verify and review OMVM/ATI for the top candidates.`;
   if (result.intent === "discover") return `I found ${count} active aircraft matching the current market search space. Select candidates to shortlist, compare or verify.`;

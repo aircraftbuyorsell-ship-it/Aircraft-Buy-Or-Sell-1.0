@@ -1,5 +1,5 @@
-// ABOS Action-Based Monetization
-// Conversation is not metered. Billable capabilities/actions are metered instead.
+// ABOS Agent monetization: subscription-first + usage wallet + one-time actions.
+import { ABOS_FLIGHT_PLANS, ABOS_FLIGHT_PACKS, ABOS_TIME_POLICIES, ABOS_CREDIT_COSTS } from './abosFlightPlans';
 export const ABOS_ACTIONS = {
   ATI_REPORT: { label: 'ATI Full Verification', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'aircraft', repeatable: true },
   DEAL_ANALYSIS: { label: 'Deal Analysis', price: 99, currency: 'USD', product: 'DEAL_ANALYSIS', unit: 'aircraft', repeatable: true },

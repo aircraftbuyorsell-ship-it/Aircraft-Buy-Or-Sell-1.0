@@ -213,7 +213,8 @@ export default function SubscriptionManagement() {
   const tierMeta = TIER_META[tier] || TIER_META.free_explorer;
   const TierIcon = tierMeta.icon;
   const safeTokens = Number.isFinite(Number(tokens)) ? Math.max(0, Number(tokens)) : 0;
-  const credits = toCredits(safeTokens);
+  // API tokens are API-only consumption. Aircraft intelligence unlocks use their own pricing.
+  const apiCredits = toCredits(safeTokens);
   const activeSubscription = billingData?.subscriptions?.find((s) => ["active", "trialing"].includes(s.status));
   const activeProduct = activeSubscription?.product_key ? billingData?.entitlements?.find((e) => e.product_key === activeSubscription.product_key) : null;
 
@@ -403,7 +404,7 @@ export default function SubscriptionManagement() {
                         </div>
                         <div className="text-right shrink-0">
                           <p className={`text-sm font-black ${isPositive ? "text-[#5dcaa5]" : "text-[#e24b4a]"}`}>
-                            {isPositive ? "+" : ""}{toCredits(Number.isFinite(Number(tx.amount)) ? Number(tx.amount) : 0).toLocaleString()} cr
+                            {isPositive ? "+" : ""}{toCredits(Number.isFinite(Number(tx.amount)) ? Number(tx.amount) : 0).toLocaleString()} API cr
                           </p>
                           {Number.isFinite(Number(tx.price_usd)) && <p className="text-[10px] text-[rgba(255,255,255,0.35)]">${Number(tx.price_usd).toFixed(2)}</p>}
                         </div>

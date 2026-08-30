@@ -207,7 +207,7 @@ export default function MaxChat() {
       if (/\b(verify|verification|registry check|check this aircraft)\b/i.test(text) && aircraftMatch && !orchestrationContext.includes('Current stage: analysis')) {
         try {
           const verification = await runVerificationAssistant(aircraftMatch[1], { entry: "abos_assistant" });
-          orchestrationContext = `\n\n--- SHARED VERIFICATION WORKFLOW ---\nAircraft ${verification.registration} verification workflow completed. Use only entitlement-safe/high-level conclusions from this context. Do not disclose premium evidence or internal scoring methodology.\n--- END VERIFICATION WORKFLOW ---`;
+          orchestrationContext += `\n\n--- SHARED VERIFICATION WORKFLOW ---\nAircraft ${verification.registration} verification workflow completed. Use only entitlement-safe/high-level conclusions from this context. Do not disclose premium evidence or internal scoring methodology.\n--- END VERIFICATION WORKFLOW ---`;
           window.dispatchEvent(new CustomEvent('abos:assistant-verification', { detail: verification }));
         } catch (e) { orchestrationContext = `\n\nVerification workflow could not be completed: ${e?.message || 'unavailable'}`; }
       } else if (/\b(find|search|show|compare|deal|undervalued|below market|sell|buyers|market)\b/i.test(text)) {

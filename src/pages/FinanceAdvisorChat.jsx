@@ -9,7 +9,7 @@ import MessageBubble from "@/components/finance/MessageBubble";
 import MobileConversationDrawer from "@/components/finance/MobileConversationDrawer";
 import SkillPipelineChips from "@/components/finance/SkillPipelineChips";
 
-const HINTS = ["Enter N123AB to start investment analysis…", "Try OK-TNG for EASA registry…", "Upload FAA N-Number PDF…"];
+const HINTS = ["Enter N123AB to run a full ABOS aircraft analysis…", "Ask for valuation, market report, or investment briefing…", "Try OPEX, insurance, leasing, upgrade, or service intelligence…"];
 const REGEX = /\b(?:N\d{1,5}[A-Z]{0,2}|G-[A-Z]{4}|[A-Z]{1,2}-[A-Z]{2,5})\b/i;
 
 function ToolCallDisplay({ toolCall }) {

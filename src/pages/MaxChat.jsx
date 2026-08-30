@@ -151,8 +151,30 @@ export default function MaxChat() {
   const recognitionRef = useRef(null);
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
   const voiceModeRef = useRef(false);
+  const intakeStartedRef = useRef(false);
 
   useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
+
+  // N-Lookup is the universal ABOS intake. Carry registration/listing/evidence into the Agent.
+  useEffect(() => {
+    if (intakeStartedRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const registration = params.get("registration");
+    const listing = params.get("listing");
+    const intent = params.get("intent") || "identify";
+    const attachmentUrls = (params.get("attachments") || "").split(",").filter(Boolean);
+    if (!registration && !listing && !attachmentUrls.length) return;
+    intakeStartedRef.current = true;
+    const parts = [
+      `ABOS intake: ${intent}`,
+      registration ? `Aircraft: ${registration}` : "",
+      listing ? `Listing / supplied text:\n${listing}` : "",
+      attachmentUrls.length ? `Evidence files attached: ${attachmentUrls.length}` : "",
+      "Please continue the workflow using the shared Digital Twin, ADL/APL state and available evidence."
+    ].filter(Boolean);
+    sendMessage(parts.join("\n\n"));
+    window.history.replaceState({}, "", "/max-chat");
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -201,6 +223,11 @@ export default function MaxChat() {
 
     try {
       const history = [...messages, userMsg].slice(-10);
+      const intakeParams = new URLSearchParams(window.location.search);
+      const intakeEvidence = (intakeParams.get("attachments") || "").split(",").filter(Boolean);
+      if (intakeEvidence.length) {
+        orchestrationContext += `\n\n--- INTAKE EVIDENCE ---\n${intakeEvidence.length} uploaded evidence file(s) are attached to this aircraft intake. Treat them as evidence candidates and request/perform document or visual analysis according to the active APL workflow.\n--- END INTAKE EVIDENCE ---`;
+      }
       let orchestrationContext = "";
       const aircraftMatch = text.trim().toUpperCase().match(/\b([A-Z]{1,2}-?[A-Z0-9]{2,6}|N\d{1,5}[A-Z]{0,3})\b/);
       try {

@@ -165,7 +165,7 @@ export default function NLookup() {
           {[
             { n: "300k+", l: "FAA records" },
             { n: "8", l: "ATI dimensions" },
-            { n: "$49", l: "Full PDF report" },
+            { n: "$39", l: "Full ATI report" },
           ].map((s) => (
             <div key={s.l} className="rounded-xl py-4"
               style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>

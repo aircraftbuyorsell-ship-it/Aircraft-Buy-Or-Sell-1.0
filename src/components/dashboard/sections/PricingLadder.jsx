@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import SectionShell from "./SectionShell";
+import { ABOS_PRODUCTS } from "@/lib/abosProducts";
 
 const PLANS = [
   {
@@ -21,7 +22,7 @@ const PLANS = [
   {
     key: "ati_report",
     name: "ATI Report",
-    price: "$49",
+    price: ABOS_PRODUCTS.ATI_REPORT.displayPrice,
     priceNote: "per aircraft",
     tagline: "Aircraft due diligence before you buy.",
     features: [
@@ -37,19 +38,19 @@ const PLANS = [
     flag: "Most popular",
   },
   {
-    key: "ati_pro",
-    name: "ATI Pro",
-    price: "$199",
+    key: "deal_analysis",
+    name: ABOS_PRODUCTS.DEAL_ANALYSIS.name,
+    price: ABOS_PRODUCTS.DEAL_ANALYSIS.displayPrice,
     priceNote: "per aircraft",
-    tagline: "Financial Advisor + Investment Brief.",
+    tagline: "Know whether the aircraft is actually a good deal.",
     features: [
       "Everything in ATI Report",
       "Market valuation & comparables",
-      "CAPEX / OPEX analysis",
-      "Engine, MRO & avionics economics",
-      "Lease, financing & ownership scenarios",
+      "Deal score and price position",
+      "Risk and negotiation analysis",
+      "Buy / negotiate / review / pass guidance",
     ],
-    cta: "Get Investment Brief",
+    cta: "Analyze This Deal",
     to: "/pricing",
     featured: false,
   },
@@ -62,7 +63,7 @@ export default function PricingLadder() {
       title="Pay Only For What You Need To Know"
       subtitle="Start with a free ATI Score. Buy a full due-diligence report or an investment-grade brief only for the aircraft you're actually considering."
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {PLANS.map((plan) => (
           <div
             key={plan.key}
@@ -113,7 +114,7 @@ export default function PricingLadder() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-muted-foreground pt-4 border-t border-border">
-        <span>Report packs from $25/report · API & white-label for teams from €690/month</span>
+        <span>Investment $149 · Professional Review from $499</span>
         <Link
           to="/pricing"
           className="inline-flex items-center gap-1.5 font-semibold text-foreground hover:text-gold-official"

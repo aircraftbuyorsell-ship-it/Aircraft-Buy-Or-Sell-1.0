@@ -1,4 +1,4 @@
-import { ST_ELMO_MODEL } from "./provider/nemotron/config";
+import { ST_ELMO_MODEL } from "./provider/nemotron/config.js";
 
 /** Stable ABOS model identity. Provider/model can change without changing product identity. */
 export const ABOS_ST_ELMO = Object.freeze({

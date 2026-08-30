@@ -394,9 +394,9 @@ export default function MaxChat() {
           </div>
           {agentWorkflow.workflow.next?.length > 0 && <div className="mt-3 flex items-center gap-2 text-[10px] text-white/50"><AlertTriangle className="w-3.5 h-3.5 text-[#E8A83A]" /><span>Next best action: {agentWorkflow.workflow.next[0]}</span></div>}
         </div>
-      )
+      )}
 
-      {/* ── Cockpit Panel ── */}
+      {/* ── Cockpit Panel ── */
       <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>
         {/* Outer ring */}
         <div

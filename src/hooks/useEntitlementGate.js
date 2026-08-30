@@ -22,8 +22,8 @@ export function useEntitlementGate() {
       setGate({
         productKey,
         registration,
-        price: res.checkout_price_eur,
-        originalPrice: res.original_price_eur,
+        price: res.checkout_price_usd,
+        originalPrice: res.original_price_usd,
         discount: res.discount_pct || 0,
         welcome: res.welcome_promo || false,
         loading: false,

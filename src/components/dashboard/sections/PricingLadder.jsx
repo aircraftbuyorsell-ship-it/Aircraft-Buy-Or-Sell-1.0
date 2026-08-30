@@ -54,6 +54,40 @@ const PLANS = [
     to: "/pricing",
     featured: false,
   },
+  {
+    key: "investment",
+    name: ABOS_PRODUCTS.INVESTMENT.name,
+    price: ABOS_PRODUCTS.INVESTMENT.displayPrice,
+    priceNote: "per aircraft",
+    tagline: "Understand the ownership economics before committing.",
+    features: [
+      "Complete Deal Analysis",
+      "CAPEX / OPEX economics",
+      "Ownership and financing scenarios",
+      "Investment risk assessment",
+      "3–5 year ownership outlook",
+    ],
+    cta: "Run Investment Analysis",
+    to: "/pricing",
+    featured: false,
+  },
+  {
+    key: "professional",
+    name: ABOS_PRODUCTS.PROFESSIONAL.name,
+    price: ABOS_PRODUCTS.PROFESSIONAL.displayPrice,
+    priceNote: "per review",
+    tagline: "Have an aviation professional review the ABOS analysis.",
+    features: [
+      "AI analysis package",
+      "Identified risks and questions",
+      "Professional comments",
+      "Credentialed review workflow",
+      "Review status and audit trail",
+    ],
+    cta: "Request Professional Review",
+    to: "/experts",
+    featured: false,
+  },
 ];
 
 export default function PricingLadder() {

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
-  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu } from "lucide-react";
+  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu, ChevronDown } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import MarketspaceTour from "@/components/marketspace-tour/MarketspaceTour";
@@ -27,6 +27,12 @@ function initials(user) {
 }
 
 function DrawerContent({ pathname, user, onNavigate, isDark }) {
+  const [expanded, setExpanded] = useState(() => {
+    const current = NAV_TREE.find((section) => section.categories?.some((cat) =>
+      cat.items.some((item) => pathname === item.path.split("?")[0] || pathname.startsWith(item.path.split("?")[0] + "/"))
+    ));
+    return current?.label || null;
+  });
   const tx = (darkVal, lightVal) => (isDark ? darkVal : lightVal);
   const cardBg = tx("rgba(255,255,255,0.03)", "rgba(0,0,0,0.03)");
   const border = tx("rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
@@ -59,16 +65,55 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {NAV_TREE.map((section) =>
-          <div key={section.label} style={{ marginTop: 8 }}>
-            <NavItem
-              to={section.path}
-              icon={section.icon}
-              label={section.label}
-              active={pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"))}
-              onClick={onNavigate} />
-          </div>
-        )}
+        {NAV_TREE.map((section) => {
+          const active = pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"));
+          const hasChildren = Boolean(section.categories?.length);
+          const isExpanded = expanded === section.label;
+          return (
+            <div key={section.label} style={{ marginTop: 8 }}>
+              <div className="flex items-center gap-1">
+                <div className="min-w-0 flex-1">
+                  <NavItem
+                    to={hasChildren ? section.path : section.path}
+                    icon={section.icon}
+                    label={section.label}
+                    active={active}
+                    onClick={() => { onNavigate(); if (hasChildren) setExpanded(section.label); }} />
+                </div>
+                {hasChildren && (
+                  <button
+                    type="button"
+                    aria-label={`${isExpanded ? "Collapse" : "Expand"} ${section.label}`}
+                    onClick={() => setExpanded(isExpanded ? null : section.label)}
+                    className="mr-1 rounded-md p-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  >
+                    <ChevronDown size={13} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
+                )}
+              </div>
+              {hasChildren && isExpanded && (
+                <div className="ml-4 mt-1 space-y-2 border-l border-border pl-3">
+                  {section.categories.map((category) => (
+                    <div key={category.label}>
+                      <p className="px-2 pb-1 text-[8px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60">{category.label}</p>
+                      {category.items.map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={onNavigate}
+                          className="flex min-h-9 items-center gap-2 rounded-lg px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                        >
+                          {item.icon && <item.icon size={12} />}
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
       {/* Legal Footer */}

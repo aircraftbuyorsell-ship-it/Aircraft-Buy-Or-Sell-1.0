@@ -29,19 +29,27 @@ export default {
     const url = new URL(request.url);
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) return json({ ok: true, service: MODEL_ID, version: VERSION, status: "online", backend: "nvidia" });
     if (request.method !== "POST" || url.pathname !== "/v1/chat/completions") return json({ error: "Not found" }, 404);
-    if (!env.NVIDIA_API_KEY) return json({ error: "NVIDIA_API_KEY is not configured" }, 503);
+    if (!env.NVIDIA_API_KEY) return json({ error: "NVIDIA_API_KEY is not configured", diagnostic: "missing_runtime_secret" }, 503);
     let body;
     try { body = await request.json(); } catch { return json({ error: "Invalid JSON body" }, 400); }
     const messages = Array.isArray(body.messages) ? body.messages : [];
     if (!messages.length) return json({ error: "messages is required" }, 400);
     const baseUrl = (env.NVIDIA_NIM_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, "");
     const model = env.NVIDIA_MODEL || DEFAULT_BACKEND_MODEL;
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: { "content-type": "application/json", "authorization": `Bearer ${env.NVIDIA_API_KEY}` },
-      body: JSON.stringify({ model, messages: [{ role: "system", content: systemPrompt() }, ...messages], temperature: typeof body.temperature === "number" ? body.temperature : 0.2, max_tokens: typeof body.max_tokens === "number" ? body.max_tokens : 4096, stream: Boolean(body.stream) })
-    });
-    if (!response.ok) return json({ error: "NVIDIA backend request failed", status: response.status, detail: (await response.text()).slice(0, 2000) }, 502);
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "authorization": `Bearer ${env.NVIDIA_API_KEY}` },
+        body: JSON.stringify({ model, messages: [{ role: "system", content: systemPrompt() }, ...messages], temperature: typeof body.temperature === "number" ? body.temperature : 0.2, max_tokens: typeof body.max_tokens === "number" ? body.max_tokens : 4096, stream: Boolean(body.stream) })
+      });
+    } catch (error) {
+      return json({ error: "NVIDIA backend network request failed", diagnostic: "fetch_failed", detail: error?.message || "unknown network error", model, endpoint: `${baseUrl}/chat/completions` }, 502);
+    }
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 2000);
+      return json({ error: "NVIDIA backend rejected the request", diagnostic: "nvidia_http_error", nvidia_status: response.status, nvidia_status_text: response.statusText, detail, model, endpoint: `${baseUrl}/chat/completions` }, 502);
+    }
     if (body.stream) return new Response(response.body, { status: response.status, headers: { "content-type": response.headers.get("content-type") || "text/event-stream", "cache-control": "no-cache", "access-control-allow-origin": "*" } });
     const result = await response.json();
     result.model = MODEL_ID;

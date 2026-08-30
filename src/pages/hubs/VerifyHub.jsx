@@ -1,32 +1,10 @@
-import {
-  Shield, Search, CheckCircle, ShieldCheck, Award, BadgeCheck,
-  Radar, Map,
-} from "lucide-react";
+import { Shield, ShieldCheck } from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import HubPageHeader from "@/components/hub/HubPageHeader";
 
 const VerificationAssistant = lazyPage(() => import("@/pages/VerificationAssistant"));
-const NLookup = lazyPage(() => import("@/pages/NLookup"));
-const PreBuyInspection = lazyPage(() => import("@/pages/PreBuyInspection"));
-const ATIPassport = lazyPage(() => import("@/pages/ATIPassport"));
-const ATIStandard = lazyPage(() => import("@/pages/ATIStandard"));
-const ATIVerify = lazyPage(() => import("@/pages/ATIVerify"));
-const Experts = lazyPage(() => import("@/pages/Experts"));
-const DigitalTwin = lazyPage(() => import("@/pages/DigitalTwin"));
-const TrafficMap = lazyPage(() => import("@/pages/TrafficMap"));
-const FAAMap = lazyPage(() => import("@/pages/FAAMap"));
-
 const TABS = [
   { key: "registry", label: "Verification Assistant", icon: ShieldCheck, Component: VerificationAssistant },
-  { key: "registry-lookup", label: "Registry Lookup", icon: Search, Component: NLookup },
-  { key: "faa-map", label: "FAA Registry Map", icon: Map, Component: FAAMap },
-  { key: "traffic", label: "Live Traffic", icon: Radar, Component: TrafficMap },
-  { key: "twin", label: "Digital Twin", icon: Shield, Component: DigitalTwin },
-  { key: "passport", label: "ATI Passport", icon: ShieldCheck, Component: ATIPassport },
-  { key: "prebuy", label: "Pre-Buy Inspection", icon: CheckCircle, Component: PreBuyInspection },
-  { key: "ati-standard", label: "ATI Standard", icon: Award, Component: ATIStandard },
-  { key: "ati-verify", label: "Verification Center", icon: ShieldCheck, Component: ATIVerify },
-  { key: "experts", label: "Verified Experts", icon: BadgeCheck, Component: Experts },
 ];
 
 export default function VerifyHub() {
@@ -47,7 +25,7 @@ export default function VerifyHub() {
           eyebrow="Verify"
           title="Aircraft & Identity Verification"
           subtitle="Start one verification workflow. The same evidence graph can be consumed by ATI, valuation, market intelligence, service intelligence and ABOS Assistant."
-          tabCount={TABS.length}
+          tabCount={1}
         />
         <HubTabs tabs={TABS} defaultTab="registry" />
       </div>

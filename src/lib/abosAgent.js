@@ -39,7 +39,7 @@ export async function runABOSAgent(request, options = {}) {
       if (!response.ok) throw new Error(`St. Elmo Worker returned ${response.status}`);
       const payload = await response.json();
       const content = payload?.choices?.[0]?.message?.content;
-      reasoning = { ...payload, answer: content || null };
+      reasoning = { ...payload, answer: typeof content === "string" ? content : null };
     } catch (_) {
       // Deterministic ABOS routing remains the safe fallback when the reasoning backend is unavailable.
     }

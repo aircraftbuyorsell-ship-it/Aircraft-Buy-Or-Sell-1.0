@@ -223,12 +223,12 @@ export default function MaxChat() {
 
     try {
       const history = [...messages, userMsg].slice(-10);
+      let orchestrationContext = "";
       const intakeParams = new URLSearchParams(window.location.search);
       const intakeEvidence = (intakeParams.get("attachments") || "").split(",").filter(Boolean);
       if (intakeEvidence.length) {
         orchestrationContext += `\n\n--- INTAKE EVIDENCE ---\n${intakeEvidence.length} uploaded evidence file(s) are attached to this aircraft intake. Treat them as evidence candidates and request/perform document or visual analysis according to the active APL workflow.\n--- END INTAKE EVIDENCE ---`;
       }
-      let orchestrationContext = "";
       const aircraftMatch = text.trim().toUpperCase().match(/\b([A-Z]{1,2}-?[A-Z0-9]{2,6}|N\d{1,5}[A-Z]{0,3})\b/);
       try {
         const agent = await runABOSAgent(text, { entry: "cockpit" });

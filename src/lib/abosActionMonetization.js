@@ -5,9 +5,9 @@ export const ABOS_ACTIONS = {
   DEAL_ANALYSIS: { label: 'Deal Analysis', price: 99, currency: 'USD', product: 'DEAL_ANALYSIS', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.deal_analysis },
   INVESTMENT_BRIEF: { label: 'Investment Brief', price: 149, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.investment_brief },
   PROFESSIONAL_REVIEW: { label: 'Professional Review', price: 499, currency: 'USD', product: 'PROFESSIONAL', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.professional_review },
-  VISION_INSPECTION: { label: 'AI Vision Inspection', price: 49, currency: 'USD', product: 'PROFESSIONAL', unit: 'inspection_session', repeatable: true },
-  DOCUMENT_ANALYSIS: { label: 'Logbook & Document Analysis', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'document_set', repeatable: true },
-  MARKET_REPORT: { label: 'Market Report', price: 15, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true },
+  VISION_INSPECTION: { label: 'AI Vision Inspection', price: 49, currency: 'USD', product: 'PROFESSIONAL', unit: 'inspection_session', repeatable: true, credits: ABOS_CREDIT_COSTS.vision_inspection, time_policy: ABOS_TIME_POLICIES.vision_inspection },
+  DOCUMENT_ANALYSIS: { label: 'Logbook & Document Analysis', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'document_set', repeatable: true, credits: ABOS_CREDIT_COSTS.document_analysis },
+  MARKET_REPORT: { label: 'Market Report', price: 15, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.market_report, time_policy: ABOS_TIME_POLICIES.market_report },
 };
 
 export function getAction(actionId) { return ABOS_ACTIONS[actionId] || null; }

@@ -40,11 +40,18 @@ async function resolveInput(base44: any, raw: string, inputType: string) {
 
 async function registry(base44: any, reg: string) {
   const n = reg.replace(/^N/i, '').replace(/[^A-Z0-9]/gi, '');
+  if (reg.startsWith('N') && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const rows = await sb(`faa_registry?n_number=eq.${encodeURIComponent(n)}&select=id,n_number,serial_number,mfr_mdl_code,year_mfr,name,status_code,mode_s_code_hex,state,country,air_worth_date,expiration_date&limit=1`);
+      const row = rows?.[0];
+      if (row) return { found: true, source: 'supabase_faa_registry', registration: `N${row.n_number}`, serial_number: row.serial_number || null, manufacturer: row.mfr_mdl_code || null, model: row.mfr_mdl_code || null, year: row.year_mfr || null, status: row.status_code || null, registration_status: row.status_code || null, mode_s_hex: row.mode_s_code_hex || null, registered_owner: row.name || null, state: row.state || null, country: row.country || 'US', faa_registry_id: row.id };
+    } catch (_) {}
+  }
   let faa = [];
   if (reg.startsWith('N')) faa = await entityRows(base44, 'FAAAircraft', { n_number: n }, 1);
   let row = faa[0] || null;
   if (!row) { const cached = await entityRows(base44, 'GlobalRegistry', { registration: reg }, 1); row = cached[0] || null; }
-  if (row) return { found: true, source: row.n_number ? 'faa_registry' : 'global_registry_cache', registration: reg, serial_number: row.serial_number || null, manufacturer: row.make || row.manufacturer || null, model: row.model || null, year: row.year_mfr || row.year || null, status: row.status_code || row.status || null, registration_status: row.status_code || row.status || null, mode_s_hex: row.mode_s_hex || null, registered_owner: row.name || row.registered_owner || null, state: row.state || null, country: row.country || 'United States' };
+  if (row) return { found: true, source: row.n_number ? 'faa_registry_cache' : 'global_registry_cache', registration: reg, serial_number: row.serial_number || null, manufacturer: row.make || row.manufacturer || null, model: row.model || null, year: row.year_mfr || row.year || null, status: row.status_code || row.status || null, registration_status: row.status_code || row.status || null, mode_s_hex: row.mode_s_hex || null, registered_owner: row.name || row.registered_owner || null, state: row.state || null, country: row.country || 'United States' };
   try {
     const r = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(reg)}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) });
     const j = r.ok ? await r.json() : null; const a = j?.response?.aircraft;
@@ -54,7 +61,11 @@ async function registry(base44: any, reg: string) {
 }
 
 async function activity(base44: any, reg: string) {
-  const appearances = await entityRows(base44, 'TrafficAppearance', { registration: reg }, 50);
+  let appearances: any[] = [];
+  if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+    try { appearances = await sb(`live_traffic?registration=eq.${encodeURIComponent(reg)}&select=recorded_at,latitude,longitude,altitude_ft,ground_speed_kt,heading,on_ground&order=recorded_at.desc&limit=50`) || []; } catch (_) {}
+  }
+  if (!appearances.length) appearances = await entityRows(base44, 'TrafficAppearance', { registration: reg }, 50);
   let live: any = null;
   try { const r = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(reg)}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }); const j = r.ok ? await r.json() : null; live = j?.response?.aircraft || null; } catch (_) {}
   const last = appearances[0]; const days = last?.captured_at ? Math.floor((Date.now() - new Date(last.captured_at).getTime()) / DAY_MS) : null;
@@ -89,10 +100,18 @@ Deno.serve(async (req) => {
     const r = await registry(base44, reg); const registryVerified = r.found && !!r.registration;
     const identityConflict = r.found && reg !== normalizeRegistration(r.registration || reg);
     const identity = { verified: !!r.found && !!r.serial_number, confidence: r.found ? (r.serial_number ? 95 : 70) : 10, registration_match: !identityConflict, serial_number: r.serial_number || resolved.serial, manufacturer: r.manufacturer, model: r.model, year: r.year };
-    const ownership = { verified: !!r.registered_owner, confidence: r.registered_owner ? 75 : 15, registered_owner: r.registered_owner || null, seller_consistency: body.seller ? !!r.registered_owner && String(body.seller).toUpperCase().includes(String(r.registered_owner).toUpperCase()) : null };
+    let ownershipHistory: any[] = [];
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      try { ownershipHistory = await sb(`ownership_history?passport_id=eq.${encodeURIComponent(twin.id)}&select=owner_name,owner_type,owner_country,from_date,to_date,is_current,source&order=sequence.asc&limit=50`) || []; } catch (_) {}
+    }
+    const ownership = { verified: !!r.registered_owner || ownershipHistory.length > 0, confidence: ownershipHistory.length ? 90 : (r.registered_owner ? 75 : 15), registered_owner: r.registered_owner || ownershipHistory.find(x => x.is_current)?.owner_name || null, history_count: ownershipHistory.length, seller_consistency: body.seller ? (!!r.registered_owner || ownershipHistory.length > 0) && ownershipHistory.some(x => String(x.owner_name || '').toUpperCase().includes(String(body.seller).toUpperCase())) : null };
     const act = await activity(base44, reg);
     const service = await moduleProbe(base44, reg, ['ServiceRecord', 'MaintenanceRecord', 'FAAServiceRecord', 'ADRecord', 'ServiceEvent']);
-    const documents = await moduleProbe(base44, reg, ['AircraftDocument', 'AircraftDocumentRecord', 'VerificationDocument', 'DocumentRecord', 'UploadedDocument']);
+    let documents: any = null;
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      try { const docs = await sb(`documents?passport_id=eq.${encodeURIComponent(twin.id)}&select=id,document_type,file_name,is_verified,verified_at,created_at&order=created_at.desc&limit=50`) || []; documents = { found: docs.length > 0, entity: 'supabase_documents', count: docs.length, records: docs.slice(0, 10) }; } catch (_) {}
+    }
+    if (!documents?.found) documents = await moduleProbe(base44, reg, ['AircraftDocument', 'AircraftDocumentRecord', 'VerificationDocument', 'DocumentRecord', 'UploadedDocument']);
     const conflicts = Number(identityConflict) + (ownership.seller_consistency === false ? 1 : 0);
     const modules = { registry: { verified: registryVerified, confidence: registryVerified ? 95 : 5, ...r }, identity, ownership, activity: { verified: act.status !== 'NO_TRACKING', confidence: act.live || act.appearances_count ? 75 : 20, ...act }, service: { verified: service.found, confidence: service.found ? 70 : 20, ...service }, documents: { verified: documents.found, confidence: documents.found ? 70 : 20, ...documents } };
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { createStElmoTask, updateStElmoTask, getStElmoTask, listActiveStElmoTasks, subscribeToStElmoTask } from "@/lib/stElmoTaskEngine";
 import { BrainCircuit, ChevronDown, Loader2, Maximize2, Minimize2, Send, Sparkles, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -26,11 +27,45 @@ export default function StElmoChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [backgroundTask, setBackgroundTask] = useState(null);
+  const [taskId, setTaskId] = useState(null);
   const endRef = useRef(null);
 
   useEffect(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES))), [messages]);
   useEffect(() => localStorage.setItem(OPEN_KEY, open ? "1" : "0"), [open]);
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+
+  // Resume active server-side tasks after returning to the browser.
+  useEffect(() => {
+    let cancelled = false;
+    listActiveStElmoTasks().then(tasks => {
+      if (cancelled || !tasks.length) return;
+      const latest = tasks[0];
+      setTaskId(latest.id);
+      setBackgroundTask({ startedAt: Date.now(), status: latest.phase || latest.status, taskId: latest.id });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!taskId) return;
+    return subscribeToStElmoTask(taskId, task => {
+      if (!task) return;
+      setBackgroundTask({ startedAt: Date.now(), status: task.phase || task.status, taskId });
+      if (task.status === "completed" && task.result) {
+        const answer = task.result.answer || task.result.response || task.result.synthesis || String(task.result);
+        setMessages(prev => [...prev, { role: "assistant", content: answer, meta: { model: task.result.model || "St. Elmo M_1.0", provider: task.result.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
+        setBusy(false);
+        setTaskId(null);
+        setBackgroundTask(null);
+      }
+      if (task.status === "failed") {
+        setMessages(prev => [...prev, { role: "assistant", content: `Background reasoning failed. ${task.error || "Please retry."}` }].slice(-MAX_MESSAGES));
+        setBusy(false);
+        setTaskId(null);
+        setBackgroundTask(null);
+      }
+    });
+  }, [taskId]);
 
   // Keep the UI state alive when the browser backgrounds the tab. The actual reasoning call
   // is server-side, so it is not dependent on a foreground React timer.
@@ -53,6 +88,14 @@ export default function StElmoChat() {
     setBusy(true);
     setBackgroundTask(null);
 
+    const task = await createStElmoTask({
+      prompt: text,
+      conversationId: "global_st_elmo_chat",
+      metadata: { page: window.location.pathname }
+    });
+    setTaskId(task.id);
+    await updateStElmoTask(task.id, { status: "reasoning", phase: "reasoning" });
+
     try {
       const context = {
         source: "global_st_elmo_chat",
@@ -60,14 +103,17 @@ export default function StElmoChat() {
         recent_messages: next.slice(-12),
         timestamp: new Date().toISOString(),
       };
-      const result = await base44.functions.invoke("stElmoReasoning", { request: text, context });
+      const result = await base44.functions.invoke("stElmoReasoning", { request: text, context, task_id: task.id });
       const data = result?.data || result || {};
       const answer = data.answer || data.response || data.synthesis || (Array.isArray(data.plan) ? `Plan ready:\n${data.plan.map((x) => `- ${x}`).join("\n")}` : "St. Elmo completed the reasoning step.");
+      await updateStElmoTask(task.id, { status: "completed", phase: "synthesis", result: data });
       setMessages(prev => [...prev, { role: "assistant", content: answer, meta: { model: data.model || "St. Elmo M_1.0", provider: data.provider || "NVIDIA Nemotron" } }].slice(-MAX_MESSAGES));
     } catch (error) {
+      await updateStElmoTask(task.id, { status: "failed", phase: "failed", error: error?.message || "The reasoning backend is temporarily unavailable." });
       setMessages(prev => [...prev, { role: "assistant", content: `I couldn't complete that reasoning run. ${error?.message || "The reasoning backend is temporarily unavailable."}` }].slice(-MAX_MESSAGES));
     } finally {
       setBusy(false);
+      setTaskId(null);
       setBackgroundTask(null);
     }
   }, [busy, input, messages]);

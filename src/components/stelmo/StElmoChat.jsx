@@ -176,7 +176,7 @@ export default function StElmoChat() {
     <div className="fixed bottom-4 right-4 z-[80] font-sans">
       {open &&
       <div className={`mb-3 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220]/95 shadow-2xl shadow-black/40 backdrop-blur-xl ${expanded ? "h-[min(78vh,720px)] w-[min(92vw,760px)]" : "h-[min(68vh,620px)] w-[min(92vw,430px)]"}`}>
-          <header className="flex items-center gap-3 border-b border-white/10 bg-white/[0.035] px-4 py-3">
+          <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3 bg-gray-100">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E8A83A]/30 bg-[#E8A83A]/10 text-[#E8A83A]"><BrainCircuit className="h-5 w-5" /></div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2"><p className="text-sm font-black text-white">St. Elmo</p><span className="rounded-full border border-[#E8A83A]/30 px-1.5 py-0.5 text-[8px] font-black tracking-wider text-[#E8A83A]">M_1.0</span></div>
@@ -187,7 +187,7 @@ export default function StElmoChat() {
             <button onClick={() => setOpen(false)} className="rounded-lg p-2 text-white/40 hover:bg-white/10 hover:text-white" aria-label="Minimize St. Elmo"><ChevronDown className="h-4 w-4" /></button>
           </header>
 
-          <div className="flex h-[calc(100%-116px)] flex-col overflow-y-auto px-4 py-4 text-gray-50 bg-[hsl(var(--card-foreground))]">
+          <div className="flex h-[calc(100%-116px)] flex-col overflow-y-auto px-4 py-4 bg-gray-50">
             <div className="mb-3 flex items-center gap-2 rounded-xl border border-[#E8A83A]/15 bg-[#E8A83A]/[0.05] px-3 py-2 text-[9px] text-white/45"><Sparkles className="h-3 w-3 text-[#E8A83A]" /> One agent · shared ABOS context · tools remain authoritative</div>
             <div className="space-y-3">
               {messages.map((message, index) =>

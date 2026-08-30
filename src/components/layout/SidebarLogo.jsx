@@ -14,7 +14,7 @@ export default function SidebarLogo({ compact = false }) {
           <polyline points="18,30 22,18 26,24 32,8" fill="none" stroke="#f5c242" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           <polygon points="31,7 35,10 31,13" fill="#f5c242" />
         </svg>
-        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }} className="bg-[hsl(var(--background))]">
+        <span style={{ fontSize: 16, fontWeight: 800, color: "#f5c242", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }} className="bg-[hsl(var(--background))]">
           ABOS<span style={{ fontSize: 8, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
       </Link>);

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant, marketspaceSummary } from "@/lib/marketspaceAssistant";
+import { runABOSAgent } from "@/lib/abosAgent";
 import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
@@ -198,7 +199,12 @@ export default function MaxChat() {
       const history = [...messages, userMsg].slice(-10);
       let orchestrationContext = "";
       const aircraftMatch = text.trim().toUpperCase().match(/\b([A-Z]{1,2}-?[A-Z0-9]{2,6}|N\d{1,5}[A-Z]{0,3})\b/);
-      if (/\b(verify|verification|registry check|check this aircraft)\b/i.test(text) && aircraftMatch) {
+      try {
+        const agent = await runABOSAgent(text, { entry: "cockpit" });
+        orchestrationContext += `\n\n--- ABOS AGENT WORKFLOW ---\nCurrent stage: ${agent.workflow.current}. Completed: ${agent.workflow.completed.join(', ') || 'none'}. Next actions: ${(agent.workflow.next || []).join(', ') || 'none'}. Aircraft: ${agent.registration || 'not specified'}. Premium data remains entitlement-gated.\n--- END ABOS AGENT WORKFLOW ---`;
+        window.dispatchEvent(new CustomEvent('abos:agent-workflow', { detail: agent }));
+      } catch (_) {}
+      if (/\b(verify|verification|registry check|check this aircraft)\b/i.test(text) && aircraftMatch && !orchestrationContext.includes('Current stage: analysis')) {
         try {
           const verification = await runVerificationAssistant(aircraftMatch[1], { entry: "abos_assistant" });
           orchestrationContext = `\n\n--- SHARED VERIFICATION WORKFLOW ---\nAircraft ${verification.registration} verification workflow completed. Use only entitlement-safe/high-level conclusions from this context. Do not disclose premium evidence or internal scoring methodology.\n--- END VERIFICATION WORKFLOW ---`;

@@ -30,7 +30,7 @@ The ABOS execution layer decides whether each capability is authorized and actua
 function extractJson(text) {
   const raw = String(text || '').trim();
   try { return JSON.parse(raw); } catch (_) {}
-  const fenced = raw.match(/```(?:json)?\\s*([\\s\\S]*?)\\s*```/i)?.[1];
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1];
   if (fenced) {
     try { return JSON.parse(fenced); } catch (_) {}
   }

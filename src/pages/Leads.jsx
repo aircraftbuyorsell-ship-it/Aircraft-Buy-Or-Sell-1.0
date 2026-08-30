@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Users, Search, X, Lock, Zap, Sparkles, UserPlus } from "lucide-react";
 import { useBehavior } from "@/lib/useBehavior";
 import LeadPackages from "@/components/leads/LeadPackages";
 import LeadRow, { STATUS_CONFIG } from "@/components/leads/LeadRow";
-import UpgradeGate from "@/components/marketing/UpgradeGate";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import AddLeadModal from "@/components/leads/AddLeadModal";
 
@@ -249,14 +249,19 @@ export default function Leads() {
         </div>
       )}
 
-      <UpgradeGate
-        open={!!gate}
-        onClose={() => setGate(null)}
-        feature="leads_crm"
-        requiredTokens={gate ? fromCredits(gate.creditsNeeded) : 0}
-        userTokens={tokens}
-        isVerified={behavior?.verification_paid}
-      />
+      {gate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)" }} onClick={() => setGate(null)}>
+          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: "#0d1117", border: "1px solid rgba(245,194,66,0.25)" }} onClick={e => e.stopPropagation()}>
+            <p className="text-[10px] uppercase tracking-[0.15em] font-black" style={{ color: AMBER }}>Lead CRM</p>
+            <h3 className="text-xl font-black mt-2" style={{ color: W1 }}>Upgrade to unlock contact information</h3>
+            <p className="text-sm mt-2 leading-relaxed" style={{ color: W2 }}>Lead CRM access is a plan entitlement. No ABOS credits or API tokens are consumed for lead unlocks.</p>
+            <div className="flex gap-2 mt-5">
+              <Link to="/pricing" onClick={() => setGate(null)} className="flex-1 text-center rounded-xl px-4 py-2.5 text-sm font-black" style={{ background: AMBER, color: "#04060a" }}>View Plans & Pricing</Link>
+              <button onClick={() => setGate(null)} className="rounded-xl px-4 py-2.5 text-sm font-bold" style={{ background: "rgba(255,255,255,0.06)", color: W2 }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )
 
       <AddLeadModal
         open={addOpen}

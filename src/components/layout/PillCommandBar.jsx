@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { NAV_TREE, isPathInSection, navGradientWeight } from "@/components/layout/navConfig";
+import GuidedDropdown from "@/components/layout/GuidedDropdown";
 import { useTheme } from "@/lib/useTheme";
 
 /** Flat text nav bar — all sections are direct links to the 4 hubs + Home + Pricing. */
@@ -7,14 +9,35 @@ export default function PillCommandBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const isDark = useTheme();
+  const [open, setOpen] = useState(null);
+  const [usage, setUsage] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("abos-nav-usage") || "{}"); } catch { return {}; }
+  });
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    const close = (event) => { if (!navRef.current?.contains(event.target)) setOpen(null); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  useEffect(() => setOpen(null), [pathname]);
 
   const idleColor = isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.60)";
   const hoverColor = isDark ? "#fff" : "#000";
 
-  const handleNav = (path) => navigate(path);
+  const handleNav = (path) => {
+    navigate(path);
+    setOpen(null);
+    setUsage((prev) => {
+      const next = { ...prev, [path]: (prev[path] || 0) + 1 };
+      try { localStorage.setItem("abos-nav-usage", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   return (
-    <div className="hidden lg:flex items-center gap-6" style={{ height: 48 }}>
+    <div ref={navRef} className="hidden lg:flex items-center gap-6" style={{ height: 48 }}>
       {NAV_TREE.map((section, idx) => {
         const active = isPathInSection(section, pathname);
         const w = navGradientWeight(idx);
@@ -25,7 +48,8 @@ export default function PillCommandBar() {
         return (
           <div key={section.label} style={{ position: "relative" }}>
             <button
-              onClick={() => handleNav(section.path)}
+              aria-expanded={Boolean(section.categories && open === section.label)}
+              onClick={() => section.categories ? setOpen(open === section.label ? null : section.label) : handleNav(section.path)}
               style={{
                 fontSize,
                 fontWeight: active ? 800 : fontWeight,
@@ -44,6 +68,18 @@ export default function PillCommandBar() {
             >
               {section.label}
             </button>
+            {section.categories && open === section.label && (
+              <div
+                className="absolute left-1/2 top-[calc(100%+10px)] z-50 -translate-x-1/2 rounded-2xl border p-4 shadow-2xl"
+                style={{
+                  background: isDark ? "rgba(7,10,16,0.98)" : "rgba(255,255,255,0.98)",
+                  borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.09)",
+                  backdropFilter: "blur(18px)",
+                }}
+              >
+                <GuidedDropdown section={section} usage={usage} onNavigate={handleNav} />
+              </div>
+            )}
             {active && (
               <div style={{
                 position: "absolute", bottom: 2, left: 2, right: 2, height: 2,

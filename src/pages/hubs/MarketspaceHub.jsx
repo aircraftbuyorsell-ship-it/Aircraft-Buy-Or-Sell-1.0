@@ -13,7 +13,7 @@ const CrossBorderBridge = lazyPage(() => import("@/pages/CrossBorderBridge"));
 
 const TABS = [
   { key: "listings", label: "Listings", icon: Plane, Component: Listings },
-  { key: "pipeline", label: "Sales Pipeline", icon: GitBranch, Component: SalesPipeline },
+  { key: "deal-room", label: "Deal Room", icon: GitBranch, Component: SalesPipeline },
   { key: "radar", label: "Deal Radar", icon: Radar, Component: DealRadar },
   { key: "compare", label: "Compare", icon: Scale, Component: Compare },
   { key: "leads", label: "Leads", icon: Users, Component: Leads },

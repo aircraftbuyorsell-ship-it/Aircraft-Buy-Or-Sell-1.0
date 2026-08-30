@@ -16,20 +16,27 @@ export async function runMarketspaceAssistant(request, options = {}) {
     ? "evaluate"
     : lower.includes("watch") || lower.includes("alert") || lower.includes("notify")
     ? "signals"
+    : lower.includes("verify") || lower.includes("verification")
+    ? "verify"
     : lower.includes("cross-border") || lower.includes("cross border") || lower.includes("import")
     ? "cross-border"
     : "discover";
 
   const result = { request: text, intent, createdAt: new Date().toISOString(), aircraft: [], evidence: [], nextActions: [], options };
 
+  const registration = extractRegistration(text);
+  if (registration) {
+    try {
+      const twin = await base44.functions.invoke("publicTwinLookup", { query: registration });
+      result.digitalTwin = twin?.data || null;
+      result.requestedRegistration = registration;
+    } catch (_) {}
+  }
+
   if (["discover", "evaluate", "compare"].includes(intent)) {
     const listings = await base44.entities.AircraftListing.filter({ status: "active" }, "-updated_date", 100);
     result.aircraft = listings.slice(0, 25);
-    const registration = extractRegistration(text);
-    if (registration) {
-      result.aircraft = result.aircraft.filter(a => String(a.registration || "").toUpperCase() === registration);
-      result.requestedRegistration = registration;
-    }
+    if (registration) result.aircraft = result.aircraft.filter(a => String(a.registration || "").toUpperCase() === registration);
     result.evidence.push({ source: "base44", type: "active_listings", count: listings.length });
   }
 
@@ -48,12 +55,13 @@ export async function runMarketspaceAssistant(request, options = {}) {
     result.nextActions = ["Create market signal", "Monitor new listings", "Monitor price changes", "Monitor ATI / valuation changes"];
   } else if (intent === "cross-border") {
     result.nextActions = ["Identify aircraft", "Verify aircraft", "Review cross-border requirements", "Evaluate landed transaction"];
+  } else if (intent === "verify") {
+    result.nextActions = ["Open Verification Assistant", "Review Digital Twin", "Review evidence", "Calculate ATI"];
   }
 
   // Transaction layer: Sales Pipeline is the execution state for a market opportunity.
   // It reuses the same registration / aircraft context instead of creating a second aircraft record.
-  if (intent === "sell" || intent === "buyers" || intent === "evaluate" || intent === "discover" || intent === "compare") {
-    const registration = extractRegistration(text);
+  if (["sell", "buyers", "evaluate", "discover", "compare", "verify"].includes(intent)) {
     if (registration) {
       const pipelines = await base44.entities.SalesPipeline.filter({ registration }, "-updated_date", 1).catch(() => []);
       result.transaction = {
@@ -77,6 +85,7 @@ export function extractRegistration(text) {
 export function marketspaceSummary(result) {
   if (!result) return "";
   if (result.transaction?.existingPipelineId) return `The aircraft is connected to an active transaction pipeline at ${result.transaction.progressPct}% progress. Continue verification, valuation and deal execution from the same aircraft state.`;
+  if (result.intent === "verify") return `Verification workflow is ready for ${result.requestedRegistration || 'the aircraft'}. Continue in Verification Assistant using the same Digital Twin and evidence state.`;
   const count = result.aircraft?.length || 0;
   if (result.intent === "evaluate") return `I found ${count} active aircraft and ranked the strongest market opportunities by Deal Score. The next step is to verify and review OMVM/ATI for the top candidates.`;
   if (result.intent === "discover") return `I found ${count} active aircraft matching the current market search space. Select candidates to shortlist, compare or verify.`;

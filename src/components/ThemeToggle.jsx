@@ -48,13 +48,13 @@ export default function ThemeToggle() {
       onClick={cycle}
       className="relative flex items-center gap-2 px-2.5 h-9 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all overflow-hidden"
       style={{
-        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(255,255,255,0.06)",
+        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(212,160,23,0.08)",
         border: "1px solid",
-        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(255,255,255,0.10)",
-        color: isDark ? "#F5C842" : "rgba(255,255,255,0.70)",
+        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(0,0,0,0.10)",
+        color: isDark ? "#F5C842" : "#6B6560",
       }}
       aria-label={`Theme: ${mode}. Click to change.`}
-      title={mode === "auto" ? "Auto (time-based) — click for dark" : isDark ? "Dark mode — click for light" : "Light mode — click for auto"}
+      title={mode === "auto" ? "Auto — click for light" : isDark ? "Dark mode — click for auto" : "Light mode — click for dark"}
     >
       {/* Glow halo behind icon */}
       <span

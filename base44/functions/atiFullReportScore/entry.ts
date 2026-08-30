@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Paid feature: ATI Full Report (€49 one-time per aircraft) ──
-    const gate = await gateOneTimeProduct(base44, user, 'ATI_BASIC_REPORT', registration);
+    const gate = await gateOneTimeProduct(base44, user, 'ATI_REPORT', registration);
     if (gate) return gate;
 
     // ─── 1) Score each of the 8 dimensions independently ────────────

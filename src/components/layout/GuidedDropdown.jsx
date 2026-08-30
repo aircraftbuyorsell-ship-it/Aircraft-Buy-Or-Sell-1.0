@@ -9,6 +9,19 @@ export default function GuidedDropdown({ section, usage, onNavigate }) {
 
   return (
     <div className="w-[min(760px,calc(100vw-32px))] space-y-4">
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-[#D4A017]/20 bg-[#D4A017]/[0.04] px-3 py-2.5">
+        <div>
+          <p className="text-[11px] font-bold text-foreground">{section.label} Workspace</p>
+          <p className="text-[9px] text-muted-foreground">Open the full workspace or jump directly to a workflow.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate(section.path)}
+          className="shrink-0 rounded-lg bg-[#D4A017] px-3 py-2 text-[10px] font-bold text-white transition-opacity hover:opacity-90"
+        >
+          Open {section.label}
+        </button>
+      </div>
       <div>
         <div className="mb-2 flex items-end justify-between gap-4">
           <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-gold/80">Recommended for you</p>

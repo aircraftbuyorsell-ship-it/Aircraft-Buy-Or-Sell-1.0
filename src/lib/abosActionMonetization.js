@@ -34,6 +34,12 @@ export const ABOS_FREE_ACTIONS = [
 export const ABOS_ACTION_POLICY = {
   conversation: 'unmetered',
   free_data: 'free',
-  paid_capabilities: 'action_based',
+  paid_capabilities: 'wallet_or_one_time',
   token_metering: false,
+  subscription_first: true,
 };
+
+export function getFlightPlan(id) { return ABOS_FLIGHT_PLANS[id] || ABOS_FLIGHT_PLANS.freeflight; }
+export function getFlightPack(id) { return ABOS_FLIGHT_PACKS.find(p => p.id === id) || null; }
+export function getTimePolicy(key) { return ABOS_TIME_POLICIES[key] || null; }
+export function creditCost(action) { return ABOS_CREDIT_COSTS[action] ?? null; }

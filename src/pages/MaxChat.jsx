@@ -255,10 +255,9 @@ export default function MaxChat() {
         history.map(m => `${m.role === "user" ? "User" : "Max"}: ${m.content}`).join("\n")
       }\n\nMax:`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        model: "gemini_3_1_pro",
-      });
+      const llmArgs = { prompt, model: "gemini_3_1_pro" };
+      if (intakeEvidence.length) llmArgs.file_urls = intakeEvidence;
+      const result = await base44.integrations.Core.InvokeLLM(llmArgs);
 
       setMessages(prev => [...prev, { role: "assistant", content: result }]);
 

@@ -250,19 +250,30 @@ export default function NLookup() {
           <p className="text-xs text-muted-foreground leading-relaxed">Registry data, listing text, documents, photos and inspection evidence are combined into the same aircraft context. The Agent can then run Registry, Identity, Ownership, Activity, Service, Document, ATI, valuation and transaction workflows without creating duplicate aircraft records.</p>
         </div>
 
-        {/* Trust footer */}
-        <div className="mt-12 grid grid-cols-3 gap-3 text-center">
-          {[
-            { n: "300k+", l: "FAA records" },
-            { n: "8", l: "ATI dimensions" },
-            { n: "$39", l: "Full ATI report" },
-          ].map((s) => (
-            <div key={s.l} className="rounded-xl py-4"
-              style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-              <p className="text-lg font-black" style={{ color: AMBER }}>{s.n}</p>
-              <p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.4)]">{s.l}</p>
+        {/* Action-based monetization */}
+        <div className="mt-10 rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-foreground">ABOS Action Pricing</p>
+              <p className="text-xs text-muted-foreground mt-1">Chat is not metered. You pay only when the Agent runs a premium aircraft action.</p>
             </div>
-          ))}
+            <span className="text-[10px] font-black uppercase tracking-wider rounded-full px-2.5 py-1 border border-border text-muted-foreground">No token limits</span>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            {[
+              ["ATI Full Verification", "$39", "per aircraft"],
+              ["Deal Analysis", "$99", "per aircraft"],
+              ["Investment Brief", "$149", "per aircraft"],
+              ["Professional Review", "$499+", "per aircraft"],
+            ].map(([name, price, unit]) => (
+              <div key={name} className="rounded-xl border border-border bg-background p-3">
+                <p className="text-xs font-bold text-foreground">{name}</p>
+                <p className="text-lg font-black mt-1" style={{ color: AMBER }}>{price}</p>
+                <p className="text-[10px] text-muted-foreground">{unit}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3">Additional Agent actions such as AI Vision Inspection and Logbook Analysis appear contextually when relevant.</p>
         </div>
       </div>
 

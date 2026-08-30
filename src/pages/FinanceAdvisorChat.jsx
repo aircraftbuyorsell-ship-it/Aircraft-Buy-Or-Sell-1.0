@@ -36,6 +36,17 @@ export default function FinanceAdvisorChat() {
 
   useEffect(() => { (async () => { const data = await base44.agents.listConversations({ agent_name: "finance_advisor" }); setConversations((data || []).filter(conversation => !conversation.metadata?.archived)); setLoadingConversations(false); })(); }, []);
   useEffect(() => { if (!activeConversationId) return; return base44.agents.subscribeToConversation(activeConversationId, data => setMessages(data.messages || [])); }, [activeConversationId]);
+  useEffect(() => {
+    const onVerificationHandoff = event => {
+      const data = event.detail || {};
+      const registration = data.registration || data.digitalTwin?.registration;
+      if (!registration) return;
+      setAircraft({ registration, make: data.modules?.registry?.manufacturer, model: data.modules?.registry?.model, year: data.modules?.registry?.year, ati_score: data.ati_score });
+      setInput(data.handoff?.prompt || `Analyse ${registration} using the completed verification context.`);
+    };
+    window.addEventListener('abos:assistant-handoff', onVerificationHandoff);
+    return () => window.removeEventListener('abos:assistant-handoff', onVerificationHandoff);
+  }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   const detectRegistration = value => value?.match(REGEX)?.[0]?.toUpperCase() || null;

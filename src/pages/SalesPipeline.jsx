@@ -10,7 +10,6 @@ import PipelineNodeCanvas from "@/components/pipeline/PipelineNodeCanvas";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
 import IntegrationHub from "@/components/pipeline/IntegrationHub";
-import PipelinePlanBanner from "@/components/pipeline/PipelinePlanBanner";
 import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 
 export default function SalesPipeline() {

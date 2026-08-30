@@ -6,6 +6,7 @@ import ApiKeysPanel from "@/components/coreapi/ApiKeysPanel";
 import EndpointDoc from "@/components/coreapi/EndpointDoc";
 import TrustScoreApi from "@/components/coreapi/TrustScoreApi";
 import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
+import ApprovedApiAccessGate from "@/components/access/ApprovedApiAccessGate";
 
 /**
  * Full Core API reference — endpoint docs, the OpenAPI spec, and live API-key
@@ -159,7 +160,7 @@ export default function CoreAPI() {
   const [loadingSpec, setLoadingSpec] = useState(false);
 
   if (!isAuthenticated) {
-    return <SignInGate navigateToLogin={navigateToLogin} />;
+    return <ApprovedApiAccessGate title="Sign in for approved API access" description="Core API documentation, OpenAPI specifications and API key management are available only to approved ABOS API, developer and partner users." />;
   }
 
   const openSpec = async () => {
@@ -174,6 +175,7 @@ export default function CoreAPI() {
   };
 
   return (
+    <ApprovedApiAccessGate title="Core API access is approval-only" description="Your ABOS account must be approved for API, developer or partner access before endpoint documentation and API key management are available.">
     <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: "#fff" }}>
       <div className="max-w-[980px] mx-auto">
         {/* Header */}
@@ -218,5 +220,6 @@ export default function CoreAPI() {
         </div>
       </div>
     </div>
+    </ApprovedApiAccessGate>
   );
 }

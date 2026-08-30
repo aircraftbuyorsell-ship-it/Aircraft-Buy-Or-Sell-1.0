@@ -298,10 +298,10 @@ export default function SubscriptionManagement() {
                 <BalanceRing tokens={tokens} />
                 <div className="flex-1 min-w-0 space-y-3">
                   {[
-                    { label: "Full ATI Passport", cost: 5, tip: "Complete 8-dimension risk analysis report" },
-                    { label: "ATI Preview", cost: 1, tip: "Quick score preview without full report" },
-                    { label: "Bulk Import (per listing)", cost: 2, tip: "Import listings from ZIP / JSON file" },
-                    { label: "Deal Radar Refresh", cost: 1, tip: "Re-scan the market for hot deals" },
+                    { label: "Full ATI Passport", cost: 25, tip: "Complete 8-dimension risk analysis report" },
+                    { label: "ATI Preview", cost: 5, tip: "Quick score preview without full report" },
+                    { label: "Bulk Import (per listing)", cost: 10, tip: "Import listings from ZIP / JSON file" },
+                    { label: "Deal Radar Refresh", cost: 5, tip: "Re-scan the market for hot deals" },
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">

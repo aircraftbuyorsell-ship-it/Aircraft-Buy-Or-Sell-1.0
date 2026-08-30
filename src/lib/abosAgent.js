@@ -1,6 +1,8 @@
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant } from "@/lib/marketspaceAssistant";
 import { buildAgentWorkflow } from "@/lib/abosAgentProtocol";
+import { base44 } from "@/api/base44Client";
+import { ST_ELMO_MODEL } from "@/lib/model/provider/nemotron/config";
 
 /**
  * ABOS Agent orchestration layer.
@@ -17,10 +19,25 @@ export async function runABOSAgent(request, options = {}) {
   const wantsInspect = requestedIntent === "inspect" || /\b(inspect|inspection|camera|video|visual|vision)\b/i.test(text);
   const wantsTransaction = /\b(deal|buy|purchase|sell|seller|buyer|offer|pipeline|transaction|deal room|closing)\b/i.test(text);
 
+  let reasoning = null;
+  if (options.useReasoning !== false) {
+    try {
+      const response = await base44.functions.invoke("stElmoReasoning", {
+        request: text,
+        context: { registration, intent: requestedIntent || null },
+      });
+      reasoning = response?.data || null;
+    } catch (_) {
+      // Deterministic ABOS routing remains the safe fallback when the reasoning backend is unavailable.
+    }
+  }
+
   const result = {
     request: text,
+    model: ST_ELMO_MODEL,
+    reasoning,
     registration,
-    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [] },
+    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: reasoning?.plan || [] },
     aircraft: null,
     verification: null,
     marketspace: null,

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { base44 } from '@/api/base44Client';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -34,8 +35,12 @@ export async function createStElmoTask({ prompt, conversationId, metadata = {} }
   tasks[id] = task;
   saveLocal(tasks);
 
+  try {
+    const created = await base44.entities.StElmoTask.create({ task_id: id, conversation_id: task.conversation_id, prompt, status: task.status, phase: task.phase, result: null, error: null, metadata, created_at: task.created_at, updated_at: task.updated_at });
+    return { ...task, base44_id: created?.id };
+  } catch {}
   if (supabase) {
-    const { error } = await supabase.from('st_elmo_tasks').insert(task);
+    const { error } = await supabase.from('st_elmo_tasks').insert({ task_id: id, conversation_id: task.conversation_id, prompt, status: task.status, phase: task.phase, result: null, error: null, metadata, created_at: task.created_at, updated_at: task.updated_at });
     if (!error) return task;
   }
   return task;
@@ -47,25 +52,35 @@ export async function updateStElmoTask(id, patch) {
   const next = { ...current, ...patch, updated_at: new Date().toISOString() };
   tasks[id] = next;
   saveLocal(tasks);
-  if (supabase) await supabase.from('st_elmo_tasks').update(patch).eq('id', id);
+  try {
+    const rows = await base44.entities.StElmoTask.filter({ task_id: id });
+    if (rows?.[0]?.id) await base44.entities.StElmoTask.update(rows[0].id, patch);
+    else if (supabase) await supabase.from('st_elmo_tasks').update(patch).eq('task_id', id);
+  } catch {
+    if (supabase) await supabase.from('st_elmo_tasks').update(patch).eq('task_id', id);
+  }
   return next;
 }
 
 export async function getStElmoTask(id) {
+  try {
+    const rows = await base44.entities.StElmoTask.filter({ task_id: id });
+    if (rows?.[0]) return { ...rows[0], id };
+  } catch {}
   if (supabase) {
-    const { data } = await supabase.from('st_elmo_tasks').select('*').eq('id', id).maybeSingle();
+    const { data } = await supabase.from('st_elmo_tasks').select('*').eq('task_id', id).maybeSingle();
     if (data) return data;
   }
   return loadLocal()[id] || null;
 }
 
 export async function listActiveStElmoTasks() {
+  try {
+    const rows = await base44.entities.StElmoTask.filter({ status: { $in: ['queued', 'running', 'reasoning', 'tools', 'synthesis'] } }, '-created_at', 20);
+    if (rows) return rows.map(r => ({ ...r, id: r.task_id })).filter(t => !['completed', 'failed'].includes(t.status));
+  } catch {}
   if (supabase) {
-    const { data } = await supabase
-      .from('st_elmo_tasks')
-      .select('*')
-      .in('status', ['queued', 'running', 'reasoning', 'tools', 'synthesis'])
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.from('st_elmo_tasks').select('*').in('status', ['queued', 'running', 'reasoning', 'tools', 'synthesis']).order('created_at', { ascending: false });
     if (data) return data;
   }
   return Object.values(loadLocal()).filter(t => !['completed', 'failed'].includes(t.status));

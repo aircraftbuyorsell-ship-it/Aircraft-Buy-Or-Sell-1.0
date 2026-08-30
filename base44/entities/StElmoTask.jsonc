@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "string"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "reasoning",
+        "tools",
+        "synthesis",
+        "completed",
+        "failed"
+      ]
+    },
+    "phase": {
+      "type": "string"
+    },
+    "result": {
+      "type": "object"
+    },
+    "error": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_id",
+    "prompt",
+    "status",
+    "phase",
+    "created_at",
+    "updated_at"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    }
+  },
+  "name": "StElmoTask"
+}

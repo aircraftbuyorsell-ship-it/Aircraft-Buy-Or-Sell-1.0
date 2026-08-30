@@ -1,10 +1,10 @@
 // ABOS Agent monetization: subscription-first + usage wallet + one-time actions.
 import { ABOS_FLIGHT_PLANS, ABOS_FLIGHT_PACKS, ABOS_TIME_POLICIES, ABOS_CREDIT_COSTS } from './abosFlightPlans';
 export const ABOS_ACTIONS = {
-  ATI_REPORT: { label: 'ATI Full Verification', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'aircraft', repeatable: true },
-  DEAL_ANALYSIS: { label: 'Deal Analysis', price: 99, currency: 'USD', product: 'DEAL_ANALYSIS', unit: 'aircraft', repeatable: true },
-  INVESTMENT_BRIEF: { label: 'Investment Brief', price: 149, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true },
-  PROFESSIONAL_REVIEW: { label: 'Professional Review', price: 499, currency: 'USD', product: 'PROFESSIONAL', unit: 'aircraft', repeatable: true },
+  ATI_REPORT: { label: 'ATI Full Verification', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.ati_full_verification },
+  DEAL_ANALYSIS: { label: 'Deal Analysis', price: 99, currency: 'USD', product: 'DEAL_ANALYSIS', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.deal_analysis },
+  INVESTMENT_BRIEF: { label: 'Investment Brief', price: 149, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.investment_brief },
+  PROFESSIONAL_REVIEW: { label: 'Professional Review', price: 499, currency: 'USD', product: 'PROFESSIONAL', unit: 'aircraft', repeatable: true, credits: ABOS_CREDIT_COSTS.professional_review },
   VISION_INSPECTION: { label: 'AI Vision Inspection', price: 49, currency: 'USD', product: 'PROFESSIONAL', unit: 'inspection_session', repeatable: true },
   DOCUMENT_ANALYSIS: { label: 'Logbook & Document Analysis', price: 39, currency: 'USD', product: 'ATI_REPORT', unit: 'document_set', repeatable: true },
   MARKET_REPORT: { label: 'Market Report', price: 15, currency: 'USD', product: 'INVESTMENT', unit: 'aircraft', repeatable: true },

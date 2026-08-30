@@ -1,0 +1,7 @@
+name = "abos-st-elmo"
+main = "src/index.js"
+compatibility_date = "2026-08-30"
+
+[vars]
+# MODEL_GATEWAY_URL and ABOS_RUNTIME_KEY are intentionally not committed.
+# Configure them as Cloudflare Worker secrets/vars during deployment.

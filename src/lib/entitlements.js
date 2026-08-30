@@ -8,6 +8,13 @@ export async function listProducts() {
   return res.data || res;
 }
 
+export async function authorizeCapability(capability, aircraftRegistration = '') {
+  const res = await base44.functions.invoke('abosEntitlements', {
+    action: 'authorize_capability', capability, aircraft_registration: aircraftRegistration,
+  });
+  return res.data || res;
+}
+
 export async function checkEntitlement(productKey, aircraftRegistration = '') {
   const res = await base44.functions.invoke('abosEntitlements', {
     action: 'check', product_key: productKey, aircraft_registration: aircraftRegistration,

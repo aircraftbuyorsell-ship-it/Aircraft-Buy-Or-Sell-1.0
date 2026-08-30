@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plane, Search, BarChart3, Scale, Users, GitBranch, Bell, Globe, ArrowRight, Sparkles } from "lucide-react";
+import { runMarketspaceAssistant, marketspaceSummary } from "@/lib/marketspaceAssistant";
+import { Plane, Search, BarChart3, Scale, Users, GitBranch, Bell, Globe, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const ACTIONS = [
@@ -16,11 +17,21 @@ const ACTIONS = [
 export default function MarketspaceAssistant() {
   const [prompt, setPrompt] = useState("");
   const [submitted, setSubmitted] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e?.preventDefault();
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || loading) return;
     setSubmitted(prompt.trim());
+    setLoading(true);
+    try {
+      const next = await runMarketspaceAssistant(prompt);
+      setResult(next);
+      window.dispatchEvent(new CustomEvent('abos:marketspace-context', { detail: next }));
+    } catch (error) {
+      setResult({ error: error?.message || 'Marketspace workflow unavailable' });
+    } finally { setLoading(false); }
   };
 
   return (

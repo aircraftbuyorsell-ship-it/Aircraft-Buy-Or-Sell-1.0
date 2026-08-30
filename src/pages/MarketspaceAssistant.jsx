@@ -50,9 +50,15 @@ export default function MarketspaceAssistant() {
 
         <form onSubmit={submit} className="mt-6 flex flex-col sm:flex-row gap-2">
           <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="e.g. Find me a Cessna 172 under $180,000 with ATI above 80" className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-gold/50" />
-          <button type="submit" className="rounded-xl px-5 py-3 bg-foreground text-background font-bold text-sm hover:opacity-90">Ask Assistant</button>
+          <button type="submit" disabled={loading} className="rounded-xl px-5 py-3 bg-foreground text-background font-bold text-sm hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2">{loading && <Loader2 className="h-4 w-4 animate-spin" />}{loading ? "Working…" : "Ask Assistant"}</button>
         </form>
-        {submitted && <div className="mt-3 rounded-xl border border-gold/20 bg-gold/5 px-4 py-3 text-sm"><span className="font-bold">Request:</span> {submitted}<span className="ml-2 text-muted-foreground">Choose a workflow below to continue.</span></div>}
+        {submitted && <div className="mt-3 rounded-xl border border-gold/20 bg-gold/5 px-4 py-3 text-sm"><span className="font-bold">Request:</span> {submitted}</div>}
+        {result && !result.error && <div className="mt-4 rounded-2xl border border-border bg-background/70 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-[10px] uppercase tracking-widest font-bold text-gold">Workflow active</p><p className="mt-1 text-sm font-black">{marketspaceSummary(result)}</p></div><span className="rounded-full border border-border px-3 py-1 text-[10px] uppercase font-bold">{result.intent}</span></div>
+          {result.aircraft?.length > 0 && <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{result.aircraft.slice(0,6).map((a) => <Link key={a.id} to={`/aircraft/${a.id}`} className="rounded-xl border border-border p-3 hover:border-gold/40 transition"><div className="flex justify-between gap-2"><span className="font-bold text-xs">{a.year ? `${a.year} ` : ''}{a.make || ''} {a.model || ''}</span><span className="font-mono text-[10px] text-muted-foreground">{a.registration || '—'}</span></div><div className="mt-2 flex gap-3 text-[10px] text-muted-foreground"><span>{a.asking_price ? `$${Number(a.asking_price).toLocaleString()}` : 'Price —'}</span>{a.ati_score != null && <span>ATI {a.ati_score}</span>}{a.deal_score != null && <span>Deal {Number(a.deal_score).toFixed(1)}</span>}</div></Link>)}</div>}
+          <div className="mt-4 flex flex-wrap gap-2">{(result.nextActions || []).map(action => <span key={action} className="rounded-lg bg-muted px-2.5 py-1.5 text-[10px] font-semibold">{action}</span>)}</div>
+        </div>}
+        {result?.error && <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{result.error}</div>}
       </div>
 
       <div className="p-5 md:p-7 border-t border-border">

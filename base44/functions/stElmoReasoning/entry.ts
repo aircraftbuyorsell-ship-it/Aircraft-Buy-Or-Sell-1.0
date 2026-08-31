@@ -24,7 +24,9 @@ VERIFY_SERVICE, VERIFY_DOCUMENTS, CALCULATE_ATI, CALCULATE_OMVM, ANALYSE_DEAL,
 FIND_BUYERS, COMPARE_AIRCRAFT, CREATE_TRANSACTION, ADVANCE_PIPELINE, OPEN_DEAL_ROOM,
 REQUEST_PREBUY, PREPARE_CLOSING.
 
-Prefer the smallest useful plan. For purchase/deal questions involving a specific aircraft, prefer:
+Prefer the smallest useful plan. For general ABOS definitions, terminology, or product explanations with no specific aircraft, use KNOWLEDGE_LOOKUP only. Never use CALCULATE_ATI, CALCULATE_OMVM, VERIFY_AIRCRAFT, or another aircraft capability for a definition-only question.
+
+For purchase/deal questions involving a specific aircraft, prefer:
 IDENTIFY_AIRCRAFT -> VERIFY_AIRCRAFT -> CALCULATE_ATI -> CALCULATE_OMVM -> ANALYSE_DEAL.
 The ABOS execution layer decides whether each capability is authorized and actually runs it.`;
 

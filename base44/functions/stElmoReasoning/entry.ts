@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
 const DEFAULT_NIM_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 const MODEL = 'nvidia/nemotron-3-super-120b-a12b';
+const MAX_REASONING_TOKENS = 4096;
 
 const SYSTEM_PROMPT = `You are ABOS St. Elmo M_1.0, the reasoning and planning layer of Aircraft Buy Or Sell.
 
@@ -66,29 +67,55 @@ Deno.serve(async (req) => {
     if (!request) return Response.json({ error: 'request is required' }, { status: 400 });
 
     const baseUrl = Deno.env.get('NVIDIA_NIM_BASE_URL') || DEFAULT_NIM_URL;
-    const response = await fetch(baseUrl, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        temperature: 0.1,
-        max_tokens: 900,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: JSON.stringify({ request, context }) },
-        ],
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    let response;
+    try {
+      response = await fetch(baseUrl, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          model: MODEL,
+          temperature: 1.0,
+          top_p: 0.95,
+          max_tokens: MAX_REASONING_TOKENS,
+          reasoning_effort: 'low',
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: JSON.stringify({ request, context }) },
+          ],
+        }),
+      });
+    } catch (error) {
+      const detail = error?.name === 'AbortError' ? 'NVIDIA request timed out after 45 seconds' : (error?.message || String(error));
+      return Response.json({ error: `NVIDIA connection failed: ${detail}`, diagnostic: 'nvidia_fetch_failed' }, { status: 502 });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
       const detail = (await response.text()).slice(0, 500);
       return Response.json({ error: `NVIDIA API error (${response.status}): ${detail}` }, { status: 502 });
     }
 
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content || '';
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      return Response.json({ error: 'NVIDIA returned a non-JSON response', diagnostic: 'nvidia_invalid_json' }, { status: 502 });
+    }
+    const message = data?.choices?.[0]?.message || {};
+    const content = message?.content || '';
     const parsed = extractJson(content);
-    if (!parsed) return Response.json({ error: 'St. Elmo returned an invalid reasoning plan' }, { status: 502 });
+    if (!parsed) {
+      return Response.json({
+        error: 'St. Elmo returned an invalid reasoning plan',
+        diagnostic: 'invalid_reasoning_plan',
+        has_reasoning_content: Boolean(message?.reasoning_content),
+        finish_reason: data?.choices?.[0]?.finish_reason || null,
+      }, { status: 502 });
+    }
 
     return Response.json({
       identity: 'ABOS St. Elmo',

@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "abos-st-elmo",
-  "main": "index.js",
+  "main": "st-elmo/index.js",
   "compatibility_date": "2026-08-30",
+  "workers_dev": true,
+  "preview_urls": true,
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "logs": {
+      "enabled": true
+    }
   }
 }

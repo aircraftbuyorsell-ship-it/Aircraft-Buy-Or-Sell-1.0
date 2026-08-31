@@ -28,5 +28,10 @@ export function buildStElmoEngines(options = {}) {
     [APL_ACTIONS.ANALYSE_DEAL]: (ctx) => runMarketspaceAssistant(ctx.request || reg(ctx), { ...options, entry: "st_elmo_worker" }),
     [APL_ACTIONS.COMPARE_AIRCRAFT]: (ctx) => runMarketspaceAssistant(ctx.request || "compare aircraft", { ...options, entry: "st_elmo_worker" }),
     [APL_ACTIONS.FIND_BUYERS]: (ctx) => invoke("cmrMatchEngine", { registration: reg(ctx) }),
+    [APL_ACTIONS.CREATE_TRANSACTION]: (ctx) => invoke("pipelineIntegrations", { action: "create", registration: reg(ctx), aircraft: ctx.evidence?.aircraft, verification: ctx.evidence?.verification }),
+    [APL_ACTIONS.ADVANCE_PIPELINE]: (ctx) => invoke("onPipelineStatusChange", { action: "advance", registration: reg(ctx), transaction: ctx.evidence?.transaction }),
+    [APL_ACTIONS.OPEN_DEAL_ROOM]: (ctx) => invoke("pipelineIntegrations", { action: "open_deal_room", registration: reg(ctx), transaction: ctx.evidence?.transaction }),
+    [APL_ACTIONS.REQUEST_PREBUY]: (ctx) => invoke("managePreBuyInspection", { registration: reg(ctx), aircraft: ctx.evidence?.aircraft }),
+    [APL_ACTIONS.PREPARE_CLOSING]: (ctx) => invoke("pipelineIntegrations", { action: "prepare_closing", registration: reg(ctx), transaction: ctx.evidence?.transaction }),
   };
 }

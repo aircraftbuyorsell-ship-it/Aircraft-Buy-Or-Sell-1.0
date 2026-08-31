@@ -28,8 +28,8 @@ const ABOS_KNOWLEDGE = Object.freeze({
 
 function lookupKnowledge(request) {
   const text = String(request || "").toLowerCase();
-  if (/\\bati\\b|aircraft transparency index|transparency score/.test(text)) return ABOS_KNOWLEDGE.ati;
-  if (/\\bomvm\\b|off[- ]market valuation/.test(text)) return ABOS_KNOWLEDGE.omvm;
+  if (/(^|\s)ati(\s|$)|aircraft transparency index|transparency score/.test(text)) return ABOS_KNOWLEDGE.ati;
+  if (/(^|\s)omvm(\s|$)|off[- ]market valuation/.test(text)) return ABOS_KNOWLEDGE.omvm;
   return { title: "ABOS knowledge", definition: "I do not have a verified ABOS knowledge entry for that term yet.", source: "ABOS knowledge base" };
 }
 

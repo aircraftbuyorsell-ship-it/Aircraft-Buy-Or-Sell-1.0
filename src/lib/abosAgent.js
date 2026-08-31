@@ -1,6 +1,6 @@
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant } from "@/lib/marketspaceAssistant";
-import { buildAgentWorkflow } from "@/lib/abosAgentProtocol";
+import { buildAgentWorkflow, buildAPLPlan, capabilityOwner, ADL_AGENTS } from "@/lib/abosAgentProtocol";
 import { base44 } from "@/api/base44Client";
 import { ST_ELMO_MODEL } from "@/lib/model/provider/nemotron/config";
 import { runStElmoWorker } from "@/lib/stElmo/worker";
@@ -45,12 +45,20 @@ export async function runABOSAgent(request, options = {}) {
     }
   }
 
+  // ADL/APL is authoritative for execution. If the model is unavailable or returns
+  // prose without an executable plan, derive a deterministic APL plan instead of
+  // leaving the request as a dead-end chat response.
+  const aplPlan = Array.isArray(reasoning?.plan) && reasoning.plan.length
+    ? reasoning.plan
+    : buildAPLPlan(text, { registration });
+
   const result = {
     request: text,
     model: ST_ELMO_MODEL,
     reasoning,
     registration,
-    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: reasoning?.plan || [] },
+    agent: ADL_AGENTS.MASTER,
+    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: aplPlan, delegation: aplPlan.map((capability) => ({ capability, owner: capabilityOwner(capability) })) },
     aircraft: null,
     verification: null,
     marketspace: null,
@@ -64,9 +72,9 @@ export async function runABOSAgent(request, options = {}) {
   // Execute the reasoning plan instead of only displaying it. The worker gathers
   // evidence through the ABOS engines; the deterministic routing below still runs
   // so the agent behaves identically when the reasoning backend is unavailable.
-  if (reasoning?.plan?.length && options.executePlan !== false) {
+  if (aplPlan.length && options.executePlan !== false) {
     result.worker = await runStElmoWorker({
-      plan: reasoning.plan,
+      plan: aplPlan,
       engines: options.engines || buildStElmoEngines(options),
       context: { registration, request: text, intent: requestedIntent || null },
       onPhase: options.onWorkerPhase,

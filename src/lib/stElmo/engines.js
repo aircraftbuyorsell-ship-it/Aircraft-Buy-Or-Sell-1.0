@@ -13,10 +13,31 @@ import { APL_ACTIONS } from "@/lib/abosAgentProtocol";
 
 const invoke = async (fn, payload) => (await base44.functions.invoke(fn, payload))?.data ?? null;
 
+const ABOS_KNOWLEDGE = Object.freeze({
+  ati: {
+    title: "ATI — Aircraft Transparency Index",
+    definition: "ATI (Aircraft Transparency Index) is ABOS's framework for assessing how complete, consistent, and verifiable the available evidence is for a specific aircraft. It is evidence-driven and is not a substitute for the underlying registry, ownership, service, activity, or transaction records.",
+    source: "ABOS product definition",
+  },
+  omvm: {
+    title: "OMVM — Off-Market Valuation Model",
+    definition: "OMVM is ABOS's valuation framework for estimating an aircraft's market value from available evidence and market signals. A valuation is an estimate, not an authoritative transaction price.",
+    source: "ABOS product definition",
+  },
+});
+
+function lookupKnowledge(request) {
+  const text = String(request || "").toLowerCase();
+  if (/\\bati\\b|aircraft transparency index|transparency score/.test(text)) return ABOS_KNOWLEDGE.ati;
+  if (/\\bomvm\\b|off[- ]market valuation/.test(text)) return ABOS_KNOWLEDGE.omvm;
+  return { title: "ABOS knowledge", definition: "I do not have a verified ABOS knowledge entry for that term yet.", source: "ABOS knowledge base" };
+}
+
 export function buildStElmoEngines(options = {}) {
   const reg = (ctx) => ctx.evidence?.registration || ctx.registration;
 
   return {
+    [APL_ACTIONS.KNOWLEDGE_LOOKUP]: (ctx) => lookupKnowledge(ctx.request),
     [APL_ACTIONS.IDENTIFY_AIRCRAFT]: (ctx) => invoke("aircraftDataHub", { registration: reg(ctx) }),
     [APL_ACTIONS.VERIFY_AIRCRAFT]: (ctx) => runVerificationAssistant(reg(ctx), { ...options, entry: "st_elmo_worker" }),
     [APL_ACTIONS.VERIFY_REGISTRY]: (ctx) => invoke("registryLookup", { registration: reg(ctx) }),

@@ -1,0 +1,127 @@
+{
+  "name": "EngineMaintenance",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Normalized aircraft registration"
+    },
+    "engine_code": {
+      "type": "string",
+      "description": "FAA engine manufacturer/model code"
+    },
+    "engine_spec_id": {
+      "type": "string",
+      "relationType": "EngineSpec",
+      "description": "Matched engine specification"
+    },
+    "engine_manufacturer": {
+      "type": "string"
+    },
+    "engine_model": {
+      "type": "string"
+    },
+    "tbo_hours": {
+      "type": "number",
+      "description": "Published time between overhaul"
+    },
+    "current_engine_hours": {
+      "type": "number",
+      "description": "Latest known engine hours since overhaul"
+    },
+    "remaining_hours": {
+      "type": "number",
+      "description": "Hours remaining until TBO"
+    },
+    "remaining_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "hours_source": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "listing",
+        "digital_twin",
+        "last_record",
+        "unavailable"
+      ]
+    },
+    "service_bulletin_status": {
+      "type": "string",
+      "enum": [
+        "review_required",
+        "no_current_items_found",
+        "unavailable"
+      ],
+      "default": "unavailable"
+    },
+    "service_bulletin_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "service_bulletins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "effective_date": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "service_bulletin_source": {
+      "type": "string",
+      "description": "Official source used for the current bulletin review"
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "registration",
+    "engine_code",
+    "service_bulletin_status",
+    "calculated_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

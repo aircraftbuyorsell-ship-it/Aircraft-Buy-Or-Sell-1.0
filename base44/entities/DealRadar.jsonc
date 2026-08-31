@@ -32,6 +32,11 @@
         "overpriced"
       ],
       "description": "Deal classification"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -44,10 +49,8 @@
       }
     },
     "read": {
-      "user_condition": {
-        "id": {
-          "$exists": true
-        }
+      "id": {
+        "$exists": true
       }
     },
     "update": {

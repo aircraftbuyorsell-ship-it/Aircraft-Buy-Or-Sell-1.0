@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-// Simplified continent polygons (approx outlines) — sourced from the HTML mockup
+// Simplified continent polygons
 const POLYGONS = [
   [[[-168,72],[-140,71],[-125,50],[-124,49],[-124,46],[-122,38],[-117,32],[-110,24],[-105,20],[-99,16],[-91,16],[-88,16],[-84,10],[-79,9],[-77,8],[-63,11],[-60,11],[-53,47],[-56,47],[-64,44],[-67,44],[-70,43],[-70,41],[-74,40],[-76,35],[-80,32],[-81,30],[-81,29],[-80,25],[-80,24],[-97,26],[-97,30],[-93,30],[-90,29],[-89,29],[-93,28],[-97,26],[-100,25],[-107,24],[-110,26],[-117,32],[-124,49],[-141,60],[-168,72]]],
   [[[-45,83],[-20,83],[-18,76],[-22,72],[-28,68],[-40,64],[-44,60],[-52,62],[-52,66],[-54,70],[-58,74],[-50,78],[-45,83]]],
@@ -14,56 +14,296 @@ const POLYGONS = [
   [[[-180,-68],[-120,-68],[-60,-68],[0,-68],[60,-68],[120,-68],[180,-68],[180,-90],[-180,-90],[-180,-68]]],
 ];
 
-const MARKERS = [
-  { name: "United States", lat: 38, lon: -97 },
-  { name: "Germany", lat: 51, lon: 10 },
-  { name: "United Kingdom", lat: 54, lon: -2 },
-  { name: "Australia", lat: -25, lon: 133 },
-  { name: "France", lat: 46, lon: 2 },
-  { name: "Brazil", lat: -15, lon: -50 },
-  { name: "Canada", lat: 56, lon: -96 },
-  { name: "South Africa", lat: -29, lon: 25 },
-  { name: "UAE", lat: 24, lon: 54 },
-  { name: "Czech Republic", lat: 50, lon: 15 },
-  { name: "Italy", lat: 42, lon: 12 },
-  { name: "India", lat: 20, lon: 78 },
+// Country → approx lat/lon
+const COUNTRY_COORDS = {
+  "US": { lat: 38, lon: -97 }, "USA": { lat: 38, lon: -97 },
+  "DE": { lat: 51, lon: 10 }, "GB": { lat: 54, lon: -2 },
+  "AU": { lat: -25, lon: 133 }, "FR": { lat: 46, lon: 2 },
+  "BR": { lat: -15, lon: -50 }, "CA": { lat: 56, lon: -96 },
+  "ZA": { lat: -29, lon: 25 }, "AE": { lat: 24, lon: 54 },
+  "CZ": { lat: 50, lon: 15 }, "IT": { lat: 42, lon: 12 },
+  "IN": { lat: 20, lon: 78 }, "ES": { lat: 40, lon: -4 },
+  "NL": { lat: 52, lon: 5 }, "AT": { lat: 47, lon: 14 },
+  "CH": { lat: 47, lon: 8 }, "PL": { lat: 52, lon: 20 },
+  "SE": { lat: 60, lon: 18 }, "NO": { lat: 60, lon: 8 },
+  "MX": { lat: 23, lon: -102 }, "AR": { lat: -34, lon: -64 },
+  "JP": { lat: 36, lon: 138 }, "CN": { lat: 35, lon: 105 },
+  "SG": { lat: 1, lon: 104 }, "NZ": { lat: -41, lon: 174 },
+  "RU": { lat: 60, lon: 100 }, "TR": { lat: 39, lon: 35 },
+  "IE": { lat: 53, lon: -8 }, "BE": { lat: 51, lon: 4 },
+  "PT": { lat: 39, lon: -8 }, "GR": { lat: 39, lon: 22 },
+  "FI": { lat: 61, lon: 26 }, "DK": { lat: 56, lon: 10 },
+  "SK": { lat: 49, lon: 20 }, "HU": { lat: 47, lon: 19 },
+  "RO": { lat: 46, lon: 25 }, "BG": { lat: 43, lon: 25 },
+  "HR": { lat: 45, lon: 16 }, "UA": { lat: 49, lon: 31 },
+  "IL": { lat: 31, lon: 35 }, "SA": { lat: 24, lon: 45 },
+  "KR": { lat: 36, lon: 128 }, "TW": { lat: 24, lon: 121 },
+  "TH": { lat: 15, lon: 101 }, "ID": { lat: -6, lon: 107 },
+  "MY": { lat: 4, lon: 102 }, "PH": { lat: 13, lon: 122 },
+  "VN": { lat: 14, lon: 108 }, "CO": { lat: 4, lon: -72 },
+  "CL": { lat: -33, lon: -71 }, "PE": { lat: -10, lon: -76 },
+  "EG": { lat: 27, lon: 30 }, "NG": { lat: 9, lon: 8 },
+  "KE": { lat: -1, lon: 37 },
+};
+
+// Registration prefix → country (first char(s) of tail number)
+const REG_PREFIX_MAP = {
+  "N": "US",   // USA
+  "C": "CA", "CF": "CA", "CG": "CA", // Canada
+  "G": "GB",   // UK
+  "D": "DE", "HB": "DE", // Germany
+  "F": "FR",   // France
+  "I": "IT",   // Italy
+  "EC": "ES",  // Spain
+  "PH": "NL",  // Netherlands
+  "OE": "AT",  // Austria
+  "HB": "CH",  // Switzerland (HB-) — override DE for full prefix
+  "SP": "PL",  // Poland
+  "OK": "CZ",  // Czech Republic
+  "OM": "SK",  // Slovakia
+  "HA": "HU",  // Hungary
+  "YR": "RO",  // Romania
+  "LZ": "BG",  // Bulgaria
+  "9A": "HR",  // Croatia
+  "SX": "GR",  // Greece
+  "SE": "SE",  // Sweden
+  "LN": "NO",  // Norway
+  "OH": "FI",  // Finland
+  "OY": "DK",  // Denmark
+  "OO": "BE",  // Belgium
+  "LX": "LU",  // Luxembourg
+  "CS": "PT",  // Portugal
+  "EI": "IE",  // Ireland
+  "UR": "UA",  // Ukraine
+  "RA": "RU",  // Russia
+  "VH": "AU",  // Australia
+  "ZK": "NZ",  // New Zealand
+  "JA": "JP",  // Japan
+  "B": "CN",   // China
+  "VT": "IN",  // India
+  "HL": "KR",  // South Korea
+  "9V": "SG",  // Singapore
+  "HS": "TH",  // Thailand
+  "PK": "ID",  // Indonesia
+  "9M": "MY",  // Malaysia
+  "RP": "PH",  // Philippines
+  "XA": "MX",  // Mexico
+  "XB": "MX",  // Mexico
+  "XC": "MX",  // Mexico
+  "PP": "BR",  // Brazil
+  "PT": "BR",  // Brazil
+  "PR": "BR",  // Brazil
+  "LV": "AR",  // Argentina
+  "LQ": "AR",  // Argentina
+  "CC": "CL",  // Chile
+  "HK": "CO",  // Colombia
+  "OB": "PE",  // Peru
+  "ZS": "ZA",  // South Africa
+  "ZT": "ZA",  // South Africa
+  "ZU": "ZA",  // South Africa
+  "A6": "AE",  // UAE
+  "SU": "EG",  // Egypt
+  "5N": "NG",  // Nigeria
+  "5Y": "KE",  // Kenya
+  "4X": "IL",  // Israel
+  "HZ": "SA",  // Saudi Arabia
+  "TC": "TR",  // Turkey
+  "B": "TW",   // Taiwan
+  "VN": "VN",  // Vietnam
+};
+
+// Fallback markers when no listings
+const DEFAULT_MARKERS = [
+  { lat: 38, lon: -97 }, { lat: 51, lon: 10 }, { lat: 54, lon: -2 },
+  { lat: -25, lon: 133 }, { lat: 46, lon: 2 }, { lat: -15, lon: -50 },
+  { lat: 56, lon: -96 }, { lat: -29, lon: 25 }, { lat: 24, lon: 54 },
+  { lat: 50, lon: 15 }, { lat: 42, lon: 12 }, { lat: 20, lon: 78 },
 ];
 
-function pip(lon, lat, polygon) {
-  let inside = false;
-  for (const ring of polygon) {
-    const n = ring.length;
-    for (let i = 0, j = n - 1; i < n; j = i++) {
-      const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
-      if (((yi > lat) !== (yj > lat)) && (lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)) inside = !inside;
+// Map listing to lat/lon using registration prefix for real geographic placement
+function listingToCoords(listing, index, total) {
+  if (listing.registration) {
+    const reg = listing.registration.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    // Try 2-char prefix first, then 1-char
+    for (const len of [2, 1]) {
+      const prefix = reg.substring(0, len);
+      const country = REG_PREFIX_MAP[prefix];
+      if (country && COUNTRY_COORDS[country]) {
+        const base = COUNTRY_COORDS[country];
+        // Slight jitter so multiple aircraft in same country don't overlap
+        return {
+          lat: base.lat + Math.sin(index * 4.7) * 2.5,
+          lon: base.lon + Math.cos(index * 3.9) * 3.5,
+        };
+      }
     }
   }
-  return inside;
-}
-const isLand = (lon, lat) => POLYGONS.some(p => pip(lon, lat, p));
-
-// Precompute dot grids once (module scope)
-const STEP = 2.8;
-const landDots = [];
-const oceanDots = [];
-for (let lat = -90; lat <= 90; lat += STEP) {
-  for (let lon = -180; lon <= 180; lon += STEP) {
-    if (isLand(lon, lat)) landDots.push([lon, lat]);
-    else if ((Math.round(lat / STEP) + Math.round(lon / STEP)) % 4 === 0) oceanDots.push([lon, lat]);
-  }
+  // Fallback: scatter across known world positions
+  const bases = Object.values(COUNTRY_COORDS);
+  const base = bases[index % bases.length];
+  return {
+    lat: base.lat + Math.sin(index * 7.3) * 4,
+    lon: base.lon + Math.cos(index * 5.1) * 6,
+  };
 }
 
-/**
- * Rotating globe canvas — Navy/Amber tinted to match ABOS theme.
- * Renders inside its parent (absolute inset-0). Parent should be `relative`.
- */
-export default function RotatingGlobe({ className = "", theme = "light" }) {
+function atiColor(score, isDark) {
+  if (!score) return isDark ? "#ffffff" : "#0B2D5B";
+  if (score >= 90) return isDark ? "#00f5ff" : "#0B2D5B";
+  if (score >= 72) return isDark ? "#7a00ff" : "#2563eb";
+  if (score >= 54) return "#E8A83A";
+  return isDark ? "#ff4d6d" : "#dc2626";
+}
+
+// ─── Listing Popup overlay (HTML, not canvas) ───────────────────
+function ListingPopup({ listing, pos, onClose, onOpen }) {
+  if (!listing || !pos) return null;
+  const score = listing.ati_score;
+  const color = atiColor(score, false); // popups always dark bg
+  const pct = score ? (score / 120) * 113.1 : 0;
+
+  return (
+    <div
+      className="absolute z-30 pointer-events-auto"
+      style={{ left: pos.x, top: pos.y, transform: "translate(-50%, -120%)" }}
+    >
+      {/* Arrow */}
+      <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full w-0 h-0"
+        style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "7px solid rgba(0,245,255,0.30)" }} />
+
+      <div className="rounded-2xl p-3 min-w-[200px] max-w-[240px] shadow-2xl"
+        style={{
+          background: "rgba(10,10,32,0.95)",
+          backdropFilter: "blur(24px)",
+          border: `1px solid ${color}40`,
+          boxShadow: `0 0 30px ${color}18, 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 0 ${color}25`,
+        }}>
+        {/* Close */}
+        <button onClick={onClose}
+          className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white/30 hover:text-white/70 transition-colors"
+          style={{ background: "rgba(255,255,255,0.06)" }}>
+          <svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 1l6 6M7 1L1 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        </button>
+
+        {/* ATI ring + title */}
+        <div className="flex items-center gap-2.5 mb-2.5 pr-4">
+          <div className="relative w-9 h-9 shrink-0">
+            <svg viewBox="0 0 44 44" className="w-full h-full -rotate-90">
+              <circle cx="22" cy="22" r="18" fill="none" stroke={`${color}25`} strokeWidth="3.5" />
+              {score && <circle cx="22" cy="22" r="18" fill="none" stroke={color} strokeWidth="3.5"
+                strokeDasharray={`${pct} 113.1`} strokeLinecap="round"
+                style={{ filter: `drop-shadow(0 0 3px ${color})` }} />}
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[9px] font-black" style={{ color }}>{score ?? "—"}</span>
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-black text-white leading-tight truncate">
+              {listing.year} {listing.make} {listing.model}
+            </p>
+            {listing.registration && (
+              <p className="text-[9px] font-mono mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{listing.registration}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-1.5 mb-2.5">
+          {[
+            { l: "Price", v: listing.asking_price ? `$${listing.asking_price.toLocaleString()}` : "On request" },
+            { l: "Total Time", v: listing.total_time ? `${listing.total_time.toLocaleString()} h` : "—" },
+            { l: "Engine SMOH", v: listing.engine_hours ? `${listing.engine_hours.toLocaleString()} h` : "—" },
+            { l: "Deal", v: listing.deal_label ?? "—" },
+          ].map(({ l, v }) => (
+            <div key={l} className="rounded-lg px-2 py-1.5" style={{ background: "rgba(255,255,255,0.04)" }}>
+              <p className="text-[8px] uppercase tracking-wider text-white/25 font-semibold">{l}</p>
+              <p className="text-[10px] font-bold text-white/80 truncate mt-0.5">{v}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <button onClick={() => onOpen(listing.id)}
+          className="w-full py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all active:scale-95"
+          style={{
+            background: `linear-gradient(135deg, ${color}28, ${color}0d)`,
+            border: `1px solid ${color}45`,
+            color,
+          }}>
+          Full ATI Report →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function RotatingGlobe({ className = "", theme = "light", listings = [], showFallbackMarkers = true }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const themeRef = useRef(theme);
+  const listingsRef = useRef(listings);
+  const rotLonRef = useRef(10);
+  const pausedRef = useRef(false);
 
-  // Keep latest theme available inside the animation loop without restarting it
+  // Projected screen positions of listing markers (updated each frame)
+  const projectedRef = useRef([]); // [{ sx, sy, vis, listing }]
+
+  const [popup, setPopup] = useState(null); // { listing, x, y } in CSS px
+
   useEffect(() => { themeRef.current = theme; }, [theme]);
+  useEffect(() => { listingsRef.current = listings; }, [listings]);
+
+  // Build marker data from listings
+  const listingMarkers = listings.map((l, i) => ({
+    listing: l,
+    ...listingToCoords(l, i, listings.length),
+  }));
+
+  const handleCanvasClick = useCallback((e) => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const rect = cv.getBoundingClientRect();
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const mx = (e.clientX - rect.left) * DPR;
+    const my = (e.clientY - rect.top) * DPR;
+    const HIT_R = 12 * DPR;
+
+    // Find closest visible marker within hit radius
+    let best = null, bestDist = Infinity;
+    for (const pt of projectedRef.current) {
+      if (!pt.vis) continue;
+      const dx = pt.sx - mx, dy = pt.sy - my;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < HIT_R && d < bestDist) { bestDist = d; best = pt; }
+    }
+
+    if (best) {
+      pausedRef.current = true;
+      // Convert canvas coords → CSS px
+      setPopup({ listing: best.listing, x: best.sx / DPR, y: best.sy / DPR });
+    } else {
+      setPopup(null);
+      pausedRef.current = false;
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const rect = cv.getBoundingClientRect();
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const mx = (e.clientX - rect.left) * DPR;
+    const my = (e.clientY - rect.top) * DPR;
+    const HIT_R = 14 * DPR;
+    let found = false;
+    for (const pt of projectedRef.current) {
+      if (!pt.vis) continue;
+      const dx = pt.sx - mx, dy = pt.sy - my;
+      if (Math.sqrt(dx * dx + dy * dy) < HIT_R) { found = true; break; }
+    }
+    cv.style.cursor = found ? "pointer" : "default";
+  }, []);
 
   useEffect(() => {
     const cv = canvasRef.current;
@@ -72,7 +312,6 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
     const parent = cv.parentElement;
 
     let W, H, R, CX, CY, DPR;
-    let rotLon = 10, rotLat = -18;
     let hlIdx = 0, fr = 0;
 
     const resize = () => {
@@ -94,91 +333,187 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
     const project = (lon, lat) => {
       const phi = (90 - lat) * Math.PI / 180, theta = (lon + 180) * Math.PI / 180;
       const x = -Math.sin(phi) * Math.cos(theta), y = Math.cos(phi), z = Math.sin(phi) * Math.sin(theta);
-      const rl = rotLat * Math.PI / 180, cx = Math.cos(rl), sx = Math.sin(rl);
+      const rl = -18 * Math.PI / 180, cx = Math.cos(rl), sx = Math.sin(rl);
       const y1 = y * cx - z * sx, z1 = y * sx + z * cx;
-      const rln = rotLon * Math.PI / 180, cy = Math.cos(rln), sy = Math.sin(rln);
+      const rln = rotLonRef.current * Math.PI / 180, cy = Math.cos(rln), sy = Math.sin(rln);
       const x2 = x * cy + z1 * sy, z2 = -x * sy + z1 * cy;
       return { sx: CX + x2 * R, sy: CY - y1 * R, vis: z2 > 0, depth: z2 };
     };
 
     const draw = () => {
       const isDark = themeRef.current === "dark";
-      // Color palettes per theme
-      const C = isDark ? {
-        sphere: "rgba(232,168,58,0.05)",
-        ocean: "rgba(180,200,230,0.10)",
-        land: (depth) => `rgba(210,225,245,${0.35 + depth * 0.45})`,
-        marker: "rgba(232,168,58,0.55)",
-        rim: "rgba(232,168,58,0.22)",
-        atmIn: "rgba(232,168,58,0.14)",
-        atmOut: "rgba(232,168,58,0)",
-      } : {
-        sphere: "rgba(11,45,91,0.06)",
-        ocean: "rgba(11,45,91,0.12)",
-        land: (depth) => `rgba(11,45,91,${0.28 + depth * 0.5})`,
-        marker: "rgba(11,45,91,0.5)",
-        rim: "rgba(11,45,91,0.18)",
-        atmIn: "rgba(232,168,58,0.09)",
-        atmOut: "rgba(232,168,58,0)",
-      };
+      // 2‑color globe: water + land border only (wireframe continents)
+      const waterColor = isDark ? "rgba(13,18,40,0.92)" : "rgba(210,222,240,0.88)";
+      const gridColor = isDark ? "rgba(0,245,255,0.05)" : "rgba(11,45,91,0.06)";
+      const rimColor = isDark ? "rgba(0,245,255,0.40)" : "rgba(11,45,91,0.45)";
 
       ctx.clearRect(0, 0, W, H);
 
-      // Sphere base
+      // ── Ocean sphere ─────────────────────────────────────────────
       ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.fillStyle = C.sphere; ctx.fill();
+      ctx.fillStyle = waterColor; ctx.fill();
 
-      // Ocean dots
-      ctx.fillStyle = C.ocean;
-      for (const [lon, lat] of oceanDots) {
-        const p = project(lon, lat); if (!p.vis) continue;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 0.7 * DPR, 0, Math.PI * 2); ctx.fill();
-      }
-
-      // Land dots
-      for (const [lon, lat] of landDots) {
-        const p = project(lon, lat); if (!p.vis) continue;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 1.15 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = C.land(p.depth); ctx.fill();
-      }
-
-      // Active marker — Amber (both themes)
-      const hm = MARKERS[hlIdx % MARKERS.length];
-      const hp = project(hm.lon, hm.lat);
-      if (hp.vis) {
-        const pulse = 0.5 + 0.5 * Math.sin(fr * 0.07);
-        for (let ring = 3; ring >= 0; ring--) {
+      // ── Dot texture (uniform stipple across the sphere) ──────────
+      ctx.save();
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
+      const dotColor = isDark ? "rgba(0,245,255,0.10)" : "rgba(11,45,91,0.08)";
+      ctx.fillStyle = dotColor;
+      const dotStep = 12; // degrees between dot rows
+      for (let la = -90; la <= 90; la += dotStep) {
+        for (let lo = -180; lo <= 180; lo += dotStep) {
+          const p = project(lo, la);
+          if (!p.vis) continue;
+          // Stagger even-odd rows for better coverage
+          const ox = Math.abs(la / dotStep) % 2 === 0 ? 0 : dotStep / 2;
+          const p2 = project(lo + ox, la);
+          if (!p2.vis) continue;
           ctx.beginPath();
-          ctx.arc(hp.sx, hp.sy, (8 + ring * 4 + pulse * 4) * DPR, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(232,168,58,${(0.06 + pulse * 0.06) * (4 - ring) / 4})`;
-          ctx.lineWidth = DPR; ctx.stroke();
+          ctx.arc(p2.sx, p2.sy, 0.9 * DPR, 0, Math.PI * 2);
+          ctx.fill();
         }
-        ctx.beginPath(); ctx.arc(hp.sx, hp.sy, 3.2 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = "#E8A83A"; ctx.fill();
+      }
+      ctx.restore();
+
+      // ── Lat/Lon grid lines for 3D depth effect ───────────────────
+      ctx.save();
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.clip();
+      for (let la = -60; la <= 60; la += 30) {
+        ctx.beginPath();
+        for (let lo = -180; lo <= 180; lo += 1) {
+          const p = project(lo, la);
+          if (!p.vis) { ctx.moveTo(0, 0); continue; }
+          lo === -180 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5 * DPR; ctx.stroke();
+      }
+      for (let lo = -180; lo < 180; lo += 30) {
+        ctx.beginPath();
+        for (let la = -90; la <= 90; la += 1) {
+          const p = project(lo, la);
+          if (!p.vis) { ctx.moveTo(0, 0); continue; }
+          la === -90 ? ctx.moveTo(p.sx, p.sy) : ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.strokeStyle = gridColor; ctx.lineWidth = 0.5 * DPR; ctx.stroke();
+      }
+      ctx.restore();
+
+      // ── Continent outlines only (wireframe, no fill) ───────────────
+      for (const poly of POLYGONS) {
+        for (const ring of poly) {
+          const n = ring.length;
+          for (let i = 0; i < n; i++) {
+            const [lonA, latA] = ring[i];
+            const [lonB, latB] = ring[(i + 1) % n];
+            const pA = project(lonA, latA);
+            const pB = project(lonB, latB);
+            if (!pA.vis && !pB.vis) continue;
+            const avgDepth = (pA.depth + pB.depth) / 2;
+            const alpha = isDark
+              ? (0.35 + avgDepth * 0.40)
+              : (0.50 + avgDepth * 0.30);
+            ctx.beginPath();
+            ctx.moveTo(pA.sx, pA.sy);
+            ctx.lineTo(pB.sx, pB.sy);
+            ctx.strokeStyle = isDark
+              ? `rgba(0,245,255,${Math.min(alpha, 0.95).toFixed(2)})`
+              : `rgba(11,45,91,${Math.min(alpha, 0.95).toFixed(2)})`;
+            ctx.lineWidth = 1.0 * DPR;
+            ctx.stroke();
+          }
+        }
       }
 
-      // Market dots
-      MARKERS.forEach((m, i) => {
-        if (i === hlIdx % MARKERS.length) return;
-        const p = project(m.lon, m.lat); if (!p.vis) return;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, 2 * DPR, 0, Math.PI * 2);
-        ctx.fillStyle = C.marker; ctx.fill();
+      // ── Listing markers ──────────────────────────────────────────
+      const lm = listingsRef.current;
+      const projected = [];
+      lm.forEach((listing, i) => {
+        const coords = listingToCoords(listing, i, lm.length);
+        const p = project(coords.lon, coords.lat);
+        projected.push({ ...p, listing });
+        if (!p.vis) return;
+
+        const score = listing.ati_score;
+        const color = atiColor(score, isDark);
+        const pulse = 0.5 + 0.5 * Math.sin(fr * 0.06 + i * 1.3);
+        const isActive = (i === hlIdx % Math.max(lm.length, 1));
+
+        if (isActive) {
+          // Pulsing rings for active listing
+          for (let ring = 3; ring >= 0; ring--) {
+            ctx.beginPath();
+            ctx.arc(p.sx, p.sy, (8 + ring * 5 + pulse * 4) * DPR, 0, Math.PI * 2);
+            const alpha = (0.10 + pulse * 0.10) * (4 - ring) / 4;
+            ctx.strokeStyle = color + Math.round(alpha * 255).toString(16).padStart(2, "0");
+            ctx.lineWidth = DPR * 1.2; ctx.stroke();
+          }
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 4.2 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 6 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
+        } else {
+          // Static dot with glow
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.8 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = color + "cc";
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 5 * DPR;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       });
 
-      // Rim
-      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
-      ctx.strokeStyle = C.rim; ctx.lineWidth = 1 * DPR; ctx.stroke();
+      // Fallback: default markers if no listings
+      if (lm.length === 0 && showFallbackMarkers) {
+        const dm = DEFAULT_MARKERS;
+        const hi = dm[hlIdx % dm.length];
+        const hp = project(hi.lon, hi.lat);
+        if (hp.vis) {
+          const pulse = 0.5 + 0.5 * Math.sin(fr * 0.07);
+          const color = isDark ? "#00f5ff" : "#E8A83A";
+          const glowColor = isDark ? "rgba(0,245,255," : "rgba(232,168,58,";
+          for (let ring = 4; ring >= 0; ring--) {
+            ctx.beginPath(); ctx.arc(hp.sx, hp.sy, (8 + ring * 5 + pulse * 5) * DPR, 0, Math.PI * 2);
+            const alpha = (0.09 + pulse * 0.08) * (5 - ring) / 5;
+            ctx.strokeStyle = glowColor + alpha.toFixed(2) + ")";
+            ctx.lineWidth = DPR * 1.2; ctx.stroke();
+          }
+          ctx.beginPath(); ctx.arc(hp.sx, hp.sy, 3.8 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = color; ctx.fill();
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 8 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        dm.forEach((m, i) => {
+          if (i === hlIdx % dm.length) return;
+          const p = project(m.lon, m.lat); if (!p.vis) return;
+          ctx.beginPath(); ctx.arc(p.sx, p.sy, 2.4 * DPR, 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? "rgba(0,245,255,0.70)" : "rgba(11,45,91,0.80)";
+          ctx.shadowColor = isDark ? "rgba(0,245,255,0.25)" : "rgba(11,45,91,0.35)";
+          ctx.shadowBlur = 3 * DPR; ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
 
-      // Atmosphere
-      const atm = ctx.createRadialGradient(CX, CY, R * 0.95, CX, CY, R * 1.1);
-      atm.addColorStop(0, C.atmIn);
-      atm.addColorStop(1, C.atmOut);
-      ctx.beginPath(); ctx.arc(CX, CY, R * 1.1, 0, Math.PI * 2); ctx.fillStyle = atm; ctx.fill();
+      // Store projected positions for hit-testing
+      projectedRef.current = projected;
+
+      ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
+      ctx.strokeStyle = rimColor; ctx.lineWidth = 1.2 * DPR; ctx.stroke();
+
+      const atm = ctx.createRadialGradient(CX, CY, R * 0.95, CX, CY, R * 1.08);
+      atm.addColorStop(0, isDark ? "rgba(0,245,255,0.10)" : "rgba(11,45,91,0.08)");
+      atm.addColorStop(1, "transparent");
+      ctx.beginPath(); ctx.arc(CX, CY, R * 1.08, 0, Math.PI * 2); ctx.fillStyle = atm; ctx.fill();
     };
 
-    const ci = setInterval(() => { hlIdx = (hlIdx + 1) % MARKERS.length; }, 2800);
+    const ci = setInterval(() => {
+      hlIdx = (hlIdx + 1) % Math.max(listingsRef.current.length || DEFAULT_MARKERS.length, 1);
+    }, 2800);
+
     const loop = () => {
-      fr++; rotLon += 0.08; draw();
+      fr++;
+      if (!pausedRef.current) rotLonRef.current += 0.08;
+      draw();
       rafRef.current = requestAnimationFrame(loop);
     };
     loop();
@@ -190,5 +525,32 @@ export default function RotatingGlobe({ className = "", theme = "light" }) {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
+  const handlePopupClose = () => {
+    setPopup(null);
+    pausedRef.current = false;
+  };
+
+  const handlePopupOpen = (listingId) => {
+    window.location.href = `/ati-passport/${listingId}`;
+  };
+
+  return (
+    <div className={`relative ${className}`} style={{ pointerEvents: "auto" }}>
+      <canvas
+        ref={canvasRef}
+        onClick={handleCanvasClick}
+        onMouseMove={handleMouseMove}
+        aria-label="Interactive aircraft map"
+        style={{ display: "block", width: "100%", height: "100%" }}
+      />
+      {popup && (
+        <ListingPopup
+          listing={popup.listing}
+          pos={{ x: popup.x, y: popup.y }}
+          onClose={handlePopupClose}
+          onOpen={handlePopupOpen}
+        />
+      )}
+    </div>
+  );
 }

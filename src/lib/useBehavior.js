@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useEffect, useRef } from "react";
+import { isAdminRole } from "@/utils/roles";
 
 // Event weights (feed into engagement score 0-100)
 const EVENT_WEIGHTS = {
@@ -64,7 +65,7 @@ export function useBehavior() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user-behavior"] }),
   });
 
-  const isAdmin = behavior?._user?.role === "admin";
+  const isAdmin = isAdminRole(behavior?._user);
 
   return {
     behavior,
@@ -72,7 +73,7 @@ export function useBehavior() {
     tier: isAdmin ? "enterprise" : (behavior?.tier || "free_explorer"),
     tokens: isAdmin ? 999999 : (behavior?.tokens_remaining || 0),
     engagement: behavior?.engagement_score || 0,
-    isVerified: isAdmin ? true : !!behavior?.verification_paid,
+    isVerified: true, // All users are verified (free access)
     isAdmin,
     track: (type, payload) => trackMutation.mutate({ type, payload }),
   };

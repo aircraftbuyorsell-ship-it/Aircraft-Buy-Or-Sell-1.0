@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.abos.example/core-api/public-listing-row.schema.json",
+  "title": "ABOS public listing read row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["public_listing_id", "public_aircraft_id", "make", "model", "status", "visibility"],
+  "properties": {
+    "public_listing_id": { "type": "string", "pattern": "^lst_[a-f0-9]{24}$" },
+    "public_aircraft_id": { "type": "string", "pattern": "^ac_[a-f0-9]{24}$" },
+    "make": { "type": ["string", "null"] },
+    "model": { "type": ["string", "null"] },
+    "year": { "type": ["integer", "null"] },
+    "total_time": { "type": ["number", "null"] },
+    "engine_hours": { "type": ["number", "null"] },
+    "asking_price": { "type": ["number", "null"] },
+    "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" },
+    "status": { "const": "active" },
+    "visibility": { "const": "public" },
+    "location_country": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+    "location_region": { "type": ["string", "null"] },
+    "location_city": { "type": ["string", "null"] },
+    "ati_score": { "type": ["number", "null"] },
+    "omvm_value": { "type": ["number", "null"] },
+    "deal_score": { "type": ["number", "null"] },
+    "deal_label": { "type": ["string", "null"] },
+    "ai_summary": { "type": ["string", "null"] },
+    "photo_url": { "type": ["string", "null"], "format": "uri" },
+    "registry_country": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+    "source": { "type": ["string", "null"] },
+    "source_record_id": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "not": { "pattern": "^(base44_|internal_|[a-f0-9]{24}$)" } }
+      ]
+    },
+    "observed_at": { "type": ["string", "null"], "format": "date-time" },
+    "intelligence_generated_at": { "type": ["string", "null"], "format": "date-time" },
+    "intelligence_engine_version": { "type": ["string", "null"] },
+    "intelligence_limitations": { "type": ["array", "null"], "items": { "type": "string" } },
+    "created_at": { "type": ["string", "null"], "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

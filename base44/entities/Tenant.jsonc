@@ -1,0 +1,71 @@
+{
+  "name": "Tenant",
+  "type": "object",
+  "description": "A White-Label Toolset customer organization (e.g. SkyDeals Europe). Distinct from PartnerConfig, which is the escrow-marketplace embeddable-widget partner program — a different product line.",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "URL/config-safe slug, e.g. 'skydeals_europe'. Treated as immutable once set — it's referenced by License, TenantApiKey and ContractAcceptance records."
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable organization name, e.g. 'SkyDeals Europe'"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Primary contact for this tenant (billing/technical notices)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "active", "suspended"],
+      "default": "pending",
+      "description": "pending = provisioned but not yet activated; suspended = temporarily blocked (e.g. billing issue), keeps data but blocks API access"
+    },
+    "brand_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Short brand name shown in white-label UI (falls back to display_name if unset)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Tenant logo URL used by the White-Label UI Kit"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#0EA5E9",
+      "description": "Hex color for white-label UI accent elements"
+    },
+    "custom_domain": {
+      "type": "string",
+      "description": "Domain the tenant deploys the white-label UI on (used for CORS/origin checks)"
+    },
+    "allowed_domains": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Origins allowed to call tenant-scoped endpoints from a browser. Empty = server-to-server only (no browser origin allowed)."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Internal notes"
+    }
+  },
+  "required": ["tenant_id", "display_name", "contact_email"],
+  "rls": {
+    "create": {
+      "user_condition": { "role": "admin" }
+    },
+    "read": {
+      "user_condition": { "role": "admin" }
+    },
+    "update": {
+      "user_condition": { "role": "admin" }
+    },
+    "delete": {
+      "user_condition": { "role": "admin" }
+    }
+  }
+}

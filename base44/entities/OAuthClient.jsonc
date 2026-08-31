@@ -1,0 +1,62 @@
+{
+  "name": "OAuthClient",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "description": "Public client identifier issued at registration (not secret)",
+      "type": "string"
+    },
+    "client_name": {
+      "description": "Human-readable name shown on the consent screen, e.g. 'Claude', 'ChatGPT'",
+      "maxLength": 200,
+      "type": "string"
+    },
+    "redirect_uris": {
+      "description": "Allowlisted redirect URIs this client may be sent back to after consent",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "registered_via": {
+      "default": "dynamic",
+      "enum": [
+        "dynamic",
+        "manual"
+      ],
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "client_id",
+    "client_name",
+    "redirect_uris"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

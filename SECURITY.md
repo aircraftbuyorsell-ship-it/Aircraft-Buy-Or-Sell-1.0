@@ -2,20 +2,29 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+This repository currently tracks the ABOS 0.8 application line.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version | Supported |
+| --- | --- |
+| `main` / 0.8.x | :white_check_mark: |
+| Older versions | :x: |
+
+Security fixes are applied to the current `main` branch. Older snapshots may not receive security updates.
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please report suspected security vulnerabilities privately through GitHub's **Security** tab using **Report a vulnerability** / a private security advisory, when available.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Do not disclose the vulnerability in a public issue, pull request, discussion, or commit.
+
+If private vulnerability reporting is not available for this repository, contact the repository maintainers through GitHub and include:
+
+- a short description of the vulnerability;
+- the affected URL, component, or file;
+- reproducible steps or a minimal proof of concept;
+- the potential impact;
+- any suggested mitigation.
+
+Please avoid including real user data, credentials, tokens, or other secrets in the report.
+
+We will acknowledge receipt as soon as reasonably possible, assess the report, and coordinate remediation and disclosure with the reporter.

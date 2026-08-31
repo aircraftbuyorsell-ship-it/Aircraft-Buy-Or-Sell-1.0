@@ -1,0 +1,124 @@
+{
+  "name": "FeatureUsageMetric",
+  "type": "object",
+  "properties": {
+    "ab_variant": {
+      "type": "string",
+      "description": "A/B test variant",
+      "enum": [
+        "control",
+        "variant_a",
+        "variant_b",
+        "variant_c"
+      ]
+    },
+    "conversion_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of conversions (goal achieved)"
+    },
+    "feature_name": {
+      "type": "string",
+      "description": "Feature being measured"
+    },
+    "interaction_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of user interactions with feature"
+    },
+    "measured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this metric was recorded"
+    },
+    "metric_type": {
+      "type": "string",
+      "description": "Type of metric being tracked",
+      "enum": [
+        "adoption_rate",
+        "engagement",
+        "conversion",
+        "error_rate",
+        "performance",
+        "user_satisfaction"
+      ]
+    },
+    "metric_value": {
+      "type": "number",
+      "description": "Measured value (percentage, count, seconds, score)"
+    },
+    "sample_size": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of users sampled for this metric"
+    },
+    "statistical_significance": {
+      "type": "number",
+      "default": 0,
+      "description": "P-value (0.0-1.0) for A/B test significance",
+      "maximum": 1,
+      "minimum": 0
+    },
+    "tier": {
+      "type": "string",
+      "description": "Tier being measured",
+      "enum": [
+        "free_explorer",
+        "pro",
+        "enterprise",
+        "all"
+      ]
+    },
+    "user_segment": {
+      "type": "string",
+      "description": "User segment being measured",
+      "enum": [
+        "new_users",
+        "active_users",
+        "churned_users",
+        "all_users"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "feature_name",
+    "metric_type",
+    "measured_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

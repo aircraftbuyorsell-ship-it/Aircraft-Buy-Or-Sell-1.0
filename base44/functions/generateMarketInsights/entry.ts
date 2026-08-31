@@ -85,46 +85,80 @@ Listings (sample): ${JSON.stringify(listingSignals.slice(0, 40))}
 Escrows (sample): ${JSON.stringify(escrowSignals.slice(0, 20))}
 Deal scores (sample): ${JSON.stringify(dealSignals.slice(0, 25))}`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          trending_models: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                model: { type: "string" },
-                signal: { type: "string" },
-                direction: { type: "string", enum: ["up", "down", "steady"] },
-                confidence: { type: "number" },
+    const fallbackInsights = {
+      summary: totalListings > 0
+        ? `Market snapshot based on ${totalListings} active aircraft reports.`
+        : "Market insights will appear as aircraft reports are added.",
+      trending_models: listingSignals.slice(0, 4).map(l => ({
+        model: l.mm,
+        signal: l.ati ? `ATI score ${l.ati}${l.price ? ` · asking $${Number(l.price).toLocaleString()}` : ""}` : "Active aircraft report available for review.",
+        direction: l.deal_label === "overpriced" ? "down" : "steady",
+        confidence: l.ati ? 3 : 2,
+      })),
+      buy_alerts: listingSignals
+        .filter(l => (l.discount_pct || 0) > 0 || l.deal_label === "hot deal" || l.deal_label === "good deal")
+        .slice(0, 3)
+        .map(l => ({
+          listing_id: l.id,
+          aircraft: l.mm,
+          reason: l.discount_pct ? `${Math.round(l.discount_pct)}% below model value.` : `${l.deal_label || "Opportunity"} based on current deal signals.`,
+          confidence: 3,
+        })),
+      market_shifts: [
+        `${activeEscrows} active escrow workflow${activeEscrows === 1 ? "" : "s"} currently in progress.`,
+        hotDeals > 0 ? `${hotDeals} strong deal signal${hotDeals === 1 ? "" : "s"} detected.` : "No high-confidence hot deals detected in the current snapshot.",
+        avgAti ? `Average ATI score is ${avgAti}.` : "ATI scoring coverage is still building.",
+      ],
+    };
+
+    let result = fallbackInsights;
+    let fallback = false;
+
+    try {
+      result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            trending_models: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  model: { type: "string" },
+                  signal: { type: "string" },
+                  direction: { type: "string", enum: ["up", "down", "steady"] },
+                  confidence: { type: "number" },
+                },
+                required: ["model", "signal", "direction"],
               },
-              required: ["model", "signal", "direction"],
             },
-          },
-          buy_alerts: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                listing_id: { type: "string" },
-                aircraft: { type: "string" },
-                reason: { type: "string" },
-                confidence: { type: "number" },
+            buy_alerts: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  listing_id: { type: "string" },
+                  aircraft: { type: "string" },
+                  reason: { type: "string" },
+                  confidence: { type: "number" },
+                },
+                required: ["aircraft", "reason"],
               },
-              required: ["aircraft", "reason"],
             },
+            market_shifts: {
+              type: "array",
+              items: { type: "string" },
+            },
+            summary: { type: "string" },
           },
-          market_shifts: {
-            type: "array",
-            items: { type: "string" },
-          },
-          summary: { type: "string" },
+          required: ["trending_models", "buy_alerts", "market_shifts"],
         },
-        required: ["trending_models", "buy_alerts", "market_shifts"],
-      },
-    });
+      });
+    } catch (llmError) {
+      console.warn("Market insights AI fallback:", llmError.message);
+      fallback = true;
+    }
 
     const data = {
       generated_at: new Date().toISOString(),
@@ -133,7 +167,7 @@ Deal scores (sample): ${JSON.stringify(dealSignals.slice(0, 25))}`;
     };
 
     CACHE.set(user.email, { at: Date.now(), data });
-    return Response.json({ ...data, cached: false });
+    return Response.json({ ...data, cached: false, fallback });
   } catch (error) {
     console.error("generateMarketInsights error:", error.message);
     return Response.json({ error: error.message }, { status: 500 });

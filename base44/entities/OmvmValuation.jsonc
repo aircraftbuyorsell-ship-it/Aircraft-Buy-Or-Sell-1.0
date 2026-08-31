@@ -1,0 +1,180 @@
+{
+  "name": "OmvmValuation",
+  "type": "object",
+  "description": "OMVM 2.0 Aircraft Valuation Results",
+  "properties": {
+    "aircraft_listing_id": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Reference to the aircraft listing"
+    },
+    "aircraft_registration": {
+      "type": "string",
+      "description": "Aircraft N-number or registration"
+    },
+    "make": {
+      "type": "string",
+      "description": "Aircraft manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year of manufacture"
+    },
+    "engine_hours": {
+      "type": "number",
+      "description": "Engine hours at time of valuation"
+    },
+    "tbo_remaining_pct": {
+      "type": "number",
+      "description": "Time between overhaul remaining as percentage (0-100)"
+    },
+    "avionics_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Avionics quality score (0.0 to 1.0)"
+    },
+    "estimated_value_usd": {
+      "type": "number",
+      "description": "Estimated aircraft value in USD from OMVM"
+    },
+    "posterior_sigma_usd": {
+      "type": "number",
+      "description": "Posterior standard deviation in USD"
+    },
+    "valuation_mode": {
+      "type": "string",
+      "enum": ["full_hedonic", "reduced_hedonic", "robust_median", "fallback"],
+      "description": "Valuation methodology mode based on n_eff"
+    },
+    "confidence_within_10_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Probability value falls within ±10%"
+    },
+    "confidence_within_20_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Probability value falls within ±20%"
+    },
+    "confidence_within_30_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Probability value falls within ±30%"
+    },
+    "confidence_mode": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Confidence level classification"
+    },
+    "market_listings_used": {
+      "type": "number",
+      "description": "Number of market listings used in analysis"
+    },
+    "market_n_eff": {
+      "type": "number",
+      "description": "Effective sample size from market analysis"
+    },
+    "market_value_usd": {
+      "type": "number",
+      "description": "Market value from comparable listings"
+    },
+    "market_sigma_log": {
+      "type": "number",
+      "description": "Market dispersion (log space)"
+    },
+    "depreciation_k": {
+      "type": "number",
+      "description": "Depreciation rate parameter used"
+    },
+    "audit_trace": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Decision trail from valuation model"
+    },
+    "apl_message_id": {
+      "type": "string",
+      "description": "APL protocol message ID for audit chain"
+    },
+    "apl_event_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of valuation event"
+    },
+    "calibration_version": {
+      "type": "string",
+      "description": "Parameter bundle version used"
+    },
+    "created_by": {
+      "type": "string",
+      "relationType": "User",
+      "description": "User who requested valuation"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "complete", "error"],
+      "default": "pending",
+      "description": "Valuation status"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if valuation failed"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when valuation was created"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this valuation expires (typically 30-90 days)"
+    }
+  },
+  "required": [
+    "aircraft_registration",
+    "make",
+    "model",
+    "year",
+    "estimated_value_usd",
+    "posterior_sigma_usd",
+    "valuation_mode"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.created_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

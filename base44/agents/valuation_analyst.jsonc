@@ -49,23 +49,40 @@
       "allowed_operations": [
         "read"
       ]
+    },
+    {
+      "function_name": "omvmV5Score",
+      "description": ""
+    },
+    {
+      "function_name": "syncFaaToAtiCard",
+      "description": ""
     }
   ],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [
-    "69c8a232a9e04dc803a2e844",
     "69c8a1a867d7d3e00b4049a9",
     "69d81c00c3fdab3c7d98797b",
     "69e41d4089ab11666b59cfc5",
-    "69d5ccd4702e5dc6203e7f27"
+    "69d5ccd4702e5dc6203e7f27",
+    "69d5ccc8a5c03dc98305a4a5",
+    "69d5cce47c5dd44d5a8e5248",
+    "69d5cd346ce89f46d45306d2",
+    "69c813d5de35f4fb879160b3",
+    "6a2ca1a3d7da46b2db1a5e04",
+    "69d81c132b7315244f96de09"
   ],
   "model": "automatic",
   "memory_config": {
     "enabled": true,
     "scope": "both",
+    "include_other_conversation_context": false,
     "instructions": null
   },
   "whatsapp_greeting": "",
   "telegram_greeting": "",
+  "context_files": [],
+  "app_user_connector_configs": [],
+  "line_greeting": "",
   "name": "valuation_analyst"
 }

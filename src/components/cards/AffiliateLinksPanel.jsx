@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Link2, Copy, Check, Plus, BarChart3, Trash2, Power } from "lucide-react";
+import { Link2, Copy, Check, Plus, BarChart3, Trash2, Power, Lock } from "lucide-react";
 import { generateUniqueSlug } from "@/lib/affiliate";
 
 const ROLES = [
@@ -88,6 +88,26 @@ export default function AffiliateLinksPanel({ card }) {
   });
 
   if (!card) return null;
+
+  // R2 — Consent gate: public/viral distribution requires verified ownership
+  if (!card.owner_verified) {
+    return (
+      <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Lock className="w-4 h-4 text-[#C0392B]" />
+          <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#C0392B]">Distribution Locked</p>
+        </div>
+        <p className="text-sm text-[#1A1814] font-semibold mb-1">
+          Owner verification required before this card can be shared or distributed.
+        </p>
+        <p className="text-[12px] text-[#6B6560]">
+          To protect aircraft owners, affiliate links and public distribution are only available once
+          ownership of {card.aircraft_registration || "this aircraft"} has been verified via ATI Verify.
+          Internal scoring remains private until then.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">

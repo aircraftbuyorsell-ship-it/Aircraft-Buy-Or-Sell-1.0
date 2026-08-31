@@ -1,0 +1,86 @@
+{
+  "name": "ApiMonthlyUsage",
+  "type": "object",
+  "properties": {
+    "license_id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "report_equivalents_used": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "search_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "score_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "report_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "valuation_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "market_intelligence_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "pro_analysis_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "tax_analysis_calls": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "license_id",
+    "tenant_id",
+    "period"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

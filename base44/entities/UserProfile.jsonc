@@ -1,0 +1,222 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user (unique identifier)"
+    },
+    "display_name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Public display name"
+    },
+    "bio": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "User bio/description"
+    },
+    "profile_image_url": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "super_admin",
+        "moderator",
+        "dealer",
+        "broker",
+        "marketplace",
+        "buyer",
+        "seller",
+        "viewer"
+      ],
+      "default": "viewer",
+      "description": "User role"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "free_explorer",
+        "pro",
+        "enterprise"
+      ],
+      "default": "free_explorer",
+      "description": "Subscription tier"
+    },
+    "sub_tier": {
+      "type": "string",
+      "enum": [
+        "starter",
+        "plus",
+        "premium",
+        "scale",
+        "elite",
+        "none"
+      ],
+      "default": "none",
+      "description": "Sub-tier level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "deleted"
+      ],
+      "default": "active",
+      "description": "Account status"
+    },
+    "suspended_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When account was suspended"
+    },
+    "suspension_reason": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Why account was suspended"
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last successful authentication"
+    },
+    "last_ip_hash": {
+      "type": "string",
+      "description": "Hashed IP of last login"
+    },
+    "custom_domain": {
+      "type": "string",
+      "maxLength": 255,
+      "description": "Custom domain for white-label (enterprise only)"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "can_create_ati_card",
+          "can_modify_ati_card",
+          "can_delete_ati_card",
+          "can_moderate_reviews",
+          "can_access_admin_panel",
+          "can_create_escrow",
+          "can_settle_escrow",
+          "can_invite_editors",
+          "can_access_api",
+          "can_white_label"
+        ]
+      },
+      "default": [],
+      "description": "Fine-grained permission flags"
+    },
+    "feature_flags": {
+      "type": "object",
+      "description": "Feature access flags"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Custom user metadata"
+    },
+    "pipeline_role": {
+      "type": "string",
+      "enum": [
+        "buyer",
+        "seller",
+        "both"
+      ],
+      "description": "Commercial pipeline role"
+    },
+    "trial_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Buyer trial start time"
+    },
+    "trial_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Buyer trial expiry time"
+    },
+    "buyer_pro_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether buyer Pro access is active"
+    },
+    "buyer_plan": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual",
+        "none"
+      ],
+      "default": "none",
+      "description": "Active buyer billing plan"
+    },
+    "seller_free_listing_used": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the seller has used their first free asset listing"
+    },
+    "total_listings_count": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Seller asset listing count"
+    },
+    "stripe_connect_account_id": {
+      "type": "string",
+      "description": "Seller Stripe Connect account used for escrow payouts"
+    }
+  },
+  "required": [
+    "user_email",
+    "role",
+    "tier"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

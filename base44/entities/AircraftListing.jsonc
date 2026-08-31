@@ -109,10 +109,34 @@
       "type": "string",
       "description": "Original listing URL"
     },
+    "photo_url": {
+      "type": "string",
+      "description": "Aircraft photo URL"
+    },
+    "photo_source": {
+      "type": "string",
+      "enum": [
+        "adsbdb",
+        "hf_generated",
+        "none"
+      ],
+      "default": "none",
+      "description": "Source of the aircraft photo"
+    },
     "owner": {
       "type": "string",
       "relationType": "User",
       "description": "Listing owner"
+    },
+    "pending_fee_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Finder's fee held for collection only when an ABOS escrow closes"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [

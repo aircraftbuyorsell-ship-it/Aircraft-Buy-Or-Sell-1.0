@@ -5,8 +5,6 @@ import { Pencil, Save, X, Loader2 } from "lucide-react";
 import { useCardPermissions } from "@/lib/useCardPermissions";
 
 const EDITABLE_FIELDS = [
-  { key: "subject_owner_email", label: "Beneficial Owner Email", type: "email" },
-  { key: "subject_operator_email", label: "Operator Email", type: "email" },
   { key: "distribution_owner_email", label: "Distribution / Broker Email", type: "email" },
   { key: "notes", label: "Notes", type: "textarea" },
 ];

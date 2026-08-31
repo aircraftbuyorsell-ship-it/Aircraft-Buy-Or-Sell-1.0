@@ -1,0 +1,41 @@
+{
+  "name": "FAA Airman Release Monitor",
+  "description": "Denn\u011b kontroluje ofici\u00e1ln\u00ed FAA Airman upload, porovn\u00e1v\u00e1 jej s neve\u0159ejn\u00fdm IntraZone auditem a jednor\u00e1zov\u011b upozorn\u00ed administr\u00e1tory na nov\u00fd snapshot.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "faa_airman_release_monitor",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "monitorFaaAirmanRelease",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

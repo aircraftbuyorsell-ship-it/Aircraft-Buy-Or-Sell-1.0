@@ -91,17 +91,120 @@ function labelFromTotal(total) {
   return "AVOID";
 }
 
+// Constant-time comparison via SHA-256 of both sides, so neither the secret's
+// contents nor its length leak through response timing.
+async function timingSafeEqual(a: string | null, b: string | null): Promise<boolean> {
+  if (!a || !b) return false;
+  const enc = new TextEncoder();
+  const [ha, hb] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const va = new Uint8Array(ha), vb = new Uint8Array(hb);
+  let diff = 0;
+  for (let i = 0; i < va.length; i++) diff |= va[i] ^ vb[i];
+  return diff === 0;
+}
+
+// One passport per aircraft, re-scored over time. This used to be a bare
+// .create, which left a new row on every run; the registration-keyed lookups
+// in calculateEngineMaintenance, cmrNegoBrief, executeBrokerAgreement and
+// publicTwinLookup then picked whichever duplicate sorted first.
+async function upsertPassport(db, registration: string | null, payload: Record<string, unknown>) {
+  if (registration) {
+    const existing = await db.entities.ATIPassport.filter({ registration }, '-created_date', 1);
+    if (existing && existing.length > 0) {
+      return { passport: await db.entities.ATIPassport.update(existing[0].id, payload), action: 'updated' };
+    }
+  }
+  return { passport: await db.entities.ATIPassport.create(payload), action: 'created' };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { listingId, answers = {}, evidence = {} } = await req.json();
+    // Two ways in: a browser session, or the Cloudflare gateway with a shared
+    // secret and no user at all.
+    const isService = await timingSafeEqual(
+      req.headers.get('x-gateway-secret'),
+      Deno.env.get('GATEWAY_SECRET') ?? null
+    );
+
+    let user = null;
+    if (!isService) {
+      user = await base44.auth.me();
+      if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const db = isService ? base44.asServiceRole : base44;
+
+    const { listingId, answers = {}, evidence = {}, card } = await req.json();
+
+    // Persist-only. The gateway has already scored the aircraft with the
+    // deterministic valuation engine and a pinned-valuation prompt; it needs
+    // storage, not a second scoring pass. Routing it through here keeps
+    // ATIPassport down to one writer instead of adding a fourth.
+    if (card) {
+      const registration = String(card.registration || '').trim().toUpperCase();
+      if (!registration) {
+        return Response.json({ error: 'registration required for persist-only' }, { status: 400 });
+      }
+      const dims = card.dimensions || {};
+      const dimCols: Record<string, number | null> = {};
+      for (const key of ['documentation','technical','transparency','transaction_ready',
+                         'usage_mission','storage_exposure','config_clarity','market_readiness']) {
+        const raw = Number(dims[key]?.score);
+        dimCols[key] = Number.isFinite(raw) ? raw : null;
+      }
+      const asList = (v: unknown) => Array.isArray(v) ? v.filter(Boolean).join('\n') : (v || '');
+      const live = card.omvm?.market_intelligence || {};
+
+      const { passport, action } = await upsertPassport(db, registration, {
+        registration,
+        ...(card.listing_id ? { listing: card.listing_id } : {}),
+        ...(user ? { triggered_by: user.id } : {}),
+        ati_total: card.ati_score ?? null,
+        ...dimCols,
+        score_label: card.score_label ?? null,
+        ai_summary: card.review_text || '',
+        strengths: asList(card.strengths),
+        risks: asList(card.red_flags),
+        recommendations: card.verdict || '',
+        missing_data: asList(card.missing_data),
+        // Null, not 0, when the engine declined to value the aircraft — a zero
+        // here reads as "worthless" on every chart downstream.
+        omvm_value: card.omvm?.status === 'ok' ? card.omvm.value : null,
+        discount_pct: card.omvm?.deviation_pct ?? null,
+        ati_version: card.score_version || 'ati-v2.1',
+        live_market_avg: live.live_market_avg ?? null,
+        live_min_price: live.live_min_price ?? null,
+        live_max_price: live.live_max_price ?? null,
+        live_listings_count: live.live_listings_count ?? null,
+        market_data_source: live.market_data_source || 'none',
+        twin_last_synced_at: new Date().toISOString(),
+      });
+
+      return Response.json({ ok: true, action, passport_id: passport?.id ?? null, registration });
+    }
+
     if (!listingId) return Response.json({ error: "listingId required" }, { status: 400 });
 
-    const listing = await base44.entities.AircraftListing.get(listingId);
+    const listing = await db.entities.AircraftListing.get(listingId);
     if (!listing) return Response.json({ error: "Listing not found" }, { status: 404 });
+
+    // ─── 0) Fetch live market intelligence for market_readiness enrichment ──
+    let marketIntel = null;
+    try {
+      // asServiceRole: this function is reached from the Cloudflare gateway
+      // with only x-gateway-secret, so there is no Base44 session to inherit.
+      const marketRes = await base44.asServiceRole.functions.invoke('piloterrTradeProxy', {
+        make: listing.make, model: listing.model, year: listing.year,
+      });
+      marketIntel = marketRes?.data || marketRes || null;
+    } catch (marketErr) {
+      console.warn('[orchestrateATIScoring] market intelligence failed:', marketErr.message);
+    }
 
     // ─── 1) Score each dimension separately ───────────────────────────
     const scored = {};
@@ -199,6 +302,34 @@ Return ONLY JSON:
       (result.missing || []).forEach((m) => missingData.push(`${d.label}: ${m}`));
     }
 
+    // ─── 1b) Enrich market_readiness with live market intelligence ─────
+    if (marketIntel && marketIntel.avg_price != null && marketIntel.avg_price > 0 && listing.asking_price) {
+      const marketAvg = marketIntel.avg_price;
+      const askingPrice = listing.asking_price;
+      const priceDiffPct = ((askingPrice - marketAvg) / marketAvg) * 100;
+      const listingsCount = marketIntel.listings_count || 0;
+      let mrScore = scored.market_readiness?.score ?? 8;
+      // +15 if within 5% of market avg AND listings_count > 10
+      if (Math.abs(priceDiffPct) <= 5 && listingsCount > 10) {
+        mrScore = 15;
+      }
+      // Penalise if asking_price > market avg by >15%
+      if (priceDiffPct > 15) {
+        mrScore = Math.min(mrScore, 6);
+      }
+      scored.market_readiness = {
+        ...(scored.market_readiness || {}),
+        score: Math.max(0, Math.min(15, mrScore)),
+        market_intelligence: {
+          live_market_avg: marketAvg,
+          listings_count: listingsCount,
+          price_position: Math.round(priceDiffPct * 10) / 10,
+          market_depth: listingsCount > 10 ? 'deep' : listingsCount > 3 ? 'moderate' : 'shallow',
+          data_freshness: marketIntel._source === 'cached' ? 'cached' : 'live',
+        },
+      };
+    }
+
     const dimensionScores = Object.fromEntries(
       Object.entries(scored).map(([k, v]) => [k, v.score])
     );
@@ -224,15 +355,25 @@ Return JSON:
       },
     });
 
-    // ─── 3) OMVM valuation (same logic as one-shot path) ─────────────
-    const tbo = listing.tbo || 2000;
-    const engineAdj = (tbo - (listing.engine_hours || 0)) * 12;
-    const avionicsAdj = (listing.avionics?.split(",").length || 0) * 4500;
-    const maintAdj = listing.fresh_annual ? 6000 : 0;
-    const omvmValue = Math.round(200000 + engineAdj + avionicsAdj + maintAdj);
-    const discountPct = listing.asking_price
-      ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
-      : null;
+    // ─── 3) OMVM valuation via omvmV5Score ─────────────
+    let omvmValue = null;
+    try {
+      // asServiceRole — same reason as piloterrTradeProxy above.
+      const omvmResult = await base44.asServiceRole.functions.invoke("omvmV5Score", {
+        listingId,
+      });
+      omvmValue = omvmResult?.data?.omvm_value ?? omvmResult?.omvm_value ?? null;
+    } catch (err) {
+      console.error("[orchestrateATIScoring] omvmV5Score failed:", err);
+      // omvmValue stays null — no fallback to hardcoded values
+    }
+    // Recalculate discount_pct against market avg if available, else OMVM
+    const marketAvgForDeal = marketIntel?.avg_price || null;
+    const discountPct = listing.asking_price && marketAvgForDeal != null
+      ? Math.round(((marketAvgForDeal - listing.asking_price) / marketAvgForDeal) * 1000) / 10
+      : (listing.asking_price && omvmValue != null
+        ? Math.round(((omvmValue - listing.asking_price) / omvmValue) * 1000) / 10
+        : null);
     const dealScore = discountPct == null ? null
       : discountPct > 25 ? 9.5 : discountPct > 15 ? 8.5 : discountPct > 8 ? 7.5
       : discountPct > 2 ? 6.5 : discountPct < -15 ? 2.5 : discountPct < -5 ? 4.0 : 5.0;
@@ -243,9 +384,13 @@ Return JSON:
     const coOwnershipViable = (listing.asking_price || 0) >= 150000;
 
     // ─── 4) Persist ATIPassport ───────────────────────────────────────
-    const passport = await base44.entities.ATIPassport.create({
+    // registration was previously omitted, which is the one field the entity
+    // requires and the key every downstream lookup filters on — wizard-created
+    // passports were invisible to all of them.
+    const { passport } = await upsertPassport(db, listing.registration || null, {
+      registration: listing.registration || null,
       listing: listingId,
-      triggered_by: user.id,
+      ...(user ? { triggered_by: user.id } : {}),
       ati_total: atiTotal,
       ...dimensionScores,
       score_label: scoreLabel,
@@ -261,10 +406,15 @@ Return JSON:
       deal_label: dealLabel,
       discount_pct: discountPct,
       ati_version: "wizard_v1",
+      live_market_avg: marketIntel?.avg_price || null,
+      live_min_price: marketIntel?.min_price || null,
+      live_max_price: marketIntel?.max_price || null,
+      live_listings_count: marketIntel?.listings_count || null,
+      market_data_source: marketIntel ? (marketIntel._source === 'cached' ? 'cached' : 'live') : 'none',
     });
 
     // ─── 5) Update listing ────────────────────────────────────────────
-    await base44.entities.AircraftListing.update(listingId, {
+    await db.entities.AircraftListing.update(listingId, {
       ati_score: atiTotal,
       omvm_value: omvmValue,
       deal_score: dealScore,

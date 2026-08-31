@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Fingerprint, Copy, ExternalLink, Check, Share2 } from "lucide-react";
+import { Fingerprint, Copy, ExternalLink, Check, Share2, BadgeCheck, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { STATUS_META, CARD_TYPE_META } from "@/lib/atiCard";
 
@@ -44,11 +44,30 @@ export default function CardIdentityBlock({ card }) {
             {card.public_card_code}
           </p>
           <p className="text-[11px] text-[#6B6560] mt-0.5">
-            Issued by {card.issuer_entity || "ABOS"} · Sequence #{String(card.sequence_number).padStart(6, "0")} · Attribution: first verified source wins
+            Issued by {card.issuer_entity || "ABOS"} · Sequence #{String(card.sequence_number).padStart(6, "0")} · Attribution: first verified source
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+          {/* Verified by Owner badge */}
+          {card.owner_verified && (
+            <span
+              className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-black px-2.5 py-1.5 rounded-full border"
+              style={{ background: "rgba(212,160,23,0.08)", borderColor: "rgba(212,160,23,0.3)", color: "#A67C00" }}
+            >
+              <BadgeCheck className="w-3.5 h-3.5 text-[#D4A017]" />
+              Verified by Owner
+            </span>
+          )}
+          {!card.owner_verified && (
+            <span
+              className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2.5 py-1.5 rounded-full border border-dashed"
+              style={{ color: "rgba(0,0,0,0.25)", borderColor: "rgba(0,0,0,0.12)" }}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Ownership Unverified
+            </span>
+          )}
           <button onClick={copy}
             className="flex items-center gap-1.5 bg-[#F7F4EF] hover:bg-[#0B2D5B] hover:text-white border border-black/10 text-[#1A1814] text-[11px] uppercase tracking-wider font-black px-3 py-2 rounded-md transition-colors">
             {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy ID</>}
@@ -60,13 +79,12 @@ export default function CardIdentityBlock({ card }) {
         </div>
       </div>
 
-      {/* Ownership / distribution roles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5 border-t border-black/[0.06]">
+      {/* Card role badges — emails masked for privacy */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5 pt-5 border-t border-black/[0.06]">
         {[
           { label: "Issuer", value: card.issuer_entity || "ABOS" },
-          { label: "Card Owner", value: card.card_owner_email || "—" },
-          { label: "Distribution", value: card.distribution_owner_email || "—" },
-          { label: "Subject Owner", value: card.subject_owner_email || "—" },
+          { label: "Card Owner", value: card.card_owner_email ? "●●●●●@●●●●●" : "—" },
+          { label: "Distribution", value: card.distribution_owner_email ? "●●●●●@●●●●●" : "—" },
         ].map(r => (
           <div key={r.label}>
             <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold">{r.label}</p>

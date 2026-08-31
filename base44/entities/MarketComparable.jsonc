@@ -1,0 +1,97 @@
+{
+  "name": "MarketComparable",
+  "type": "object",
+  "properties": {
+    "make": {
+      "type": "string",
+      "description": "Aircraft manufacturer (e.g. Cessna, Piper)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Aircraft model or model family"
+    },
+    "year_range": {
+      "type": "string",
+      "description": "Year range covered (e.g. '2005-2010') or single year"
+    },
+    "avg_price": {
+      "type": "number",
+      "description": "Average market asking price (USD)"
+    },
+    "min_price": {
+      "type": "number",
+      "description": "Minimum market asking price (USD)"
+    },
+    "max_price": {
+      "type": "number",
+      "description": "Maximum market asking price (USD)"
+    },
+    "listings_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of live listings found"
+    },
+    "price_samples": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Sample of individual listing prices (USD)"
+    },
+    "raw_listings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Full listing objects from the market feed (title, price, link, specs)"
+    },
+    "source_label": {
+      "type": "string",
+      "default": "ABOS Market Intelligence",
+      "description": "Internal brand label for the data source (never expose external source)"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when this data was fetched from the market feed"
+    },
+    "is_stale": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if fetched_at is older than 48 hours"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "make",
+    "model",
+    "avg_price",
+    "fetched_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

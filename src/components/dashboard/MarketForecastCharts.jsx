@@ -120,7 +120,7 @@ export default function MarketForecastCharts() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-black/[0.06] flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-[#D4A017] mb-0.5">AI Market Forecast</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-black text-[#D4A017] mb-0.5">Market Forecast</p>
           <h3 className="text-base font-black text-[#1A1814]">Tržní předpověď letadel</h3>
           <p className="text-[11px] text-[#AAA49C] mt-0.5">
             Generováno: {latest.forecast_date || new Date(latest.created_date).toLocaleDateString("cs-CZ")}

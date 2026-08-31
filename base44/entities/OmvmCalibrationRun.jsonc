@@ -1,0 +1,249 @@
+{
+  "name": "OmvmCalibrationRun",
+  "type": "object",
+  "description": "OMVM 2.0 Quarterly Calibration Run",
+  "properties": {
+    "trigger_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Calibration trigger date (Q1, Q2, Q3, Q4)"
+    },
+    "backtest_years": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Number of years used for backtesting"
+    },
+    "parameter_bundle_version": {
+      "type": "string",
+      "description": "Version of parameter bundle (e.g. 2.1.0)"
+    },
+    "calibration_status": {
+      "type": "string",
+      "enum": ["pending", "running", "complete", "approved", "published", "error"],
+      "default": "pending",
+      "description": "Calibration workflow status"
+    },
+    "backtest_period": {
+      "type": "string",
+      "description": "Backtest period (e.g. 2021-2026)"
+    },
+    "parameter_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of parameter bundle"
+    },
+    "aircraft_classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "aircraft_class": {
+            "type": "string",
+            "enum": ["piston_single", "piston_twin", "turboprop", "jet"]
+          },
+          "model_family": {
+            "type": "string"
+          },
+          "year_from": {
+            "type": "number"
+          },
+          "year_to": {
+            "type": "number"
+          },
+          "v_new_usd": {
+            "type": "number",
+            "description": "New aircraft value"
+          },
+          "floor_ratio": {
+            "type": "number",
+            "description": "Minimum value ratio (e.g. 0.20 = 20% of new)"
+          },
+          "depreciation_rate_k": {
+            "type": "number",
+            "description": "Depreciation rate parameter"
+          },
+          "prior_sigma_log": {
+            "type": "number",
+            "description": "Prior uncertainty in log space"
+          },
+          "ridge_lambda": {
+            "type": "number",
+            "description": "Ridge regression penalty"
+          },
+          "backtest_count": {
+            "type": "number",
+            "description": "Number of aircraft in backtest"
+          },
+          "backtest_rmse": {
+            "type": "number",
+            "description": "Root mean squared error"
+          },
+          "backtest_percentile_95": {
+            "type": "number",
+            "description": "95th percentile residual"
+          }
+        }
+      },
+      "description": "Calibrated parameters per aircraft class"
+    },
+    "confidence_intervals": {
+      "type": "object",
+      "properties": {
+        "within_10_pct": {
+          "type": "object",
+          "properties": {
+            "expected": {
+              "type": "number",
+              "description": "Expected probability"
+            },
+            "observed": {
+              "type": "number",
+              "description": "Observed probability from backtest"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["PASS", "FAIL"],
+              "description": "Calibration status"
+            }
+          }
+        },
+        "within_20_pct": {
+          "type": "object",
+          "properties": {
+            "expected": {
+              "type": "number"
+            },
+            "observed": {
+              "type": "number"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["PASS", "FAIL"]
+            }
+          }
+        },
+        "within_30_pct": {
+          "type": "object",
+          "properties": {
+            "expected": {
+              "type": "number"
+            },
+            "observed": {
+              "type": "number"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["PASS", "FAIL"]
+            }
+          }
+        }
+      },
+      "description": "Confidence interval calibration results"
+    },
+    "faa_registry_records": {
+      "type": "number",
+      "description": "Number of FAA registry records processed"
+    },
+    "ntsb_events_linked": {
+      "type": "number",
+      "description": "Number of NTSB events linked"
+    },
+    "sdr_reports_parsed": {
+      "type": "number",
+      "description": "Number of Service Difficulty Reports parsed"
+    },
+    "audit_decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Calibration audit trail"
+    },
+    "approval_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether human approval is required"
+    },
+    "approved_by": {
+      "type": "string",
+      "relationType": "User",
+      "description": "User who approved calibration"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of approval"
+    },
+    "approval_notes": {
+      "type": "string",
+      "description": "Approval comments"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When calibration was published for use"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error details if calibration failed"
+    },
+    "apl_message_id": {
+      "type": "string",
+      "description": "APL protocol message ID"
+    },
+    "apl_event_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of calibration event"
+    },
+    "created_by": {
+      "type": "string",
+      "relationType": "User",
+      "description": "System user that initiated calibration"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Calibration start timestamp"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Calibration completion timestamp"
+    }
+  },
+  "required": [
+    "trigger_date",
+    "parameter_bundle_version",
+    "backtest_period",
+    "parameter_hash"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.created_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "name": "EditorProfile",
+  "type": "object",
+  "properties": {
+    "audit_log": {
+      "type": "array",
+      "description": "Full change history for this listing",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "field_changed": {
+            "type": "string"
+          },
+          "new_value": {
+            "type": "string"
+          },
+          "old_value": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "can_modify_docs": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can upload/modify documentation"
+    },
+    "can_modify_price": {
+      "type": "boolean",
+      "default": false,
+      "description": "Can change asking_price"
+    },
+    "can_publish": {
+      "type": "boolean",
+      "default": false,
+      "description": "Can change visibility from draft to public"
+    },
+    "comments_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can read/write comments (if role=comment)"
+    },
+    "editor_email": {
+      "type": "string",
+      "description": "Email of the editor (team member)"
+    },
+    "editor_role": {
+      "type": "string",
+      "default": "edit",
+      "description": "Access level granted",
+      "enum": [
+        "view",
+        "comment",
+        "edit",
+        "publish",
+        "admin"
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional: access revokes on this date"
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "granted_by_email": {
+      "type": "string",
+      "description": "Who granted this access (listing owner or admin)"
+    },
+    "listing_id": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Aircraft listing this editor can access"
+    },
+    "notification_preference": {
+      "type": "string",
+      "default": "major_changes_only",
+      "description": "Notification preference for changes",
+      "enum": [
+        "all_changes",
+        "major_changes_only",
+        "off"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "listing_id",
+    "editor_email",
+    "editor_role",
+    "granted_by_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.editor_email": "{{user.email}}"
+        },
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.granted_by_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

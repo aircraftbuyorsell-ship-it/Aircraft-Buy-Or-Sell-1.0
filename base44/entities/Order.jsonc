@@ -49,6 +49,11 @@
       "type": "string",
       "format": "date",
       "description": "Date of payment"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -56,7 +61,16 @@
   ],
   "rls": {
     "create": {
-      "data.user": "{{user.id}}"
+      "$or": [
+        {
+          "data.user": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "read": {
       "$or": [
@@ -71,28 +85,14 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "data.user": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "data.user": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

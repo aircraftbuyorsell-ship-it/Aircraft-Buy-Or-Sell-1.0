@@ -1,56 +1,47 @@
 import { Zap, Users, Crown, Mail, Check } from "lucide-react";
 
-// Volume packs for bulk buying qualified leads. Credits cost scales with volume.
-export const LEAD_UNLOCK_COST = 10; // credits (= 2 tokens) per single lead
-
+// Lead CRM is plan-entitled. It does not consume ABOS credits or API tokens.
 export const LEAD_PACKAGES = [
   {
     id: "single",
-    name: "Single Contact",
+    name: "Lead CRM",
     leads: 1,
-    credits: 10,
     badge: null,
-    desc: "Unlock one qualified buyer on-demand",
+    desc: "Unlock qualified buyer contact information with an eligible plan",
     icon: Mail,
     accent: "#0B2D5B",
   },
   {
     id: "starter",
-    name: "Starter Pack",
+    name: "Broker Workflow",
     leads: 10,
-    credits: 80,
-    saved_pct: 20,
-    badge: "Save 20%",
-    desc: "10 verified contacts · best for small brokers",
+    badge: "Included",
+    desc: "Lead management, contact unlocking and pipeline workflow",
     icon: Users,
     accent: "#E8A83A",
   },
   {
     id: "pro",
-    name: "Pro Volume",
+    name: "Pro Lead CRM",
     leads: 50,
-    credits: 350,
-    saved_pct: 30,
-    badge: "Most popular",
-    desc: "50 verified contacts · bulk download CSV",
+    badge: "Recommended",
+    desc: "Full Lead CRM access for active brokers and dealers",
     icon: Zap,
     accent: "#0B2D5B",
     popular: true,
   },
   {
     id: "enterprise",
-    name: "Enterprise",
+    name: "Enterprise Lead CRM",
     leads: 200,
-    credits: 1200,
-    saved_pct: 40,
-    badge: "Save 40%",
-    desc: "200 verified contacts · dedicated support",
+    badge: "Enterprise",
+    desc: "Full access with enterprise workflow and support",
     icon: Crown,
     accent: "#1A1814",
   },
 ];
 
-export default function LeadPackages({ onSelectPack, availableLeads }) {
+export default function LeadPackages({ onSelectPack, availableLeads, hasLeadAccess }) {
   return (
     <div className="bg-white border border-black/[0.07] rounded-2xl p-5 md:p-6">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
@@ -70,7 +61,6 @@ export default function LeadPackages({ onSelectPack, availableLeads }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {LEAD_PACKAGES.map(pack => {
           const Icon = pack.icon;
-          const perLead = Math.round(pack.credits / pack.leads);
           return (
             <button
               key={pack.id}
@@ -103,11 +93,10 @@ export default function LeadPackages({ onSelectPack, availableLeads }) {
 
               <div className="mt-3 pt-3 border-t border-black/[0.06]">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xl font-black text-[#0B2D5B]">{pack.credits}</span>
-                  <span className="text-[10px] text-[#AAA49C] uppercase font-semibold tracking-wider">credits</span>
+                  <span className="text-sm font-black text-[#0B2D5B]">{hasLeadAccess ? "Included with plan" : "Pro / Enterprise"}</span>
                 </div>
                 <p className="text-[10px] text-[#6B6560] mt-0.5">
-                  {pack.leads} {pack.leads === 1 ? "contact" : "contacts"} · {perLead} cr/ea
+                  {hasLeadAccess ? "No credits or API tokens consumed" : "Upgrade to unlock Lead CRM"}
                 </p>
               </div>
             </button>

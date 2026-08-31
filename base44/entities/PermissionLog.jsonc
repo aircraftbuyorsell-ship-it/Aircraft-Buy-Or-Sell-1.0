@@ -1,0 +1,102 @@
+{
+  "name": "PermissionLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "Type of permission action",
+      "enum": [
+        "role_granted",
+        "role_revoked",
+        "tier_upgraded",
+        "tier_downgraded",
+        "admin_override",
+        "user_suspended",
+        "user_unsuspended",
+        "permission_added",
+        "permission_revoked",
+        "editor_access_granted",
+        "editor_access_revoked"
+      ]
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Admin or user who took the action"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of affected entity"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Entity affected (User, AircraftListing, ATICard, etc.)"
+    },
+    "ip_hash": {
+      "type": "string",
+      "description": "Hashed IP address of actor"
+    },
+    "new_value": {
+      "type": "object",
+      "description": "State after action"
+    },
+    "old_value": {
+      "type": "object",
+      "description": "State before action"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why the action was taken",
+      "maxLength": 500
+    },
+    "subject_email": {
+      "type": "string",
+      "description": "User affected by the action"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "action",
+    "actor_email",
+    "subject_email",
+    "timestamp"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

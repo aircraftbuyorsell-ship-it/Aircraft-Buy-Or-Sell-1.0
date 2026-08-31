@@ -78,6 +78,11 @@
         "applied_to_model"
       ],
       "default": "pending"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -93,11 +98,6 @@
         {
           "user_condition": {
             "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "appraiser"
           }
         }
       ]
@@ -117,7 +117,7 @@
     "update": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.expert_email": "{{user.email}}"
         },
         {
           "user_condition": {

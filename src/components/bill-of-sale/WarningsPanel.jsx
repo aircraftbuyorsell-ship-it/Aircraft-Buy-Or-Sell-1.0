@@ -1,0 +1,5 @@
+import { AlertTriangle, ShieldCheck } from "lucide-react";
+export default function WarningsPanel({ warnings = [] }) {
+  if (!warnings.length) return <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700"><ShieldCheck className="h-5 w-5" /> No validation warnings. Final human review is still required.</div>;
+  return <section className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 font-bold text-card-foreground"><AlertTriangle className="h-5 w-5 text-red-500" /> Warnings / Missing Data</h2><div className="space-y-2">{warnings.map((warning) => <div key={warning.id} className="rounded-xl border border-border bg-card px-3 py-2"><span className={`text-[10px] font-black uppercase ${warning.severity === "critical" ? "text-red-500" : "text-amber-600"}`}>{warning.severity}</span><p className="text-sm text-card-foreground">{warning.message}</p></div>)}</div></section>;
+}

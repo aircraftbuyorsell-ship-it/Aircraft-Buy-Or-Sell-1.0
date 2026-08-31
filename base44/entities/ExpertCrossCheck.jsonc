@@ -1,0 +1,149 @@
+{
+  "name": "ExpertCrossCheck",
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration number"
+    },
+    "listing_id": {
+      "type": "string",
+      "relationType": "AircraftListing",
+      "description": "Related aircraft listing"
+    },
+    "requester_email": {
+      "type": "string",
+      "description": "Email of the buyer who requested the crosscheck"
+    },
+    "requester_name": {
+      "type": "string",
+      "description": "Name of the requester"
+    },
+    "aircraft_info": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Human-readable aircraft summary for expert context"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "open",
+      "description": "Crosscheck lifecycle status"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "disputed"
+      ],
+      "description": "Expert verdict: confirmed = matches GCR, disputed = discrepancy found"
+    },
+    "disputed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Fields the expert flagged as discrepant (if verdict=disputed)"
+    },
+    "expert_comment": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Expert's signed assessment comment"
+    },
+    "expert_id": {
+      "type": "string",
+      "description": "User ID of the assigned expert"
+    },
+    "expert_name": {
+      "type": "string",
+      "description": "Name of the assigned expert"
+    },
+    "expert_certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Certifications of the assigned expert (snapshot at assignment time)"
+    },
+    "stripe_payment_id": {
+      "type": "string",
+      "description": "Stripe checkout session ID"
+    },
+    "price_paid_eur": {
+      "type": "number",
+      "description": "Amount paid to expert in EUR"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the expert submitted their verdict"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "registration",
+    "requester_email",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.requester_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.requester_email": "{{user.email}}"
+        },
+        {
+          "data.expert_id": "{{user.id}}"
+        },
+        {
+          "data.status": "open"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.requester_email": "{{user.email}}"
+        },
+        {
+          "data.expert_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

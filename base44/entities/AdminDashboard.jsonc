@@ -1,0 +1,138 @@
+{
+  "name": "AdminDashboard",
+  "type": "object",
+  "properties": {
+    "active_widgets": {
+      "type": "array",
+      "default": [
+        "user_management",
+        "permission_audit",
+        "tier_management"
+      ],
+      "description": "List of active dashboard widgets",
+      "items": {
+        "type": "string",
+        "enum": [
+          "user_management",
+          "permission_audit",
+          "tier_management",
+          "suspension_log",
+          "api_analytics",
+          "escrow_settlement",
+          "market_reports",
+          "ati_quality",
+          "feature_toggles",
+          "system_health"
+        ]
+      }
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Email of the admin who owns this dashboard view"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When dashboard was created"
+    },
+    "dashboard_name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Human-readable name for this dashboard config"
+    },
+    "feature_flags": {
+      "type": "object",
+      "default": {},
+      "description": "Beta features enabled for this admin"
+    },
+    "last_accessed": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time this dashboard was viewed"
+    },
+    "layout_preference": {
+      "type": "string",
+      "default": "default",
+      "description": "Dashboard layout style",
+      "enum": [
+        "default",
+        "compact",
+        "detailed",
+        "custom"
+      ]
+    },
+    "refresh_interval_seconds": {
+      "type": "number",
+      "default": 60,
+      "description": "How often dashboard auto-refreshes (0 = manual)",
+      "minimum": 0
+    },
+    "theme": {
+      "type": "string",
+      "default": "light",
+      "description": "UI theme preference",
+      "enum": [
+        "light",
+        "dark",
+        "auto"
+      ]
+    },
+    "widget_config": {
+      "type": "object",
+      "default": {},
+      "description": "Per-widget configuration (filters, sort order, limits)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "admin_email",
+    "dashboard_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.admin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.admin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.admin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

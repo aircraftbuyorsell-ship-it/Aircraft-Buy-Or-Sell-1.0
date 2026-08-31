@@ -1,0 +1,128 @@
+{
+  "name": "FeatureRollout",
+  "type": "object",
+  "properties": {
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When rollout was completed (100% reached)"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Admin who created this rollout"
+    },
+    "current_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Current rollout percentage (0-100)",
+      "maximum": 100,
+      "minimum": 0
+    },
+    "feature_name": {
+      "type": "string",
+      "description": "Reference to feature being rolled out"
+    },
+    "halted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "If rollout was halted, when it happened"
+    },
+    "halt_reason": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Why rollout was halted (bugs, performance, etc.)"
+    },
+    "increments": {
+      "type": "array",
+      "default": [],
+      "description": "Rollout schedule",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "percentage": {
+            "type": "number",
+            "maximum": 100,
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "description": "Rollout status",
+      "enum": [
+        "planning",
+        "active",
+        "paused",
+        "halted",
+        "completed"
+      ]
+    },
+    "target_percentage": {
+      "type": "number",
+      "default": 100,
+      "description": "Final target percentage for rollout",
+      "maximum": 100,
+      "minimum": 0
+    },
+    "tier": {
+      "type": "string",
+      "description": "Tier being rolled out to",
+      "enum": [
+        "free_explorer",
+        "pro",
+        "enterprise"
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update to rollout"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "feature_name",
+    "tier",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

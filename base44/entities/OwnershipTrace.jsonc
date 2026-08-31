@@ -108,7 +108,16 @@
           "data.uploader": "{{user.id}}"
         },
         {
-          "data.listing.owner": "{{user.id}}"
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.uploader": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -117,15 +126,17 @@
         }
       ]
     },
-    "update": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.uploader": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

@@ -7,18 +7,18 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 // Add page imports here
 import Layout from "./components/Layout";
+import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
 import ATIPassport from "./pages/ATIPassport";
 import DealRadar from "./pages/DealRadar";
 import MyAccount from "./pages/MyAccount";
 import Leads from "./pages/Leads";
-import Escrow from "./pages/Escrow";
-import LiveTraffic from "./pages/LiveTraffic";
-import CachedTraffic from "./pages/CachedTraffic";
+import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
-import Valuation from "./pages/Valuation";
+import ValuationStudio from "./pages/ValuationStudio";
+import OmvmValuationPage from "./pages/OmvmValuationPage";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -27,12 +27,91 @@ import MaxChat from "./pages/MaxChat";
 import PreBuyInspection from "./pages/PreBuyInspection";
 import AdminDataCleanup from "./pages/AdminDataCleanup";
 import IntraZone from "./pages/IntraZone";
-import GDPRConsentBanner from "./components/GDPRConsentBanner";
+import Community from "./pages/Community";
+import MarketReports from "./pages/MarketReports";
+import Marketplace from "./pages/Marketplace";
+import Developers from "./pages/Developers";
+import AdminMarketplace from "./pages/AdminMarketplace";
+import AdminSettings from "./pages/AdminSettings";
+import DeveloperEarnings from "./pages/DeveloperEarnings";
+import SubscriptionManagement from "./pages/SubscriptionManagement";
+import PartnerPortal from "./pages/PartnerPortal";
+import InstallWizard from "./pages/InstallWizard";
+
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
 import AffiliateAgreement from "./pages/AffiliateAgreement";
 import EscrowAgreement from "./pages/EscrowAgreement";
 import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
+import Compare from "./pages/Compare";
+import AdminListings from "./pages/AdminListings";
+import FeatureRequests from "./pages/FeatureRequests";
+import ATIQuickScore from "./pages/ATIQuickScore";
+import ATIFullReport from "./pages/ATIFullReport";
+import SkyBoss from "./pages/SkyBoss";
+import WeeklyBriefing from "./pages/WeeklyBriefing";
+import ATIStandard from "./pages/ATIStandard";
+import SoarStartupHub from "./pages/SoarStartupHub";
+import AviationStartupHub from "./pages/AviationStartupHub";
+import ATIVerify from "./pages/ATIVerify";
+import ATIVerifySession from "./pages/ATIVerifySession";
+import SupabaseSync from "./pages/SupabaseSync";
+import FAAMap from "./pages/FAAMap";
+import IntraZoneDemo from "./pages/IntraZoneDemo";
+import GDPRConsentBanner from "./components/GDPRConsentBanner";
+import DSAPolicy from "./pages/DSAPolicy";
+import AITransparency from "./pages/AITransparency";
+import FunnelDashboard from "./pages/FunnelDashboard";
+import FunnelCanvas from "./pages/FunnelCanvas";
+import SearchConsoleDashboard from "./pages/SearchConsoleDashboard";
+import DealIntelligence from "./pages/DealIntelligence";
+import ATICenter from "./pages/ATICenter";
+import StartupHub from "./pages/StartupHub";
+import GrowthCenter from "./pages/GrowthCenter";
+import LeasingCalculator from "./pages/LeasingCalculator";
+import InsuranceCalculator from "./pages/InsuranceCalculator";
+import AvionicsUpgradeCalculator from "./pages/AvionicsUpgradeCalculator";
+import ExteriorRefurbishmentCalculator from "./pages/ExteriorRefurbishmentCalculator";
+import InteriorRefurbishmentCalculator from "./pages/InteriorRefurbishmentCalculator";
+import UpgradeComparison from "./pages/UpgradeComparison";
+import AircraftDetailingCalculator from "./pages/AircraftDetailingCalculator";
+import CrossBorderBridge from "./pages/CrossBorderBridge";
+import ServiceIntelligence from "./pages/ServiceIntelligence";
+import ExpertDashboard from "./pages/ExpertDashboard";
+import NLookup from "./pages/NLookup";
+import DigitalTwin from "./pages/DigitalTwin";
+import IntegrationKit from "./pages/IntegrationKit";
+import Experts from "./pages/Experts";
+import SalesPipeline from "./pages/SalesPipeline";
+import Workflows from "./pages/Workflows";
+import Skills from "./pages/Skills";
+import IPNotice from "./pages/IPNotice";
+import SolutionsBuyers from "./pages/solutions/SolutionsBuyers";
+import SolutionsSellers from "./pages/solutions/SolutionsSellers";
+import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
+import SolutionsLenders from "./pages/solutions/SolutionsLenders";
+import CoreAPI from "./pages/CoreAPI";
+import OAuthAuthorize from "./pages/OAuthAuthorize";
+import OAuthConsent from "./pages/OAuthConsent";
+import InvestmentBrief from "./pages/InvestmentBrief";
+import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
+import FractionalCalculators from "./pages/FractionalCalculators";
+import RegistryComparator from "./pages/RegistryComparator";
+import CalculatorsHub from "./pages/CalculatorsHub";
+import AbosWallet from "./pages/AbosWallet";
+import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
+import AircraftAlerts from "./pages/AircraftAlerts";
+import Plans from "./pages/Plans";
+import AgentConnect from "./pages/AgentConnect";
+import ActivitySummary from "./pages/ActivitySummary";
+import Billing from "./pages/Billing";
+import MyReports from "./pages/MyReports";
+import AdminMonetization from "./pages/AdminMonetization";
+import WalkthroughScript from "./pages/WalkthroughScript";
+import MarketspaceHub from "./pages/hubs/MarketspaceHub";
+import IntelligenceHub from "./pages/hubs/IntelligenceHub";
+import VerifyHub from "./pages/hubs/VerifyHub";
+import ApiHub from "./pages/hubs/ApiHub";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,16 +144,16 @@ const AuthenticatedApp = () => {
         <Route path="/deal-radar" element={<DealRadar />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />
-        <Route path="/escrow" element={<Escrow />} />
-        <Route path="/live-traffic" element={<LiveTraffic />} />
-        <Route path="/cached-traffic" element={<CachedTraffic />} />
+        <Route path="/traffic" element={<TrafficMap />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
-        <Route path="/valuation" element={<Valuation />} />
+        <Route path="/valuation-studio" element={<ValuationStudio />} />
+        <Route path="/omvm-valuation" element={<OmvmValuationPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyComplete />} />
-        <Route path="/privacy" element={<PrivacyPolicyComplete />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/gdpr-compliance" element={<GDPRCompliance />} />
         <Route path="/affiliate-agreement" element={<AffiliateAgreement />} />
@@ -82,8 +161,90 @@ const AuthenticatedApp = () => {
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
         <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/market-reports" element={<MarketReports />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/developers" element={<Developers />} />
+        <Route path="/admin/marketplace" element={<AdminMarketplace />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/developer-earnings" element={<DeveloperEarnings />} />
+        <Route path="/subscription" element={<SubscriptionManagement />} />
+        <Route path="/partner-portal" element={<PartnerPortal />} />
+        <Route path="/install" element={<InstallWizard />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/admin/listings" element={<AdminListings />} />
+        <Route path="/feature-requests" element={<FeatureRequests />} />
+        <Route path="/ati-quick-score" element={<ATIQuickScore />} />
+        <Route path="/ati-full-report" element={<ATIFullReport />} />
+        <Route path="/skyboss" element={<SkyBoss />} />
+        <Route path="/weekly-briefing" element={<WeeklyBriefing />} />
+        <Route path="/ati-standard" element={<ATIStandard />} />
+        <Route path="/soar" element={<SoarStartupHub />} />
+        <Route path="/startup-hub" element={<AviationStartupHub />} />
+        <Route path="/ati-verify" element={<ATIVerify />} />
+        <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
+        <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
+        <Route path="/faa-map" element={<FAAMap />} />
+        <Route path="/demo" element={<IntraZoneDemo />} />
+        <Route path="/legal/dsa" element={<DSAPolicy />} />
+        <Route path="/legal/ai-transparency" element={<AITransparency />} />
+        <Route path="/legal/ip-notice" element={<IPNotice />} />
+        <Route path="/funnels" element={<FunnelDashboard />} />
+        <Route path="/search-console" element={<SearchConsoleDashboard />} />
+        <Route path="/deal-intelligence" element={<DealIntelligence />} />
+        <Route path="/ati-center" element={<ATICenter />} />
+        <Route path="/startup-center" element={<StartupHub />} />
+        <Route path="/growth-center" element={<GrowthCenter />} />
+        <Route path="/leasing-calculator" element={<LeasingCalculator />} />
+        <Route path="/insurance-calculator" element={<InsuranceCalculator />} />
+        <Route path="/avionics-upgrade-calculator" element={<AvionicsUpgradeCalculator />} />
+        <Route path="/exterior-refurbishment-calculator" element={<ExteriorRefurbishmentCalculator />} />
+        <Route path="/interior-refurbishment-calculator" element={<InteriorRefurbishmentCalculator />} />
+        <Route path="/upgrade-comparison" element={<UpgradeComparison />} />
+        <Route path="/aircraft-detailing-calculator" element={<AircraftDetailingCalculator />} />
+        <Route path="/cross-border-bridge" element={<CrossBorderBridge />} />
+        <Route path="/service-intelligence" element={<ServiceIntelligence />} />
+        <Route path="/expert-dashboard" element={<ExpertDashboard />} />
+        <Route path="/n-lookup" element={<NLookup />} />
+        <Route path="/twin/:registration" element={<DigitalTwin />} />
+        <Route path="/integration-kit" element={<IntegrationKit />} />
+        <Route path="/experts" element={<Experts />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/sales-pipeline" element={<SalesPipeline />} />
+        <Route path="/sales-pipeline/:registration" element={<SalesPipeline />} />
+        <Route path="/workflows" element={<Workflows />} />
+        <Route path="/solutions/buyers" element={<SolutionsBuyers />} />
+        <Route path="/solutions/sellers" element={<SolutionsSellers />} />
+        <Route path="/solutions/brokers" element={<SolutionsBrokers />} />
+        <Route path="/solutions/lenders" element={<SolutionsLenders />} />
+        <Route path="/developers/core-api" element={<CoreAPI />} />
+        <Route path="/oauth-authorize" element={<OAuthAuthorize />} />
+        <Route path="/investment-brief" element={<InvestmentBrief />} />
+        <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
+        <Route path="/fractional-calculators" element={<FractionalCalculators />} />
+        <Route path="/registry-comparator" element={<RegistryComparator />} />
+        <Route path="/calculators" element={<CalculatorsHub />} />
+        <Route path="/wallet" element={<AbosWallet />} />
+        <Route path="/bill-of-sale" element={<BillOfSaleAutofill />} />
+        <Route path="/aircraft-alerts" element={<AircraftAlerts />} />
+        <Route path="/plans" element={<Plans />} />
+        <Route path="/connect" element={<AgentConnect />} />
+        <Route path="/activity" element={<ActivitySummary />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/my-reports" element={<MyReports />} />
+        <Route path="/admin/monetization" element={<AdminMonetization />} />
+        <Route path="/walkthrough-script" element={<WalkthroughScript />} />
+        <Route path="/marketspace" element={<MarketspaceHub />} />
+        <Route path="/intelligence" element={<IntelligenceHub />} />
+        <Route path="/verify" element={<VerifyHub />} />
+        <Route path="/api" element={<ApiHub />} />
+      </Route>
+      <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />
       </Route>
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
+      <Route path="/oauth/callback" element={<OAuthConsent />} />
+      <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

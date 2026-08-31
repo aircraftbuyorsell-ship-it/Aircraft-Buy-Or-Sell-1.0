@@ -6,6 +6,10 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      return Response.json({ error: 'Admins cannot request account deletion' }, { status: 403 });
+    }
+
     const { reason } = await req.json().catch(() => ({}));
     const requestedAt = new Date();
     const scheduledFor = new Date(requestedAt.getTime() + 30 * 24 * 60 * 60 * 1000);

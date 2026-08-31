@@ -1,0 +1,151 @@
+{
+  "name": "ATIVerifyDocument",
+  "type": "object",
+  "properties": {
+    "session": {
+      "type": "string",
+      "relationType": "ATIVerifySession",
+      "description": "Parent verification session"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "passport",
+        "pilot_license",
+        "registration_cert",
+        "airworthiness_cert",
+        "insurance",
+        "logbook",
+        "ownership_proof",
+        "other"
+      ],
+      "description": "Document category"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded document file URL"
+    },
+    "ocr_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "review_required"
+      ],
+      "default": "pending"
+    },
+    "ocr_raw_text": {
+      "type": "string",
+      "maxLength": 10000,
+      "description": "Raw OCR extracted text"
+    },
+    "extracted_name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "extracted_document_number": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "extracted_expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "extracted_country": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "extracted_registration": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "extracted_serial": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "ownership_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether ownership proof document fields matched the session"
+    },
+    "ownership_doc_type": {
+      "type": "string",
+      "enum": [
+        "loi",
+        "purchase_agreement",
+        "registration_cert"
+      ],
+      "description": "Specific type of ownership proof document"
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "OCR extraction confidence (0-100)"
+    },
+    "polygon_tx_hash": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Polygon blockchain transaction hash"
+    },
+    "polygon_block_number": {
+      "type": "number",
+      "description": "Polygon block number"
+    },
+    "polygon_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the Polygon anchor was confirmed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "session",
+    "document_type",
+    "file_url"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

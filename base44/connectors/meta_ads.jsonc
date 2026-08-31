@@ -1,0 +1,8 @@
+{
+  "type": "meta_ads",
+  "scopes": [
+    "ads_read",
+    "ads_management",
+    "public_profile"
+  ]
+}

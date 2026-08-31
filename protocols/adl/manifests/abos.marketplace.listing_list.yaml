@@ -1,0 +1,50 @@
+# ADL manifest - list and filter active marketplace listings
+adl_version: "1.0"
+id: abos.marketplace.listing_list
+apl_id: apl://aviation.abos/marketplace/inventory-reader/v1
+type: tool
+owner:
+  organization: ABOS
+skill: Marketplace Inventory Filter
+description: >-
+  Lists and filters active inventory by manufacturer, model and maximum price.
+  Read-only. The result set is capped so a single call cannot be used to drain
+  the whole inventory.
+capabilities:
+  - list_listings
+  - compare_market
+permissions:
+  - aircraft.read
+  - market.analyze
+autonomy: A0
+trust: APL-T2
+audit: APL-A0
+risk_level: low
+requires_human_approval: false
+supported_protocols:
+  - apl/1.0
+evidence:
+  provenance: required
+  confidence: none
+status: verified
+execution:
+  kind: core
+  endpoint: listings.list
+mcp:
+  name: list_listings
+  inputSchema:
+    type: object
+    properties:
+      manufacturer:
+        type: string
+      model:
+        type: string
+      max_price:
+        type: number
+      limit:
+        type: number
+        maximum: 50
+  annotations:
+    readOnlyHint: true
+    openWorldHint: false
+    destructiveHint: false

@@ -1,0 +1,79 @@
+{
+  "properties": {
+    "created_by": {
+      "description": "Email of admin who created this setting",
+      "type": "string"
+    },
+    "description": {
+      "description": "What this setting controls",
+      "maxLength": 500,
+      "type": "string"
+    },
+    "enabled": {
+      "default": true,
+      "description": "Whether this setting is active",
+      "type": "boolean"
+    },
+    "key": {
+      "description": "Setting key (unique identifier)",
+      "maxLength": 100,
+      "type": "string"
+    },
+    "last_modified": {
+      "description": "When this setting was last changed",
+      "format": "date-time",
+      "type": "string"
+    },
+    "modified_by": {
+      "description": "Email of admin who last modified",
+      "type": "string"
+    },
+    "section": {
+      "description": "Settings category",
+      "enum": [
+        "moderation",
+        "billing",
+        "security",
+        "content_policy",
+        "api",
+        "compliance",
+        "feature_management",
+        "system"
+      ],
+      "type": "string"
+    },
+    "value": {
+      "description": "Setting value (JSON-serializable)",
+      "type": "object"
+    }
+  },
+  "required": [
+    "key",
+    "section",
+    "value"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  },
+  "type": "object",
+  "name": "AdminSettings"
+}

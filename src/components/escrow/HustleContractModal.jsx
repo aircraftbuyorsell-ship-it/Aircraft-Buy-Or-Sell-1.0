@@ -58,6 +58,24 @@ export default function HustleContractModal({ tx, onClose }) {
           <pre className="text-[11px] text-[#1A1814] font-mono whitespace-pre-wrap leading-relaxed">
             {text}
           </pre>
+
+          <div style={{
+            marginTop: "24px",
+            paddingTop: "12px",
+            borderTop: "0.5px solid rgba(0,0,0,0.10)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "6px",
+          }}>
+            <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.40)", letterSpacing: "0.04em" }}>
+              ABOS HustlContract™ · Version 1.0 · June 2026
+            </span>
+            <span style={{ fontSize: "10px", color: "rgba(0,0,0,0.40)", letterSpacing: "0.04em" }}>
+              Governed by Czech law · Prague jurisdiction
+            </span>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-black/[0.07] flex items-center justify-between gap-3">

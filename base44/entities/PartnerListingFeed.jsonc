@@ -1,0 +1,92 @@
+{
+  "name": "PartnerListingFeed",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "relationType": "PartnerConfig",
+      "description": "Partner that submitted this listing data"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Denormalized partner name"
+    },
+    "partner_email": {
+      "type": "string",
+      "description": "Denormalized partner email for RLS"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Aircraft registration (normalized uppercase)"
+    },
+    "make": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "year": {
+      "type": "number"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "engine_hours": {
+      "type": "number"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "URL of the original listing on the partner marketplace"
+    },
+    "raw_payload": {
+      "type": "object",
+      "description": "Full raw listing payload as received"
+    },
+    "intelligence": {
+      "type": "object",
+      "description": "Intelligence returned to the partner (registry match, OMVM, deal label)"
+    },
+    "registry_matched": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "partner_id",
+    "registration"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.partner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -18,6 +18,26 @@
       "type": "string",
       "description": "Engine manufacturer/model code"
     },
+    "engine_mfr": {
+      "type": "string",
+      "description": "Engine manufacturer name (from faa_engine)"
+    },
+    "engine_model": {
+      "type": "string",
+      "description": "Engine model name (from faa_engine)"
+    },
+    "engine_type": {
+      "type": "string",
+      "description": "Engine type (from faa_engine)"
+    },
+    "horsepower": {
+      "type": "string",
+      "description": "Engine horsepower (from faa_engine)"
+    },
+    "thrust": {
+      "type": "string",
+      "description": "Engine thrust (from faa_engine)"
+    },
     "year_mfr": {
       "type": "number",
       "description": "Year of manufacture"
@@ -77,6 +97,11 @@
     "expiration_date": {
       "type": "string",
       "description": "Registration expiration date"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
     }
   },
   "required": [
@@ -89,20 +114,9 @@
       }
     },
     "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "id": {
-              "$exists": true
-            }
-          }
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "id": {
+        "$exists": true
+      }
     },
     "update": {
       "user_condition": {

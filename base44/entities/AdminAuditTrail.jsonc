@@ -1,0 +1,113 @@
+{
+  "name": "AdminAuditTrail",
+  "type": "object",
+  "properties": {
+    "action_category": {
+      "type": "string",
+      "enum": [
+        "user_management",
+        "tier_management",
+        "content_moderation",
+        "escrow_override",
+        "security_incident",
+        "compliance_action",
+        "system_config",
+        "payment_adjustment"
+      ],
+      "description": "Type of admin action"
+    },
+    "action_detail": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Detailed description of what was done"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Admin who performed the action"
+    },
+    "actor_role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "super_admin"
+      ],
+      "description": "Role of the admin at time of action"
+    },
+    "affected_entity_id": {
+      "type": "string",
+      "description": "ID of the entity affected"
+    },
+    "affected_entity_type": {
+      "type": "string",
+      "description": "Type of entity affected (User, AircraftListing, ATICard, etc.)"
+    },
+    "before_snapshot": {
+      "type": "object",
+      "description": "State of entity before action (JSON)"
+    },
+    "after_snapshot": {
+      "type": "object",
+      "description": "State of entity after action (JSON)"
+    },
+    "ip_address_hash": {
+      "type": "string",
+      "description": "Hashed IP of the admin"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "Severity of this action"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the action occurred"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "action_category",
+    "actor_email",
+    "timestamp"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

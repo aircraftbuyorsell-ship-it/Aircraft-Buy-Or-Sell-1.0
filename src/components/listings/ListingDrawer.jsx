@@ -1,7 +1,8 @@
-import { X, ExternalLink, CheckCircle2, ArrowUpRight, UserPlus, TrendingDown, TrendingUp, Zap } from "lucide-react";
+import { X, ExternalLink, CheckCircle2, ArrowUpRight, Heart, TrendingDown, TrendingUp, Zap, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AddLeadModal from "@/components/leads/AddLeadModal";
+import BuyerInterestModal from "@/components/leads/BuyerInterestModal";
+import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
 
 function scoreColor(score) {
   if (!score) return "#AAA49C";
@@ -25,21 +26,21 @@ function dealStyle(label) {
     "fair": "bg-[rgba(24,95,165,0.08)] text-[#185FA5] border-[rgba(24,95,165,0.2)]",
     "overpriced": "bg-[rgba(192,57,43,0.08)] text-[#C0392B] border-[rgba(192,57,43,0.2)]",
   };
-  return map[(label || "").toLowerCase()] || "bg-black/5 text-[#AAA49C] border-black/10";
+  return map[(label || "").toLowerCase()] || "bg-black/5 text-[#4a4550] border-black/10";
 }
 
 function Row({ label, value }) {
   if (value == null || value === "") return null;
   return (
     <div className="flex justify-between gap-4 py-2.5 border-b border-black/[0.05] last:border-0">
-      <span className="text-[11px] text-[#AAA49C] font-semibold shrink-0">{label}</span>
+      <span className="text-[11px] text-[#4a4550] font-semibold shrink-0">{label}</span>
       <span className="text-[12px] text-[#1A1814] font-semibold text-right">{value}</span>
     </div>
   );
 }
 
 export default function ListingDrawer({ listing: l, onClose }) {
-  const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const [interestOpen, setInterestOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,9 +61,13 @@ export default function ListingDrawer({ listing: l, onClose }) {
     <>
       {l && <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={onClose} />}
 
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-50 flex flex-col shadow-2xl transition-transform duration-300 ${l ? "translate-x-0" : "translate-x-full"}`}>
+      <div className={`fixed bottom-0 inset-x-0 sm:inset-x-auto sm:top-0 sm:right-0 sm:bottom-0 w-full sm:w-[420px] max-h-[92dvh] sm:max-h-full bg-white z-50 flex flex-col shadow-2xl rounded-t-2xl sm:rounded-none transition-transform duration-300 ${l ? "translate-y-0 sm:translate-x-0" : "translate-y-full sm:translate-x-full"}`}>
         {l && (
           <>
+            {/* ── Drag handle (mobile) ── */}
+            <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-black/15" />
+            </div>
             {/* ── Header (navy band) ── */}
             <div className="bg-[#0B2D5B] px-5 pt-5 pb-4">
               <div className="flex items-start justify-between gap-3">
@@ -98,12 +103,12 @@ export default function ListingDrawer({ listing: l, onClose }) {
               {/* Price + deal row */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.06]">
                 <div>
-                  <p className="text-[9px] text-[#AAA49C] uppercase tracking-wider font-semibold">Asking Price</p>
+                  <p className="text-[9px] text-[#4a4550] uppercase tracking-wider font-semibold">Asking Price</p>
                   <p className="text-2xl font-black text-[#1A1814]">
                     {l.asking_price != null ? `$${l.asking_price.toLocaleString()}` : "—"}
                   </p>
                   {l.omvm_value && (
-                    <p className="text-[10px] text-[#AAA49C] mt-0.5">Market est. ${l.omvm_value.toLocaleString()}</p>
+                    <p className="text-[10px] text-[#4a4550] mt-0.5">Expert Est. ${l.omvm_value.toLocaleString()}</p>
                   )}
                 </div>
                 <div className="text-right space-y-1.5">
@@ -123,7 +128,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
 
               {/* Specs */}
               <div className="px-5 pt-4 pb-2">
-                <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">Aircraft Specs</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#4a4550] font-bold mb-2">Aircraft Specs</p>
                 <Row label="Registration" value={l.registration} />
                 <Row label="Year" value={l.year} />
                 <Row label="Total Time" value={l.total_time != null ? `${l.total_time.toLocaleString()} hrs` : null} />
@@ -132,7 +137,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 <Row label="Engine Count" value={l.engine_count} />
                 {l.fresh_annual && (
                   <div className="flex justify-between gap-4 py-2.5 border-b border-black/[0.05]">
-                    <span className="text-[11px] text-[#AAA49C] font-semibold">Fresh Annual</span>
+                    <span className="text-[11px] text-[#4a4550] font-semibold">Fresh Annual</span>
                     <span className="flex items-center gap-1 text-[12px] text-[#0F7A56] font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Yes
                     </span>
@@ -146,7 +151,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
               {enginePct != null && (
                 <div className="px-5 py-3 border-t border-black/[0.05]">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[9px] text-[#AAA49C] uppercase tracking-wider font-bold">Engine Life Remaining</span>
+                    <span className="text-[9px] text-[#4a4550] uppercase tracking-wider font-bold">Engine Life Remaining</span>
                     <span className="text-[9px] font-black" style={{ color: engineColor }}>{Math.round(enginePct)}%</span>
                   </div>
                   <div className="h-2 bg-black/5 rounded-full overflow-hidden">
@@ -158,7 +163,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
               {/* Avionics */}
               {avionics.length > 0 && (
                 <div className="px-5 py-3 border-t border-black/[0.05]">
-                  <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">Avionics</p>
+                  <p className="text-[9px] uppercase tracking-wider text-[#4a4550] font-bold mb-2">Avionics</p>
                   <div className="flex flex-wrap gap-1.5">
                     {avionics.map(av => (
                       <span key={av} className="text-[10px] bg-[#F7F4EF] border border-black/[0.07] text-[#4A4845] font-semibold px-2.5 py-1 rounded-full">
@@ -172,7 +177,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
               {/* Summary */}
               {l.ai_summary && (
                 <div className="px-5 py-3 border-t border-black/[0.05]">
-                  <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">Deal Summary</p>
+                  <p className="text-[9px] uppercase tracking-wider text-[#4a4550] font-bold mb-2">Deal Summary</p>
                   <p className="text-[12px] text-[#4A4845] leading-relaxed">{l.ai_summary}</p>
                 </div>
               )}
@@ -186,6 +191,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                   </a>
                 </div>
               )}
+              <ListingReviewsPanel listing={l} />
             </div>
 
             {/* ── Footer CTAs ── */}
@@ -198,23 +204,38 @@ export default function ListingDrawer({ listing: l, onClose }) {
                 {l.ati_score ? "View Full ATI Score Card" : "Issue ATI Score Card"}
                 <ArrowUpRight className="w-4 h-4" />
               </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  onClick={() => { onClose(); navigate(`/ati-quick-score?listing=${l.id}`); }}
+                  className="flex items-center justify-center gap-1.5 bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#0B2D5B] font-bold text-xs py-2.5 rounded-xl transition-colors border border-black/[0.07]"
+                >
+                  <Zap className="w-3.5 h-3.5 text-[#00b5cc]" />
+                  Quick Score
+                </button>
+                <button
+                  onClick={() => { onClose(); navigate(`/ati-full-report?listing=${l.id}`); }}
+                  className="flex items-center justify-center gap-1.5 bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#0B2D5B] font-bold text-xs py-2.5 rounded-xl transition-colors border border-black/[0.07]"
+                >
+                  <FileText className="w-3.5 h-3.5 text-[#D4A017]" />
+                  Full Report
+                </button>
+              </div>
               <button
-                onClick={() => setAddLeadOpen(true)}
-                className="w-full bg-[#F7F4EF] hover:bg-[#EDE9E2] text-[#1A1814] font-bold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 border border-black/[0.07]"
+                onClick={() => setInterestOpen(true)}
+                className="w-full bg-[#0F7A56] hover:bg-[#0d6b48] text-white font-black text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                <UserPlus className="w-4 h-4 text-[#D4A017]" />
-                Capture Buyer Lead
+                <Heart className="w-4 h-4 text-[#E8A83A]" />
+                I'm Interested
               </button>
             </div>
           </>
         )}
       </div>
 
-      <AddLeadModal
-        open={addLeadOpen}
-        onClose={() => setAddLeadOpen(false)}
+      <BuyerInterestModal
+        open={interestOpen}
+        onClose={() => setInterestOpen(false)}
         listing={l}
-        onSaved={() => {}}
       />
     </>
   );

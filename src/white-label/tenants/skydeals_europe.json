@@ -1,0 +1,21 @@
+{
+  "$comment": "Reference tenant configuration for SkyDeals Europe, the first ABOS White-Label customer. This file is DATA, not code: onboarding another aviation company means adding a sibling file here (and a Tenant/License record via tenantProvision), never editing a component. Values here are the presentation layer only — the authoritative license and capability grant lives in the License entity, enforced server-side by tenantCoreApi. Anything in this file is advisory to the UI and is never trusted for authorization.",
+  "tenant_id": "skydeals_europe",
+  "display_name": "SkyDeals Europe",
+  "brand_name": "SkyDeals",
+  "primary_color": "#0b5fff",
+  "mode": "light",
+  "logo_url": null,
+  "font_family": "Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+  "radius": "0.75rem",
+  "locale": "en",
+  "attribution": "Powered by ABOS ATI",
+  "expected_capabilities": [
+    "ati_score",
+    "ati_basic_report",
+    "valuation",
+    "search",
+    "market_intelligence"
+  ],
+  "$capabilities_note": "expected_capabilities documents what the Professional plan is sold as, for the installer's feature-selection UI to preselect. It is NOT the grant — tenantCoreApi reads License.allowed_capabilities server-side and ignores this entirely."
+}

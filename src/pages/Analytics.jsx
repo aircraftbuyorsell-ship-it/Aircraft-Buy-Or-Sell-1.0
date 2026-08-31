@@ -1,103 +1,183 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { BarChart3, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { avgPriceByMonth, topModels, daysOnMarketByModel, priceDelta, summary } from "@/lib/analytics";
-import StatTile from "@/components/analytics/StatTile";
+import {
+  BarChart3, Plane, Database, Store, Cpu, Radar, Globe, AlertTriangle, TrendingUp, ShieldCheck, DollarSign, Activity,
+} from "lucide-react";
 import PriceTrendChart from "@/components/analytics/PriceTrendChart";
+import CategoryPriceTrends from "@/components/analytics/CategoryPriceTrends";
 import DaysOnMarketChart from "@/components/analytics/DaysOnMarketChart";
 import TopModelsTable from "@/components/analytics/TopModelsTable";
+import MarketInsightCard from "@/components/analytics/MarketInsightCard";
+import RocketMetrics from "@/components/dashboard/RocketMetrics";
+import DatabaseCharts from "@/components/dashboard/DatabaseCharts";
+import FaaRegistryPanel from "@/components/dashboard/FaaRegistryPanel";
+import HeroHeader from "@/components/intelligence/HeroHeader";
+import SectionHeader from "@/components/intelligence/SectionHeader";
+import SummaryCard from "@/components/intelligence/SummaryCard";
+import MetricCard from "@/components/intelligence/MetricCard";
+import LoadingSkeleton from "@/components/intelligence/LoadingSkeleton";
+import { useTheme } from "@/lib/useTheme";
+
+const GOLD = "#D4A017";
 
 export default function Analytics() {
-  const { data: listings = [], isLoading } = useQuery({
-    queryKey: ["analytics-listings"],
-    queryFn: () => base44.entities.AircraftListing.list("-created_date", 1000),
+  const isDark = useTheme();
+
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ["market-analytics"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("computeMarketAnalytics", {});
+      return res.data || res;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  const monthly = useMemo(() => avgPriceByMonth(listings, 12), [listings]);
-  const models = useMemo(() => topModels(listings, 10), [listings]);
-  const dom = useMemo(() => daysOnMarketByModel(listings, 8), [listings]);
-  const delta = useMemo(() => priceDelta(monthly), [monthly]);
-  const sum = useMemo(() => summary(listings), [listings]);
+  const { data: faaAircraft = [] } = useQuery({
+    queryKey: ["analytics-faa-aircraft"],
+    queryFn: () => base44.entities.FAAAircraft.list("-created_date", 5000),
+    staleTime: 300000,
+  });
 
-  const deltaIcon = !delta ? Minus : delta.pct > 0 ? TrendingUp : delta.pct < 0 ? TrendingDown : Minus;
-  const deltaColor = !delta ? "#6B6560" : delta.pct > 0 ? "#0F7A56" : delta.pct < 0 ? "#C0392B" : "#6B6560";
+  const { data: dealers = [] } = useQuery({
+    queryKey: ["analytics-dealers"],
+    queryFn: () => base44.entities.DealerLocation.list("-created_date", 5000),
+    staleTime: 60000,
+  });
+
+  const { data: faaSummary, isError: faaSummaryFailed } = useQuery({
+    queryKey: ["analytics-faa-summary"],
+    queryFn: async () => {
+      const res = await base44.functions.invoke("syncFaaFromSupabase", { mode: "registry_summary" });
+      return res.data || {};
+    },
+    staleTime: 300000,
+  });
+
+  // These are Supabase row counts. They used to fall back to literals that
+  // matched the live counts at the time of writing, so a failed summary call
+  // rendered plausible-looking numbers and nobody could tell the difference.
+  // Missing now stays visibly missing.
+  const faaRegistryTotal = faaSummary?.faaRegistryTotal ?? null;
+  const faaAcftrefTotal = faaSummary?.faaAcftrefTotal ?? null;
+  const faaAdTotal = faaSummary?.faaAdTotal ?? null;
+  const faaDealersTotal = faaSummary?.faaDealersTotal ?? null;
+  const faaEngineTotal = faaSummary?.faaEngineTotal ?? null;
+  const num = (value) => (typeof value === "number" ? value.toLocaleString() : "—");
+  const pct = (part, whole) =>
+    typeof whole === "number" && whole > 0 ? `${Math.round((part / whole) * 100)}% synced` : "sync status unavailable";
+
+  const sum = analytics?.summary || { total: 0, active: 0, sold: 0, avgAti: null, medianPrice: null };
+  const monthly = analytics?.monthly || [];
+  const models = analytics?.topModels || [];
+  const dom = analytics?.daysOnMarket || [];
+  const delta = analytics?.delta || null;
+
+  const faaSynced = faaSummary?.abosFaaAircraftCount || faaAircraft.length;
+  const matchedToFaa = faaAircraft.filter((f) => f.n_number).length;
+  const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
+  const avgAti = sum.avgAti || 0;
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF]">
-      <div className="px-4 md:px-8 pt-6 md:pt-8 pb-5">
-        <p className="text-[10px] uppercase tracking-[0.15em] font-semibold text-[#E8A83A]">Intelligence · Analytics</p>
-        <div className="flex items-center gap-3 mt-1">
-          <div className="w-9 h-9 rounded-md bg-[#0B2D5B] flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-[#E8A83A]" />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#1A1814] tracking-tight uppercase">Market Analytics</h1>
-            <p className="text-[#6B6560] text-sm">Historical pricing trends & inventory liquidity signals</p>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen dot-grid bg-canvas text-foreground">
+      <HeroHeader
+        eyebrow="ABOS Intelligence · Analytics"
+        icon={BarChart3}
+        title="Executive Intelligence"
+        titleAccent="Dashboard"
+        subtitle="Market performance, verification growth, registry coverage and pricing trends — computed live from platform data."
+      />
 
-      {isLoading ? (
-        <div className="px-4 md:px-8 pb-10 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-white border border-black/[0.05] rounded-2xl animate-pulse" />)}
-          </div>
-          <div className="h-72 bg-white border border-black/[0.05] rounded-2xl animate-pulse" />
-          <div className="h-72 bg-white border border-black/[0.05] rounded-2xl animate-pulse" />
-        </div>
-      ) : (
-        <div className="px-4 md:px-8 pb-12 space-y-5">
-          {/* Summary stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatTile
-              label="Total Listings"
-              value={sum.total.toLocaleString()}
-              sub={`${sum.active} active · ${sum.sold} sold`}
-              accent="#0B2D5B"
-            />
-            <StatTile
-              label="Median Price"
-              value={sum.medianPrice ? `$${(sum.medianPrice / 1000).toFixed(0)}k` : "—"}
-              sub="Across all listings"
-              accent="#0B2D5B"
-            />
-            <StatTile
-              label="12-Month Price Change"
-              value={
-                delta ? (
-                  <span style={{ color: deltaColor }} className="inline-flex items-center gap-1">
-                    {(() => { const I = deltaIcon; return <I className="w-5 h-5" />; })()}
-                    {delta.pct > 0 ? "+" : ""}{delta.pct}%
-                  </span>
-                ) : "—"
-              }
+      <div className="px-4 md:px-8 pb-12 max-w-6xl mx-auto space-y-8">
+        {/* Summary cards */}
+        {isLoading ? (
+          <LoadingSkeleton variant="cards" count={6} />
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <SummaryCard icon={Plane} label="Total Listings" value={sum.total.toLocaleString()} sub={`${sum.active} active · ${sum.sold} sold`} />
+            <SummaryCard icon={Activity} label="Active Market" value={sum.active.toLocaleString()} accent="text-emerald-600 dark:text-emerald-400" sub="Live inventory" />
+            <SummaryCard icon={DollarSign} label="Median Price" value={sum.medianPrice ? `$${(sum.medianPrice / 1000).toFixed(0)}k` : "—"} accent="text-gold-official" sub="Across all listings" />
+            <MetricCard label="12-Mo Price Change" value={delta ? `${delta.pct > 0 ? "+" : ""}${delta.pct}%` : "—"}
+              trend={delta ? delta.pct : null}
               sub={delta ? `$${(delta.first / 1000).toFixed(0)}k → $${(delta.last / 1000).toFixed(0)}k avg` : "Not enough data"}
-              accent={deltaColor}
-            />
-            <StatTile
-              label="Average ATI Score"
-              value={sum.avgAti ?? "—"}
-              sub={sum.avgAti ? (sum.avgAti >= 85 ? "Strong market" : sum.avgAti >= 65 ? "Fair market" : "Caution") : "No scores yet"}
-              accent={sum.avgAti >= 85 ? "#0F7A56" : sum.avgAti >= 65 ? "#E8A83A" : "#C0392B"}
-            />
+              accent="text-foreground" />
+            <SummaryCard icon={ShieldCheck} label="Avg Transparency" value={sum.avgAti ?? "—"}
+              accent={avgAti >= 85 ? "text-emerald-600 dark:text-emerald-400" : avgAti >= 65 ? "text-gold-official" : "text-red-600 dark:text-red-400"}
+              sub={sum.avgAti ? (avgAti >= 85 ? "Strong market" : avgAti >= 65 ? "Fair market" : "Caution") : "No scores yet"} />
+            <SummaryCard icon={Database} label="FAA Synced" value={faaSynced.toLocaleString()}
+              sub={`${faaSynced > 0 ? Math.round((faaSynced / faaRegistryTotal) * 100) : 0}% of registry`} accent="text-gold-official" />
           </div>
+        )}
 
-          {/* Price trend */}
-          <PriceTrendChart data={monthly} />
-
-          {/* Days on market + top models */}
-          <div className="grid lg:grid-cols-2 gap-5">
-            <DaysOnMarketChart data={dom} />
-            <TopModelsTable rows={models} />
+        {/* Market trend charts */}
+        {isLoading ? (
+          <LoadingSkeleton variant="block" height="h-72" />
+        ) : (
+          <div className="space-y-5">
+            <SectionHeader eyebrow="Market Trends" title="Pricing & Liquidity" sub="Historical pricing trends and inventory liquidity signals" />
+            <PriceTrendChart data={monthly} isDark={isDark} />
+            <CategoryPriceTrends categoryTrends={analytics?.categoryTrends} isDark={isDark} />
+            <div className="grid lg:grid-cols-2 gap-5">
+              <DaysOnMarketChart data={dom} isDark={isDark} />
+              <TopModelsTable rows={models} isDark={isDark} />
+            </div>
           </div>
+        )}
 
-          {/* Footer note */}
-          <p className="text-[10px] text-[#AAA49C] uppercase tracking-wider text-center pt-2">
-            Computed live from {sum.total.toLocaleString()} listings · updates with every new record
+        {/* AI market insights */}
+        {!isLoading && (
+          <div>
+            <SectionHeader eyebrow="ABOS Intelligence" title="AI Market Insights" sub="Generated market intelligence from live platform data" />
+            <MarketInsightCard isDark={isDark} />
+          </div>
+        )}
+
+        {/* Database & registry intelligence */}
+        {!isLoading && (
+          <div className="space-y-5">
+            <SectionHeader eyebrow="Data Infrastructure" title="Database & Registry Intelligence" sub="Registry coverage, enrichment and sync health" />
+            {faaSummaryFailed && (
+              <div className="glass-card p-3 flex items-start gap-2.5" style={{ border: "1px solid rgba(217,119,6,0.30)" }}>
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#d97706" }} />
+                <p className="text-xs opacity-80">
+                  Supabase registry counts could not be loaded — the figures below show “—” rather than a
+                  stale number. Everything else on this page is unaffected.
+                </p>
+              </div>
+            )}
+            <RocketMetrics
+              metrics={[
+                { icon: Plane, label: "Aircraft Register", value: sum.active.toLocaleString(), sub: `${sum.total.toLocaleString()} total · ${engineEnriched} ATI scored · avg ${avgAti}`, link: "/listings", color: "#f48120" },
+                { icon: Database, label: "FAA Registry Sync", value: `${faaSynced.toLocaleString()} / ${num(faaRegistryTotal)}`, sub: `${matchedToFaa} N‑reg matched · ${pct(faaSynced, faaRegistryTotal)}`, link: "/admin/supabase-sync", color: GOLD },
+                { icon: Store, label: "Dealer Network", value: dealers.length.toLocaleString(), sub: `${dealers.length.toLocaleString()} in ABOS · ${num(faaDealersTotal)} FAA certified`, link: "/admin/supabase-sync", color: "#06b6d4" },
+                { icon: Cpu, label: "Engine Enrichment", value: `${engineEnriched.toLocaleString()} / ${faaSynced.toLocaleString()}`, sub: `${faaSynced > 0 ? Math.round((engineEnriched / faaSynced) * 100) : 0}% with engine data`, link: "/admin/supabase-sync", color: "#8b5cf6" },
+                { icon: TrendingUp, label: "ACFTREF Database", value: num(faaAcftrefTotal), sub: "Make / model codes · feeds listing enrichment", link: "/admin/supabase-sync", color: "#f59e0b" },
+                { icon: Radar, label: "FAA Engine Specs", value: num(faaEngineTotal), sub: "Engine manufacturer + model data", link: "/admin/supabase-sync", color: "#22c55e" },
+                { icon: AlertTriangle, label: "Airworthiness Dir.", value: num(faaAdTotal), sub: "FAA regulatory directives", link: "/admin/supabase-sync", color: "#ec4899" },
+                { icon: Globe, label: "Global Live Traffic", value: "ADS‑B + DB", sub: "Real‑time tracking · globe + map", link: "/traffic", color: "#14b8a6" },
+              ]}
+            />
+            <div className="glass-card p-5">
+              <DatabaseCharts
+                faaAircraft={faaAircraft}
+                matchedCount={matchedToFaa}
+                faaTotalRegistry={faaRegistryTotal ?? 0}
+                faaAcftrefTotal={faaAcftrefTotal ?? 0}
+                faaAdTotal={faaAdTotal ?? 0}
+                faaDealersTotal={faaDealersTotal ?? 0}
+                faaEngineTotal={faaEngineTotal ?? 0}
+              />
+            </div>
+            <FaaRegistryPanel />
+          </div>
+        )}
+
+        {!isLoading && (
+          <p className="text-[10px] uppercase tracking-wider text-center text-muted-foreground">
+            Computed {analytics?.cached ? "from cache" : "live"} from {sum.total.toLocaleString()} listings · {analytics?.cached ? "refreshes every 5 min" : "updates with every new record"}
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

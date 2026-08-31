@@ -1,0 +1,91 @@
+{
+  "name": "ATIVerifyScore",
+  "type": "object",
+  "properties": {
+    "session": {
+      "type": "string",
+      "relationType": "ATIVerifySession",
+      "description": "Parent verification session"
+    },
+    "identity_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "ATI Identity Score (0-100)"
+    },
+    "ownership_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "ATI Ownership Score (0-100)"
+    },
+    "document_confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "ATI Document Confidence Score (0-100)"
+    },
+    "overall_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Weighted overall verification score"
+    },
+    "score_details": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "JSON string with detailed scoring breakdown"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "session"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

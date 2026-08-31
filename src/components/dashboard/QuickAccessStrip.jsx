@@ -1,0 +1,152 @@
+import { useState } from "react";
+import { Zap, ShieldCheck, TrendingUp, Gauge, ArrowRight, Coins, Landmark, Shield, Radio, Paintbrush, Armchair, GitCompare, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useTheme } from "@/lib/useTheme";
+import LeasingCalculatorModal from "@/components/leasing/LeasingCalculatorModal";
+
+const ITEMS = [
+  {
+    icon: Zap,
+    label: "ATI Quick Score",
+    desc: "Instant 8-dimension aircraft scorecard from listing text or N-number.",
+    link: "/ati-quick-score",
+    color: "#E8A83A",
+    credits: 3,
+  },
+  {
+    icon: ShieldCheck,
+    label: "ATI Verify",
+    desc: "Remote document identity verification with blockchain anchoring.",
+    link: "/ati-verify",
+    color: "#22c55e",
+    credits: 5,
+  },
+  {
+    icon: TrendingUp,
+    label: "OMVM Valuation",
+    desc: "Off-Market Value Model — AI-powered aircraft pricing estimate.",
+    link: "/valuation-studio",
+    color: "#a855f7",
+    credits: 5,
+  },
+  {
+    icon: Gauge,
+    label: "Opex Calculator",
+    desc: "Total cost of ownership with fleet, maintenance, and reserves.",
+    link: "/opex-calculator",
+    color: "#f97316",
+    credits: 8,
+  },
+  {
+    icon: Shield,
+    label: "Insurance Calc",
+    desc: "Estimate aircraft insurance premiums by value, usage, and pilot profile.",
+    link: "/insurance-calculator",
+    color: "#4e8ef7",
+    credits: 0,
+  },
+  {
+    icon: Radio,
+    label: "Avionics Upgrade",
+    desc: "Parts and labor for GPS, transponders, autopilots, and glass panels by model.",
+    link: "/avionics-upgrade-calculator",
+    color: "#f5c242",
+    credits: 0,
+  },
+  {
+    icon: Paintbrush,
+    label: "Exterior Refurb",
+    desc: "Strip & paint, polish, deice boots, and corrosion treatment by model.",
+    link: "/exterior-refurbishment-calculator",
+    color: "#5dcaa5",
+    credits: 0,
+  },
+  {
+    icon: Armchair,
+    label: "Interior Refurb",
+    desc: "Seats, carpet, headliner, and cabin restoration by material grade.",
+    link: "/interior-refurbishment-calculator",
+    color: "#c88cff",
+    credits: 0,
+  },
+  {
+    icon: GitCompare,
+    label: "Upgrade Comparison",
+    desc: "Compare avionics, exterior, and interior costs side by side for planning.",
+    link: "/upgrade-comparison",
+    color: "#4e8ef7",
+    credits: 0,
+  },
+  {
+    icon: Sparkles,
+    label: "Aircraft Detailing",
+    desc: "Wash, wax, ceramic coating, and interior detailing by aircraft model.",
+    link: "/aircraft-detailing-calculator",
+    color: "#4ec8ff",
+    credits: 0,
+  },
+];
+
+export default function QuickAccessStrip() {
+  const isDark = useTheme();
+  const [leasingOpen, setLeasingOpen] = useState(false);
+  const textColor = isDark ? "#e2e8f0" : "#1e293b";
+  const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.50)";
+  const panelBg = isDark ? "rgba(15,15,28,0.72)" : "rgba(255,255,255,0.78)";
+  const panelBorder = isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)";
+  const leaseColor = "#3b82f6";
+
+  const Card = ({ item, children }) => (
+    <div
+      className="rounded-xl p-4 h-full hover:scale-[1.02] transition-transform cursor-pointer group"
+      style={{
+        background: panelBg,
+        border: panelBorder,
+        backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+      }}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: `${item.color}12`, border: `1px solid ${item.color}30` }}>
+          <item.icon className="w-4 h-4" style={{ color: item.color }} />
+        </div>
+        <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+          style={{ background: `${item.color}12`, color: item.color, border: `1px solid ${item.color}25` }}>
+          <Coins className="w-2.5 h-2.5" />{item.credits}c
+        </span>
+      </div>
+      <p className="text-[11px] font-black uppercase tracking-wider" style={{ color: item.color }}>
+        {item.label}
+      </p>
+      <p className="text-[10px] leading-relaxed mt-1.5 mb-2" style={{ color: mutedColor }}>{item.desc}</p>
+      {children}
+    </div>
+  );
+
+  return (
+    <div className="w-full mx-auto px-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+        {ITEMS.map((item) => (
+          <Link key={item.label} to={item.link}>
+            <Card item={item}>
+              <div className="flex items-center gap-1 text-[10px] font-bold" style={{ color: item.color }}>
+                Open <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Card>
+          </Link>
+        ))}
+
+        {/* Leasing Calculator — opens inline modal */}
+        <button onClick={() => setLeasingOpen(true)} className="text-left">
+          <Card item={{ icon: Landmark, label: "Leasing Calculator", desc: "Monthly lease payments, residual value, and total cost of financing.", color: leaseColor, credits: 0 }}>
+            <div className="flex items-center gap-1 text-[10px] font-bold" style={{ color: leaseColor }}>
+              Calculate <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Card>
+        </button>
+      </div>
+
+      <LeasingCalculatorModal open={leasingOpen} onClose={() => setLeasingOpen(false)} />
+    </div>
+  );
+}

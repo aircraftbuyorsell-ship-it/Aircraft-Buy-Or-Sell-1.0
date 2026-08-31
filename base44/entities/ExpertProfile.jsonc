@@ -1,0 +1,172 @@
+{
+  "name": "ExpertProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User ID of the expert"
+    },
+    "full_name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Expert full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email (visible to requesters after selection)"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "A&P",
+          "IA",
+          "EASA Part-66 B1",
+          "EASA Part-66 B2",
+          "EASA Part-66 C",
+          "FAA Part 145",
+          "Type Rated Inspector",
+          "DAR",
+          "Other"
+        ]
+      },
+      "description": "Aviation professional certifications"
+    },
+    "cert_scan_url": {
+      "type": "string",
+      "description": "Uploaded certificate scan file URL"
+    },
+    "cert_extracted": {
+      "type": "object",
+      "properties": {
+        "cert_type": {
+          "type": "string"
+        },
+        "cert_number": {
+          "type": "string"
+        },
+        "expiry_date": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "holder_name": {
+          "type": "string"
+        }
+      },
+      "description": "AI-extracted certificate data"
+    },
+    "price_eur": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Default hourly or flat rate in EUR"
+    },
+    "bio": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Short professional bio"
+    },
+    "verified_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Admin verification status"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When admin approved/rejected"
+    },
+    "verified_by_admin": {
+      "type": "string",
+      "description": "Admin email who verified"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "fb_community_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin-verified member of the Aircraft Buy or Sell FB community (280k members)"
+    },
+    "fb_community_tag": {
+      "type": "string",
+      "description": "Community badge label, e.g. 'Aircraft Buy or Sell Community Verified'"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "default": 0,
+      "description": "Average rating from completed crosschecks"
+    },
+    "completed_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total completed crosschecks"
+    },
+    "is_blocked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin can block an expert"
+    }
+  },
+  "required": [
+    "user_id",
+    "full_name",
+    "certifications"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.verified_status": "approved"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "name": "OmvmMarketAnalysis",
+  "type": "object",
+  "description": "OMVM 2.0 Market Analysis Results",
+  "properties": {
+    "aircraft_make": {
+      "type": "string",
+      "description": "Aircraft manufacturer"
+    },
+    "aircraft_model": {
+      "type": "string",
+      "description": "Aircraft model"
+    },
+    "year_from": {
+      "type": "number",
+      "description": "Start of aircraft year range analyzed"
+    },
+    "year_to": {
+      "type": "number",
+      "description": "End of aircraft year range analyzed"
+    },
+    "observation_count": {
+      "type": "number",
+      "description": "Total market listings initially collected"
+    },
+    "observation_count_after_filtering": {
+      "type": "number",
+      "description": "Market listings retained after filtering"
+    },
+    "effective_sample_size": {
+      "type": "number",
+      "description": "n_eff: quality-adjusted sample size"
+    },
+    "valuation_mode": {
+      "type": "string",
+      "enum": ["full_hedonic", "reduced_hedonic", "robust_median", "fallback"],
+      "description": "Valuation mode selected based on n_eff threshold"
+    },
+    "market_value_usd": {
+      "type": "number",
+      "description": "Weighted average market value in USD"
+    },
+    "market_sigma_log": {
+      "type": "number",
+      "description": "Market dispersion in log space (σ_ln)"
+    },
+    "market_sigma_usd": {
+      "type": "number",
+      "description": "Market dispersion in USD space"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["controller", "tap", "barnstormers", "aso"]
+      },
+      "description": "Market data sources used"
+    },
+    "price_trend_30_days": {
+      "type": "string",
+      "enum": ["up", "stable", "down"],
+      "description": "Price trend over last 30 days"
+    },
+    "price_trend_90_days": {
+      "type": "string",
+      "enum": ["up", "stable", "down"],
+      "description": "Price trend over last 90 days"
+    },
+    "volume_trend": {
+      "type": "string",
+      "enum": ["high", "normal", "low"],
+      "description": "Listing volume trend"
+    },
+    "anomalies_detected": {
+      "type": "number",
+      "description": "Count of detected market anomalies"
+    },
+    "anomaly_details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "listing_id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["price_outlier", "stale_listing", "duplicate_dealer", "incomplete_data"]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Details of detected anomalies"
+    },
+    "stale_listings_count": {
+      "type": "number",
+      "description": "Number of listings older than 90 days"
+    },
+    "oldest_listing_days": {
+      "type": "number",
+      "description": "Age in days of the oldest listing used"
+    },
+    "source_reliability_weights": {
+      "type": "object",
+      "properties": {
+        "controller": {
+          "type": "number"
+        },
+        "tap": {
+          "type": "number"
+        },
+        "barnstormers": {
+          "type": "number"
+        },
+        "aso": {
+          "type": "number"
+        }
+      },
+      "description": "Source reliability weights used"
+    },
+    "audit_decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Audit trail of analysis decisions"
+    },
+    "apl_message_id": {
+      "type": "string",
+      "description": "APL protocol message ID"
+    },
+    "apl_event_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of market analysis event"
+    },
+    "created_by": {
+      "type": "string",
+      "relationType": "User",
+      "description": "User who requested analysis"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "complete", "error"],
+      "default": "pending",
+      "description": "Analysis status"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of analysis"
+    }
+  },
+  "required": [
+    "aircraft_make",
+    "aircraft_model",
+    "observation_count_after_filtering",
+    "effective_sample_size",
+    "market_value_usd"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.created_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

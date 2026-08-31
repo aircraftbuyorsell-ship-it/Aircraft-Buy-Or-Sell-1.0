@@ -1,0 +1,4 @@
+const ITEMS = [["price_confirmed", "I confirm this is the final sale price, not an OMVM estimate."], ["sale_date_confirmed", "I confirm the sale date matches the signing or closing event."], ["purchaser_name_confirmed", "I confirm the purchaser name exactly matches AC Form 8050-1."], ["user_reviewed", "I reviewed every value, source, warning, and attached ownership document."]];
+export default function ConfirmationsPanel({ draft, onChange }) {
+  return <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5"><h2 className="mb-3 font-bold text-card-foreground">Required human confirmations</h2><div className="space-y-3">{ITEMS.map(([field, label]) => <label key={field} className="flex cursor-pointer items-start gap-3 text-sm text-card-foreground"><input type="checkbox" checked={Boolean(draft[field])} onChange={(e) => onChange(field, e.target.checked)} className="mt-0.5 h-4 w-4" /> <span>{label}</span></label>)}</div></section>;
+}

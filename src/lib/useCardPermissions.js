@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { isAdminRole } from "@/utils/roles";
 
 /**
  * Returns { canEdit, isAdmin, user } for a given ATICard.
@@ -14,7 +15,7 @@ export function useCardPermissions(card) {
   });
 
   const email = user?.email?.toLowerCase();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isAdminRole(user);
   const canEdit = !!card && !!email && (
     isAdmin ||
     card.issuer_email?.toLowerCase() === email ||

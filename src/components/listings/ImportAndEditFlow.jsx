@@ -18,7 +18,7 @@ function StepIndicator({ current, total }) {
           style={{ width: `${((current + 1) / total) * 100}%` }}
         />
       </div>
-      <span className="text-[10px] font-bold text-[#AAA49C]">
+      <span className="text-[10px] font-bold text-[#4a4550]">
         {current + 1} / {total}
       </span>
     </div>
@@ -191,7 +191,7 @@ Return JSON with explicit fields only (use null if not found):
               {STEPS[step].desc}
             </h2>
           </div>
-          <button onClick={onClose} className="text-[#AAA49C] hover:text-[#1A1814] transition-colors">
+          <button onClick={onClose} className="text-[#4a4550] hover:text-[#1A1814] transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -205,7 +205,7 @@ Return JSON with explicit fields only (use null if not found):
             <>
               <div className="bg-[rgba(212,160,23,0.08)] border border-[rgba(212,160,23,0.2)] rounded-lg px-4 py-2.5 mb-4">
                 <p className="text-[11px] font-bold text-[#A67C00] mb-1">💡 Fastest way:</p>
-                <p className="text-[12px] text-[#6B6560]">Copy the full listing text from any website (Facebook, Controller, Trade-A-Plane, etc.) and paste it below. AI will extract all specs automatically.</p>
+                <p className="text-[12px] text-[#3a3530]">Copy the full listing text from any website (Facebook, Controller, Trade-A-Plane, etc.) and paste it below. AI will extract all specs automatically.</p>
               </div>
 
               <div className="flex gap-2 bg-[#F7F4EF] rounded-lg p-1 w-fit">
@@ -220,7 +220,7 @@ Return JSON with explicit fields only (use null if not found):
                     className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors ${
                       mode === m.id
                         ? "bg-white text-[#1A1814] shadow-sm"
-                        : "text-[#AAA49C] hover:text-[#6B6560]"
+                        : "text-[#4a4550] hover:text-[#3a3530]"
                     }`}
                     title={m.desc}
                   >
@@ -231,7 +231,7 @@ Return JSON with explicit fields only (use null if not found):
 
               {mode === "text" && (
                 <>
-                  <div className="bg-white border border-black/[0.07] rounded-lg p-4 space-y-2 text-[11px] text-[#6B6560] mb-4">
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-4 space-y-2 text-[11px] text-[#3a3530] mb-4">
                     <p className="font-bold text-[#0B2D5B]">✓ What you can paste:</p>
                     <ul className="space-y-1 ml-4">
                       <li>• Full Facebook Marketplace listing</li>
@@ -248,13 +248,13 @@ Return JSON with explicit fields only (use null if not found):
                     rows={8}
                     className="w-full px-4 py-3 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#999] placeholder-opacity-50 focus:outline-none focus:border-[#D4A017] resize-none font-mono"
                   />
-                  <p className="text-[10px] text-[#AAA49C] italic">Don't worry about formatting — AI will find and extract all relevant specs automatically.</p>
+                  <p className="text-[10px] text-[#4a4550] italic">Don't worry about formatting — AI will find and extract all relevant specs automatically.</p>
                 </>
               )}
 
               {mode === "url" && (
                 <>
-                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#6B6560] mb-3">
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#3a3530] mb-3">
                     <p className="font-bold text-[#0B2D5B] mb-1">✓ Paste any listing URL:</p>
                     <p>Controller.com • Trade-A-Plane • Facebook Marketplace • eBay Motors • Craigslist • etc.</p>
                   </div>
@@ -265,22 +265,22 @@ Return JSON with explicit fields only (use null if not found):
                     placeholder="https://www.controller.com/listing/..."
                     className="w-full px-4 py-2.5 bg-[#F7F4EF] border border-black/10 rounded-lg text-sm placeholder-[#AAA49C] focus:outline-none focus:border-[#D4A017]"
                   />
-                  <p className="text-[10px] text-[#AAA49C] mt-2">AI will fetch and analyze the page content directly.</p>
+                  <p className="text-[10px] text-[#4a4550] mt-2">AI will fetch and analyze the page content directly.</p>
                 </>
               )}
 
               {mode === "file" && (
                 <>
-                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#6B6560] mb-3">
+                  <div className="bg-white border border-black/[0.07] rounded-lg p-3 text-[11px] text-[#3a3530] mb-3">
                     <p className="font-bold text-[#0B2D5B] mb-1">✓ Upload file with specs:</p>
                     <p>.zip • .json • .csv • .pdf • .txt • .xlsx</p>
                   </div>
                   <label className="block border-2 border-dashed border-black/10 hover:border-[#D4A017] rounded-lg p-6 text-center cursor-pointer transition-colors">
-                    <Upload className="w-8 h-8 text-[#AAA49C] mx-auto mb-2" />
+                    <Upload className="w-8 h-8 text-[#4a4550] mx-auto mb-2" />
                     <p className="text-sm font-bold text-[#1A1814]">
                       {file ? file.name : "Click to select file"}
                     </p>
-                    <p className="text-[10px] text-[#AAA49C] mt-1">Or drag & drop</p>
+                    <p className="text-[10px] text-[#4a4550] mt-1">Or drag & drop</p>
                     <input
                       type="file"
                       accept=".zip,.json,.csv,.pdf,.txt,.xlsx"
@@ -303,7 +303,7 @@ Return JSON with explicit fields only (use null if not found):
           {/* Step 1: Extract */}
           {step === 1 && extracted && (
             <>
-              <p className="text-[11px] text-[#6B6560]">AI extracted these specs — review and adjust before publishing:</p>
+              <p className="text-[11px] text-[#3a3530]">AI extracted these specs — review and adjust before publishing:</p>
               <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
                 {[
                   { key: "make", label: "Make" },
@@ -322,7 +322,7 @@ Return JSON with explicit fields only (use null if not found):
                   { key: "paint_condition", label: "Paint Condition" },
                 ].map(({ key, label }) => (
                   <div key={key}>
-                    <label className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-semibold block mb-1">
+                    <label className="text-[9px] uppercase tracking-wider text-[#4a4550] font-semibold block mb-1">
                       {label}
                     </label>
                     <input
@@ -344,13 +344,13 @@ Return JSON with explicit fields only (use null if not found):
           {step === 2 && (
             <>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#4a4550] font-bold mb-2">
                   Aircraft Photos
                 </p>
                 <label className="block border-2 border-dashed border-black/10 hover:border-[#D4A017] rounded-lg p-6 text-center cursor-pointer transition-colors">
-                  <ImageIcon className="w-8 h-8 text-[#AAA49C] mx-auto mb-2" />
+                  <ImageIcon className="w-8 h-8 text-[#4a4550] mx-auto mb-2" />
                   <p className="text-sm font-bold text-[#1A1814]">Click to add photos</p>
-                  <p className="text-[10px] text-[#AAA49C] mt-1">Panel, engine, cabin, exterior (high impact for buyers)</p>
+                  <p className="text-[10px] text-[#4a4550] mt-1">Panel, engine, cabin, exterior (high impact for buyers)</p>
                   <input
                     type="file"
                     multiple
@@ -368,7 +368,7 @@ Return JSON with explicit fields only (use null if not found):
                         className="relative group flex items-center gap-1.5 bg-[#F7F4EF] border border-black/10 rounded-lg px-2.5 py-1.5"
                       >
                         <ImageIcon className="w-3 h-3 text-[#D4A017]" />
-                        <span className="text-[11px] text-[#6B6560] truncate max-w-[120px]">
+                        <span className="text-[11px] text-[#3a3530] truncate max-w-[120px]">
                           {p.name}
                         </span>
                         <button
@@ -384,7 +384,7 @@ Return JSON with explicit fields only (use null if not found):
               </div>
 
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-bold mb-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#4a4550] font-bold mb-2">
                   Additional Details
                 </p>
                 <textarea
@@ -412,31 +412,31 @@ Return JSON with explicit fields only (use null if not found):
 
               <div className="grid grid-cols-2 gap-2 text-[12px]">
                 <div className="bg-white border border-black/[0.07] rounded-lg p-3">
-                  <p className="text-[#AAA49C] font-semibold mb-1">Aircraft</p>
+                  <p className="text-[#4a4550] font-semibold mb-1">Aircraft</p>
                   <p className="font-black text-[#1A1814]">
                     {form.year} {form.make} {form.model}
                   </p>
                 </div>
                 <div className="bg-white border border-black/[0.07] rounded-lg p-3">
-                  <p className="text-[#AAA49C] font-semibold mb-1">Registration</p>
+                  <p className="text-[#4a4550] font-semibold mb-1">Registration</p>
                   <p className="font-mono font-black text-[#1A1814]">{form.registration || "—"}</p>
                 </div>
                 <div className="bg-white border border-black/[0.07] rounded-lg p-3">
-                  <p className="text-[#AAA49C] font-semibold mb-1">Price</p>
+                  <p className="text-[#4a4550] font-semibold mb-1">Price</p>
                   <p className="font-black text-[#1A1814]">
                     {form.asking_price ? `$${form.asking_price.toLocaleString()}` : "—"}
                   </p>
                 </div>
                 <div className="bg-white border border-black/[0.07] rounded-lg p-3">
-                  <p className="text-[#AAA49C] font-semibold mb-1">Photos</p>
+                  <p className="text-[#4a4550] font-semibold mb-1">Photos</p>
                   <p className="font-black text-[#1A1814]">{photos.length} uploaded</p>
                 </div>
               </div>
 
               {form.description && (
                 <div className="bg-white border border-black/[0.07] rounded-lg p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-[#AAA49C] font-bold mb-1">Notes</p>
-                  <p className="text-[12px] text-[#6B6560]">{form.description}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-[#4a4550] font-bold mb-1">Notes</p>
+                  <p className="text-[12px] text-[#3a3530]">{form.description}</p>
                 </div>
               )}
             </div>
@@ -448,7 +448,7 @@ Return JSON with explicit fields only (use null if not found):
           <button
             onClick={goPrev}
             disabled={step === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/10 text-[#6B6560] hover:border-[#D4A017] disabled:opacity-40 text-sm font-bold transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-black/10 text-[#3a3530] hover:border-[#D4A017] disabled:opacity-40 text-sm font-bold transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Back
@@ -457,7 +457,7 @@ Return JSON with explicit fields only (use null if not found):
           <div className="flex gap-2 ml-auto">
             <button
               onClick={onClose}
-              className="px-4 py-2.5 rounded-lg border border-black/10 text-sm font-bold text-[#6B6560] hover:border-[#D4A017] transition-colors"
+              className="px-4 py-2.5 rounded-lg border border-black/10 text-sm font-bold text-[#3a3530] hover:border-[#D4A017] transition-colors"
             >
               Cancel
             </button>

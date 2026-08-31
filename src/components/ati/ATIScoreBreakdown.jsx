@@ -1,230 +1,134 @@
-import { CheckCircle2, AlertCircle, AlertTriangle, HelpCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 
 const DIMENSIONS = [
-  {
-    key: "documentation",
-    label: "Documentation",
-    desc: "Bill of sale, logbook completeness, FAA records",
-  },
-  {
-    key: "technical",
-    label: "Technical Traceability",
-    desc: "Engine maintenance logs, service history clarity",
-  },
-  {
-    key: "transparency",
-    label: "Engine Transparency",
-    desc: "SMOH clarity, compression data, TBO status",
-  },
-  {
-    key: "transaction_ready",
-    label: "Avionics Quality",
-    desc: "Equipment list, glass cockpit status, support availability",
-  },
-  {
-    key: "usage_mission",
-    label: "Usage & Mission",
-    desc: "Utilization pattern, damage history, modification risk",
-  },
-  {
-    key: "storage_exposure",
-    label: "Storage & Exposure",
-    desc: "Hangar status, corrosion risk, environmental factors",
-  },
-  {
-    key: "config_clarity",
-    label: "Configuration Clarity",
-    desc: "Seating, weight/balance, equipment manifest",
-  },
-  {
-    key: "market_readiness",
-    label: "Market Readiness",
-    desc: "Photos, valuation data, comparable sales info",
-  },
+  { key: "documentation",   label: "Documentation & Records",  desc: "Logbooks, airframe history, FAA records" },
+  { key: "technical",       label: "Maintenance History",       desc: "AD compliance, service trail, squawks" },
+  { key: "transparency",    label: "Engine Condition",          desc: "SMOH, TBO, compressions, oil consumption" },
+  { key: "transaction_ready", label: "Avionics Package",        desc: "GPS/WAAS, ADS-B out, autopilot, glass panel" },
+  { key: "usage_mission",   label: "Operational History",       desc: "Private vs training vs charter usage" },
+  { key: "storage_exposure", label: "Storage & Climate",        desc: "Hangared, dry vs outdoor, coastal exposure" },
+  { key: "config_clarity",  label: "Configuration Clarity",     desc: "Specs, STCs, modifications, weight & balance" },
+  { key: "market_readiness", label: "Transaction Readiness",    desc: "Annual freshness, pre-buy willingness" },
 ];
 
-function DimensionBar({ score, maxScore = 15 }) {
-  const pct = (score / maxScore) * 100;
-  let color = "#C0392B"; // red
-  if (score >= 13) color = "#0F7A56"; // green
-  else if (score >= 10) color = "#185FA5"; // blue
-  else if (score >= 7) color = "#D4A017"; // amber
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-2.5 bg-black/5 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
-      </div>
-      <span className="text-sm font-black text-[#1A1814] w-8 text-right">{score}/15</span>
-    </div>
-  );
+function scoreColor(s) {
+  if (s >= 13) return { text: "#0F7A56", bg: "rgba(15,122,86,0.08)", bar: "#0F7A56", label: "Strong" };
+  if (s >= 10) return { text: "#185FA5", bg: "rgba(24,95,165,0.08)", bar: "#185FA5", label: "Good" };
+  if (s >= 7)  return { text: "#A67C00", bg: "rgba(212,160,23,0.10)", bar: "#D4A017", label: "Partial" };
+  return       { text: "#C0392B", bg: "rgba(192,57,43,0.08)", bar: "#C0392B", label: "Weak" };
 }
 
-function ReadinessCard({ dimension, scores, missingFields }) {
-  const score = scores[dimension.key] || 0;
-  const isComplete = score >= 13;
-  const isPartial = score >= 7;
+function DimRow({ dim, score }) {
+  const s = score || 0;
+  const c = scoreColor(s);
+  const pct = (s / 15) * 100;
+  const Icon = s >= 13 ? CheckCircle2 : s >= 7 ? AlertCircle : AlertTriangle;
 
   return (
-    <div className="bg-white border border-black/[0.07] rounded-xl p-4">
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            {isComplete ? (
-              <CheckCircle2 className="w-4 h-4 text-[#0F7A56]" />
-            ) : isPartial ? (
-              <AlertCircle className="w-4 h-4 text-[#D4A017]" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 text-[#C0392B]" />
-            )}
-            <h4 className="text-[13px] font-black text-[#1A1814]">{dimension.label}</h4>
-          </div>
-          <p className="text-[11px] text-[#6B6560]">{dimension.desc}</p>
-        </div>
-        <span
-          className={`text-xs font-black px-2 py-1 rounded-lg ${
-            isComplete
-              ? "bg-[rgba(15,122,86,0.1)] text-[#0F7A56]"
-              : isPartial
-              ? "bg-[rgba(212,160,23,0.1)] text-[#A67C00]"
-              : "bg-[rgba(192,57,43,0.1)] text-[#C0392B]"
-          }`}
-        >
-          {isComplete ? "✓ Ready" : isPartial ? "~ Partial" : "⚠ Incomplete"}
-        </span>
+    <div className="flex items-center gap-4 py-3 border-b border-black/[0.05] last:border-0">
+      {/* Icon */}
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: c.bg }}>
+        <Icon className="w-3.5 h-3.5" style={{ color: c.text }} />
       </div>
 
-      <div className="mb-3">
-        <DimensionBar score={score} maxScore={15} />
+      {/* Label + bar */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-2 mb-1.5">
+          <span className="text-[12px] font-bold text-[#1A1814] truncate">{dim.label}</span>
+              <span className="text-[10px] text-[#6B6560] shrink-0 hidden sm:inline">{dim.desc}</span>
+        </div>
+        <div className="h-1.5 bg-black/[0.05] rounded-full overflow-hidden">
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: c.bar }} />
+        </div>
       </div>
 
-      {missingFields[dimension.key] && missingFields[dimension.key].length > 0 && (
-        <div className="bg-[#F7F4EF] border border-black/[0.05] rounded-lg p-2.5 text-[10px]">
-          <div className="flex items-center gap-1.5 mb-1">
-            <HelpCircle className="w-3 h-3 text-[#D4A017]" />
-            <span className="font-bold text-[#A67C00]">To improve this score:</span>
-          </div>
-          <ul className="space-y-0.5 ml-5 list-disc text-[#6B6560]">
-            {missingFields[dimension.key].map((field, i) => (
-              <li key={i}>{field}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* Score badge */}
+      <div className="text-right shrink-0 w-16">
+        <span className="text-[13px] font-black" style={{ color: c.text }}>{s}</span>
+        <span className="text-[10px] text-[#C4BEB6]">/15</span>
+      </div>
     </div>
   );
 }
 
 export default function ATIScoreBreakdown({ passport, missing_data }) {
   const scores = {
-    documentation: passport?.documentation || 0,
-    technical: passport?.technical || 0,
-    transparency: passport?.transparency || 0,
+    documentation:    passport?.documentation || 0,
+    technical:        passport?.technical || 0,
+    transparency:     passport?.transparency || 0,
     transaction_ready: passport?.transaction_ready || 0,
-    usage_mission: passport?.usage_mission || 0,
+    usage_mission:    passport?.usage_mission || 0,
     storage_exposure: passport?.storage_exposure || 0,
-    config_clarity: passport?.config_clarity || 0,
+    config_clarity:   passport?.config_clarity || 0,
     market_readiness: passport?.market_readiness || 0,
   };
 
-  const totalScore = passport?.ati_total || 0;
-  const maxScore = 120;
-  const completeness = (totalScore / maxScore) * 100;
+  const total = passport?.ati_total || 0;
+  const pct = Math.round((total / 120) * 100);
 
-  // Parse missing_data string into grouped fields
-  const missingFieldsByDimension = {
-    documentation: [],
-    technical: [],
-    transparency: [],
-    transaction_ready: [],
-    usage_mission: [],
-    storage_exposure: [],
-    config_clarity: [],
-    market_readiness: [],
-  };
-
-  if (missing_data) {
-    const lines = missing_data.split("\n").filter(Boolean);
-    lines.forEach(line => {
-      const lower = line.toLowerCase();
-      if (lower.includes("bill") || lower.includes("logbook") || lower.includes("faa"))
-        missingFieldsByDimension.documentation.push(line.trim());
-      else if (lower.includes("maintenance") || lower.includes("service") || lower.includes("history"))
-        missingFieldsByDimension.technical.push(line.trim());
-      else if (lower.includes("smoh") || lower.includes("engine") || lower.includes("compression") || lower.includes("tbo"))
-        missingFieldsByDimension.transparency.push(line.trim());
-      else if (lower.includes("avionics") || lower.includes("glass") || lower.includes("equipment"))
-        missingFieldsByDimension.transaction_ready.push(line.trim());
-      else if (lower.includes("usage") || lower.includes("damage") || lower.includes("mission"))
-        missingFieldsByDimension.usage_mission.push(line.trim());
-      else if (lower.includes("hangar") || lower.includes("storage") || lower.includes("exposure") || lower.includes("corrosion"))
-        missingFieldsByDimension.storage_exposure.push(line.trim());
-      else if (lower.includes("seating") || lower.includes("weight") || lower.includes("config"))
-        missingFieldsByDimension.config_clarity.push(line.trim());
-      else if (lower.includes("photo") || lower.includes("valuation") || lower.includes("market"))
-        missingFieldsByDimension.market_readiness.push(line.trim());
-    });
-  }
+  const missingItems = missing_data
+    ? missing_data.split("\n").filter(Boolean)
+    : [];
 
   return (
     <div className="space-y-4">
-      {/* Overall progress */}
-      <div className="bg-white border border-black/[0.07] rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
+      {/* Total bar */}
+      <div className="bg-white border border-black/[0.07] rounded-2xl p-6">
+        <div className="flex items-end justify-between mb-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.15em] font-black text-[#0B2D5B] mb-1">Report Completeness</p>
-            <p className="text-sm text-[#6B6560]">How much data has been provided or verified</p>
+            <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#0B2D5B]">ATI Score Breakdown</p>
+            <p className="text-[11px] text-[#AAA49C] mt-0.5">8 dimensions · 15 points each · 120 maximum</p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-black text-[#0B2D5B]">{Math.round(completeness)}%</p>
-            <p className="text-[10px] text-[#AAA49C]">{totalScore} / 120 points</p>
+            <span className="text-3xl font-black text-[#0B2D5B] leading-none">{total}</span>
+            <span className="text-[11px] text-[#AAA49C] ml-1">/ 120</span>
           </div>
         </div>
-        <div className="h-3 bg-black/5 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-[#D4A017] to-[#0F7A56] rounded-full transition-all"
-            style={{ width: `${completeness}%` }}
+
+        {/* Segmented progress */}
+        <div className="relative h-2 bg-black/[0.05] rounded-full overflow-hidden mb-1">
+          <div className="absolute inset-y-0 left-0 rounded-full transition-all"
+            style={{
+              width: `${pct}%`,
+              background: total >= 90
+                ? "linear-gradient(90deg,#185FA5,#0F7A56)"
+                : total >= 72
+                ? "linear-gradient(90deg,#D4A017,#185FA5)"
+                : "linear-gradient(90deg,#C0392B,#D4A017)",
+            }}
           />
         </div>
-      </div>
-
-      {/* Dimension breakdown */}
-      <div>
-        <p className="text-[11px] uppercase tracking-[0.15em] font-black text-[#0B2D5B] mb-3">
-          8 Scoring Dimensions
-        </p>
-        <div className="grid md:grid-cols-2 gap-3">
-          {DIMENSIONS.map(dim => (
-            <ReadinessCard
-              key={dim.key}
-              dimension={dim}
-              scores={scores}
-              missingFields={missingFieldsByDimension}
-            />
+        <div className="flex justify-between">
+          {["0","30","60","90","120"].map(t => (
+            <span key={t} className="text-[8px] text-[#C4BEB6] font-medium">{t}</span>
           ))}
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="bg-[#0B2D5B] text-white rounded-2xl p-5">
-        <p className="text-[11px] uppercase tracking-[0.15em] font-black text-[#E8A83A] mb-2">Next Steps to Strengthen Report</p>
-        <div className="space-y-2 text-[12px]">
-          {Object.entries(missingFieldsByDimension).some(([_, fields]) => fields.length > 0) ? (
-            <>
-              <p>
-                To improve buyer confidence and valuation accuracy, focus on fields marked{" "}
-                <span className="font-bold text-[#D4A017]">⚠ Incomplete</span> above.
-              </p>
-              <p className="text-white/80">
-                Each missing data point reduces the ATI score by 1–2 points. Providing complete documentation can add 10–15 points and unlock{" "}
-                <span className="font-bold">Deal Radar eligibility</span>.
-              </p>
-            </>
-          ) : (
-            <p>All critical data has been provided. This report is ready for buyer distribution.</p>
-          )}
-        </div>
+      {/* Dimension list */}
+      <div className="bg-white border border-black/[0.07] rounded-2xl px-5 py-2">
+        {DIMENSIONS.map(dim => (
+          <DimRow key={dim.key} dim={dim} score={scores[dim.key]} />
+        ))}
       </div>
+
+      {/* Missing data */}
+      {missingItems.length > 0 && (
+        <div className="bg-[rgba(212,160,23,0.05)] border border-[rgba(212,160,23,0.20)] rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-4 h-4 text-[#D4A017] shrink-0" />
+            <p className="text-[10px] uppercase tracking-wider font-black text-[#A67C00]">Data Gaps — Request Before Making an Offer</p>
+          </div>
+          <ul className="space-y-1.5">
+            {missingItems.map((item, i) => (
+              <li key={i} className="flex items-start gap-2 text-[12px] text-[#6B6560]">
+                <span className="w-1 h-1 rounded-full bg-[#D4A017] mt-1.5 shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

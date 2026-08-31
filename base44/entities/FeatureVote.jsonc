@@ -1,0 +1,67 @@
+{
+  "name": "FeatureVote",
+  "type": "object",
+  "properties": {
+    "feature_request": {
+      "type": "string",
+      "relationType": "FeatureRequest",
+      "description": "The feature being voted on"
+    },
+    "voter_email": {
+      "type": "string",
+      "description": "Email of the voter"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "feature_request",
+    "voter_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.voter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.voter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.voter_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

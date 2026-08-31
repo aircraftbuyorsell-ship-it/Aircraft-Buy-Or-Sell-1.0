@@ -1,0 +1,311 @@
+{
+  "name": "MarketReport",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email of the user who generated this report"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "daily"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "overall_sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative"
+      ]
+    },
+    "executive_summary": {
+      "type": "string",
+      "maxLength": 6000
+    },
+    "key_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "macro_economic_signals": {
+      "type": "array",
+      "description": "Macro-level signals: interest rates, inflation, USD/EUR, fuel prices, credit markets, GDP",
+      "items": {
+        "type": "object",
+        "properties": {
+          "factor": {
+            "type": "string"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative"
+            ]
+          },
+          "commentary": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "political_regulatory_signals": {
+      "type": "array",
+      "description": "Political & regulatory signals: EASA, FAA, ICAO, IATA, sanctions, trade policy, airspace",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "e.g. EASA, FAA, IATA, US Government, EU Parliament"
+          },
+          "signal": {
+            "type": "string"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative"
+            ]
+          }
+        }
+      }
+    },
+    "regional_analysis": {
+      "type": "array",
+      "description": "Per-region market outlook covering demand, supply, regulatory, political, price trend",
+      "items": {
+        "type": "object",
+        "properties": {
+          "region": {
+            "type": "string"
+          },
+          "sentiment": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "neutral",
+              "negative"
+            ]
+          },
+          "demand_trend": {
+            "type": "string",
+            "enum": [
+              "growing",
+              "stable",
+              "declining"
+            ]
+          },
+          "price_trend": {
+            "type": "string",
+            "enum": [
+              "up",
+              "flat",
+              "down"
+            ]
+          },
+          "key_drivers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "predictions": {
+      "type": "array",
+      "description": "Falsifiable forward-looking predictions with measurable targets",
+      "items": {
+        "type": "object",
+        "properties": {
+          "statement": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string",
+            "description": "What to measure to validate"
+          },
+          "expected_direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "flat",
+              "down"
+            ]
+          },
+          "expected_change_pct": {
+            "type": "number",
+            "description": "Expected % change"
+          },
+          "horizon_days": {
+            "type": "number",
+            "description": "Validation horizon in days"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "validated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actual_direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "flat",
+              "down"
+            ]
+          },
+          "actual_change_pct": {
+            "type": "number"
+          },
+          "prediction_correct": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "personalization_filters": {
+      "type": "object",
+      "description": "User-specified filters used to generate this report",
+      "properties": {
+        "aircraft_category": {
+          "type": "string"
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "price_range_min": {
+          "type": "number"
+        },
+        "price_range_max": {
+          "type": "number"
+        },
+        "focus_areas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "data_snapshot": {
+      "type": "object"
+    },
+    "token_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "model_version": {
+      "type": "string",
+      "default": "gemini_3_1_pro"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "user_email",
+    "scope"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,31 +1,56 @@
-export default function TopModelsTable({ rows }) {
+const AMBER = "#f5c242";
+const TEAL = "#5dcaa5";
+const RED = "#e24b4a";
+const W1 = "rgba(255,255,255,0.90)";
+const W2 = "rgba(255,255,255,0.60)";
+const W3 = "rgba(255,255,255,0.35)";
+const BORDER = "rgba(255,255,255,0.08)";
+
+/**
+ * TopModelsTable — Legal Ink style.
+ */
+export default function TopModelsTable({ rows, isDark }) {
   const fmtPrice = (v) => v == null ? "—" : `$${(v / 1000).toFixed(0)}k`;
+
   return (
-    <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-black/[0.06]">
-        <p className="text-[10px] uppercase tracking-[0.15em] font-black text-[#E8A83A]">Inventory Leaders</p>
-        <h3 className="text-base font-black text-[#1A1814] uppercase tracking-tight">Top Models by Listings</h3>
+    <div className="rounded-2xl overflow-hidden" style={{
+      background: "rgba(255,255,255,0.04)",
+      border: `0.5px solid ${BORDER}`,
+    }}>
+      <div className="px-5 py-4" style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+        <p className="text-[10px] uppercase tracking-[0.15em] font-black" style={{ color: AMBER }}>Inventory Leaders</p>
+        <h3 className="text-base font-black uppercase tracking-tight" style={{ color: W1 }}>Top Models by Listings</h3>
       </div>
-      <div className="divide-y divide-black/[0.05]">
-        <div className="hidden md:grid grid-cols-[1fr_80px_100px_80px] gap-3 px-5 py-2 bg-[#F7F4EF]">
-          <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold">Model</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold text-right">Listings</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold text-right">Avg Price</p>
-          <p className="text-[9px] uppercase tracking-wider text-[#AAA49C] font-bold text-right">Avg ATI</p>
+      <div style={{ borderBottom: `0.5px solid ${BORDER}` }}>
+        <div className="hidden md:grid grid-cols-[1fr_80px_100px_80px] gap-3 px-5 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+          <p className="text-[9px] uppercase tracking-wider font-bold" style={{ color: W3 }}>Model</p>
+          <p className="text-[9px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Listings</p>
+          <p className="text-[9px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Avg Price</p>
+          <p className="text-[9px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Avg ATI</p>
         </div>
+        {/* Mobile header */}
+        <div className="md:hidden grid grid-cols-[1fr_50px_65px_45px] gap-2 px-4 py-2" style={{ background: "rgba(255,255,255,0.03)" }}>
+          <p className="text-[8px] uppercase tracking-wider font-bold" style={{ color: W3 }}>Model</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Qty</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>Price</p>
+          <p className="text-[8px] uppercase tracking-wider font-bold text-right" style={{ color: W3 }}>ATI</p>
+        </div>
+      </div>
+      <div>
         {rows.length === 0 ? (
-          <p className="text-sm text-[#AAA49C] text-center py-10">No data yet</p>
+          <p className="text-sm text-center py-10" style={{ color: W3 }}>No data yet</p>
         ) : rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[1fr_80px_100px_80px] gap-3 px-5 py-3 items-center">
-            <p className="text-sm font-bold text-[#1A1814] truncate">{r.model}</p>
-            <p className="text-sm font-black text-[#0B2D5B] text-right">{r.count}</p>
-            <p className="text-sm text-[#1A1814] text-right">{fmtPrice(r.avgPrice)}</p>
-            <p className="text-sm text-right">
+          <div key={i} className="grid grid-cols-[1fr_50px_65px_45px] md:grid-cols-[1fr_80px_100px_80px] gap-2 md:gap-3 px-4 md:px-5 py-3 items-center"
+            style={{ borderBottom: i < rows.length - 1 ? `0.5px solid ${BORDER}` : "none" }}>
+            <p className="text-[13px] md:text-sm font-bold truncate" style={{ color: W1 }}>{r.model}</p>
+            <p className="text-[13px] md:text-sm font-black text-right" style={{ color: AMBER }}>{r.count}</p>
+            <p className="text-[13px] md:text-sm text-right" style={{ color: W1 }}>{fmtPrice(r.avgPrice)}</p>
+            <p className="text-[13px] md:text-sm text-right">
               {r.avgAti != null ? (
-                <span className={`font-black ${r.avgAti >= 85 ? "text-[#0F7A56]" : r.avgAti >= 65 ? "text-[#E8A83A]" : "text-[#C0392B]"}`}>
+                <span className="font-black" style={{ color: r.avgAti >= 85 ? TEAL : r.avgAti >= 65 ? AMBER : RED }}>
                   {r.avgAti}
                 </span>
-              ) : <span className="text-[#AAA49C]">—</span>}
+              ) : <span style={{ color: W3 }}>—</span>}
             </p>
           </div>
         ))}

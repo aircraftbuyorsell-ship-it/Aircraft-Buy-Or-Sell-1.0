@@ -1,0 +1,83 @@
+{
+  "name": "AviationNewsItem",
+  "type": "object",
+  "properties": {
+    "headline": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "News headline"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 400,
+      "description": "Brief summary or market data point"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "market",
+        "regulatory",
+        "fleet",
+        "tech",
+        "deals",
+        "fuel",
+        "finance"
+      ],
+      "description": "News category"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative"
+      ],
+      "default": "neutral"
+    },
+    "source_text": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Source attribution text"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this item was published"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Batch identifier for grouping news runs"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description for search visibility and SEO"
+    }
+  },
+  "required": [
+    "headline",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

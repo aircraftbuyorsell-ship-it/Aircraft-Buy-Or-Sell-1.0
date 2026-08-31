@@ -28,23 +28,6 @@ export const ADL_AGENTS = Object.freeze({
   DEAL: { id: 'abos.agent.deal', type: 'agent', autonomy: 'A1', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
 });
 
-const CAPABILITY_ALIASES = Object.freeze({
-  registry: APL_ACTIONS.VERIFY_REGISTRY,
-  ownership: APL_ACTIONS.VERIFY_OWNERSHIP,
-  activity: APL_ACTIONS.VERIFY_ACTIVITY,
-  service: APL_ACTIONS.VERIFY_SERVICE,
-  documents: APL_ACTIONS.VERIFY_DOCUMENTS,
-  verification: APL_ACTIONS.VERIFY_AIRCRAFT,
-  ati: APL_ACTIONS.CALCULATE_ATI,
-  valuation: APL_ACTIONS.CALCULATE_OMVM,
-  omvm: APL_ACTIONS.CALCULATE_OMVM,
-  buyers: APL_ACTIONS.FIND_BUYERS,
-  deal: APL_ACTIONS.ANALYSE_DEAL,
-  compare: APL_ACTIONS.COMPARE_AIRCRAFT,
-  prebuy: APL_ACTIONS.REQUEST_PREBUY,
-  transaction: APL_ACTIONS.CREATE_TRANSACTION,
-});
-
 /** Deterministic ADL-safe fallback when the reasoning model returns no executable plan. */
 export function buildAPLPlan(request, { registration = null } = {}) {
   const text = String(request || '').toLowerCase();

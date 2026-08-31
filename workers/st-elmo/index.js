@@ -13,7 +13,10 @@ function corsHeaders(contentType = "application/json; charset=utf-8") {
 }
 
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: corsHeaders() });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: corsHeaders(),
+  });
 }
 
 function systemPrompt() {
@@ -60,25 +63,28 @@ export default {
       return json({ error: "Invalid JSON body" }, 400);
     }
 
-    const messages = Array.isArray(body.messages) ? body.messages : [];
-    if (!messages.length) return json({ error: "messages is required" }, 400);
+    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    if (!messages.length) {
+      return json({ error: "messages is required" }, 400);
+    }
 
     const baseUrl = (env.NVIDIA_NIM_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, "");
     const model = env.NVIDIA_MODEL || DEFAULT_BACKEND_MODEL;
+    const stream = Boolean(body.stream);
 
     try {
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "authorization": `Bearer ${env.NVIDIA_API_KEY}`,
+          authorization: `Bearer ${env.NVIDIA_API_KEY}`,
         },
         body: JSON.stringify({
           model,
           messages: [{ role: "system", content: systemPrompt() }, ...messages],
           temperature: typeof body.temperature === "number" ? body.temperature : 0.2,
           max_tokens: typeof body.max_tokens === "number" ? body.max_tokens : 4096,
-          stream: Boolean(body.stream),
+          stream,
         }),
       });
 
@@ -93,7 +99,7 @@ export default {
         }, 502);
       }
 
-      if (body.stream) {
+      if (stream) {
         return new Response(response.body, {
           status: response.status,
           headers: corsHeaders(response.headers.get("content-type") || "text/event-stream"),

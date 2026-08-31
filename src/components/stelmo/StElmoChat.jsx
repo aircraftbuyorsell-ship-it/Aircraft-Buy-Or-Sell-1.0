@@ -6,9 +6,9 @@ import { renderStElmoAnswer, describePhase } from "@/lib/stElmo/report";
 import { extractRegistration } from "@/lib/abosAgent";
 import { buildAPLPlan, capabilityOwner, ADL_AGENTS } from "@/lib/abosAgentProtocol";
 import { BrainCircuit, ChevronDown, Loader2, Maximize2, Minimize2, Send, Sparkles } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import ReactMarkdown from "react-markdown";
 
-const WORKER_URL = "https://abos-st-elmo.aircraftbuyorsell.workers.dev/v1/chat/completions";
 const STORAGE_KEY = "abos_st_elmo_chat_v1";
 const OPEN_KEY = "abos_st_elmo_chat_open_v1";
 const MAX_MESSAGES = 60;
@@ -20,16 +20,6 @@ function loadMessages() {
     const parsed = raw ? JSON.parse(raw) : null;
     return Array.isArray(parsed) && parsed.length ? parsed : [{ role: "assistant", content: WELCOME }];
   } catch { return [{ role: "assistant", content: WELCOME }]; }
-}
-
-async function readWorkerError(response) {
-  const raw = await response.text();
-  let payload = null;
-  try { payload = JSON.parse(raw); } catch {}
-  if (payload?.diagnostic === "nvidia_http_error") return `NVIDIA request failed (${payload.nvidia_status || response.status}). ${payload.detail || "No NVIDIA error detail returned."}`;
-  if (payload?.diagnostic === "fetch_failed") return `NVIDIA network request failed. ${payload.detail || "Unknown network error."}`;
-  if (payload?.diagnostic === "missing_runtime_secret") return "NVIDIA_API_KEY is missing from the St. Elmo Worker runtime secrets.";
-  return payload?.error || raw.slice(0, 1000) || `St. Elmo Worker returned ${response.status}`;
 }
 
 function normalizeMessages(items) {
@@ -128,27 +118,17 @@ export default function StElmoChat() {
         { role: "user", content: `ABOS context: ${JSON.stringify(context)}\nRequest: ${text}` }
       ].filter((m) => m.content);
 
-      const requestBody = {
-        model: "abos-st-elmo",
-        messages: requestMessages,
-        temperature: 0.2,
-        max_tokens: 4096,
-        stream: false
-      };
-
-      const response = await fetch(WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(requestBody)
+      const reasoningResponse = await base44.functions.invoke("stElmoReasoning", {
+        request: text,
+        context: { ...context, recent_messages: recent, registration },
       });
-      if (!response.ok) throw new Error(await readWorkerError(response));
-      const payload = await response.json();
-      const content = payload?.choices?.[0]?.message?.content;
+      const payload = reasoningResponse?.data || reasoningResponse;
+      if (!payload || payload.error) throw new Error(payload?.error || "St. Elmo reasoning backend returned no response");
 
       const aplPlan = Array.isArray(payload?.plan) && payload.plan.length ? payload.plan : buildAPLPlan(text, { registration });
       const data = {
         ...payload,
-        answer: content || null,
+        answer: null,
         plan: aplPlan,
         adl: { agent: ADL_AGENTS.MASTER.id, delegation: aplPlan.map((capability) => ({ capability, owner: capabilityOwner(capability) })) },
       };

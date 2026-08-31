@@ -35,6 +35,12 @@ export const EVIDENCE = Object.freeze({
  * engine    — the ABOS engine that owns this fact. St. Elmo never substitutes for it.
  */
 export const CAPABILITIES = Object.freeze({
+  [APL_ACTIONS.KNOWLEDGE_LOOKUP]: {
+    requires: [],
+    produces: "knowledge",
+    engine: "abosKnowledgeBase",
+    stage: "identify",
+  },
   [APL_ACTIONS.IDENTIFY_AIRCRAFT]: {
     requires: [EVIDENCE.REGISTRATION],
     produces: EVIDENCE.AIRCRAFT,

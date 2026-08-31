@@ -70,7 +70,7 @@ export function delegateAPLPlan(plan = []) {
   }).filter(Boolean);
 }
 
-export function buildADLContext({ request, registration = null, plan = [], sessionId = null } = {}) {
+export function buildADLContext({ request = "", registration = null, plan = [], sessionId = null } = {}) {
   return Object.freeze({
     protocol: { apl: "1.0", adl: "1.0" },
     session_id: sessionId || crypto.randomUUID(),

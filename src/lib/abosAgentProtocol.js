@@ -32,11 +32,15 @@ export const ADL_AGENTS = Object.freeze({
 export function buildAPLPlan(request, { registration = null } = {}) {
   const text = String(request || '').toLowerCase();
   const plan = [];
+  const isDefinition = /\b(what is|what's|define|definition of|explain|meaning of|tell me about|how does)\b/i.test(text);
+  const hasAircraftContext = Boolean(registration) || /\b(n[- ]?reg|registration|tail number|aircraft|plane|serial number|listing)\b/i.test(text);
+  // Pure definitions/explanations never trigger aircraft operations.
+  if (isDefinition && !hasAircraftContext) return [];
   if (registration) plan.push(APL_ACTIONS.IDENTIFY_AIRCRAFT);
   if (/\b(registry|n[- ]?reg|ownership|owner|serial|verification|verify|maintenance|service|activity|traffic|document)/i.test(text)) {
     plan.push(APL_ACTIONS.VERIFY_AIRCRAFT);
   }
-  if (/\b(ati|transparency)/i.test(text)) plan.push(APL_ACTIONS.CALCULATE_ATI);
+  if (/\b(ati|transparency)/i.test(text) && hasAircraftContext) plan.push(APL_ACTIONS.CALCULATE_ATI);
   if (/\b(value|valuation|worth|price|omvm|market value)/i.test(text)) plan.push(APL_ACTIONS.CALCULATE_OMVM);
   if (/\b(deal|compare|undervalued|market|listing)/i.test(text)) plan.push(/\bcompare\b/i.test(text) ? APL_ACTIONS.COMPARE_AIRCRAFT : APL_ACTIONS.ANALYSE_DEAL);
   if (/\b(buyer|buyers|match|sell)/i.test(text)) plan.push(APL_ACTIONS.FIND_BUYERS);

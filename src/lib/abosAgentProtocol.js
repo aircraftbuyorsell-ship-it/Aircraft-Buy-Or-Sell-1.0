@@ -7,7 +7,7 @@ export const ADL_ENTITIES = Object.freeze({
 });
 
 export const APL_ACTIONS = Object.freeze({
-  IDENTIFY_AIRCRAFT: 'IDENTIFY_AIRCRAFT', VERIFY_AIRCRAFT: 'VERIFY_AIRCRAFT', VERIFY_REGISTRY: 'VERIFY_REGISTRY',
+  KNOWLEDGE_LOOKUP: 'KNOWLEDGE_LOOKUP', IDENTIFY_AIRCRAFT: 'IDENTIFY_AIRCRAFT', VERIFY_AIRCRAFT: 'VERIFY_AIRCRAFT', VERIFY_REGISTRY: 'VERIFY_REGISTRY',
   VERIFY_IDENTITY: 'VERIFY_IDENTITY', VERIFY_OWNERSHIP: 'VERIFY_OWNERSHIP', VERIFY_ACTIVITY: 'VERIFY_ACTIVITY',
   VERIFY_SERVICE: 'VERIFY_SERVICE', VERIFY_DOCUMENTS: 'VERIFY_DOCUMENTS', CALCULATE_ATI: 'CALCULATE_ATI',
   CALCULATE_OMVM: 'CALCULATE_OMVM', ANALYSE_DEAL: 'ANALYSE_DEAL', FIND_BUYERS: 'FIND_BUYERS',
@@ -32,6 +32,7 @@ export const ADL_AGENTS = Object.freeze({
 export function buildAPLPlan(request, { registration = null } = {}) {
   const text = String(request || '').toLowerCase();
   const plan = [];
+  if (/\b(what is|what's|define|definition of|explain|meaning of|tell me about|how does)\b/i.test(text) && !registration && !/\b(n[- ]?reg|registration|tail number|aircraft|plane|serial number|listing)\b/i.test(text)) plan.push(APL_ACTIONS.KNOWLEDGE_LOOKUP);
   const isDefinition = /\b(what is|what's|define|definition of|explain|meaning of|tell me about|how does)\b/i.test(text);
   const hasAircraftContext = Boolean(registration) || /\b(n[- ]?reg|registration|tail number|aircraft|plane|serial number|listing)\b/i.test(text);
   // Pure definitions/explanations never trigger aircraft operations.

@@ -114,7 +114,8 @@ export async function runABOSAgent(request, options = {}) {
   }
 
   result.workflow.current = result.transaction ? "transaction" : result.verification ? "analysis" : result.marketspace ? "marketspace" : "discovery";
-  result.workflow = { ...result.workflow, ...buildAgentWorkflow({ aircraft: result.aircraft, verification: result.verification, marketspace: result.marketspace, transaction: result.transaction }) };
+  const workflowState = buildAgentWorkflow({ aircraft: result.aircraft, verification: result.verification, marketspace: result.marketspace, transaction: result.transaction });
+  result.workflow = { ...result.workflow, ...workflowState, next: workflowState.next ? [workflowState.next] : [] };
   result.workflow.nextActions = result.marketspace?.nextActions || [];
   return result;
 }

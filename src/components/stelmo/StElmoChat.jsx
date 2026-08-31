@@ -113,11 +113,6 @@ export default function StElmoChat() {
       if (registration) lastRegistrationRef.current = registration;
       const recent = normalizeMessages(next);
       const context = { source: "global_st_elmo_chat", page: window.location.pathname, recent_messages: recent, timestamp: new Date().toISOString() };
-      const requestMessages = [
-        ...recent,
-        { role: "user", content: `ABOS context: ${JSON.stringify(context)}\nRequest: ${text}` }
-      ].filter((m) => m.content);
-
       const reasoningResponse = await base44.functions.invoke("stElmoReasoning", {
         request: text,
         context: { ...context, recent_messages: recent, registration },

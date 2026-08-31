@@ -17,6 +17,59 @@ export const APL_ACTIONS = Object.freeze({
 
 export const WORKFLOW_STAGES = Object.freeze(['identify','verify','analyse','match','transact','close']);
 
+// ADL runtime registry: one master conversational agent, with four governed
+// specialist domains behind it. These are roles/capability owners, not competing
+// chatbots. St. Elmo delegates execution through APL capabilities below.
+export const ADL_AGENTS = Object.freeze({
+  MASTER: { id: 'abos.agent.st-elmo', type: 'agent', autonomy: 'A2', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
+  VERIFICATION: { id: 'abos.agent.verification', type: 'agent', autonomy: 'A2', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
+  INTELLIGENCE: { id: 'abos.agent.intelligence', type: 'agent', autonomy: 'A2', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
+  MARKETSPACE: { id: 'abos.agent.marketspace', type: 'agent', autonomy: 'A2', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
+  DEAL: { id: 'abos.agent.deal', type: 'agent', autonomy: 'A1', trust: 'APL-T2', audit: 'APL-A2', status: 'verified' },
+});
+
+const CAPABILITY_ALIASES = Object.freeze({
+  registry: APL_ACTIONS.VERIFY_REGISTRY,
+  ownership: APL_ACTIONS.VERIFY_OWNERSHIP,
+  activity: APL_ACTIONS.VERIFY_ACTIVITY,
+  service: APL_ACTIONS.VERIFY_SERVICE,
+  documents: APL_ACTIONS.VERIFY_DOCUMENTS,
+  verification: APL_ACTIONS.VERIFY_AIRCRAFT,
+  ati: APL_ACTIONS.CALCULATE_ATI,
+  valuation: APL_ACTIONS.CALCULATE_OMVM,
+  omvm: APL_ACTIONS.CALCULATE_OMVM,
+  buyers: APL_ACTIONS.FIND_BUYERS,
+  deal: APL_ACTIONS.ANALYSE_DEAL,
+  compare: APL_ACTIONS.COMPARE_AIRCRAFT,
+  prebuy: APL_ACTIONS.REQUEST_PREBUY,
+  transaction: APL_ACTIONS.CREATE_TRANSACTION,
+});
+
+/** Deterministic ADL-safe fallback when the reasoning model returns no executable plan. */
+export function buildAPLPlan(request, { registration = null } = {}) {
+  const text = String(request || '').toLowerCase();
+  const plan = [];
+  if (registration) plan.push(APL_ACTIONS.IDENTIFY_AIRCRAFT);
+  if (/\b(registry|n[- ]?reg|ownership|owner|serial|verification|verify|maintenance|service|activity|traffic|document)/i.test(text)) {
+    plan.push(APL_ACTIONS.VERIFY_AIRCRAFT);
+  }
+  if (/\b(ati|transparency)/i.test(text)) plan.push(APL_ACTIONS.CALCULATE_ATI);
+  if (/\b(value|valuation|worth|price|omvm|market value)/i.test(text)) plan.push(APL_ACTIONS.CALCULATE_OMVM);
+  if (/\b(deal|compare|undervalued|market|listing)/i.test(text)) plan.push(/\bcompare\b/i.test(text) ? APL_ACTIONS.COMPARE_AIRCRAFT : APL_ACTIONS.ANALYSE_DEAL);
+  if (/\b(buyer|buyers|match|sell)/i.test(text)) plan.push(APL_ACTIONS.FIND_BUYERS);
+  if (/\b(pre[- ]?buy|inspection)/i.test(text)) plan.push(APL_ACTIONS.REQUEST_PREBUY);
+  if (/\b(transaction|purchase|offer|closing|deal room)/i.test(text)) plan.push(APL_ACTIONS.CREATE_TRANSACTION);
+  return [...new Set(plan)];
+}
+
+export function capabilityOwner(capability) {
+  if ([APL_ACTIONS.VERIFY_AIRCRAFT, APL_ACTIONS.VERIFY_REGISTRY, APL_ACTIONS.VERIFY_IDENTITY, APL_ACTIONS.VERIFY_OWNERSHIP, APL_ACTIONS.VERIFY_ACTIVITY, APL_ACTIONS.VERIFY_SERVICE, APL_ACTIONS.VERIFY_DOCUMENTS, APL_ACTIONS.REQUEST_PREBUY].includes(capability)) return ADL_AGENTS.VERIFICATION.id;
+  if ([APL_ACTIONS.CALCULATE_ATI, APL_ACTIONS.CALCULATE_OMVM].includes(capability)) return ADL_AGENTS.INTELLIGENCE.id;
+  if ([APL_ACTIONS.ANALYSE_DEAL, APL_ACTIONS.COMPARE_AIRCRAFT, APL_ACTIONS.FIND_BUYERS].includes(capability)) return ADL_AGENTS.MARKETSPACE.id;
+  if ([APL_ACTIONS.CREATE_TRANSACTION, APL_ACTIONS.ADVANCE_PIPELINE, APL_ACTIONS.OPEN_DEAL_ROOM, APL_ACTIONS.PREPARE_CLOSING].includes(capability)) return ADL_AGENTS.DEAL.id;
+  return ADL_AGENTS.MASTER.id;
+}
+
 export function buildAgentWorkflow({ aircraft = null, verification = null, marketspace = null, transaction = null } = {}) {
   const stages = {
     identify: Boolean(aircraft),

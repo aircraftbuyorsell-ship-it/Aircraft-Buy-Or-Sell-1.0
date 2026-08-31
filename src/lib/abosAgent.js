@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { ST_ELMO_MODEL } from "@/lib/model/provider/nemotron/config";
 import { runStElmoWorker } from "@/lib/stElmo/worker";
 import { buildStElmoEngines } from "@/lib/stElmo/engines";
+import { buildADLContext, delegateAPLPlan, ST_ELMO_AGENTS } from "@/lib/stElmo/agents";
 
 /**
  * ABOS Agent orchestration layer.
@@ -57,8 +58,9 @@ export async function runABOSAgent(request, options = {}) {
     model: ST_ELMO_MODEL,
     reasoning,
     registration,
-    agent: ADL_AGENTS.MASTER,
-    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: aplPlan, delegation: aplPlan.map((capability) => ({ capability, owner: capabilityOwner(capability) })) },
+    agent: ST_ELMO_AGENTS.master,
+    adl: buildADLContext({ request: text, registration, plan: aplPlan }),
+    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: aplPlan, delegation: delegateAPLPlan(aplPlan) },
     aircraft: null,
     verification: null,
     marketspace: null,

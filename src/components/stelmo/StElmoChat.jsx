@@ -4,6 +4,7 @@ import { runStElmoWorker } from "@/lib/stElmo/worker";
 import { buildStElmoEngines } from "@/lib/stElmo/engines";
 import { renderStElmoAnswer, describePhase } from "@/lib/stElmo/report";
 import { extractRegistration } from "@/lib/abosAgent";
+import { buildAPLPlan, capabilityOwner, ADL_AGENTS } from "@/lib/abosAgentProtocol";
 import { BrainCircuit, ChevronDown, Loader2, Maximize2, Minimize2, Send, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -147,9 +148,20 @@ export default function StElmoChat() {
       if (!response.ok) throw new Error(await readWorkerError(response));
       const payload = await response.json();
       const content = payload?.choices?.[0]?.message?.content;
-      const data = { ...payload, answer: content || null };
       const registration = extractRegistration(text) || lastRegistrationRef.current;
       if (registration) lastRegistrationRef.current = registration;
+      // The model may return prose, a plan, or temporarily fail to return a plan.
+      // ADL/APL remains executable in all three cases: derive the safe deterministic
+      // capability plan when needed and expose delegation metadata for the UI/task log.
+      const aplPlan = Array.isArray(payload?.plan) && payload.plan.length
+        ? payload.plan
+        : buildAPLPlan(text, { registration });
+      const data = {
+        ...payload,
+        answer: content || null,
+        plan: aplPlan,
+        adl: { agent: ADL_AGENTS.MASTER.id, delegation: aplPlan.map((capability) => ({ capability, owner: capabilityOwner(capability) })) },
+      };
       const run = await runStElmoWorker({
         plan: data.plan,
         engines: buildStElmoEngines({ entry: "global_st_elmo_chat" }),

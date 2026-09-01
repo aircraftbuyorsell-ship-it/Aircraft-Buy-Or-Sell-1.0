@@ -15,6 +15,44 @@ function json(data, status = 200) {
   });
 }
 
+async function sha256(value) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+}
+
+/** Compares over digests so a wrong secret cannot be recovered by timing. Mirrors gateway/src/index.js. */
+async function timingSafeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string" || !a || !b) return false;
+  const [ha, hb] = await Promise.all([sha256(a), sha256(b)]);
+  let diff = 0;
+  for (let i = 0; i < ha.length; i++) diff |= ha[i] ^ hb[i];
+  return diff === 0;
+}
+
+function bearerFrom(request) {
+  const match = /^Bearer\s+(.+)$/i.exec((request.headers.get("Authorization") || "").trim());
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * This Worker spends the account's NVIDIA quota on every call, so the caller has
+ * to prove it is ABOS. Without this the endpoint was a public LLM proxy: no
+ * inbound check at all, `access-control-allow-origin: *`, caller-supplied
+ * messages, and the URL shipped in the browser bundle.
+ *
+ * Fail closed. An unset secret means no caller can be authenticated, which is a
+ * misconfiguration — never a reason to serve the key to everyone.
+ */
+async function authorize(request, env) {
+  if (!env.ST_ELMO_GATEWAY_SECRET) {
+    return json({ error: "ST_ELMO_GATEWAY_SECRET is not configured", diagnostic: "missing_gateway_secret" }, 503);
+  }
+  const presented = bearerFrom(request);
+  if (!presented || !(await timingSafeEqual(presented, env.ST_ELMO_GATEWAY_SECRET))) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+  return null;
+}
+
 function systemPrompt() {
   return `You are ABOS St. Elmo M_1.0, the reasoning and orchestration layer for AircraftBuyOrSell.
 Your role is to plan, reason, select capabilities, interpret evidence, and synthesize answers.
@@ -29,6 +67,9 @@ export default {
     const url = new URL(request.url);
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) return json({ ok: true, service: MODEL_ID, version: VERSION, status: "online", backend: "nvidia" });
     if (request.method !== "POST" || url.pathname !== "/v1/chat/completions") return json({ error: "Not found" }, 404);
+    // Authorize before anything that costs money or reveals configuration.
+    const denied = await authorize(request, env);
+    if (denied) return denied;
     if (!env.NVIDIA_API_KEY) return json({ error: "NVIDIA_API_KEY is not configured", diagnostic: "missing_runtime_secret" }, 503);
     let body;
     try { body = await request.json(); } catch { return json({ error: "Invalid JSON body" }, 400); }

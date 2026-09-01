@@ -25,22 +25,16 @@ export async function runABOSAgent(request, options = {}) {
   let reasoning = null;
   if (options.useReasoning !== false) {
     try {
-      const response = await fetch("https://abos-st-elmo.aircraftbuyorsell.workers.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          model: "abos-st-elmo",
-          messages: [
-            { role: "user", content: `ABOS request: ${text}\nContext: ${JSON.stringify({ registration, intent: requestedIntent || null })}` },
-          ],
-          temperature: 0.2,
-          max_tokens: 4096,
-        }),
+      // Through the authenticated Base44 function, never straight to the Worker.
+      // The browser cannot hold the Worker's shared secret, and calling it
+      // directly from here made a paid NVIDIA endpoint callable by anyone who
+      // read the bundle. stElmoReasoning gates on base44.auth.me() and returns a
+      // sanitised capability plan rather than free prose.
+      const response = await base44.functions.invoke("stElmoReasoning", {
+        request: text,
+        context: { registration, intent: requestedIntent || null },
       });
-      if (!response.ok) throw new Error(`St. Elmo Worker returned ${response.status}`);
-      const payload = await response.json();
-      const content = payload?.choices?.[0]?.message?.content;
-      reasoning = { ...payload, answer: typeof content === "string" ? content : null };
+      reasoning = response?.data || null;
     } catch (_) {
       // Deterministic ABOS routing remains the safe fallback when the reasoning backend is unavailable.
     }

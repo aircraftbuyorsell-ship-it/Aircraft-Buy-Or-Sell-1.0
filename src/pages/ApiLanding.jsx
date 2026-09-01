@@ -1,264 +1,67 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
-import {
-  Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Loader2, Check, KeyRound,
-} from "lucide-react";
+import { Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Mail, Search, LockKeyhole, FileJson, Download, Loader2, Wand2 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
-/**
- * Public front door for aircraftbuyorsell.com/api.
- *
- * This replaced a page that shipped full endpoint documentation, an OpenAPI
- * spec link and a live API-key panel to every anonymous visitor. That
- * content still exists — it moved to the Developer Portal (/developers) and
- * the full reference (/developers/core-api), both of which now require a
- * signed-in account. What belongs on the public marketing page is the pitch
- * and the price, not the internals.
- */
-
-const VALUE_PROPS = [
-  {
-    icon: Zap,
-    title: "Brokers & dealers",
-    text: "Drop ATI scoring and OMVM valuation into your own site or CRM — the same intelligence engine that powers aircraftbuyorsell.com, under your brand.",
-  },
-  {
-    icon: Building2,
-    title: "Platform builders",
-    text: "Search, valuation, listing extraction and structured marketplace data behind one authenticated contract — build a connector once, not per data source.",
-  },
-  {
-    icon: Bot,
-    title: "AI agents & assistants",
-    text: "MCP-native. Point Claude, Cursor or your own agent at the endpoint and it can search, value and extract listings without you writing a client.",
-  },
-];
-
-const HOW_IT_WORKS = [
-  { step: "1", title: "Pick a plan", text: "Starter or Professional, self-serve. Enterprise is a short conversation with us." },
-  { step: "2", title: "Checkout & get your key", text: "Card required at signup for the 14-day trial — we'll show you the exact charge date before you confirm. A tenant-scoped licence key is issued the moment checkout completes." },
-  { step: "3", title: "Install & deploy", text: "The installer reads your key and configures the SDK for exactly what your licence covers — nothing more." },
-];
-
-const PLANS = [
-  {
-    id: "wl_starter",
-    name: "Starter",
-    price: "€690",
-    period: "/mo",
-    tagline: "Search and ATI Score, self-serve.",
-    features: ["ATI Score", "Search", "14-day free trial", "Tenant-scoped API key"],
-    cta: "Start 14-day trial",
-    highlighted: false,
-  },
-  {
-    id: "wl_professional",
-    name: "Professional",
-    price: "€1,890",
-    period: "/mo",
-    tagline: "Everything in Starter, plus reporting and valuation.",
-    features: ["Everything in Starter", "ATI Report", "OMVM Valuation", "Market Intelligence", "14-day free trial"],
-    cta: "Start 14-day trial",
-    highlighted: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "from €3,900",
-    period: "/mo + €2,500 setup",
-    tagline: "Full capability set, contracted terms.",
-    features: ["Every capability", "Aircraft Passport & registry lookup", "Advanced intelligence", "Dedicated onboarding"],
-    cta: "Contact sales",
-    highlighted: false,
-  },
-];
-
-const CARD_BORDER = "rgba(255,255,255,0.08)";
+const CARD_BORDER = "rgba(255,255,255,0.09)";
 const AMBER = "#f5c242";
 const TEAL = "#5dcaa5";
-
-function PlanCard({ plan, onSelect, loading }) {
-  return (
-    <div
-      className="rounded-2xl p-6 flex flex-col relative"
-      style={{
-        background: plan.highlighted ? "rgba(245,194,66,0.06)" : "rgba(255,255,255,0.03)",
-        border: plan.highlighted ? "1px solid rgba(245,194,66,0.35)" : `1px solid ${CARD_BORDER}`,
-      }}
-    >
-      {plan.highlighted && (
-        <span
-          className="absolute -top-3 left-6 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-          style={{ background: AMBER, color: "#04060a" }}
-        >
-          Most popular
-        </span>
-      )}
-      <h3 className="text-[15px] font-bold mb-1" style={{ color: "rgba(255,255,255,0.92)" }}>{plan.name}</h3>
-      <p className="text-[12px] mb-4" style={{ color: "rgba(255,255,255,0.55)" }}>{plan.tagline}</p>
-      <div className="flex items-baseline gap-1 mb-5">
-        <span className="text-[28px] font-black" style={{ color: "rgba(255,255,255,0.95)" }}>{plan.price}</span>
-        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.45)" }}>{plan.period}</span>
-      </div>
-      <ul className="flex flex-col gap-2 mb-6 flex-1">
-        {plan.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-[12px]" style={{ color: "rgba(255,255,255,0.70)" }}>
-            <Check size={13} className="mt-0.5 shrink-0" style={{ color: TEAL }} />
-            {f}
-          </li>
-        ))}
-      </ul>
-      <button
-        onClick={() => onSelect(plan)}
-        disabled={loading === plan.id}
-        className="w-full py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wide disabled:opacity-50"
-        style={
-          plan.highlighted
-            ? { background: AMBER, color: "#04060a", border: "none", cursor: "pointer" }
-            : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.85)", border: `0.5px solid ${CARD_BORDER}`, cursor: "pointer" }
-        }
-      >
-        {loading === plan.id ? <Loader2 size={14} className="animate-spin mx-auto" /> : plan.cta}
-      </button>
-    </div>
-  );
-}
+const DEFAULT_PRICING = [
+  { key: "API_STARTER", name: "ABOS API — Starter", price_eur: 690, billing: "per month", best_for: "Developers and initial production integrations", included: "Search, ATI Score, tenant-scoped API key, aircraft intelligence, usage monitoring and API documentation." },
+  { key: "API_PROFESSIONAL", name: "ABOS API — Professional", price_eur: 1890, billing: "per month", best_for: "Platforms, brokers, dealers and production products", included: "Everything in Starter plus ATI Report API, OMVM valuation, market intelligence, expanded usage and integration support." },
+  { key: "API_ENTERPRISE", name: "ABOS API — Enterprise", price_eur: 3900, billing: "per month / contract", best_for: "Enterprise aviation infrastructure", included: "Full capability set, Aircraft Passport and registry intelligence, advanced intelligence, custom usage and dedicated onboarding." },
+  { key: "WHITE_LABEL_LICENSE", name: "ABOS White-Label Integration License", price_eur: 2500, billing: "one-time", best_for: "Approved white-label partners", included: "Production integration setup, tenant configuration and integration documentation. API usage billed separately." },
+];
+const formatEUR = value => `€${Number(value).toLocaleString("en-US")}`;
 
 export default function ApiLanding() {
-  const { isAuthenticated, navigateToLogin } = useAuth();
-  const [loading, setLoading] = useState(null);
-  const [checkoutError, setCheckoutError] = useState("");
-
-  const startCheckout = async (planType) => {
-    if (!isAuthenticated) {
-      navigateToLogin();
-      return;
-    }
-    setCheckoutError("");
-    setLoading(planType);
+  const { user, isAuthenticated } = useAuth();
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const initialRegistration = params.get("registration") || params.get("tail") || params.get("n") || "";
+  const [form, setForm] = useState({ email: user?.email || "", name: user?.full_name || user?.name || "", company: user?.company_name || "", registration: initialRegistration, use_case: "", requested_plan: "" });
+  const [unlocked, setUnlocked] = useState(false);
+  const [pricing, setPricing] = useState(DEFAULT_PRICING);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const isStaff = isAuthenticated && isAdminRole(user);
+  const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+  const submitRequest = async e => {
+    e.preventDefault(); setError("");
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { setError("Please enter a valid email address."); return; }
+    setLoading(true);
     try {
-      const returnUrl = `${window.location.origin}/partner-portal?checkout=success`;
-      const res = await base44.functions.invoke("stripeCreateCheckout", { plan_type: planType, returnUrl });
-      if (res.data?.sessionUrl) {
-        window.location.href = res.data.sessionUrl;
-        return;
-      }
-      setCheckoutError(res.data?.error || "Couldn't start checkout. Please try again.");
-    } catch (err) {
-      setCheckoutError(err?.message || "Couldn't start checkout. Please try again.");
-    } finally {
-      setLoading(null);
-    }
+      const res = await base44.functions.invoke("submitApiInquiry", { ...form, website: "" });
+      if (res?.data?.pricing_unlocked) {
+        setPricing(res.data.pricing || DEFAULT_PRICING); setSubmittedEmail(res.data.submitted_email || form.email); setUnlocked(true);
+        setTimeout(() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      } else setError(res?.data?.error || "We could not process the request. Please try again.");
+    } catch (err) { setError(err?.message || "We could not process the request. Please try again."); }
+    finally { setLoading(false); }
   };
+  const requestPlan = plan => { setSelectedPlan(plan.name); update("requested_plan", plan.name); document.getElementById("request-form")?.scrollIntoView({ behavior: "smooth", block: "center" }); };
+  const downloadKit = () => { const a=document.createElement("a"); a.href="/ABOS-API-Integration-Kit.json"; a.download="ABOS-API-Integration-Kit.json"; document.body.appendChild(a); a.click(); a.remove(); };
+  const openStaffAccess = () => { setUnlocked(true); setPricing(DEFAULT_PRICING); setSubmittedEmail(user?.email || "ABOS Staff"); setTimeout(() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); };
 
-  const handleSelect = (plan) => {
-    if (plan.id === "enterprise") {
-      window.location.href = "mailto:partnerships@aircraftbuyorsell.com?subject=ABOS%20Enterprise%20White-Label";
-      return;
-    }
-    startCheckout(plan.id);
-  };
-
-  return (
-    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: "#fff" }}>
-      <div className="max-w-[980px] mx-auto">
-
-        {/* ── Hero ── */}
-        <div className="mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-            style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
-            <Terminal size={12} style={{ color: AMBER }} />
-            <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color: AMBER }}>
-              ABOS Core API · White-Label
-            </span>
-          </div>
-          <h1 className="tracking-[-0.03em] leading-[1.06] mb-4" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 500 }}>
-            One API. <span style={{ color: AMBER, fontWeight: 700 }}>Every channel.</span>
-          </h1>
-          <p className="text-[14px] leading-relaxed max-w-[600px] mb-7" style={{ color: "rgba(255,255,255,0.60)" }}>
-            The same aviation intelligence engine behind aircraftbuyorsell.com — ATI scoring, OMVM
-            valuation, listing extraction and market data — licensed to run under your own brand,
-            authenticated with a tenant-scoped key.
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a href="#pricing"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide"
-              style={{ background: AMBER, color: "#04060a" }}>
-              See plans &amp; pricing <ArrowRight size={14} />
-            </a>
-            <Link to="/partner-portal"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide"
-              style={{ background: "rgba(255,255,255,0.05)", border: `0.5px solid ${CARD_BORDER}`, color: "rgba(255,255,255,0.80)" }}>
-              <KeyRound size={13} /> Already a partner? Sign in
-            </Link>
-          </div>
-        </div>
-
-        {/* ── Value props ── */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-14">
-          {VALUE_PROPS.map(({ icon: Icon, title, text }) => (
-            <div key={title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${CARD_BORDER}` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
-                <Icon size={16} style={{ color: AMBER }} />
-              </div>
-              <h3 className="text-[14px] font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.90)" }}>{title}</h3>
-              <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>{text}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── How it works ── */}
-        <div className="mb-14">
-          <h2 className="text-[16px] font-bold mb-5" style={{ color: "rgba(255,255,255,0.92)" }}>How it works</h2>
-          <div className="grid sm:grid-cols-3 gap-5">
-            {HOW_IT_WORKS.map(({ step, title, text }) => (
-              <div key={step} className="flex gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold"
-                  style={{ background: "rgba(245,194,66,0.10)", border: "0.5px solid rgba(245,194,66,0.28)", color: AMBER }}>
-                  {step}
-                </span>
-                <div>
-                  <p className="text-[13px] font-bold mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>{title}</p>
-                  <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>{text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Pricing ── */}
-        <div id="pricing" className="mb-10 scroll-mt-8">
-          <div className="flex items-center gap-2 mb-2">
-            <ShieldCheck size={15} style={{ color: AMBER }} />
-            <h2 className="text-[16px] font-bold" style={{ color: "rgba(255,255,255,0.92)" }}>Plans &amp; pricing</h2>
-          </div>
-          <p className="text-[12px] mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
-            Starter and Professional include a 14-day free trial — a card is required at signup and Stripe
-            shows you the exact charge date and amount before you confirm. Cancel anytime from your Partner
-            Portal before the trial ends and you won't be charged.
-          </p>
-
-          {checkoutError && (
-            <div className="mb-4 px-4 py-3 rounded-xl text-[12px]" style={{ background: "rgba(226,75,74,0.08)", border: "1px solid rgba(226,75,74,0.25)", color: "#f0a3a2" }}>
-              {checkoutError}
-            </div>
-          )}
-
-          <div className="grid sm:grid-cols-3 gap-4">
-            {PLANS.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onSelect={handleSelect} loading={loading} />
-            ))}
-          </div>
-
-          <p className="text-[11px] mt-5" style={{ color: "rgba(255,255,255,0.40)" }}>
-            Capabilities are enforced server-side by your licence, not by the code you install — the
-            installer refuses to configure anything your plan doesn't grant.
-          </p>
-        </div>
-
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24 text-white"><div className="max-w-[1040px] mx-auto">
+    <section className="rounded-[28px] p-7 sm:p-10 mb-8" style={{ background:"linear-gradient(135deg, rgba(245,194,66,0.09), rgba(255,255,255,0.025) 45%, rgba(93,202,165,0.05))", border:`1px solid ${CARD_BORDER}` }}>
+      <div className="flex flex-wrap items-center gap-2 mb-5"><span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.16em]" style={{background:"rgba(245,194,66,0.10)",border:"1px solid rgba(245,194,66,0.25)",color:AMBER}}><Terminal size={12}/> ABOS Core API · Global Aircraft Intelligence</span><span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px]" style={{background:"rgba(93,202,165,0.08)",border:"1px solid rgba(93,202,165,0.20)",color:TEAL}}><ShieldCheck size={12}/> API / MCP / SDK</span></div>
+      <h1 className="tracking-[-0.04em] leading-[1.02] mb-5" style={{fontSize:"clamp(34px,6vw,64px)",fontWeight:500}}>Aircraft intelligence.<br/><span style={{color:AMBER,fontWeight:800}}>As an API.</span></h1>
+      <p className="text-[15px] leading-relaxed max-w-[720px] mb-7" style={{color:"rgba(255,255,255,0.65)"}}>Connect your application, aviation marketplace, broker workflow or AI agent to the intelligence layer behind AircraftBuyOrSell.com — including global registration lookup, ATI, valuation, market intelligence and structured aircraft data.</p>
+      <div className="flex flex-wrap gap-3"><a href="#request" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{background:AMBER,color:"#04060a"}}>Request access & pricing <ArrowRight size={14}/></a><a href="?tab=installer" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{background:"rgba(255,255,255,0.06)",border:`1px solid ${CARD_BORDER}`,color:"rgba(255,255,255,0.88)"}}><Wand2 size={14}/> Installer / White-Label request</a>{isStaff&&<button type="button" onClick={openStaffAccess} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{background:"rgba(93,202,165,0.10)",border:"1px solid rgba(93,202,165,0.28)",color:TEAL}}><ShieldCheck size={14}/> Staff direct access</button>}{isAuthenticated&&<Link to="/developers/core-api" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide" style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${CARD_BORDER}`,color:"rgba(255,255,255,0.70)"}}><FileJson size={14}/> Developer Portal</Link>}</div>
+    </section>
+    <section className="grid sm:grid-cols-3 gap-4 mb-10">{[[Zap,"Aircraft intelligence","Search, registry verification, ATI scoring, valuation and marketplace intelligence through one contract."],[Building2,"Built for production","Tenant-scoped API keys, usage monitoring and integration support for aviation products and internal systems."],[Bot,"AI / MCP ready","Connect agents, assistants and your own applications to the same intelligence layer behind ABOS."]].map(([Icon,title,text])=><div key={title} className="rounded-2xl p-5" style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${CARD_BORDER}`}}><div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{background:"rgba(245,194,66,0.08)",border:"1px solid rgba(245,194,66,0.18)"}}><Icon size={16} style={{color:AMBER}}/></div><h3 className="text-[14px] font-bold mb-1.5">{title}</h3><p className="text-[12px] leading-relaxed" style={{color:"rgba(255,255,255,0.54)"}}>{text}</p></div>)}</section>
+    {isStaff&&<div className="mb-6 rounded-2xl px-5 py-4 flex flex-wrap items-center justify-between gap-4" style={{background:"rgba(93,202,165,0.06)",border:"1px solid rgba(93,202,165,0.20)"}}><div><div className="text-[11px] font-bold uppercase tracking-wider" style={{color:TEAL}}>Admin / Super Admin</div><div className="text-[12px] mt-1" style={{color:"rgba(255,255,255,0.55)"}}>Payment gates are bypassed for authorized staff. Open the Integration Kit and API pricing directly.</div></div><div className="flex gap-2"><button type="button" onClick={openStaffAccess} className="px-4 py-2 rounded-lg text-[11px] font-bold uppercase" style={{background:TEAL,color:"#07100d"}}>Open access</button><button type="button" onClick={downloadKit} className="px-4 py-2 rounded-lg text-[11px] font-bold uppercase" style={{background:"rgba(255,255,255,0.06)",border:`1px solid ${CARD_BORDER}`,color:"white"}}>Download file</button></div></div>}
+    <section id="request" className="rounded-3xl p-6 sm:p-8 mb-10 scroll-mt-6" style={{background:"rgba(255,255,255,0.025)",border:`1px solid ${CARD_BORDER}`}}>
+      <div className="flex items-start justify-between gap-5 mb-6"><div><div className="flex items-center gap-2 mb-2"><Mail size={16} style={{color:AMBER}}/><h2 className="text-[20px] font-bold">Get API pricing & access</h2></div><p className="text-[13px] leading-relaxed max-w-[680px]" style={{color:"rgba(255,255,255,0.56)"}}>Enter your email and a little context. We use it to identify the request and unlock the current API pricing below. Add <code>?registration=N12345</code> to the URL and the aircraft field will prefill automatically.</p></div><LockKeyhole size={18} style={{color:"rgba(255,255,255,0.35)"}}/></div>
+      <form id="request-form" onSubmit={submitRequest} className="grid sm:grid-cols-2 gap-4">
+        <input value={form.email} onChange={e=>update("email",e.target.value)} type="email" placeholder="Business email *" required className="rounded-xl px-4 py-3 text-[13px] outline-none" style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${CARD_BORDER}`,color:"white"}}/><input value={form.name} onChange={e=>update("name",e.target.value)} placeholder="Your name" className="rounded-xl px-4 py-3 text-[13px] outline-none" style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${CARD_BORDER}`,color:"white"}}/><input value={form.company} onChange={e=>update("company",e.target.value)} placeholder="Company / platform" className="rounded-xl px-4 py-3 text-[13px] outline-none" style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${CARD_BORDER}`,color:"white"}}/><div className="relative"><Search size={14} className="absolute left-4 top-3.5" style={{color:"rgba(255,255,255,0.35)"}}/><input value={form.registration} onChange={e=>update("registration",e.target.value.toUpperCase())} placeholder="Aircraft registration / tail (optional)" className="w-full rounded-xl pl-10 pr-4 py-3 text-[13px] outline-none" style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${CARD_BORDER}`,color:"white"}}/></div><select value={form.requested_plan} onChange={e=>update("requested_plan",e.target.value)} className="rounded-xl px-4 py-3 text-[13px] outline-none" style={{background:"#12151b",border:`1px solid ${CARD_BORDER}`,color:"rgba(255,255,255,0.8)"}}><option value="">Which access are you considering?</option>{DEFAULT_PRICING.map(p=><option key={p.key} value={p.name}>{p.name}</option>)}</select><textarea value={form.use_case} onChange={e=>update("use_case",e.target.value)} placeholder="What are you building / integrating?" rows={3} className="sm:col-span-2 rounded-xl px-4 py-3 text-[13px] outline-none resize-none" style={{background:"rgba(255,255,255,0.05)",border:`1px solid ${CARD_BORDER}`,color:"white"}}/><div className="sm:col-span-2 flex flex-wrap items-center gap-3"><button disabled={loading} type="submit" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-[12px] font-bold uppercase tracking-wide disabled:opacity-50" style={{background:AMBER,color:"#04060a"}}>{loading?<Loader2 size={14} className="animate-spin"/>:<Mail size={14}/>} Unlock pricing & submit request</button>{selectedPlan&&<span className="text-[12px]" style={{color:TEAL}}>Selected: {selectedPlan}</span>}{error&&<span className="text-[12px]" style={{color:"#f0a3a2"}}>{error}</span>}</div>
+      </form>
+    </section>
+    {unlocked&&<section id="pricing" className="scroll-mt-6 mb-10"><div className="flex flex-wrap items-end justify-between gap-3 mb-5"><div><div className="flex items-center gap-2 mb-2"><ShieldCheck size={16} style={{color:TEAL}}/><h2 className="text-[20px] font-bold">API pricing unlocked</h2></div><p className="text-[12px]" style={{color:"rgba(255,255,255,0.50)"}}>Pricing unlocked for <strong style={{color:"rgba(255,255,255,0.82)"}}>{submittedEmail}</strong>. Final usage allowances, onboarding and SLA terms are confirmed in the API contract.</p></div><div className="flex flex-wrap gap-2">{isAuthenticated&&<Link to="/install" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase" style={{background:AMBER,color:"#04060a"}}><Wand2 size={13}/> Set up integration</Link>}<button onClick={downloadKit} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase" style={{background:"rgba(93,202,165,0.08)",border:"1px solid rgba(93,202,165,0.20)",color:TEAL}}><FileJson size={13}/> API reference (JSON)</button></div></div><div className="grid lg:grid-cols-4 gap-4">{pricing.map((p,i)=><div key={p.key} className="rounded-2xl p-5 flex flex-col" style={{background:i===1?"rgba(245,194,66,0.07)":"rgba(255,255,255,0.03)",border:i===1?"1px solid rgba(245,194,66,0.32)":`1px solid ${CARD_BORDER}`}}><div className="text-[10px] uppercase tracking-wider font-bold mb-2" style={{color:i===1?AMBER:"rgba(255,255,255,0.42)"}}>{i===1?"Recommended":"ABOS API"}</div><h3 className="text-[14px] font-bold mb-2">{p.name}</h3><div className="flex items-baseline gap-1 mb-4"><span className="text-[27px] font-black">{formatEUR(p.price_eur)}</span><span className="text-[11px]" style={{color:"rgba(255,255,255,0.45)"}}>{p.billing}</span></div><p className="text-[11px] mb-3" style={{color:"rgba(255,255,255,0.62)"}}>{p.best_for}</p><p className="text-[11px] leading-relaxed flex-1" style={{color:"rgba(255,255,255,0.48)"}}>{p.included}</p><button onClick={()=>requestPlan(p)} className="mt-5 w-full py-2.5 rounded-xl text-[11px] font-bold uppercase" style={{background:i===1?AMBER:"rgba(255,255,255,0.06)",color:i===1?"#04060a":"rgba(255,255,255,0.84)",border:i===1?"none":`1px solid ${CARD_BORDER}`}}>Request this plan</button></div>)}</div></section>}
+    <section className="rounded-2xl p-5" style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${CARD_BORDER}`}}><div className="flex items-center gap-2 mb-2"><FileJson size={15} style={{color:AMBER}}/><h3 className="text-[14px] font-bold">API reference (JSON)</h3></div><p className="text-[12px] leading-relaxed mb-3" style={{color:"rgba(255,255,255,0.50)"}}>API reference, credentials, tenant configuration and installer materials are provided after an ABOS API, developer or partner request is reviewed and approved.</p><div className="flex flex-wrap items-center gap-4"><a href="?tab=developers" className="inline-flex items-center gap-2 text-[11px] font-bold uppercase" style={{color:AMBER}}><ShieldCheck size={13}/> Developer / API request</a><a href="?tab=installer" className="inline-flex items-center gap-2 text-[11px] font-bold uppercase" style={{color:TEAL}}><Wand2 size={13}/> Installer / White-Label request</a></div></section>
+  </div></div>;
 }

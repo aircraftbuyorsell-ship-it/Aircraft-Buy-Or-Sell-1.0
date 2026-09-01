@@ -1,0 +1,256 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OMVM 2.0 Response",
+  "description": "Aircraft valuation with Bayesian posterior and uncertainty quantification",
+  "type": "object",
+  "required": [
+    "engine",
+    "estimated_value_usd",
+    "posterior_sigma_usd",
+    "confidence",
+    "valuation_mode"
+  ],
+  "properties": {
+    "engine": {
+      "type": "string",
+      "const": "ABOS OMVM 2.0",
+      "description": "Engine identifier"
+    },
+    "parameter_version": {
+      "type": "string",
+      "description": "Parameter bundle version, e.g., 2.0.14"
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of calculation"
+    },
+    "aircraft_identity": {
+      "type": "object",
+      "properties": {
+        "registration": {
+          "type": "string"
+        },
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer"
+        },
+        "serial": {
+          "type": "string"
+        },
+        "aircraft_class": {
+          "type": "string"
+        }
+      }
+    },
+    "base_value": {
+      "type": "object",
+      "properties": {
+        "value_usd": {
+          "type": "number"
+        },
+        "formula": {
+          "type": "string",
+          "description": "Depreciation formula applied"
+        },
+        "reasoning": {
+          "type": "string"
+        }
+      }
+    },
+    "market_evidence": {
+      "type": "object",
+      "properties": {
+        "observation_count": {
+          "type": "integer"
+        },
+        "effective_sample_size": {
+          "type": "number",
+          "description": "Weighted effective n after deduplication, independence, freshness"
+        },
+        "market_value_usd": {
+          "type": "number"
+        },
+        "market_sigma_usd": {
+          "type": "number"
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": ["ASKING_PRICES"]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "listing_id": {
+                "type": "string"
+              },
+              "observed_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "price_usd": {
+                "type": "number"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "weight_breakdown": {
+                "type": "object",
+                "properties": {
+                  "source_reliability": {
+                    "type": "number"
+                  },
+                  "freshness": {
+                    "type": "number"
+                  },
+                  "identity_match": {
+                    "type": "number"
+                  },
+                  "feature_completeness": {
+                    "type": "number"
+                  },
+                  "independence": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "bayesian_fusion": {
+      "type": "object",
+      "properties": {
+        "prior_mu_log": {
+          "type": "number"
+        },
+        "prior_sigma_log": {
+          "type": "number"
+        },
+        "market_mu_log": {
+          "type": "number"
+        },
+        "market_sigma_log": {
+          "type": "number"
+        },
+        "posterior_mu_log": {
+          "type": "number"
+        },
+        "posterior_sigma_log": {
+          "type": "number"
+        },
+        "prior_weight": {
+          "type": "number",
+          "description": "Posterior weight attribution to prior"
+        },
+        "market_weight": {
+          "type": "number",
+          "description": "Posterior weight attribution to market"
+        }
+      }
+    },
+    "estimated_value_usd": {
+      "type": "number",
+      "description": "Point estimate: exp(μ_log + σ²/2)"
+    },
+    "posterior_sigma_usd": {
+      "type": "number",
+      "description": "Standard deviation of posterior in USD"
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "cv": {
+          "type": "number",
+          "description": "Coefficient of variation: σ/μ"
+        },
+        "within_10_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "P(value within ±10%)"
+        },
+        "within_20_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "P(value within ±20%)"
+        },
+        "within_30_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "P(value within ±30%)"
+        }
+      }
+    },
+    "adjustments": {
+      "type": "object",
+      "properties": {
+        "damage": {
+          "type": "number",
+          "description": "Damage/accident multiplier (0-1+)"
+        },
+        "storage": {
+          "type": "number",
+          "description": "Storage/corrosion multiplier"
+        },
+        "usage": {
+          "type": "number",
+          "description": "Usage profile multiplier"
+        },
+        "total_multiplier": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "valuation_mode": {
+      "type": "string",
+      "enum": [
+        "FULL_HEDONIC",
+        "REDUCED_HEDONIC",
+        "ROBUST_MARKET_ESTIMATE",
+        "BASE_PRIOR_PLUS_WEAK_MARKET",
+        "BASE_PRIOR_ONLY"
+      ],
+      "description": "State machine based on effective sample size"
+    },
+    "audit_trace": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "model_decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

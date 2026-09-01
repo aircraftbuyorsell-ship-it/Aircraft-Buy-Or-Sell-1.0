@@ -243,7 +243,7 @@ export default function InvestmentBrief() {
               <Brain className="w-4.5 h-4.5 text-[#f5c242]" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white/90">Ask the Finance Advisor</p>
+              <p className="text-sm font-bold text-white/90">Ask the Pricing Assistant</p>
               <p className="text-[11px] text-white/50">Free-form chat — the agent orchestrates Skills and answers in natural language</p>
             </div>
           </div>

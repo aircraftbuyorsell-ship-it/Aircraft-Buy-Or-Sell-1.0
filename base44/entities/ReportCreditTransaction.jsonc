@@ -1,0 +1,71 @@
+{
+  "name": "ReportCreditTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "consumption",
+        "refund"
+      ]
+    },
+    "credits": {
+      "type": "number"
+    },
+    "pack_key": {
+      "type": "string"
+    },
+    "stripe_payment_id": {
+      "type": "string"
+    },
+    "aircraft_registration": {
+      "type": "string"
+    },
+    "balance_after": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000.0
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "credits",
+    "balance_after"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

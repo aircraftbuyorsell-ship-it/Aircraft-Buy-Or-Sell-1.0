@@ -44,7 +44,7 @@ async function gateOneTimeProduct(base44, user, productKey, registration) {
   try {
     const co = await base44.functions.invoke('abosEntitlements', {
       action: 'create_checkout', product_key: productKey, aircraft_registration: reg,
-      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://aircraftbuyorsell.com/checkout-success',
     });
     checkoutUrl = co?.data?.url || null;
   } catch (_) { /* checkout link is optional */ }
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Paid feature: ATI Full Report (€49 one-time per aircraft) ──
-    const gate = await gateOneTimeProduct(base44, user, 'ATI_FULL_REPORT', registration);
+    const gate = await gateOneTimeProduct(base44, user, 'ATI_REPORT', registration);
     if (gate) return gate;
 
     // ─── 1) Score each of the 8 dimensions independently ────────────

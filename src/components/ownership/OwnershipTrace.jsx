@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Plus, FileText, ShieldCheck, Clock, XCircle, ExternalLink, Fingerprint } from "lucide-react";
 import AddOwnershipEventModal from "./AddOwnershipEventModal";
 import VerifiedTitleStamp from "./VerifiedTitleStamp";
+import { isAdminRole } from "@/utils/roles";
 
 const EVENT_LABEL = {
   manufacture: "Manufacture",
@@ -44,7 +45,7 @@ export default function OwnershipTrace({ listingId }) {
     queryFn: () => base44.auth.me(),
     retry: false,
   });
-  const isAdmin = currentUser?.role === "admin";
+  const isAdmin = isAdminRole(currentUser);
 
   const verifyMutation = useMutation({
     mutationFn: ({ id, status }) => base44.entities.OwnershipTrace.update(id, {

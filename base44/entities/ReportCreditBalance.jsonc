@@ -1,0 +1,65 @@
+{
+  "name": "ReportCreditBalance",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "balance": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "purchased_total": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "consumed_total": {
+      "type": "number",
+      "minimum": 0.0,
+      "default": 0.0
+    },
+    "last_purchase_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_consumption_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_email",
+    "balance"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

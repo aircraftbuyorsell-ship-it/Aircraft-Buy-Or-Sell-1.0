@@ -1,17 +1,24 @@
 import { Link } from "react-router-dom";
 import { Sparkles, CheckCircle2, ArrowRight, Zap } from "lucide-react";
-import { FEATURE_PRICING, SUBSCRIPTION_TIERS } from "@/lib/monetization";
+import { PRODUCT_CATALOG, formatPrice } from "@/lib/products";
 
 export default function MonetizationCTA({ user }) {
   const isRegistered = !!user?.email;
-  const tier = user?.subscription_tier || "free";
+
+  const byKey = (key) => PRODUCT_CATALOG.find((p) => p.key === key);
 
   const featuredTools = [
-    FEATURE_PRICING.ati_quick_score,
-    FEATURE_PRICING.opex_calculator,
-    FEATURE_PRICING.ati_full_report,
-    FEATURE_PRICING.aircraft_tracking,
-  ];
+    byKey("ATI_SCORE"),
+    byKey("ATI_BASIC_REPORT"),
+    byKey("ATI_PRO"),
+    byKey("ATI_PRO_TAX"),
+  ].filter(Boolean).map((p) => ({
+    label: p.name,
+    desc: p.tagline,
+    free: !!p.free,
+    price: p.price_usd ?? p.price_eur,
+    currency: p.currency,
+  }));
 
   return (
     <section className="mx-auto w-full max-w-[1500px] px-4 md:px-8 py-6">
@@ -36,46 +43,33 @@ export default function MonetizationCTA({ user }) {
           </div>
 
           <h2 className="text-xl md:text-2xl font-black tracking-tight mb-2 text-foreground">
-            {isRegistered ? "Your Aviation Intelligence Toolkit" : "Get Full Aviation Intelligence — Save 30% Today"}
+            {isRegistered ? "Your Aviation Intelligence Toolkit" : "Aircraft Intelligence, Priced Per Aircraft"}
           </h2>
 
           <p className="text-sm mb-5 max-w-2xl text-muted-foreground">
             {isRegistered
-              ? "Use credits for every analysis or upgrade to Pro for unlimited access."
-              : "Register free to unlock member pricing. Or pay-per-use with transparent fiat pricing (1.3× credit rate)."}
+              ? "Start with a free ATI Score, then buy the report or brief you need per aircraft."
+              : "Register free to get started. Pay per aircraft — no subscription required."}
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-            {featuredTools.map((tool, i) => {
-              const showMemberPrice = isRegistered && tool.member_price_eur;
-              return (
-                <div key={i} className="rounded-xl p-3 flex flex-col bg-card border border-border">
-                  <p className="text-[10px] uppercase tracking-wider font-bold mb-1 text-muted-foreground">
-                    {tool.label}
-                  </p>
-                  {tool.free ? (
-                    <p className="text-lg font-black text-emerald-600 dark:text-[#5dcaa5]">Free</p>
-                  ) : (
-                    <div className="flex items-baseline gap-1.5">
-                      {showMemberPrice && tool.list_price_eur && (
-                        <span className="text-[10px] line-through text-muted-foreground/50">
-                          €{tool.list_price_eur}
-                        </span>
-                      )}
-                      <span className="text-lg font-black text-foreground" style={{ color: showMemberPrice ? "#5dcaa5" : undefined }}>
-                        €{showMemberPrice ? tool.member_price_eur : tool.fiat_eur}
-                      </span>
-                      <span className="text-[9px] text-muted-foreground/60">
-                        or {tool.credits} cr
-                      </span>
-                    </div>
-                  )}
-                  <p className="text-[10px] mt-1 line-clamp-2 text-muted-foreground">
-                    {tool.desc}
-                  </p>
-                </div>
-              );
-            })}
+            {featuredTools.map((tool, i) => (
+              <div key={i} className="rounded-xl p-3 flex flex-col bg-card border border-border">
+                <p className="text-[10px] uppercase tracking-wider font-bold mb-1 text-muted-foreground">
+                  {tool.label}
+                </p>
+                {tool.free ? (
+                  <p className="text-lg font-black text-emerald-600 dark:text-[#5dcaa5]">Free</p>
+                ) : (
+                  <span className="text-lg font-black text-foreground">
+                    {formatPrice(tool.price, tool.currency)}
+                  </span>
+                )}
+                <p className="text-[10px] mt-1 line-clamp-2 text-muted-foreground">
+                  {tool.desc}
+                </p>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -83,19 +77,13 @@ export default function MonetizationCTA({ user }) {
               <Link to="/pricing"
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-black transition-opacity hover:opacity-90"
                 style={{ background: "#f5c242", color: "#04060a" }}>
-                Register Free — Save 30% <ArrowRight className="w-4 h-4" />
+                Register Free <ArrowRight className="w-4 h-4" />
               </Link>
-            ) : tier === "free" ? (
+            ) : (
               <Link to="/pricing"
                 className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-black transition-opacity hover:opacity-90"
                 style={{ background: "#f5c242", color: "#04060a" }}>
-                Upgrade to Pro — 200 credits/mo <ArrowRight className="w-4 h-4" />
-              </Link>
-            ) : (
-              <Link to="/skills"
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-black transition-opacity hover:opacity-90"
-                style={{ background: "#f5c242", color: "#04060a" }}>
-                <Zap className="w-4 h-4" /> Use Your Credits
+                <Zap className="w-4 h-4" /> Get an ATI Report
               </Link>
             )}
             <Link to="/pricing"
@@ -105,7 +93,7 @@ export default function MonetizationCTA({ user }) {
           </div>
 
           <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-border">
-            {["Free registry lookup", "FAA + EASA verified", "Pay per use or subscribe", "Credits never expire"].map((badge) => (
+            {["Free ATI Score", "FAA + EASA verified", "Pay per aircraft", "No subscription required"].map((badge) => (
               <div key={badge} className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-[#5dcaa5]" />
                 <span className="text-[11px] text-muted-foreground">{badge}</span>

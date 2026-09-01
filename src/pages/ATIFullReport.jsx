@@ -104,7 +104,7 @@ export default function ATIFullReport() {
 
   async function handleGenerate() {
     if (!input.trim()) return;
-    if (!(await requireAccess("ATI_FULL_REPORT", (regExtracted || "").toUpperCase()))) return;
+    if (!(await requireAccess("ATI_REPORT", (regExtracted || "").toUpperCase()))) return;
     setLoading(true);
     setResult(null);
     setError("");
@@ -163,14 +163,14 @@ export default function ATIFullReport() {
       // identical to the Listing ID / ATI Score ID for this same aircraft.
       try {
         const saved = await saveReport({
-          product_key: "ATI_FULL_REPORT",
+          product_key: "ATI_REPORT",
           aircraft_registration: (reg || "").toUpperCase(),
           report_type: "ati_full_report",
           result_data: flatResult,
           confidence: "caution",
         });
         setReportCode(buildReportCode(reg, res.total, saved.deal_code));
-        await recordUsage({ product_key: "ATI_FULL_REPORT", aircraft_registration: (reg || "").toUpperCase() });
+        await recordUsage({ product_key: "ATI_REPORT", aircraft_registration: (reg || "").toUpperCase() });
       } catch (_) {
         setReportCode(genCode(reg, res.total)); // backend unavailable — fall back to a standalone code
       }

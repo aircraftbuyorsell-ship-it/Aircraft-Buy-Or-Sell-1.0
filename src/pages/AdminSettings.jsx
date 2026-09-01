@@ -9,6 +9,7 @@ import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
 import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
 import FeatureTogglePanel from "@/components/settings/FeatureTogglePanel";
+import { isAdminRole } from "@/utils/roles";
 
 export default function AdminSettings() {
   const queryClient = useQueryClient();
@@ -119,7 +120,7 @@ export default function AdminSettings() {
     // ("-created_date", 1) or the admin panel reads and writes a different row
     // than the engines. Duplicate key:"global" rows exist in prod.
     queryFn: () => base44.entities.AppConfig.filter({ key: "global" }, "-created_date", 1),
-    enabled: user?.role === "admin" || user?.role === "super_admin",
+    enabled: isAdminRole(user),
   });
 
   useEffect(() => {
@@ -263,7 +264,7 @@ export default function AdminSettings() {
       <AutoScoringPanel />
 
       {/* Feature Toggles — Admin & Super Admin */}
-      {(user?.role === "admin" || user?.role === "super_admin") && <FeatureTogglePanel />}
+      {isAdminRole(user) && <FeatureTogglePanel />}
 
       {/* Webhooks */}
       <WebhooksConfig />

@@ -1,0 +1,79 @@
+{
+  "adl_version": "1.0",
+  "id": "abos.calibration.omvm-calibration",
+  "apl_id": "apl://aviation.abos/calibration/omvm-calibration/v1",
+  "type": "workflow",
+  "owner": {
+    "organization": "ABOS Platform",
+    "contact": "aviation@abos.aero"
+  },
+  "skill": "OMVM 2.0 Calibration Pipeline",
+  "description": "Quarterly offline calibration workflow. Downloads FAA registry, NTSB dataset, and FAA SDR; normalizes aircraft identity; performs backtest depreciation residual analysis; estimates class-specific uncertainty per aircraft family; produces immutable calibrated parameter bundle (omvm-params-v2.json).",
+  "capabilities": [
+    "calibrate_parameters",
+    "backtest_depreciation",
+    "estimate_residuals",
+    "quantify_class_uncertainty",
+    "generate_parameter_bundle"
+  ],
+  "permissions": [
+    "aircraft.read",
+    "documentation.verify",
+    "audit.log",
+    "partner.read"
+  ],
+  "autonomy": "A1",
+  "trust": "APL-T2",
+  "audit": "APL-A2",
+  "risk_level": "low",
+  "requires_human_approval": true,
+  "supported_protocols": ["apl/1.0"],
+  "evidence": {
+    "provenance": "required",
+    "confidence": "required"
+  },
+  "status": "verified",
+  "mcp": {
+    "name": "omvm_calibration",
+    "inputSchema": {
+      "type": "object",
+      "required": ["trigger_date"],
+      "properties": {
+        "trigger_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date triggering calibration run (quarterly: Jan 1, Apr 1, Jul 1, Oct 1)"
+        },
+        "faa_registry_url": {
+          "type": "string",
+          "description": "Override FAA registry download URL"
+        },
+        "ntsb_api_endpoint": {
+          "type": "string",
+          "description": "Override NTSB API endpoint"
+        },
+        "faa_sdr_path": {
+          "type": "string",
+          "description": "Override FAA SDR file path"
+        },
+        "backtest_years_ago": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "How many years of historical data to backtest (default 5)"
+        },
+        "require_approval": {
+          "type": "boolean",
+          "description": "Require human approval before publishing parameter bundle (default true)"
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false
+    }
+  },
+  "execution": {
+    "kind": "rest",
+    "endpoint": "/api/calibration/omvm/v2.0"
+  }
+}

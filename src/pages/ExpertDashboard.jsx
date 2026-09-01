@@ -15,6 +15,7 @@ import {
   BadgeCheck, Clock, Zap, UserCheck, Loader2, ChevronDown, ChevronUp,
   Star, Euro, CheckCircle, AlertTriangle, ExternalLink, ShieldCheck
 } from "lucide-react";
+import { isAdminRole } from "@/utils/roles";
 
 function ExpertCard({ crosscheck, onBid }) {
   return (
@@ -199,13 +200,13 @@ export default function ExpertDashboard() {
   const { data: openCrossChecks = [], isLoading: openLoading } = useOpenCrossChecks(profile?.verified_status === "approved" ? user?.email : null);
   const { data: assignments = [], isLoading: assignLoading } = useExpertAssignments(profile?.verified_status === "approved" ? user?.id : null);
   const { data: history = [] } = useExpertHistory(profile?.verified_status === "approved" ? user?.id : null);
-  const { data: pendingProfiles = [] } = usePendingExpertProfiles(user?.role === "admin" || user?.role === "super_admin");
+  const { data: pendingProfiles = [] } = usePendingExpertProfiles(isAdminRole(user));
 
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [bidModal, setBidModal] = useState(null);
 
   const isLoading = userLoading || profileLoading;
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isAdmin = isAdminRole(user);
 
   if (isLoading) {
     return (

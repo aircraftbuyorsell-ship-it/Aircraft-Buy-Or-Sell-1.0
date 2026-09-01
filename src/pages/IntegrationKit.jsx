@@ -4,6 +4,7 @@ import { Plug, ArrowRightLeft, ShieldCheck, Coins } from "lucide-react";
 import ApiDocBlock from "@/components/integration/ApiDocBlock";
 import PartnerTokenCard from "@/components/integration/PartnerTokenCard";
 import FeedActivityTable from "@/components/integration/FeedActivityTable";
+import ApprovedApiAccessGate from "@/components/access/ApprovedApiAccessGate";
 
 const AMBER = "#f5c242";
 const W1 = "rgba(255,255,255,0.90)";
@@ -68,6 +69,7 @@ Content-Type: application/json
 // ready to render next to your listing.`;
 
   return (
+    <ApprovedApiAccessGate title="Integration Kit is approval-only" description="Partner tokens, Intelligence Exchange and Widget Gateway access are available only to approved ABOS API, developer and partner users.">
     <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1100px] mx-auto min-h-screen" style={{ background: "transparent" }}>
       {/* Header */}
       <p className="text-[10px] uppercase tracking-[0.25em] font-black" style={{ color: AMBER }}>Platform · Integration</p>
@@ -115,5 +117,6 @@ Content-Type: application/json
       {/* Activity */}
       <FeedActivityTable />
     </div>
+    </ApprovedApiAccessGate>
   );
 }

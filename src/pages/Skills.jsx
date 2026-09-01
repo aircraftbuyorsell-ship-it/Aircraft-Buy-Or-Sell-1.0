@@ -31,6 +31,7 @@ import {
   Bot
 } from "lucide-react";
 import SkillCard from "@/components/skills/SkillCard";
+import ApprovedApiAccessGate from "@/components/access/ApprovedApiAccessGate";
 
 const CATEGORIES = [
   {
@@ -303,7 +304,7 @@ const SKILLS = [
   },
   {
     icon: Bot,
-    title: "Finance Advisor",
+    title: "Pricing Assistant",
     badge: "AI Agent",
     category: "advisory",
     color: "#5dcaa5",
@@ -504,6 +505,7 @@ export default function Skills() {
   };
 
   return (
+    <ApprovedApiAccessGate title="Skills access is approval-only" description="The ABOS Skills catalog is the capability surface exposed to connected AI clients and integrations. Access is reserved for approved API, developer and partner users.">
     <div className="min-h-screen" style={{ background: "transparent" }}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         {/* Header row */}
@@ -661,5 +663,6 @@ export default function Skills() {
         )}
       </div>
     </div>
+    </ApprovedApiAccessGate>
   );
 }

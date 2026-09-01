@@ -1,0 +1,22 @@
+{
+  "name": "ABOS API Integration Kit",
+  "version": "1.0",
+  "product": "ABOS Core API",
+  "description": "Integration reference for aircraft search, registry intelligence, ATI scoring, valuation and marketplace data.",
+  "base_endpoint": "https://aircraftbuyorsell.com/api",
+  "authentication": "Tenant-scoped API key",
+  "endpoints": [
+    {"name":"search","method":"POST","path":"/functions/abosCoreApi","scope":"search:read"},
+    {"name":"valuate","method":"POST","path":"/functions/abosCoreApi","scope":"intelligence:read"},
+    {"name":"intelligence.extract","method":"POST","path":"/functions/abosCoreApi","scope":"intelligence:read"},
+    {"name":"listings.list","method":"POST","path":"/functions/abosCoreApi","scope":"listing:read"},
+    {"name":"listings.create","method":"POST","path":"/functions/abosCoreApi","scope":"listing:write"}
+  ],
+  "pricing": {
+    "starter_eur_month": 690,
+    "professional_eur_month": 1890,
+    "enterprise_eur_month": 3900,
+    "white_label_license_eur_one_time": 2500
+  },
+  "note": "Final usage allowances and SLA terms are confirmed in the API contract."
+}

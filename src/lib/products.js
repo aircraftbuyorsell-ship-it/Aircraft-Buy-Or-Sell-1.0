@@ -1,209 +1,33 @@
-// ABOS Product Catalog — mirrors the server-side catalog in abosEntitlements.
-// Source of truth for pricing UI display. Prices are also enforced server-side
-// at checkout creation (frontend prices are never trusted for access).
-
+// ABOS Product Catalog — current public pricing.
+// Legacy products remain server-side for entitlement compatibility but are not marketed.
 export const PRODUCT_CATALOG = [
-  // ── Individual (one-time) ──
-  {
-    key: 'ATI_SCORE',
-    name: 'ATI Score',
-    type: 'one_time',
-    price_eur: 0,
-    free: true,
-    currency: 'eur',
-    category: 'individual',
-    icon: 'Shield',
-    tagline: 'Aircraft Transparency Index score',
-    features: [
-      '120-point transparency score',
-      'Key risk factors',
-      'Basic aircraft transparency analysis',
-      'Re-accessible for the same aircraft',
-    ],
-  },
-  {
-    key: 'ATI_BASIC_REPORT',
-    name: 'ATI Report',
-    type: 'one_time',
-    price_usd: 49.00,
-    currency: 'usd',
-    stripe_price_id: 'price_1U7dkVAT7Be3WR6JsraFG9Ki',
-    category: 'individual',
-    icon: 'FileBarChart',
-    tagline: 'Complete due diligence report',
-    features: [
-      'Aircraft identity & data provenance',
-      'Verification results',
-      'Full transparency analysis',
-      'Risk / exception indicators',
-      'Sources used & confidence',
-      'PDF export',
-    ],
-  },
-  {
-    key: 'ATI_PRO',
-    name: 'ATI Pro — Investment Brief',
-    type: 'one_time',
-    price_usd: 199.00,
-    currency: 'usd',
-    stripe_price_id: 'price_1U7dkYAT7Be3WR6Jaf9jqrVV',
-    category: 'professional',
-    icon: 'FileBarChart',
-    tagline: 'Investment-grade aircraft intelligence brief',
-    features: ['CAPEX / OPEX analysis', 'Insurance & MRO analysis', 'Market intelligence', 'Rebuild ROI', 'Confidence & data sources'],
-  },
-  {
-    key: 'ATI_PRO_TAX',
-    name: 'ATI Pro Tax — Tax & Insurance Upgrade',
-    type: 'one_time',
-    price_usd: 499.00,
-    currency: 'usd',
-    stripe_price_id: 'price_1U7dkbAT7Be3WR6JDOjfF3Eg',
-    category: 'professional',
-    icon: 'Shield',
-    tagline: 'Tax, insurance, fractional ownership and lease-rate analysis',
-    features: ['Jurisdiction-specific tax analysis', 'Insurance analysis', 'Fractional ownership', 'Lease-rate analysis'],
-  },
-  {
-    key: 'ATI_FULL_REPORT',
-    name: 'ATI Full Report (legacy)',
-    type: 'one_time',
-    price_eur: 49.00,
-    legacy: true,
-    category: 'legacy',
-    icon: 'FileBarChart',
-    tagline: 'Legacy report access for existing purchases',
-    features: ['Existing purchased report access'],
-  },
-  {
-    key: 'VALUATION_STUDIO',
-    name: 'Valuation Studio',
-    type: 'one_time',
-    price_eur: 29.00,
-    currency: 'eur',
-    category: 'individual',
-    icon: 'TrendingUp',
-    tagline: 'Full ABOS valuation analysis',
-    features: [
-      'Aircraft identity & configuration',
-      'Available market comparables',
-      'ABOS OMVM result',
-      'Valuation methodology & inputs',
-      'Confidence & data sources',
-      'Provider-ready architecture (VREF, Bluebook…)',
-    ],
-  },
-  {
-    key: 'VERIFICATION_PACK',
-    name: 'Verification Pack',
-    type: 'one_time',
-    price_eur: 19.90,
-    currency: 'eur',
-    category: 'individual',
-    icon: 'BadgeCheck',
-    tagline: 'Multi-check aircraft verification',
-    features: [
-      'N-REG lookup',
-      'Serial number (S/N) check',
-      'Owner check',
-      'Activity check',
-      'Aircraft identity verification',
-    ],
-  },
-  // ── Professional (subscription) ──
-  {
-    key: 'PRO',
-    name: 'ABOS Professional',
-    type: 'subscription',
-    price_eur: 99,
-    currency: 'eur',
-    interval: 'month',
-    category: 'professional',
-    icon: 'Crown',
-    tagline: 'For active buyers & scouts',
-    features: [
-      'Increased search limits',
-      'ATI Score access included',
-      'Discounted ATI Full Reports',
-      'Discounted Valuation Studio',
-      'Advanced aircraft intelligence',
-      'Market comparables',
-      'Saved aircraft & reports',
-      'Workspace functionality',
-      'Priority access to new tools',
-    ],
-  },
-  {
-    key: 'BROKER',
-    name: 'ABOS Broker / Dealer',
-    type: 'subscription',
-    price_eur: 299,
-    currency: 'eur',
-    interval: 'month',
-    category: 'professional',
-    icon: 'Building',
-    tagline: 'For brokers, dealers & teams',
-    features: [
-      'Everything in Professional',
-      'Higher usage limits',
-      'Multiple aircraft / workspace management',
-      'Bulk aircraft analysis',
-      'Broker / dealer workflow',
-      'Listing intelligence & advanced reports',
-      'Team / workspace support',
-      'API / MCP access when enabled',
-      'Priority integration features',
-    ],
-  },
+  { key:'ATI_SCORE', name:'ATI Score', type:'one_time', price_eur:0, free:true, currency:'eur', category:'free', icon:'Shield', tagline:'Know the aircraft at a glance.', features:['ATI transparency score','Key risk signals','Data-quality indicators','Locked report preview'] },
+  { key:'ATI_REPORT', name:'ATI Report', type:'one_time', price_usd:39, currency:'usd', category:'buyer', icon:'FileBarChart', tagline:'Aircraft due diligence before you buy.', features:['Aircraft identity & provenance','Registry and verification signals','History and risk indicators','Data gaps and confidence','Sources and methodology','Report access per aircraft'] },
+  { key:'DEAL_ANALYSIS', name:'Deal Analysis', type:'one_time', price_usd:99, currency:'usd', category:'buyer', icon:'TrendingUp', tagline:'Know whether the aircraft is actually a good deal.', features:['Everything in ATI Report','Market valuation & comparables','Deal score and price position','Risk and negotiation analysis','Buy / negotiate / review / pass guidance'] },
+  { key:'INVESTMENT', name:'Investment', type:'one_time', price_usd:149, currency:'usd', category:'buyer', icon:'PieChart', tagline:'Understand the ownership economics before committing.', features:['Complete Deal Analysis','CAPEX / OPEX economics','Ownership and financing scenarios','Investment risk assessment','3–5 year ownership outlook'] },
+  { key:'PROFESSIONAL', name:'Professional Review', type:'one_time', price_usd:499, currency:'usd', category:'professional', icon:'BadgeCheck', tagline:'Have an aviation professional review the ABOS analysis.', features:['AI analysis package','Identified risks and questions','Professional comments','Credentialed review workflow','Review status and audit trail'] },
+  { key:'ATI_BASIC_REPORT', name:'ATI Report (legacy)', type:'one_time', price_usd:39, currency:'usd', legacy:true, category:'legacy', icon:'FileBarChart', tagline:'Legacy access for existing purchases.', features:['Existing entitlement compatibility'] },
+  { key:'ATI_PRO', name:'ATI Pro (legacy)', type:'one_time', price_usd:149, currency:'usd', legacy:true, category:'legacy', icon:'TrendingUp', tagline:'Legacy access for existing purchases.', features:['Existing entitlement compatibility'] },
+  { key:'ATI_PRO_TAX', name:'ATI Pro Tax (legacy)', type:'one_time', price_usd:499, currency:'usd', legacy:true, category:'legacy', icon:'Shield', tagline:'Legacy access for existing purchases.', features:['Existing entitlement compatibility'] },
+  { key:'ATI_REPORT_PACK_5', name:'ATI Report — 5 Pack', type:'one_time', price_usd:199, currency:'usd', category:'volume', icon:'FileBarChart', report_credits:5, badge:null, tagline:'For buyers screening multiple aircraft.', features:['5 ATI Reports','Use across different aircraft','$39.80 per report','Credits do not expire while account is active'] },
+  { key:'ATI_REPORT_PACK_10', name:'ATI Report — 10 Pack', type:'one_time', price_usd:290, currency:'usd', category:'volume', icon:'FileBarChart', report_credits:10, badge:'Best value', tagline:'For serious aircraft buyers and acquisition teams.', features:['10 ATI Reports','Use across different aircraft','$29 per report','Credits do not expire while account is active'] },
+  { key:'ATI_REPORT_PACK_25', name:'ATI Report — 25 Pack', type:'one_time', price_usd:625, currency:'usd', category:'volume', icon:'FileBarChart', report_credits:25, badge:null, tagline:'For high-volume aircraft screening.', features:['25 ATI Reports','Use across different aircraft','$25 per report','Credits do not expire while account is active'] },
+  { key:'ATI_FULL_REPORT', name:'ATI Full Report (legacy)', type:'one_time', price_eur:49, currency:'eur', legacy:true, category:'legacy', icon:'FileBarChart', tagline:'Legacy access for existing purchases.', features:['Existing entitlement compatibility'] },
+  { key:'VALUATION_STUDIO', name:'Valuation Studio (legacy)', type:'one_time', price_eur:29, currency:'eur', legacy:true, category:'legacy', icon:'TrendingUp', tagline:'Legacy access only.', features:['Existing entitlement compatibility'] },
+  { key:'VERIFICATION_PACK', name:'Verification Pack (legacy)', type:'one_time', price_eur:19.90, currency:'eur', legacy:true, category:'legacy', icon:'BadgeCheck', tagline:'Legacy access only.', features:['Existing entitlement compatibility'] },
+  { key:'API_STARTER', name:'ABOS API — Starter', type:'subscription', price_eur:690, currency:'eur', interval:'month', category:'api', icon:'Crown', usage_label:'Included monthly report-equivalent usage (final allowance subject to API contract)', tagline:'Put ABOS aircraft intelligence into your product.', features:['Search','ATI Score','Tenant-scoped API key','Aircraft intelligence endpoints','Usage monitoring','API documentation'] },
+  { key:'API_PROFESSIONAL', name:'ABOS API — Professional', type:'subscription', price_eur:1890, currency:'eur', interval:'month', category:'api', icon:'Building', usage_label:'Expanded monthly report-equivalent usage (final allowance subject to API contract)', tagline:'Aircraft reports, valuation and market intelligence at scale.', features:['Everything in Starter','ATI Report API','OMVM Valuation','Market Intelligence','Expanded usage','Developer integration support'] },
+  { key:'API_ENTERPRISE', name:'ABOS API — Enterprise', type:'contract', price_eur:3900, currency:'eur', category:'api', icon:'Building', tagline:'Enterprise aircraft intelligence infrastructure.', features:['Full capability set','Aircraft Passport & registry intelligence','Advanced intelligence','Custom usage','Dedicated onboarding','Contracted support / SLA where agreed'] },
+  { key:'WHITE_LABEL_LICENSE', name:'ABOS White-Label Integration License', type:'one_time', price_eur:2500, currency:'eur', category:'api', icon:'Crown', tagline:'One-time integration and lifetime license.', features:['Lifetime approved white-label license','Production integration setup','Tenant configuration','Integration documentation','Does not include unlimited API usage'] },
 ];
-
-// Products included (free) under each subscription plan
-export const SUB_INCLUDED = {
-  PRO: ['ATI_SCORE', 'VERIFICATION_PACK'],
-  BROKER: ['ATI_SCORE', 'VERIFICATION_PACK'],
-};
-
-// Discount applied to paid one-time products under each subscription plan
-export const SUB_DISCOUNT = {
-  PRO: 0.30,
-  BROKER: 0.40,
-};
-
-export const ONE_TIME_PRODUCTS = PRODUCT_CATALOG.filter((p) => p.type === 'one_time');
-export const SUBSCRIPTION_PRODUCTS = PRODUCT_CATALOG.filter((p) => p.type === 'subscription');
-
-export function getProduct(key) {
-  return PRODUCT_CATALOG.find((p) => p.key === key);
-}
-
-export function formatEur(amount) {
-  return `€${Number(amount).toFixed(2)}`;
-}
-
-export function formatPrice(amount, currency = 'eur') {
-  const symbol = currency === 'usd' ? '$' : '€';
-  return `${symbol}${Number(amount).toFixed(2)}`;
-}
-
-export function formatProductPrice(product) {
-  if (!product) return '';
-  const amount = product.price_usd ?? product.price_eur;
-  if (amount == null) return '';
-  return product.currency === 'usd' ? `$${Number(amount).toFixed(2)}` : `€${Number(amount).toFixed(2)}`;
-}
-
-// Compute the effective price for a one-time product given the user's active subscription.
-export function effectivePrice(productKey, activeSubProduct) {
-  const p = getProduct(productKey);
-  if (!p || p.type !== 'one_time') return null;
-  const baseAmount = p.price_usd ?? p.price_eur;
-  const currency = p.currency || 'eur';
-  if (activeSubProduct && SUB_INCLUDED[activeSubProduct]?.includes(productKey)) {
-    return { amount: 0, currency, included: true, original_amount: baseAmount, discount_pct: 0 };
-  }
-  let amount = baseAmount;
-  if (activeSubProduct && SUB_DISCOUNT[activeSubProduct]) {
-    amount = +(baseAmount * (1 - SUB_DISCOUNT[activeSubProduct])).toFixed(2);
-  }
-  return { amount, currency, included: false, original_amount: baseAmount, discount_pct: activeSubProduct ? SUB_DISCOUNT[activeSubProduct] : 0 };
-}
+export const SUB_INCLUDED = {};
+export const SUB_DISCOUNT = {};
+export const ONE_TIME_PRODUCTS = PRODUCT_CATALOG.filter(p=>p.type==='one_time' && !p.legacy);
+export const ABOS_V1_PRODUCTS = ['ATI_SCORE','ATI_REPORT','DEAL_ANALYSIS','INVESTMENT','PROFESSIONAL'].map(getProduct);
+export const SUBSCRIPTION_PRODUCTS = PRODUCT_CATALOG.filter(p=>p.type==='subscription');
+export const API_PRODUCTS = PRODUCT_CATALOG.filter(p=>p.category==='api');
+export function getProduct(key){return PRODUCT_CATALOG.find(p=>p.key===key);}
+export function formatEur(amount){return `€${Number(amount).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2})}`;}
+export function formatPrice(amount,currency='eur'){return `${currency==='usd'?'$':'€'}${Number(amount).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2})}`;}
+export function formatProductPrice(product){if(!product)return '';const amount=product.price_usd??product.price_eur;if(amount==null)return '';return formatPrice(amount,product.currency||'eur');}
+export function effectivePrice(key){const p=getProduct(key);if(!p)return null;const amount=p.price_usd??p.price_eur;return {amount,currency:p.currency||'eur',included:false,original_amount:amount,discount_pct:0};}

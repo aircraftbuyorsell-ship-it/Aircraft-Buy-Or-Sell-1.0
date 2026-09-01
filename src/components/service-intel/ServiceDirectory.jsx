@@ -5,6 +5,7 @@ import { Plane, Sparkles, X } from "lucide-react";
 import ServiceFilterBar from "./ServiceFilterBar";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailSheet from "./ServiceDetailSheet";
+import { isAdminRole } from "@/utils/roles";
 
 const GOLD = "#f5c242";
 const MUTED = "rgba(255,255,255,0.60)";
@@ -29,7 +30,7 @@ export default function ServiceDirectory() {
     queryFn: () => base44.auth.me(),
     retry: false,
   });
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isAdmin = isAdminRole(user);
 
   // Load services from entity
   const { data: services = [], isLoading } = useQuery({

@@ -16,7 +16,7 @@ async function gateProSubscription(base44, user) {
   try {
     const co = await base44.functions.invoke('abosEntitlements', {
       action: 'create_checkout', product_key: 'PRO',
-      return_url: Deno.env.get('BASE44_APP_URL') || 'https://base44.app',
+      return_url: Deno.env.get('BASE44_APP_URL') || 'https://aircraftbuyorsell.com/checkout-success',
     });
     checkoutUrl = co?.data?.url || null;
   } catch (_) { /* checkout link is optional */ }

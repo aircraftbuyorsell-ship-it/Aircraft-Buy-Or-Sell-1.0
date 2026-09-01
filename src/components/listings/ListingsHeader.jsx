@@ -218,9 +218,8 @@ export default function ListingsHeader({
         return;
       }
 
-      // 2. FAA fallback
-      const nNumber = clean.replace(/^N/i, "");
-      const res = await base44.functions.invoke("nregSearch", { n_number: nNumber });
+      // 2. Global registry fallback (FAA or international)
+      const res = await base44.functions.invoke("globalAircraftLookup", { registration: clean });
       if (res.data?.found) {
         setFaaResult(res.data.aircraft);
       } else {
@@ -236,7 +235,7 @@ export default function ListingsHeader({
     if (!faaResult) return;
     setCreating(true);
     try {
-      const res = await base44.functions.invoke("syncFaaToAtiCard", { n_number: faaResult.n_number });
+      const res = await base44.functions.invoke("syncFaaToAtiCard", { registration: faaResult.registration || faaResult.n_number });
       if (res.data?.listingId) {
         window.location.href = `/ati-passport/${res.data.listingId}`;
       } else {

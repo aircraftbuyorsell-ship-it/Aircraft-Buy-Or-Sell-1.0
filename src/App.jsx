@@ -18,6 +18,7 @@ import TrafficMap from "./pages/TrafficMap";
 import Analytics from "./pages/Analytics";
 import OpexCalculator from "./pages/OpexCalculator";
 import ValuationStudio from "./pages/ValuationStudio";
+import OmvmValuationPage from "./pages/OmvmValuationPage";
 import Pricing from "./pages/Pricing";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -35,6 +36,7 @@ import AdminSettings from "./pages/AdminSettings";
 import DeveloperEarnings from "./pages/DeveloperEarnings";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
 import PartnerPortal from "./pages/PartnerPortal";
+import InstallWizard from "./pages/InstallWizard";
 
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
@@ -146,6 +148,7 @@ const AuthenticatedApp = () => {
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/valuation-studio" element={<ValuationStudio />} />
+        <Route path="/omvm-valuation" element={<OmvmValuationPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/terms" element={<TermsOfService />} />
@@ -167,6 +170,7 @@ const AuthenticatedApp = () => {
         <Route path="/developer-earnings" element={<DeveloperEarnings />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
         <Route path="/partner-portal" element={<PartnerPortal />} />
+        <Route path="/install" element={<InstallWizard />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/admin/listings" element={<AdminListings />} />
         <Route path="/feature-requests" element={<FeatureRequests />} />

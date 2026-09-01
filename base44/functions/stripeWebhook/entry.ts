@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
 import {
   defaultCapabilitiesForPlan,
@@ -15,6 +15,29 @@ const PRICE_TOKEN_MAP = {
   'price_1TaO1rAT7Be3WR6JaWnMa7mx': { tokens: 500, tier: 'pro', sub_tier: 'plus',    pack: 'ABOS Pro',     price_usd: 99 },
   'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', pack: 'ABOS Enterprise', price_usd: 299 },
 };
+
+// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
+// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
+const STRIPE_ATI_PRODUCT_MAP = {
+  level_2_basic: 'ATI_BASIC_REPORT',
+  ati_pro: 'ATI_PRO',
+  ati_pro_tax: 'ATI_PRO_TAX',
+};
+const LEGACY_PRODUCT_ALIASES = {
+  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
+  ATI_SCORE: 'ATI_SCORE',
+  VALUATION_STUDIO: 'VALUATION_STUDIO',
+  VERIFICATION_PACK: 'VERIFICATION_PACK',
+  PRO: 'PRO',
+  BROKER: 'BROKER',
+};
+const PRODUCT_KEYS = new Set([
+  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
+  ...Object.keys(LEGACY_PRODUCT_ALIASES),
+  'ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25','API_STARTER','API_PROFESSIONAL','API_ENTERPRISE','WHITE_LABEL_LICENSE',
+]);
+const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
+const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
 
 // Sync UserProfile tier + sub_tier based on a resolved tier/sub_tier
 async function syncUserProfileTier(base44, userEmail, tier, subTier) {
@@ -588,27 +611,6 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   }
 }
 
-// ── ABOS Product Entitlements (ATI Score, Full Report, Valuation, Verification, PRO, BROKER) ──
-// Canonical Stripe-backed ATI products. Legacy keys remain accepted for existing purchases.
-const STRIPE_ATI_PRODUCT_MAP = {
-  level_2_basic: 'ATI_BASIC_REPORT',
-  ati_pro: 'ATI_PRO',
-  ati_pro_tax: 'ATI_PRO_TAX',
-};
-const LEGACY_PRODUCT_ALIASES = {
-  ATI_FULL_REPORT: 'ATI_FULL_REPORT',
-  ATI_SCORE: 'ATI_SCORE',
-  VALUATION_STUDIO: 'VALUATION_STUDIO',
-  VERIFICATION_PACK: 'VERIFICATION_PACK',
-  PRO: 'PRO',
-  BROKER: 'BROKER',
-};
-const PRODUCT_KEYS = new Set([
-  ...Object.values(STRIPE_ATI_PRODUCT_MAP),
-  ...Object.keys(LEGACY_PRODUCT_ALIASES),
-]);
-const SUB_PRODUCT_KEYS = new Set(['PRO', 'BROKER']);
-
 async function markPaymentEvent(base44, eventId, type, email, productKey, paymentId, subId, amountEur, status) {
   if (!eventId) return true;
   const existing = await base44.asServiceRole.entities.PaymentEvent.filter({ stripe_event_id: eventId }, '-created_date', 1);
@@ -667,7 +669,16 @@ async function handleProductCheckout(session, base44, eventId, stripe) {
     return true;
   }
   try {
-    if (SUB_PRODUCT_KEYS.has(productKey)) {
+    if (REPORT_PACK_KEYS.has(productKey)) {
+      const credits = { ATI_REPORT_PACK_5: 5, ATI_REPORT_PACK_10: 10, ATI_REPORT_PACK_25: 25 }[productKey];
+      const balances = await base44.asServiceRole.entities.ReportCreditBalance.filter({ user_email: email }, '-created_date', 1);
+      if (balances[0]) {
+        await base44.asServiceRole.entities.ReportCreditBalance.update(balances[0].id, { balance: (balances[0].balance||0)+credits, lifetime_purchased:(balances[0].lifetime_purchased||0)+credits, updated_at:new Date().toISOString() });
+      } else {
+        await base44.asServiceRole.entities.ReportCreditBalance.create({ user_email:email, balance:credits, lifetime_purchased:credits, lifetime_used:0, updated_at:new Date().toISOString() });
+      }
+      console.log(`✓ Report credits granted: ${email} → ${credits}`);
+    } else if (SUB_PRODUCT_KEYS.has(productKey)) {
       await base44.asServiceRole.entities.Entitlement.create({
         user_email: email, product_key: productKey, scope: 'global', source: 'stripe',
         stripe_subscription_id: session.subscription || '', stripe_event_id: eventId, status: 'active',
@@ -758,36 +769,90 @@ Deno.serve(async (req) => {
 
     console.log(`📡 Webhook received: ${event.type} (${event.id})`);
 
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object, base44, stripe, event.id);
-        break;
-      case 'charge.succeeded':
-        await handleChargeSucceeded(event.data.object);
-        break;
-      case 'charge.failed':
-        await handleChargeFailed(event.data.object);
-        break;
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object, stripe, base44);
-        break;
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object, stripe, base44);
-        break;
-      case 'invoice.payment_succeeded':
-        await handleInvoicePaid(event.data.object, stripe, base44);
-        break;
-      case 'invoice.payment_failed':
-        await handleInvoicePaymentFailed(event.data.object, stripe, base44);
-        break;
-      default:
-        console.log(`⏭️ Unhandled event type: ${event.type}`);
+    // Idempotency check: prevent duplicate processing of the same webhook event
+    const existingEvent = await base44.asServiceRole.entities.WebhookEvent?.filter?.(
+      { stripe_event_id: event.id }, '-created_date', 1
+    ).catch(() => []);
+    if (existingEvent?.[0]) {
+      console.log(`↩️ Webhook event ${event.id} already processed`);
+      return Response.json({ received: true, idempotent: true });
+    }
+
+    // Record event for idempotency tracking
+    const createEventRecord = async () => {
+      try {
+        await base44.asServiceRole.entities.WebhookEvent?.create?.({
+          stripe_event_id: event.id,
+          event_type: event.type,
+          status: 'processing',
+          created_at: new Date().toISOString(),
+        }).catch(() => {});
+      } catch (err) {
+        console.warn('Could not create webhook event record:', err.message);
+      }
+    };
+
+    await createEventRecord();
+
+    const updateEventStatus = async (status: string, error?: string) => {
+      try {
+        await base44.asServiceRole.entities.WebhookEvent?.update?.(event.id, {
+          status,
+          error_message: error,
+          last_attempt: new Date().toISOString(),
+        }).catch(() => {});
+      } catch (err) {
+        console.warn('Could not update webhook event status:', err.message);
+      }
+    };
+
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutCompleted(event.data.object, base44, stripe, event.id);
+          break;
+        case 'charge.succeeded':
+          await handleChargeSucceeded(event.data.object);
+          break;
+        case 'charge.failed':
+          await handleChargeFailed(event.data.object);
+          break;
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          await handleSubscriptionUpdated(event.data.object, stripe, base44);
+          break;
+        case 'customer.subscription.deleted':
+          await handleSubscriptionDeleted(event.data.object, stripe, base44);
+          break;
+        case 'invoice.payment_succeeded':
+          await handleInvoicePaid(event.data.object, stripe, base44);
+          break;
+        case 'invoice.payment_failed':
+          await handleInvoicePaymentFailed(event.data.object, stripe, base44);
+          break;
+        default:
+          console.log(`⏭️ Unhandled event type: ${event.type}`);
+      }
+      await updateEventStatus('completed');
+    } catch (handlerError) {
+      console.error(`Handler error for event ${event.id}:`, handlerError.message);
+      await updateEventStatus('failed', handlerError.message);
+      throw handlerError;
     }
 
     return Response.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error.message);
-    return Response.json({ error: 'Webhook processing failed' }, { status: 500 });
+    // Mark event as failed but still return 200 to acknowledge receipt (Stripe will retry)
+    try {
+      await base44.asServiceRole.entities.WebhookEvent?.update?.(event?.id || 'unknown', {
+        status: 'failed',
+        error_message: error.message,
+        retry_count: (parseInt(event?.attempt || '0') || 0) + 1,
+      }).catch(() => {});
+    } catch (updateErr) {
+      console.warn('Could not mark event as failed:', updateErr.message);
+    }
+    return Response.json({ received: true });
   }
 });

@@ -11,15 +11,21 @@ export default function WelcomeGiftModal({ giftOptions, slotsLeft, onSelect, onC
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(null);
+  const [error, setError] = useState("");
 
   const handleConfirm = async () => {
     if (!selected || loading) return;
     setLoading(true);
+    setError("");
     try {
       const result = await onSelect(selected);
       setDone(result);
       setTimeout(() => onClose(), 2500);
     } catch (e) {
+      console.error("Trial grant error:", e);
+      setError(
+        e?.response?.data?.error || e?.message || "Couldn't activate your trial. Please try again."
+      );
       setLoading(false);
     }
   };
@@ -84,6 +90,12 @@ export default function WelcomeGiftModal({ giftOptions, slotsLeft, onSelect, onC
             );
           })}
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">
+            <p className="text-[12px] font-medium text-destructive">{error}</p>
+          </div>
+        )}
 
         <div className="mt-5 flex gap-2">
           <button

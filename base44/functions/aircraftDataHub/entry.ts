@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 
-const PROJECT_NAME = 'IntraZone';
+const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
+const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 const sqlText = (value) => String(value || '').replaceAll("'", "''");
@@ -31,8 +32,10 @@ Deno.serve(async (req) => {
     });
     if (!projectsResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
     const projects = await projectsResponse.json();
-    const project = projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase());
-    if (!project) return Response.json({ error: 'IntraZone data source not found' }, { status: 502 });
+    const project = projects.find((item) => item.id === PROJECT_REF || item.ref === PROJECT_REF)
+      || projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase())
+      || (projects.length === 1 ? projects[0] : null);
+    if (!project) return Response.json({ error: 'Aircraft data source not found' }, { status: 502 });
 
     const keysResponse = await fetch(`https://api.supabase.com/v1/projects/${project.id}/api-keys`, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -183,13 +186,19 @@ Deno.serve(async (req) => {
         air_worth_date: registry?.air_worth_date || catalog?.air_worth_date || null,
         last_action_date: registry?.last_action_date || catalog?.last_action_date || passport?.last_activity_date || null,
         engine_code: engineCode,
-        engine_mfr: engineSpec?.manufacturer || engineRef?.mfr || catalog?.engine_manufacturer || null,
-        engine_model: engineSpec?.model_name || engineRef?.model || catalog?.engine_model || null,
-        engine_type: engineSpec?.engine_type || engineRef?.type || aircraftRef?.type_engine || catalog?.type_engine || card?.engine_type || null,
+        // Supabase (engineRef, from faa_engine) is the source of truth for engine
+        // identity. Base44's EngineSpec is a copy maintained by the enginespec_sync
+        // job, so when the two disagree the copy is the stale one; it stays only as
+        // a fallback for aircraft the FAA engine table does not cover.
+        engine_mfr: engineRef?.mfr || engineSpec?.manufacturer || catalog?.engine_manufacturer || null,
+        engine_model: engineRef?.model || engineSpec?.model_name || catalog?.engine_model || null,
+        engine_type: engineRef?.type || engineSpec?.engine_type || aircraftRef?.type_engine || catalog?.type_engine || card?.engine_type || null,
         horsepower: engineRef?.horsepower || catalog?.horsepower || null,
         thrust: engineRef?.thrust || catalog?.thrust || null,
         seats: aircraftRef?.no_seats || catalog?.seat_count || null,
         cruise_speed_mph: aircraftRef?.speed_mph || catalog?.cruise_speed_mph || null,
+        // faa_engine carries no TBO column (code, mfr, model, type, horsepower,
+        // thrust), so this one field genuinely cannot come from Supabase yet.
         engine_tbo_hours: engineSpec?.tbo_hours || card?.engine_tbo || null,
       },
       certificates: {

@@ -7,14 +7,13 @@ import HomeFeatureBar from "@/components/homepage/HomeFeatureBar";
 import ListingsShowcase from "@/components/dashboard/sections/ListingsShowcase";
 import SalesPipelinePromo from "@/components/dashboard/sections/SalesPipelinePromo";
 import ATIPassportVerification from "@/components/dashboard/sections/ATIPassportVerification";
-import ValueEstimator from "@/components/dashboard/sections/ValueEstimator";
+import PricingLadder from "@/components/dashboard/sections/PricingLadder";
 import TrustedBrokers from "@/components/dashboard/sections/TrustedBrokers";
 import CommunitySection from "@/components/dashboard/sections/CommunitySection";
 import LiveMarketIntelligence from "@/components/dashboard/LiveMarketIntelligence";
 import FeaturedToolsSection from "@/components/dashboard/sections/FeaturedToolsSection";
 import AviationNewsTicker from "@/components/newsletter/AviationNewsTicker";
 import HomeNewsFeed from "@/components/dashboard/sections/HomeNewsFeed";
-import MonetizationCTA from "@/components/dashboard/sections/MonetizationCTA";
 import AutomationAdvantage from "@/components/homepage/AutomationAdvantage";
 import AgentConnectCard from "@/components/dashboard/sections/AgentConnectCard";
 import { useState } from "react";
@@ -110,11 +109,8 @@ export default function Dashboard() {
       {/* 4. Sales Pipeline */}
       <SalesPipelinePromo />
 
-      {/* 5. Aircraft Value Estimator */}
-      <ValueEstimator />
-
-      {/* 5b. Monetization CTA — wraps featured tools with credit/fiat pricing */}
-      <MonetizationCTA user={user} />
+      {/* 5. Pricing ladder — ATI Score (free) / ATI Report ($49) / ATI Pro ($199), linked to /pricing */}
+      <PricingLadder />
 
       {/* 5c. Featured Developer Tools — hides itself when no active tools */}
       <FeaturedToolsSection />

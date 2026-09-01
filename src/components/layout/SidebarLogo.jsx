@@ -7,18 +7,18 @@ export default function SidebarLogo({ compact = false }) {
 
   if (compact) {
     return (
-      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }} className="bg-[hsl(var(--card))]">
         <svg width="28" height="28" viewBox="0 0 40 40" style={{ display: "block", flexShrink: 0 }}>
           <rect width="40" height="40" rx="10" fill="rgba(212,160,23,0.10)" stroke="rgba(212,160,23,0.30)" />
           <polyline points="6,30 14,12 18,30" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           <polyline points="18,30 22,18 26,24 32,8" fill="none" stroke="#f5c242" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           <polygon points="31,7 35,10 31,13" fill="#f5c242" />
         </svg>
-        <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }}>
+        <span style={{ fontSize: 16, fontWeight: 800, color: "#f5c242", letterSpacing: "-0.02em", fontFamily: "Inter, sans-serif" }} className="bg-[hsl(var(--background))]">
           ABOS<span style={{ fontSize: 8, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
-      </Link>
-    );
+      </Link>);
+
   }
 
   return (
@@ -46,7 +46,7 @@ export default function SidebarLogo({ compact = false }) {
           fontWeight: 900,
           color: "#fff",
           letterSpacing: "-0.03em",
-          fontFamily: "Inter, -apple-system, sans-serif",
+          fontFamily: "Inter, -apple-system, sans-serif"
         }}>
           ABOS<span style={{ fontSize: 10, fontWeight: 600, verticalAlign: "super", color: "rgba(255,255,255,0.55)", marginLeft: 1 }}>™</span>
         </span>
@@ -56,11 +56,11 @@ export default function SidebarLogo({ compact = false }) {
           textTransform: "uppercase",
           color: "rgba(212,160,23,0.70)",
           fontWeight: 700,
-          marginTop: 3,
+          marginTop: 3
         }}>
           {currentSection}{currentSection === "Marketspace" && <span style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>™</span>}
         </span>
       </div>
-    </Link>
-  );
+    </Link>);
+
 }

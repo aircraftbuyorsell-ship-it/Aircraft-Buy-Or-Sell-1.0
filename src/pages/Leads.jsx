@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Users, Search, X, Lock, Zap, Sparkles, UserPlus } from "lucide-react";
 import { useBehavior } from "@/lib/useBehavior";
-import { toCredits, fromCredits } from "@/lib/pricing";
-import LeadPackages, { LEAD_UNLOCK_COST } from "@/components/leads/LeadPackages";
+import LeadPackages from "@/components/leads/LeadPackages";
 import LeadRow, { STATUS_CONFIG } from "@/components/leads/LeadRow";
-import UpgradeGate from "@/components/marketing/UpgradeGate";
 import BottomSheetSelect from "@/components/ui/BottomSheetSelect";
 import AddLeadModal from "@/components/leads/AddLeadModal";
 
@@ -27,7 +26,7 @@ const BUDGET_ORDER = ["<100k", "<200k", "<500k", "<1M", ">1M"];
 
 export default function Leads() {
   const queryClient = useQueryClient();
-  const { behavior, tokens, tier } = useBehavior();
+  const { behavior, tier } = useBehavior();
   const userEmail = behavior?.user_email;
 
   const [search, setSearch] = useState("");
@@ -38,8 +37,7 @@ export default function Leads() {
   const [toast, setToast] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
 
-  const userCredits = toCredits(tokens);
-  const isEnterprise = tier === "enterprise";
+  const hasLeadAccess = tier === "pro" || tier === "enterprise";
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
@@ -51,35 +49,15 @@ export default function Leads() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["leads"] }),
   });
 
-  const consumeCredits = async (credits, feature) => {
-    if (isEnterprise) return true;
-    const tokensNeeded = fromCredits(credits);
-    if (!behavior?.id || tokens < tokensNeeded) {
-      setGate({ creditsNeeded: credits });
-      return false;
-    }
-    const newBalance = Math.max(0, tokens - tokensNeeded);
-    await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: newBalance });
-    try {
-      await base44.entities.TokenTransaction.create({
-        user_email: behavior.user_email,
-        type: "consumption",
-        amount: -tokensNeeded,
-        feature,
-        balance_after: newBalance,
-      });
-    } catch (txErr) {
-      await base44.entities.UserBehavior.update(behavior.id, { tokens_remaining: tokens });
-      return false;
-    }
-    queryClient.invalidateQueries({ queryKey: ["user-behavior"] });
-    return true;
+  const requireLeadAccess = () => {
+    if (hasLeadAccess) return true;
+    setGate({ reason: "plan" });
+    return false;
   };
 
   const handleUnlockOne = async (lead) => {
     if (unlocked.has(lead.id)) return;
-    const ok = await consumeCredits(LEAD_UNLOCK_COST, "lead_unlock_single");
-    if (!ok) return;
+    if (!requireLeadAccess()) return;
     const next = new Set(unlocked);
     next.add(lead.id);
     setUnlocked(next);
@@ -88,6 +66,7 @@ export default function Leads() {
   };
 
   const handleBuyPack = async (pack) => {
+    if (!requireLeadAccess()) return;
     if (pack.id === "single") {
       const firstLocked = leads.find(l => !unlocked.has(l.id));
       if (firstLocked) {
@@ -95,14 +74,12 @@ export default function Leads() {
       }
       return;
     }
-    const ok = await consumeCredits(pack.credits, `lead_pack_${pack.id}`);
-    if (!ok) return;
     const locked = leads.filter(l => !unlocked.has(l.id)).slice(0, pack.leads);
     const next = new Set(unlocked);
     locked.forEach(l => next.add(l.id));
     setUnlocked(next);
     setToast({
-      msg: `${locked.length} contacts unlocked · ${pack.credits} credits used`,
+      msg: `${locked.length} contacts unlocked`,
       color: TEAL,
     });
     setTimeout(() => setToast(null), 3000);
@@ -132,7 +109,7 @@ export default function Leads() {
           <div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase" style={{ color: W1 }}>Qualified Leads Marketplace</h1>
             <p className="text-sm mt-0.5" style={{ color: W2 }}>
-              {stats.unlocked}/{stats.total} contacts unlocked · {userCredits.toLocaleString()} credits available
+              {stats.unlocked}/{stats.total} contacts unlocked · {hasLeadAccess ? "Lead CRM included with your plan" : "Upgrade to Pro to unlock contacts"}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -143,7 +120,7 @@ export default function Leads() {
             </button>
             <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-black px-3 py-1.5 rounded-full"
               style={{ background: AMBER, color: "#04060a" }}>
-              <Zap className="w-3.5 h-3.5" /> {LEAD_UNLOCK_COST} cr / single
+              <Zap className="w-3.5 h-3.5" /> {hasLeadAccess ? "Lead CRM included" : "Pro required"}
             </div>
           </div>
         </div>
@@ -156,7 +133,7 @@ export default function Leads() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-black uppercase tracking-tight" style={{ color: W1 }}>Contact info is masked until you unlock it</p>
             <p className="text-[12px] mt-0.5 leading-relaxed" style={{ color: W2 }}>
-              Buy a single contact on-demand — or unlock in volume with a discounted pack. Verified buyers only.
+                {hasLeadAccess ? "Your plan includes Lead CRM access. Contact information is unlocked through your plan entitlement — no ABOS credits or tokens are consumed." : "Lead CRM is included with Pro and Enterprise. Upgrade your plan to unlock contact information."}
             </p>
           </div>
         </div>
@@ -164,7 +141,7 @@ export default function Leads() {
 
       <div className="relative z-10 px-4 md:px-8 pb-8 space-y-5">
         {/* Volume packages */}
-        <LeadPackages onSelectPack={handleBuyPack} availableLeads={leads.length - stats.unlocked} />
+        <LeadPackages onSelectPack={handleBuyPack} availableLeads={leads.length - stats.unlocked} hasLeadAccess={hasLeadAccess} />
 
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -272,14 +249,19 @@ export default function Leads() {
         </div>
       )}
 
-      <UpgradeGate
-        open={!!gate}
-        onClose={() => setGate(null)}
-        feature="leads_crm"
-        requiredTokens={gate ? fromCredits(gate.creditsNeeded) : 0}
-        userTokens={tokens}
-        isVerified={behavior?.verification_paid}
-      />
+      {gate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(8px)" }} onClick={() => setGate(null)}>
+          <div className="w-full max-w-md rounded-2xl p-6" style={{ background: "#0d1117", border: "1px solid rgba(245,194,66,0.25)" }} onClick={e => e.stopPropagation()}>
+            <p className="text-[10px] uppercase tracking-[0.15em] font-black" style={{ color: AMBER }}>Lead CRM</p>
+            <h3 className="text-xl font-black mt-2" style={{ color: W1 }}>Upgrade to unlock contact information</h3>
+            <p className="text-sm mt-2 leading-relaxed" style={{ color: W2 }}>Lead CRM access is a plan entitlement. No ABOS credits or API tokens are consumed for lead unlocks.</p>
+            <div className="flex gap-2 mt-5">
+              <Link to="/pricing" onClick={() => setGate(null)} className="flex-1 text-center rounded-xl px-4 py-2.5 text-sm font-black" style={{ background: AMBER, color: "#04060a" }}>View Plans & Pricing</Link>
+              <button onClick={() => setGate(null)} className="rounded-xl px-4 py-2.5 text-sm font-bold" style={{ background: "rgba(255,255,255,0.06)", color: W2 }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AddLeadModal
         open={addOpen}

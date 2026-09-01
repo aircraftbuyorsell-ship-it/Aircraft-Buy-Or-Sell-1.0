@@ -193,7 +193,62 @@ Deno.serve(async (req) => {
       } catch (_) { /* non-critical */ }
     }
 
-    // ── 4. ABOS listing match (all countries) ──
+    // ── 4. Official-registry web fallback for international marks ──
+    // ADS-B databases are not registries and can miss aircraft that are not
+    // actively tracked. Use web-grounded retrieval only after structured
+    // sources fail, and require the model to return an official registry
+    // source URL plus a confidence level so the UI can distinguish evidence.
+    if (!result.found && country.code !== 'US') {
+      try {
+        const llmRes = await base44.integrations.Core.InvokeLLM({
+          prompt: `Research aircraft registration ${fullReg}. Identify the aircraft using the registering civil aviation authority or official aircraft register first. Use secondary aviation databases only to cross-check identity. Return data only when you have evidence that the registration belongs to the aircraft. Prefer the official registry source URL. Do not guess or invent missing fields.`,
+          add_context_from_internet: true,
+          model: 'gemini_3_flash',
+          response_json_schema: {
+            type: 'object',
+            properties: {
+              registration: { type: 'string' },
+              make: { type: 'string' },
+              model: { type: 'string' },
+              year: { type: 'number' },
+              serial_number: { type: 'string' },
+              icao_type: { type: 'string' },
+              mode_s_hex: { type: 'string' },
+              country: { type: 'string' },
+              status: { type: 'string' },
+              source_url: { type: 'string' },
+              source_name: { type: 'string' },
+              confidence: { type: 'string', enum: ['high', 'medium'] },
+            },
+            required: ['registration', 'source_name', 'confidence'],
+          },
+        });
+        const returnedReg = normalizeRegistration(llmRes?.registration || '');
+        if (returnedReg && returnedReg === fullReg && llmRes?.source_name) {
+          result.found = true;
+          result.source = 'official_registry_web';
+          result.aircraft = {
+            registration: fullReg,
+            make: llmRes.make || null,
+            model: llmRes.model || null,
+            year: llmRes.year || null,
+            serial_number: llmRes.serial_number || null,
+            icao_type: llmRes.icao_type || null,
+            mode_s_hex: llmRes.mode_s_hex || null,
+            country: llmRes.country || country.label,
+            country_iso: country.code,
+            status: llmRes.status || 'unknown',
+            registered_owner: null,
+            origin_country: country.code,
+            registry_source_name: llmRes.source_name,
+            registry_source_url: llmRes.source_url || null,
+            registry_confidence: llmRes.confidence,
+          };
+        }
+      } catch (_) { /* web fallback unavailable — preserve structured result */ }
+    }
+
+    // ── 5. ABOS listing match (all countries) ──
     if (!result.listing && result.found) {
       try {
         const listings = await base44.asServiceRole.entities.AircraftListing.filter(
@@ -267,7 +322,7 @@ Deno.serve(async (req) => {
 
 // Prefixes that use a dash separator in their canonical form.
 // Used to auto-insert the dash when the user omits it (e.g. "OK2001" → "OK-2001").
-const DASH_PREFIXES = ['OK', 'D', 'G', 'F', 'I', 'EC', 'EA', 'SE', 'OO', 'PH', 'HB', 'OE', 'LN', 'OY', 'ZK', 'VH', 'CS', 'B', '9M'];
+const DASH_PREFIXES = ['OK', 'D', 'G', 'F', 'I', 'EC', 'EA', 'SE', 'OO', 'PH', 'HB', 'OE', 'LN', 'OY', 'ZK', 'VH', 'CS', 'SP', 'HA', 'LV', 'LY', 'ES', 'UR', '9A', 'LZ', 'OM', 'T7', 'T9', '9H', '5B', '4O', 'ER', 'EW', 'E7', '9M', '9V', 'A7', 'RP', 'RA', 'C-F', 'C-G'];
 
 function normalizeRegistration(raw) {
   if (!raw) return '';
@@ -309,6 +364,24 @@ function detectCountry(reg) {
   if (r.startsWith('B-')) return { code: 'CN', label: 'China' };
   if (r.startsWith('A7')) return { code: 'QA', label: 'Qatar' };
   if (r.startsWith('9M')) return { code: 'MY', label: 'Malaysia' };
+  if (r.startsWith('9V-')) return { code: 'SG', label: 'Singapore' };
+  if (r.startsWith('A7-') || r.startsWith('A7')) return { code: 'QA', label: 'Qatar' };
+  if (r.startsWith('RP-')) return { code: 'PH', label: 'Philippines' };
+  if (r.startsWith('RA-')) return { code: 'RU', label: 'Russia' };
+  if (r.startsWith('SP-')) return { code: 'PL', label: 'Poland' };
+  if (r.startsWith('HA-')) return { code: 'HU', label: 'Hungary' };
+  if (r.startsWith('LV-')) return { code: 'AR', label: 'Argentina' };
+  if (r.startsWith('LY-')) return { code: 'LT', label: 'Lithuania' };
+  if (r.startsWith('ES-')) return { code: 'EE', label: 'Estonia' };
+  if (r.startsWith('UR-')) return { code: 'UA', label: 'Ukraine' };
+  if (r.startsWith('9A-')) return { code: 'HR', label: 'Croatia' };
+  if (r.startsWith('LZ-')) return { code: 'BG', label: 'Bulgaria' };
+  if (r.startsWith('OM-')) return { code: 'SK', label: 'Slovakia' };
+  if (r.startsWith('T7-')) return { code: 'SM', label: 'San Marino' };
+  if (r.startsWith('9H-')) return { code: 'MT', label: 'Malta' };
+  if (r.startsWith('5B-')) return { code: 'CY', label: 'Cyprus' };
+  if (r.startsWith('4O-')) return { code: 'ME', label: 'Montenegro' };
+  if (r.startsWith('ER-')) return { code: 'MD', label: 'Moldova' };
   return { code: 'XX', label: 'International' };
 }
 
@@ -353,8 +426,10 @@ function mapAdsbdb(ac, fullReg, country) {
 }
 
 function mapFAA(faa, fullReg) {
+  const nNumber = fullReg.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '');
   return {
     registration: fullReg,
+    n_number: nNumber || null,
     make: faa.make || null,
     model: faa.model || null,
     year: faa.year_mfr || null,

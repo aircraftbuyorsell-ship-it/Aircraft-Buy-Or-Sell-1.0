@@ -63,7 +63,7 @@ export default function ValuationStudio() {
       return;
     }
     setError(null);
-    if (!(await requireAccess("VALUATION_STUDIO", anchor?.registration || ""))) return;
+    if (!(await requireAccess("DEAL_ANALYSIS", anchor?.registration || ""))) return;
     setLoading(true);
 
     try {
@@ -118,13 +118,13 @@ export default function ValuationStudio() {
       setError(null);
       try {
         await saveReport({
-          product_key: "VALUATION_STUDIO",
+          product_key: "DEAL_ANALYSIS",
           aircraft_registration: anchor?.registration || "",
           aircraft_label: [merged.year, mergedMake, mergedModel].filter(Boolean).join(" "),
           report_type: "valuation",
           result_data: response?.data ?? response,
         });
-        await recordUsage({ product_key: "VALUATION_STUDIO", aircraft_registration: anchor?.registration || "" });
+        await recordUsage({ product_key: "DEAL_ANALYSIS", aircraft_registration: anchor?.registration || "" });
       } catch (_) {}
     } catch (e) {
       if ([401, 403].includes(e?.response?.status || e?.status)) {

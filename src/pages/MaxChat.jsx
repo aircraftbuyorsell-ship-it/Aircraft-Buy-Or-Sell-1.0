@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video } from "lucide-react";
+import { runVerificationAssistant } from "@/lib/verificationAssistant";
+import { runMarketspaceAssistant, marketspaceSummary } from "@/lib/marketspaceAssistant";
+import { runABOSAgent } from "@/lib/abosAgent";
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw, FileText, Send, Loader2, X, MessageCircle, Video, Check, AlertTriangle, Lock, ArrowRight, Search, ShieldCheck, BarChart3, Handshake } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 
@@ -135,6 +138,7 @@ export default function MaxChat() {
   const [showChat, setShowChat] = useState(false);
   const [showAti, setShowAti] = useState(false);
   const [showLog, setShowLog] = useState(false);
+  const [agentWorkflow, setAgentWorkflow] = useState(null);
 
   // Voice / TTS
   const [voiceMode, setVoiceMode] = useState(false);
@@ -147,15 +151,40 @@ export default function MaxChat() {
   const recognitionRef = useRef(null);
   const synthRef = useRef(typeof window !== "undefined" ? window.speechSynthesis : null);
   const voiceModeRef = useRef(false);
+  const intakeStartedRef = useRef(false);
 
   useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
+
+  // N-Lookup is the universal ABOS intake. Carry registration/listing/evidence into the Agent.
+  useEffect(() => {
+    if (intakeStartedRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const registration = params.get("registration");
+    const listing = params.get("listing");
+    const intent = params.get("intent") || "identify";
+    const attachmentUrls = (params.get("attachments") || "").split(",").filter(Boolean);
+    if (!registration && !listing && !attachmentUrls.length) return;
+    intakeStartedRef.current = true;
+    const parts = [
+      `ABOS intake: ${intent}`,
+      registration ? `Aircraft: ${registration}` : "",
+      listing ? `Listing / supplied text:\n${listing}` : "",
+      attachmentUrls.length ? `Evidence files attached: ${attachmentUrls.length}` : "",
+      "Please continue the workflow using the shared Digital Twin, ADL/APL state and available evidence."
+    ].filter(Boolean);
+    sendMessage(parts.join("\n\n"));
+    window.history.replaceState({}, "", "/max-chat");
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, showLog]);
 
   useEffect(() => {
+    const onWorkflow = (event) => setAgentWorkflow(event.detail || null);
+    window.addEventListener("abos:agent-workflow", onWorkflow);
     return () => {
+      window.removeEventListener("abos:agent-workflow", onWorkflow);
       synthRef.current?.cancel();
       recognitionRef.current?.stop();
     };
@@ -194,17 +223,41 @@ export default function MaxChat() {
 
     try {
       const history = [...messages, userMsg].slice(-10);
+      let orchestrationContext = "";
+      const intakeParams = new URLSearchParams(window.location.search);
+      const intakeEvidence = (intakeParams.get("attachments") || "").split(",").filter(Boolean);
+      if (intakeEvidence.length) {
+        orchestrationContext += `\n\n--- INTAKE EVIDENCE ---\n${intakeEvidence.length} uploaded evidence file(s) are attached to this aircraft intake. Treat them as evidence candidates and request/perform document or visual analysis according to the active APL workflow.\n--- END INTAKE EVIDENCE ---`;
+      }
+      const aircraftMatch = text.trim().toUpperCase().match(/\b([A-Z]{1,2}-?[A-Z0-9]{2,6}|N\d{1,5}[A-Z]{0,3})\b/);
+      try {
+        const agent = await runABOSAgent(text, { entry: "cockpit" });
+        orchestrationContext += `\n\n--- ABOS AGENT WORKFLOW ---\nCurrent stage: ${agent.workflow.current}. Completed: ${agent.workflow.completed.join(', ') || 'none'}. Next actions: ${(agent.workflow.next || []).join(', ') || 'none'}. Aircraft: ${agent.registration || 'not specified'}. Premium data remains entitlement-gated.\n--- END ABOS AGENT WORKFLOW ---`;
+        window.dispatchEvent(new CustomEvent('abos:agent-workflow', { detail: agent }));
+      } catch (_) {}
+      if (/\b(verify|verification|registry check|check this aircraft)\b/i.test(text) && aircraftMatch && !orchestrationContext.includes('Current stage: analysis')) {
+        try {
+          const verification = await runVerificationAssistant(aircraftMatch[1], { entry: "abos_assistant" });
+          orchestrationContext += `\n\n--- SHARED VERIFICATION WORKFLOW ---\nAircraft ${verification.registration} verification workflow completed. Use only entitlement-safe/high-level conclusions from this context. Do not disclose premium evidence or internal scoring methodology.\n--- END VERIFICATION WORKFLOW ---`;
+          window.dispatchEvent(new CustomEvent('abos:assistant-verification', { detail: verification }));
+        } catch (e) { orchestrationContext = `\n\nVerification workflow could not be completed: ${e?.message || 'unavailable'}`; }
+      } else if (/\b(find|search|show|compare|deal|undervalued|below market|sell|buyers|market)\b/i.test(text)) {
+        try {
+          const market = await runMarketspaceAssistant(text, { entry: "abos_assistant" });
+          orchestrationContext = `\n\n--- SHARED MARKETSPACE WORKFLOW ---\n${marketspaceSummary(market)} Intent: ${market.intent}. Candidate count: ${market.aircraft?.length || 0}. Next actions: ${(market.nextActions || []).join(', ')}. Do not invent candidate facts not present in the conversation.\n--- END MARKETSPACE WORKFLOW ---`;
+          window.dispatchEvent(new CustomEvent('abos:assistant-marketspace', { detail: market }));
+        } catch (e) { orchestrationContext = `\n\nMarketspace workflow could not be completed: ${e?.message || 'unavailable'}`; }
+      }
       const atiSection = atiContext.trim()
         ? `\n\n--- ATI REPORT DATA ---\n${atiContext.trim()}\n--- END ---`
         : "";
-      const prompt = `${SYSTEM_PROMPT}${atiSection}\n\n--- Conversation ---\n${
+      const prompt = `${SYSTEM_PROMPT}${atiSection}${orchestrationContext}\n\n--- Conversation ---\n${
         history.map(m => `${m.role === "user" ? "User" : "Max"}: ${m.content}`).join("\n")
       }\n\nMax:`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        model: "gemini_3_1_pro",
-      });
+      const llmArgs = { prompt, model: "gemini_3_1_pro" };
+      if (intakeEvidence.length) llmArgs.file_urls = intakeEvidence;
+      const result = await base44.integrations.Core.InvokeLLM(llmArgs);
 
       setMessages(prev => [...prev, { role: "assistant", content: result }]);
 
@@ -315,6 +368,20 @@ export default function MaxChat() {
   };
 
   // Status text
+  const workflowSteps = agentWorkflow ? [
+    { key: "identify", label: "Identify", icon: Search, state: agentWorkflow.workflow.completed.includes("verification") || agentWorkflow.registration ? "done" : "next" },
+    { key: "verify", label: "Verify", icon: ShieldCheck, state: agentWorkflow.workflow.completed.includes("verification") ? "done" : agentWorkflow.registration ? "next" : "locked" },
+    { key: "analyse", label: "Analyse", icon: BarChart3, state: agentWorkflow.workflow.current === "analysis" && agentWorkflow.workflow.completed.includes("marketspace") ? "next" : agentWorkflow.workflow.completed.includes("marketspace") ? "done" : "locked" },
+    { key: "transact", label: "Transact", icon: Handshake, state: agentWorkflow.workflow.completed.includes("transaction_context") ? "next" : "locked" },
+  ] : [];
+
+  const runWorkflowAction = (step) => {
+    const reg = agentWorkflow?.registration;
+    if (!reg) return;
+    const prompts = { verify: `Verify ${reg}`, analyse: `Analyse ${reg} and calculate ATI and OMVM`, transact: `Start transaction pipeline for ${reg}` };
+    if (prompts[step]) sendMessage(prompts[step]);
+  };
+
   const statusText = loading ? "Thinking…"
     : speaking ? "Speaking…"
     : listening ? "Listening…"
@@ -322,14 +389,38 @@ export default function MaxChat() {
     : "Tap mic for voice · tap chat to type";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B1A33] to-[#0D2244] flex flex-col items-center justify-start px-4 py-6 md:py-10">
+    <div className="min-h-screen bg-[#fbfaf7] text-[#1a1a1a] flex flex-col items-center justify-start px-4 py-6 md:py-10 dark:bg-[#0B1220] dark:text-white">
 
       {/* ── Title ── */}
       <div className="text-center mb-6">
-        <p className="text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Cockpit · Aviation Assistant</p>
-        <h1 className="text-white text-2xl font-black tracking-tight">Max</h1>
-        <p className="text-white/40 text-[11px] mt-0.5">{statusText}</p>
+        <p className="text-[#A67C00] dark:text-[#E8A83A] text-[9px] uppercase tracking-[0.3em] font-black mb-1">ABOS Agent · Aviation Intelligence</p>
+        <h1 className="text-[#1a1814] dark:text-white text-2xl font-black tracking-tight">ABOS Agent</h1>
+        <p className="text-black/45 dark:text-white/40 text-[11px] mt-0.5">{statusText}</p>
       </div>
+
+      {agentWorkflow && (
+        <div className="w-full max-w-3xl mb-5 rounded-2xl border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/[0.04] backdrop-blur p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#A67C00] dark:text-[#E8A83A] font-black">ABOS Workflow · ADL / APL</p>
+              <p className="text-[#1a1814] dark:text-white text-sm font-bold mt-1">{agentWorkflow.registration || "Market discovery"}</p>
+            </div>
+            <span className="text-[10px] uppercase tracking-widest text-black/45 dark:text-white/40">{agentWorkflow.workflow.current.replaceAll("_", " ")}</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {workflowSteps.map(step => {
+              const Icon = step.icon;
+              const actionable = step.state === "next" && step.key !== "identify";
+              return <button key={step.key} disabled={!actionable} onClick={() => runWorkflowAction(step.key)} className={`text-left rounded-xl border p-3 transition ${step.state === "done" ? "border-emerald-400/30 bg-emerald-400/5" : step.state === "next" ? "border-[#E8A83A]/50 bg-[#E8A83A]/10 hover:bg-[#E8A83A]/15" : "border-white/10 bg-white/[0.02]"}`}>
+                <div className="flex items-center justify-between"><Icon className={`w-4 h-4 ${step.state === "done" ? "text-emerald-400" : step.state === "next" ? "text-[#E8A83A]" : "text-white/25"}`} />{step.state === "done" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : step.state === "next" ? <ArrowRight className="w-3.5 h-3.5 text-[#E8A83A]" /> : <Lock className="w-3 h-3 text-white/20" />}</div>
+                <p className={`mt-2 text-[11px] font-black uppercase tracking-wider ${step.state === "locked" ? "text-white/30" : "text-white"}`}>{step.label}</p>
+                {step.state === "next" && <p className="mt-1 text-[9px] text-white/40">Click to continue</p>}
+              </button>;
+            })}
+          </div>
+          {agentWorkflow.workflow.next?.length > 0 && <div className="mt-3 flex items-center gap-2 text-[10px] text-white/50"><AlertTriangle className="w-3.5 h-3.5 text-[#E8A83A]" /><span>Next best action: {agentWorkflow.workflow.next[0]}</span></div>}
+        </div>
+      )}
 
       {/* ── Cockpit Panel ── */}
       <div className="relative flex items-center justify-center" style={{ width: 280, height: 280 }}>

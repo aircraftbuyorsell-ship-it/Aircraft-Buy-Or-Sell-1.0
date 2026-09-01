@@ -11,7 +11,7 @@ export default function CommunitySection() {
     >
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { icon: Users, value: "250,000+", label: "Community Members", color: "#D4A017" },
+          { icon: Users, value: "285,000+", label: "Community Members", color: "#D4A017" },
           { icon: MessageCircle, value: "4,200+", label: "Posts per Year", color: "#5dcaa5" },
           { icon: TrendingUp, value: "11.5M+", label: "Monthly Impressions", color: "#4e8ef7" },
         ].map(({ icon: Icon, value, label, color }) => (

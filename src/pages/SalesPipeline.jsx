@@ -10,7 +10,6 @@ import PipelineNodeCanvas from "@/components/pipeline/PipelineNodeCanvas";
 import PipelineSpider from "@/components/pipeline/PipelineSpider";
 import PipelineSchema from "@/components/pipeline/PipelineSchema";
 import IntegrationHub from "@/components/pipeline/IntegrationHub";
-import PipelinePlanBanner from "@/components/pipeline/PipelinePlanBanner";
 import FAAFormsLinks from "@/components/aircraft/FAAFormsLinks";
 
 export default function SalesPipeline() {
@@ -56,19 +55,6 @@ export default function SalesPipeline() {
     setError(null);
 
     try {
-      // Credit gate: free plan = 100 starter credits, then ABOS Pro €350/mo
-      const me = await base44.auth.me().catch(() => null);
-      const tier = me?.subscription_tier || me?.tier;
-      if (me && me.role !== "admin" && tier !== "pro" && tier !== "enterprise") {
-        const tx = await base44.entities.TokenTransaction.filter({ user_email: me.email }, "-created_date", 1);
-        const balance = tx[0]?.balance_after ?? 100;
-        if (balance <= 0) {
-          setError("You've used all your free credits. Upgrade to ABOS Pro (€350/mo) to keep running sales pipelines.");
-          setCreating(false);
-          return;
-        }
-      }
-
       // Check if pipeline already exists
       const existing = await base44.entities.SalesPipeline.filter({ registration: reg }, "-created_date", 1);
       if (existing[0]) {
@@ -183,11 +169,6 @@ export default function SalesPipeline() {
   return (
     <div className="min-h-screen" style={{ background: "transparent" }}>
       <div className="max-w-2xl mx-auto px-4 py-8">
-
-        {/* Plan & credits */}
-        <div className="mb-4">
-          <PipelinePlanBanner />
-        </div>
 
         {/* Back link */}
         {normalizedReg && (

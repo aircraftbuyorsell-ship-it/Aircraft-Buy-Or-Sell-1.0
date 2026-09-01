@@ -4,7 +4,7 @@ import {
   Plane, DollarSign, Gauge, Wrench, PaintBucket, Armchair,
   Search, Activity, Brain, Users, ArrowRight, CheckCircle2, Lock
 } from "lucide-react";
-import { useMonetization } from "@/hooks/useMonetization";
+import { ABOS_PRODUCTS } from "@/lib/abosProducts";
 
 // ── Audience tag colors ──
 const AUDIENCE_STYLES = {
@@ -87,7 +87,7 @@ const CALCULATOR_GROUPS = [
     label: "Operating Costs",
     icon: Calculator,
     color: "#4e8ef7",
-    desc: "OPEX unlocks all sub-calculators below",
+    desc: "Ownership and cost tools included in Deal Analysis",
     items: [
       {
         path: "/opex-calculator", label: "OPEX Calculator", icon: Calculator, featureId: "opex_calculator", primary: true,
@@ -111,7 +111,7 @@ const CALCULATOR_GROUPS = [
     label: "MRO & Upgrades",
     icon: Wrench,
     color: "#a855f7",
-    desc: "Included with OPEX session — or standalone",
+    desc: "Upgrade and refurbishment economics included in Deal Analysis",
     items: [
       {
         path: "/avionics-upgrade-calculator", label: "Avionics Upgrade", icon: Zap, featureId: "avionics_upgrade",
@@ -158,73 +158,25 @@ const CALCULATOR_GROUPS = [
 
 // ── Centered price display ──
 function CenteredPrice({ featureId }) {
-  const { getPrice, isRegistered, featurePricing } = useMonetization();
-  const price = getPrice(featureId);
-  if (!price) return null;
+  const freeFeatures = ["registry_lookup", "basic_valuation", "detailing"];
+  const isFree = freeFeatures.includes(featureId);
 
-  if (price.is_free) {
+  if (isFree) {
     return (
       <div className="text-center py-2">
-        <span
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
-          style={{ background: "rgba(93,202,165,0.12)", color: "#5dcaa5", border: "0.5px solid rgba(93,202,165,0.25)" }}
-        >
+        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider" style={{ background: "rgba(93,202,165,0.12)", color: "#5dcaa5", border: "0.5px solid rgba(93,202,165,0.25)" }}>
           <Sparkles className="w-3 h-3" /> Free
         </span>
       </div>
     );
   }
 
-  // Bundled with OPEX
-  const featureData = featurePricing?.[featureId];
-  if (featureData?.bundled_with === "opex_calculator") {
-    return (
-      <div className="text-center py-2">
-        <span
-          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
-          style={{ background: "rgba(78,142,247,0.12)", color: "#4e8ef7", border: "0.5px solid rgba(78,142,247,0.25)" }}
-        >
-          <CheckCircle2 className="w-3 h-3" /> Incl. with OPEX
-        </span>
-      </div>
-    );
-  }
-
-  // Paid — registered member
-  if (isRegistered && price.member_price_eur) {
-    return (
-      <div className="text-center py-2">
-        <div className="flex items-baseline justify-center gap-2">
-          {price.list_price_eur && (
-            <span className="text-xs line-through" style={{ color: "rgba(255,255,255,0.30)" }}>
-              €{price.list_price_eur}
-            </span>
-          )}
-          <span className="text-lg font-black" style={{ color: "#5dcaa5" }}>
-            €{price.member_price_eur}
-          </span>
-        </div>
-        <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>
-          or {price.credits} credits
-        </p>
-      </div>
-    );
-  }
-
-  // Paid — unregistered (full fiat price + nudge)
   return (
     <div className="text-center py-2">
-      <span className="text-lg font-black" style={{ color: "rgba(255,255,255,0.90)" }}>
-        €{price.fiat_eur}
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider" style={{ background: "rgba(245,194,66,0.10)", color: "#f5c242", border: "0.5px solid rgba(245,194,66,0.22)" }}>
+        <CheckCircle2 className="w-3 h-3" /> Included with Deal Analysis
       </span>
-      <p className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>
-        or {price.credits} credits
-      </p>
-      {price.list_price_eur && (
-        <p className="text-[9px] mt-0.5" style={{ color: "#f5c242" }}>
-          Register — save {price.discount_pct || 30}%
-        </p>
-      )}
+      <p className="text-[9px] mt-1" style={{ color: "rgba(255,255,255,0.40)" }}>Decision workflow {ABOS_PRODUCTS.DEAL_ANALYSIS.displayPrice}</p>
     </div>
   );
 }
@@ -295,8 +247,6 @@ function CalculatorCard({ item, color }) {
 }
 
 export default function CalculatorsHub() {
-  const { isRegistered } = useMonetization();
-
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
       <div className="max-w-5xl mx-auto">
@@ -309,42 +259,19 @@ export default function CalculatorsHub() {
             Aviation Financial Tools
           </h1>
           <p className="text-sm mt-1 max-w-2xl" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Free registry lookup and valuation. Unlock OPEX to access all MRO and upgrade calculators.
-            {isRegistered ? " Member pricing active." : " Register free for instant discounts."}
+            Free registry and valuation tools, plus a complete calculator workbench for aircraft ownership decisions.
           </p>
         </div>
 
-        {/* Registration banner for non-registered */}
-        {!isRegistered && (
-          <div
-            className="rounded-2xl p-4 mb-6 flex items-center justify-between gap-4"
-            style={{
-              background: "linear-gradient(135deg, rgba(245,194,66,0.08), rgba(93,202,165,0.05))",
-              border: "0.5px solid rgba(245,194,66,0.20)",
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(245,194,66,0.12)" }}>
-                <Lock className="w-4 h-4" style={{ color: "#f5c242" }} />
-              </div>
-              <div>
-                <p className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.90)" }}>
-                  You're seeing full prices
-                </p>
-                <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
-                  Register free to unlock member discounts up to 70%
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/pricing"
-              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-opacity hover:opacity-90"
-              style={{ background: "#f5c242", color: "#04060a" }}
-            >
-              Register <ArrowRight className="w-3 h-3" />
-            </Link>
+        <div className="rounded-2xl p-4 mb-6 flex items-center justify-between gap-4" style={{ background: "rgba(245,194,66,0.06)", border: "0.5px solid rgba(245,194,66,0.18)" }}>
+          <div>
+            <p className="text-sm font-bold text-white/90">One calculator workbench. One decision product.</p>
+            <p className="text-[11px] text-white/50">Calculators support the ABOS Deal Analysis workflow — no separate calculator pricing.</p>
           </div>
-        )}
+          <Link to="/pricing" className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black" style={{ background: "#f5c242", color: "#04060a" }}>
+            Deal Analysis {ABOS_PRODUCTS.DEAL_ANALYSIS.displayPrice} <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
 
         {/* Calculator groups */}
         <div className="space-y-8">
@@ -376,30 +303,18 @@ export default function CalculatorsHub() {
           })}
         </div>
 
-        {/* OPEX unlock info */}
-        <div
-          className="rounded-2xl p-5 mt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-          style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}
-        >
+        <div className="rounded-2xl p-5 mt-8 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: "rgba(78,142,247,0.06)", border: "0.5px solid rgba(78,142,247,0.20)" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(78,142,247,0.12)" }}>
               <CheckCircle2 className="w-5 h-5" style={{ color: "#4e8ef7" }} />
             </div>
             <div>
-              <p className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.90)" }}>
-                OPEX unlocks everything
-              </p>
-              <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
-                Purchase OPEX Calculator once → avionics, exterior, interior, and detailing are unlocked for your session
-              </p>
+              <p className="text-sm font-bold text-white/90">Turn calculator outputs into a buying decision</p>
+              <p className="text-[11px] text-white/55">Deal Analysis combines valuation, ownership economics, risk and negotiation guidance.</p>
             </div>
           </div>
-          <Link
-            to="/opex-calculator"
-            className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black transition-opacity hover:opacity-90"
-            style={{ background: "#4e8ef7", color: "#fff" }}
-          >
-            <Calculator className="w-3.5 h-3.5" /> Start with OPEX
+          <Link to="/pricing" className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black" style={{ background: "#4e8ef7", color: "#fff" }}>
+            <Calculator className="w-3.5 h-3.5" /> Get Deal Analysis {ABOS_PRODUCTS.DEAL_ANALYSIS.displayPrice}
           </Link>
         </div>
       </div>

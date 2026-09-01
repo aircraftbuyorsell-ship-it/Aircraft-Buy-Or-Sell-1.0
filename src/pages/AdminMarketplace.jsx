@@ -5,6 +5,7 @@ import { ShieldCheck, Code2, Zap, Users } from "lucide-react";
 import AdminDeveloperTable from "@/components/admin/AdminDeveloperTable";
 import AdminToolTable from "@/components/admin/AdminToolTable";
 import { useTheme } from "@/lib/useTheme";
+import { isAdminRole } from "@/utils/roles";
 
 const TABS = [
   { key: "developers", label: "Developer Accounts", icon: Users },
@@ -24,13 +25,13 @@ export default function AdminMarketplace() {
 
   const { data: developers = [], isLoading: devLoading } = useQuery({
     queryKey: ["admin-developers"],
-    enabled: user?.role === "admin",
+    enabled: isAdminRole(user),
     queryFn: () => base44.entities.DeveloperAccount.list("-created_date", 100),
   });
 
   const { data: tools = [], isLoading: toolsLoading } = useQuery({
     queryKey: ["admin-tools"],
-    enabled: user?.role === "admin",
+    enabled: isAdminRole(user),
     queryFn: () => base44.entities.ToolIntegration.list("-created_date", 100),
   });
 

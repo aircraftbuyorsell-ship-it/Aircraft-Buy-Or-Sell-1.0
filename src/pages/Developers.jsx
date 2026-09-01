@@ -7,6 +7,7 @@ import DeveloperOnboarding from "@/components/developers/DeveloperOnboarding";
 import DeveloperDashboard from "@/components/developers/DeveloperDashboard";
 import SubmitToolModal from "@/components/developers/SubmitToolModal";
 import AgentConnectInstructions from "@/components/coreapi/AgentConnectInstructions";
+import ApprovedApiAccessGate from "@/components/access/ApprovedApiAccessGate";
 
 const W1 = "rgba(255,255,255,0.90)";
 const W2 = "rgba(255,255,255,0.60)";
@@ -61,6 +62,7 @@ export default function Developers() {
   }
 
   return (
+    <ApprovedApiAccessGate title="Developer access is approval-only" description="The ABOS Developer Portal is for approved developers and API partners. Sign in and request access from the API overview to continue.">
     <div className="px-4 sm:px-6 lg:px-10 py-6 max-w-[1400px] mx-auto min-h-screen" style={{ background: "transparent" }}>
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
@@ -137,5 +139,6 @@ export default function Developers() {
         />
       )}
     </div>
+    </ApprovedApiAccessGate>
   );
 }

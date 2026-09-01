@@ -1,5 +1,3 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-
 export function normalizeRegistration(value: string | null | undefined) {
   return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 }

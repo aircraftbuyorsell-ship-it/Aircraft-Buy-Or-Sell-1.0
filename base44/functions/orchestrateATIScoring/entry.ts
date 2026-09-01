@@ -334,7 +334,16 @@ Return ONLY JSON:
       Object.entries(scored).map(([k, v]) => [k, v.score])
     );
     const atiTotal = Object.values(dimensionScores).reduce((s, v) => s + v, 0);
-    const scoreLabel = labelFromTotal(atiTotal);
+
+    // Missing source coverage is not negative evidence. A zero generated only
+    // because the authoritative source has no record must never be rendered as
+    // a factual AVOID verdict. Keep the numeric score for auditability, but
+    // expose an explicit data-sufficiency state to consumers.
+    const missingOnly = (value) => /missing|not (provided|available|found)|unavailable|unknown|no data|no record|not covered|cannot verify/i.test(String(value || ''));
+    const insufficientData = atiTotal === 0
+      && missingData.length > 0
+      && (riskFlags.length === 0 || riskFlags.every(missingOnly));
+    const scoreLabel = insufficientData ? "INSUFFICIENT_DATA" : labelFromTotal(atiTotal);
 
     // ─── 2) Generate executive summary + recommendations ──────────────
     const summaryRes = await base44.integrations.Core.InvokeLLM({
@@ -392,6 +401,7 @@ Return JSON:
       listing: listingId,
       ...(user ? { triggered_by: user.id } : {}),
       ati_total: atiTotal,
+      data_sufficiency: insufficientData ? "insufficient" : "sufficient_or_partial",
       ...dimensionScores,
       score_label: scoreLabel,
       ai_summary: summaryRes.ai_summary,
@@ -458,6 +468,7 @@ Return JSON:
       ati_total: atiTotal,
       score_label: scoreLabel,
       dimensions: dimensionScores,
+      data_sufficiency: insufficientData ? "insufficient" : "sufficient_or_partial",
     });
   } catch (error) {
     return Response.json({ error: error.message, stack: error.stack }, { status: 500 });

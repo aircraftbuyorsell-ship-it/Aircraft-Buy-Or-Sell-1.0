@@ -31,7 +31,10 @@ Deno.serve(async (req) => {
     // ABOS_-prefixed fallbacks) straight from function secrets - no OAuth
     // hop, no "list every project to find ours" Management API round trip.
     // Falls back to the connector only when secrets aren't configured.
-    let restBase, serviceKey, projectId = PROJECT_REF, cachedAccessToken = null;
+    let restBase = '';
+    let serviceKey = '';
+    let projectId = PROJECT_REF;
+    let cachedAccessToken: string | null = null;
     const { url: secretsUrl, key: secretsKey } = getSupabaseConfig();
     if (secretsUrl && secretsKey) {
       restBase = secretsUrl;

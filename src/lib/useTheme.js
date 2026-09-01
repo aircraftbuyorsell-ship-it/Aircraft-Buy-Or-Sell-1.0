@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "abos-theme";
 
-// Light mode is the default; dark mode is user-selected.
+// Dark 18:00–06:00, light otherwise
 function isNightHour() {
   const h = new Date().getHours();
   return h >= 18 || h < 6;
@@ -11,8 +11,8 @@ function isNightHour() {
 function resolveIsDark(stored) {
   if (stored === "dark") return true;
   if (stored === "light") return false;
-  // Default to light mode (main mode)
-  return false;
+  // Default to dark mode (main mode)
+  return true;
 }
 
 function applyClass(isDark) {

@@ -1,11 +1,11 @@
 import { FileUp, Search } from "lucide-react";
 
 export default function FinanceHero({ input, placeholder, onChange, onSubmit, onScenario, onFile }) {
-  const scenarios = ["Valuation", "Market Report", "Investment Brief", "OPEX", "Insurance", "Leasing", "Upgrade Costs", "Service Intelligence"];
+  const scenarios = ["Buy Analysis", "OPEX Breakdown", "Pre-Buy Assessment", "Lease Feasibility"];
   return <div className="mx-auto max-w-3xl py-8 text-center sm:py-14">
-    <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-gold">ABOS Assistant · Aircraft Intelligence OS</p>
-    <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-5xl">One assistant. The whole aircraft decision.</h1>
-    <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Start with a registration or FAA registry PDF. ABOS Assistant can orchestrate valuation, market reports, investment briefing, calculators, and service intelligence around the same aircraft Digital Twin.</p>
+    <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-gold">Aviation Investment OS</p>
+    <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-5xl">Start with the aircraft.</h1>
+    <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-muted-foreground">Enter a registry marking or upload an FAA registry PDF. We will initialize its Digital Twin before the advisor begins.</p>
     <form onSubmit={e => { e.preventDefault(); onSubmit(); }} className="relative mx-auto mt-8 max-w-2xl"><Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gold" /><input value={input} onChange={e => onChange(e.target.value)} placeholder="" aria-label="Aircraft registration or analysis request" className="h-14 w-full rounded-2xl border border-border bg-card pl-12 pr-40 text-sm shadow-lg outline-none ring-gold/30 focus:ring-2" /><span className="pointer-events-none absolute left-12 top-1/2 hidden -translate-y-1/2 text-sm text-muted-foreground sm:block" aria-hidden="true">{!input && <>{placeholder}<i className="ml-0.5 border-r border-gold animate-pulse" /></>}</span><div className="absolute right-1.5 top-1.5 flex gap-1.5"><button type="submit" className="rounded-xl bg-gold px-3 py-2.5 text-xs font-black text-black">Enter Registration</button><label className="flex cursor-pointer items-center justify-center rounded-xl border border-border bg-muted px-3 text-muted-foreground hover:text-foreground"><FileUp className="h-4 w-4" /><input type="file" accept="application/pdf" className="hidden" onChange={e => onFile(e.target.files?.[0])} /></label></div></form>
     <div className="mt-4 flex flex-wrap justify-center gap-2">{scenarios.map(s => <button key={s} onClick={() => onScenario(s)} className="rounded-full border border-border bg-card px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground hover:border-gold/50 hover:text-gold">{s}</button>)}</div>
   </div>;

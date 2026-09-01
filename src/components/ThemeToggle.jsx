@@ -11,12 +11,12 @@ function isNightHour() {
 function resolveIsDark(mode) {
   if (mode === "dark") return true;
   if (mode === "light") return false;
-  // Default to light mode (main mode)
-  return false;
+  // Default to dark mode (main mode)
+  return true;
 }
 
 export default function ThemeToggle() {
-  const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "light");
+  const [mode, setMode] = useState(() => localStorage.getItem(STORAGE_KEY) || "auto");
 
   const isDark = resolveIsDark(mode);
 
@@ -35,9 +35,9 @@ export default function ThemeToggle() {
     return () => clearInterval(interval);
   }, [mode]);
 
-  // Cycle: light → dark → auto → light
+  // Cycle: auto → dark → light → auto
   const cycle = () => {
-    setMode((prev) => (prev === "light" ? "dark" : prev === "dark" ? "auto" : "light"));
+    setMode((prev) => (prev === "auto" ? "dark" : prev === "dark" ? "light" : "auto"));
   };
 
   const Icon = mode === "auto" ? Monitor : isDark ? Moon : Sun;
@@ -48,13 +48,13 @@ export default function ThemeToggle() {
       onClick={cycle}
       className="relative flex items-center gap-2 px-2.5 h-9 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all overflow-hidden"
       style={{
-        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(212,160,23,0.08)",
+        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(255,255,255,0.06)",
         border: "1px solid",
-        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(0,0,0,0.10)",
-        color: isDark ? "#F5C842" : "#6B6560",
+        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(255,255,255,0.10)",
+        color: isDark ? "#F5C842" : "rgba(255,255,255,0.70)",
       }}
       aria-label={`Theme: ${mode}. Click to change.`}
-      title={mode === "auto" ? "Auto — click for light" : isDark ? "Dark mode — click for auto" : "Light mode — click for dark"}
+      title={mode === "auto" ? "Auto (time-based) — click for dark" : isDark ? "Dark mode — click for light" : "Light mode — click for auto"}
     >
       {/* Glow halo behind icon */}
       <span

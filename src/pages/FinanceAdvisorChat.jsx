@@ -9,7 +9,7 @@ import MessageBubble from "@/components/finance/MessageBubble";
 import MobileConversationDrawer from "@/components/finance/MobileConversationDrawer";
 import SkillPipelineChips from "@/components/finance/SkillPipelineChips";
 
-const HINTS = ["Enter N123AB to run a full ABOS aircraft analysis…", "Ask for valuation, market report, or investment briefing…", "Try OPEX, insurance, leasing, upgrade, or service intelligence…"];
+const HINTS = ["Enter N123AB to start investment analysis…", "Try OK-TNG for EASA registry…", "Upload FAA N-Number PDF…"];
 const REGEX = /\b(?:N\d{1,5}[A-Z]{0,2}|G-[A-Z]{4}|[A-Z]{1,2}-[A-Z]{2,5})\b/i;
 
 function ToolCallDisplay({ toolCall }) {
@@ -36,17 +36,6 @@ export default function FinanceAdvisorChat() {
 
   useEffect(() => { (async () => { const data = await base44.agents.listConversations({ agent_name: "finance_advisor" }); setConversations((data || []).filter(conversation => !conversation.metadata?.archived)); setLoadingConversations(false); })(); }, []);
   useEffect(() => { if (!activeConversationId) return; return base44.agents.subscribeToConversation(activeConversationId, data => setMessages(data.messages || [])); }, [activeConversationId]);
-  useEffect(() => {
-    const onVerificationHandoff = event => {
-      const data = event.detail || {};
-      const registration = data.registration || data.digitalTwin?.registration;
-      if (!registration) return;
-      setAircraft({ registration, make: data.modules?.registry?.manufacturer, model: data.modules?.registry?.model, year: data.modules?.registry?.year, ati_score: data.ati_score });
-      setInput(data.handoff?.prompt || `Analyse ${registration} using the completed verification context.`);
-    };
-    window.addEventListener('abos:assistant-handoff', onVerificationHandoff);
-    return () => window.removeEventListener('abos:assistant-handoff', onVerificationHandoff);
-  }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   const detectRegistration = value => value?.match(REGEX)?.[0]?.toUpperCase() || null;
@@ -97,7 +86,7 @@ export default function FinanceAdvisorChat() {
   return <div className="min-h-screen bg-background md:flex">
     <ConversationSidebar conversations={conversations} activeId={activeConversationId} loading={loadingConversations} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); setAircraft(conversation.metadata?.registration ? { registration: conversation.metadata.registration } : null); }} onDelete={deleteConversation} />
     <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-      <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden"><MobileConversationDrawer open={mobileDrawerOpen} conversations={conversations} onClose={setMobileDrawerOpen} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); }} onDelete={deleteConversation} /><Brain className="h-5 w-5 text-gold" /><span className="text-sm font-black text-foreground">ABOS Assistant</span></header>
+      <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden"><MobileConversationDrawer open={mobileDrawerOpen} conversations={conversations} onClose={setMobileDrawerOpen} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); }} onDelete={deleteConversation} /><Brain className="h-5 w-5 text-gold" /><span className="text-sm font-black text-foreground">Pricing Assistant</span></header>
       <section className="flex-1 overflow-y-auto px-4 py-5 md:px-6"><div className="mx-auto max-w-3xl space-y-4">
         {!messages.length && !loading ? <FinanceHero input={input} placeholder={placeholder} onChange={setInput} onSubmit={() => sendMessage()} onScenario={scenario => setInput(`${input ? `${input} · ` : ""}${scenario}`)} onFile={handlePdf} /> : <>
           {aircraft && <AircraftIdentityChip aircraft={aircraft} />}

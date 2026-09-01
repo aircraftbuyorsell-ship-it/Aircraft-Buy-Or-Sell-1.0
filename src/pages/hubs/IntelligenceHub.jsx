@@ -1,14 +1,26 @@
-import { BarChart2, BrainCircuit } from "lucide-react";
+import {
+  BarChart2, SlidersHorizontal, FileText, Brain, BrainCircuit,
+  Calculator, Wrench,
+} from "lucide-react";
 import HubTabs, { lazyPage } from "@/components/hub/HubTabs";
 import InstrumentHubHeader from "@/components/hub/InstrumentHubHeader";
 
+const Analytics = lazyPage(() => import("@/pages/Analytics"));
+const ValuationStudio = lazyPage(() => import("@/pages/ValuationStudio"));
+const MarketReports = lazyPage(() => import("@/pages/MarketReports"));
+const InvestmentBrief = lazyPage(() => import("@/pages/InvestmentBrief"));
 const FinanceAdvisorChat = lazyPage(() => import("@/pages/FinanceAdvisorChat"));
+const ServiceIntelligence = lazyPage(() => import("@/pages/ServiceIntelligence"));
+const CalculatorsHub = lazyPage(() => import("@/pages/CalculatorsHub"));
 
-// ABOS Assistant is the single conversational entry point for the Intelligence stack.
-// The underlying specialist pages remain available through direct routes, but are
-// treated as assistant capabilities rather than separate Intelligence products.
 const TABS = [
-  { key: "assistant", label: "ABOS Assistant", icon: BrainCircuit, Component: FinanceAdvisorChat },
+  { key: "analytics", label: "Market Analytics", icon: BarChart2, Component: Analytics },
+  { key: "valuation", label: "Valuation Studio", icon: SlidersHorizontal, Component: ValuationStudio },
+  { key: "reports", label: "Market Reports", icon: FileText, Component: MarketReports },
+  { key: "investment", label: "Investment Brief", icon: Brain, Component: InvestmentBrief },
+  { key: "finance-advisor", label: "Pricing Assistant", icon: BrainCircuit, Component: FinanceAdvisorChat },
+  { key: "calculators", label: "Calculators", icon: Calculator, Component: CalculatorsHub },
+  { key: "service-intel", label: "Service Intel", icon: Wrench, Component: ServiceIntelligence },
 ];
 
 export default function IntelligenceHub() {
@@ -17,15 +29,15 @@ export default function IntelligenceHub() {
       <InstrumentHubHeader
         icon={BarChart2}
         eyebrow="Intelligence"
-        title="ABOS Assistant"
-        subtitle="One conversational intelligence layer for valuation, market reports, investment briefing, calculators, and service intelligence."
+        title="Market Intelligence & Valuation"
+        subtitle="Run valuations, analyze market trends, calculate operating costs, and generate investment briefs — all from one workbench."
         readouts={[
-          { label: "Capabilities", value: "6" },
+          { label: "Tools", value: String(TABS.length) },
           { label: "Currency", value: "EUR" },
           { label: "Engine", value: "OMVM v5" },
         ]}
       />
-      <HubTabs tabs={TABS} defaultTab="assistant" />
+      <HubTabs tabs={TABS} defaultTab="analytics" />
     </div>
   );
 }

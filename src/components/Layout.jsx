@@ -19,7 +19,6 @@ import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import { NAV_TREE } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
-import StElmoChat from "@/components/stelmo/StElmoChat";
 
 
 function initials(user) {
@@ -334,7 +333,6 @@ export default function Layout() {
       <SiteFooter />
       <ABOSTour />
       <MarketspaceTour />
-      <StElmoChat />
     </div>);
 
 }

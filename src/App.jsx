@@ -95,6 +95,7 @@ import OAuthAuthorize from "./pages/OAuthAuthorize";
 import OAuthConsent from "./pages/OAuthConsent";
 import InvestmentBrief from "./pages/InvestmentBrief";
 import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
+import StElmoChat from "./pages/StElmoChat";
 import FractionalCalculators from "./pages/FractionalCalculators";
 import RegistryComparator from "./pages/RegistryComparator";
 import CalculatorsHub from "./pages/CalculatorsHub";
@@ -221,6 +222,7 @@ const AuthenticatedApp = () => {
         <Route path="/oauth-authorize" element={<OAuthAuthorize />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
         <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
+        <Route path="/st-elmo" element={<StElmoChat />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
         <Route path="/registry-comparator" element={<RegistryComparator />} />
         <Route path="/calculators" element={<CalculatorsHub />} />

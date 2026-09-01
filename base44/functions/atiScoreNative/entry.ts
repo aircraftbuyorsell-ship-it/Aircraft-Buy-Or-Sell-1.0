@@ -94,6 +94,29 @@ function hasCleanHistory(aircraft, listingText) {
   return /no damage|zero damage|clean title|no incidents|none reported/.test(d + ' ' + t);
 }
 
+function isMissingOnlyFinding(value) {
+  return /missing|not (provided|available|found)|unavailable|unknown|no data|no record|not covered|cannot verify/i.test(String(value || ''));
+}
+
+function shouldUseInsufficientDataState(ati, aircraft, listingText) {
+  const registration = String(aircraft.registration || ati.registration || '').trim().toUpperCase();
+  const nonUsRegistration = registration && !registration.startsWith('N');
+  const missing = Array.isArray(ati.missing_data) ? ati.missing_data : [];
+  const risks = Array.isArray(ati.red_flags) ? ati.red_flags : [];
+
+  // Missing FAA coverage for an international registration is a coverage gap,
+  // not evidence that the aircraft is unsafe or should be avoided.
+  const faaGap = nonUsRegistration && /FAA|US registry|FAA data/i.test(`${missing.join(' ')} ${risks.join(' ')} ${listingText || ''}`)
+    && !/accident|damage|overdue|unairworthy|violation|fraud|lien/i.test(risks.join(' '));
+
+  // A completely unscored aircraft with only missing-data findings must not be
+  // converted into a factual AVOID verdict.
+  const zeroWithMissingOnly = ati.ati_score === 0 && missing.length > 0
+    && risks.length > 0 && risks.every(isMissingOnlyFinding);
+
+  return faaGap || zeroWithMissingOnly;
+}
+
 function cardCode(reg, sequence) {
   const clean = (reg || 'XX').replace(/[^A-Z0-9]/g, '');
   return `ATI-US-NTV-${clean}-${String(sequence).padStart(6, '0')}-V1`;

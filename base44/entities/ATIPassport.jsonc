@@ -83,8 +83,17 @@
         "FAIR",
         "CAUTION",
         "RED FLAGS",
-        "AVOID"
+        "AVOID",
+        "INSUFFICIENT_DATA"
       ]
+    },
+    "data_sufficiency": {
+      "type": "string",
+      "enum": [
+        "sufficient_or_partial",
+        "insufficient"
+      ],
+      "description": "Whether available evidence is sufficient for an adverse ATI conclusion"
     },
     "ai_summary": {
       "type": "string",

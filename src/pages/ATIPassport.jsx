@@ -185,7 +185,7 @@ Score this aircraft listing across 8 dimensions, each scored 0–15 points (inte
 ═══ SCORING RUBRIC (each out of 15) ═══
 
 1. documentation (0–15): Logbook completeness, airframe/engine records, damage history disclosure.
-   AUTO PENALTY: –5 if damage history absent on aircraft >15 years old. Cap at 8 if logbooks missing.
+   Missing damage-history evidence is a DATA_GAP, not evidence of damage. Cap documentation at 8 if required logbooks are missing, but do not infer an adverse history.
 
 2. technical (0–15): AD compliance, maintenance traceability, known squawks, Form 337 STCs documented.
 
@@ -206,7 +206,9 @@ Score this aircraft listing across 8 dimensions, each scored 0–15 points (inte
 
 ═══ HARD RULES ═══
 - NEVER score total 110+ without documented annual, SMOH, and clean damage history
-- Be conservative — missing data must lower that dimension's score
+- Be conservative — missing data may reduce confidence or the affected dimension, but MUST NOT be treated as proof of a negative fact
+- Unverified ≠ false, unsafe, defective, overpriced, or AVOID
+- If the available evidence is insufficient to support a meaningful adverse conclusion, return score_label = INSUFFICIENT_DATA and data_sufficiency = insufficient
 - deal_radar_eligible = true ONLY if ati_total >= 93 AND asking price is ≥ 8% below market
 - co_ownership_viable = true if asking_price >= 150000
 
@@ -245,9 +247,16 @@ Return ONLY raw JSON:
         },
       });
 
-      const ati_total = result.documentation + result.technical + result.transparency +
+          const ati_total = result.documentation + result.technical + result.transparency +
         result.transaction_ready + result.usage_mission + result.storage_exposure +
         result.config_clarity + result.market_readiness;
+
+      const missing = Array.isArray(result.missing_data) ? result.missing_data : [];
+      const risks = Array.isArray(result.risks) ? result.risks : [];
+      const missingOnly = (value) => /missing|not (provided|available|found)|unavailable|unknown|no data|no record|not covered|cannot verify/i.test(String(value || ''));
+      const dataSufficiency = ati_total === 0 && missing.length > 0 && (risks.length === 0 || risks.every(missingOnly))
+        ? "insufficient" : "sufficient_or_partial";
+      const effectiveScoreLabel = dataSufficiency === "insufficient" ? "INSUFFICIENT_DATA" : (result.score_label || null);
 
       let omvm_value = null;
       let discountPct = null;
@@ -287,7 +296,8 @@ Return ONLY raw JSON:
         transparency: result.transparency, transaction_ready: result.transaction_ready,
         usage_mission: result.usage_mission, storage_exposure: result.storage_exposure,
         config_clarity: result.config_clarity, market_readiness: result.market_readiness,
-        score_label: result.score_label || null,
+        score_label: effectiveScoreLabel,
+        data_sufficiency: dataSufficiency,
         ai_summary: result.ai_summary,
         strengths: (result.strengths || []).join("\n"),
         risks: (result.risks || []).join("\n"),
@@ -313,7 +323,7 @@ Return ONLY raw JSON:
         type: "ati_score",
         subject: { type: "listing", id: listingId, label: subjectLabel },
         inputs: { year: listing.year, make: listing.make, model: listing.model, total_time: listing.total_time, engine_hours: listing.engine_hours, tbo: listing.tbo, fresh_annual: listing.fresh_annual, avionics: listing.avionics, asking_price: listing.asking_price },
-        outputs: { ati_total, score_label: result.score_label, dimensions: { documentation: result.documentation, technical: result.technical, transparency: result.transparency, transaction_ready: result.transaction_ready, usage_mission: result.usage_mission, storage_exposure: result.storage_exposure, config_clarity: result.config_clarity, market_readiness: result.market_readiness }, omvm_value, discount_pct: discountPct, deal_score, deal_label },
+        outputs: { ati_total, score_label: effectiveScoreLabel, data_sufficiency: dataSufficiency, dimensions: { documentation: result.documentation, technical: result.technical, transparency: result.transparency, transaction_ready: result.transaction_ready, usage_mission: result.usage_mission, storage_exposure: result.storage_exposure, config_clarity: result.config_clarity, market_readiness: result.market_readiness }, omvm_value, discount_pct: discountPct, deal_score, deal_label },
         version: "ati_v2", source: "pages/ATIPassport:handleGenerate", actor: me?.email || "system", reasoning: result.ai_summary,
       });
 

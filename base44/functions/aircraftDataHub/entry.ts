@@ -3,6 +3,7 @@ import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 import { getSupabaseConfig } from '../_shared/aircraftTwin.ts';
 
 const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
+
 const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');

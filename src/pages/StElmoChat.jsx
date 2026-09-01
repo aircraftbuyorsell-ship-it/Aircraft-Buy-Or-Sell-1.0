@@ -56,7 +56,7 @@ export default function StElmoChat() {
       const res = await base44.functions.invoke("registryLookup", { registration });
       const found = res?.data?.aircraft;
       if (found) setAircraft({ registration, make: found.make || found.manufacturer, model: found.model, year: found.year });
-    } catch (_) { /* chip stays minimal */ }
+    } catch { /* chip stays minimal */ }
   }, []);
 
   const ensureConversation = useCallback(async text => {

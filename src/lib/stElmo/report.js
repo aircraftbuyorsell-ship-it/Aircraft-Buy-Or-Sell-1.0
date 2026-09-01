@@ -17,6 +17,7 @@ const LABELS = Object.freeze({
   marketspace: "Marketspace",
   buyers: "Buyer matches",
   transaction: "Transaction",
+  knowledge: "ABOS Knowledge",
 });
 
 const MISSING_LABEL = Object.freeze({
@@ -77,6 +78,12 @@ function stepLine(step) {
  */
 export function renderStElmoAnswer({ reasoning = null, run = null } = {}) {
   const summary = String(reasoning?.reasoning_summary || "").trim();
+
+  // Knowledge lookup is an evidence-producing conversational capability.
+  if (run?.evidence?.knowledge?.definition) {
+    const knowledge = run.evidence.knowledge;
+    return `**${knowledge.title}**\n\n${knowledge.definition}\n\n*Source: ${knowledge.source || "ABOS knowledge base"}*`;
+  }
 
   // No executable plan: St. Elmo was talking, not working. Show what it said
   // rather than an empty "Plan ready:".

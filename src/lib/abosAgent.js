@@ -1,10 +1,11 @@
 import { runVerificationAssistant } from "@/lib/verificationAssistant";
 import { runMarketspaceAssistant } from "@/lib/marketspaceAssistant";
-import { buildAgentWorkflow } from "@/lib/abosAgentProtocol";
+import { buildAgentWorkflow, buildAPLPlan, capabilityOwner, ADL_AGENTS } from "@/lib/abosAgentProtocol";
 import { base44 } from "@/api/base44Client";
 import { ST_ELMO_MODEL } from "@/lib/model/provider/nemotron/config";
 import { runStElmoWorker } from "@/lib/stElmo/worker";
 import { buildStElmoEngines } from "@/lib/stElmo/engines";
+import { buildADLContext, delegateAPLPlan, ST_ELMO_AGENTS } from "@/lib/stElmo/agents";
 
 /**
  * ABOS Agent orchestration layer.
@@ -24,22 +25,42 @@ export async function runABOSAgent(request, options = {}) {
   let reasoning = null;
   if (options.useReasoning !== false) {
     try {
-      const response = await base44.functions.invoke("stElmoReasoning", {
-        request: text,
-        context: { registration, intent: requestedIntent || null },
+      const response = await fetch("https://abos-st-elmo.aircraftbuyorsell.workers.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "abos-st-elmo",
+          messages: [
+            { role: "user", content: `ABOS request: ${text}\nContext: ${JSON.stringify({ registration, intent: requestedIntent || null })}` },
+          ],
+          temperature: 0.2,
+          max_tokens: 4096,
+        }),
       });
-      reasoning = response?.data || null;
+      if (!response.ok) throw new Error(`St. Elmo Worker returned ${response.status}`);
+      const payload = await response.json();
+      const content = payload?.choices?.[0]?.message?.content;
+      reasoning = { ...payload, answer: typeof content === "string" ? content : null };
     } catch (_) {
       // Deterministic ABOS routing remains the safe fallback when the reasoning backend is unavailable.
     }
   }
+
+  // ADL/APL is authoritative for execution. If the model is unavailable or returns
+  // prose without an executable plan, derive a deterministic APL plan instead of
+  // leaving the request as a dead-end chat response.
+  const aplPlan = Array.isArray(reasoning?.plan) && reasoning.plan.length
+    ? reasoning.plan
+    : buildAPLPlan(text, { registration });
 
   const result = {
     request: text,
     model: ST_ELMO_MODEL,
     reasoning,
     registration,
-    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: reasoning?.plan || [] },
+    agent: ST_ELMO_AGENTS.master,
+    adl: buildADLContext({ request: text, registration, plan: aplPlan }),
+    workflow: { current: registration ? "aircraft_context" : "discovery", completed: [], blocked: [], next: [], reasoningPlan: aplPlan, delegation: delegateAPLPlan(aplPlan) },
     aircraft: null,
     verification: null,
     marketspace: null,
@@ -53,9 +74,9 @@ export async function runABOSAgent(request, options = {}) {
   // Execute the reasoning plan instead of only displaying it. The worker gathers
   // evidence through the ABOS engines; the deterministic routing below still runs
   // so the agent behaves identically when the reasoning backend is unavailable.
-  if (reasoning?.plan?.length && options.executePlan !== false) {
+  if (aplPlan.length && options.executePlan !== false) {
     result.worker = await runStElmoWorker({
-      plan: reasoning.plan,
+      plan: aplPlan,
       engines: options.engines || buildStElmoEngines(options),
       context: { registration, request: text, intent: requestedIntent || null },
       onPhase: options.onWorkerPhase,
@@ -93,7 +114,8 @@ export async function runABOSAgent(request, options = {}) {
   }
 
   result.workflow.current = result.transaction ? "transaction" : result.verification ? "analysis" : result.marketspace ? "marketspace" : "discovery";
-  result.workflow = { ...result.workflow, ...buildAgentWorkflow({ aircraft: result.aircraft, verification: result.verification, marketspace: result.marketspace, transaction: result.transaction }) };
+  const workflowState = buildAgentWorkflow({ aircraft: result.aircraft, verification: result.verification, marketspace: result.marketspace, transaction: result.transaction });
+  result.workflow = { ...result.workflow, ...workflowState, next: workflowState.next ? [workflowState.next] : [] };
   result.workflow.nextActions = result.marketspace?.nextActions || [];
   return result;
 }

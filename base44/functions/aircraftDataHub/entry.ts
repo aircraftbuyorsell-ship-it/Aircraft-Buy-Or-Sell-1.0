@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
-import { getSupabaseConfig } from '../_shared/aircraftTwin.ts';
 
 const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
 const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
@@ -27,44 +26,27 @@ Deno.serve(async (req) => {
     const capabilityError = requireCapability(access, 'advanced_intelligence');
     if (capabilityError) return capabilityError;
 
-    // Secrets first: reads SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY (or the
-    // ABOS_-prefixed fallbacks) straight from function secrets - no OAuth
-    // hop, no "list every project to find ours" Management API round trip.
-    // Falls back to the connector only when secrets aren't configured.
-    let restBase = '';
-    let serviceKey = '';
-    let projectId = PROJECT_REF;
-    let cachedAccessToken: string | null = null;
-    const { url: secretsUrl, key: secretsKey } = getSupabaseConfig();
-    if (secretsUrl && secretsKey) {
-      restBase = secretsUrl;
-      serviceKey = secretsKey;
-    } else {
-      const { accessToken } = await base44.asServiceRole.connectors.getConnection('supabase');
-      cachedAccessToken = accessToken;
-      const projectsResponse = await fetch('https://api.supabase.com/v1/projects', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!projectsResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
-      const projects = await projectsResponse.json();
-      const project = projects.find((item) => item.id === PROJECT_REF || item.ref === PROJECT_REF)
-        || projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase())
-        || (projects.length === 1 ? projects[0] : null);
-      if (!project) return Response.json({ error: 'Aircraft data source not found' }, { status: 502 });
-      projectId = project.id;
+    const { accessToken } = await base44.asServiceRole.connectors.getConnection('supabase');
+    const projectsResponse = await fetch('https://api.supabase.com/v1/projects', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!projectsResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
+    const projects = await projectsResponse.json();
+    const project = projects.find((item) => item.id === PROJECT_REF || item.ref === PROJECT_REF)
+      || projects.find((item) => String(item.name || '').toLowerCase() === PROJECT_NAME.toLowerCase())
+      || (projects.length === 1 ? projects[0] : null);
+    if (!project) return Response.json({ error: 'Aircraft data source not found' }, { status: 502 });
 
-      const keysResponse = await fetch(`https://api.supabase.com/v1/projects/${project.id}/api-keys`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!keysResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
-      const keys = await keysResponse.json();
-      serviceKey = keys.find((item) => item.name === 'service_role')?.api_key;
-      if (!serviceKey) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
-      restBase = `https://${project.id}.supabase.co`;
-    }
+    const keysResponse = await fetch(`https://api.supabase.com/v1/projects/${project.id}/api-keys`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!keysResponse.ok) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
+    const keys = await keysResponse.json();
+    const serviceKey = keys.find((item) => item.name === 'service_role')?.api_key;
+    if (!serviceKey) return Response.json({ error: 'Aircraft data source unavailable' }, { status: 502 });
 
     const rest = async (table, params) => {
-      const response = await fetch(`${restBase}/rest/v1/${table}?${params}`, {
+      const response = await fetch(`https://${project.id}.supabase.co/rest/v1/${table}?${params}`, {
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
       });
       return response.ok ? await response.json() : [];
@@ -137,24 +119,12 @@ Deno.serve(async (req) => {
          or lower(coalesce(description,'')) like lower('%${modelNeedle}%')
       order by approval_date desc nulls last limit 50;
     ` : '';
-    // Best-effort: AD/STC compliance lookup needs the Management API's SQL
-    // endpoint regardless of the secrets-first path above, since a service-role
-    // key only reaches PostgREST, not this endpoint. A missing/failed token
-    // costs this enrichment only, never the whole aircraft lookup.
     const compliancePromise = complianceQuery
-      ? (async () => {
-          try {
-            const token = cachedAccessToken || (await base44.asServiceRole.connectors.getConnection('supabase')).accessToken;
-            const response = await fetch(`https://api.supabase.com/v1/projects/${projectId}/database/query/read-only`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query: complianceQuery }),
-            });
-            return response.ok ? await response.json() : [];
-          } catch (_) {
-            return [];
-          }
-        })()
+      ? fetch(`https://api.supabase.com/v1/projects/${project.id}/database/query/read-only`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: complianceQuery }),
+        }).then(async (response) => response.ok ? await response.json() : [])
       : Promise.resolve([]);
 
     const [engineSpecs, compliance] = await Promise.all([enginePromise, compliancePromise]);

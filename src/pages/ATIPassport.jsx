@@ -243,6 +243,8 @@ Return ONLY raw JSON:
             strengths: { type: "array", items: { type: "string" } },
             risks: { type: "array", items: { type: "string" } },
             recommendations: { type: "array", items: { type: "string" } },
+            score_label: { type: "string" },
+            data_sufficiency: { type: "string", enum: ["sufficient_or_partial", "insufficient"] },
           },
         },
       });

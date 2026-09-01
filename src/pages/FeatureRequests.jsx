@@ -3,9 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Lightbulb, ChevronUp, Plus, MessageSquare, Search,
-  Filter, X, Loader2, CheckCircle2, Clock, Rocket,
-  AlertCircle, Ban, Trash2
+  Lightbulb, ChevronUp, Plus, MessageSquare, Search, X, Loader2, CheckCircle2, Clock, Rocket, Ban, Trash2
 } from "lucide-react";
 import { isAdminRole } from "@/utils/roles";
 

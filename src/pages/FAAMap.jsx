@@ -98,7 +98,7 @@ export default function FAAMap() {
     setLoading(false);
   }, [filters]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => { fetchData(); }, []);
 
   const submitSearch = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronRight, Circle, FileCheck2, Loader2, ShieldCheck, Sparkles, Map, Radio, Plane, ClipboardCheck, Award, UserCheck } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight, Circle, FileCheck2, Loader2, ShieldCheck, Sparkles, Radio, Plane, ClipboardCheck, Award } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const MODULES = [

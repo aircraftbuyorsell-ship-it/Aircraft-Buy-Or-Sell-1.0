@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Fingerprint, Copy, ExternalLink, Check, Share2, BadgeCheck, ShieldCheck } from "lucide-react";
+import { Fingerprint, Copy, Check, Share2, BadgeCheck, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { STATUS_META, CARD_TYPE_META } from "@/lib/atiCard";
 

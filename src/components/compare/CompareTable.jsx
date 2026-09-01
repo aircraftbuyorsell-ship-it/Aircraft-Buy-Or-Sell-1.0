@@ -1,4 +1,4 @@
-import { X, Plus, ExternalLink, ShieldCheck, TrendingDown, TrendingUp } from "lucide-react";
+import { X, Plus, ExternalLink, TrendingDown, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // ATI score color helper

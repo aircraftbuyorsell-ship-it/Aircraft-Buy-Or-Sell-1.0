@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar } from "lucide-react";
+import { Plane, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar } from "lucide-react";
 
 const AMBER = "#E8A83A";
 

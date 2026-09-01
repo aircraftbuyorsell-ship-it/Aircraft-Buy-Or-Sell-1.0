@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 

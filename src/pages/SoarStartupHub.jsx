@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Rocket, Globe, Zap, Users, TrendingUp, Lightbulb, BarChart3,
+  Rocket, Globe, Zap, Users, TrendingUp, BarChart3,
   Plane, ShieldCheck, ArrowRight, Star, Sparkles, Send,
-  CheckCircle2, Building2, Handshake, Award, Target,
-  ChevronRight, ExternalLink, Layers
+  CheckCircle2, Award, Target,
+  ChevronRight, Layers
 } from "lucide-react";
 
 function Panel({ children, className = "", isDark = true, accent = false }) {

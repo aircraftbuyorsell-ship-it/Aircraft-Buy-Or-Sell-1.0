@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
-import { Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Mail, Search, LockKeyhole, FileJson, Download, Loader2, Wand2 } from "lucide-react";
+import { Terminal, Zap, Building2, Bot, ShieldCheck, ArrowRight, Mail, Search, LockKeyhole, FileJson, Loader2, Wand2 } from "lucide-react";
 import { isAdminRole } from "@/utils/roles";
 
 const CARD_BORDER = "rgba(255,255,255,0.09)";

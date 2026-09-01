@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap, FileCheck } from "lucide-react";
+import { Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";

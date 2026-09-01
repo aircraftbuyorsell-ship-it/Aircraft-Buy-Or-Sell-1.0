@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, TrendingUp, Zap, Gift } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const NOTIFICATION_TYPES = {
   tier_upgrade: {

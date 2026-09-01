@@ -78,7 +78,7 @@ export default function OpexCalculator() {
     queryFn: () => base44.auth.me(),
     retry: false,
   });
-  const tier = user?.tier || user?.role === "admin" ? "enterprise" : "free_explorer";
+  const tier = user?.tier || (user?.role === "admin" ? "enterprise" : "free_explorer");
   const canUseCustom = tier === "starter" || tier === "pro" || tier === "enterprise" || user?.role === "admin" || user?.role === "super_admin";
 
   // --- Prefill from URL params ---

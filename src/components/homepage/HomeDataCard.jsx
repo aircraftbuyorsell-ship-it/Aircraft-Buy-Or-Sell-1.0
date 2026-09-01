@@ -1,4 +1,3 @@
-import { CheckCircle, ArrowRight } from "lucide-react";
 
 function CircularProgress({ value, color = "#3B82F6" }) {
   const size = 56,stroke = 4,r = (size - stroke) / 2;

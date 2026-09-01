@@ -1,6 +1,5 @@
 import { useState } from "react";
-import {
-  Layers, Eye, EyeOff, Plane, Globe, ShieldCheck, Zap,
+import { Plane, Globe, ShieldCheck,
   ChevronDown, Filter, SlidersHorizontal, X, Database
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";

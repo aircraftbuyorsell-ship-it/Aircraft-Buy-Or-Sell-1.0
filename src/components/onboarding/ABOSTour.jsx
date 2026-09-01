@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ShieldCheck, Plane, Radar, BarChart3, Calculator,
-  Handshake, Users, Zap, ChevronRight, ChevronLeft, X,
-  LayoutDashboard, MessageCircle, TrendingUp, CreditCard,
-  ArrowRight, MapPin, Play } from
+  Handshake, Users, Zap,
+  LayoutDashboard, MessageCircle, TrendingUp, CreditCard } from
 "lucide-react";
 import { useTheme } from "@/lib/useTheme";
 

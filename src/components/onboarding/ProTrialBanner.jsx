@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Gift, Copy, Check, Sparkles, X, Coins, CalendarDays, Ticket } from "lucide-react";
+import { Coins, CalendarDays, Ticket } from "lucide-react";
 
 const GIFT_LABELS = {
   bonus_tokens: { label: "200 Bonus Tokens", icon: Coins },

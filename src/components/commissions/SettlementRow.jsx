@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, DollarSign, FileDown } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { ROLE_META } from "@/lib/commission";
 

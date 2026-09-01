@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import {
-  AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, ComposedChart
+import { Area, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ComposedChart
 } from "recharts";
 import { Brain, TrendingUp, TrendingDown, Minus, Loader2, Zap, Activity } from "lucide-react";
 

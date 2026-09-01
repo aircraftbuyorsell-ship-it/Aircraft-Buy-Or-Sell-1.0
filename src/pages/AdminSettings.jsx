@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown, RefreshCw, Loader2, XCircle } from "lucide-react";
+import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, RefreshCw, Loader2, XCircle } from "lucide-react";
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
 import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
 import FeatureTogglePanel from "@/components/settings/FeatureTogglePanel";

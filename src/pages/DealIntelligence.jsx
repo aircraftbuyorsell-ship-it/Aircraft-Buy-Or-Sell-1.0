@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Brain, Loader2, ChevronDown, AlertTriangle, CheckCircle, XCircle,
-  TrendingUp, Target, ArrowRight, Lightbulb, DollarSign,
+  TrendingUp, Target, Lightbulb, DollarSign,
 } from "lucide-react";
 
 const fmtPrice = (n) => n ? `$${Number(n).toLocaleString()}` : "—";

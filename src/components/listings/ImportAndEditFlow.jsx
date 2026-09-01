@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Upload, Sparkles, CheckCircle, AlertTriangle, ChevronLeft, ChevronRight, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Upload, Sparkles, CheckCircle, AlertTriangle, ChevronLeft, Image as ImageIcon, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const STEPS = [

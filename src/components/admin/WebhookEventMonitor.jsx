@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle, XCircle, RefreshCw, RotateCcw } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, RefreshCw, RotateCcw } from "lucide-react";
 
 const STATUS_COLORS = {
   completed: { bg: "bg-green-50", text: "text-green-700", icon: CheckCircle },

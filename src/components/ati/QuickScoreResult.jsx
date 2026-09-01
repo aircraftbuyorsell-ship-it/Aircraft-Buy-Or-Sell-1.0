@@ -1,4 +1,4 @@
-import { Zap, Lock, Unlock, CheckCircle2 } from "lucide-react";
+import { Lock, CheckCircle2 } from "lucide-react";
 
 const DIMS = [
   { key: "documentation", label: "Documentation & Records" },

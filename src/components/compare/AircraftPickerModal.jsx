@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Search, ShieldCheck, Plane } from "lucide-react";
+import { X, Search, Plane } from "lucide-react";
 
 function atiColor(score) {
   if (score == null) return "#ffffff30";

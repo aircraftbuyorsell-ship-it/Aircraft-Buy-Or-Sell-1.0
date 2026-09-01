@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Loader2, Sparkles, CheckCircle2, AlertCircle, X, Database, ExternalLink } from
+  Loader2, Sparkles, CheckCircle2, AlertCircle, X, ExternalLink } from
 "lucide-react";
 import GlobeClock from "@/components/dashboard/GlobeClock";
 

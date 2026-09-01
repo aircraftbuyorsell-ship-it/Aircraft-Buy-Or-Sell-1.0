@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import {
   ArrowLeft, Download, RefreshCw, Zap,
-  ShieldCheck, AlertTriangle, CheckCircle2, Clock
+  ShieldCheck, AlertTriangle, CheckCircle2
 } from "lucide-react";
 import DocumentUploadPanel from "@/components/ati-verify/DocumentUploadPanel";
 import VideoCallPlaceholder from "@/components/ati-verify/VideoCallPlaceholder";

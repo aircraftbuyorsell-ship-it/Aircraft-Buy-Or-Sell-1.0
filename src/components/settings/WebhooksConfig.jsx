@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
   Webhook, Plus, Trash2, Send, ChevronDown, ChevronUp,
-  CheckCircle2, XCircle, Clock, Copy, Eye, EyeOff, Pencil,
+  CheckCircle2, XCircle, Clock, Eye, EyeOff, Pencil,
 } from "lucide-react";
 
 const ALL_EVENTS = [

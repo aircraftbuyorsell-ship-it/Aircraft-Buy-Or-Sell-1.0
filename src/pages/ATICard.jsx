@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, Users, Building2, Hash, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, Users, Hash, BadgeCheck } from "lucide-react";
 import VaultDocumentsPanel from "@/components/cards/VaultDocumentsPanel";
 import { useState } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";

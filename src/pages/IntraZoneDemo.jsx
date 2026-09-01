@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
-  Zap, Clock, Lock, ArrowRight, CheckCircle2, ShieldCheck,
-  FileText, Download, TrendingUp, Calculator, BarChart3, Globe,
+  Zap, Clock, Lock, CheckCircle2, ShieldCheck,
+  FileText, Download, TrendingUp, Calculator, BarChart3,
   Users, Plane, Building2, UserCheck, ChevronRight, RotateCw, Sparkles
 } from "lucide-react";
 

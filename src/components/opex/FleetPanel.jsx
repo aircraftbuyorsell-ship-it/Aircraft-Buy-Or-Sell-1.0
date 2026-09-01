@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Plane, Plus, Trash2, TrendingUp, Calculator, Fuel, Wrench, Gauge, Layers, ChevronDown, ChevronUp, Calendar, Minus, Clock } from "lucide-react";
-import { AIRCRAFT_PRESETS, RESERVE_RATES } from "@/lib/opexEngine";
+import { Plane, Plus, Trash2, Layers, Minus } from "lucide-react";
+import { RESERVE_RATES } from "@/lib/opexEngine";
 import { LOCATION_RATES } from "@/components/opex/LocationAdjustments";
 
 function calcAircraftCost(p, hours, locationMult) {

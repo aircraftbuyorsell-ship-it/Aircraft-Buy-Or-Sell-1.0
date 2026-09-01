@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Plane, Radar, Scale, GitBranch, Handshake, X, ChevronLeft,
-  ChevronRight, Play, RotateCcw, Sparkles,
+  ChevronRight, RotateCcw, Sparkles,
 } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
 
@@ -126,7 +126,7 @@ export default function MarketspaceTour() {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { mounted = false; if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [active, step, paused]);
 
   const close = useCallback(() => {

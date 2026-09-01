@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   X, Loader2, Lock, CheckCircle2, Clock, BadgeCheck, AlertTriangle,
   Zap, User, ArrowRight, TrendingUp, Gauge, MapPin, Cog, ShoppingCart,
-  Building, Wrench, Plane, ExternalLink, ShieldCheck, Shield, FileBarChart, Landmark, Store,
+  Building, Wrench, Plane, ShieldCheck, Shield, FileBarChart, Landmark, Store,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";

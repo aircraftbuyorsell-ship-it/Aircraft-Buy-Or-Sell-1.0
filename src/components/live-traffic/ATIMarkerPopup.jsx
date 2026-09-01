@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Sparkles, Loader2, CheckCircle2, ExternalLink } from "lucide-react";
+import { Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { m2ft, mps2kts } from "./liveTrafficConfig";
 import { maskOwnerName } from "@/lib/privacy";
 

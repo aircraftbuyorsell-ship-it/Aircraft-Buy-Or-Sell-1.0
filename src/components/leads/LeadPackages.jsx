@@ -1,4 +1,4 @@
-import { Zap, Users, Crown, Mail, Check } from "lucide-react";
+import { Zap, Users, Crown, Mail } from "lucide-react";
 
 // Lead CRM is plan-entitled. It does not consume ABOS credits or API tokens.
 export const LEAD_PACKAGES = [

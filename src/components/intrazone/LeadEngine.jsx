@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Phone, Mail, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, X } from "lucide-react";
 import MiniGlobe from "@/components/MiniGlobe";
 
 /* ═══════════════════════════════════════

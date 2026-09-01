@@ -1,5 +1,4 @@
 import { AlertCircle, RefreshCw, Search, X, RadioTower } from "lucide-react";
-import { PALETTE } from "./liveTrafficConfig";
 
 export default function LiveTrafficHeader({
   region,

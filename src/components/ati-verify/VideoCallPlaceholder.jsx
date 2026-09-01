@@ -1,4 +1,4 @@
-import { Video, Camera, Mic, MicOff, VideoOff, Phone, Users } from "lucide-react";
+import { Video, Camera, Mic, Phone, Users } from "lucide-react";
 
 export default function VideoCallPlaceholder({ session }) {
   const isActive = session?.status === "in_progress";

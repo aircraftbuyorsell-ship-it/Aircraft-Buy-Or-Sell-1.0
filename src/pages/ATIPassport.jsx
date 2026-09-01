@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ShieldCheck, AlertTriangle, CheckCircle, RefreshCw,
-  ArrowLeft, Download, FileText, Wand2, Zap, TrendingDown,
-  Star, Eye, ChevronRight, Lock, BadgeCheck
+  ArrowLeft, Download, FileText, Wand2, Zap, TrendingDown, ChevronRight, Lock, BadgeCheck
 } from "lucide-react";
 import UpgradeGate from "@/components/marketing/UpgradeGate";
 import ATIPaymentGate from "@/components/ati/ATIPaymentGate";
@@ -16,7 +15,6 @@ import VerifiedTitleStamp from "@/components/ownership/VerifiedTitleStamp";
 import CardIdentityBlock from "@/components/cards/CardIdentityBlock";
 import AffiliateLinksPanel from "@/components/cards/AffiliateLinksPanel";
 import EventTimeline from "@/components/cards/EventTimeline";
-import CardImageGallery from "@/components/cards/CardImageGallery";
 import CardInlineEditor from "@/components/cards/CardInlineEditor";
 import { generateDealCode } from "@/lib/exportAtiReport";
 import ReviewsPanel from "@/components/cards/ReviewsPanel";

@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useExpertCrossCheck, useExpertBids } from "@/hooks/useExpert";
 import ExpertBidCard from "./ExpertBidCard";
 import {
-  UserCheck, Loader2, Clock, BadgeCheck, Zap, X, ChevronRight
+  UserCheck, Loader2, Clock, BadgeCheck, Zap, ChevronRight
 } from "lucide-react";
 
 const STATUS_STEPS = [

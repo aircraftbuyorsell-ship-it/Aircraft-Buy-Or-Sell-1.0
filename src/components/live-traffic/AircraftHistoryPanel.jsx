@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Search, History, Clock, MapPin, ArrowUp, ArrowDown, Minus, Loader2, X, ChevronRight, Plane, Gauge } from "lucide-react";
 import { format } from "date-fns";

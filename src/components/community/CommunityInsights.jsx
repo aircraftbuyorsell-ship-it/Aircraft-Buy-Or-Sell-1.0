@@ -1,4 +1,4 @@
-import { BarChart3, Clock, Eye, Globe2, MessageSquare, ShieldCheck, TrendingUp, Users } from "lucide-react";
+import { Clock, Eye, Globe2, MessageSquare, ShieldCheck, TrendingUp, Users } from "lucide-react";
 import { C } from "@/theme/community";
 
 const METRICS = [

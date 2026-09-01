@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   X, Upload, Loader2, CheckCircle, BadgeCheck, Euro,
-  ChevronRight, ChevronLeft, FileText, ShieldCheck
+  ChevronRight, ChevronLeft, ShieldCheck
 } from "lucide-react";
 
 const CERT_OPTIONS = [

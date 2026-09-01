@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { lookupAircraft } from "@/lib/aircraftLookup";
-import { ShieldCheck, MessageSquare, FileText, ImagePlus, Video, Camera, ClipboardPaste, ArrowRight, Loader2, ScanSearch } from "lucide-react";
+import { ShieldCheck, MessageSquare, FileText, ImagePlus, Video, Camera, ClipboardPaste, Loader2, ScanSearch } from "lucide-react";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";

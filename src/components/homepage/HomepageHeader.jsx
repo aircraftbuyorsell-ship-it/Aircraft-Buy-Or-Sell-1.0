@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { LogIn, LogOut, Menu } from "lucide-react";
+import { LogIn, Menu } from "lucide-react";
 import SidebarLogo from "@/components/layout/SidebarLogo";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
 import ThemeToggle from "@/components/ThemeToggle";

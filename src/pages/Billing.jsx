@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { listMyEntitlements, usageSummary, createCustomerPortal } from "@/lib/entitlements";
-import { getProduct, formatEur, PRODUCT_CATALOG } from "@/lib/products";
+import { getProduct } from "@/lib/products";
 import { CreditCard, Loader2, Crown, Building, ShieldCheck, FileBarChart, TrendingUp, BadgeCheck, ExternalLink, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 

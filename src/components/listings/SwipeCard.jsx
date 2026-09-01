@@ -2,8 +2,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowUpRight, TrendingDown, TrendingUp,
-  CheckCircle2, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
+  ArrowUpRight, ThumbsUp, ThumbsDown, Lock, RotateCw, ShieldCheck,
   Pencil, ChevronLeft, ChevronRight, ChevronUp, Zap, X, Star } from
 "lucide-react";
 import { motion, useMotionValue, useTransform, useAnimation } from "framer-motion";

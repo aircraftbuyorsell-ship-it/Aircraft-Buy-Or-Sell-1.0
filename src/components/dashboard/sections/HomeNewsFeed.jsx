@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Newspaper, ExternalLink, Clock, TrendingUp, Shield, Plane, DollarSign, Zap, Fuel } from "lucide-react";
+import { Newspaper, Clock, TrendingUp, Shield, Plane, DollarSign, Zap, Fuel } from "lucide-react";
 
 const CATEGORY_META = {
   market:     { icon: TrendingUp, color: "#f5c242", label: "Market" },

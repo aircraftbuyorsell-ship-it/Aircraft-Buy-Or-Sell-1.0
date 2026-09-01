@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import {
-  Users, GraduationCap, Plane, Loader2, Sparkles, TrendingUp,
+  Users, GraduationCap, Loader2, TrendingUp,
   DollarSign, Clock, ArrowRightLeft, CheckCircle2, AlertTriangle
 } from "lucide-react";
 

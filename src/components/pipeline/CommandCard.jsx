@@ -1,4 +1,4 @@
-import { Plane, ShieldCheck, FileText, TrendingUp, CheckCircle, Scale } from "lucide-react";
+import { Plane, ShieldCheck, FileText, TrendingUp, CheckCircle } from "lucide-react";
 
 // Top "Command Card" — the central hub showing pipeline summary
 // with connected tool nodes (the sketch's upper section)

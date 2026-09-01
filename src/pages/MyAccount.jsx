@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState, useEffect } from "react";
 import {
-  User, ShieldCheck, CreditCard, Plane, Handshake,
-  Package, ChevronRight, ArrowRight, Loader2
+  User, ShieldCheck, CreditCard, Plane, Handshake, ChevronRight, ArrowRight
 } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";

@@ -3,7 +3,6 @@
  * Solid ink-1 background, 2px accent line, 0.5px border, hover lift
  */
 import { useState } from "react";
-import { COLORS, FONT } from "@/theme/glassmorphism";
 
 const INK = { normal: "rgba(255,255,255,0.04)", elevated: "rgba(255,255,255,0.04)", nested: "rgba(255,255,255,0.04)" };
 const SHADOWS = {

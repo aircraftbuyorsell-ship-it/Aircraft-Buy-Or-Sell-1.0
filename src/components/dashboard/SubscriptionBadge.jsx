@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useBehavior } from "@/lib/useBehavior";
-import { TIERS, toCredits } from "@/lib/pricing";
-import { CheckCircle2, Star, Zap, Crown, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { toCredits } from "@/lib/pricing";
+import { Star, Zap, Crown, Shield } from "lucide-react";
 
 const PLAN_META = {
   free_explorer: {

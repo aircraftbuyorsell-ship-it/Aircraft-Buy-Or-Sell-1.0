@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CheckCircle2, Lock, Sparkles, Gift, Coins } from "lucide-react";
+import { CheckCircle2, Lock, Sparkles, Gift } from "lucide-react";
 import { useMonetization } from "@/hooks/useMonetization";
 import { ABOS_PRODUCTS } from "@/lib/abosProducts";
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2, ShieldCheck, Hexagon, BadgeCheck, XCircle } from "lucide-react";
+import { Upload, FileText, CheckCircle2, Loader2, AlertCircle, Eye, Trash2, Hexagon, BadgeCheck, XCircle } from "lucide-react";
 
 export default function DocumentUploadPanel({ sessionId, docType, label, icon, existingDocs = [] }) {
   const [uploading, setUploading] = useState(false);

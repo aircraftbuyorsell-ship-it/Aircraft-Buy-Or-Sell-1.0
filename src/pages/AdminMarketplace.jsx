@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, Code2, Zap, Users } from "lucide-react";
+import { ShieldCheck, Zap, Users } from "lucide-react";
 import AdminDeveloperTable from "@/components/admin/AdminDeveloperTable";
 import AdminToolTable from "@/components/admin/AdminToolTable";
 import { useTheme } from "@/lib/useTheme";

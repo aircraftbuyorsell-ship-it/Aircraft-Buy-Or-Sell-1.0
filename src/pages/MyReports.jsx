@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { listMyReports } from "@/lib/entitlements";
-import { getProduct, formatEur } from "@/lib/products";
+import { getProduct } from "@/lib/products";
 import { FileBarChart, Loader2, ShieldCheck, TrendingUp, BadgeCheck, Download, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 

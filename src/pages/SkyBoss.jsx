@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
 import { Link } from "react-router-dom";
 import {
-  ChevronDown, ChevronUp, RotateCw, Pause, Play, X, Globe,
-  Gauge, MapPin, Navigation, ArrowUpDown, Radio, Hash
+  ChevronDown, ChevronUp, RotateCw, Pause, Play, X
 } from "lucide-react";
 import { useTheme } from "@/lib/useTheme";
 

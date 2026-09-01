@@ -4,10 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  Rocket, Users, Handshake, Target, Search, Filter, Plus,
+  Rocket, Users, Handshake, Target, Search, Plus,
   Globe, Zap, TrendingUp, ShieldCheck, Plane, Lightbulb,
   ArrowRight, CheckCircle2, Clock, Building2, MapPin,
-  Eye, ExternalLink, Send, Star, Sparkles, ChevronRight
+  Eye, ExternalLink, Send, Star, Sparkles
 } from "lucide-react";
 
 const CATEGORY_CONFIG = {

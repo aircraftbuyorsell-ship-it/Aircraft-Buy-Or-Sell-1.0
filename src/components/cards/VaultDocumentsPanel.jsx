@@ -3,10 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "@/lib/useTheme";
 import {
-  ShieldCheck, Upload, FileText, Lock, ExternalLink,
-  CheckCircle2, Clock, XCircle, Filter, Search,
-  ChevronDown, ChevronRight, Hash, Building2,
-  AlertCircle, Download, Eye, Plus, Users
+  ShieldCheck, Upload, Lock,
+  CheckCircle2, Clock, XCircle, Hash,
+  AlertCircle, Eye, Users
 } from "lucide-react";
 
 const DOC_TYPE_LABELS = {

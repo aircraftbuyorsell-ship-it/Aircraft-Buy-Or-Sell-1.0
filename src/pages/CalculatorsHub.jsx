@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import {
-  Calculator, Shield, TrendingUp, Fuel, Zap, Sparkles,
-  Plane, DollarSign, Gauge, Wrench, PaintBucket, Armchair,
-  Search, Activity, Brain, Users, ArrowRight, CheckCircle2, Lock
+  Calculator, Shield, TrendingUp, Zap, Sparkles,
+  Plane, DollarSign, Wrench, PaintBucket, Armchair,
+  Search, Brain, Users, ArrowRight, CheckCircle2
 } from "lucide-react";
 import { ABOS_PRODUCTS } from "@/lib/abosProducts";
 

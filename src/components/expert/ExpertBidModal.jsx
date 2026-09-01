@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { X, Euro, Clock, MessageSquare, Loader2, Send } from "lucide-react";
+import { X, Euro, Clock, Loader2, Send } from "lucide-react";
 
 export default function ExpertBidModal({ crosscheck, expertProfile, open, onClose }) {
   const [priceEur, setPriceEur] = useState(expertProfile?.price_eur || 75);

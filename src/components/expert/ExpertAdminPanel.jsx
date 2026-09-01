@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, XCircle, Loader2, BadgeCheck, Clock, FileText, Users } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, BadgeCheck, FileText, Users } from "lucide-react";
 
 export default function ExpertAdminPanel({ profiles }) {
   const [processing, setProcessing] = useState(null);

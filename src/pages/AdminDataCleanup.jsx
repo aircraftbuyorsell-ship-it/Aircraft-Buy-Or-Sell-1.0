@@ -2,9 +2,8 @@ import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Trash2, Flag, RefreshCw, CheckSquare, Square, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
+import { Trash2, Flag, RefreshCw, CheckSquare, Square, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 const FLAG_LABELS = {

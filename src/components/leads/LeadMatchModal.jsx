@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { X, Loader2, Sparkles, ArrowUpRight, TrendingDown, RefreshCw } from "lucide-react";
+import { X, Loader2, Sparkles, ArrowUpRight, RefreshCw } from "lucide-react";
 
 const W1 = "rgba(255,255,255,0.90)";
 const W2 = "rgba(255,255,255,0.60)";
@@ -33,7 +33,7 @@ export default function LeadMatchModal({ open, onClose, lead }) {
       runMatch();
     }
     if (!open) { setResult(null); setError(null); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open, lead?.id]);
 
   const runMatch = async () => {

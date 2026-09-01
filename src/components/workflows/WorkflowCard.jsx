@@ -1,4 +1,4 @@
-import { Bell, Mail, ShieldCheck, Sparkles, Trash2, Database, Github, Newspaper, Radar, TrendingUp, Calculator, Brain, Clock, Zap, AlertTriangle, Play, Pause, CheckCircle2 } from "lucide-react";
+import { Bell, Mail, ShieldCheck, Sparkles, Trash2, Database, Github, Newspaper, Radar, TrendingUp, Calculator, Brain, Clock, Zap, AlertTriangle, Pause, CheckCircle2 } from "lucide-react";
 
 const ICON_MAP = {
   Bell, Mail, ShieldCheck, Sparkles, Trash2, Database, Github, Newspaper, Radar, TrendingUp, Calculator, Brain, Zap,

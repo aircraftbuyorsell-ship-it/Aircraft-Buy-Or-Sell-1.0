@@ -2,8 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import {
-  TrendingUp, Sparkles, Plane, ShieldCheck, Loader2, ArrowRight,
+import { Sparkles, Plane, ShieldCheck, Loader2, ArrowRight,
 } from "lucide-react";
 
 function StatChip({ label, value, color }) {

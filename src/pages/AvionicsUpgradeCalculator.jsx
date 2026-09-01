@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Radio, Wrench, DollarSign, Plus, Minus } from "lucide-react";
+import { Radio, Wrench, Plus, Minus } from "lucide-react";
 import { GA_AIRCRAFT } from "@/lib/aircraftModels";
 
 const LABOR_RATES = [

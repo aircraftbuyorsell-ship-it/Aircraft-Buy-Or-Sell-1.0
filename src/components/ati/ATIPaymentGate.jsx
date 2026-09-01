@@ -1,4 +1,4 @@
-import { X, Sparkles, Lock, Zap, ArrowRight, Check } from "lucide-react";
+import { X, Sparkles, Lock, ArrowRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { TOKEN_COSTS, toCredits } from "@/lib/pricing";
 

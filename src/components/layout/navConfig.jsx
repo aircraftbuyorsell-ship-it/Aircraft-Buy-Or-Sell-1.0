@@ -89,6 +89,7 @@ export const NAV_TREE = [
         { label: "Verified Experts", path: "/experts", icon: BadgeCheck },
       ]},
       { label: "Verify", items: [
+        { label: "St. Elmo", path: "/st-elmo", icon: Bot },
         { label: "Verification Center", path: "/ati-verify", icon: ShieldCheck },
         { label: "ATI Center", path: "/ati-center", icon: ShieldCheck },
       ]},

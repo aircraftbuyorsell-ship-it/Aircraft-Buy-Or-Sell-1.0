@@ -222,8 +222,21 @@ function applyDeterministicClamps(ati, ctx = {}) {
     }
   }
 
-  // 5) Label derived from score
-  const derivedLabel = labelFor(ati.ati_score);
+  // 5) Data sufficiency gate before deriving an adverse label. Missing source
+  // coverage is not negative evidence. In particular, an international
+  // registration without FAA coverage must not become AVOID solely because
+  // the FAA dataset has no record.
+  const insufficientData = shouldUseInsufficientDataState(ati, aircraft, listingText);
+  if (insufficientData) {
+    audit.push('INSUFFICIENT_DATA:missing source coverage is not negative evidence');
+    ati.score_label = 'INSUFFICIENT_DATA';
+    ati.verdict = 'INSUFFICIENT_DATA';
+    ati.deal_radar_eligible = false;
+    ati.data_sufficiency = 'insufficient';
+  }
+
+  // 6) Label derived from score
+  const derivedLabel = insufficientData ? 'INSUFFICIENT_DATA' : labelFor(ati.ati_score);
   if (ati.score_label !== derivedLabel) {
     audit.push(`LABEL_CORRECTED ${ati.score_label}->${derivedLabel}`);
     ati.score_label = derivedLabel;

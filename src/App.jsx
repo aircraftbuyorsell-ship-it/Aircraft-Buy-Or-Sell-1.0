@@ -41,6 +41,7 @@ import InstallWizard from "./pages/InstallWizard";
 import CookiePolicy from "./pages/CookiePolicy";
 import GDPRCompliance from "./pages/GDPRCompliance";
 import AffiliateAgreement from "./pages/AffiliateAgreement";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
 import EscrowAgreement from "./pages/EscrowAgreement";
 import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
 import Compare from "./pages/Compare";
@@ -158,6 +159,7 @@ const AuthenticatedApp = () => {
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/gdpr-compliance" element={<GDPRCompliance />} />
         <Route path="/affiliate-agreement" element={<AffiliateAgreement />} />
+        <Route path="/affiliate-dashboard" element={<AffiliateDashboard />} />
         <Route path="/escrow-agreement" element={<EscrowAgreement />} />
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />

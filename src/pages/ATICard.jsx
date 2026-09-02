@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Copy, CheckCircle2, ShieldCheck, TrendingDown, TrendingUp, Users, Building2, Hash, BadgeCheck } from "lucide-react";
 import VaultDocumentsPanel from "@/components/cards/VaultDocumentsPanel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ATIScoreBreakdown from "@/components/ati/ATIScoreBreakdown";
 import { cleanAircraftMake } from "@/lib/cleanAircraftMake";
+import { trackAffiliateClickFromUrl } from "@/lib/affiliate";
 
 function scoreColor(score) {
   if (score >= 108) return "#5dcaa5";
@@ -74,6 +75,12 @@ export default function ATICard() {
     queryFn: () => base44.entities.AircraftListing.get(card?.listing),
     enabled: !!card?.listing,
   });
+
+  useEffect(() => {
+    if (card?.public_card_code) {
+      trackAffiliateClickFromUrl({ public_card_code: card.public_card_code });
+    }
+  }, [card?.public_card_code]);
 
   const isLoading = loadingCard || loadingPassport || loadingListing;
   const isOwner = card ? base44.auth.me().then(u => u?.email && (

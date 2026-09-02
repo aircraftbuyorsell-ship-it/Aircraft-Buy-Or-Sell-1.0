@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aircraftbuyorsell.com/protocol/apl-request-v1.schema.json",
+  "title": "ABOS APL Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apl_version", "tool", "args"],
+  "properties": {
+    "apl_version": { "const": "1.0" },
+    "tool": { "type": "string", "minLength": 1 },
+    "args": { "type": "object" }
+  }
+}

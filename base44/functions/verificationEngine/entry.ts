@@ -10,6 +10,7 @@ import { normalizeRegistration, supabaseRest, evidenceConfidence } from '../_sha
 
 const MODULES = ['registry', 'identity', 'ownership', 'activity', 'document'];
 
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);

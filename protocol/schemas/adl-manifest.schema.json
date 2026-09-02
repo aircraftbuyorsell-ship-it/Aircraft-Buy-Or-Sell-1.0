@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aircraftbuyorsell.com/protocol/adl-manifest-v1.schema.json",
+  "title": "ABOS ADL Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["adl_version", "id", "apl_id", "type", "owner", "skill", "capabilities", "permissions", "autonomy", "trust", "audit", "risk_level", "requires_human_approval", "supported_protocols", "evidence", "status", "mcp"],
+  "properties": {
+    "adl_version": { "const": "1.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "apl_id": { "type": "string", "pattern": "^apl://" },
+    "type": { "type": "string" },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organization"],
+      "properties": { "organization": { "type": "string", "minLength": 1 } }
+    },
+    "skill": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "capabilities": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+    "permissions": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "autonomy": { "enum": ["A1", "A2", "A3", "A4"] },
+    "trust": { "type": "string", "pattern": "^APL-T[0-9]+$" },
+    "audit": { "type": "string", "pattern": "^APL-A[0-9]+$" },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "requires_human_approval": { "type": "boolean" },
+    "supported_protocols": { "type": "array", "items": { "const": "apl/1.0" }, "minItems": 1 },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provenance": { "enum": ["required", "optional"] },
+        "confidence": { "enum": ["required", "optional"] }
+      }
+    },
+    "status": { "enum": ["verified", "draft", "disabled", "deprecated"] },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "inputSchema"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "pattern": "^[a-zA-Z0-9_.-]+$" },
+        "inputSchema": { "type": "object" }
+      }
+    }
+  }
+}

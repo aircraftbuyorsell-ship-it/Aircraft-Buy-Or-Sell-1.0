@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aircraftbuyorsell.com/protocol/apl-response-v1.schema.json",
+  "title": "ABOS APL Response v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result"],
+      "properties": {
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["apl_version", "agent", "skill", "payload", "evidence", "audit"],
+          "properties": {
+            "apl_version": { "const": "1.0" },
+            "agent": { "type": "string", "pattern": "^apl://" },
+            "skill": { "type": "string" },
+            "payload": {},
+            "evidence": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "provenance": {},
+                "confidence": {}
+              }
+            },
+            "audit": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["event_id", "current_hash", "level", "chained"],
+              "properties": {
+                "event_id": { "type": "string", "minLength": 1 },
+                "current_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                "level": { "type": "string", "pattern": "^APL-A[0-9]+$" },
+                "chained": { "type": "boolean" },
+                "warning": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["apl_error", "detail"],
+          "properties": {
+            "apl_error": { "enum": ["APL_SKILL_NOT_FOUND", "APL_POLICY_BLOCKED", "APL_VERSION_ERROR", "APL_PERMISSION_DENIED", "APL_UPSTREAM_ERROR"] },
+            "detail": { "type": "string" },
+            "declared": { "type": "array", "items": { "type": "string" } },
+            "denied": { "type": "array", "items": { "type": "string" } },
+            "undeclared": { "type": "array", "items": { "type": "string" } },
+            "upstream_status": { "type": "integer" }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
 import { getSupabaseConfig } from '../_shared/aircraftTwin.ts';
 
-const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
+const PROJECT_NAME = 'AircraftBuyOrSell_Supabase'; // secrets-first credential resolution below
 
 const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');

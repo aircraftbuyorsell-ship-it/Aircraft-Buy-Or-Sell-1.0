@@ -20,6 +20,16 @@
 //             to the actual consent page (a Base44 app route, since it needs
 //             the user's browser session).
 //
+//   /opensky/states -> Live ADS-B state vectors via the OpenSky Network API.
+//             Two independent trust paths, either one is sufficient:
+//               - browser callers: same Origin allowlist + CORS treatment as
+//                 the legacy widget path below (no widget secret needed —
+//                 OpenSky itself has no per-caller identity to forward).
+//               - bearer callers: the static MCP_BEARER_TOKEN, or a scoped
+//                 abos_live_... key carrying the 'flight:read' scope,
+//                 checked the same way APL tools check scope on /mcp.
+//             OpenSky credentials/token-cache live in ./opensky.js.
+//
 //   /*     -> Legacy widget path. Browser callers. Origin allowlist + injected
 //             GATEWAY_SECRET, forwarded to the widgetGateway function.
 //             Behaviour unchanged.
@@ -29,6 +39,7 @@ const MCP_ACCEPT = 'application/json, text/event-stream';
 import { handleOmvm, handleAtiScore } from './ati.js';
 import { aplToolList, isAplTool, callAplTool } from './apl.js';
 import { ABOS_ICON_SVG, ABOS_ICON_PNG_BYTES } from './icon.js';
+import { fetchOpenSkyStates } from './opensky.js';
 
 // Base44's MCP transport answers in SSE even for plain JSON-RPC, so anything
 // read back from upstream has to come out of `data:` frames.
@@ -423,9 +434,16 @@ const APL_SCOPE = {
   abos_faa_registry: 'listing:read',
 };
 
+// Scope an abos_live_... key needs to read live OpenSky state vectors via
+// /opensky/states. NOTE: this scope name must also exist in whatever issues
+// scopes on the Base44 side (the OAuth consent screen / abosCoreApi's
+// VALID_SCOPES) — adding it here only teaches the gateway to check for it,
+// it doesn't make Base44 grant it to anyone yet.
+const OPENSKY_SCOPE = 'flight:read';
+
 // Resolves what the calling abos_live_... key is actually allowed to do.
-// Fails closed: any error yields no scopes, so an APL tool is refused rather
-// than run unchecked.
+// Fails closed: any error yields no scopes, so a gated tool/route is refused
+// rather than run unchecked.
 async function callerScopes(baseUrl, apiKey) {
   let upstream;
   try {
@@ -651,22 +669,32 @@ async function handleLegacyMcp(request, env, baseUrl) {
   });
 }
 
-async function handleWidget(request, env, baseUrl) {
+// Origin allowlist shared by every browser-facing route (the legacy widget
+// path and /opensky/states). Centralized so both routes read the same env
+// var the same way instead of drifting.
+function corsHeadersFor(request, env, methods) {
   const origin = request.headers.get('Origin') || '';
   const allowedOrigins = (env.CORS_ALLOWED_ORIGINS || '')
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
-  const originAllowed = allowedOrigins.includes(origin);
+  const originAllowed = !!origin && allowedOrigins.includes(origin);
 
-  const corsHeaders = originAllowed
+  const headers = originAllowed
     ? {
         'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': methods,
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         Vary: 'Origin',
       }
     : {};
+
+  return { originAllowed, headers };
+}
+
+async function handleWidget(request, env, baseUrl) {
+  const origin = request.headers.get('Origin') || '';
+  const { originAllowed, headers: corsHeaders } = corsHeadersFor(request, env, 'POST, OPTIONS');
 
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: originAllowed ? 204 : 403, headers: corsHeaders });
@@ -705,6 +733,78 @@ async function handleWidget(request, env, baseUrl) {
       ...corsHeaders,
     },
   });
+}
+
+// GET /opensky/states?bbox=czech
+// GET /opensky/states?lamin=..&lomin=..&lamax=..&lomax=..
+// GET /opensky/states?icao24=3c6444,3c6445
+//
+// Two independent ways in — either is sufficient, neither implies the other:
+//   - browser widget: same Origin allowlist as handleWidget. No gateway
+//     secret is forwarded anywhere, because OpenSky has no concept of an
+//     ABOS caller identity to pass through — this is just "is this origin
+//     one of ours".
+//   - bearer token: the static MCP_BEARER_TOKEN (service/personal use,
+//     same as /omvm and /ati/score), or a scoped abos_live_... key that
+//     carries 'flight:read' (checked the same way /mcp checks APL tool
+//     scopes) so a platform user's own MCP client can pull live traffic
+//     without needing the static token.
+async function handleOpenSkyStates(request, env, baseUrl) {
+  const { originAllowed, headers: corsHeaders } = corsHeadersFor(request, env, 'GET, OPTIONS');
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: originAllowed ? 204 : 403, headers: corsHeaders });
+  }
+
+  if (request.method !== 'GET') {
+    return json({ error: 'method_not_allowed' }, 405, { Allow: 'GET, OPTIONS', ...corsHeaders });
+  }
+
+  let authorized = originAllowed;
+  const presented = bearerFrom(request);
+
+  if (!authorized && presented) {
+    if (env.MCP_BEARER_TOKEN && (await timingSafeEqual(presented, env.MCP_BEARER_TOKEN))) {
+      authorized = true;
+    } else if (presented.startsWith('abos_live_')) {
+      const { revoked, scopes } = await callerScopes(baseUrl, presented);
+      if (revoked) {
+        return json({ error: 'unauthorized' }, 401, {
+          ...corsHeaders,
+          'WWW-Authenticate': 'Bearer realm="abos-opensky"',
+        });
+      }
+      authorized = scopes.includes('*') || scopes.includes(OPENSKY_SCOPE);
+    }
+  }
+
+  if (!authorized) {
+    return json({ error: 'unauthorized' }, 401, {
+      ...corsHeaders,
+      'WWW-Authenticate': 'Bearer realm="abos-opensky"',
+    });
+  }
+
+  if (!env.OPENSKY_CLIENT_ID || !env.OPENSKY_CLIENT_SECRET) {
+    return json({ error: 'opensky_not_configured' }, 500, corsHeaders);
+  }
+  if (!env.OPENSKY_KV) {
+    return json({ error: 'opensky_kv_not_configured' }, 500, corsHeaders);
+  }
+
+  try {
+    const url = new URL(request.url);
+    const { status, body, cacheable } = await fetchOpenSkyStates(env, url.searchParams);
+    return json(body, status, {
+      ...corsHeaders,
+      // Short client-side cache to avoid hammering OpenSky on rapid
+      // re-renders — only on the happy path; errors and rate-limit
+      // responses must never be cached.
+      ...(cacheable ? { 'Cache-Control': 'public, max-age=5' } : { 'Cache-Control': 'no-store' }),
+    });
+  } catch (err) {
+    return json({ error: 'internal_error', detail: err.message }, 500, corsHeaders);
+  }
 }
 
 // OAuth 2.1 + PKCE "Connect to ABOS" flow. Everything here is a thin proxy
@@ -766,6 +866,10 @@ export default {
 
     if (pathname === '/mcp' || pathname.startsWith('/mcp/')) {
       return handleMcp(request, env, baseUrl, `${url.protocol}//${url.host}`);
+    }
+
+    if (pathname === '/opensky/states') {
+      return handleOpenSkyStates(request, env, baseUrl);
     }
 
     // Brand mark for serverInfo.icons. Public and cacheable — an MCP client

@@ -107,6 +107,14 @@ export async function logEvent({
   // First-verified-source lock on the card
   if (is_verified && card?.id && !card.first_verified_source_id) {
     const lockedSlug = affiliate_link?.slug || "direct";
+
+    if (affiliate_link?.slug) {
+      trackAffiliateEvent(event_type === "conversion" ? "conversion" : "lead", affiliate_link.slug, {
+        public_card_code: card.public_card_code,
+        event_type,
+      });
+    }
+
     await base44.entities.ATICard.update(card.id, {
       first_verified_source_id: lockedSlug,
       first_verified_locked_at: new Date().toISOString(),
@@ -154,6 +162,71 @@ export async function resolveLinkBySlug(slug) {
   if (!slug) return null;
   const results = await base44.entities.AffiliateLink.filter({ slug }, "-created_date", 1);
   return results[0] || null;
+}
+
+// ─── Tracking (click / lead / conversion) ──────────────────────────────────
+/**
+ * Record a click/lead/conversion against a slug: bumps the link's counters,
+ * fans out to any subscribed webhooks (affiliate.click / .lead / .conversion),
+ * and emails the affiliate owner on lead/conversion. Safe to call anonymously.
+ */
+export async function trackAffiliateEvent(event_type, slug, metadata = {}) {
+  if (!slug || !event_type) return null;
+  try {
+    const res = await base44.functions.invoke("affiliateTrack", {
+      event_type,
+      slug,
+      chain_slugs: parseChainFromUrl(),
+      metadata,
+    });
+    return res?.data || res;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Track a page/card view that arrived via an affiliate link (?ref=SLUG), once
+ * per session. Call on mount of any publicly shareable page.
+ */
+export async function trackAffiliateClickFromUrl(metadata = {}) {
+  const chain = parseChainFromUrl();
+  const slug = chain[chain.length - 1];
+  if (!slug || typeof window === "undefined") return null;
+  const dedupeKey = `abos_aff_clicked_${slug}_${getSessionId()}`;
+  if (sessionStorage.getItem(dedupeKey)) return null;
+  sessionStorage.setItem(dedupeKey, "1");
+  return trackAffiliateEvent("click", slug, metadata);
+}
+
+// ─── Banners ────────────────────────────────────────────────────────────────
+export const BANNER_SIZES = [
+  { key: "leaderboard", label: "Leaderboard", w: 728, h: 90 },
+  { key: "rectangle", label: "Medium Rectangle", w: 300, h: 250 },
+  { key: "skyscraper", label: "Wide Skyscraper", w: 160, h: 600 },
+  { key: "square", label: "Square", w: 250, h: 250 },
+];
+
+/**
+ * Build the click-through URL for a link, honoring an upstream chain slug.
+ */
+export function buildLinkUrl(baseUrl, targetPath, link) {
+  const url = `${baseUrl}${targetPath}`;
+  return link.parent_link_slug
+    ? `${url}?ref=${link.parent_link_slug}&sub1=${link.slug}`
+    : `${url}?ref=${link.slug}`;
+}
+
+/**
+ * Build a copy-pasteable HTML embed snippet (banner or text link) for a link.
+ * `imageUrl` is optional — falls back to a text banner when not provided.
+ */
+export function buildBannerEmbed({ link, clickUrl, imageUrl, size = BANNER_SIZES[1], alt = "Aircraft Buy Or Sell" }) {
+  const trackedHref = clickUrl;
+  if (imageUrl) {
+    return `<a href="${trackedHref}" target="_blank" rel="noopener sponsored"><img src="${imageUrl}" width="${size.w}" height="${size.h}" alt="${alt}" style="border:0;max-width:100%;" /></a>`;
+  }
+  return `<a href="${trackedHref}" target="_blank" rel="noopener sponsored" style="display:inline-block;padding:12px 20px;background:#0B2D5B;color:#fff;font:700 13px/1 sans-serif;text-decoration:none;border-radius:6px;">${alt} — Verified Aircraft Listings</a>`;
 }
 
 // ─── Attribution resolution (MVP: first verified source wins) ─────────────

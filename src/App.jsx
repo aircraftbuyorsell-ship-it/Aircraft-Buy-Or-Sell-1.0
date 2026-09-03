@@ -115,11 +115,52 @@ import VerifyHub from "./pages/hubs/VerifyHub";
 import ApiHub from "./pages/hubs/ApiHub";
 import SkylarkConfigurator from "./pages/SkylarkConfigurator";
 
+const ALLOWED_SKYLARK_EMAIL_DOMAINS = ["@aircraftbuyorsell.com", "@airvisions.cz"];
+
+function SkylarkAccessDenied({ user, onLogout }) {
+  return (
+    <div className="min-h-screen bg-[#f7f4ef] text-[#111827] flex items-center justify-center p-6">
+      <section className="max-w-xl w-full rounded-3xl bg-white border border-black/10 p-8 md:p-12 text-center shadow-xl">
+        <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-[#18201f] text-white flex items-center justify-center font-black">ABOS</div>
+        <p className="text-xs uppercase tracking-[.2em] font-bold text-[#8b6a20]">LANDA Aircraft · Skylark MVP</p>
+        <h1 className="text-3xl font-black mt-3">Partner demo access</h1>
+        <p className="mt-4 text-black/60">
+          This MVP demo is available to authenticated Aircraft Buy Or Sell and AirVisions partner accounts.
+        </p>
+        <p className="mt-3 text-sm text-black/45 break-all">Signed in as {user?.email || "unknown user"}</p>
+        <button onClick={onLogout} className="mt-7 rounded-2xl border border-black/10 px-5 py-3 font-bold hover:bg-black/5">
+          Sign out
+        </button>
+      </section>
+    </div>
+  );
+}
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, logout } = useAuth();
   const pathname = window.location.pathname;
 
   if (pathname === "/skylark-configurator") {
+    if (isLoadingPublicSettings || isLoadingAuth) {
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF]">
+          <div className="w-8 h-8 border-4 border-[#E8A83A]/30 border-t-[#E8A83A] rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+
+    if (!isAuthenticated || !user) {
+      navigateToLogin();
+      return null;
+    }
+
+    const email = String(user.email || "").trim().toLowerCase();
+    const isAllowed = ALLOWED_SKYLARK_EMAIL_DOMAINS.some(domain => email.endsWith(domain));
+
+    if (!isAllowed) {
+      return <SkylarkAccessDenied user={user} onLogout={() => logout(false)} />;
+    }
+
     return <SkylarkConfigurator />;
   }
 

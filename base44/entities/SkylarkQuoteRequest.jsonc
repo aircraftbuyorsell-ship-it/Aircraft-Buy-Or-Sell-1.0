@@ -1,0 +1,95 @@
+{
+  "name": "SkylarkQuoteRequest",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "country": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "cs"
+      ]
+    },
+    "engine": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "avionics": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "equipment": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "paint": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "estimated_price": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "price_status": {
+      "type": "string",
+      "enum": [
+        "indicative",
+        "configuration_required",
+        "not_configured"
+      ],
+      "default": "not_configured"
+    },
+    "campaign": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "affiliate_slug": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "referrer": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "demo_flight_interest": {
+      "type": "boolean",
+      "default": false
+    },
+    "consent": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "qualified",
+        "converted",
+        "lost"
+      ],
+      "default": "new"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "consent"
+  ]
+}

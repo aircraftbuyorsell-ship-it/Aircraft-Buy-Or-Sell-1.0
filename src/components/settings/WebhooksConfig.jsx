@@ -16,6 +16,7 @@ const ALL_EVENTS = [
   { group: "Leads", events: ["lead.created", "lead.stage_changed"] },
   { group: "Market Reports", events: ["market_report.generated"] },
   { group: "Traffic", events: ["traffic.snapshot_refreshed"] },
+  { group: "Affiliate", events: ["affiliate.click", "affiliate.lead", "affiliate.conversion"] },
 ];
 
 const FLAT_EVENTS = ALL_EVENTS.flatMap(g => g.events);

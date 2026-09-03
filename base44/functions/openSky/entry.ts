@@ -91,7 +91,7 @@ async function adsbFetchHex(hex) {
 }
 
 function validIsoDate(value) {
-  return typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 }
 
 async function adsbFetchHistoryDay(hex, date) {

@@ -7,8 +7,11 @@
 //   source: "adsblol" (default, anonymous) | "opensky" (authenticated, 4,000 credits/day, 5s resolution)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClient as createSupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 const ADSBIOL_BASE = "https://api.adsb.lol/v2";
+const ADSBIOL_HISTORY_BASE = "https://adsb.lol";
+const ADSBIOL_LICENSE = "ODbL-1.0";
 const OPENSKY_BASE = "https://opensky-network.org/api";
 const OPENSKY_TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token";
 const FETCH_TIMEOUT = 12000;
@@ -85,6 +88,118 @@ async function adsbFetchHex(hex) {
   const data = await adsbFetch(`/hex/${hex}`);
   if (!data?.ac?.length) return null;
   return parseAdsbAc(data.ac[0]);
+}
+
+function validIsoDate(value) {
+  return typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+}
+
+async function adsbFetchHistoryDay(hex, date) {
+  if (!validIsoDate(date)) throw new Error("date must be YYYY-MM-DD");
+  const [yyyy, mm, dd] = date.split("-");
+  const last2 = hex.slice(-2).toLowerCase();
+  const url = `${ADSBIOL_HISTORY_BASE}/globe_history/${yyyy}/${mm}/${dd}/traces/${last2}/trace_full_${hex}.json`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 30000);
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "ABOS-Aviation-Platform/2.0" }, signal: ctrl.signal });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`adsb.lol history ${res.status}`);
+    const payload = await res.json();
+    return { payload, url };
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("ADSB.lol historical trace request timed out");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function normalizeTrace(payload, date) {
+  if (!payload?.trace || !Array.isArray(payload.trace)) return [];
+  const baseTimestamp = Number(payload.timestamp);
+  if (!Number.isFinite(baseTimestamp)) return [];
+  const rootReg = payload.r || null;
+  const rootType = payload.t || null;
+
+  return payload.trace.map((p) => {
+    if (!Array.isArray(p) || p.length < 3) return null;
+    const offset = Number(p[0]);
+    const lat = Number(p[1]);
+    const lon = Number(p[2]);
+    if (!Number.isFinite(offset) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    const aircraft = p[8] && typeof p[8] === "object" ? p[8] : null;
+    const alt = typeof p[3] === "number" ? p[3] : null;
+    const gs = typeof p[4] === "number" ? p[4] : null;
+    const track = typeof p[5] === "number" ? p[5] : null;
+    const flags = typeof p[6] === "number" ? p[6] : 0;
+    const vrate = typeof p[7] === "number" ? p[7] : null;
+    const geomAlt = typeof p[10] === "number" ? p[10] : null;
+    const geomVrate = typeof p[11] === "number" ? p[11] : null;
+    const ias = typeof p[12] === "number" ? p[12] : null;
+    const roll = typeof p[13] === "number" ? p[13] : null;
+    const observedAt = new Date((baseTimestamp + offset) * 1000).toISOString();
+
+    return {
+      icao24: String(payload.icao || "").toLowerCase(),
+      registration: aircraft?.r || rootReg || null,
+      aircraft_type: aircraft?.t || rootType || null,
+      observation_date: date,
+      observed_at: observedAt,
+      latitude: lat,
+      longitude: lon,
+      altitude_ft: alt,
+      ground_speed_kt: gs,
+      track_deg: track,
+      vertical_rate_fpm: vrate,
+      flags,
+      position_stale: Boolean(flags & 1),
+      new_leg: Boolean(flags & 2),
+      geometric_altitude_ft: geomAlt,
+      geometric_vertical_rate_fpm: geomVrate,
+      indicated_airspeed_kt: ias,
+      roll_deg: roll,
+      source: "adsb.lol",
+      source_license: ADSBIOL_LICENSE,
+      raw_point: p,
+    };
+  }).filter(Boolean);
+}
+
+async function persistHistoryToSupabase(points, sourceUrl) {
+  const supabaseUrl = Deno.env.get("VITE_SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey || !points.length) return { persisted: false, reason: "Supabase service credentials not configured" };
+
+  const supabase = createSupabaseClient(supabaseUrl, serviceRoleKey);
+  const rows = points.map((p) => ({
+    icao24: p.icao24,
+    registration: p.registration,
+    aircraft_type: p.aircraft_type,
+    observation_date: p.observation_date,
+    observed_at: p.observed_at,
+    latitude: p.latitude,
+    longitude: p.longitude,
+    altitude_ft: p.altitude_ft,
+    ground_speed_kt: p.ground_speed_kt,
+    track_deg: p.track_deg,
+    vertical_rate_fpm: p.vertical_rate_fpm,
+    source: p.source,
+    source_license: p.source_license,
+    source_url: sourceUrl,
+    raw_point: p.raw_point,
+  }));
+
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 500) {
+    const batch = rows.slice(i, i + 500);
+    const { error } = await supabase
+      .from("adsblol_flight_history")
+      .upsert(batch, { onConflict: "icao24,observed_at", ignoreDuplicates: false });
+    if (error) throw new Error(`Supabase history upsert failed: ${error.message}`);
+    inserted += batch.length;
+  }
+  return { persisted: true, rows: inserted };
 }
 
 async function adsbFetchBbox(lamin, lamax, lomin, lomax, limit = 200) {
@@ -505,6 +620,34 @@ Deno.serve(async (req) => {
     if (!action) return Response.json({ error: "action required" }, { status: 400 });
 
     const useOpenSky = source === "opensky";
+
+    if (action === "history") {
+      if (source !== "adsblol") return Response.json({ error: "Historical archive is currently provided by adsb.lol only" }, { status: 400 });
+      let hex = icao24 ? String(icao24).toLowerCase().trim() : null;
+      if (!isValidHex(hex) && body.icao24) hex = await resolveNNumberToHex(base44, body.icao24);
+      if (!isValidHex(hex)) return Response.json({ error: "Provide a 6-character ICAO24 hex or a US N-number" }, { status: 400 });
+
+      const date = body.date;
+      const result = await adsbFetchHistoryDay(hex, date);
+      if (!result) return Response.json({ error: "No historical trace found for this aircraft and date", icao24: hex, date, source: "adsb.lol" }, { status: 404 });
+      const points = normalizeTrace(result.payload, date);
+      let persisted = { persisted: false, reason: "persist=false" };
+      if (body.persist === true) persisted = await persistHistoryToSupabase(points, result.url);
+
+      return Response.json({
+        source: "adsb.lol",
+        license: ADSBIOL_LICENSE,
+        source_url: result.url,
+        icao24: hex,
+        registration: result.payload.r || null,
+        aircraft_type: result.payload.t || null,
+        date,
+        timestamp: result.payload.timestamp || null,
+        point_count: points.length,
+        persisted,
+        trace: points,
+      });
+    }
 
     if (action === "map_states" || action === "history_states") {
       const { allow_heavy = false, limit = 200, lamin, lamax, lomin, lomax } = body;

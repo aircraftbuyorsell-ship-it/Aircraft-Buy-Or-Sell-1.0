@@ -113,9 +113,15 @@ import MarketspaceHub from "./pages/hubs/MarketspaceHub";
 import IntelligenceHub from "./pages/hubs/IntelligenceHub";
 import VerifyHub from "./pages/hubs/VerifyHub";
 import ApiHub from "./pages/hubs/ApiHub";
+import SkylarkConfigurator from "./pages/SkylarkConfigurator";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const pathname = window.location.pathname;
+
+  if (pathname === "/skylark-configurator") {
+    return <SkylarkConfigurator />;
+  }
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (

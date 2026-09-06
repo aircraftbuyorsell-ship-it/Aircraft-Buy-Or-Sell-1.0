@@ -84,13 +84,22 @@
     }
   ],
   "context_files": [],
-  "app_user_connector_configs": [],
+  "app_user_connector_configs": [
+    {
+      "connector_id": "6a5c2767fffbeca489c4de53",
+      "enabled": true
+    },
+    {
+      "connector_id": "6a5c242aee39d843261a3df8",
+      "enabled": true
+    }
+  ],
   "selected_skill_names": [],
   "selected_workspace_skill_ids": [],
   "model": "automatic",
-  "whatsapp_greeting": null,
-  "telegram_greeting": null,
-  "line_greeting": null,
+  "whatsapp_greeting": "",
+  "telegram_greeting": "",
+  "line_greeting": "",
   "memory_config": {
     "enabled": true,
     "scope": "both",

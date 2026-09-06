@@ -40,7 +40,25 @@ function DealCodeBadge({ code }) {
 }
 
 export default function ListingCard({ listing: l, onClick }) {
-  const enginePct = l.tbo ? Math.min(100, Math.round(((l.tbo - l.engine_hours) / l.tbo) * 100)) : null;
+  // Listings can store uploaded media under several legacy/current fields.
+  // Normalize the first usable image so an uploaded photo is always shown on the card.
+  const photoCandidates = [
+    l.photo_url,
+    l.image_url,
+    l.cover_image,
+    ...(Array.isArray(l.image_attachments) ? l.image_attachments : []),
+    ...(Array.isArray(l.images) ? l.images : []),
+    ...(Array.isArray(l.photos) ? l.photos : []),
+  ];
+  const photo = photoCandidates
+    .map((item) => (typeof item === "string" ? item : item?.url || item?.file_url || item?.src))
+    .find((url) => typeof url === "string" && url.trim().length > 0);
+
+  const engineHours = Number(l.engine_hours);
+  const tbo = Number(l.tbo);
+  const enginePct = tbo > 0 && Number.isFinite(engineHours)
+    ? Math.max(0, Math.min(100, Math.round(((tbo - engineHours) / tbo) * 100)))
+    : null;
 
   return (
     <div
@@ -48,18 +66,27 @@ export default function ListingCard({ listing: l, onClick }) {
       className="group rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all cursor-pointer p-5 flex flex-col gap-4"
     >
       <div className="relative w-full rounded-lg overflow-hidden bg-muted" style={{ aspectRatio: "16/9" }}>
-        {l.photo_url ? (
-          <img src={l.photo_url} alt={`${l.make} ${l.model}`} className="w-full h-full object-cover" loading="lazy" />
+        {photo ? (
+          <img
+            src={photo}
+            alt={`${l.make || "Aircraft"} ${l.model || ""}`.trim()}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              // Keep the card usable if a stale/deleted upload URL is encountered.
+              e.currentTarget.style.display = "none";
+            }}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
             <Plane className="w-8 h-8 text-muted-foreground/30" />
           </div>
         )}
         <DealCodeBadge code={l.deal_code} />
-        {l.photo_url && (
+        {photo && (
           <span className="absolute bottom-1.5 right-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full text-white"
             style={{ background: l.photo_source === "hf_generated" ? "rgba(148,163,184,0.85)" : "rgba(34,197,94,0.85)" }}>
-            {l.photo_source === "hf_generated" ? "AI Render" : "Real"}
+            {l.photo_source === "hf_generated" ? "AI Render" : "Photo"}
           </span>
         )}
       </div>

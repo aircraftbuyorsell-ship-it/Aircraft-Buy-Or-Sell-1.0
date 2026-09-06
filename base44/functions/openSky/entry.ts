@@ -8,6 +8,7 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient as createSupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { parseAdsbAircraft } from '../_shared/adsbLolClient.mjs';
 
 const ADSBIOL_BASE = "https://api.adsb.lol/v2";
 const ADSBIOL_HISTORY_BASE = "https://adsb.lol";
@@ -41,50 +42,7 @@ async function adsbFetch(path) {
 }
 
 // Convert adsb.lol aircraft object → normalised state object
-function parseAdsbAc(ac) {
-  if (!ac || !ac.hex) return null;
-  const lat = ac.lat ?? null;
-  const lon = ac.lon ?? null;
-  if (lat == null || lon == null) return null;
-
-  const altFt = typeof ac.alt_baro === "number" ? ac.alt_baro : null;
-  const altM  = altFt != null ? altFt * 0.3048 : null;
-  const speedKt = typeof ac.gs === "number" ? ac.gs : null;
-  const speedMs = speedKt != null ? speedKt * 0.514444 : null;
-  const vrateFtMin = typeof ac.baro_rate === "number" ? ac.baro_rate : null;
-  const vrateMs = vrateFtMin != null ? vrateFtMin * 0.00508 : null;
-
-  let category = 0;
-  if (ac.category) {
-    const c = String(ac.category);
-    if (c.startsWith("A")) category = parseInt(c[1]) || 0;
-    else if (c.startsWith("B")) category = 8;
-    else if (c.startsWith("C")) category = 9;
-  }
-
-  return {
-    icao24:        ac.hex.toLowerCase(),
-    callsign:      (ac.flight || ac.r || "").trim() || null,
-    // adsb.lol's /v2/point response has no operator/country field (no `ownOp`
-    // in its V2Response_AcItem schema) — always null from this source.
-    origin_country: null,
-    time_position: ac.seen_pos != null ? Math.floor(Date.now() / 1000) - ac.seen_pos : null,
-    last_contact:  ac.seen   != null ? Math.floor(Date.now() / 1000) - ac.seen   : null,
-    longitude:     lon,
-    latitude:      lat,
-    baro_altitude: altM,
-    on_ground:     ac.alt_baro === "ground" || altFt === 0,
-    velocity:      speedMs,
-    true_track:    typeof ac.track === "number" ? ac.track : null,
-    vertical_rate: vrateMs,
-    geo_altitude:  typeof ac.alt_geom === "number" ? ac.alt_geom * 0.3048 : altM,
-    squawk:        ac.squawk || null,
-    position_source: 0,
-    category,
-    registration:  ac.r  || null,
-    aircraft_type: ac.t  || null,
-  };
-}
+const parseAdsbAc = parseAdsbAircraft;
 
 async function adsbFetchHex(hex) {
   const data = await adsbFetch(`/hex/${hex}`);

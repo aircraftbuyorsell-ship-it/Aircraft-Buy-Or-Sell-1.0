@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, Plane, TrendingUp, Shield, Tag, ArrowRight, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 
 const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
 
@@ -43,14 +44,15 @@ export default function NewHero({ listings = [], atiCards = [] }) {
     if (!fullReg) return;
     setSearching(true);
     setError("");
+    setOverlayData(null);
+
     try {
-      const res = await base44.functions.invoke("globalAircraftLookup", { registration: fullReg });
-      const data = res.data;
-      if (!data.found) {
-        setError(data.error || `No registry record found for ${fullReg}.`);
-        setSearching(false);
+      const data = await lookupAircraft(fullReg);
+      if (!data?.found || !data?.aircraft) {
+        setError(data?.error || `No registry record found for ${fullReg}.`);
         return;
       }
+
       let photo = null;
       try {
         const photoRes = await base44.functions.invoke("aircraftPhoto", {
@@ -61,6 +63,7 @@ export default function NewHero({ listings = [], atiCards = [] }) {
         });
         if (photoRes.data?.photo_url) photo = photoRes.data;
       } catch (_) {}
+
       setOverlayData({
         result: { ...data.aircraft, _origin: data.origin_label, _source: data.source },
         photo,
@@ -70,9 +73,10 @@ export default function NewHero({ listings = [], atiCards = [] }) {
         areaState: data.areaServices?.state || "",
       });
     } catch (_) {
-      setError("Failed to search registry. Please try again.");
+      setError("Failed to search aircraft registry. Please try again.");
+    } finally {
+      setSearching(false);
     }
-    setSearching(false);
   };
 
   return (

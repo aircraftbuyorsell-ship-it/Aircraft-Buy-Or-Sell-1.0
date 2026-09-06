@@ -65,7 +65,9 @@ function parseAdsbAc(ac) {
   return {
     icao24:        ac.hex.toLowerCase(),
     callsign:      (ac.flight || ac.r || "").trim() || null,
-    origin_country: ac.ownOp || null,
+    // adsb.lol's /v2/point response has no operator/country field (no `ownOp`
+    // in its V2Response_AcItem schema) — always null from this source.
+    origin_country: null,
     time_position: ac.seen_pos != null ? Math.floor(Date.now() / 1000) - ac.seen_pos : null,
     last_contact:  ac.seen   != null ? Math.floor(Date.now() / 1000) - ac.seen   : null,
     longitude:     lon,

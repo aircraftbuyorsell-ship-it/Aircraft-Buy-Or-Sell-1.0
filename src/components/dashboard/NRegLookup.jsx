@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 import { useTheme } from "@/lib/useTheme";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
@@ -50,10 +51,9 @@ export default function NRegLookup({ userProfile, onFocusLocation }) {
     setError("");
 
     try {
-      const res = await base44.functions.invoke("globalAircraftLookup", { registration: fullReg });
-      const data = res.data;
+      const data = await lookupAircraft(fullReg);
 
-      if (!data.found) {
+      if (!data?.found || !data?.aircraft) {
         setError(data.error || `No registry record found for ${fullReg}.`);
         setSearching(false);
         return;

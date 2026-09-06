@@ -4,6 +4,7 @@ import {
   Plane, Loader2, ShieldCheck, X, Plus } from
 "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 import MarketspaceTourLauncher from "@/components/marketspace-tour/MarketspaceTourLauncher";
 
 // ─── Design tokens ───────────────────────────────────────────────
@@ -218,12 +219,18 @@ export default function ListingsHeader({
         return;
       }
 
-      // 2. Global registry fallback (FAA or international)
-      const res = await base44.functions.invoke("globalAircraftLookup", { registration: clean });
-      if (res.data?.found) {
-        setFaaResult(res.data.aircraft);
+      // 2. Shared registry lookup with source fallback. A negative response
+      // from one provider must not block the remaining registry sources.
+      const data = await lookupAircraft(clean);
+      if (data?.found && data?.aircraft) {
+        setFaaResult({
+          ...data.aircraft,
+          n_number: data.aircraft.n_number || data.aircraft.registration?.replace(/^N/i, ""),
+          year_mfr: data.aircraft.year_mfr || data.aircraft.year,
+          status_code: data.aircraft.status_code || data.aircraft.status,
+        });
       } else {
-        setError(res.data?.error || `No record found for ${clean}.`);
+        setError(data?.error || `No record found for ${clean}.`);
       }
     } catch (e) {
       setError("Lookup failed. Please try again.");

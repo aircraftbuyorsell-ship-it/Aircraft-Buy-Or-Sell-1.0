@@ -2,7 +2,7 @@
   "name": "Auto-Enrich Listing from Registry",
   "description": "Auto-fills missing make/model/year on AircraftListing from FAA registry + adsbdb backup when a listing is created or updated",
   "trigger": {
-    "condition": null,
+    "condition": "${ (.trigger.data.registration != null) }",
     "config": {
       "trigger_type": "entity",
       "events": [

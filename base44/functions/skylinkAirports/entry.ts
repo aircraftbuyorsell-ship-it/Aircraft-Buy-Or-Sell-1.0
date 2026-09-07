@@ -161,18 +161,26 @@ Deno.serve(async (req) => {
       const ts = t.recorded_at ? new Date(t.recorded_at).getTime() : 0;
       return ts > latest ? ts : latest;
     }, 0);
-    const trafficAgeMinutes = latestTrafficAt ? Math.max(0, Math.round((Date.now() - latestTrafficAt) / 60000)) : null;
+    const trafficAgeMinutes = liveTraffic.length > 0 ? 0 : latestTrafficAt ? Math.max(0, Math.round((Date.now() - latestTrafficAt) / 60000)) : null;
+    const arrivalsProxy = traffic.filter((t) => Number(t.distance_nm) <= 10 && t.on_ground === false && Number(t.altitude_ft) >= 0);
+    const groundTraffic = traffic.filter((t) => t.on_ground === true);
+    const airborneTraffic = traffic.filter((t) => t.on_ground === false);
+    const densityPer10Nm = traffic.length;
+    const confidence = liveTraffic.length > 0 ? (liveTraffic.length >= 5 ? 'high' : 'medium') : 'historical';
 
     const trafficIntelligence = {
       source: liveTraffic.length > 0 ? 'adsb.lol' : 'supabase:live_traffic',
       radius_nm: 25,
       count: traffic.length,
-      airborne: traffic.filter((t) => t.on_ground === false).length,
-      on_ground: traffic.filter((t) => t.on_ground === true).length,
-      latest_recorded_at: latestTrafficAt ? new Date(latestTrafficAt).toISOString() : null,
+      airborne: airborneTraffic.length,
+      on_ground: groundTraffic.length,
+      within_10nm: arrivalsProxy.length,
+      traffic_density_25nm: densityPer10Nm,
+      latest_recorded_at: liveTraffic.length > 0 ? new Date().toISOString() : latestTrafficAt ? new Date(latestTrafficAt).toISOString() : null,
       age_minutes: trafficAgeMinutes,
-      status: trafficAgeMinutes == null ? 'no_coverage' : trafficAgeMinutes <= 15 ? 'live' : 'historical',
+      status: liveTraffic.length > 0 ? 'live' : trafficAgeMinutes == null ? 'no_coverage' : 'historical',
       coverage: traffic.length > 0 ? 'position_snapshot' : 'none',
+      confidence,
       aircraft: traffic,
       primary_source: 'adsb.lol',
       fallback_source: 'supabase:live_traffic',

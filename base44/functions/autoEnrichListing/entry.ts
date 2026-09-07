@@ -50,29 +50,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin access required for non-owner listings' }, { status: 403 });
     }
 
-    if (!data) {
+    // Some Base44 workflow invocations expose the entity payload under
+    // trigger.data rather than the raw request body. Normalize both shapes.
+    const workflowData = data || event?.data || event?.trigger?.data || null;
+    if (!workflowData) {
       return Response.json({ skipped: true, reason: 'no data in payload' });
     }
 
-    const listingId = data.id || event?.entity_id;
+    const listingId = workflowData.id || event?.entity_id;
     if (!listingId) {
       return Response.json({ skipped: true, reason: 'no listing id' });
     }
 
-    const registration = data.registration;
+    const registration = workflowData.registration;
     if (!registration || !/^N/i.test(registration)) {
       return Response.json({ skipped: true, reason: 'no N-registration' });
     }
 
     const maintenanceResponse = await base44.functions.invoke('calculateEngineMaintenance', {
       registration,
-      engine_hours: data.engine_hours,
+      engine_hours: workflowData.engine_hours,
       listing_id: listingId,
     });
     const maintenance = maintenanceResponse.data?.results?.[0] || null;
 
     // Skip if make and model are already filled — nothing to enrich, prevents loops
-    if (data.make && data.model && data.make !== 'Unknown' && data.model !== 'Unknown') {
+    if (workflowData.make && workflowData.model && workflowData.make !== 'Unknown' && workflowData.model !== 'Unknown') {
       return Response.json({ skipped: true, reason: 'make and model already set' });
     }
 
@@ -92,8 +95,8 @@ Deno.serve(async (req) => {
     try {
       const photoRes = await base44.functions.invoke('aircraftPhoto', {
         registration,
-        make: lookupData.aircraft.make || data.make,
-        model: lookupData.aircraft.model || data.model,
+        make: lookupData.aircraft.make || workflowData.make,
+        model: lookupData.aircraft.model || workflowData.model,
       });
       photoResult = photoRes.data;
       if (photoResult?.photo_url) {

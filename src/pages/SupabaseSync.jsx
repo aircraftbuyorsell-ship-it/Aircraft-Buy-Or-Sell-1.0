@@ -134,6 +134,8 @@ export default function SupabaseSync() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState(null);
+  const [diagnostic, setDiagnostic] = useState(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
 
   const table = TABLES.find((t) => t.id === activeTab) || TABLES[0];
 
@@ -194,8 +196,9 @@ export default function SupabaseSync() {
     fetchSummary();
   };
 
-  // Auto-load summary on mount & tab change
+  // Auto-load diagnostics and summary on mount & tab change
   useEffect(() => {
+    fetchDiagnostic();
     fetchSummary();
   }, [activeTab]);
 
@@ -204,6 +207,18 @@ export default function SupabaseSync() {
     setSelectedIds(new Set());
     setBulkResult(null);
   }, [activeTab]);
+
+  const fetchDiagnostic = async () => {
+    setDiagnosticLoading(true);
+    try {
+      const res = await base44.functions.invoke("syncFaaFromSupabase", { mode: "diagnostic" });
+      setDiagnostic(res.data);
+    } catch (err) {
+      setDiagnostic({ state: "error", message: err.message || "Diagnostic failed" });
+    } finally {
+      setDiagnosticLoading(false);
+    }
+  };
 
   const fetchSummary = async () => {
     setLoading(true);
@@ -324,6 +339,36 @@ export default function SupabaseSync() {
 
         {/* AI Safety Defaults (ai_config) */}
         <AiSafetyDefaultsCard />
+
+        {/* Connection + source diagnostic */}
+        <div className="bg-[rgba(255,255,255,0.04)] rounded-2xl border border-[rgba(255,255,255,0.08)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.08)]">
+            <div>
+              <h3 className="text-sm font-black text-white uppercase tracking-tight">Sync Diagnostics</h3>
+              <p className="text-[10px] text-white/40">Supabase connection · FAA source · ABOS target</p>
+            </div>
+            <button onClick={fetchDiagnostic} disabled={diagnosticLoading} className="text-[10px] font-bold text-white/70 hover:text-white flex items-center gap-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 ${diagnosticLoading ? "animate-spin" : ""}`} />
+              Recheck
+            </button>
+          </div>
+          {diagnostic && (
+            <div className="px-5 py-4 space-y-3">
+              <div className="flex items-center gap-2">
+                {diagnostic.state === "ready" ? <CheckCircle2 className="w-4 h-4 text-[#5dcaa5]" /> : diagnostic.state === "connected_empty" ? <AlertTriangle className="w-4 h-4 text-[#f5c242]" /> : <AlertTriangle className="w-4 h-4 text-[#e24b4a]" />}
+                <span className="text-[12px] font-bold text-white">{diagnostic.state === "ready" ? "READY" : diagnostic.state === "connected_empty" ? "CONNECTED — EMPTY SOURCE" : diagnostic.state === "connected_readonly" ? "CONNECTED — CHECK SERVICE ROLE" : "DIAGNOSTIC ERROR"}</span>
+              </div>
+              <p className="text-[11px] text-white/55">{diagnostic.message}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <StatPill label="Supabase URL" value={diagnostic.supabaseUrlConfigured ? "OK" : "MISSING"} color={diagnostic.supabaseUrlConfigured ? "#5dcaa5" : "#e24b4a"} />
+                <StatPill label="Publishable Key" value={diagnostic.publishableKeyConfigured ? "OK" : "MISSING"} color={diagnostic.publishableKeyConfigured ? "#5dcaa5" : "#e24b4a"} />
+                <StatPill label="FAA Registry" value={diagnostic.source?.rows ?? "—"} color={(diagnostic.source?.rows || 0) > 0 ? "#5dcaa5" : "#f5c242"} />
+                <StatPill label="ABOS FAA Sample" value={diagnostic.target?.sampledRows ?? "—"} color="#4e8ef7" />
+              </div>
+              {diagnostic.source?.error && <p className="text-[10px] text-[#e24b4a] font-mono break-all">{diagnostic.source.error}</p>}
+            </div>
+          )}
+        </div>
 
         {/* Error banner */}
         {error && (

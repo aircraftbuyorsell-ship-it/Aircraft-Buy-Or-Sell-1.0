@@ -72,8 +72,9 @@ Deno.serve(async (req) => {
     };
 
     const nNumber = registration.replace(/^N/i, '');
+    const canonicalUsNNumber = registration.startsWith('N') ? registration : `N${nNumber}`;
     const [registryRows, catalogRows, passportRows, cardRows, listingRows, trafficRows] = await Promise.all([
-      rest('faa_registry', `select=*&n_number=eq.${encodeURIComponent(nNumber)}&limit=1`),
+      rest('faa_registry', `select=*&n_number=eq.${encodeURIComponent(canonicalUsNNumber)}&limit=1`),
       rest('base44_aircraft_catalog', `select=*&n_number=eq.${encodeURIComponent(nNumber)}&limit=1`),
       rest('aircraft_passports', `select=*&registration=eq.${encodeURIComponent(registration)}&limit=1`),
       rest('aircraft_cards', `select=*&registration=eq.${encodeURIComponent(registration)}&order=updated_at.desc&limit=1`),

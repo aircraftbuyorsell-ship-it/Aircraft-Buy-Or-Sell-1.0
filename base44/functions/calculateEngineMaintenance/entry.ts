@@ -13,10 +13,31 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
     const body = await req.json().catch(() => ({}));
+
+    // Unified privileged-role check: admin and super_admin share the same
+    // operational access. For the listing-triggered automation, allow the
+    // authenticated listing owner as well; the listing_id is mandatory for
+    // this narrower non-privileged path.
+    const isPrivileged = user?.role === 'admin' || user?.role === 'super_admin';
+    let isOwnedListing = false;
+    if (!isPrivileged && user?.id && body.listing_id) {
+      try {
+        const owned = await base44.asServiceRole.entities.AircraftListing.filter(
+          { id: body.listing_id },
+          '-created_date',
+          1
+        );
+        isOwnedListing = owned.length > 0 && owned[0].created_by_id === user.id;
+      } catch (_) {
+        isOwnedListing = false;
+      }
+    }
+
+    if (!isPrivileged && !isOwnedListing) {
+      return Response.json({ error: 'Admin access required for non-owner maintenance calculations' }, { status: 403 });
+    }
+
     const requested = Array.isArray(body.registrations) ? body.registrations : [body.registration];
     const registrations = [...new Set(requested.map(normalizeReg).filter(Boolean))].slice(0, 50);
     if (!registrations.length) return Response.json({ error: 'registration required' }, { status: 400 });

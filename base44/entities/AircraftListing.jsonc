@@ -99,7 +99,7 @@
     },
     "discount_pct": {
       "type": "number",
-      "description": "% discount vs OMVM (positive = below market)"
+      "description": "% discount vs OMVM"
     },
     "ai_summary": {
       "type": "string",
@@ -129,13 +129,11 @@
     },
     "pending_fee_usd": {
       "type": "number",
-      "minimum": 0,
-      "description": "Finder's fee held for collection only when an ABOS escrow closes"
+      "minimum": 0
     },
     "description": {
       "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description for search visibility and SEO"
+      "maxLength": 1000
     }
   },
   "required": [

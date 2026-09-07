@@ -99,6 +99,53 @@ Deno.serve(async (req) => {
       supabaseQuery(`abos_navaids?associated_airport=eq.${encodeURIComponent(ident)}&limit=100`),
     ]);
 
+    // Traffic intelligence: use the airport coordinates as a spatial proxy.
+    // live_traffic currently contains position snapshots but no PostGIS geometry,
+    // so query a small latitude/longitude bounding box server-side and calculate
+    // approximate great-circle distance in the function.
+    const airportLat = Number(row.latitude_deg);
+    const airportLon = Number(row.longitude_deg);
+    let traffic = [];
+    if (Number.isFinite(airportLat) && Number.isFinite(airportLon)) {
+      const latDelta = 25 / 69;
+      const lonDelta = 25 / Math.max(69 * Math.cos((airportLat * Math.PI) / 180), 1);
+      const minLat = airportLat - latDelta;
+      const maxLat = airportLat + latDelta;
+      const minLon = airportLon - lonDelta;
+      const maxLon = airportLon + lonDelta;
+      traffic = await supabaseQuery(
+        `live_traffic?latitude=gte.${minLat}&latitude=lte.${maxLat}&longitude=gte.${minLon}&longitude=lte.${maxLon}&order=recorded_at.desc&limit=150`
+      );
+      traffic = (traffic || []).map((t) => {
+        const lat = Number(t.latitude);
+        const lon = Number(t.longitude);
+        const dLat = ((lat - airportLat) * Math.PI) / 180;
+        const dLon = ((lon - airportLon) * Math.PI) / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos((airportLat * Math.PI) / 180) * Math.cos((lat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+        const distanceNm = 3440.065 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+        return { ...t, distance_nm: Math.round(distanceNm * 10) / 10 };
+      }).filter((t) => Number.isFinite(t.distance_nm) && t.distance_nm <= 25).sort((a, b) => a.distance_nm - b.distance_nm).slice(0, 30);
+    }
+
+    const latestTrafficAt = traffic.reduce((latest, t) => {
+      const ts = t.recorded_at ? new Date(t.recorded_at).getTime() : 0;
+      return ts > latest ? ts : latest;
+    }, 0);
+    const trafficAgeMinutes = latestTrafficAt ? Math.max(0, Math.round((Date.now() - latestTrafficAt) / 60000)) : null;
+
+    const trafficIntelligence = {
+      source: 'supabase:live_traffic',
+      radius_nm: 25,
+      count: traffic.length,
+      airborne: traffic.filter((t) => t.on_ground === false).length,
+      on_ground: traffic.filter((t) => t.on_ground === true).length,
+      latest_recorded_at: latestTrafficAt ? new Date(latestTrafficAt).toISOString() : null,
+      age_minutes: trafficAgeMinutes,
+      status: trafficAgeMinutes == null ? 'no_coverage' : trafficAgeMinutes <= 15 ? 'live' : 'historical',
+      coverage: traffic.length > 0 ? 'position_snapshot' : 'none',
+      aircraft: traffic,
+    };
+
     const airportDetail = {
       ...row,
       icao_code: row.ident || row.gps_code || null,
@@ -107,6 +154,7 @@ Deno.serve(async (req) => {
       runways: runways || [],
       frequencies: frequencies || [],
       navaids: navaids || [],
+      traffic: trafficIntelligence,
     };
 
     const payload = {

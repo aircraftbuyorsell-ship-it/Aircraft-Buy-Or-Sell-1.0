@@ -99,10 +99,40 @@ Deno.serve(async (req) => {
       supabaseQuery(`abos_navaids?associated_airport=eq.${encodeURIComponent(ident)}&limit=100`),
     ]);
 
-    // Traffic intelligence: use the airport coordinates as a spatial proxy.
-    // live_traffic currently contains position snapshots but no PostGIS geometry,
-    // so query a small latitude/longitude bounding box server-side and calculate
-    // approximate great-circle distance in the function.
+    // Traffic intelligence: adsb.lol is the primary live source.
+    // Query a tight airport-radius feed directly, then enrich with ABOS Supabase
+    // only when the live source is unavailable. This keeps Airport Intelligence
+    // genuinely live without depending on the stale historical live_traffic table.
+    let liveTraffic = [];
+    const adsbRadiusNm = 25;
+    if (Number.isFinite(Number(row.latitude_deg)) && Number.isFinite(Number(row.longitude_deg))) {
+      try {
+        const adsbResp = await fetch(
+          `https://api.adsb.lol/v2/lat/${encodeURIComponent(Number(row.latitude_deg))}/lon/${encodeURIComponent(Number(row.longitude_deg))}/dist/${adsbRadiusNm}`,
+          { headers: { "User-Agent": "ABOS-Aviation-Platform/2.0" } }
+        );
+        if (adsbResp.ok) {
+          const adsbData = await adsbResp.json();
+          liveTraffic = (adsbData?.ac || []).map((ac) => ({
+            icao24: ac.hex?.toLowerCase() || null,
+            callsign: (ac.flight || "").trim() || null,
+            registration: ac.r || null,
+            latitude: ac.lat ?? null,
+            longitude: ac.lon ?? null,
+            altitude_ft: typeof ac.alt_baro === "number" ? Math.round(ac.alt_baro) : null,
+            ground_speed_kt: typeof ac.gs === "number" ? Math.round(ac.gs) : null,
+            heading: typeof ac.track === "number" ? Math.round(ac.track) : null,
+            vertical_rate_fpm: typeof ac.baro_rate === "number" ? Math.round(ac.baro_rate) : null,
+            on_ground: ac.alt_baro === "ground" || ac.alt_baro === 0,
+            aircraft_category: ac.category || null,
+            source: "adsb.lol"
+          })).filter((ac) => ac.latitude != null && ac.longitude != null);
+        }
+      } catch (_) {
+        liveTraffic = [];
+      }
+    }
+
     const airportLat = Number(row.latitude_deg);
     const airportLon = Number(row.longitude_deg);
     let traffic = [];

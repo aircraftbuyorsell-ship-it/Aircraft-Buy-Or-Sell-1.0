@@ -740,7 +740,7 @@ Deno.serve(async (req) => {
       const canonicalNNumber = `N${n_number.trim().toUpperCase().replace(/^N/i, '').replace(/[^A-Z0-9]/g, '')}`;
 
       const { data: rows, error: rowErr } = await supabaseAdmin
-        .from('faa_registry').select('*').eq('n_number', n_number.trim().toUpperCase()).limit(1);
+        .from('faa_registry').select('*').eq('n_number', canonicalNNumber).limit(1);
       if (rowErr) return Response.json({ error: rowErr.message }, { status: 500 });
       if (!rows?.length) return Response.json({ error: 'Not found in FAA registry' }, { status: 404 });
 

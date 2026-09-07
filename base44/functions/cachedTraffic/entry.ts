@@ -1,21 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { WORLD_TILES, parseAdsbAircraft } from '../_shared/adsbLolClient.mjs';
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const ADSBIOL_BASE = "https://api.adsb.lol/v2";
 const FETCH_TIMEOUT = 10000;
-
-// Manageable tiles for adsb.lol radius-based API
-const WORLD_TILES = [
-  { key: "europe",       clat: 51,   clon: 12,   dist: 1200 },
-  { key: "usa-east",     clat: 38,   clon: -78,  dist: 1200 },
-  { key: "usa-west",     clat: 38,   clon: -115, dist: 1200 },
-  { key: "middle-east",  clat: 27,   clon: 47,   dist: 1200 },
-  { key: "asia-east",    clat: 35,   clon: 120,  dist: 1500 },
-  { key: "asia-south",   clat: 18,   clon: 82,   dist: 1200 },
-  { key: "north-africa", clat: 15,   clon: 20,   dist: 1200 },
-  { key: "atlantic",     clat: 45,   clon: -35,  dist: 900  },
-  { key: "south-asia",   clat: 25,   clon: 67,   dist: 900  },
-];
 
 async function fetchTile(tile) {
   const ctrl = new AbortController();
@@ -38,33 +26,8 @@ async function fetchTile(tile) {
 }
 
 function parseAc(ac) {
-  if (!ac?.hex) return null;
-  const lat = ac.lat ?? null;
-  const lon = ac.lon ?? null;
-  if (lat == null || lon == null) return null;
-  const altFt = typeof ac.alt_baro === "number" ? ac.alt_baro : null;
-  const altM = altFt != null ? altFt * 0.3048 : null;
-  const speedKt = typeof ac.gs === "number" ? ac.gs : null;
-  const speedMs = speedKt != null ? speedKt * 0.514444 : null;
-  return {
-    icao24: ac.hex.toLowerCase(),
-    callsign: (ac.flight || ac.r || "").trim() || null,
-    origin_country: ac.ownOp || null,
-    longitude: lon,
-    latitude: lat,
-    baro_altitude: altM,
-    on_ground: ac.alt_baro === "ground" || altFt === 0,
-    velocity: speedMs,
-    true_track: typeof ac.track === "number" ? ac.track : null,
-    vertical_rate: typeof ac.baro_rate === "number" ? ac.baro_rate * 0.00508 : null,
-    geo_altitude: typeof ac.alt_geom === "number" ? ac.alt_geom * 0.3048 : altM,
-    squawk: ac.squawk || null,
-    category: ac.category ? (parseInt(String(ac.category)[1]) || 0) : 0,
-    registration: ac.r || null,
-    aircraft_type: ac.t || null,
-    faa: null,
-    listing: null,
-  };
+  const parsed = parseAdsbAircraft(ac);
+  return parsed && { ...parsed, faa: null, listing: null };
 }
 
 Deno.serve(async (req) => {

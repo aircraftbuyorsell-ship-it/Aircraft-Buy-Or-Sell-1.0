@@ -100,6 +100,77 @@ Deno.serve(async (req) => {
     const currentPage = page || 1;
     const size = Math.min(pageSize || 100, 1000);
 
+    // ── MODE: diagnostic ──
+    // Explicitly reports connectivity, credential state, source row counts and target state.
+    // This prevents an empty source table from looking like a broken sync.
+    if (currentMode === 'diagnostic') {
+      const serviceRoleConfigured = Boolean(serviceRoleKey);
+      const checks = {};
+      let sourceCount = null;
+      let sourceError = null;
+      let sample = [];
+
+      try {
+        const probe = await withTimeout(
+          supabaseAdmin.from('faa_registry').select('*', { count: 'exact', head: true }),
+          8000
+        );
+        sourceCount = probe.count ?? 0;
+        sourceError = probe.error ? supabaseErrMsg(probe.error) : null;
+        checks.faaRegistry = !probe.error;
+      } catch (e) {
+        sourceError = supabaseErrMsg(e);
+        checks.faaRegistry = false;
+      }
+
+      if (!sourceError && sourceCount > 0) {
+        try {
+          const sampleResult = await withTimeout(
+            supabaseAdmin.from('faa_registry').select('n_number,name,serial_number,mfr_mdl_code').limit(3),
+            8000
+          );
+          sample = sampleResult.data || [];
+          if (sampleResult.error) sourceError = supabaseErrMsg(sampleResult.error);
+        } catch (e) {
+          sourceError = supabaseErrMsg(e);
+        }
+      }
+
+      let targetCount = null;
+      try {
+        const target = await base44.asServiceRole.entities.FAAAircraft.filter({}, '-created_date', 500);
+        targetCount = target.length;
+      } catch (_) {}
+
+      const state = sourceError
+        ? 'error'
+        : sourceCount === 0
+          ? 'connected_empty'
+          : !serviceRoleConfigured
+            ? 'connected_readonly'
+            : 'ready';
+
+      return Response.json({
+        mode: 'diagnostic',
+        state,
+        supabaseUrlConfigured: Boolean(supabaseUrl),
+        publishableKeyConfigured: Boolean(supabaseKey),
+        serviceRoleConfigured,
+        source: { table: 'faa_registry', rows: sourceCount, error: sourceError, sample },
+        target: { entity: 'FAAAircraft', sampledRows: targetCount },
+        checks,
+        message:
+          state === 'connected_empty'
+            ? 'Supabase is reachable, but faa_registry contains 0 rows. Import/load the FAA dataset into Supabase before running registry sync.'
+            : state === 'connected_readonly'
+              ? 'Supabase is reachable, but SUPABASE_SERVICE_ROLE_KEY is not configured. Server-side sync may be blocked by RLS.'
+              : state === 'ready'
+                ? 'Supabase connection and FAA source are ready for registry sync.'
+                : 'Supabase diagnostic failed. Check credentials, RLS and project connectivity.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // ── MODE: summary ──
     if (currentMode === 'summary') {
       const { count: faaTotal, error: faaErr } = await supabaseAdmin

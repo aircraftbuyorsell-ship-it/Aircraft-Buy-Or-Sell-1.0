@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar } from "lucide-react";
+import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar, Navigation } from "lucide-react";
 
 const AMBER = "#E8A83A";
 
@@ -59,6 +59,11 @@ export default function SkyLinkAirportBlock({ code }) {
           <p className="text-sm font-black truncate" style={{ color: "#1e293b" }}>
             {code}{airport ? ` — ${airport.name || airport.ident}` : ""}
           </p>
+          {airport && (
+            <p className="text-[9px] mt-0.5" style={{ color: "#8A847D" }}>
+              {airport.icao_code || airport.ident || "—"} · {airport.iata_code || "—"} · OurAirports / ABOS Supabase
+            </p>
+          )}
         </div>
         <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} style={{ color: "#6B6560" }} />
       </button>
@@ -105,7 +110,7 @@ export default function SkyLinkAirportBlock({ code }) {
                 ))}
               </div>
 
-              {/* Runways + frequencies */}
+              {/* Runways + frequencies + navaids */}
               <div className="grid sm:grid-cols-2 gap-3">
                 {airport.runways?.length > 0 && (
                   <div className="rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)" }}>
@@ -125,13 +130,28 @@ export default function SkyLinkAirportBlock({ code }) {
                 {airport.frequencies?.length > 0 && (
                   <div className="rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)" }}>
                     <p className="text-[8px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: "#AAA49C" }}>
-                      <Radio className="w-3 h-3" /> Frequencies
+                      <Radio className="w-3 h-3" /> Frequencies ({airport.frequencies.length})
                     </p>
                     <div className="space-y-0.5">
-                      {airport.frequencies.slice(0, 5).map((f, i) => (
+                      {airport.frequencies.slice(0, 6).map((f, i) => (
                         <div key={i} className="flex justify-between text-[10px]">
-                          <span style={{ color: "#6B6560" }}>{f.type}</span>
-                          <span className="font-mono font-semibold" style={{ color: "#1e293b" }}>{f.frequency_mhz} MHz</span>
+                          <span className="truncate pr-2" style={{ color: "#6B6560" }}>{f.type || f.description || "Frequency"}</span>
+                          <span className="font-mono font-semibold shrink-0" style={{ color: "#1e293b" }}>{f.frequency_mhz} MHz</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {airport.navaids?.length > 0 && (
+                  <div className="rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)" }}>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: "#AAA49C" }}>
+                      <Navigation className="w-3 h-3" /> Navaids ({airport.navaids.length})
+                    </p>
+                    <div className="space-y-0.5">
+                      {airport.navaids.slice(0, 6).map((n, i) => (
+                        <div key={i} className="flex justify-between text-[10px]">
+                          <span style={{ color: "#6B6560" }}>{n.ident || n.name || "—"} · {n.type || "—"}</span>
+                          <span className="font-mono font-semibold" style={{ color: "#1e293b" }}>{n.frequency_khz ? `${n.frequency_khz} kHz` : "—"}</span>
                         </div>
                       ))}
                     </div>

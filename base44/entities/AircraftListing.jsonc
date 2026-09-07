@@ -120,8 +120,7 @@
         "hf_generated",
         "none"
       ],
-      "default": "none",
-      "description": "Source of the aircraft photo"
+      "default": "none"
     },
     "owner": {
       "type": "string",

@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { isPrivileged } from '../_shared/accessControl.ts';
 
 /**
  * Auto-enriches an AircraftListing with registry data when it's created or updated.
@@ -20,11 +21,11 @@ Deno.serve(async (req) => {
     // operational enrichment. Entity workflows may run under the listing owner
     // rather than an admin identity, so those calls are allowed only for the
     // exact listing owned by the authenticated user.
-    const isPrivileged = user?.role === 'admin' || user?.role === 'super_admin';
+    const hasPrivilegedRole = isPrivileged(user);
     const listingIdForAuth = data?.id || event?.entity_id;
     let isOwnedWorkflow = false;
 
-    if (!isPrivileged && user?.id && listingIdForAuth) {
+    if (!hasPrivilegedRole && user?.id && listingIdForAuth) {
       try {
         const owned = await base44.asServiceRole.entities.AircraftListing.filter(
           { id: listingIdForAuth },
@@ -37,7 +38,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!isPrivileged && !isOwnedWorkflow) {
+    if (!hasPrivilegedRole && !isOwnedWorkflow) {
       return Response.json({ error: 'Admin access required for non-owner listings' }, { status: 403 });
     }
 

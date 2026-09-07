@@ -3,45 +3,35 @@
   "type": "object",
   "properties": {
     "registration": {
-      "type": "string",
-      "description": "Aircraft registration (e.g. N123AB)"
+      "type": "string"
     },
     "make": {
-      "type": "string",
-      "description": "Manufacturer (e.g. Cessna, Piper)"
+      "type": "string"
     },
     "model": {
-      "type": "string",
-      "description": "Aircraft model (e.g. 172, PA-28)"
+      "type": "string"
     },
     "year": {
-      "type": "number",
-      "description": "Year of manufacture"
+      "type": "number"
     },
     "total_time": {
-      "type": "number",
-      "description": "Airframe total time (hours)"
+      "type": "number"
     },
     "engine_hours": {
-      "type": "number",
-      "description": "Engine hours since overhaul (SMOH)"
+      "type": "number"
     },
     "tbo": {
-      "type": "number",
-      "description": "Time between overhauls (TBO hours)"
+      "type": "number"
     },
     "last_annual": {
       "type": "string",
-      "format": "date",
-      "description": "Date of last annual inspection"
+      "format": "date"
     },
     "avionics": {
-      "type": "string",
-      "description": "Avionics equipment (comma-separated)"
+      "type": "string"
     },
     "asking_price": {
-      "type": "number",
-      "description": "Asking price"
+      "type": "number"
     },
     "currency": {
       "type": "string",
@@ -74,18 +64,15 @@
     "ati_score": {
       "type": "number",
       "minimum": 0,
-      "maximum": 120,
-      "description": "ATI score (0\u2013120)"
+      "maximum": 120
     },
     "omvm_value": {
-      "type": "number",
-      "description": "Off-Market Value Model estimate (USD)"
+      "type": "number"
     },
     "deal_score": {
       "type": "number",
       "minimum": 0,
-      "maximum": 10,
-      "description": "Deal score (0\u201310)"
+      "maximum": 10
     },
     "deal_label": {
       "type": "string",
@@ -94,24 +81,19 @@
         "good deal",
         "fair",
         "overpriced"
-      ],
-      "description": "Deal classification"
+      ]
     },
     "discount_pct": {
-      "type": "number",
-      "description": "% discount vs OMVM"
+      "type": "number"
     },
     "ai_summary": {
-      "type": "string",
-      "description": "AI-generated listing summary"
+      "type": "string"
     },
     "source_url": {
-      "type": "string",
-      "description": "Original listing URL"
+      "type": "string"
     },
     "photo_url": {
-      "type": "string",
-      "description": "Aircraft photo URL"
+      "type": "string"
     },
     "photo_source": {
       "type": "string",
@@ -124,8 +106,7 @@
     },
     "owner": {
       "type": "string",
-      "relationType": "User",
-      "description": "Listing owner"
+      "relationType": "User"
     },
     "pending_fee_usd": {
       "type": "number",
@@ -144,7 +125,7 @@
     "create": {
       "$or": [
         {
-          "data.owner": "{{user.id}}"
+          "data.owner": "{{user.id}"
         },
         {
           "user_condition": {
@@ -159,7 +140,7 @@
           "data.visibility": "public"
         },
         {
-          "data.owner": "{{user.id}}"
+          "data.owner": "{{user.id}"
         },
         {
           "user_condition": {
@@ -171,7 +152,7 @@
     "update": {
       "$or": [
         {
-          "data.owner": "{{user.id}}"
+          "data.owner": "{{user.id}"
         },
         {
           "user_condition": {
@@ -183,7 +164,7 @@
     "delete": {
       "$or": [
         {
-          "data.owner": "{{user.id}}"
+          "data.owner": "{{user.id}"
         },
         {
           "user_condition": {

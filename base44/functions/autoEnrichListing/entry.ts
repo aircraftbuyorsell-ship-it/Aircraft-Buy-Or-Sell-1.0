@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import { isPrivileged } from '../_shared/accessControl.ts';
 
 /**
  * Auto-enriches an AircraftListing with registry data when it's created or updated.
@@ -21,7 +20,7 @@ Deno.serve(async (req) => {
     // operational enrichment. Entity workflows may run under the listing owner
     // rather than an admin identity, so those calls are allowed only for the
     // exact listing owned by the authenticated user.
-    const hasPrivilegedRole = isPrivileged(user);
+    const hasPrivilegedRole = user?.role === 'admin' || user?.role === 'super_admin';
     const listingIdForAuth = data?.id || event?.entity_id;
     let isOwnedWorkflow = false;
 

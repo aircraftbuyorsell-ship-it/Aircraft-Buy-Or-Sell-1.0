@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
 
     const aircraftCode = registry?.mfr_mdl_code || catalog?.mfr_mdl_code || null;
     const engineCode = registry?.eng_mfr_mdl || catalog?.engine_mfr_mdl_code || null;
-    const [aircraftRefRows, engineRefRows, atiSignalRows, operatorAircraftRows, dealerRows, scoreRows, marketRows] = await Promise.all([
+    const [aircraftRefRows, engineRefRows, atiSignalRows, operatorAircraftRows, dealerRows, scoreRows, marketRows, openSkyRows, adsbHistoryRows] = await Promise.all([
       aircraftCode ? rest('faa_acftref', `select=*&code=eq.${encodeURIComponent(aircraftCode.trim())}&limit=1`) : [],
       engineCode ? rest('faa_engine', `select=*&code=eq.${encodeURIComponent(engineCode.trim())}&limit=1`) : [],
       rest('faa_ati_signals', `select=*&n_number=eq.${encodeURIComponent(nNumber)}&limit=1`),
@@ -100,6 +100,8 @@ Deno.serve(async (req) => {
       registry?.state ? rest('faa_dealers', `select=cert_num,name,city,state,ownership_type,cert_date,expiration_date,is_active&state=eq.${encodeURIComponent(registry.state)}&is_active=eq.true&limit=25`) : [],
       passport?.id ? rest('score_runs', `select=*&passport_id=eq.${encodeURIComponent(passport.id)}&order=created_at.desc&limit=1`) : [],
       rest('market_pulse', 'select=*&order=period_end.desc&limit=12'),
+      registry?.mode_s_hex ? rest('opensky_aircraft_metadata', `select=*&icao24=eq.${encodeURIComponent(String(registry.mode_s_hex).toLowerCase())}&limit=1`) : [],
+      rest('adsblol_flight_history', `select=*&registration=eq.${encodeURIComponent(registration)}&order=timestamp.desc&limit=100`),
     ]);
     const operatorRows = operatorAircraftRows[0]?.operator_id
       ? await rest('faa_certificated_operators', `select=id,cfr,chdo,designator,name,source_updated_at&id=eq.${encodeURIComponent(operatorAircraftRows[0].operator_id)}&limit=1`)
@@ -110,6 +112,8 @@ Deno.serve(async (req) => {
     const operatorAircraft = operatorAircraftRows[0] || null;
     const operator = operatorRows[0] || null;
     const scoreRun = scoreRows[0] || null;
+    const openSky = openSkyRows[0] || null;
+    const adsbHistory = adsbHistoryRows || [];
     const make = catalog?.manufacturer || aircraftRef?.mfr || passport?.make || card?.make || listing?.manufacturer || null;
     const model = catalog?.model || aircraftRef?.model || passport?.model || card?.model || listing?.model || null;
 
@@ -227,6 +231,17 @@ Deno.serve(async (req) => {
         // faa_engine carries no TBO column (code, mfr, model, type, horsepower,
         // thrust), so this one field genuinely cannot come from Supabase yet.
         engine_tbo_hours: engineSpec?.tbo_hours || card?.engine_tbo || null,
+      },
+      compliance_intelligence: {
+        ad_count: ads.length,
+        stc_count: stcs.length,
+        ads,
+        stcs,
+      },
+      activity_intelligence: {
+        open_sky: openSky,
+        historical_flights: adsbHistory,
+        historical_flight_count: adsbHistory.length,
       },
       certificates: {
         airworthiness: { available: !!(registry?.air_worth_date || catalog?.air_worth_date), date: registry?.air_worth_date || catalog?.air_worth_date || null },

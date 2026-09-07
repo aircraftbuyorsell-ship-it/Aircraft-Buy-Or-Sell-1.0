@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "dataset": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "update_frequency": {
+      "type": "string"
+    },
+    "supabase_table": {
+      "type": "string"
+    },
+    "data_service": {
+      "type": "string"
+    },
+    "abos_feature": {
+      "type": "string"
+    },
+    "ui_component": {
+      "type": "string"
+    },
+    "api_endpoint": {
+      "type": "string"
+    },
+    "monetization_tier": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CONNECTED",
+        "INGEST_READY",
+        "INGESTED_NOT_WIRED",
+        "NO_CURRENT_USE"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "P0",
+        "P1",
+        "P2"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset",
+    "supabase_table",
+    "abos_feature",
+    "status",
+    "priority"
+  ],
+  "name": "ABOSDataRegistry"
+}

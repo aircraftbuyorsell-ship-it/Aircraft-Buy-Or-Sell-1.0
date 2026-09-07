@@ -37,7 +37,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!hasPrivilegedRole && !isOwnedWorkflow) {
+    // Base44 entity automations may execute without an admin user identity.
+    // Treat the signed workflow event as the narrow automation path; ordinary
+    // direct calls still require admin/super_admin or ownership of the listing.
+    const isEntityAutomation = Boolean(
+      event &&
+      (event.entity_name === 'AircraftListing' || event.entity === 'AircraftListing') &&
+      (event.entity_id || data?.id)
+    );
+
+    if (!hasPrivilegedRole && !isOwnedWorkflow && !isEntityAutomation) {
       return Response.json({ error: 'Admin access required for non-owner listings' }, { status: 403 });
     }
 

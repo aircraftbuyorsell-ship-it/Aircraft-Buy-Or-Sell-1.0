@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       return Response.json({ configured: false, status: 'not_configured', message: 'ABOS Supabase connection is not configured.' });
     }
 
+    const apiKey = Deno.env.get('SKYLINK_API_KEY');
     const body = await req.json().catch(() => ({}));
     const { airport, flight_number } = body || {};
 
@@ -59,6 +60,7 @@ Deno.serve(async (req) => {
 
     // ── Flight status lookup (single flight) ──
     if (flight_number) {
+      if (!apiKey) return Response.json({ configured: false, status: 'not_configured', message: 'SkyLink API key not set for live flight status.' });
       const fn = encodeURIComponent(String(flight_number).trim());
       const status = await skylink(`/flight_status/${fn}`, new URLSearchParams(), apiKey);
       const payload = { configured: true, source: 'skylink', flight_status: status };

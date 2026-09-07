@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar, Navigation, MapPin, Ruler } from "lucide-react";
+import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar, Navigation, MapPin, Ruler, Activity } from "lucide-react";
 
 const AMBER = "#E8A83A";
 
@@ -158,6 +158,47 @@ export default function SkyLinkAirportBlock({ code }) {
                   </div>
                 )}
               </div>
+
+              {/* Traffic intelligence */}
+              {airport.traffic && (
+                <div className="rounded-xl border p-3" style={{ borderColor: "rgba(0,0,0,0.07)", background: "rgba(0,0,0,0.015)" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[8px] font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: "#AAA49C" }}>
+                      <Activity className="w-3 h-3" /> Traffic intelligence · {airport.traffic.radius_nm} NM
+                    </p>
+                    <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{
+                      background: airport.traffic.status === "live" ? "rgba(34,197,94,0.10)" : "rgba(212,160,23,0.10)",
+                      color: airport.traffic.status === "live" ? "#16a34a" : AMBER
+                    }}>
+                      {airport.traffic.status === "live" ? "Live" : airport.traffic.status === "historical" ? "Historical" : "No coverage"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                    {[
+                      { label: "Aircraft", value: airport.traffic.count },
+                      { label: "Airborne", value: airport.traffic.airborne },
+                      { label: "On ground", value: airport.traffic.on_ground },
+                      { label: "Last update", value: airport.traffic.age_minutes == null ? "—" : airport.traffic.age_minutes < 60 ? `${airport.traffic.age_minutes}m ago` : `${Math.round(airport.traffic.age_minutes / 60)}h ago` },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-lg px-2.5 py-2" style={{ background: "white" }}>
+                        <p className="text-[7px] font-bold uppercase tracking-wider" style={{ color: "#AAA49C" }}>{s.label}</p>
+                        <p className="text-[11px] font-semibold mt-0.5 tabular-nums" style={{ color: "#1e293b" }}>{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {airport.traffic.aircraft?.length > 0 && (
+                    <div className="grid sm:grid-cols-2 gap-x-4 gap-y-1">
+                      {airport.traffic.aircraft.slice(0, 8).map((t, i) => (
+                        <div key={`${t.icao24 || t.callsign || i}-${i}`} className="flex items-center justify-between text-[9px] border-t pt-1" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                          <span className="font-semibold truncate pr-2" style={{ color: "#1e293b" }}>{t.registration || t.callsign || t.icao24 || "Unknown"}</span>
+                          <span className="font-mono shrink-0" style={{ color: "#6B6560" }}>{t.distance_nm} NM{t.altitude_ft != null ? ` · ${Number(t.altitude_ft).toLocaleString()} ft` : ""}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-[8px] mt-2" style={{ color: "#AAA49C" }}>Position snapshots from ABOS Supabase · live_traffic · {airport.traffic.status === "historical" ? "data is not currently live" : ""}</p>
+                </div>
+              )}
 
               {/* Operational footprint */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

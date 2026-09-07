@@ -42,8 +42,13 @@ Deno.serve(async (req) => {
     // direct calls still require admin/super_admin or ownership of the listing.
     const isEntityAutomation = Boolean(
       event &&
-      (event.entity_name === 'AircraftListing' || event.entity === 'AircraftListing') &&
-      (event.entity_id || data?.id)
+      (
+        event.entity_name === 'AircraftListing' ||
+        event.entity === 'AircraftListing' ||
+        event.trigger_type === 'entity' ||
+        event.type === 'entity'
+      ) &&
+      (event.entity_id || data?.id || event.data?.id || event.trigger?.data?.id)
     );
 
     if (!hasPrivilegedRole && !isOwnedWorkflow && !isEntityAutomation) {

@@ -3,16 +3,13 @@
   "type": "object",
   "properties": {
     "registration": {
-      "type": "string",
-      "description": "Aircraft registration (e.g. N123AB)"
+      "type": "string"
     },
     "make": {
-      "type": "string",
-      "description": "Manufacturer"
+      "type": "string"
     },
     "model": {
-      "type": "string",
-      "description": "Aircraft model"
+      "type": "string"
     },
     "year": {
       "type": "number"

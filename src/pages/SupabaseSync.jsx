@@ -136,6 +136,9 @@ export default function SupabaseSync() {
   const [bulkResult, setBulkResult] = useState(null);
   const [diagnostic, setDiagnostic] = useState(null);
   const [diagnosticLoading, setDiagnosticLoading] = useState(false);
+  const [faaImporting, setFaaImporting] = useState(false);
+  const [faaImportOffset, setFaaImportOffset] = useState(0);
+  const [faaImportResult, setFaaImportResult] = useState(null);
 
   const table = TABLES.find((t) => t.id === activeTab) || TABLES[0];
 
@@ -217,6 +220,28 @@ export default function SupabaseSync() {
       setDiagnostic({ state: "error", message: err.message || "Diagnostic failed" });
     } finally {
       setDiagnosticLoading(false);
+    }
+  };
+
+  const importFaaChunk = async () => {
+    if (activeTab !== "registry") return;
+    setFaaImporting(true);
+    setFaaImportResult(null);
+    try {
+      const res = await base44.functions.invoke("importFaaToSupabase", {
+        startRow: faaImportOffset,
+        maxRows: 10000,
+        batchSize: 2000,
+      });
+      const result = res.data || {};
+      setFaaImportResult(result);
+      if (Number.isFinite(result.nextOffset)) setFaaImportOffset(result.nextOffset);
+      await fetchDiagnostic();
+      await fetchSummary();
+    } catch (err) {
+      setFaaImportResult({ error: err.message || "FAA import failed" });
+    } finally {
+      setFaaImporting(false);
     }
   };
 
@@ -369,6 +394,34 @@ export default function SupabaseSync() {
             </div>
           )}
         </div>
+
+        {/* FAA source importer */}
+        {activeTab === "registry" && (
+          <div className="bg-[rgba(245,194,66,0.05)] rounded-2xl border border-[rgba(245,194,66,0.18)] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[rgba(245,194,66,0.12)] flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-tight">FAA Registry Import</h3>
+                <p className="text-[10px] text-white/40">Official FAA ReleasableAircraft.zip → MASTER.txt → Supabase faa_registry</p>
+              </div>
+              <button
+                onClick={importFaaChunk}
+                disabled={faaImporting}
+                className="text-[11px] font-bold px-4 py-2 rounded-lg bg-[#f5c242] text-[#111827] hover:bg-[#ffd35e] disabled:opacity-50 flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {faaImporting ? "Importing..." : "Import next 10,000"}
+              </button>
+            </div>
+            <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+              <StatPill label="Start Row" value={faaImportOffset.toLocaleString()} color="#f5c242" />
+              <StatPill label="Last Upserted" value={faaImportResult?.rowsUpserted ?? "—"} color="#5dcaa5" />
+              <StatPill label="Next Row" value={faaImportResult?.nextOffset ?? faaImportOffset} color="#4e8ef7" />
+              <StatPill label="Status" value={faaImportResult?.status || "READY"} color={faaImportResult?.error ? "#e24b4a" : "#f5c242"} />
+            </div>
+            {faaImportResult?.message && <p className="px-5 pb-4 text-[10px] text-white/55">{faaImportResult.message}</p>}
+            {faaImportResult?.error && <p className="px-5 pb-4 text-[10px] text-[#e24b4a] font-mono break-all">{faaImportResult.error}</p>}
+          </div>
+        )}
 
         {/* Error banner */}
         {error && (

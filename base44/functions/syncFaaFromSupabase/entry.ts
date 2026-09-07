@@ -737,6 +737,7 @@ Deno.serve(async (req) => {
     if (currentMode === 'registry_import_single') {
       const { n_number } = payload;
       if (!n_number) return Response.json({ error: 'n_number required' }, { status: 400 });
+      const canonicalNNumber = `N${n_number.trim().toUpperCase().replace(/^N/i, '').replace(/[^A-Z0-9]/g, '')}`;
 
       const { data: rows, error: rowErr } = await supabaseAdmin
         .from('faa_registry').select('*').eq('n_number', n_number.trim().toUpperCase()).limit(1);

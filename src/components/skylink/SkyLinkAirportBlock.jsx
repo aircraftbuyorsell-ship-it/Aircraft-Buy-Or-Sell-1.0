@@ -200,6 +200,35 @@ export default function SkyLinkAirportBlock({ code }) {
                 </div>
               )}
 
+              {/* Live traffic intelligence */}
+              {airport.traffic && (
+                <div className="rounded-xl border p-4" style={{ borderColor: "rgba(0,0,0,0.07)", background: "rgba(0,0,0,0.012)" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[8px] font-black uppercase tracking-[0.14em]" style={{ color: AMBER }}>Traffic Intelligence</p>
+                      <p className="text-xs font-bold mt-0.5" style={{ color: "#1e293b" }}>ADSB.lol · {airport.traffic.radius_nm} NM</p>
+                    </div>
+                    <span className="text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-full" style={{ background: airport.traffic.status === "live" ? "rgba(34,197,94,0.10)" : "rgba(0,0,0,0.05)", color: airport.traffic.status === "live" ? "#16a34a" : "#6B6560" }}>
+                      {airport.traffic.status === "live" ? "LIVE" : airport.traffic.status?.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {[
+                      { label: "Aircraft", value: airport.traffic.count },
+                      { label: "Airborne", value: airport.traffic.airborne },
+                      { label: "Ground", value: airport.traffic.on_ground },
+                      { label: "≤10 NM", value: airport.traffic.within_10nm },
+                      { label: "Confidence", value: airport.traffic.confidence || "—" },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-lg px-2.5 py-2" style={{ background: "white", border: "1px solid rgba(0,0,0,0.05)" }}>
+                        <p className="text-[7px] font-bold uppercase tracking-wider" style={{ color: "#AAA49C" }}>{s.label}</p>
+                        <p className="text-[11px] font-black mt-0.5 capitalize" style={{ color: "#1e293b" }}>{s.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Operational footprint */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="rounded-lg px-3 py-2" style={{ background: "rgba(0,0,0,0.02)" }}>

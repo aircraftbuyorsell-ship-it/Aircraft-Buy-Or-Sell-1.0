@@ -203,6 +203,10 @@ export default function SupabaseSync() {
   useEffect(() => {
     fetchDiagnostic();
     fetchSummary();
+    if (activeTab === "registry") {
+      const savedOffset = Number(localStorage.getItem("abos_faa_import_offset") || 0);
+      if (Number.isFinite(savedOffset) && savedOffset > 0) setFaaImportOffset(savedOffset);
+    }
   }, [activeTab]);
 
   // Clear selection on tab change
@@ -235,7 +239,10 @@ export default function SupabaseSync() {
       });
       const result = res.data || {};
       setFaaImportResult(result);
-      if (Number.isFinite(result.nextOffset)) setFaaImportOffset(result.nextOffset);
+      if (Number.isFinite(result.nextOffset)) {
+        setFaaImportOffset(result.nextOffset);
+        localStorage.setItem("abos_faa_import_offset", String(result.nextOffset));
+      }
       await fetchDiagnostic();
       await fetchSummary();
     } catch (err) {

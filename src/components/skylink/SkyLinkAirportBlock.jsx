@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar, Navigation } from "lucide-react";
+import { Plane, Building2, Radio, ArrowUpRight, ArrowDownRight, Loader2, ChevronDown, Radar, Navigation, MapPin, Ruler } from "lucide-react";
 
 const AMBER = "#E8A83A";
 
@@ -149,14 +149,34 @@ export default function SkyLinkAirportBlock({ code }) {
                     </p>
                     <div className="space-y-0.5">
                       {airport.navaids.slice(0, 6).map((n, i) => (
-                        <div key={i} className="flex justify-between text-[10px]">
-                          <span style={{ color: "#6B6560" }}>{n.ident || n.name || "—"} · {n.type || "—"}</span>
-                          <span className="font-mono font-semibold" style={{ color: "#1e293b" }}>{n.frequency_khz ? `${n.frequency_khz} kHz` : "—"}</span>
+                        <div key={i} className="flex justify-between text-[10px] gap-2">
+                          <span className="truncate" style={{ color: "#6B6560" }}>{n.ident || n.name || "—"} · {n.type || "—"}</span>
+                          <span className="font-mono font-semibold shrink-0" style={{ color: "#1e293b" }}>{n.frequency_khz ? `${n.frequency_khz} kHz` : "—"}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Operational footprint */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg px-3 py-2" style={{ background: "rgba(0,0,0,0.02)" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "#AAA49C" }}><MapPin className="w-3 h-3" /> Coordinates</p>
+                  <p className="text-[10px] font-mono mt-1" style={{ color: "#1e293b" }}>{airport.latitude_deg != null ? airport.latitude_deg.toFixed(4) : "—"}, {airport.longitude_deg != null ? airport.longitude_deg.toFixed(4) : "—"}</p>
+                </div>
+                <div className="rounded-lg px-3 py-2" style={{ background: "rgba(0,0,0,0.02)" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-wider flex items-center gap-1" style={{ color: "#AAA49C" }}><Ruler className="w-3 h-3" /> Longest runway</p>
+                  <p className="text-[11px] font-semibold mt-1" style={{ color: "#1e293b" }}>{airport.runways?.length ? `${Math.max(...airport.runways.map(r => Number(r.length_ft) || 0)).toLocaleString()} ft` : "—"}</p>
+                </div>
+                <div className="rounded-lg px-3 py-2" style={{ background: "rgba(0,0,0,0.02)" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: "#AAA49C" }}>Runway status</p>
+                  <p className="text-[11px] font-semibold mt-1" style={{ color: "#1e293b" }}>{airport.runways?.length ? `${airport.runways.filter(r => !r.closed).length}/${airport.runways.length} open` : "—"}</p>
+                </div>
+                <div className="rounded-lg px-3 py-2" style={{ background: "rgba(0,0,0,0.02)" }}>
+                  <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: "#AAA49C" }}>Service</p>
+                  <p className="text-[11px] font-semibold mt-1 capitalize" style={{ color: "#1e293b" }}>{airport.scheduled_service || "—"}</p>
+                </div>
               </div>
             </>
           )}

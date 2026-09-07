@@ -12,12 +12,34 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const user = await base44.auth.me().catch(() => null);
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Admin access required' }, { status: 403 });
-    }
 
     const body = await req.json().catch(() => ({}));
     const { event, data } = body;
+
+    // Unified privileged-role check: admin and super_admin are equivalent for
+    // operational enrichment. Entity workflows may run under the listing owner
+    // rather than an admin identity, so those calls are allowed only for the
+    // exact listing owned by the authenticated user.
+    const isPrivileged = user?.role === 'admin' || user?.role === 'super_admin';
+    const listingIdForAuth = data?.id || event?.entity_id;
+    let isOwnedWorkflow = false;
+
+    if (!isPrivileged && user?.id && listingIdForAuth) {
+      try {
+        const owned = await base44.asServiceRole.entities.AircraftListing.filter(
+          { id: listingIdForAuth },
+          '-created_date',
+          1
+        );
+        isOwnedWorkflow = owned.length > 0 && owned[0].created_by_id === user.id;
+      } catch (_) {
+        isOwnedWorkflow = false;
+      }
+    }
+
+    if (!isPrivileged && !isOwnedWorkflow) {
+      return Response.json({ error: 'Admin access required for non-owner listings' }, { status: 403 });
+    }
 
     if (!data) {
       return Response.json({ skipped: true, reason: 'no data in payload' });

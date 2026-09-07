@@ -3,13 +3,16 @@
   "type": "object",
   "properties": {
     "registration": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft registration (e.g. N123AB)"
     },
     "make": {
-      "type": "string"
+      "type": "string",
+      "description": "Manufacturer"
     },
     "model": {
-      "type": "string"
+      "type": "string",
+      "description": "Aircraft model"
     },
     "year": {
       "type": "number"
@@ -125,7 +128,7 @@
     "create": {
       "$or": [
         {
-          "data.owner": "{{user.id}"
+          "data.owner": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -140,7 +143,7 @@
           "data.visibility": "public"
         },
         {
-          "data.owner": "{{user.id}"
+          "data.owner": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -152,7 +155,7 @@
     "update": {
       "$or": [
         {
-          "data.owner": "{{user.id}"
+          "data.owner": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -164,7 +167,7 @@
     "delete": {
       "$or": [
         {
-          "data.owner": "{{user.id}"
+          "data.owner": "{{user.id}}"
         },
         {
           "user_condition": {

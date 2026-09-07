@@ -135,8 +135,8 @@ Deno.serve(async (req) => {
 
     const airportLat = Number(row.latitude_deg);
     const airportLon = Number(row.longitude_deg);
-    let traffic = [];
-    if (Number.isFinite(airportLat) && Number.isFinite(airportLon)) {
+    let traffic = liveTraffic;
+    if (traffic.length === 0 && Number.isFinite(airportLat) && Number.isFinite(airportLon)) {
       const latDelta = 25 / 69;
       const lonDelta = 25 / Math.max(69 * Math.cos((airportLat * Math.PI) / 180), 1);
       const minLat = airportLat - latDelta;
@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
     const trafficAgeMinutes = latestTrafficAt ? Math.max(0, Math.round((Date.now() - latestTrafficAt) / 60000)) : null;
 
     const trafficIntelligence = {
-      source: 'supabase:live_traffic',
+      source: liveTraffic.length > 0 ? 'adsb.lol' : 'supabase:live_traffic',
       radius_nm: 25,
       count: traffic.length,
       airborne: traffic.filter((t) => t.on_ground === false).length,
@@ -174,6 +174,8 @@ Deno.serve(async (req) => {
       status: trafficAgeMinutes == null ? 'no_coverage' : trafficAgeMinutes <= 15 ? 'live' : 'historical',
       coverage: traffic.length > 0 ? 'position_snapshot' : 'none',
       aircraft: traffic,
+      primary_source: 'adsb.lol',
+      fallback_source: 'supabase:live_traffic',
     };
 
     const airportDetail = {

@@ -6,6 +6,7 @@ import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
 import SkyLinkAirportBlock from "@/components/skylink/SkyLinkAirportBlock";
+import NoRegistryMatch from "@/components/lookup/NoRegistryMatch";
 
 const AMBER = "#f5c242";
 const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
@@ -38,6 +39,7 @@ export default function NLookup() {
   const [loading, setLoading] = useState(false);
   const [overlayData, setOverlayData] = useState(null);
   const [error, setError] = useState(null);
+  const [notFound, setNotFound] = useState(null);
   const [fulfillment, setFulfillment] = useState(null);
 
   // Handle return from Stripe checkout → trigger PDF delivery
@@ -62,6 +64,7 @@ export default function NLookup() {
     if (!registration) return;
     setLoading(true);
     setError(null);
+    setNotFound(null);
 
     try {
       const mode = new URLSearchParams(window.location.search).get("mode");
@@ -69,12 +72,18 @@ export default function NLookup() {
         const value = directQuery.replace(/^(s\/n|sn|serial|owner)[:\s-]*/i, "").trim();
         const filter = mode === "serial" ? { serial_number: value } : { name: value.toUpperCase() };
         const matches = await base44.entities.FAAAircraft.filter(filter, "-created_date", 1);
-        if (!matches.length) { setError(`No FAA record found for ${directQuery}.`); return; }
+        if (!matches.length) {
+          setNotFound({ message: `No FAA record found for ${directQuery}.`, registration: directQuery });
+          return;
+        }
         registration = `N${matches[0].n_number}`;
       }
       const data = await lookupAircraft(registration);
       if (!data.found) {
-        setError(data.error || `No registry record found for ${registration}.`);
+        setNotFound({
+          message: data.error || `No registry record found for ${registration}.`,
+          registration,
+        });
         return;
       }
 
@@ -152,6 +161,8 @@ export default function NLookup() {
         )}
 
         {fulfillment && <ReportDeliveredBanner fulfillment={fulfillment} />}
+
+        {notFound && <NoRegistryMatch message={notFound.message} registration={notFound.registration} />}
 
         {error && (
           <div className="rounded-xl px-4 py-3 text-sm text-[#e24b4a] mb-6"

@@ -74,67 +74,121 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 // ═══════════════════════════════════════════
+// REGISTRY LOOKUP — shared by enrich + GCR
+// Runs FAA cache, adsbdb and ABOS listings in parallel, merges fields
+// (FAA authoritative for N-numbers), and reports a clear fallback state.
+// ═══════════════════════════════════════════
+const LOOKUP_TIMEOUT_MS = 5000;
+
+function normalizeReg(raw) {
+  return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+}
+
+async function lookupFaa(base44, reg) {
+  if (!/^N/.test(reg)) return null;
+  const nNum = reg.replace(/^N/, '').replace(/[^A-Z0-9]/g, '');
+  if (!nNum) return null;
+  const rows = await base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNum }, '-created_date', 1);
+  const faa = rows[0];
+  if (!faa) return null;
+  return {
+    registration: reg, make: faa.make || null, model: faa.model || null,
+    year_mfr: faa.year_mfr || null, serial_number: faa.serial_number || null,
+    mode_s_hex: faa.mode_s_hex || null, state: faa.state || null, country: 'US',
+    status_code: faa.status_code || null, expiration_date: faa.expiration_date || null,
+    registered_owner: faa.registrant_name || faa.name || null,
+  };
+}
+
+async function lookupAdsbdb(reg) {
+  const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(reg)}`, {
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`adsbdb_http_${res.status}`);
+  const ac = (await res.json())?.response?.aircraft;
+  if (!ac?.registration) return null;
+  return {
+    registration: ac.registration, make: ac.manufacturer || null, model: ac.type || null,
+    icao_type: ac.icao_type || null, mode_s_hex: ac.mode_s || null,
+    registered_owner: ac.registered_owner || null,
+    country: ac.registered_owner_country_name || null,
+  };
+}
+
+async function lookupListing(base44, reg) {
+  const rows = await base44.asServiceRole.entities.AircraftListing.filter({ registration: reg }, '-created_date', 1);
+  const l = rows[0];
+  if (!l) return null;
+  return {
+    registration: reg, make: l.make || null, model: l.model || null,
+    year_mfr: l.year || null, serial_number: l.serial_number || null,
+    mode_s_hex: l.icao_hex || null, country: l.country || null,
+  };
+}
+
+function mergeAircraft(primary, ...others) {
+  const out = { ...primary };
+  for (const o of others) {
+    if (!o) continue;
+    for (const [k, v] of Object.entries(o)) if (out[k] == null && v != null) out[k] = v;
+  }
+  return out;
+}
+
+async function lookupRegistry(base44, rawReg) {
+  const reg = normalizeReg(rawReg);
+  if (!reg) return { found: false, status: 'invalid_registration', source: null, aircraft: null, sources_checked: [], sources_failed: [], message: 'Registration is empty or invalid.' };
+
+  const providers = [
+    ['faa_entity', () => lookupFaa(base44, reg)],
+    ['adsbdb', () => lookupAdsbdb(reg)],
+    ['abos_listing', () => lookupListing(base44, reg)],
+  ];
+  const results = await Promise.allSettled(providers.map(([, fn]) => fn()));
+
+  const hits = {}, failed = [];
+  results.forEach((r, i) => {
+    const name = providers[i][0];
+    if (r.status === 'fulfilled') { if (r.value) hits[name] = r.value; }
+    else { failed.push(name); console.warn(`widgetGateway lookup ${name} failed:`, r.reason?.message || r.reason); }
+  });
+
+  const order = ['faa_entity', 'adsbdb', 'abos_listing'];
+  const primary = order.find((n) => hits[n]);
+  const sourcesChecked = providers.map(([n]) => n);
+
+  if (!primary) {
+    const allFailed = failed.length === providers.length;
+    return {
+      found: false,
+      status: allFailed ? 'lookup_unavailable' : 'not_found',
+      source: null, aircraft: null,
+      sources_checked: sourcesChecked, sources_failed: failed,
+      message: allFailed
+        ? 'Registry sources are temporarily unavailable — please retry shortly.'
+        : `No registry record found for ${reg}. Verify the tail number or enter aircraft details manually.`,
+    };
+  }
+
+  return {
+    found: true,
+    status: 'ok',
+    source: primary,
+    sources_matched: order.filter((n) => hits[n]),
+    sources_checked: sourcesChecked, sources_failed: failed,
+    aircraft: mergeAircraft(hits[primary], ...order.filter((n) => n !== primary).map((n) => hits[n])),
+  };
+}
+
+// ═══════════════════════════════════════════
 // ENRICH — Registry lookup for aircraft data
 // ═══════════════════════════════════════════
 async function handleEnrich(base44, payload, partner) {
-  const registration = (payload?.registration || '').trim().toUpperCase();
-  if (!registration) return Response.json({ error: 'registration required' }, { status: 400 });
-
-  // adsbdb — works for US and international
-  try {
-    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(registration)}`, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const ac = data?.response?.aircraft;
-      if (ac?.registration) {
-        return Response.json({
-          found: true, source: 'adsbdb',
-          aircraft: {
-            registration: ac.registration,
-            make: ac.manufacturer || null,
-            model: ac.type || null,
-            icao_type: ac.icao_type || null,
-            mode_s_hex: ac.mode_s || null,
-            registered_owner: ac.registered_owner || null,
-            country: ac.registered_owner_country_name || null,
-          },
-        });
-      }
-    }
-  } catch (_) { /* non-critical */ }
-
-  // FAA entity for US registrations
-  if (/^N/i.test(registration)) {
-    const nNum = registration.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '');
-    try {
-      const faaResults = await base44.asServiceRole.entities.FAAAircraft.filter(
-        { n_number: nNum }, '-created_date', 1
-      );
-      if (faaResults.length > 0) {
-        const faa = faaResults[0];
-        return Response.json({
-          found: true, source: 'faa_entity',
-          aircraft: {
-            registration,
-            make: faa.make || null,
-            model: faa.model || null,
-            year_mfr: faa.year_mfr || null,
-            serial_number: faa.serial_number || null,
-            mode_s_hex: faa.mode_s_hex || null,
-            state: faa.state || null,
-            country: 'US',
-            status_code: faa.status_code || null,
-            expiration_date: faa.expiration_date || null,
-          },
-        });
-      }
-    } catch (_) { /* non-critical */ }
-  }
-
-  return Response.json({ found: false, source: null, aircraft: null });
+  if (!normalizeReg(payload?.registration)) return Response.json({ error: 'registration required' }, { status: 400 });
+  const result = await lookupRegistry(base44, payload.registration);
+  return Response.json(result, { headers: { 'Cache-Control': result.found ? 'private, max-age=3600' : 'no-store' } });
 }
 
 // ═══════════════════════════════════════════
@@ -168,7 +222,7 @@ async function handleGcr(base44, payload, partner) {
     if (registry.aircraft.status_code && registry.aircraft.status_code !== 'Valid' && registry.aircraft.status_code !== 'V') {
       regScore -= 10; flags.push('non_valid_status');
     }
-  } else { flags.push('no_registry_record'); }
+  } else { flags.push(registry?.status === 'lookup_unavailable' ? 'registry_unavailable' : 'no_registry_record'); }
   regScore = Math.max(0, Math.min(40, regScore));
 
   // Visual: 25 pts
@@ -196,6 +250,7 @@ async function handleGcr(base44, payload, partner) {
   if (flags.includes('expired_registration')) recommendations.push('Registration appears expired — verify current status with the registering authority.');
   if (flags.includes('no_visual_record')) recommendations.push('No current aircraft photo found — request recent photographs from the seller.');
   if (flags.includes('no_registry_record')) recommendations.push('No registry record found — exercise extreme caution and request full ownership documentation.');
+  if (flags.includes('registry_unavailable')) recommendations.push('Registry sources were temporarily unavailable — re-run this check before relying on the registry score.');
   if (recommendations.length === 0) recommendations.push('All triple-check validations passed — aircraft demonstrates good compliance integrity.');
 
   return Response.json({
@@ -210,6 +265,8 @@ async function handleGcr(base44, payload, partner) {
     },
     registry_data: regAircraft,
     registry_source: regSource,
+    registry_status: registry?.status || 'lookup_unavailable',
+    registry_message: registry?.message || null,
     photo_data: photoInfo,
     traffic_data: traffic,
     integrity_flags: flags,
@@ -221,49 +278,8 @@ async function handleGcr(base44, payload, partner) {
 }
 
 async function gcrRegistry(base44, fullReg) {
-  if (!fullReg) return { found: false };
-  if (/^N/i.test(fullReg)) {
-    const nNum = fullReg.replace(/^N/i, '').replace(/[^a-zA-Z0-9]/g, '');
-    try {
-      const faaResults = await base44.asServiceRole.entities.FAAAircraft.filter(
-        { n_number: nNum }, '-created_date', 1
-      );
-      if (faaResults.length > 0) {
-        const faa = faaResults[0];
-        return {
-          found: true, source: 'faa_entity',
-          aircraft: {
-            registration: fullReg, make: faa.make || null, model: faa.model || null,
-            year_mfr: faa.year_mfr || null, mode_s_hex: faa.mode_s_hex || null,
-            state: faa.state || null, country: 'US', status_code: faa.status_code || null,
-            expiration_date: faa.expiration_date || null, serial_number: faa.serial_number || null,
-          },
-        };
-      }
-    } catch (_) { /* non-critical */ }
-  }
-  try {
-    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(fullReg)}`, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const ac = data?.response?.aircraft;
-      if (ac?.registration) {
-        return {
-          found: true, source: 'adsbdb',
-          aircraft: {
-            registration: ac.registration, make: ac.manufacturer || null,
-            model: ac.type || null, icao_type: ac.icao_type || null,
-            mode_s_hex: ac.mode_s || null, country: ac.registered_owner_country_name || null,
-            registered_owner: ac.registered_owner || null,
-          },
-        };
-      }
-    }
-  } catch (_) { /* non-critical */ }
-  return { found: false };
+  if (!fullReg) return { found: false, status: 'invalid_registration' };
+  return await lookupRegistry(base44, fullReg);
 }
 
 async function gcrPhoto(fullReg, hexCode) {

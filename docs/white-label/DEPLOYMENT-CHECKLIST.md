@@ -43,6 +43,8 @@ This checklist verifies that the ABOS White-Label toolset is ready for productio
 - [x] PARTNER-INTEGRATION.md - API reference and component docs
 - [x] SECURITY.md - Security architecture and threat model
 - [x] THREAT-MODEL.md - Detailed threat analysis
+- [x] CHANGELOG.md - Package release notes
+- [x] LICENSE-AGREEMENT.md - White-label license text shipped in the package
 
 ### Platform Support
 - [x] Next.js App Router adapter
@@ -66,7 +68,8 @@ This checklist verifies that the ABOS White-Label toolset is ready for productio
 - [ ] Obtain tenant API key from Partner Portal
 - [ ] Create tenant configuration file in `src/white-label/tenants/[company].json`
 - [ ] Validate tenant config against schema
-- [ ] Generate installer package via `npm run build:installer`
+- [ ] Generate installer package via `npm run build:package -- --tenant <tenant_id> --version <semver> --license-id <license_id>`
+- [ ] Publish the `.zip` together with its `.sha256` checksum
 - [ ] Provide installation instructions to partner
 - [ ] Verify partner's `.env` is gitignored
 - [ ] Test health check: `curl -X POST /api/abos -H 'Content-Type: application/json' -d '{"endpoint":"health"}'`

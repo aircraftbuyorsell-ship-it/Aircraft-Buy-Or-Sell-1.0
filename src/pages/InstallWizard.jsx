@@ -27,7 +27,7 @@ import { unwrapPortalResponse } from "@/utils/portalEnvelope";
  * variable the generated .env template documents.
  */
 
-const DEFAULT_BASE_URL = "https://aircraftbuyorsell.com";
+const DEFAULT_BASE_URL = "https://aircraftbuyorsell.base44.app";
 
 function Card({ children, className = "" }) {
   return (
@@ -191,11 +191,11 @@ export default function InstallWizard() {
 
   // Built once and used for both the shown text and the copy button, so what
   // a partner copies is exactly what they were shown.
-  const envVar = "ABOS_TENANT_KEY";
+  const envVar = "ABOS_TENANT_API_KEY";
   const verifyCommand =
     `curl -X POST localhost:3000${adapterUrl || "/api/abos"}` +
     ` -H 'content-type: application/json'` +
-    ` -d '{"endpoint":"search","payload":{}}'`;
+    ` -d '{"endpoint":"health"}'`;
 
   const licenceInactive = license?.status !== "active";
 
@@ -435,8 +435,8 @@ export default function InstallWizard() {
                 <CopyButton text={verifyCommand} />
               </div>
               <p className="text-xs opacity-50 mt-1.5">
-                A JSON response means the adapter is wired up. A 500 usually means the environment
-                variable is missing.
+                Expect <code>{"{\"status\":\"success\",\"data\":{\"healthy\":true}}"}</code>. A 500
+                with <code>not_configured</code> means the environment variable is missing.
               </p>
             </li>
           </ol>

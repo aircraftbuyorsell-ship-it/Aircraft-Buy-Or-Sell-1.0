@@ -10,7 +10,10 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test": "node --test test/*.test.js test/*.test.mjs"
+    "test": "node --test test/*.test.js test/*.test.mjs",
+    "test:white-label": "node --test test/installer*.test.mjs test/packager.test.mjs test/white-label-*.test.mjs test/tenant-*.test.mjs",
+    "build:package": "node packager/bin/abos-package.mjs",
+    "install:abos": "node installer/bin/abos-install.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.48",

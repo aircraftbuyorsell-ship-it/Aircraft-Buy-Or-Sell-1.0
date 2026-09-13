@@ -16,6 +16,15 @@ together.
 | Installer | `installer/` | Sets up config, branding and a server adapter for your stack |
 | Tenant config | `tenant.json` | Your organization's branding and enabled features |
 | Package manifest | `abos-package-manifest.json` | Per-file checksums for auditing this download |
+| License agreement | `docs/LICENSE-AGREEMENT.md` | The white-label license this package is issued under |
+| Changelog | `docs/CHANGELOG.md` | What changed in this package version |
+
+Both `ui/` and `installer/` are proper npm packages. To import the UI kit as
+`@abos/white-label` instead of a relative path, install it locally:
+
+```bash
+npm install ./ui
+```
 
 ## What ABOS keeps
 
@@ -101,6 +110,9 @@ ATI / valuation / intelligence
 - [INSTALLATION.md](INSTALLATION.md) — installer walkthrough, platform notes, troubleshooting
 - [PARTNER-INTEGRATION.md](PARTNER-INTEGRATION.md) — components, SDK reference, theming
 - [SECURITY.md](SECURITY.md) — credential handling, what to do if a key leaks
+- [THREAT-MODEL.md](THREAT-MODEL.md) — what the design defends against, and what it doesn't
+- [LICENSE-AGREEMENT.md](LICENSE-AGREEMENT.md) — terms this package is licensed under
+- [CHANGELOG.md](CHANGELOG.md) — release notes
 
 ## Verifying this download
 

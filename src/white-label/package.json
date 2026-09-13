@@ -1,0 +1,27 @@
+{
+  "name": "@abos/white-label",
+  "version": "1.0.0",
+  "description": "ABOS White-Label UI Kit and SDK — render ATI scoring, valuation and market intelligence in your brand.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./theme": "./theme.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "theme.js",
+    "TenantThemeProvider.jsx",
+    "components"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "SEE LICENSE IN ../docs/LICENSE-AGREEMENT.md"
+}

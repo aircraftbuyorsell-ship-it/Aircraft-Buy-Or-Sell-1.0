@@ -37,6 +37,9 @@ const DOC_FILES = [
   { from: 'docs/white-label/INSTALLATION.md', to: 'docs/INSTALLATION.md' },
   { from: 'docs/white-label/PARTNER-INTEGRATION.md', to: 'docs/PARTNER-INTEGRATION.md' },
   { from: 'docs/white-label/SECURITY.md', to: 'docs/SECURITY.md' },
+  { from: 'docs/white-label/THREAT-MODEL.md', to: 'docs/THREAT-MODEL.md' },
+  { from: 'docs/white-label/CHANGELOG.md', to: 'docs/CHANGELOG.md' },
+  { from: 'docs/white-label/agreements/2026-08-26.md', to: 'docs/LICENSE-AGREEMENT.md' },
 ];
 
 function parseArgs(args) {

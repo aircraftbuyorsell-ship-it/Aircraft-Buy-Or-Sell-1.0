@@ -136,7 +136,7 @@ export function recoveryFor(stepId) {
     case 'branding':
       return 'Brand colors must be hex values such as "#0b5fff", and logo URLs must be http(s).';
     case 'feature_selection':
-      return 'You can only enable features your license grants. Run with --features to inspect what your license includes, or ask ABOS about upgrading your plan.';
+      return 'You can only enable features your license grants. The installer prints your licensed features before asking — pick from that list, or ask ABOS about upgrading your plan.';
     case 'core_connection':
       return 'Could not reach ABOS Core. Check outbound network access and any proxy/firewall rules, then retry.';
     case 'health_check':

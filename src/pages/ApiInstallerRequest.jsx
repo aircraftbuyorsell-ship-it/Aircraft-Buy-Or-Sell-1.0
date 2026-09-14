@@ -1,6 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle2, Download, LockKeyhole, Send, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Download, LockKeyhole, Send, ShieldCheck, Sparkles } from 'lucide-react';
+
+const ALLOWED_EMAILS = ['adam@aircraftbuyorsell.com', '12byteflow@gmail.com'];
+const INSTANT_PRICING = [
+  { key: 'API_STARTER', name: 'ABOS API — Starter', price_eur: 690, billing: 'per month' },
+  { key: 'API_PROFESSIONAL', name: 'ABOS API — Professional', price_eur: 1890, billing: 'per month' },
+  { key: 'API_ENTERPRISE', name: 'ABOS API — Enterprise', price_eur: 3900, billing: 'per month / contract' },
+  { key: 'WHITE_LABEL_LICENSE', name: 'ABOS White-Label Integration License', price_eur: 2500, billing: 'one-time' },
+];
 
 const POSITIONS = ['Founder','CEO','CTO','CSO','COO','Developer','Engineering','Product','Marketing','Other'];
 const CHANNELS = ['Facebook','Google','Instagram','LinkedIn','YouTube','Email','Direct / Organic','Other'];
@@ -17,7 +26,16 @@ const inputStyle = { background: 'rgba(255,255,255,0.05)', border: '1px solid rg
 
 export default function ApiInstallerRequest() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const { data: user } = base44.auth.me ? { data: null } : { data: null };
+  const { data: user } = useQuery({ queryKey: ['auth-me-installer'], queryFn: () => base44.auth.me().catch(() => null), retry: false, staleTime: 60000 });
+  const userEmail = (user?.email || '').trim().toLowerCase();
+  const isPreApproved = ALLOWED_EMAILS.includes(userEmail);
+
+  useEffect(() => {
+    if (isPreApproved && !submitted) {
+      setSubmitted({ submitted_email: user?.email, recommended_plan: 'ABOS White-Label Integration License', pricing: INSTANT_PRICING, pre_approved: true });
+    }
+  }, [isPreApproved, submitted, user]);
+
   const [form, setForm] = useState({
     full_name: '', email: '', company_name: '', company_url: '', position: '',
     aircraft_registration: params.get('registration') || params.get('tail') || '',
@@ -72,9 +90,12 @@ export default function ApiInstallerRequest() {
         {error && <div className="mt-4 text-xs" style={{color:'#f0a3a2'}}>{error}</div>}
         <button disabled={loading} className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wide disabled:opacity-50" style={{background:'#f5c242',color:'#04060a'}}>{loading?<Send size={14} className="animate-pulse"/>:<Send size={14}/>} Submit & unlock pricing</button>
       </form> : <div className="rounded-3xl p-6 sm:p-8" style={{background:'rgba(93,202,165,.05)',border:'1px solid rgba(93,202,165,.22)'}}>
-        <div className="flex items-center gap-2 text-sm font-bold mb-2" style={{color:'#5dcaa5'}}><CheckCircle2 size={18}/> Request received</div>
-        <p className="text-sm" style={{color:'rgba(255,255,255,.62)'}}>Pricing is unlocked for <strong style={{color:'white'}}>{submitted.submitted_email}</strong>. Recommended package: <strong style={{color:'#f5c242'}}>{submitted.recommended_plan}</strong>.</p>
+        <div className="flex items-center gap-2 text-sm font-bold mb-2" style={{color:'#5dcaa5'}}><CheckCircle2 size={18}/> {submitted.pre_approved ? 'Installer Pack ready' : 'Request received'}</div>
+        {submitted.pre_approved
+          ? <p className="text-sm" style={{color:'rgba(255,255,255,.62)'}}>Your account <strong style={{color:'white'}}>{submitted.submitted_email}</strong> is pre-approved — the Installer Pack and current API pricing are unlocked for you right away, no request form needed.</p>
+          : <p className="text-sm" style={{color:'rgba(255,255,255,.62)'}}>Pricing is unlocked for <strong style={{color:'white'}}>{submitted.submitted_email}</strong>. Recommended package: <strong style={{color:'#f5c242'}}>{submitted.recommended_plan}</strong>.</p>}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">{(submitted.pricing || []).map(p=><div key={p.key} className="rounded-2xl p-4" style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)'}}><div className="text-xs font-bold">{p.name}</div><div className="text-2xl font-black mt-2">€{Number(p.price_eur).toLocaleString('en-US')}</div><div className="text-[10px] mt-1" style={{color:'rgba(255,255,255,.45)'}}>{p.billing}</div></div>)}</div>
+        {submitted.pre_approved && <div className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide" style={{color:'#f5c242'}}><Sparkles size={13}/> Pre-approved access</div>}
         <a href="/ABOS-API-Integration-Kit.json" download className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase" style={{background:'#f5c242',color:'#04060a'}}><Download size={14}/> Download Installer / Integration Kit</a>
         <div className="mt-5 flex items-start gap-2 text-[11px]" style={{color:'rgba(255,255,255,.46)'}}><LockKeyhole size={13}/> Your submitted business information remains restricted to the personalized-offer workflow.</div>
       </div>}

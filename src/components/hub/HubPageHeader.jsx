@@ -6,9 +6,9 @@ import { RotateCcw } from "lucide-react";
  */
 export default function HubPageHeader({ icon: Icon, eyebrow, title, subtitle, onReset, tabCount }) {
   return (
-    <div className="mb-5">
+    <div className="mb-4">
       <div
-        className="relative overflow-hidden rounded-2xl border border-border p-5 md:p-6"
+        className="relative overflow-hidden rounded-2xl border border-border p-4 md:p-6"
         style={{
           background:
             "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.6) 100%)",
@@ -19,17 +19,17 @@ export default function HubPageHeader({ icon: Icon, eyebrow, title, subtitle, on
           className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-[0.07]"
           style={{ background: "radial-gradient(circle, #D4A017 0%, transparent 70%)" }}
         />
-        <div className="relative flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3.5">
+        <div className="relative flex items-start justify-between gap-3 md:gap-4">
+          <div className="flex items-center gap-3 md:gap-3.5">
             {Icon && (
               <div
-                className="flex h-12 w-12 items-center justify-center rounded-2xl shrink-0 shadow-sm"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl shrink-0 shadow-sm md:h-12 md:w-12"
                 style={{ background: "linear-gradient(135deg,#D4A017,#A67C00)" }}
               >
-                <Icon className="h-6 w-6 text-white" />
+                <Icon className="h-5 w-5 text-white md:h-6 md:w-6" />
               </div>
             )}
-            <div>
+            <div className="min-w-0">
               {eyebrow && (
                 <div className="flex items-center gap-2">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4A017]">
@@ -42,7 +42,7 @@ export default function HubPageHeader({ icon: Icon, eyebrow, title, subtitle, on
                   )}
                 </div>
               )}
-              <h1 className="text-xl font-black tracking-tight text-foreground md:text-2xl">
+              <h1 className="text-lg font-black tracking-tight text-foreground md:text-2xl">
                 {title}
               </h1>
             </div>
@@ -58,7 +58,7 @@ export default function HubPageHeader({ icon: Icon, eyebrow, title, subtitle, on
           )}
         </div>
         {subtitle && (
-          <p className="relative mt-2.5 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>
+          <p className="relative mt-2 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>
         )}
       </div>
     </div>

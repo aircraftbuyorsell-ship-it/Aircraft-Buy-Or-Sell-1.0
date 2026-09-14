@@ -28,7 +28,7 @@ const TABS = [
 
 export default function ApiHub() {
   return (
-    <div className="px-4 py-6 md:px-8 md:py-8">
+    <div className="px-4 py-4 md:px-8 md:py-8">
       <HubPageHeader
         icon={Code}
         eyebrow="Developer API"

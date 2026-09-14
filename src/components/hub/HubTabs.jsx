@@ -22,8 +22,8 @@ export default function HubTabs({ tabs, defaultTab, contentKey }) {
   return (
     <div className="min-h-[60vh]">
       {/* Tab bar — sticky, scrollable, unified gold accent */}
-      <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-border bg-background/95 px-4 backdrop-blur md:-mx-8 md:px-8">
-        <div className="flex gap-1 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="sticky top-0 z-30 -mx-4 mb-4 border-b border-border bg-background/95 px-4 backdrop-blur md:-mx-8 md:mb-6 md:px-8">
+        <div className="flex gap-1 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = tab.key === activeTab.key;
@@ -31,7 +31,7 @@ export default function HubTabs({ tabs, defaultTab, contentKey }) {
               <button
                 key={tab.key}
                 onClick={() => selectTab(tab.key)}
-                className={`group inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all md:text-[13px] ${
+                className={`group inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all md:gap-2 md:px-3.5 md:py-2.5 md:text-[13px] ${
                   active
                     ? "bg-[#D4A017] text-white shadow-md shadow-[#D4A017]/20"
                     : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"

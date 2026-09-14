@@ -64,7 +64,7 @@ export default function IntelligenceHub() {
   const latestValuation = history.valuations?.[0];
 
   return (
-    <div className="px-4 py-6 md:px-8 md:py-8">
+    <div className="px-4 py-4 md:px-8 md:py-8">
       <InstrumentHubHeader icon={BarChart2} eyebrow="Intelligence" title="Market Intelligence & Valuation" subtitle="Run valuations, analyze market trends, calculate operating costs, and generate investment briefs — all from one workbench." readouts={[
         { label: "Live listings", value: market?.summary?.active?.toLocaleString() || "—" },
         { label: "Last valuation", value: ageLabel(latestValuation?.created_at || latestValuation?.created_date) },

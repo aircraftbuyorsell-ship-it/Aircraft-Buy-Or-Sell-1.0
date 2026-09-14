@@ -29,7 +29,7 @@ const TABS = [
 
 export default function VerifyHub() {
   return (
-    <div className="px-4 py-6 md:px-8 md:py-8">
+    <div className="px-4 py-4 md:px-8 md:py-8">
       <HubPageHeader
         icon={Shield}
         eyebrow="Verify"

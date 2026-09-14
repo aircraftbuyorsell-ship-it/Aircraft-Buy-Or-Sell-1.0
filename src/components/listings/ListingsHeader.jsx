@@ -280,7 +280,7 @@ export default function ListingsHeader({
         <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${INK}, rgba(0,0,0,0.8))` }} />
       </div>
 
-      <div className="relative px-4 md:px-8 pt-7 md:pt-10 pb-6">
+      <div className="relative px-4 md:px-8 pt-5 md:pt-10 pb-4 md:pb-6">
         {/* Top bar: eyebrow + actions */}
         <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
           <span
@@ -335,18 +335,18 @@ export default function ListingsHeader({
         {/* Hero */}
         <div className="max-w-xl">
           <h1
-            className="text-3xl md:text-[40px] font-medium leading-[1.05] text-white"
+            className="text-2xl md:text-[40px] font-medium leading-[1.05] text-white"
             style={{ letterSpacing: "-0.04em" }}>
             
             Aircraft Market <span style={{ color: AMBER }}>Intelligence</span>
           </h1>
-          <p className="mt-3 text-[13px] md:text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+          <p className="mt-2 md:mt-3 text-[13px] md:text-[14px] leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
             Browse the aircraft register with ATI™ scores, real-time market intelligence, and off-market valuation data.
           </p>
         </div>
 
         {/* N-number lookup */}
-        <div className="mt-6 max-w-xl">
+        <div className="mt-4 md:mt-6 max-w-xl">
           {showLookup ?
           <div className="flex gap-2">
               <div
@@ -409,10 +409,10 @@ export default function ListingsHeader({
 
         {/* Stats bar + view toggle */}
         <div
-          className="mt-7 pt-5 flex items-end justify-between gap-4 flex-wrap"
+          className="mt-5 pt-4 md:mt-7 md:pt-5 flex items-end justify-between gap-4 flex-wrap"
           style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
           
-          <div className="flex items-end gap-7 md:gap-10">
+          <div className="flex items-end gap-4 md:gap-10">
             <StatCell value={listingsCount} label="Total Listings" color="#fff" isLoading={isLoading} />
             <StatCell value={scoredCount} label="ATI Scored" color="#fff" isLoading={isLoading} />
             <StatCell value={hotDeals} label="Hot Deals" color={AMBER} isLoading={isLoading} />

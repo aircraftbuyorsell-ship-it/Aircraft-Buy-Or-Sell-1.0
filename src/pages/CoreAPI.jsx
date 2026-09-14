@@ -176,28 +176,28 @@ export default function CoreAPI() {
 
   return (
     <ApprovedApiAccessGate title="Core API access is approval-only" description="Your ABOS account must be approved for API, developer or partner access before endpoint documentation and API key management are available.">
-    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: "#fff" }}>
+    <div className="min-h-screen px-4 sm:px-8 pt-10 pb-24" style={{ color: "hsl(var(--foreground))" }}>
       <div className="max-w-[980px] mx-auto">
         {/* Header */}
         <div className="mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
             style={{ background: "rgba(245,194,66,0.09)", border: "0.5px solid rgba(245,194,66,0.22)" }}>
-            <Terminal size={12} style={{ color: "#f5c242" }} />
-            <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color: "#f5c242" }}>
+            <Terminal size={12} style={{ color: "#a67c00" }} />
+            <span className="text-[10px] font-bold tracking-[0.16em] uppercase" style={{ color: "#a67c00" }}>
               ABOS Core API · v1
             </span>
           </div>
-          <h1 className="tracking-[-0.03em] leading-[1.06] mb-4" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 500 }}>
-            One API. <span style={{ color: "#f5c242", fontWeight: 700 }}>Every channel.</span>
+          <h1 className="tracking-[-0.03em] leading-[1.06] mb-4" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 500, color: "hsl(var(--foreground))" }}>
+            One API. <span style={{ color: "#a67c00", fontWeight: 700 }}>Every channel.</span>
           </h1>
-          <p className="text-[14px] leading-relaxed max-w-[600px] mb-6" style={{ color: "rgba(255,255,255,0.60)" }}>
+          <p className="text-[14px] leading-relaxed max-w-[600px] mb-6" style={{ color: "hsl(var(--muted-foreground))" }}>
             The single contract behind the Web App, ChatGPT App, Facebook Connector and partner SDKs.
             Chat-first search, OMVM valuation, listing extraction and marketplace access — authenticated
             with scoped API keys.
           </p>
           <button onClick={openSpec} disabled={loadingSpec}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[12px] font-bold"
-            style={{ background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.14)", color: "rgba(255,255,255,0.85)", cursor: "pointer" }}>
+            style={{ background: "hsl(var(--muted))", border: "0.5px solid hsl(var(--border))", color: "hsl(var(--foreground))", cursor: "pointer" }}>
             {loadingSpec ? <Loader2 size={13} className="animate-spin" /> : <FileJson size={13} />}
             View OpenAPI Specification (JSON)
           </button>

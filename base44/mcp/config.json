@@ -206,6 +206,132 @@
           "read"
         ],
         "description": null
+      },
+      "Order": {
+        "operations": [],
+        "description": null
+      },
+      "TokenTransaction": {
+        "operations": [],
+        "description": null
+      },
+      "ReportCreditBalance": {
+        "operations": [],
+        "description": null
+      },
+      "ReportCreditTransaction": {
+        "operations": [],
+        "description": null
+      },
+      "PurchasedReport": {
+        "operations": [],
+        "description": null
+      },
+      "UsageRecord": {
+        "operations": [],
+        "description": null
+      },
+      "ApiMonthlyUsage": {
+        "operations": [],
+        "description": null
+      },
+      "TierChange": {
+        "operations": [],
+        "description": null
+      },
+      "OAuthClient": {
+        "operations": [],
+        "description": null
+      },
+      "DeveloperAccount": {
+        "operations": [],
+        "description": null
+      },
+      "ApiAccessApproval": {
+        "operations": [],
+        "description": null
+      },
+      "WebhookConfig": {
+        "operations": [],
+        "description": null
+      },
+      "ToolIntegration": {
+        "operations": [],
+        "description": null
+      },
+      "PartnerConfig": {
+        "operations": [],
+        "description": null
+      },
+      "SocialPublishConfig": {
+        "operations": [],
+        "description": null
+      },
+      "ReportRequest": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "PartnerListingFeed": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "VerificationClaim": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "VerificationSession": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATIVerifyScore": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATIVerifyDocument": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ATIVerifySession": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "ContractAcceptance": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "OwnershipTrace": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "LaddBlockList": {
+        "operations": [
+          "read"
+        ],
+        "description": null
+      },
+      "DecisionLog": {
+        "operations": [
+          "read"
+        ],
+        "description": null
       }
     },
     "functions": [

@@ -64,40 +64,36 @@ export async function lookupAircraft(registration, options = {}) {
   // Registry providers use compact keys; UI uses the formatted marking.
   const canonicalRegistration = normalized.replace(/-/g, "");
 
-  // Try every available registry source when a source is unavailable OR
-  // returns a valid response with found:false. A negative result from one
-  // source must never prevent the remaining sources from being queried.
-  try {
-    const response = await base44.functions.invoke("aircraftDataHub", {
-      registration: canonicalRegistration,
-      owner_query: options.ownerQuery || undefined,
-    });
-    if (isFound(response.data)) return normalizeResult(response.data, normalized);
-  } catch (_) {
-    // Continue to the next registry source.
-  }
-
-  try {
-    const response = await base44.functions.invoke("globalAircraftLookup", {
-      registration: canonicalRegistration,
-    });
-    const data = response.data;
-    if (isFound(data)) return normalizeResult(data, normalized);
-  } catch (_) {
-    // Continue to the public FAA twin.
-  }
-
-  try {
-    const response = await base44.functions.invoke("publicTwinLookup", {
-      query: canonicalRegistration,
-      owner_query: options.ownerQuery || undefined,
-    });
-    const data = toPublicTwinResult(response.data);
-    return isFound(data) ? normalizeResult(data, normalized) : (data || { found: false });
-  } catch (_) {
+  // Fixed source priority, independent of response timing. All sources start together.
+  const sources = [
+    { name: "aircraftDataHub", payload: { registration: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
+    { name: "globalAircraftLookup", payload: { registration: canonicalRegistration } },
+    { name: "publicTwinLookup", payload: { query: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
+  ];
+  const outcomes = await Promise.allSettled(sources.map(async ({ name, payload }) => {
+    const response = await base44.functions.invoke(name, payload);
+    return name === "publicTwinLookup" ? toPublicTwinResult(response.data) : response.data;
+  }));
+  const source_statuses = outcomes.map((outcome, index) => ({
+    source: sources[index].name,
+    status: outcome.status === "rejected" || !outcome.value || (outcome.value.error && !isFound(outcome.value))
+      ? "unavailable" : isFound(outcome.value) ? "matched" : "no_match",
+  }));
+  const selected = outcomes.findIndex((outcome) => outcome.status === "fulfilled" && isFound(outcome.value));
+  if (selected !== -1) {
     return {
-      found: false,
-      error: `No registry record found for ${canonicalRegistration}.`,
+      ...normalizeResult(outcomes[selected].value, normalized),
+      source_statuses,
+      fallback_used: selected > 0,
     };
   }
+  const incomplete = source_statuses.some(({ status }) => status === "unavailable");
+  return {
+    found: false,
+    source_statuses,
+    fallback_used: true,
+    error: incomplete
+      ? `No match confirmed for ${normalized}. Some registry sources are unavailable; please try again.`
+      : `No registry record found for ${normalized}.`,
+  };
 }

@@ -7,6 +7,8 @@ import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay"
 import ReportDeliveredBanner from "@/components/twin/ReportDeliveredBanner";
 import SkyLinkAirportBlock from "@/components/skylink/SkyLinkAirportBlock";
 import NoRegistryMatch from "@/components/lookup/NoRegistryMatch";
+import RecentSearches from "@/components/lookup/RecentSearches";
+import { loadRecentSearches, saveRecentSearch } from "@/lib/recentSearches";
 
 const AMBER = "#f5c242";
 
@@ -28,6 +30,7 @@ export default function NLookup() {
   const [error, setError] = useState(null);
   const [notFound, setNotFound] = useState(null);
   const [fulfillment, setFulfillment] = useState(null);
+  const [recentSearches, setRecentSearches] = useState(loadRecentSearches);
 
   // Handle return from Stripe checkout → trigger PDF delivery
   useEffect(() => {
@@ -43,9 +46,9 @@ export default function NLookup() {
     }
   }, []);
 
-  const handleSearch = async (e, directQuery = query) => {
+  const handleSearch = async (e, directQuery = query, modeOverride) => {
     e?.preventDefault();
-    const mode = new URLSearchParams(window.location.search).get("mode");
+    const mode = modeOverride ?? new URLSearchParams(window.location.search).get("mode");
     // Explicit serial/owner searches must not be mistaken for airport codes.
     if (mode !== "serial" && mode !== "owner" && detectAirportCode(directQuery)) return;
     let registration = normalizeReg(directQuery);
@@ -73,6 +76,8 @@ export default function NLookup() {
         });
         return;
       }
+
+      setRecentSearches(saveRecentSearch(data.aircraft.registration || registration, recentSearches));
 
       let photo = null;
       try {
@@ -140,6 +145,14 @@ export default function NLookup() {
         <div className="flex justify-center mb-8">
           <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={(value) => handleSearch(null, value)} loading={loading} />
         </div>
+
+        {!overlayData && !error && !notFound && (
+          <RecentSearches registrations={recentSearches} loading={loading}
+            onSelect={(registration) => {
+              setQuery(registration);
+              handleSearch(null, registration, "registration");
+            }} />
+        )}
 
         {detectAirportCode(query) && (
           <div className="mb-8">

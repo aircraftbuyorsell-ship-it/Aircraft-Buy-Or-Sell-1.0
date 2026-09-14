@@ -20,8 +20,12 @@ export default function DashboardNRegSearch() {
   const [listingMatch, setListingMatch] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const containerRef = useRef(null);
+  const requestToken = useRef(0);
+  const debounceTimer = useRef(null);
 
-  const search = useCallback(async (directQuery = query) => {
+  const search = useCallback(async (directQuery) => {
+    clearTimeout(debounceTimer.current);
+    const token = ++requestToken.current;
     const registration = normalizeReg(directQuery);
     if (!registration) return;
     setSearching(true);
@@ -33,6 +37,7 @@ export default function DashboardNRegSearch() {
 
     try {
       const data = await lookupAircraft(registration);
+      if (token !== requestToken.current) return;
 
       if (!data?.found || !data?.aircraft) {
         setNotFound({ message: data?.error || `No registry record found for ${registration}.`, registration });
@@ -49,11 +54,30 @@ export default function DashboardNRegSearch() {
 
       if (data.listing) setListingMatch(data.listing);
     } catch (e) {
-      setError(e?.message || "Failed to search aircraft registry. Please try again.");
+      if (token === requestToken.current) setError(e?.message || "Failed to search aircraft registry. Please try again.");
     } finally {
-      setSearching(false);
+      if (token === requestToken.current) setSearching(false);
     }
-  }, [query]);
+  }, []);
+
+  const changeQuery = useCallback((value) => {
+    // Invalidate immediately, including during the debounce window and on clear.
+    ++requestToken.current;
+    clearTimeout(debounceTimer.current);
+    setQuery(value);
+    setResult(null);
+    setListingMatch(null);
+    setError("");
+    setNotFound(null);
+    setSearching(false);
+    setShowDropdown(false);
+    if (value.trim()) debounceTimer.current = setTimeout(() => search(value), 300);
+  }, [search]);
+
+  useEffect(() => () => {
+    clearTimeout(debounceTimer.current);
+    ++requestToken.current;
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -67,7 +91,7 @@ export default function DashboardNRegSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-xl mx-auto">
-      <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={search} loading={searching} />
+      <SmartAircraftSearch variant="hero" value={query} onChange={changeQuery} onSubmit={search} loading={searching} />
 
       <AnimatePresence>
         {showDropdown && (result || error || notFound || searching) && (

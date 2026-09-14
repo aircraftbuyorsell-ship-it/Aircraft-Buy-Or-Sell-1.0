@@ -61,14 +61,7 @@ function allowedReturnOrigin(returnUrl: string): boolean {
     // Never hand a buyer back over a non-TLS (or javascript:/data:) target.
     if (url.protocol !== 'https:') return false;
 
-    const configured = (Deno.env.get('ABOS_CHECKOUT_RETURN_ORIGINS') || '')
-      .split(',').map(s => s.trim()).filter(Boolean);
-
-    if (configured.length > 0) return configured.includes(url.origin);
-
     if (DEFAULT_RETURN_ORIGINS.includes(url.origin)) return true;
-    // Only trusted while no explicit allowlist is configured — setting the env
-    // var turns these off along with the defaults above.
     if (url.hostname === 'base44.app') return true;
     return DEFAULT_RETURN_ORIGIN_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix));
   } catch (_) { return false; }

@@ -30,6 +30,9 @@ const BUYER_PLANS = {
   abos_market_enterprise: { amount: 199900, interval: 'month', plan: 'monthly', label: 'ABOS Marketplace — Enterprise', currency: 'eur' },
 };
 
+const SKYDEALS_EMAIL = 'skydealseurope@gmail.com';
+const SKYDEALS_PLAN_TYPE = 'skydeals_custom_quarterly';
+
 // Origins checkout may hand the buyer back to. ABOS_CHECKOUT_RETURN_ORIGINS
 // (comma-separated) stays authoritative when set. When it is NOT set we fall
 // back to these known-good ABOS origins rather than an empty allowlist —
@@ -78,7 +81,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, returnUrl, plan_type } = await req.json();
+    const { priceId, returnUrl, plan_type, inquiry_id } = await req.json();
     if (!returnUrl || !allowedReturnOrigin(returnUrl)) {
       // Log the rejected origin so a misconfigured allowlist is diagnosable
       // from the function logs instead of surfacing as a bare 400.
@@ -86,6 +89,29 @@ Deno.serve(async (req) => {
       try { rejected = new URL(returnUrl).origin; } catch (_) { /* keep placeholder */ }
       console.error('Checkout rejected: return origin not allowed', { rejected, plan_type });
       return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
+    }
+
+    if (plan_type === SKYDEALS_PLAN_TYPE) {
+      if (String(user.email || '').toLowerCase() !== SKYDEALS_EMAIL || !inquiry_id) {
+        return Response.json({ error: 'This trial offer is restricted to the confirmed SkyDeals Europe account.' }, { status: 403 });
+      }
+      const inquiry = await base44.asServiceRole.entities.ApiInstallerInquiry.get(inquiry_id).catch(() => null);
+      let companyHost = '';
+      try { companyHost = new URL(inquiry?.company_url || '').hostname.toLowerCase().replace(/^www\./, ''); } catch (_) {}
+      if (!inquiry || String(inquiry.email || '').toLowerCase() !== SKYDEALS_EMAIL || companyHost !== 'skydealseurope.com') {
+        return Response.json({ error: 'A completed SkyDeals Europe installer request is required.' }, { status: 403 });
+      }
+      const metadata = { type: 'tenant_subscription', plan: 'professional', custom_offer: SKYDEALS_PLAN_TYPE, user_id: user.id, user_email: SKYDEALS_EMAIL, inquiry_id };
+      const session = await stripe.checkout.sessions.create({
+        mode: 'subscription', payment_method_types: ['card'], customer_email: SKYDEALS_EMAIL,
+        client_reference_id: user.id,
+        line_items: [{ price_data: { currency: 'eur', product_data: { name: 'SkyDeals Europe White-Label Custom' }, unit_amount: 150000, recurring: { interval: 'month', interval_count: 3 } }, quantity: 1 }],
+        subscription_data: { trial_period_days: 30, metadata },
+        success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
+        metadata,
+      });
+      return Response.json({ sessionId: session.id, sessionUrl: session.url });
     }
 
     const buyerPlan = BUYER_PLANS[plan_type];

@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle2, Download, LockKeyhole, Send, ShieldCheck, Sparkles } from 'lucide-react';
+import { CheckCircle2, CreditCard, Download, Loader2, LockKeyhole, Send, ShieldCheck, Sparkles } from 'lucide-react';
+
+const SKYDEALS_EMAIL = 'skydealseurope@gmail.com';
+const SKYDEALS_PLAN_TYPE = 'skydeals_custom_quarterly';
+const SKYDEALS_REQUEST_KEY = 'abos_skydeals_installer_request';
 
 const ALLOWED_EMAILS = ['adam@aircraftbuyorsell.com', '12byteflow@gmail.com'];
 const INSTANT_PRICING = [
@@ -44,9 +48,44 @@ export default function ApiInstallerRequest() {
   });
   const [submitted, setSubmitted] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [trialApproved, setTrialApproved] = useState(false);
   const [error, setError] = useState('');
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }));
   const toggle = (key, value) => setForm(f => ({ ...f, [key]: f[key].includes(value) ? f[key].filter(x => x !== value) : [...f[key], value] }));
+
+  useEffect(() => {
+    const cached = sessionStorage.getItem(SKYDEALS_REQUEST_KEY);
+    if (cached && userEmail === SKYDEALS_EMAIL && !submitted) setSubmitted(JSON.parse(cached));
+  }, [submitted, userEmail]);
+
+  useEffect(() => {
+    const sessionId = params.get('stripe_session');
+    if (!sessionId || params.get('success') !== 'true' || userEmail !== SKYDEALS_EMAIL) return;
+    base44.functions.invoke('stripeCheckoutStatus', { session_id: sessionId }).then(res => {
+      if (res?.data?.status === 'complete' && res?.data?.custom_offer === SKYDEALS_PLAN_TYPE) {
+        setTrialApproved(true);
+        sessionStorage.removeItem(SKYDEALS_REQUEST_KEY);
+      }
+    }).catch(err => setError(err?.message || 'Could not confirm trial approval.'));
+  }, [params, userEmail]);
+
+  const startSkyDealsTrial = async () => {
+    if (userEmail !== SKYDEALS_EMAIL) {
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
+    setCheckoutLoading(true); setError('');
+    try {
+      const returnUrl = `${window.location.origin}${window.location.pathname}?tab=installer`;
+      const res = await base44.functions.invoke('stripeCreateCheckout', { plan_type: SKYDEALS_PLAN_TYPE, inquiry_id: submitted.inquiry_id, returnUrl });
+      if (!res?.data?.sessionUrl) throw new Error(res?.data?.error || 'Could not start the trial.');
+      window.location.href = res.data.sessionUrl;
+    } catch (err) {
+      setError(err?.response?.data?.error || err?.message || 'Could not start the trial.');
+      setCheckoutLoading(false);
+    }
+  };
 
   const submit = async e => {
     e.preventDefault(); setError('');
@@ -56,6 +95,7 @@ export default function ApiInstallerRequest() {
       const res = await base44.functions.invoke('submitApiInquiry', { ...form, created_at_client: new Date().toISOString() });
       if (!res?.data?.pricing_unlocked) throw new Error(res?.data?.error || 'Request could not be processed.');
       setSubmitted(res.data);
+      if (res.data.skydeals_offer) sessionStorage.setItem(SKYDEALS_REQUEST_KEY, JSON.stringify(res.data));
     } catch (err) { setError(err?.message || 'Request could not be processed.'); }
     finally { setLoading(false); }
   };
@@ -94,9 +134,9 @@ export default function ApiInstallerRequest() {
         {submitted.pre_approved
           ? <p className="text-sm" style={{color:'rgba(255,255,255,.62)'}}>Your account <strong style={{color:'white'}}>{submitted.submitted_email}</strong> is pre-approved — the Installer Pack and current API pricing are unlocked for you right away, no request form needed.</p>
           : <p className="text-sm" style={{color:'rgba(255,255,255,.62)'}}>Pricing is unlocked for <strong style={{color:'white'}}>{submitted.submitted_email}</strong>. Recommended package: <strong style={{color:'#f5c242'}}>{submitted.recommended_plan}</strong>.</p>}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">{(submitted.pricing || []).map(p=><div key={p.key} className="rounded-2xl p-4" style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)'}}><div className="text-xs font-bold">{p.name}</div><div className="text-2xl font-black mt-2">€{Number(p.price_eur).toLocaleString('en-US')}</div><div className="text-[10px] mt-1" style={{color:'rgba(255,255,255,.45)'}}>{p.billing}</div></div>)}</div>
+        {submitted.skydeals_offer ? <div className="mt-6 rounded-2xl p-5" style={{background:'rgba(245,194,66,.07)',border:'1px solid rgba(245,194,66,.28)'}}><div className="text-xs font-bold">SkyDeals Europe White-Label Custom</div><div className="text-2xl font-black mt-2">€1,500 <span className="text-xs font-medium" style={{color:'rgba(255,255,255,.55)'}}>every 3 months</span></div><p className="mt-2 text-xs" style={{color:'rgba(255,255,255,.6)'}}>30 days free. A card is required before the trial starts; the first automatic charge occurs after the trial unless canceled.</p></div> : <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">{(submitted.pricing || []).map(p=><div key={p.key} className="rounded-2xl p-4" style={{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)'}}><div className="text-xs font-bold">{p.name}</div><div className="text-2xl font-black mt-2">€{Number(p.price_eur).toLocaleString('en-US')}</div><div className="text-[10px] mt-1" style={{color:'rgba(255,255,255,.45)'}}>{p.billing}</div></div>)}</div>}
         {submitted.pre_approved && <div className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide" style={{color:'#f5c242'}}><Sparkles size={13}/> Pre-approved access</div>}
-        <a href="/ABOS-API-Integration-Kit.json" download className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase" style={{background:'#f5c242',color:'#04060a'}}><Download size={14}/> Download Installer / Integration Kit</a>
+        {submitted.skydeals_offer && !trialApproved ? <button type="button" onClick={startSkyDealsTrial} disabled={checkoutLoading} className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase disabled:opacity-50" style={{background:'#f5c242',color:'#04060a'}}>{checkoutLoading ? <Loader2 size={14} className="animate-spin"/> : <CreditCard size={14}/>} Confirm email, add card & start free trial</button> : <a href="/ABOS-API-Integration-Kit.json" download className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase" style={{background:'#f5c242',color:'#04060a'}}><Download size={14}/> Download Installer / Integration Kit</a>}
         <div className="mt-5 flex items-start gap-2 text-[11px]" style={{color:'rgba(255,255,255,.46)'}}><LockKeyhole size={13}/> Your submitted business information remains restricted to the personalized-offer workflow.</div>
       </div>}
     </div>

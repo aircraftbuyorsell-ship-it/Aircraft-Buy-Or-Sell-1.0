@@ -46,6 +46,9 @@ Deno.serve(async (req) => {
     const requestedPlan = clean(body.requested_plan, 200);
     const registration = clean(body.aircraft_registration || body.registration, 32).toUpperCase();
     const recommendedPlan = recommended(requestedPlan, monthlyViews);
+    let companyHost = '';
+    try { companyHost = new URL(companyUrl).hostname.toLowerCase().replace(/^www\./, ''); } catch (_) {}
+    const isSkyDealsOffer = email === 'skydealseurope@gmail.com' && companyHost === 'skydealseurope.com';
 
     const inquiry = await base44.asServiceRole.entities.ApiInstallerInquiry.create({
       full_name: fullName, email, company_name: companyName, company_url: companyUrl, position,
@@ -75,7 +78,7 @@ Deno.serve(async (req) => {
       try { await fetch(wh.url, { method: 'POST', headers, body: bodyText, signal: AbortSignal.timeout(8000) }); } catch (_) {}
     }
 
-    return Response.json({ ok: true, pricing_unlocked: true, submitted_email: email, recommended_plan: recommendedPlan, pricing: PRICING, integration_kit: { filename: 'ABOS-API-Integration-Kit.json', url: '/ABOS-API-Integration-Kit.json' }, inquiry_id: inquiry.id });
+    return Response.json({ ok: true, pricing_unlocked: true, submitted_email: email, recommended_plan: isSkyDealsOffer ? 'SkyDeals Europe White-Label Custom' : recommendedPlan, pricing: PRICING, integration_kit: { filename: 'ABOS-API-Integration-Kit.json', url: '/ABOS-API-Integration-Kit.json' }, inquiry_id: inquiry.id, skydeals_offer: isSkyDealsOffer });
   } catch (error) {
     return Response.json({ error: error?.message || 'Request failed.' }, { status: 500 });
   }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&family=Work+Sans:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
 
 @tailwind base;
@@ -506,3 +506,31 @@ tbody tr,
   50% { opacity: 1; }
   to { opacity: .3; transform: translateX(3px); }
 }
+
+/* Unified ABOS intelligence output system */
+:root {
+  --brand-primary:#E0B034; --brand-on-primary:#0B0C10; --brand-secondary:#1F2430;
+  --brand-accent:#FFD043; --brand-background:#0B0C10; --brand-surface:#151922;
+  --brand-text:#F3F4F6; --brand-muted:#202635; --brand-muted-foreground:#8A94A6;
+  --brand-border:#2F374A; --brand-destructive:#EC5D5D; --brand-success:#5DCAA5;
+  --brand-font-heading:'Work Sans',sans-serif; --brand-font-body:'Work Sans',sans-serif;
+  --brand-radius-lg:12px;
+}
+.output-shell { min-height:100vh; background-color:var(--brand-background); color:var(--brand-text); font-family:var(--brand-font-body); background-image:radial-gradient(rgba(224,176,52,.09) 1px,transparent 1px); background-size:28px 28px; }
+.output-shell h1,.output-shell h2,.output-shell h3 { font-family:var(--brand-font-heading); }
+.output-panel { background:var(--brand-surface); border:1px solid var(--brand-border); border-radius:var(--brand-radius-lg); box-shadow:0 4px 6px rgba(0,0,0,.1); }
+.output-muted { color:var(--brand-muted-foreground); }
+.output-primary-button { appearance:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 16px; border:0; border-radius:var(--brand-radius-lg); background:var(--brand-primary); color:var(--brand-text); font-family:var(--brand-font-body); font-size:14px; font-weight:700; line-height:20px; box-shadow:0 1px 2px rgba(0,0,0,.05); white-space:nowrap; cursor:pointer; transition:color .15s cubic-bezier(.4,0,.2,1),background-color .15s cubic-bezier(.4,0,.2,1),border-color .15s cubic-bezier(.4,0,.2,1),opacity .15s; }
+.output-primary-button:hover { background:#C9A22F; }
+.output-primary-button:disabled { opacity:.45; cursor:not-allowed; }
+.output-outline-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 16px; border:1px solid #29303D; border-radius:var(--brand-radius-lg); background:var(--brand-surface); color:#F8FAFC; font-family:var(--brand-font-body); font-size:14px; font-weight:700; line-height:20px; cursor:pointer; transition:color .15s cubic-bezier(.4,0,.2,1),background-color .15s cubic-bezier(.4,0,.2,1),border-color .15s cubic-bezier(.4,0,.2,1),box-shadow .15s cubic-bezier(.4,0,.2,1); }
+.output-outline-button:hover { border-color:rgba(212,160,23,.4); }
+.output-input { width:100%; border:1px solid var(--brand-control-border,#374151)!important; border-radius:8px; background:var(--brand-muted)!important; color:var(--brand-control-foreground,#F9FAFB)!important; padding:10px 12px; font-family:var(--brand-font-body); }
+.output-input::placeholder { color:var(--brand-muted-foreground)!important; }
+.output-shell input,.output-shell textarea,.output-shell select { border-color:var(--brand-control-border,#374151)!important; background-color:var(--brand-muted)!important; color:var(--brand-control-foreground,#F9FAFB)!important; }
+.output-shell input::placeholder,.output-shell textarea::placeholder { color:var(--brand-muted-foreground)!important; }
+.output-shell fieldset legend { color:var(--brand-text); }
+.output-shell fieldset label span { color:var(--brand-muted-foreground); }
+.output-input:focus { outline:2px solid rgba(224,176,52,.35); outline-offset:1px; }
+.output-metric { font-variant-numeric:tabular-nums; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+@media print { .output-shell { background:#fff!important; color:#111!important; } .output-panel { break-inside:avoid; border-color:#ccc; background:#fff; } .output-no-print { display:none!important; } }

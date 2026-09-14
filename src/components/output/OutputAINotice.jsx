@@ -1,0 +1,3 @@
+import { Info } from "lucide-react";
+import { Link } from "react-router-dom";
+export default function OutputAINotice({ children }) { return <aside className="flex gap-3 rounded-lg border border-[var(--brand-primary)]/25 bg-[var(--brand-primary)]/5 p-4"><Info className="h-5 w-5 shrink-0 text-[var(--brand-primary)]"/><p className="output-muted text-xs leading-relaxed"><strong className="text-[var(--brand-primary)]">AI notice: </strong>{children||"Scores and valuation estimates use available registry, market and aircraft evidence. They are informational and do not replace an independent inspection or formal appraisal."} <Link to="/legal/ai-transparency" className="font-bold text-[var(--brand-primary)] hover:underline">Full AI disclosure →</Link></p></aside>; }

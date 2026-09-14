@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Layers, Eye, EyeOff, Plane, Globe, ShieldCheck, Zap,
-  ChevronDown, Filter, SlidersHorizontal, X, Database
+  ChevronDown, Filter, SlidersHorizontal, X, Database, Building2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/lib/useTheme";
@@ -35,11 +35,13 @@ export const DEFAULT_FILTER = {
   adsb: { enabled: true, category: "all" },
   liveDb: { enabled: true },
   listings: { enabled: true, atiRange: "all", status: "all" },
-  faaRegistry: { enabled: false },
+  faaRegistry: { enabled: false, nNumber: "", type: "", engine: "", status: "V", category: "", yearFrom: "", yearTo: "", limit: 10000 },
+  dealers: { enabled: false },
 };
 
-export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) {
-  const isDark = useTheme();
+export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange, darkMode = false }) {
+  const themeDark = useTheme();
+  const isDark = darkMode || themeDark;
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("adsb");
 
@@ -48,7 +50,8 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
     (filter.adsb?.enabled ? 1 : 0) +
     (filter.liveDb?.enabled ? 1 : 0) +
     (filter.listings?.enabled ? 1 : 0) +
-    (filter.faaRegistry?.enabled ? 1 : 0);
+    (filter.faaRegistry?.enabled ? 1 : 0) +
+    (filter.dealers?.enabled ? 1 : 0);
 
   const update = (path, value) => {
     const next = structuredClone(filter);
@@ -86,7 +89,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
         }}
       >
         <SlidersHorizontal className="w-3.5 h-3.5" />
-        Layers ({activeCount}/4)
+        Layers ({activeCount}/5)
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
@@ -118,6 +121,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                 { key: "listings", label: "Listings", icon: ShieldCheck, color: accentGold },
                 { key: "live", label: "Live DB", icon: Globe, color: accentGreen },
                 { key: "faa", label: "FAA", icon: Database, color: "#D4A017" },
+                { key: "dealers", label: "Dealers", icon: Building2, color: "#a78bfa" },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -141,6 +145,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                     enabled={filter.adsb.enabled}
                     onToggle={(v) => update("adsb.enabled", v)}
                     icon={RadarIcon}
+                    darkMode={isDark}
                   />
                   {filter.adsb.enabled && (
                     <div className="space-y-1.5 ml-6">
@@ -183,6 +188,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                     enabled={filter.listings.enabled}
                     onToggle={(v) => update("listings.enabled", v)}
                     icon={ShieldCheck}
+                    darkMode={isDark}
                   />
                   {filter.listings.enabled && (
                     <>
@@ -242,6 +248,7 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                     onToggle={(v) => update("liveDb.enabled", v)}
                     icon={Globe}
                     subtitle="Supabase live_traffic — near real-time"
+                    darkMode={isDark}
                   />
                   {filter.liveDb.enabled && (
                     <div className="ml-6 p-2 rounded-lg" style={{ background: `${accentGreen}08` }}>
@@ -264,16 +271,25 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
                     onToggle={(v) => update("faaRegistry.enabled", v)}
                     icon={Database}
                     subtitle="US state aircraft fleet clusters"
+                    darkMode={isDark}
                   />
                   {filter.faaRegistry?.enabled && (
-                    <div className="ml-6 p-2 rounded-lg" style={{ background: "rgba(212,160,23,0.06)" }}>
-                      <p className="text-[9px]" style={{ color: mutedColor }}>
-                        FAA aircraft grouped by US state.
-                        Tap any cluster for fleet data & ATI estimate.
-                      </p>
+                    <div className="ml-6 grid grid-cols-2 gap-2">
+                      <FilterInput label="N-number" value={filter.faaRegistry.nNumber} onChange={(v) => update("faaRegistry.nNumber", v)} />
+                      <FilterInput label="Status" value={filter.faaRegistry.status} onChange={(v) => update("faaRegistry.status", v)} options={[["", "All"], ["V", "Valid"], ["I", "Invalid"], ["E", "Expired"]]} />
+                      <FilterInput label="Aircraft type" value={filter.faaRegistry.type} onChange={(v) => update("faaRegistry.type", v)} options={[["", "All"], ["4", "Fixed wing"], ["7", "Rotorcraft"], ["1", "Glider"], ["2", "Balloon"]]} />
+                      <FilterInput label="Engine" value={filter.faaRegistry.engine} onChange={(v) => update("faaRegistry.engine", v)} options={[["", "All"], ["1", "Piston"], ["2", "Turboprop"], ["5", "Turbojet"], ["6", "Turbofan"], ["8", "Electric"]]} />
+                      <FilterInput label="Category" value={filter.faaRegistry.category} onChange={(v) => update("faaRegistry.category", v)} options={[["", "All"], ["1", "Land"], ["2", "Sea"], ["3", "Amphibian"]]} />
+                      <FilterInput label="Max records" value={filter.faaRegistry.limit} onChange={(v) => update("faaRegistry.limit", Number(v))} options={[[1000, "1,000"], [5000, "5,000"], [10000, "10,000"]]} />
+                      <FilterInput label="Year from" value={filter.faaRegistry.yearFrom} onChange={(v) => update("faaRegistry.yearFrom", v)} type="number" />
+                      <FilterInput label="Year to" value={filter.faaRegistry.yearTo} onChange={(v) => update("faaRegistry.yearTo", v)} type="number" />
                     </div>
                   )}
                 </div>
+              )}
+
+              {activeTab === "dealers" && (
+                <LayerToggle label="FAA Dealers" color="#a78bfa" enabled={filter.dealers?.enabled ?? false} onToggle={(v) => update("dealers.enabled", v)} icon={Building2} subtitle="Certified dealer locations and status" darkMode={isDark} />
               )}
             </div>
 
@@ -296,8 +312,9 @@ export default function GlobeLayerFilter({ filter = DEFAULT_FILTER, onChange }) 
 
 // ── Helpers ──────────────────────────────────────
 
-function LayerToggle({ label, color, enabled, onToggle, icon: Icon, subtitle }) {
-  const isDark = useTheme();
+function LayerToggle({ label, color, enabled, onToggle, icon: Icon, subtitle, darkMode = false }) {
+  const themeDark = useTheme();
+  const isDark = darkMode || themeDark;
   const mutedColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
 
   return (
@@ -321,6 +338,10 @@ function LayerToggle({ label, color, enabled, onToggle, icon: Icon, subtitle }) 
       </button>
     </div>
   );
+}
+
+function FilterInput({ label, value, onChange, options, type = "text" }) {
+  return <label className="text-[8px] font-bold uppercase text-white/45">{label}{options ? <select value={value} onChange={(e) => onChange(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-[#202635] px-2 py-1.5 text-[10px] text-white">{options.map(([v, text]) => <option key={v || text} value={v}>{text}</option>)}</select> : <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="mt-1 w-full rounded-md border border-white/10 bg-[#202635] px-2 py-1.5 text-[10px] text-white" />}</label>;
 }
 
 function RadarIcon({ className, style }) {

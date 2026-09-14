@@ -74,7 +74,7 @@ export const NAV_TREE = [
     categories: [
       { label: "Identity", items: [
         { label: "Registry Lookup", path: "/n-lookup", icon: Search },
-        { label: "FAA Registry Map", path: "/faa-map", icon: Map },
+        { label: "Aircraft Intelligence Globe", path: "/traffic", icon: Radar },
         { label: "Digital Twin", path: "/verify?tab=twin", icon: Shield },
       ]},
       { label: "ATI", items: [
@@ -85,7 +85,6 @@ export const NAV_TREE = [
       ]},
       { label: "Inspect", items: [
         { label: "Pre-Buy Inspection", path: "/pre-buy-inspection", icon: CheckCircle },
-        { label: "Live Traffic", path: "/traffic", icon: Radar },
         { label: "Verified Experts", path: "/experts", icon: BadgeCheck },
       ]},
       { label: "Verify", items: [

@@ -102,6 +102,7 @@ function atiColor(score) {
 }
 
 function buildHoverLabel(meta, type) {
+  if (type === "dealer") return `${meta.name || "FAA Dealer"} (${meta.state || "US"})`;
   if (type === "adsb") {
     const id = (meta.callsign && meta.callsign.trim()) || meta.registration || meta.icao24 || "Unknown";
     return "Flight " + id + " (ADS-B)";
@@ -279,10 +280,13 @@ const ATI_RANGE_TEST = {
   unscored: (l) => !l.ati_score || l.ati_score === 0,
 };
 
-export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, focusLocation, onSelectListing, extraAircraft = [] }) {
+export default function SkyBossGlobe({ className = "", listings = [], filter = DEFAULT_FILTER, focusLocation, onSelectListing, extraAircraft = [], historicalAircraft = null, dealers = [], registryAircraft = [], selectedExternal = null, forceDark = false }) {
+  const historicalRef = useRef(historicalAircraft);
+  useEffect(() => { historicalRef.current = historicalAircraft; }, [historicalAircraft]);
   const extraAircraftRef = useRef([]);
   useEffect(() => { extraAircraftRef.current = extraAircraft; }, [extraAircraft]);
-  const isDark = useTheme();
+  const themeDark = useTheme();
+  const isDark = forceDark || themeDark;
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
@@ -297,10 +301,13 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const liveGeoRef = useRef(null);
   const faaGeoRef = useRef(null);
   const faaPointsRef = useRef(null);
+  const dealerGeoRef = useRef(null);
+  const dealerPointsRef = useRef(null);
   const metaRef = useRef([]);
   const lMetaRef = useRef([]);
   const liveMetaRef = useRef([]);
   const faaMetaRef = useRef([]);
+  const dealerMetaRef = useRef([]);
   const rotRef = useRef({ y: -Math.PI / 2, x: 0 });
   const dragRef = useRef({ active: false, px: 0, py: 0 });
   const sunRef = useRef(null);
@@ -323,7 +330,8 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
   // Re-render layers when filter changes or SkyLink contacts are added
   useEffect(() => {
-    if (adsbCache.current.length > 0 || extraAircraftRef.current.length > 0) {
+    if (historicalRef.current) renderToGlobe(historicalRef.current);
+    else if (adsbCache.current.length > 0 || extraAircraftRef.current.length > 0) {
       renderToGlobe([...adsbCache.current, ...extraAircraftRef.current]);
     }
     if (liveCache.current.length > 0) renderLiveToGlobe(liveCache.current);
@@ -367,7 +375,9 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
   const [liveCount, setLiveCount] = useState(0);
   const [faaCount, setFaaCount] = useState(0);
   const [faaStateCount, setFaaStateCount] = useState(0);
+  const [dealerCount, setDealerCount] = useState(0);
   const [detail, setDetail] = useState(null);
+  useEffect(() => { if (selectedExternal) setDetail(selectedExternal); }, [selectedExternal]);
   const [scoringMap, setScoringMap] = useState({});
   const autoRotateRef = useRef(true);
 
@@ -375,7 +385,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
   // ─── Fetch traffic from cachedTraffic (adsb.lol) ───
   const fetchTraffic = useCallback(async () => {
-    if (loadingRef.current) return;
+    if (loadingRef.current || historicalRef.current) return;
     loadingRef.current = true;
     setTrafficStatus("loading");
     try {
@@ -567,25 +577,40 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     renderListings(listings);
   }, [listings, filter, renderListings]);
 
-  // ─── Fetch & render FAA Registry ───
-  const [faaAircraft, setFaaAircraft] = useState([]);
   useEffect(() => {
-    const f = filter?.faaRegistry;
-    if (!f || !f.enabled) {
-      setFaaAircraft([]);
+    if (historicalAircraft) renderToGlobe(historicalAircraft);
+    else if (adsbCache.current.length) renderToGlobe([...adsbCache.current, ...extraAircraftRef.current]);
+  }, [historicalAircraft, renderToGlobe]);
+
+  // ─── Render externally filtered FAA Registry ───
+  useEffect(() => {
+    renderFaaToGlobe(registryAircraft || [], listings);
+  }, [registryAircraft, filter, renderFaaToGlobe, listings]);
+
+  const renderDealers = useCallback((rows) => {
+    const geo = dealerGeoRef.current;
+    if (!geo) return;
+    if (!filterRef.current?.dealers?.enabled) {
+      geo.setAttribute("position", new THREE.Float32BufferAttribute([], 3));
+      dealerMetaRef.current = [];
+      setDealerCount(0);
       return;
     }
-    if (faaAircraft.length > 0) return; // cache once per session
-    base44.entities.FAAAircraft.list("-created_date", 5000).then((data) => {
-      setFaaAircraft(data || []);
-    }).catch(() => {});
-  }, [filter?.faaRegistry?.enabled]);
+    const positions = [], colors = [], meta = [];
+    rows.forEach((dealer, index) => {
+      const [lat, lon] = US_STATE_CENTROIDS[String(dealer.state || "").toUpperCase()] || [38, -97];
+      const v = latLonToVec3(lat + Math.sin(index * 2.7) * 1.2, lon + Math.cos(index * 3.1) * 1.8, 1.022);
+      positions.push(v.x, v.y, v.z);
+      colors.push(...(dealer.is_expired ? [0.94, 0.27, 0.27] : [0.65, 0.55, 0.98]));
+      meta.push(dealer);
+    });
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    dealerMetaRef.current = meta;
+    setDealerCount(meta.length);
+  }, []);
 
-  useEffect(() => {
-    if (faaAircraft.length > 0) {
-      renderFaaToGlobe(faaAircraft, listings);
-    }
-  }, [faaAircraft, filter, renderFaaToGlobe, listings]);
+  useEffect(() => { renderDealers(dealers || []); }, [dealers, filter, renderDealers]);
 
   // ─── Handle scoring for N-registered aircraft ───
   const handleScoreAircraft = useCallback(async (ac) => {
@@ -655,6 +680,13 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
         setDetail({ type: "livetraffic", data: liveMetaRef.current[liveHits[0].index] });
         return;
       }
+    }
+
+    // Check FAA Dealers
+    if (dealerPointsRef.current && dealerPointsRef.current.geometry.attributes.position) {
+      ray.setFromCamera(mouse, cameraRef.current);
+      const dealerHits = ray.intersectObject(dealerPointsRef.current);
+      if (dealerHits.length > 0) { setDetail({ type: "dealer", data: dealerMetaRef.current[dealerHits[0].index] }); return; }
     }
 
     // Check FAA Registry clusters (amber)
@@ -843,6 +875,13 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
     faaPointsRef.current = faaPoints;
     globe.add(faaPoints);
 
+    const dealerGeo = new THREE.BufferGeometry();
+    dealerGeoRef.current = dealerGeo;
+    const dealerMat = new THREE.PointsMaterial({ size: 0.24, map: dotTexture(), vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+    const dealerPoints = new THREE.Points(dealerGeo, dealerMat);
+    dealerPointsRef.current = dealerPoints;
+    globe.add(dealerPoints);
+
     // Flight path arcs — animated cyan bezier curves between ADS-B points
     const arcMat = new THREE.ShaderMaterial({
       uniforms: { uTime: { value: 0 }, uAlpha: { value: 0.35 } },
@@ -980,6 +1019,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       checkCloud(acPointsRef.current, metaRef.current, "adsb");
       checkCloud(livePointsRef.current, liveMetaRef.current, "live");
       checkCloud(faaPointsRef.current, faaMetaRef.current, "faa");
+      checkCloud(dealerPointsRef.current, dealerMetaRef.current, "dealer");
       checkCloud(lPointsRef.current, lMetaRef.current, "listing");
       hits.sort((a, b) => a.dist - b.dist);
       hoveredPointsRef.current = hits.slice(0, 3).map(h => ({
@@ -994,6 +1034,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
         if (hp) {
           el.textContent = hp.label;
           if (hp.type === "faa") { el.style.borderColor = "rgba(212,160,23,0.6)"; el.style.color = "#D4A017"; }
+          else if (hp.type === "dealer") { el.style.borderColor = "rgba(167,139,250,0.6)"; el.style.color = "#a78bfa"; }
           else if (hp.type === "live") { el.style.borderColor = "rgba(34,197,94,0.6)"; el.style.color = "#22c55e"; }
           else if (hp.type === "listing") { el.style.borderColor = "rgba(0,245,255,0.6)"; el.style.color = "#00f5ff"; }
           else { el.style.borderColor = "rgba(0,212,255,0.6)"; el.style.color = "#00d4ff"; }
@@ -1107,12 +1148,12 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
       </div>
 
       {/* UTC Clock */}
-      <div className="absolute top-3 left-3 z-20">
+      <div className="absolute top-24 left-3 z-20 max-md:hidden">
         <GlobeClock />
       </div>
 
       {/* Traffic status badge */}
-      <div className="absolute bottom-2 left-2 flex gap-2 z-10">
+      <div className="absolute bottom-20 left-2 flex max-w-[calc(100%-16px)] flex-wrap gap-2 z-10">
         <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
         style={{ color: accentCyan }}>
           <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
@@ -1136,6 +1177,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
             {liveCount.toLocaleString()} Live DB
           </div>
         )}
+        {dealerCount > 0 && <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider" style={{ color: "#a78bfa" }}><span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ background: "#a78bfa" }} />{dealerCount.toLocaleString()} dealers</div>}
         {faaCount > 0 && (
           <div className="px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider"
           style={{ color: "#D4A017" }}>
@@ -1149,7 +1191,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
 
       {/* Listing count badge */}
-      <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
+      <div className="absolute bottom-20 right-2 px-2 py-1 rounded-lg glass-pill text-[9px] font-bold tracking-wider z-10"
       style={{ color: "#E8A83A" }}>
         <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 animate-pulse"
         style={{ background: "#E8A83A", boxShadow: "0 0 6px #E8A83A" }} />
@@ -1158,7 +1200,7 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
 
       {/* ─── Detail popup (enhanced — matches 2D map popup) ─── */}
       {detail &&
-      <div className="absolute top-3 right-3 z-20 glass-card p-4" style={{ width: 260, maxWidth: "calc(100% - 24px)" }}>
+      <div className="absolute top-24 right-3 z-20 glass-card p-4" style={{ width: 260, maxWidth: "calc(100% - 24px)" }}>
           <button onClick={() => setDetail(null)} className="absolute top-2 right-2 opacity-40 hover:opacity-100 transition-opacity">
             <X className="w-3.5 h-3.5" />
           </button>
@@ -1306,6 +1348,13 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
             </>
         }
 
+          {detail.type === "dealer" && (() => {
+            const d = detail.data;
+            return <><div className="mb-3 border-b border-violet-400/25 pb-2.5"><p className="text-[11px] font-black uppercase text-violet-400">FAA Dealer</p><h3 className="mt-1 pr-5 text-sm font-bold">{d.name || "Certified dealer"}</h3><p className="mt-1 font-mono text-[9px] opacity-50">Certificate {d.cert_num || "—"}</p></div><div className="space-y-1.5 text-[10px]"><p><span className="opacity-45">Location: </span>{[d.city, d.state].filter(Boolean).join(", ") || "—"}</p><p><span className="opacity-45">Certified: </span>{d.cert_date || "—"}</p><p><span className="opacity-45">Expires: </span>{d.expiration || "—"}</p><span className={`inline-flex rounded px-2 py-1 font-bold ${d.is_expired ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400"}`}>{d.is_expired ? "Expired" : "Active certificate"}</span></div><div className="mt-3 grid grid-cols-2 gap-2"><a href="/n-lookup" className="rounded-lg border border-white/10 px-2 py-2 text-center text-[10px] font-bold">Registry</a><a href="/ati-verify" className="rounded-lg border border-white/10 px-2 py-2 text-center text-[10px] font-bold">Verify</a><a href="/verify?tab=twin" className="rounded-lg border border-white/10 px-2 py-2 text-center text-[10px] font-bold">Digital Twin</a><a href="/ati-quick-score" className="rounded-lg bg-[#E0B034] px-2 py-2 text-center text-[10px] font-bold text-white">ATI Score</a></div></>;
+          })()}
+
+          {detail.type === "registryrecord" && (() => { const d = detail.data; return <><h3 className="pr-5 text-sm font-bold text-[#D4A017]">N{d.n_number}</h3><p className="mt-1 text-[10px] opacity-60">{d.mfr_mdl_code || "FAA aircraft record"} · {d.year_mfr || "Year unknown"}</p><div className="mt-3 grid grid-cols-3 gap-2"><a href={`/ati-quick-score?nreg=N${d.n_number}`} className="rounded-lg bg-[#E0B034] px-2 py-2 text-center text-[10px] font-bold text-white">ATI</a><a href={`/ati-verify?nreg=N${d.n_number}`} className="rounded-lg border border-white/10 px-2 py-2 text-center text-[10px] font-bold">Verify</a><a href={`/twin/N${d.n_number}`} className="rounded-lg border border-white/10 px-2 py-2 text-center text-[10px] font-bold">Twin</a></div></>; })()}
+
           {detail.type === "faaregistry" && (() => {
           const d = detail.data;
           return (
@@ -1350,10 +1399,10 @@ export default function SkyBossGlobe({ className = "", listings = [], filter = D
                   </div>
                 </div>
 
-                <a href="/admin/supabase-sync" target="_blank" rel="noopener"
+                <a href="/n-lookup"
                   className="w-full rounded-lg py-2 px-3 flex items-center justify-center gap-1.5 text-[10px] font-black text-white transition-all active:scale-95"
                   style={{ background: "linear-gradient(135deg, #A67C00, #D4A017)" }}>
-                  <ExternalLink className="w-3 h-3" /> View in Registry
+                  <ExternalLink className="w-3 h-3" /> Search FAA Registry
                 </a>
               </>);
         })()}

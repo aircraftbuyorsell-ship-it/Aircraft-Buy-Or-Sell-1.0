@@ -116,6 +116,7 @@ import VerifyHub from "./pages/hubs/VerifyHub";
 import ApiHub from "./pages/hubs/ApiHub";
 import SkylarkConfigurator from "./pages/SkylarkConfigurator";
 import AdminMarketing from "./pages/AdminMarketing";
+import AircraftIntelligenceGlobe from "./pages/AircraftIntelligenceGlobe";
 
 const ALLOWED_SKYLARK_EMAIL_DOMAINS = ["@aircraftbuyorsell.com", "@airvisions.cz"];
 
@@ -194,7 +195,7 @@ const AuthenticatedApp = () => {
         <Route path="/deal-radar" element={<DealRadar />} />
         <Route path="/my-account" element={<MyAccount />} />
         <Route path="/leads" element={<Leads />} />
-        <Route path="/traffic" element={<TrafficMap />} />
+        <Route path="/traffic" element={<AircraftIntelligenceGlobe />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/opex-calculator" element={<OpexCalculator />} />
         <Route path="/valuation-studio" element={<ValuationStudio />} />
@@ -228,7 +229,7 @@ const AuthenticatedApp = () => {
         <Route path="/feature-requests" element={<FeatureRequests />} />
         <Route path="/ati-quick-score" element={<ATIQuickScore />} />
         <Route path="/ati-full-report" element={<ATIFullReport />} />
-        <Route path="/skyboss" element={<SkyBoss />} />
+        <Route path="/skyboss" element={<Navigate to="/traffic" replace />} />
         <Route path="/weekly-briefing" element={<WeeklyBriefing />} />
         <Route path="/ati-standard" element={<ATIStandard />} />
         <Route path="/soar" element={<SoarStartupHub />} />
@@ -236,7 +237,7 @@ const AuthenticatedApp = () => {
         <Route path="/ati-verify" element={<ATIVerify />} />
         <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
         <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
-        <Route path="/faa-map" element={<FAAMap />} />
+        <Route path="/faa-map" element={<Navigate to="/traffic" replace />} />
         <Route path="/demo" element={<IntraZoneDemo />} />
         <Route path="/legal/dsa" element={<DSAPolicy />} />
         <Route path="/legal/ai-transparency" element={<AITransparency />} />

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, BadgeCheck, AlertTriangle, Plane, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
-import { lookupAircraft } from "@/lib/aircraftLookup";
+import { lookupAircraft, normalizeReg } from "@/lib/aircraftLookup";
+import NoRegistryMatch from "@/components/lookup/NoRegistryMatch";
 
 const ABOS_AMBER = "#D4A017";
 const NAVY = "#1A1F2B";
@@ -15,19 +16,17 @@ export default function DashboardNRegSearch() {
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [notFound, setNotFound] = useState(null);
   const [listingMatch, setListingMatch] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const containerRef = useRef(null);
 
-  const normalizeN = (s) => String(s ?? "").replace(/^N/i, "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-
   const search = useCallback(async (directQuery = query) => {
-    const nNumber = normalizeN(directQuery);
-    if (!nNumber) return;
-
-    const registration = `N${nNumber}`;
+    const registration = normalizeReg(directQuery);
+    if (!registration) return;
     setSearching(true);
     setError("");
+    setNotFound(null);
     setResult(null);
     setListingMatch(null);
     setShowDropdown(true);
@@ -36,14 +35,14 @@ export default function DashboardNRegSearch() {
       const data = await lookupAircraft(registration);
 
       if (!data?.found || !data?.aircraft) {
-        setError(data?.error || `No FAA registry record found for ${registration}.`);
+        setNotFound({ message: data?.error || `No registry record found for ${registration}.`, registration });
         return;
       }
 
       const aircraft = data.aircraft;
       setResult({
         ...aircraft,
-        n_number: aircraft.n_number || aircraft.registration?.replace(/^N/i, "") || nNumber,
+        registration: aircraft.registration || registration,
         year_mfr: aircraft.year_mfr || aircraft.year,
         status_code: aircraft.status_code || aircraft.status,
       });
@@ -71,7 +70,7 @@ export default function DashboardNRegSearch() {
       <SmartAircraftSearch variant="hero" value={query} onChange={setQuery} onSubmit={search} loading={searching} />
 
       <AnimatePresence>
-        {showDropdown && (result || error || searching) && (
+        {showDropdown && (result || error || notFound || searching) && (
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -91,6 +90,8 @@ export default function DashboardNRegSearch() {
               </div>
             )}
 
+            {notFound && !searching && <div className="p-3 max-h-[60vh] overflow-y-auto"><NoRegistryMatch {...notFound} /></div>}
+
             {error && !searching && (
               <div className="p-4 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
@@ -103,18 +104,18 @@ export default function DashboardNRegSearch() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[8px] tracking-[0.15em] font-black uppercase" style={{ color: ABOS_AMBER }}>ATI Passport Preview</p>
-                    <h3 className="text-base font-black" style={{ color: NAVY }}>N{result.n_number}</h3>
+                    <h3 className="text-base font-black" style={{ color: NAVY }}>{result.registration}</h3>
                     <p className="text-[11px] font-semibold" style={{ color: MUTED }}>
                       {result.year_mfr || "—"} {result.make || result.mfr_mdl_code || ""} {result.model || ""}
                     </p>
                   </div>
                   <span className="text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-full shrink-0"
                     style={{
-                      background: result.status_code === "active" || result.status_code === "V" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                      color: result.status_code === "active" || result.status_code === "V" ? "#22c55e" : "#ef4444",
-                      border: `1px solid ${result.status_code === "active" || result.status_code === "V" ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
+                      background: result.status_code === "V" || result.status_code === "Valid" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+                      color: result.status_code === "V" || result.status_code === "Valid" ? "#22c55e" : "#ef4444",
+                      border: `1px solid ${result.status_code === "V" || result.status_code === "Valid" ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
                     }}>
-                    {result.status_code || "Unknown"}
+                    {result.status_code === "V" ? "Valid" : result.status_code || "Unknown"}
                   </span>
                 </div>
 

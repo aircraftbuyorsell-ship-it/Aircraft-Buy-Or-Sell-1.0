@@ -1,10 +1,31 @@
 import { base44 } from "@/api/base44Client";
 
-function normalizeRegistration(value) {
-  return String(value ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[\s-]/g, "");
+const DASH_PREFIXES = ["OK", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "9M", "D", "G", "F", "I", "B"];
+
+export function normalizeReg(value) {
+  const compact = String(value ?? "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!compact) return "";
+  if (/^N-?\d/.test(compact)) return compact.replace(/-/g, "");
+  if (/^\d{1,5}[A-Z]{0,2}$/.test(compact)) return `N${compact}`;
+  if (compact.includes("-")) return compact;
+  const prefix = DASH_PREFIXES.find((item) => compact.startsWith(item) && compact.length > item.length);
+  return prefix ? `${prefix}-${compact.slice(prefix.length)}` : compact;
+}
+
+function normalizeResult(data, registration) {
+  if (!isFound(data)) return data;
+  const aircraft = { ...data.aircraft };
+  const rawStatus = String(aircraft.status_code || aircraft.status || aircraft.registration_status || "").trim();
+  const status = /^(v|valid|active)$/i.test(rawStatus) ? "V" : rawStatus;
+  aircraft.status = status;
+  aircraft.status_code = status;
+  aircraft.registration = normalizeReg(aircraft.registration || registration);
+  aircraft.registered_owner = "****";
+  // Keep alternate owner-name fields from bypassing the same display policy.
+  for (const field of ["name", "owner", "owner_name", "owner_masked", "registered_owner_name"]) {
+    if (field in aircraft) aircraft[field] = "****";
+  }
+  return { ...data, aircraft };
 }
 
 function isFound(data) {
@@ -37,12 +58,11 @@ function toPublicTwinResult(data) {
 }
 
 export async function lookupAircraft(registration, options = {}) {
-  const normalized = normalizeRegistration(registration);
+  const normalized = normalizeReg(registration);
   if (!normalized) return { found: false, error: "Aircraft registration is required." };
 
-  const canonicalRegistration = normalized.startsWith("N")
-    ? normalized
-    : normalized;
+  // Registry providers use compact keys; UI uses the formatted marking.
+  const canonicalRegistration = normalized.replace(/-/g, "");
 
   // Try every available registry source when a source is unavailable OR
   // returns a valid response with found:false. A negative result from one
@@ -52,7 +72,7 @@ export async function lookupAircraft(registration, options = {}) {
       registration: canonicalRegistration,
       owner_query: options.ownerQuery || undefined,
     });
-    if (isFound(response.data)) return response.data;
+    if (isFound(response.data)) return normalizeResult(response.data, normalized);
   } catch (_) {
     // Continue to the next registry source.
   }
@@ -62,12 +82,7 @@ export async function lookupAircraft(registration, options = {}) {
       registration: canonicalRegistration,
     });
     const data = response.data;
-    if (isFound(data)) {
-      if (data.aircraft) {
-        data.aircraft = { ...data.aircraft, registered_owner: "****" };
-      }
-      return data;
-    }
+    if (isFound(data)) return normalizeResult(data, normalized);
   } catch (_) {
     // Continue to the public FAA twin.
   }
@@ -77,7 +92,8 @@ export async function lookupAircraft(registration, options = {}) {
       query: canonicalRegistration,
       owner_query: options.ownerQuery || undefined,
     });
-    return toPublicTwinResult(response.data);
+    const data = toPublicTwinResult(response.data);
+    return isFound(data) ? normalizeResult(data, normalized) : (data || { found: false });
   } catch (_) {
     return {
       found: false,

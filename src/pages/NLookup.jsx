@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { lookupAircraft } from "@/lib/aircraftLookup";
+import { lookupAircraft, normalizeReg } from "@/lib/aircraftLookup";
 import { ShieldCheck } from "lucide-react";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
@@ -9,19 +9,6 @@ import SkyLinkAirportBlock from "@/components/skylink/SkyLinkAirportBlock";
 import NoRegistryMatch from "@/components/lookup/NoRegistryMatch";
 
 const AMBER = "#f5c242";
-const DASH_PREFIXES = ["OK", "D", "G", "F", "I", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "B", "9M"];
-
-function normalizeReg(raw) {
-  if (!raw) return "";
-  let registration = raw.toUpperCase().replace(/\s+/g, "");
-  for (const prefix of DASH_PREFIXES) {
-    if (registration.startsWith(prefix) && !registration.startsWith(`${prefix}-`)) {
-      registration = `${prefix}-${registration.slice(prefix.length)}`;
-      break;
-    }
-  }
-  return registration;
-}
 
 function detectAirportCode(raw) {
   const q = (raw || "").trim().toUpperCase();
@@ -58,8 +45,9 @@ export default function NLookup() {
 
   const handleSearch = async (e, directQuery = query) => {
     e?.preventDefault();
-    // Airport codes (ICAO/IATA) route to the SkyLink block, not the FAA registry.
-    if (detectAirportCode(directQuery)) return;
+    const mode = new URLSearchParams(window.location.search).get("mode");
+    // Explicit serial/owner searches must not be mistaken for airport codes.
+    if (mode !== "serial" && mode !== "owner" && detectAirportCode(directQuery)) return;
     let registration = normalizeReg(directQuery);
     if (!registration) return;
     setLoading(true);
@@ -67,7 +55,6 @@ export default function NLookup() {
     setNotFound(null);
 
     try {
-      const mode = new URLSearchParams(window.location.search).get("mode");
       if (mode === "serial" || mode === "owner") {
         const value = directQuery.replace(/^(s\/n|sn|serial|owner)[:\s-]*/i, "").trim();
         const filter = mode === "serial" ? { serial_number: value } : { name: value.toUpperCase() };
@@ -76,7 +63,7 @@ export default function NLookup() {
           setNotFound({ message: `No FAA record found for ${directQuery}.`, registration: directQuery });
           return;
         }
-        registration = `N${matches[0].n_number}`;
+        registration = normalizeReg(matches[0].n_number);
       }
       const data = await lookupAircraft(registration);
       if (!data.found) {
@@ -140,10 +127,10 @@ export default function NLookup() {
               ATI Verify · Independent Aircraft Intelligence
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-[rgba(255,255,255,0.92)] tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
             Check any aircraft before you buy
           </h1>
-          <p className="text-sm text-[rgba(255,255,255,0.55)] mt-3 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm text-muted-foreground mt-3 max-w-md mx-auto leading-relaxed">
             Enter an N-Number, registration marking or serial number. We verify against the FAA registry,
             ADS-B flight data, document filings and market records.
           </p>
@@ -181,7 +168,7 @@ export default function NLookup() {
             <div key={s.l} className="rounded-xl py-4"
               style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
               <p className="text-lg font-black" style={{ color: AMBER }}>{s.n}</p>
-              <p className="text-[10px] uppercase tracking-wider text-[rgba(255,255,255,0.4)]">{s.l}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{s.l}</p>
             </div>
           ))}
         </div>

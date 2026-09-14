@@ -1,6 +1,4 @@
-import { AlertTriangle } from "lucide-react";
-
-const AMBER = "#f5c242";
+import { Info } from "lucide-react";
 
 const REASONS = [
   {
@@ -25,47 +23,25 @@ const REASONS = [
   },
 ];
 
-/**
- * Explains WHY a lookup returned nothing. A bare "no record found" leaves the
- * user unsure whether they mistyped or the aircraft genuinely isn't registered.
- */
 export default function NoRegistryMatch({ message, registration }) {
   return (
-    <div
-      className="rounded-xl p-4 mb-6"
-      style={{ background: "rgba(226,75,74,0.06)", border: "0.5px solid rgba(226,75,74,0.22)" }}
-    >
+    <section role="status" className="rounded-xl border border-border bg-card text-card-foreground p-4 mb-6 break-words">
       <div className="flex items-start gap-2.5">
-        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#e24b4a" }} />
+        <Info aria-hidden="true" className="w-5 h-5 shrink-0 mt-0.5 text-primary" />
         <div className="min-w-0">
-          <p className="text-sm font-bold text-[#e24b4a]">{message}</p>
-          <p className="text-xs text-[rgba(255,255,255,0.55)] mt-1">
-            That doesn&apos;t necessarily mean the aircraft doesn&apos;t exist. The most common reasons:
-          </p>
+          <p className="text-sm font-bold text-foreground">{message}</p>
+          <p className="text-sm text-muted-foreground mt-1">This does not prove the aircraft does not exist. Possible explanations below are not confirmed findings for this aircraft.</p>
         </div>
       </div>
-
       <ul className="mt-3 space-y-2.5">
         {REASONS.map((reason) => (
-          <li key={reason.title} className="flex gap-2.5">
-            <span
-              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ background: AMBER }}
-            />
-            <div>
-              <p className="text-xs font-bold text-[rgba(255,255,255,0.85)]">{reason.title}</p>
-              <p className="text-[11px] leading-relaxed text-[rgba(255,255,255,0.5)]">{reason.body}</p>
-            </div>
+          <li key={reason.title}>
+            <p className="text-sm font-bold text-foreground">{reason.title}</p>
+            <p className="text-sm text-muted-foreground">{reason.body}</p>
           </li>
         ))}
       </ul>
-
-      {registration && (
-        <p className="mt-3 text-[11px] text-[rgba(255,255,255,0.45)]">
-          Searched as <span className="font-mono font-bold">{registration}</span>. Try the serial
-          number or the registered owner name instead — both also resolve to an aircraft record.
-        </p>
-      )}
-    </div>
+      {registration && <p className="mt-3 text-sm text-muted-foreground">Searched for <span className="font-mono font-bold text-foreground">{registration}</span>. Check the current marking with the seller, or try a serial-number or registered-owner search; a match is not guaranteed.</p>}
+    </section>
   );
 }

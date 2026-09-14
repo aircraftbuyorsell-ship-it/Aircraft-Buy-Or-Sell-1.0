@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown, RefreshCw, Loader2, XCircle } from "lucide-react";
+import { ShieldAlert, Database, FileText, Zap, CheckCircle2, AlertTriangle, Lock, Crown, RefreshCw, Loader2, XCircle, Share2 } from "lucide-react";
 import WebhooksConfig from "@/components/settings/WebhooksConfig";
 import AutoScoringPanel from "@/components/settings/AutoScoringPanel";
 import FeatureTogglePanel from "@/components/settings/FeatureTogglePanel";
@@ -174,6 +175,9 @@ export default function AdminSettings() {
         <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-bold text-[#f5c242]">Admin Panel</p>
         <h1 className="text-xl sm:text-2xl font-black text-[rgba(255,255,255,0.90)] uppercase tracking-tight mt-1">Platform Settings</h1>
         <p className="text-xs sm:text-sm text-[rgba(255,255,255,0.60)] mt-1">Global configuration for ABOS platform behaviour and AI analysis.</p>
+        <Link to="/admin/marketing" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#D4A017]/30 bg-[#D4A017]/10 px-4 py-2 text-sm font-bold text-[#D4A017] hover:bg-[#D4A017]/15">
+          <Share2 className="h-4 w-4" /> Open Social Publisher
+        </Link>
       </div>
 
       {/* ABOS Data Influence Card */}

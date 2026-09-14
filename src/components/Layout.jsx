@@ -12,7 +12,6 @@ import SidebarLogo from "@/components/layout/SidebarLogo";
 import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
-import MobilePillNav from "@/components/layout/MobilePillNav";
 import BottomTabBar from "@/components/layout/BottomTabBar";
 import RouteTransition from "@/components/layout/RouteTransition";
 import PragueClock from "@/components/layout/PragueClock";
@@ -320,10 +319,6 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Mobile only: compact icon pill nav on second row */}
-        <div className="lg:hidden flex items-center justify-center pb-2 px-4">
-          <MobilePillNav />
-        </div>
       </header>
       )}
 

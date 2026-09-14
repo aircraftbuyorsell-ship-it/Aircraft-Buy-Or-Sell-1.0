@@ -6,7 +6,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  *
  * Only fills fields that are missing — never overwrites user-provided data.
  * Stops immediately if make & model are already set (no infinite loop).
+ *
+ * Security: does NOT trust client-supplied event payload for authorization.
+ * Access is granted only via (a) admin/super_admin role, (b) verified ownership
+ * of the target listing, or (c) a valid x-abos-automation-secret header for
+ * platform-internal workflow calls.
  */
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -37,21 +52,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Base44 entity automations may execute without an admin user identity.
-    // Treat the signed workflow event as the narrow automation path; ordinary
-    // direct calls still require admin/super_admin or ownership of the listing.
-    const isEntityAutomation = Boolean(
-      event &&
-      (
-        event.entity_name === 'AircraftListing' ||
-        event.entity === 'AircraftListing' ||
-        event.trigger_type === 'entity' ||
-        event.type === 'entity'
-      ) &&
-      (event.entity_id || data?.id || event.data?.id || event.trigger?.data?.id)
+    // Platform-internal workflow calls carry the automation secret header.
+    // Do NOT trust client-supplied event properties for authorization —
+    // an attacker can forge event.entity_name to bypass the checks above.
+    const expectedSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    const providedSecret = req.headers.get('x-abos-automation-secret') || '';
+    const isAutomation = Boolean(
+      expectedSecret && providedSecret && timingSafeEqual(providedSecret, expectedSecret)
     );
 
-    if (!hasPrivilegedRole && !isOwnedWorkflow && !isEntityAutomation) {
+    if (!hasPrivilegedRole && !isOwnedWorkflow && !isAutomation) {
       return Response.json({ error: 'Admin access required for non-owner listings' }, { status: 403 });
     }
 

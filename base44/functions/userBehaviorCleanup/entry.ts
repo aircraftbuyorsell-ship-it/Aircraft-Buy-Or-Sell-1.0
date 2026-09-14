@@ -1,15 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+/**
+ * Daily GDPR retention job — deletes fully-inactive free UserBehavior records
+ * and clears behavioral events older than 90 days.
+ *
+ * Security: verifies the x-abos-automation-secret header against
+ * ABOS_AUTOMATION_SECRET so only the scheduled workflow can trigger cleanup.
+ * Direct external calls are rejected with 401.
+ */
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
+
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
 Deno.serve(async (req) => {
   try {
+    // ── Auth: scheduled-workflow-only — verify automation secret ──
+    const expectedSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    if (!expectedSecret) {
+      console.error('userBehaviorCleanup: ABOS_AUTOMATION_SECRET not configured');
+      return Response.json({ error: 'server_secret_not_configured' }, { status: 503 });
+    }
+    const providedSecret = req.headers.get('x-abos-automation-secret') || '';
+    if (!timingSafeEqual(providedSecret, expectedSecret)) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 });
+    }
+
     const base44 = createClientFromRequest(req);
 
-    // This function is invoked by the Base44 scheduled workflow.
-    // Scheduled workflow executions do not carry a user session, so auth.me()
-    // would incorrectly return 403 and prevent the GDPR retention job from running.
-    // Keep the function server-side and use the service-role client for the cleanup.
     const cutoffMs = Date.now() - NINETY_DAYS_MS;
     const sr = base44.asServiceRole;
 

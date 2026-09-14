@@ -7,11 +7,25 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
  * gate. Entitlement (scope + credit balance) is already checked by the caller
  * — abosCoreApi's 'report.get' endpoint — before this is invoked via
  * asServiceRole.functions.invoke. This function trusts that check and must
- * never be exposed directly to end users; it has no auth of its own.
+ * never be exposed directly to end users.
+ *
+ * Security: verifies the x-abos-automation-secret header against
+ * ABOS_AUTOMATION_SECRET so only authorized internal callers (abosCoreApi
+ * via functions.invoke) can trigger the 9-LLM-call scoring pipeline.
  *
  * Input:  { aircraft_data: string, registration?: string }
  * Output: same shape as atiFullReportScore.
  */
+
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let diff = 0;
+  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
+  return diff === 0;
+}
 
 const DIMENSIONS = [
   { key: "documentation",     label: "Documentation & Records" },
@@ -35,6 +49,17 @@ function labelFromTotal(total) {
 
 Deno.serve(async (req) => {
   try {
+    // ── Auth: internal-only endpoint — verify automation secret ──
+    const expectedSecret = Deno.env.get('ABOS_AUTOMATION_SECRET');
+    if (!expectedSecret) {
+      console.error('atiReportScoreInternal: ABOS_AUTOMATION_SECRET not configured');
+      return Response.json({ error: 'server_secret_not_configured' }, { status: 503 });
+    }
+    const providedSecret = req.headers.get('x-abos-automation-secret') || '';
+    if (!timingSafeEqual(providedSecret, expectedSecret)) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 });
+    }
+
     const base44 = createClientFromRequest(req);
 
     const { aircraft_data = "", registration } = await req.json();

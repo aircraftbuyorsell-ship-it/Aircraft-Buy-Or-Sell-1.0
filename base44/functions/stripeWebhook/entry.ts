@@ -89,8 +89,8 @@ const AI_ORCH_PLAN_MAP = {
 async function syncAiOrchestratorEntitlement(base44, email, planType, active, paymentId = '', subscriptionId = '') {
   const plan = AI_ORCH_PLAN_MAP[planType];
   if (!plan || !email) return;
-  const records = await base44.asServiceRole.entities.Entitlement.filter({ user_email: email, product_key: plan.productKey, stripe_subscription_id: subscriptionId }, '-created_date', 1);
-  const data = { scope: plan.scope, source: 'stripe', status: active ? 'active' : 'expired', stripe_payment_id: paymentId, stripe_subscription_id: subscriptionId };
+  const records = await base44.asServiceRole.entities.Entitlement.filter({ user_email: email, product_key: plan.productKey, ...(subscriptionId ? { stripe_subscription_id: subscriptionId } : { scope: plan.scope }) }, '-created_date', 1);
+  const data = { scope: plan.scope, source: 'stripe', status: active ? 'active' : 'expired', ...(paymentId ? { stripe_payment_id: paymentId } : {}), ...(subscriptionId ? { stripe_subscription_id: subscriptionId } : {}) };
   if (records[0]) await base44.asServiceRole.entities.Entitlement.update(records[0].id, data);
   else await base44.asServiceRole.entities.Entitlement.create({ user_email: email, product_key: plan.productKey, ...data });
 }

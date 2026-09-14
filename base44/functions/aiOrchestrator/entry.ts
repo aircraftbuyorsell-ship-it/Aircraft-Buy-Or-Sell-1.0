@@ -2,9 +2,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
 const agentUrl = 'https://app.base44.com/api/agents/6a9444389e0d9e69afc07997';
 const actionSpecs = {
-  analyze_deal: { productKey: 'ai_orchestrator', cost: 1 },
-  value_aircraft: { productKey: 'ai_orchestrator', cost: 1 },
-  draft_bill_of_sale: { productKey: 'ai_orchestrator_pro', cost: 2 },
+  analyze_deal: { productKeys: ['ai_orchestrator', 'ai_orchestrator_pro'], cost: 1 },
+  value_aircraft: { productKeys: ['ai_orchestrator', 'ai_orchestrator_pro'], cost: 1 },
+  draft_bill_of_sale: { productKeys: ['ai_orchestrator_pro'], cost: 2 },
 };
 const tierLimits = { buyer_pro: 20, seller_pro: 60, dealer: 300 };
 const promptLead = {
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     if (!listingId) return Response.json({ error: 'A listing is required.' }, { status: 400 });
 
     const email = String(user.email).trim().toLowerCase();
-    const entitlements = await base44.asServiceRole.entities.Entitlement.filter({ user_email: email, product_key: spec.productKey, status: 'active' }, '-created_date', 10);
+    const entitlements = await base44.asServiceRole.entities.Entitlement.filter({ user_email: email, product_key: { $in: spec.productKeys }, status: 'active' }, '-created_date', 10);
     if (!entitlements.length) return Response.json({ error: 'This AI feature requires an active ABOS Pro plan.', upgrade_required: true }, { status: 402 });
     const tier = entitlements.find((item) => tierLimits[item.scope])?.scope;
     const limit = tierLimits[tier] || 0;

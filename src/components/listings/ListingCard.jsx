@@ -1,20 +1,7 @@
-import { CheckCircle2, Plane } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Plane } from "lucide-react";
 import ComplianceBadge from "@/components/gcr/ComplianceBadge";
-
-function ATIBadge({ score }) {
-  if (score == null) return null;
-  const cls =
-    score >= 80
-      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-      : score >= 65
-      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
-      : "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30";
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${cls}`}>
-      ATI {score}
-    </span>
-  );
-}
+import ATICompactScore from "@/components/listings/ATICompactScore";
 
 function DealPill({ score, label }) {
   if (!label) return null;
@@ -40,6 +27,7 @@ function DealCodeBadge({ code }) {
 }
 
 export default function ListingCard({ listing: l, onClick }) {
+  const navigate = useNavigate();
   // Listings can store uploaded media under several legacy/current fields.
   // Normalize the first usable image so an uploaded photo is always shown on the card.
   const photoCandidates = [
@@ -59,11 +47,30 @@ export default function ListingCard({ listing: l, onClick }) {
   const enginePct = tbo > 0 && Number.isFinite(engineHours)
     ? Math.max(0, Math.min(100, Math.round(((tbo - engineHours) / tbo) * 100)))
     : null;
+  const detailPath = `/ati-passport/${l.id}`;
+  const discountPct = l.discount_pct != null
+    ? Number(l.discount_pct)
+    : l.omvm_value > 0 && l.asking_price != null
+    ? Math.round(((l.omvm_value - l.asking_price) / l.omvm_value) * 100)
+    : null;
+  const openPassport = () => {
+    if (onClick) onClick(l);
+    else navigate(detailPath);
+  };
 
   return (
     <div
-      onClick={onClick}
-      className="group rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-muted/50 transition-all cursor-pointer p-5 flex flex-col gap-4"
+      role="link"
+      tabIndex={0}
+      onClick={openPassport}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openPassport();
+        }
+      }}
+      aria-label={`View ATI Passport for ${l.make || "aircraft"} ${l.model || ""}`.trim()}
+      className="group rounded-xl border border-border bg-card p-4 flex flex-col gap-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       <div className="relative w-full rounded-lg overflow-hidden bg-muted" style={{ aspectRatio: "16/9" }}>
         {photo ? (
@@ -91,32 +98,43 @@ export default function ListingCard({ listing: l, onClick }) {
         )}
       </div>
 
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="font-bold text-foreground text-base leading-tight">
-            {l.make} {l.model}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-lg font-bold text-foreground">
+            {[l.make, l.model].filter(Boolean).join(" ") || "Aircraft listing"}
           </h3>
-          <p className="text-muted-foreground text-xs mt-0.5">
+          <p className="mt-1 text-xs text-muted-foreground">
             {l.year && <span>{l.year} · </span>}
-            <span className="font-mono">{l.registration || "—"}</span>
+            <span className="font-mono font-semibold">{l.registration || "—"}</span>
           </p>
+          <div className="mt-2"><ComplianceBadge registration={l.registration} /></div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <ATIBadge score={l.ati_score} />
-          <ComplianceBadge registration={l.registration} />
-        </div>
+        <ATICompactScore score={l.ati_score} />
       </div>
 
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-2xl font-bold text-foreground">
-            {l.asking_price != null ? `$${l.asking_price.toLocaleString()}` : "—"}
-          </p>
-          {l.omvm_value && (
-            <p className="text-xs text-muted-foreground/70 mt-0.5">OMVM ${l.omvm_value.toLocaleString()}</p>
-          )}
+      <div className="rounded-lg border border-border bg-muted/40 p-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Asking price</p>
+            <p className="mt-1 text-lg font-bold text-foreground">
+              {l.asking_price != null ? `$${l.asking_price.toLocaleString()}` : "—"}
+            </p>
+          </div>
+          <div className="border-l border-border pl-3">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">OMVM estimate</p>
+            <p className="mt-1 text-lg font-bold text-primary">
+              {l.omvm_value ? `$${l.omvm_value.toLocaleString()}` : "—"}
+            </p>
+          </div>
         </div>
-        <DealPill score={l.deal_score} label={l.deal_label} />
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          {discountPct != null && (
+            <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${discountPct > 0 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : discountPct < 0 ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400" : "border-border bg-card text-muted-foreground"}`}>
+              {discountPct > 0 ? `${Math.abs(discountPct)}% below OMVM` : discountPct < 0 ? `${Math.abs(discountPct)}% above OMVM` : "At OMVM"}
+            </span>
+          )}
+          <DealPill score={l.deal_score} label={l.deal_label} />
+        </div>
       </div>
 
       {l.engine_hours != null && (
@@ -147,12 +165,13 @@ export default function ListingCard({ listing: l, onClick }) {
         ) : (
           <span className="text-xs text-muted-foreground/50">No fresh annual</span>
         )}
-        <button
-          onClick={(e) => { e.stopPropagation(); }}
-          className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+        <Link
+          to={detailPath}
+          onClick={(event) => event.stopPropagation()}
+          className="inline-flex min-h-11 items-center gap-1 text-xs font-bold text-navy no-underline hover:underline dark:text-primary"
         >
-          ATI Passport →
-        </button>
+          ATI Passport <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </div>
     </div>
   );

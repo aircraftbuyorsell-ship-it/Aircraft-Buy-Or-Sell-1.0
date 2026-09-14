@@ -146,7 +146,7 @@ export default function AccountMenu({ user }) {
           {groups.map((group) => (
             <div key={group.label}>
               <div style={{
-                fontSize: 8, fontWeight: 700, letterSpacing: "0.14em",
+                fontSize: 14, fontWeight: 700, letterSpacing: "0.14em",
                 textTransform: "uppercase", color: "rgba(212,160,23,0.55)",
                 padding: "8px 10px 3px",
               }}>
@@ -161,9 +161,9 @@ export default function AccountMenu({ user }) {
                     style={{
                       display: "flex", alignItems: "center", gap: 9, width: "100%",
                       background: "transparent", border: "none", borderRadius: 9,
-                      padding: "7px 10px", cursor: "pointer", textAlign: "left",
-                      color: "rgba(255,255,255,0.72)", fontSize: 12, fontWeight: 500,
-                      minHeight: 32,
+                      padding: "10px 10px", cursor: "pointer", textAlign: "left",
+                      color: "rgba(255,255,255,0.72)", fontSize: 14, fontWeight: 500,
+                      minHeight: 44,
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = "rgba(212,160,23,0.10)";
@@ -188,8 +188,8 @@ export default function AccountMenu({ user }) {
               style={{
                 display: "flex", alignItems: "center", gap: 9, width: "100%",
                 background: "transparent", border: "none", borderRadius: 9,
-                padding: "7px 10px", cursor: "pointer", textAlign: "left",
-                color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 500, minHeight: 32,
+                padding: "10px 10px", cursor: "pointer", textAlign: "left",
+                color: "rgba(255,255,255,0.45)", fontSize: 14, fontWeight: 500, minHeight: 44,
               }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "#e24b4a"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}

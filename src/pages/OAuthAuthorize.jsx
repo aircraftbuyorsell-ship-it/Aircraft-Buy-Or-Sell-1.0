@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ShieldCheck, Loader2, XCircle } from "lucide-react";
+import { ShieldCheck, Loader2, XCircle, ArrowLeft } from "lucide-react";
 
 const SCOPE_LABELS = {
   "search:read": "Search aircraft listings",
@@ -18,6 +19,7 @@ function useQueryParams() {
 
 export default function OAuthAuthorize() {
   const params = useQueryParams();
+  const navigate = useNavigate();
   const clientId = params.get("client_id");
   const redirectUri = params.get("redirect_uri");
   const state = params.get("state") || "";
@@ -111,6 +113,9 @@ export default function OAuthAuthorize() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#04060a" }}>
       <div style={{ ...card, padding: 32, maxWidth: 440, width: "100%" }}>
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="flex items-center gap-2 text-[13px] font-semibold mb-4 min-h-11" style={{ color: "rgba(255,255,255,0.55)" }}>
+          <ArrowLeft size={14} /> Back
+        </button>
         <div className="flex items-center gap-2.5 mb-5">
           <ShieldCheck size={18} style={{ color: "#f5c242" }} />
           <h1 className="text-[16px] font-bold m-0" style={{ color: "rgba(255,255,255,0.92)" }}>

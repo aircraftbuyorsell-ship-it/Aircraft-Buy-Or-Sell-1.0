@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -10,113 +11,117 @@ import Layout from "./components/Layout";
 import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
 import Dashboard from "./pages/Dashboard";
 import Listings from "./pages/Listings";
-import ATIPassport from "./pages/ATIPassport";
-import DealRadar from "./pages/DealRadar";
-import MyAccount from "./pages/MyAccount";
-import Leads from "./pages/Leads";
-import TrafficMap from "./pages/TrafficMap";
-import Analytics from "./pages/Analytics";
-import OpexCalculator from "./pages/OpexCalculator";
-import ValuationStudio from "./pages/ValuationStudio";
-import OmvmValuationPage from "./pages/OmvmValuationPage";
-import Pricing from "./pages/Pricing";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import ATICard from "./pages/ATICard";
-import MaxChat from "./pages/MaxChat";
-import PreBuyInspection from "./pages/PreBuyInspection";
-import AdminDataCleanup from "./pages/AdminDataCleanup";
-import IntraZone from "./pages/IntraZone";
-import Community from "./pages/Community";
-import MarketReports from "./pages/MarketReports";
-import Marketplace from "./pages/Marketplace";
-import Developers from "./pages/Developers";
-import AdminMarketplace from "./pages/AdminMarketplace";
-import AdminSettings from "./pages/AdminSettings";
-import DeveloperEarnings from "./pages/DeveloperEarnings";
-import SubscriptionManagement from "./pages/SubscriptionManagement";
-import PartnerPortal from "./pages/PartnerPortal";
-import InstallWizard from "./pages/InstallWizard";
 
-import CookiePolicy from "./pages/CookiePolicy";
-import GDPRCompliance from "./pages/GDPRCompliance";
-import AffiliateAgreement from "./pages/AffiliateAgreement";
-import AffiliateDashboard from "./pages/AffiliateDashboard";
-import EscrowAgreement from "./pages/EscrowAgreement";
-import PrivacyPolicyComplete from "./pages/PrivacyPolicyComplete";
-import Compare from "./pages/Compare";
-import AdminListings from "./pages/AdminListings";
-import FeatureRequests from "./pages/FeatureRequests";
-import ATIQuickScore from "./pages/ATIQuickScore";
-import ATIFullReport from "./pages/ATIFullReport";
-import SkyBoss from "./pages/SkyBoss";
-import WeeklyBriefing from "./pages/WeeklyBriefing";
-import ATIStandard from "./pages/ATIStandard";
-import SoarStartupHub from "./pages/SoarStartupHub";
-import AviationStartupHub from "./pages/AviationStartupHub";
-import ATIVerify from "./pages/ATIVerify";
-import ATIVerifySession from "./pages/ATIVerifySession";
-import SupabaseSync from "./pages/SupabaseSync";
-import FAAMap from "./pages/FAAMap";
-import IntraZoneDemo from "./pages/IntraZoneDemo";
+// Secondary pages — lazy-loaded for smaller initial bundle
+const ATIPassport = lazy(() => import("./pages/ATIPassport"));
+const DealRadar = lazy(() => import("./pages/DealRadar"));
+const MyAccount = lazy(() => import("./pages/MyAccount"));
+const Leads = lazy(() => import("./pages/Leads"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const OpexCalculator = lazy(() => import("./pages/OpexCalculator"));
+const ValuationStudio = lazy(() => import("./pages/ValuationStudio"));
+const OmvmValuationPage = lazy(() => import("./pages/OmvmValuationPage"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const ATICard = lazy(() => import("./pages/ATICard"));
+const MaxChat = lazy(() => import("./pages/MaxChat"));
+const PreBuyInspection = lazy(() => import("./pages/PreBuyInspection"));
+const AdminDataCleanup = lazy(() => import("./pages/AdminDataCleanup"));
+const IntraZone = lazy(() => import("./pages/IntraZone"));
+const Community = lazy(() => import("./pages/Community"));
+const MarketReports = lazy(() => import("./pages/MarketReports"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Developers = lazy(() => import("./pages/Developers"));
+const AdminMarketplace = lazy(() => import("./pages/AdminMarketplace"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const DeveloperEarnings = lazy(() => import("./pages/DeveloperEarnings"));
+const SubscriptionManagement = lazy(() => import("./pages/SubscriptionManagement"));
+const PartnerPortal = lazy(() => import("./pages/PartnerPortal"));
+const InstallWizard = lazy(() => import("./pages/InstallWizard"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const GDPRCompliance = lazy(() => import("./pages/GDPRCompliance"));
+const AffiliateAgreement = lazy(() => import("./pages/AffiliateAgreement"));
+const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
+const EscrowAgreement = lazy(() => import("./pages/EscrowAgreement"));
+const PrivacyPolicyComplete = lazy(() => import("./pages/PrivacyPolicyComplete"));
+const Compare = lazy(() => import("./pages/Compare"));
+const AdminListings = lazy(() => import("./pages/AdminListings"));
+const FeatureRequests = lazy(() => import("./pages/FeatureRequests"));
+const ATIQuickScore = lazy(() => import("./pages/ATIQuickScore"));
+const ATIFullReport = lazy(() => import("./pages/ATIFullReport"));
+const WeeklyBriefing = lazy(() => import("./pages/WeeklyBriefing"));
+const ATIStandard = lazy(() => import("./pages/ATIStandard"));
+const SoarStartupHub = lazy(() => import("./pages/SoarStartupHub"));
+const AviationStartupHub = lazy(() => import("./pages/AviationStartupHub"));
+const ATIVerify = lazy(() => import("./pages/ATIVerify"));
+const ATIVerifySession = lazy(() => import("./pages/ATIVerifySession"));
+const SupabaseSync = lazy(() => import("./pages/SupabaseSync"));
+const IntraZoneDemo = lazy(() => import("./pages/IntraZoneDemo"));
 import GDPRConsentBanner from "./components/GDPRConsentBanner";
-import DSAPolicy from "./pages/DSAPolicy";
-import AITransparency from "./pages/AITransparency";
-import FunnelDashboard from "./pages/FunnelDashboard";
-import FunnelCanvas from "./pages/FunnelCanvas";
-import SearchConsoleDashboard from "./pages/SearchConsoleDashboard";
-import DealIntelligence from "./pages/DealIntelligence";
-import ATICenter from "./pages/ATICenter";
-import StartupHub from "./pages/StartupHub";
-import GrowthCenter from "./pages/GrowthCenter";
-import LeasingCalculator from "./pages/LeasingCalculator";
-import InsuranceCalculator from "./pages/InsuranceCalculator";
-import AvionicsUpgradeCalculator from "./pages/AvionicsUpgradeCalculator";
-import ExteriorRefurbishmentCalculator from "./pages/ExteriorRefurbishmentCalculator";
-import InteriorRefurbishmentCalculator from "./pages/InteriorRefurbishmentCalculator";
-import UpgradeComparison from "./pages/UpgradeComparison";
-import AircraftDetailingCalculator from "./pages/AircraftDetailingCalculator";
-import CrossBorderBridge from "./pages/CrossBorderBridge";
-import ServiceIntelligence from "./pages/ServiceIntelligence";
-import ExpertDashboard from "./pages/ExpertDashboard";
-import NLookup from "./pages/NLookup";
-import DigitalTwin from "./pages/DigitalTwin";
-import IntegrationKit from "./pages/IntegrationKit";
-import Experts from "./pages/Experts";
-import SalesPipeline from "./pages/SalesPipeline";
-import Workflows from "./pages/Workflows";
-import Skills from "./pages/Skills";
-import IPNotice from "./pages/IPNotice";
-import SolutionsBuyers from "./pages/solutions/SolutionsBuyers";
-import SolutionsSellers from "./pages/solutions/SolutionsSellers";
-import SolutionsBrokers from "./pages/solutions/SolutionsBrokers";
-import SolutionsLenders from "./pages/solutions/SolutionsLenders";
-import CoreAPI from "./pages/CoreAPI";
-import OAuthAuthorize from "./pages/OAuthAuthorize";
-import OAuthConsent from "./pages/OAuthConsent";
-import InvestmentBrief from "./pages/InvestmentBrief";
-import FinanceAdvisorChat from "./pages/FinanceAdvisorChat";
-import StElmoChat from "./pages/StElmoChat";
-import FractionalCalculators from "./pages/FractionalCalculators";
-import RegistryComparator from "./pages/RegistryComparator";
-import CalculatorsHub from "./pages/CalculatorsHub";
-import AbosWallet from "./pages/AbosWallet";
-import BillOfSaleAutofill from "./pages/BillOfSaleAutofill";
-import AircraftAlerts from "./pages/AircraftAlerts";
-import Plans from "./pages/Plans";
-import AgentConnect from "./pages/AgentConnect";
-import ActivitySummary from "./pages/ActivitySummary";
-import Billing from "./pages/Billing";
-import MyReports from "./pages/MyReports";
-import AdminMonetization from "./pages/AdminMonetization";
-import WalkthroughScript from "./pages/WalkthroughScript";
-import MarketspaceHub from "./pages/hubs/MarketspaceHub";
-import IntelligenceHub from "./pages/hubs/IntelligenceHub";
-import VerifyHub from "./pages/hubs/VerifyHub";
-import ApiHub from "./pages/hubs/ApiHub";
-import SkylarkConfigurator from "./pages/SkylarkConfigurator";
-import AdminMarketing from "./pages/AdminMarketing";
-import AircraftIntelligenceGlobe from "./pages/AircraftIntelligenceGlobe";
+const DSAPolicy = lazy(() => import("./pages/DSAPolicy"));
+const AITransparency = lazy(() => import("./pages/AITransparency"));
+const FunnelDashboard = lazy(() => import("./pages/FunnelDashboard"));
+const FunnelCanvas = lazy(() => import("./pages/FunnelCanvas"));
+const SearchConsoleDashboard = lazy(() => import("./pages/SearchConsoleDashboard"));
+const DealIntelligence = lazy(() => import("./pages/DealIntelligence"));
+const ATICenter = lazy(() => import("./pages/ATICenter"));
+const StartupHub = lazy(() => import("./pages/StartupHub"));
+const GrowthCenter = lazy(() => import("./pages/GrowthCenter"));
+const LeasingCalculator = lazy(() => import("./pages/LeasingCalculator"));
+const InsuranceCalculator = lazy(() => import("./pages/InsuranceCalculator"));
+const AvionicsUpgradeCalculator = lazy(() => import("./pages/AvionicsUpgradeCalculator"));
+const ExteriorRefurbishmentCalculator = lazy(() => import("./pages/ExteriorRefurbishmentCalculator"));
+const InteriorRefurbishmentCalculator = lazy(() => import("./pages/InteriorRefurbishmentCalculator"));
+const UpgradeComparison = lazy(() => import("./pages/UpgradeComparison"));
+const AircraftDetailingCalculator = lazy(() => import("./pages/AircraftDetailingCalculator"));
+const CrossBorderBridge = lazy(() => import("./pages/CrossBorderBridge"));
+const ServiceIntelligence = lazy(() => import("./pages/ServiceIntelligence"));
+const ExpertDashboard = lazy(() => import("./pages/ExpertDashboard"));
+const NLookup = lazy(() => import("./pages/NLookup"));
+const DigitalTwin = lazy(() => import("./pages/DigitalTwin"));
+const IntegrationKit = lazy(() => import("./pages/IntegrationKit"));
+const Experts = lazy(() => import("./pages/Experts"));
+const SalesPipeline = lazy(() => import("./pages/SalesPipeline"));
+const Workflows = lazy(() => import("./pages/Workflows"));
+const Skills = lazy(() => import("./pages/Skills"));
+const IPNotice = lazy(() => import("./pages/IPNotice"));
+const SolutionsBuyers = lazy(() => import("./pages/solutions/SolutionsBuyers"));
+const SolutionsSellers = lazy(() => import("./pages/solutions/SolutionsSellers"));
+const SolutionsBrokers = lazy(() => import("./pages/solutions/SolutionsBrokers"));
+const SolutionsLenders = lazy(() => import("./pages/solutions/SolutionsLenders"));
+const CoreAPI = lazy(() => import("./pages/CoreAPI"));
+const OAuthAuthorize = lazy(() => import("./pages/OAuthAuthorize"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const InvestmentBrief = lazy(() => import("./pages/InvestmentBrief"));
+const FinanceAdvisorChat = lazy(() => import("./pages/FinanceAdvisorChat"));
+const StElmoChat = lazy(() => import("./pages/StElmoChat"));
+const FractionalCalculators = lazy(() => import("./pages/FractionalCalculators"));
+const RegistryComparator = lazy(() => import("./pages/RegistryComparator"));
+const CalculatorsHub = lazy(() => import("./pages/CalculatorsHub"));
+const AbosWallet = lazy(() => import("./pages/AbosWallet"));
+const BillOfSaleAutofill = lazy(() => import("./pages/BillOfSaleAutofill"));
+const AircraftAlerts = lazy(() => import("./pages/AircraftAlerts"));
+const Plans = lazy(() => import("./pages/Plans"));
+const AgentConnect = lazy(() => import("./pages/AgentConnect"));
+const ActivitySummary = lazy(() => import("./pages/ActivitySummary"));
+const Billing = lazy(() => import("./pages/Billing"));
+const MyReports = lazy(() => import("./pages/MyReports"));
+const AdminMonetization = lazy(() => import("./pages/AdminMonetization"));
+const WalkthroughScript = lazy(() => import("./pages/WalkthroughScript"));
+const MarketspaceHub = lazy(() => import("./pages/hubs/MarketspaceHub"));
+const IntelligenceHub = lazy(() => import("./pages/hubs/IntelligenceHub"));
+const VerifyHub = lazy(() => import("./pages/hubs/VerifyHub"));
+const ApiHub = lazy(() => import("./pages/hubs/ApiHub"));
+const SkylarkConfigurator = lazy(() => import("./pages/SkylarkConfigurator"));
+const AdminMarketing = lazy(() => import("./pages/AdminMarketing"));
+const AircraftIntelligenceGlobe = lazy(() => import("./pages/AircraftIntelligenceGlobe"));
+
+const PageLoader = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF] dark:bg-[#0B0C10]">
+    <div className="w-8 h-8 border-4 border-[#E8A83A]/30 border-t-[#E8A83A] rounded-full animate-spin"></div>
+  </div>
+);
 
 const ALLOWED_SKYLARK_EMAIL_DOMAINS = ["@aircraftbuyorsell.com", "@airvisions.cz"];
 
@@ -164,7 +169,7 @@ const AuthenticatedApp = () => {
       return <SkylarkAccessDenied user={user} onLogout={() => logout(false)} />;
     }
 
-    return <SkylarkConfigurator />;
+    return <Suspense fallback={<PageLoader />}><SkylarkConfigurator /></Suspense>;
   }
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -185,6 +190,7 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
@@ -301,6 +307,7 @@ const AuthenticatedApp = () => {
       <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

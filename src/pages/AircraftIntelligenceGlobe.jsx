@@ -41,9 +41,9 @@ export default function AircraftIntelligenceGlobe() {
 
   useEffect(() => {
     loadTraffic(false);
-    base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 10000).then((rows) => setListings(rows || [])).catch(() => setListings([]));
-    base44.entities.DealerLead.list("-created_date", 10000).then((rows) => setDealers(rows || [])).catch(() => setDealers([]));
-    base44.entities.TrafficSnapshot.list("refreshed_at", 250).then((rows) => setSnapshots((rows || []).filter((row) => row.aircraft_json))).catch(() => setSnapshots([]));
+    base44.entities.AircraftListing.filter({ status: "active" }, "-created_date", 500).then((rows) => setListings(rows || [])).catch(() => setListings([]));
+    base44.entities.DealerLead.list("-created_date", 500).then((rows) => setDealers(rows || [])).catch(() => setDealers([]));
+    base44.entities.TrafficSnapshot.list("refreshed_at", 100).then((rows) => setSnapshots((rows || []).filter((row) => row.aircraft_json))).catch(() => setSnapshots([]));
   }, [loadTraffic]);
 
   useEffect(() => {

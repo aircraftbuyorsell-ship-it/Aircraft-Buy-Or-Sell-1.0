@@ -1,10 +1,14 @@
-import { Link } from "react-router-dom";
-import { Plane, AlertTriangle, Home, Plug } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plane, AlertTriangle, Home, Plug, ArrowLeft } from "lucide-react";
 
 export default function OAuthConsent() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
       <div className="max-w-md w-full text-center space-y-5">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors mb-2 min-h-11">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
         <div className="space-y-2">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/25 mb-2">
             <Plane className="w-8 h-8 text-primary" strokeWidth={2.2} />

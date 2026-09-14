@@ -2,16 +2,13 @@ import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "abos-theme";
 
-// Dark 18:00–06:00, light otherwise
-function isNightHour() {
-  const h = new Date().getHours();
-  return h >= 18 || h < 6;
-}
-
 function resolveIsDark(stored) {
   if (stored === "dark") return true;
   if (stored === "light") return false;
-  // Default to dark mode (main mode)
+  // No stored preference → follow system preference
+  if (typeof window !== "undefined" && window.matchMedia) {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
   return true;
 }
 
@@ -28,11 +25,25 @@ export function useTheme() {
   });
 
   useEffect(() => {
-    // Sync from DOM mutations (ThemeToggle or other class changes)
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    // Subscribe to system color-scheme changes when no manual preference is stored
+    let mediaQuery;
+    const handleMediaChange = (e) => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === "auto" || !stored) {
+        const dark = e.matches;
+        applyClass(dark);
+        setIsDark(dark);
+      }
+    };
+    if (typeof window !== "undefined" && window.matchMedia) {
+      mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", handleMediaChange);
+    }
 
     // Re-evaluate auto mode every 5 minutes (catches hour transitions)
     const interval = setInterval(() => {
@@ -46,6 +57,7 @@ export function useTheme() {
 
     return () => {
       observer.disconnect();
+      if (mediaQuery) mediaQuery.removeEventListener("change", handleMediaChange);
       clearInterval(interval);
     };
   }, []);

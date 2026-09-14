@@ -786,10 +786,23 @@ export default function Globe({
   }, [isDark, pick]);
 
   useEffect(() => {
+    const isMobile = window.matchMedia("(max-width: 1024px)").matches;
+    const intervalMs = isMobile ? 60000 : 30000;
     fetchTraffic();
     fetchLive();
-    timerRef.current = setInterval(() => { fetchTraffic(); fetchLive(); }, 30000);
-    return () => clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      fetchTraffic();
+      fetchLive();
+    }, intervalMs);
+    const onVisChange = () => {
+      if (document.visibilityState === "visible") { fetchTraffic(); fetchLive(); }
+    };
+    document.addEventListener("visibilitychange", onVisChange);
+    return () => {
+      clearInterval(timerRef.current);
+      document.removeEventListener("visibilitychange", onVisChange);
+    };
   }, [fetchTraffic, fetchLive]);
 
   const accentCyan = isDark ? "#00f5ff" : "#2563eb";

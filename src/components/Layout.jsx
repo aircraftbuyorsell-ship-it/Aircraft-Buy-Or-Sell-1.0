@@ -13,6 +13,8 @@ import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import MobilePillNav from "@/components/layout/MobilePillNav";
+import BottomTabBar from "@/components/layout/BottomTabBar";
+import RouteTransition from "@/components/layout/RouteTransition";
 import PragueClock from "@/components/layout/PragueClock";
 import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
@@ -101,9 +103,9 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
                           key={item.path}
                           to={item.path}
                           onClick={onNavigate}
-                          className="flex min-h-9 items-center gap-2 rounded-lg px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                          className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
                         >
-                          {item.icon && <item.icon size={12} />}
+                          {item.icon && <item.icon size={14} />}
                           <span className="truncate">{item.label}</span>
                         </Link>
                       ))}
@@ -122,29 +124,29 @@ function DrawerContent({ pathname, user, onNavigate, isDark }) {
         padding: "16px 16px 20px",
         marginTop: "auto"
       }}>
-        <p style={{ fontSize: "10px", color: textFaint, margin: "0 0 8px", letterSpacing: "0.02em" }}>
+        <p style={{ fontSize: "14px", color: textFaint, margin: "0 0 8px", letterSpacing: "0.02em" }}>
           © 2026 ABOS s.r.o.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <Link to="/terms" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/terms" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
             Terms of Service
           </Link>
-          <Link to="/privacy" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/privacy" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
             Privacy Policy
           </Link>
-          <Link to="/legal/dsa" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/legal/dsa" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
             DSA — Report Content
           </Link>
-          <Link to="/legal/ai-transparency" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/legal/ai-transparency" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
             AI Disclosure
           </Link>
-          <Link to="/legal/ip-notice" style={{ fontSize: "10px", color: textDim, textDecoration: "none", letterSpacing: "0.02em" }}>
+          <Link to="/legal/ip-notice" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
             IP & Trademark Notice
           </Link>
           <button
             onClick={() => window.ABOS_openCookieSettings?.()}
-            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "10px", color: textDim, cursor: "pointer", letterSpacing: "0.02em" }}>
-            
+            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "14px", color: textDim, cursor: "pointer", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
+
             Cookie Settings
           </button>
         </div>
@@ -272,7 +274,7 @@ export default function Layout() {
 
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && (
-      <header className="sticky top-0 z-40"
+      <header className="sticky top-0 z-40 safe-top"
       style={{ background: isDark ? "rgba(4,6,10,0.92)" : "rgba(251,250,247,0.98)", backdropFilter: isDark ? "blur(16px)" : "none", borderBottom: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}>
         {/* Single row: logo (centered, dominant) | pill bar (desktop) | controls */}
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
@@ -326,13 +328,16 @@ export default function Layout() {
       )}
 
       {/* ── Content ── full width ── */}
-      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden" style={{ background: "transparent" }}>
-          <Outlet />
+      <main id="main-content" className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden pb-14 lg:pb-0" style={{ background: "transparent" }}>
+          <RouteTransition>
+            <Outlet />
+          </RouteTransition>
       </main>
 
       <SiteFooter />
       <ABOSTour />
       <MarketspaceTour />
+      <BottomTabBar />
     </div>);
 
 }

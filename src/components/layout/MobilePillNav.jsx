@@ -39,7 +39,7 @@ export default function MobilePillNav() {
                 cursor: "pointer"
               }}>
               {Icon && <Icon size={17} style={{ opacity: active ? 1 : 0.7 }} />}
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }} className="text-xs capitalize">
+              <span style={{ fontSize: 14, fontWeight: active ? 700 : 500, letterSpacing: "0.02em" }} className="capitalize">
                 {section.mobileLabel || section.label}
               </span>
             </button>

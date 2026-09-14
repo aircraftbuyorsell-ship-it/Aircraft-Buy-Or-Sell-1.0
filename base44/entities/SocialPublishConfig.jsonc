@@ -1,0 +1,102 @@
+{
+  "name": "SocialPublishConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique social publishing configuration key"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "facebook"
+      ]
+    },
+    "destination_id": {
+      "type": "string",
+      "description": "Facebook Page identifier"
+    },
+    "destination_name": {
+      "type": "string",
+      "description": "Facebook Page name"
+    },
+    "template_key": {
+      "type": "string",
+      "enum": [
+        "market_snapshot",
+        "trust_first",
+        "deal_highlight"
+      ],
+      "default": "market_snapshot"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "key",
+    "channel",
+    "destination_id",
+    "template_key",
+    "enabled"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}

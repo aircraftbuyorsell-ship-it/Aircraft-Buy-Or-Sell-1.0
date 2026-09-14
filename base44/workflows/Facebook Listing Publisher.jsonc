@@ -1,0 +1,48 @@
+{
+  "name": "Facebook Listing Publisher",
+  "description": "Publishes each new active public aircraft listing to the configured Facebook Page using the ABOS market snapshot template and listing photo",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "AircraftListing",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"active\" and (.trigger.data.visibility // \"public\") == \"public\" and (.trigger.event_type == \"create\" or .trigger.old_data.status != \"active\" or (((.trigger.old_data.photo_url // \"\") == \"\") and ((.trigger.data.photo_url // \"\") != \"\"))) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "facebook_listing_publisher",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "publish_listing": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "metaPublishToPage",
+            "args": {
+              "action": "publishListing",
+              "listingId": "${ .trigger.entity_id }",
+              "templateKey": "market_snapshot",
+              "workflow_event": {
+                "entity_name": "AircraftListing",
+                "entity_id": "${ .trigger.entity_id }",
+                "event_type": "${ .trigger.event_type }"
+              }
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Publish Facebook listing",
+            "description": "Photo and live market template"
+          }
+        }
+      }
+    ]
+  }
+}

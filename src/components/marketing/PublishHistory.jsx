@@ -1,0 +1,5 @@
+import { Facebook, Instagram } from "lucide-react";
+
+export default function PublishHistory({ items }) {
+  return <section className="social-panel"><h2>Recent syncs</h2>{items.length ? <div className="divide-y divide-border">{items.slice(0, 8).map((item) => { const Icon = item.channel === "instagram" ? Instagram : Facebook; return <div key={item.id} className="flex items-center gap-3 py-3"><Icon className="h-4 w-4 text-primary"/><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-foreground">{item.page_name}</p><p className="text-xs text-muted-foreground">{new Date(item.published_at).toLocaleString()}</p></div><span className="social-status">Published</span></div>; })}</div> : <p className="text-sm text-muted-foreground">Published listing posts will appear here.</p>}</section>;
+}

@@ -1,0 +1,6 @@
+import { Facebook, Instagram } from "lucide-react";
+
+export default function SocialDestinations({ destinations, selected, onChange, photoAvailable }) {
+  const toggle = (key) => onChange(selected.includes(key) ? selected.filter((item) => item !== key) : [...selected, key]);
+  return <fieldset><legend className="mb-2 text-sm font-bold text-foreground">Publish to</legend><div className="grid gap-2 sm:grid-cols-2">{destinations.map((item) => { const Icon = item.channel === "instagram" ? Instagram : Facebook; const disabled = item.channel === "instagram" && !photoAvailable; return <button type="button" key={item.key} disabled={disabled} aria-pressed={selected.includes(item.key)} onClick={() => toggle(item.key)} className="social-destination"><Icon className="h-4 w-4"/><span><strong>{item.name}</strong><small>{disabled ? "Listing photo required" : item.channel}</small></span></button>; })}</div>{!destinations.length && <p className="text-sm text-muted-foreground">No connected destinations are available.</p>}</fieldset>;
+}

@@ -115,6 +115,7 @@ import IntelligenceHub from "./pages/hubs/IntelligenceHub";
 import VerifyHub from "./pages/hubs/VerifyHub";
 import ApiHub from "./pages/hubs/ApiHub";
 import SkylarkConfigurator from "./pages/SkylarkConfigurator";
+import AdminMarketing from "./pages/AdminMarketing";
 
 const ALLOWED_SKYLARK_EMAIL_DOMAINS = ["@aircraftbuyorsell.com", "@airvisions.cz"];
 
@@ -217,6 +218,7 @@ const AuthenticatedApp = () => {
         <Route path="/developers" element={<Developers />} />
         <Route path="/admin/marketplace" element={<AdminMarketplace />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/marketing" element={<AdminMarketing />} />
         <Route path="/developer-earnings" element={<DeveloperEarnings />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
         <Route path="/partner-portal" element={<PartnerPortal />} />

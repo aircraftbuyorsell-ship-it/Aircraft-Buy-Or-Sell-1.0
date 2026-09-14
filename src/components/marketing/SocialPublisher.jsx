@@ -1,0 +1,13 @@
+import { Loader2, RefreshCw, Send } from "lucide-react";
+import useSocialPublisher from "@/hooks/useSocialPublisher";
+import SocialDestinations from "@/components/marketing/SocialDestinations";
+import ListingPostPreview from "@/components/marketing/ListingPostPreview";
+import PublishHistory from "@/components/marketing/PublishHistory";
+import MarketSnapshot from "@/components/marketing/MarketSnapshot";
+import "@/components/marketing/social-publisher.css";
+
+export default function SocialPublisher() {
+  const state = useSocialPublisher();
+  if (state.loading) return <div className="flex justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary"/></div>;
+  return <div className="social-publisher space-y-5"><MarketSnapshot market={state.market}/>{state.message && <div className={`social-message ${state.message.type}`}>{state.message.text}</div>}<div className="grid gap-5 xl:grid-cols-[1fr_.8fr]"><section className="social-panel space-y-4"><div className="flex items-center justify-between"><h2>Listing post template</h2><button type="button" className="social-text-button" onClick={state.refresh}><RefreshCw className="h-4 w-4"/>Refresh data</button></div><label><span>Active aircraft listing</span><select value={state.listingId} onChange={(event) => state.setListingId(event.target.value)}>{state.listings.map((item) => <option key={item.id} value={item.id}>{[item.year, item.make, item.model, item.registration].filter(Boolean).join(" ")}</option>)}</select></label><SocialDestinations destinations={state.destinations} selected={state.selected} onChange={state.setSelected} photoAvailable={Boolean(state.listing?.photo_url)}/><label><span>Post copy</span><textarea rows="10" value={state.copy} onChange={(event) => state.setCopy(event.target.value)} maxLength="5000"/></label><div className="flex items-center justify-between gap-3"><small className="text-muted-foreground">{state.copy.length}/5000 characters</small><button type="button" className="social-publish-button" onClick={state.publish} disabled={state.publishing || !state.listing || !state.selected.length || !state.copy.trim()}>{state.publishing ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4"/>}{state.publishing ? "Publishing…" : "Publish selected"}</button></div></section><ListingPostPreview listing={state.listing} copy={state.copy}/></div><PublishHistory items={state.history}/></div>;
+}

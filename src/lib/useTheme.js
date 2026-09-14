@@ -30,14 +30,14 @@ export function useTheme() {
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
-    // Subscribe to system color-scheme changes when no manual preference is stored
+    // Follow system color-scheme changes only when no manual preference is stored.
+    // When "auto" is stored, ThemeToggle owns the time-based logic — don't override it.
     let mediaQuery;
     const handleMediaChange = (e) => {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "auto" || !stored) {
-        const dark = e.matches;
-        applyClass(dark);
-        setIsDark(dark);
+      if (!stored) {
+        applyClass(e.matches);
+        setIsDark(e.matches);
       }
     };
     if (typeof window !== "undefined" && window.matchMedia) {
@@ -45,20 +45,9 @@ export function useTheme() {
       mediaQuery.addEventListener("change", handleMediaChange);
     }
 
-    // Re-evaluate auto mode every 5 minutes (catches hour transitions)
-    const interval = setInterval(() => {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "auto" || !stored) {
-        const dark = resolveIsDark(stored);
-        applyClass(dark);
-        setIsDark(dark);
-      }
-    }, 5 * 60 * 1000);
-
     return () => {
       observer.disconnect();
       if (mediaQuery) mediaQuery.removeEventListener("change", handleMediaChange);
-      clearInterval(interval);
     };
   }, []);
 

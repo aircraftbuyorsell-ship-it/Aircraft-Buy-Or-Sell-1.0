@@ -13,6 +13,11 @@ export function usePullToRefresh({ onRefresh, threshold = 70, max = 120 }) {
 
   const startY = useRef(null);
   const active = useRef(false);
+  const distanceRef = useRef(0);
+  const refreshingRef = useRef(false);
+  const onRefreshRef = useRef(onRefresh);
+
+  useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
 
   useEffect(() => {
     const onTouchStart = (e) => {
@@ -25,12 +30,16 @@ export function usePullToRefresh({ onRefresh, threshold = 70, max = 120 }) {
       if (!active.current || startY.current == null) return;
       const delta = e.touches[0].clientY - startY.current;
       if (delta <= 0) {
-        setDistance(0);
-        setPulling(false);
+        if (distanceRef.current !== 0) {
+          distanceRef.current = 0;
+          setDistance(0);
+          setPulling(false);
+        }
         return;
       }
       // Resistance curve
       const d = Math.min(max, delta * 0.5);
+      distanceRef.current = d;
       setDistance(d);
       setPulling(d > 10);
     };
@@ -38,17 +47,23 @@ export function usePullToRefresh({ onRefresh, threshold = 70, max = 120 }) {
     const onTouchEnd = async () => {
       if (!active.current) return;
       active.current = false;
-      const d = distance;
+      const d = distanceRef.current;
       startY.current = null;
-      if (d >= threshold && !refreshing) {
+      if (d >= threshold && !refreshingRef.current) {
+        refreshingRef.current = true;
         setRefreshing(true);
         setDistance(threshold);
-        try { await onRefresh?.(); } finally {
+        try {
+          await onRefreshRef.current?.();
+        } finally {
+          refreshingRef.current = false;
           setRefreshing(false);
           setDistance(0);
           setPulling(false);
+          distanceRef.current = 0;
         }
       } else {
+        distanceRef.current = 0;
         setDistance(0);
         setPulling(false);
       }
@@ -62,7 +77,7 @@ export function usePullToRefresh({ onRefresh, threshold = 70, max = 120 }) {
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [distance, refreshing, threshold, max, onRefresh]);
+  }, [threshold, max]);
 
   return { distance, pulling, refreshing };
 }

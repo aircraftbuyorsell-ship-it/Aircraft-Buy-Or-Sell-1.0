@@ -48,10 +48,10 @@ export default function ThemeToggle() {
       onClick={cycle}
       className="relative flex items-center gap-2 px-2.5 h-9 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all overflow-hidden"
       style={{
-        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(255,255,255,0.06)",
+        background: isDark ? "rgba(212,160,23,0.10)" : "rgba(0,0,0,0.04)",
         border: "1px solid",
-        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(255,255,255,0.10)",
-        color: isDark ? "#F5C842" : "rgba(255,255,255,0.70)",
+        borderColor: isDark ? "rgba(212,160,23,0.30)" : "rgba(0,0,0,0.10)",
+        color: isDark ? "#F5C842" : "rgba(0,0,0,0.70)",
       }}
       aria-label={`Theme: ${mode}. Click to change.`}
       title={mode === "auto" ? "Auto (time-based) — click for dark" : isDark ? "Dark mode — click for light" : "Light mode — click for auto"}
@@ -71,7 +71,7 @@ export default function ThemeToggle() {
       <Icon
         className="relative w-4 h-4 shrink-0 transition-transform duration-300"
         style={{
-          color: isDark ? "#F5C842" : mode === "auto" ? "#8A8780" : "#E8A83A",
+          color: isDark ? "#F5C842" : mode === "auto" ? "#8A8780" : "#A67C00",
           transform: isDark ? "rotate(0deg) scale(1)" : "rotate(180deg) scale(0.9)",
         }}
       />

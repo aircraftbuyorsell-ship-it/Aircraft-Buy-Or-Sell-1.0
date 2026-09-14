@@ -74,11 +74,7 @@
         "description": null
       },
       "BillingEvent": {
-        "operations": [
-          "read",
-          "create",
-          "update"
-        ],
+        "operations": [],
         "description": null
       },
       "AffiliateLink": {
@@ -146,6 +142,62 @@
         "description": null
       },
       "StartupProject": {
+        "operations": [],
+        "description": null
+      },
+      "ATIPassport": {
+        "operations": ["read"],
+        "description": null
+      },
+      "AircraftListing": {
+        "operations": ["read"],
+        "description": null
+      },
+      "ATICard": {
+        "operations": ["read"],
+        "description": null
+      },
+      "Lead": {
+        "operations": ["read"],
+        "description": null
+      },
+      "DealerLead": {
+        "operations": ["read"],
+        "description": null
+      },
+      "MarketReport": {
+        "operations": ["read"],
+        "description": null
+      },
+      "OmvmValuation": {
+        "operations": ["read"],
+        "description": null
+      },
+      "Entitlement": {
+        "operations": [],
+        "description": null
+      },
+      "TenantApiKey": {
+        "operations": [],
+        "description": null
+      },
+      "License": {
+        "operations": [],
+        "description": null
+      },
+      "Tenant": {
+        "operations": [],
+        "description": null
+      },
+      "PaymentEvent": {
+        "operations": [],
+        "description": null
+      },
+      "CommissionLedger": {
+        "operations": [],
+        "description": null
+      },
+      "Settlement": {
         "operations": [],
         "description": null
       },
@@ -434,7 +486,7 @@
           ]
         },
         "annotations": {
-          "read_only_hint": true,
+          "read_only_hint": false,
           "destructive_hint": false,
           "idempotent_hint": false,
           "open_world_hint": true
@@ -464,7 +516,7 @@
           }
         },
         "annotations": {
-          "read_only_hint": true,
+          "read_only_hint": false,
           "destructive_hint": false,
           "idempotent_hint": false,
           "open_world_hint": true
@@ -493,7 +545,7 @@
           }
         },
         "annotations": {
-          "read_only_hint": true,
+          "read_only_hint": false,
           "destructive_hint": false,
           "idempotent_hint": true,
           "open_world_hint": true
@@ -557,7 +609,7 @@
           }
         },
         "annotations": {
-          "read_only_hint": true,
+          "read_only_hint": false,
           "destructive_hint": false,
           "idempotent_hint": false,
           "open_world_hint": null
@@ -586,7 +638,7 @@
           ]
         },
         "annotations": {
-          "read_only_hint": true,
+          "read_only_hint": false,
           "destructive_hint": false,
           "idempotent_hint": false,
           "open_world_hint": null

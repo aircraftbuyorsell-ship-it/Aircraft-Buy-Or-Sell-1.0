@@ -28,7 +28,9 @@
         "VALUATION_STUDIO",
         "VERIFICATION_PACK",
         "PRO",
-        "BROKER"
+        "BROKER",
+        "ai_orchestrator",
+        "ai_orchestrator_pro"
       ],
       "description": "ABOS product this entitlement grants access to"
     },
@@ -36,10 +38,13 @@
       "type": "string",
       "enum": [
         "global",
-        "aircraft"
+        "aircraft",
+        "buyer_pro",
+        "seller_pro",
+        "dealer"
       ],
       "default": "aircraft",
-      "description": "global = subscription plan; aircraft = per-aircraft one-time purchase"
+      "description": "Product scope or AI Orchestrator rate-limit tier"
     },
     "aircraft_registration": {
       "type": "string",

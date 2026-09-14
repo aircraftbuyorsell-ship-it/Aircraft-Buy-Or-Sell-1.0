@@ -75,6 +75,25 @@ const ABOS_PLAN_TYPES = [
   'abos_market_growth', 'abos_market_scale', 'abos_market_enterprise',
 ];
 const isAbosPlan = (planType) => ABOS_PLAN_TYPES.includes(planType);
+const AI_ORCH_PLAN_MAP = {
+  buyer_monthly: { productKey: 'ai_orchestrator', scope: 'buyer_pro' },
+  buyer_annual: { productKey: 'ai_orchestrator', scope: 'buyer_pro' },
+  abos_pro_monthly: { productKey: 'ai_orchestrator', scope: 'buyer_pro' },
+  abos_pro_annual: { productKey: 'ai_orchestrator', scope: 'buyer_pro' },
+  abos_seller_pro: { productKey: 'ai_orchestrator', scope: 'seller_pro' },
+  abos_market_growth: { productKey: 'ai_orchestrator_pro', scope: 'dealer' },
+  abos_market_scale: { productKey: 'ai_orchestrator_pro', scope: 'dealer' },
+  abos_market_enterprise: { productKey: 'ai_orchestrator_pro', scope: 'dealer' },
+};
+
+async function syncAiOrchestratorEntitlement(base44, email, planType, active, paymentId = '', subscriptionId = '') {
+  const plan = AI_ORCH_PLAN_MAP[planType];
+  if (!plan || !email) return;
+  const records = await base44.asServiceRole.entities.Entitlement.filter({ user_email: email, product_key: plan.productKey, stripe_subscription_id: subscriptionId }, '-created_date', 1);
+  const data = { scope: plan.scope, source: 'stripe', status: active ? 'active' : 'expired', stripe_payment_id: paymentId, stripe_subscription_id: subscriptionId };
+  if (records[0]) await base44.asServiceRole.entities.Entitlement.update(records[0].id, data);
+  else await base44.asServiceRole.entities.Entitlement.create({ user_email: email, product_key: plan.productKey, ...data });
+}
 
 // ── Aircraft listing permissions per plan ──
 // Free / lapsed: 1 active listing. Seller Starter (T1): 10. Pro / Marketplace: unlimited.
@@ -376,6 +395,7 @@ async function handleCheckoutCompleted(session, base44, stripe, eventId) {
   if (isAbosPlan(meta.plan_type)) {
     if (!userEmail) { console.warn('No email found in buyer checkout session'); return; }
     await syncBuyerSubscription(base44, userEmail, meta.plan_type, true);
+    await syncAiOrchestratorEntitlement(base44, String(userEmail).toLowerCase(), meta.plan_type, true, paymentId, session.subscription || '');
     return;
   }
 
@@ -470,7 +490,9 @@ async function handleSubscriptionUpdated(subscription, stripe, base44) {
     return;
   }
   if (isAbosPlan(subMeta.plan_type)) {
-    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, ['active', 'trialing'].includes(subscription.status));
+    const active = ['active', 'trialing'].includes(subscription.status);
+    await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, active);
+    await syncAiOrchestratorEntitlement(base44, String(userEmail).toLowerCase(), subMeta.plan_type, active, '', subscription.id);
     return;
   }
 
@@ -596,6 +618,7 @@ async function handleSubscriptionDeleted(subscription, stripe, base44) {
   }
   if (isAbosPlan(subMeta.plan_type)) {
     await syncBuyerSubscription(base44, userEmail, subMeta.plan_type, false);
+    await syncAiOrchestratorEntitlement(base44, String(userEmail).toLowerCase(), subMeta.plan_type, false, '', subscription.id);
     return;
   }
 

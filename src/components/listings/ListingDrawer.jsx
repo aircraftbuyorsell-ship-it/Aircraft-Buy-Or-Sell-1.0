@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BuyerInterestModal from "@/components/leads/BuyerInterestModal";
 import ListingReviewsPanel from "@/components/listings/ListingReviewsPanel";
+import AiDealAnalyst from "@/components/listings/AiDealAnalyst";
 
 function scoreColor(score) {
   if (!score) return "#AAA49C";
@@ -191,6 +192,7 @@ export default function ListingDrawer({ listing: l, onClose }) {
                   </a>
                 </div>
               )}
+              <AiDealAnalyst listingId={l.id} />
               <ListingReviewsPanel listing={l} />
             </div>
 

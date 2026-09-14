@@ -4,13 +4,7 @@
   "properties": {
     "ab_variant": {
       "type": "string",
-      "description": "A/B test variant",
-      "enum": [
-        "control",
-        "variant_a",
-        "variant_b",
-        "variant_c"
-      ]
+      "description": "A/B variant or whitelisted AI action name"
     },
     "conversion_count": {
       "type": "number",
@@ -40,12 +34,13 @@
         "conversion",
         "error_rate",
         "performance",
-        "user_satisfaction"
+        "user_satisfaction",
+        "ai_action"
       ]
     },
     "metric_value": {
       "type": "number",
-      "description": "Measured value (percentage, count, seconds, score)"
+      "description": "Measured value, count, duration, score, or AI action cost"
     },
     "sample_size": {
       "type": "number",
@@ -61,23 +56,11 @@
     },
     "tier": {
       "type": "string",
-      "description": "Tier being measured",
-      "enum": [
-        "free_explorer",
-        "pro",
-        "enterprise",
-        "all"
-      ]
+      "description": "Subscription or experiment tier"
     },
     "user_segment": {
       "type": "string",
-      "description": "User segment being measured",
-      "enum": [
-        "new_users",
-        "active_users",
-        "churned_users",
-        "all_users"
-      ]
+      "description": "User segment or customer email for private usage accounting"
     },
     "description": {
       "type": "string",

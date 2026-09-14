@@ -1,0 +1,44 @@
+{
+  "name": "AiConversationMap",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "ABOS customer email assigned to this isolated Superagent conversation"
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "Dedicated St. Elmo Superagent conversation identifier"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "user_email",
+    "conversation_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -21,6 +21,8 @@ import { useProTrial } from "@/hooks/useProTrial";
 import ProTrialBanner from "@/components/onboarding/ProTrialBanner";
 import WelcomeGiftModal from "@/components/onboarding/WelcomeGiftModal";
 import TrialPromoBanner from "@/components/onboarding/TrialPromoBanner";
+import FirstTimeIntent from "@/components/onboarding/FirstTimeIntent";
+import JourneyProgress from "@/components/onboarding/JourneyProgress";
 
 export default function Dashboard() {
   const { data: listings = [], isLoading: listingsLoading } = useQuery({
@@ -41,17 +43,35 @@ export default function Dashboard() {
   });
 
   const { data: trial, grantTrial, refresh: refreshTrial } = useProTrial(user);
-  const [giftModalDismissed, setGiftModalDismissed] = useState(false);
   const [giftModalOpen, setGiftModalOpen] = useState(false);
+  const [intent, setIntent] = useState(() => localStorage.getItem("abos_first_intent") || "");
+  const [journeyStarted, setJourneyStarted] = useState(() => localStorage.getItem("abos_journey_started") === "true");
+  const [aircraftViewed, setAircraftViewed] = useState(() => localStorage.getItem("abos_aircraft_viewed") === "true");
 
-  const showGiftModal = trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0
-    && (!giftModalDismissed || giftModalOpen);
+  const showGiftModal = trial?.ok && !trial?.alreadyGranted && trial?.slotsLeft > 0 && giftModalOpen;
 
   const handleClaimGift = () => setGiftModalOpen(true);
   const handleCloseGiftModal = () => {
-    setGiftModalDismissed(true);
     setGiftModalOpen(false);
     refreshTrial();
+  };
+  const handleIntent = (nextIntent) => {
+    localStorage.setItem("abos_first_intent", nextIntent);
+    setIntent(nextIntent);
+    base44.analytics.track({ eventName: "first_visit_intent_selected", properties: { intent: nextIntent } });
+  };
+  const startJourney = () => {
+    localStorage.setItem("abos_journey_started", "true");
+    setJourneyStarted(true);
+  };
+  const handleAircraftOpen = () => {
+    startJourney();
+    localStorage.setItem("abos_aircraft_viewed", "true");
+    setAircraftViewed(true);
+  };
+  const resetIntent = () => {
+    localStorage.removeItem("abos_first_intent");
+    setIntent("");
   };
 
   return (
@@ -67,25 +87,33 @@ export default function Dashboard() {
       <NotificationStack />
 
       {/* 1. Hero (with Globe) */}
-      <HomeHeroSection />
+      <HomeHeroSection onJourneyStart={startJourney} />
+
+      <FirstTimeIntent value={intent} onChange={handleIntent} />
+      <JourneyProgress intent={intent} aircraftViewed={aircraftViewed} onReset={resetIntent} />
 
       <HomeFeatureBar />
+
+      {intent === "research" && <LiveMarketIntelligence />}
+      {intent === "seller" && <ATIPassportVerification />}
 
       {/* 2. Featured Aircraft — moved up for search-first flow */}
       <ListingsShowcase
         listings={listings}
         isLoading={listingsLoading}
-        eyebrow="Featured Aircraft"
-        title="Browse Aircraft from Verified Sellers"
+        eyebrow={intent === "seller" ? "Buyer perspective" : intent === "research" ? "Market sample" : "Featured Aircraft"}
+        title={intent === "seller" ? "See How Verified Aircraft Are Presented" : intent === "research" ? "Compare Live Aircraft Signals" : "Browse Aircraft from Verified Sellers"}
         layout="carousel"
         actionTo="/listings"
         actionLabel="Browse all aircraft"
+        intent={intent}
+        onListingOpen={handleAircraftOpen}
       />
 
-      {trial?.ok && trial?.alreadyGranted
+      {journeyStarted && (trial?.ok && trial?.alreadyGranted
         ? <ProTrialBanner trial={trial} />
         : <TrialPromoBanner trial={trial} onClaimGift={handleClaimGift} />
-      }
+      )}
 
       {showGiftModal && (
         <WelcomeGiftModal
@@ -102,7 +130,7 @@ export default function Dashboard() {
       </div>
 
       {/* 3. ATI Passport Verification */}
-      <ATIPassportVerification />
+      {intent !== "seller" && <ATIPassportVerification />}
 
       <AutomationAdvantage />
 
@@ -128,7 +156,7 @@ export default function Dashboard() {
       <AgentConnectCard />
 
       {/* 9c. Market Intelligence — hides itself when the feed is unavailable */}
-      <LiveMarketIntelligence />
+      {intent !== "research" && <LiveMarketIntelligence />}
     </div>
   );
 }

@@ -11,6 +11,8 @@ export default function ListingsShowcase({
   layout = "grid",
   actionTo,
   actionLabel,
+  intent,
+  onListingOpen,
 }) {
   if (!isLoading && listings.length === 0) return null;
 
@@ -27,7 +29,7 @@ export default function ListingsShowcase({
           <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:none]">
             {listings.map((l) => (
               <div key={l.id} className="min-w-[280px] flex-shrink-0">
-                <ListingCard listing={l} />
+                <ListingCard listing={l} intent={intent} onOpen={onListingOpen} />
               </div>
             ))}
           </div>

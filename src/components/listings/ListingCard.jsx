@@ -26,7 +26,7 @@ function DealCodeBadge({ code }) {
   );
 }
 
-export default function ListingCard({ listing: l, onClick }) {
+export default function ListingCard({ listing: l, onClick, onOpen, intent }) {
   const navigate = useNavigate();
   // Listings can store uploaded media under several legacy/current fields.
   // Normalize the first usable image so an uploaded photo is always shown on the card.
@@ -48,12 +48,18 @@ export default function ListingCard({ listing: l, onClick }) {
     ? Math.max(0, Math.min(100, Math.round(((tbo - engineHours) / tbo) * 100)))
     : null;
   const detailPath = `/ati-passport/${l.id}`;
+  const contextualAction = intent === "seller"
+    ? { label: "Improve ATI profile", to: detailPath }
+    : intent === "research"
+    ? { label: "Compare market value", to: `/compare?listing=${l.id}` }
+    : { label: "Review due diligence", to: detailPath };
   const discountPct = l.discount_pct != null
     ? Number(l.discount_pct)
     : l.omvm_value > 0 && l.asking_price != null
     ? Math.round(((l.omvm_value - l.asking_price) / l.omvm_value) * 100)
     : null;
   const openPassport = () => {
+    onOpen?.(l);
     if (onClick) onClick(l);
     else navigate(detailPath);
   };
@@ -166,11 +172,11 @@ export default function ListingCard({ listing: l, onClick }) {
           <span className="text-xs text-muted-foreground/50">No fresh annual</span>
         )}
         <Link
-          to={detailPath}
-          onClick={(event) => event.stopPropagation()}
+          to={contextualAction.to}
+          onClick={(event) => { event.stopPropagation(); onOpen?.(l); }}
           className="inline-flex min-h-11 items-center gap-1 text-xs font-bold text-navy no-underline hover:underline dark:text-primary"
         >
-          ATI Passport <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          {contextualAction.label} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
     </div>

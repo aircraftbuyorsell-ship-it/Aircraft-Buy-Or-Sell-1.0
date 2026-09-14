@@ -9,7 +9,7 @@ const ANNOTATIONS = [
 { label: "LANDINGS", value: "1,042", style: { bottom: "22%", right: "30%" } }];
 
 
-export default function HomeHeroSection() {
+export default function HomeHeroSection({ onJourneyStart }) {
   return (
     <section className="relative w-full overflow-hidden">
       <div className="pointer-events-none absolute inset-0 opacity-40">
@@ -30,11 +30,11 @@ export default function HomeHeroSection() {
               Enter a tail number and get a free ATI Score in seconds — registry data, maintenance signals, and objective risk indicators. Need the full picture? Unlock a complete due-diligence report for one aircraft at a time.
             </p>
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-              <Link to="/ati-verify"
+              <Link to="/ati-verify" onClick={onJourneyStart}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-4 text-[15px] font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02]">
                 <Search className="h-5 w-5" /> Get ATI Score free
               </Link>
-              <Link to="/n-lookup"
+              <Link to="/n-lookup" onClick={onJourneyStart}
               className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 Look up a tail number <ArrowRight className="h-4 w-4" />
               </Link>

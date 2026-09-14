@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 import { useTabHistory } from "@/lib/useTabHistory";
@@ -34,12 +35,10 @@ export default function BottomTabBar() {
   };
 
   // Record current path under the active tab on every navigation
-  // (done in the parent Layout via effect, but we also track here for direct hits)
   const activeSection = NAV_TREE.find((s) => isPathInSection(s, pathname));
-  if (activeSection) {
-    // Fire-and-forget — runs during render is fine for localStorage
-    setLast(activeSection.label, pathname);
-  }
+  useEffect(() => {
+    if (activeSection) setLast(activeSection.label, pathname);
+  }, [activeSection, pathname, setLast]);
 
   return (
     <nav

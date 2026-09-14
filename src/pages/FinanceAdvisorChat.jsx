@@ -9,7 +9,7 @@ import MessageBubble from "@/components/finance/MessageBubble";
 import MobileConversationDrawer from "@/components/finance/MobileConversationDrawer";
 import SkillPipelineChips from "@/components/finance/SkillPipelineChips";
 
-const HINTS = ["Enter N123AB to start investment analysis…", "Try OK-TNG for EASA registry…", "Upload FAA N-Number PDF…"];
+const HINTS = ["Enter N123AB to start investment analysis…", "Compare base and downside ownership scenarios…", "Upload an aircraft registry PDF…"];
 const REGEX = /\b(?:N\d{1,5}[A-Z]{0,2}|G-[A-Z]{4}|[A-Z]{1,2}-[A-Z]{2,5})\b/i;
 
 function ToolCallDisplay({ toolCall }) {
@@ -71,14 +71,14 @@ export default function FinanceAdvisorChat() {
   const handlePdf = useCallback(async file => {
     if (!file) return; setError(""); setLoading(true);
     try {
-      const content = await file.text(); const registration = detectRegistration(content);
-      if (!registration) { setError("No FAA N-number was found in this PDF. Please enter the registration manually."); return; }
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setInput(registration); await loadDigitalTwin(registration);
-      const conversation = await ensureConversation(`${registration} · Analyze investment potential from uploaded FAA registry PDF.`);
-      await base44.agents.addMessage(conversation, { role: "user", content: `${registration} · Analyze investment potential from uploaded FAA registry PDF.`, file_urls: [file_url] });
+      const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
+      const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri, expires_in: 900 });
+      const conversation = await ensureConversation("Analyze the attached aircraft registry PDF and identify the registration before assessing investment potential.");
+      await base44.agents.addMessage(conversation, { role: "user", content: "Analyze this aircraft registry document. Identify the registration, state any missing evidence, and ask for the financial assumptions needed before giving an investment recommendation.", file_urls: [signed_url] });
+    } catch (err) {
+      setError(err?.message || "The document could not be uploaded. Please try again.");
     } finally { setLoading(false); }
-  }, [ensureConversation, loadDigitalTwin]);
+  }, [ensureConversation]);
 
   const deleteConversation = async id => { const conversation = conversations.find(item => item.id === id); await base44.agents.updateConversation(id, { metadata: { ...(conversation?.metadata || {}), archived: true } }); setConversations(previous => previous.filter(item => item.id !== id)); if (id === activeConversationId) { setActiveConversationId(null); setMessages([]); setAircraft(null); } };
   const newConversation = () => { setActiveConversationId(null); setMessages([]); setAircraft(null); setError(""); };
@@ -86,7 +86,7 @@ export default function FinanceAdvisorChat() {
   return <div className="min-h-screen bg-background md:flex">
     <ConversationSidebar conversations={conversations} activeId={activeConversationId} loading={loadingConversations} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); setAircraft(conversation.metadata?.registration ? { registration: conversation.metadata.registration } : null); }} onDelete={deleteConversation} />
     <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-      <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden"><MobileConversationDrawer open={mobileDrawerOpen} conversations={conversations} onClose={setMobileDrawerOpen} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); }} onDelete={deleteConversation} /><Brain className="h-5 w-5 text-gold" /><span className="text-sm font-black text-foreground">Pricing Assistant</span></header>
+      <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden"><MobileConversationDrawer open={mobileDrawerOpen} conversations={conversations} onClose={setMobileDrawerOpen} onNew={newConversation} onSelect={conversation => { setActiveConversationId(conversation.id); setMessages(conversation.messages || []); }} onDelete={deleteConversation} /><Brain className="h-5 w-5 text-gold" /><span className="text-sm font-black text-foreground">Aircraft Investment Advisor</span></header>
       <section className="flex-1 overflow-y-auto px-4 py-5 md:px-6"><div className="mx-auto max-w-3xl space-y-4">
         {!messages.length && !loading ? <FinanceHero input={input} placeholder={placeholder} onChange={setInput} onSubmit={() => sendMessage()} onScenario={scenario => setInput(`${input ? `${input} · ` : ""}${scenario}`)} onFile={handlePdf} /> : <>
           {aircraft && <AircraftIdentityChip aircraft={aircraft} />}

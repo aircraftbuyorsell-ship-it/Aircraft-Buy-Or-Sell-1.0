@@ -1,0 +1,7 @@
+function money(value) { return value == null ? "—" : `$${Number(value).toLocaleString()}`; }
+
+export default function InvestmentScenarioResults({ scenarios }) {
+  const entries = [["downside", "Downside"], ["base", "Base case"], ["upside", "Upside"]];
+  if (!scenarios?.base) return null;
+  return <section><p className="mb-3 text-xs font-bold uppercase text-primary">Ownership scenarios</p><div className="grid gap-3 md:grid-cols-3">{entries.map(([key, label]) => { const item = scenarios[key]; return <article key={key} className="rounded-xl border border-border bg-card p-4"><h3 className="font-bold text-foreground">{label}</h3><dl className="mt-3 space-y-2 text-sm"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">IRR</dt><dd className="font-mono font-bold">{item?.irr_pct == null ? "—" : `${item.irr_pct}%`}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Initial cash</dt><dd className="font-mono">{money(item?.initial_cash)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Annual cash flow</dt><dd className="font-mono">{money(item?.annual_cash_flow)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Exit equity</dt><dd className="font-mono">{money(item?.exit_equity)}</dd></div></dl></article>; })}</div><p className="mt-2 text-xs text-muted-foreground">Scenario estimates depend on the assumptions supplied and are not financial, tax, or legal advice.</p></section>;
+}

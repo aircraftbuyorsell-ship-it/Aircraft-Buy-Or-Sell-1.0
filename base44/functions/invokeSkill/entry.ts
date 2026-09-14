@@ -29,25 +29,20 @@ const SKILL_ROUTING = {
   'abos.skill.fleet_change.v1':          { function: 'invokeSkillFleetChange',       credit_cost: 3, task_type: 'deterministic' },
 };
 
-// ── ABOS monetization gate — active PRO/BROKER subscription required (server-enforced for web, API and MCP) ──
-async function gateProSubscription(base44, user) {
+// Investment Skills are unlocked by the aircraft-scoped Investment product or an included legacy subscription.
+async function gateInvestmentAccess(base44, user, registration) {
   if (user?.role === 'admin' || user?.role === 'super_admin') return null;
-  const check = await base44.functions.invoke('abosEntitlements', { action: 'check', product_key: 'PRO' });
-  const d = check?.data || {};
-  if (d.entitled || d.active_sub_product) return null;
-  let checkoutUrl = null;
-  try {
-    const co = await base44.functions.invoke('abosEntitlements', {
-      action: 'create_checkout', product_key: 'PRO',
-      return_url: Deno.env.get('BASE44_APP_URL') || 'https://aircraftbuyorsell.com/checkout-success',
-    });
-    checkoutUrl = co?.data?.url || null;
-  } catch (_) { /* checkout link is optional */ }
+  const check = await base44.functions.invoke('abosEntitlements', {
+    action: 'check', product_key: 'INVESTMENT', aircraft_registration: registration,
+  });
+  const data = check?.data || {};
+  if (data.entitled) return null;
   return Response.json({
     error: 'payment_required',
-    message: 'This is a paid ABOS PRO tool. An active ABOS Professional (\u20ac99/mo) or Broker subscription is required. Open checkout_url to subscribe, then retry this request.',
-    product_key: 'PRO',
-    checkout_url: checkoutUrl,
+    message: 'Aircraft investment analysis requires the Investment product for this aircraft.',
+    product_key: 'INVESTMENT',
+    aircraft_registration: registration,
+    checkout_price_usd: data.checkout_price_usd,
   }, { status: 402 });
 }
 
@@ -57,12 +52,13 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // ── Paid feature: all financial/upgrade skills require PRO ──
-    const gate = await gateProSubscription(base44, user);
-    if (gate) return gate;
-
     const body = await req.json().catch(() => ({}));
-    const { skill_id, inputs, passport_id } = body;
+    const { skill_id, inputs = {}, passport_id } = body;
+
+    // Server-enforced aircraft-scoped access for financial and upgrade Skills.
+    const registration = String(inputs.registration || '').trim().toUpperCase();
+    const gate = await gateInvestmentAccess(base44, user, registration);
+    if (gate) return gate;
 
     if (!skill_id) return Response.json({ error: 'skill_id required' }, { status: 400 });
 

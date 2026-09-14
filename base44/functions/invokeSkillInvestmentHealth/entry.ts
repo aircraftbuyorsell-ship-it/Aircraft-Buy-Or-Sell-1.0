@@ -26,7 +26,7 @@ async function callLlama4Maverick(prompt, contextData) {
     body: JSON.stringify({
       model: 'meta/llama-4-maverick',
       messages: [
-        { role: 'system', content: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
+        { role: 'system', content: 'You are the ABOS Aircraft Investment Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
         { role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }
       ],
       temperature: 0.4,
@@ -47,7 +47,7 @@ async function callGPT4o(prompt, contextData) {
     body: JSON.stringify({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
+        { role: 'system', content: 'You are the ABOS Aircraft Investment Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).' },
         { role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }
       ],
       temperature: 0.4,
@@ -68,7 +68,7 @@ async function callClaude(prompt, contextData) {
     body: JSON.stringify({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
-      system: 'You are the ABOS Pricing Assistant. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).',
+      system: 'You are the ABOS Aircraft Investment Advisor. Synthesize aircraft investment data into actionable briefs. Always respond in JSON with fields: brief_summary (string), strengths (array), risks (array), recommendation (string), confidence_assessment (string).',
       messages: [{ role: 'user', content: `${prompt}\n\nDigital Twin Context:\n${JSON.stringify(contextData, null, 2)}` }],
     }),
   });
@@ -92,7 +92,7 @@ async function generateNarrative(prompt, contextData) {
 
 function computeInvestmentHealthScore({ atiTotal, omvmValue, engineRemainingPct, opexAnnual, clarityScore }) {
   let score = 50;
-  if (atiTotal) score += (atiTotal / 120) * 20; // ATI contributes up to 20 pts
+  if (atiTotal) score += (atiTotal / 120) * 20;
   if (engineRemainingPct != null) score += (engineRemainingPct / 100) * 15;
   if (clarityScore != null) score += (clarityScore / 100) * 10;
   if (omvmValue && opexAnnual) {
@@ -101,6 +101,47 @@ function computeInvestmentHealthScore({ atiTotal, omvmValue, engineRemainingPct,
     else if (ratio > 0.15) score -= 10;
   }
   return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function irr(cashFlows) {
+  if (!cashFlows.some((value) => value > 0) || !cashFlows.some((value) => value < 0)) return null;
+  let low = -0.99, high = 10;
+  for (let i = 0; i < 100; i++) {
+    const rate = (low + high) / 2;
+    const npv = cashFlows.reduce((sum, flow, year) => sum + flow / Math.pow(1 + rate, year), 0);
+    if (npv > 0) low = rate; else high = rate;
+  }
+  const result = (low + high) / 2;
+  return Number.isFinite(result) ? +(result * 100).toFixed(1) : null;
+}
+
+function ownershipScenario(inputs, annualOpex, insuranceAnnual, modifiers) {
+  const price = Number(inputs.purchase_price || 0);
+  if (!price) return null;
+  const years = Math.max(1, Math.min(10, Number(inputs.holding_period_years || 5)));
+  const downPct = Math.max(0, Math.min(100, Number(inputs.down_payment_pct ?? 30))) / 100;
+  const annualRate = Math.max(0, Number(inputs.interest_rate_pct || 0)) / 100;
+  const loanYears = Math.max(1, Number(inputs.loan_term_years || years));
+  const financed = price * (1 - downPct);
+  const annualDebt = financed ? (annualRate ? financed * annualRate / (1 - Math.pow(1 + annualRate, -loanYears)) : financed / loanYears) : 0;
+  const payments = Math.min(years, loanYears);
+  const balance = annualRate ? financed * Math.pow(1 + annualRate, payments) - annualDebt * ((Math.pow(1 + annualRate, payments) - 1) / annualRate) : Math.max(0, financed - annualDebt * payments);
+  const downtime = Math.max(0, Math.min(365, Number(inputs.downtime_days || 0)));
+  const revenue = Number(inputs.lease_revenue || 0) * ((365 - downtime) / 365) * modifiers.revenue;
+  const operating = (Number(annualOpex || 0) + Number(insuranceAnnual || 0) + Number(inputs.maintenance_reserve_annual || 0)) * modifiers.cost;
+  const annualCash = revenue - operating - annualDebt;
+  const initialCash = price * downPct + Number(inputs.transaction_costs || 0);
+  const residual = price * Math.max(0, Number(inputs.residual_value_pct ?? 85) + modifiers.residualPoints) / 100;
+  const flows = [-initialCash, ...Array.from({ length: years }, (_, index) => annualCash + (index === years - 1 ? residual - Math.max(0, balance) : 0))];
+  return { irr_pct: irr(flows), initial_cash: Math.round(initialCash), annual_cash_flow: Math.round(annualCash), exit_equity: Math.round(residual - Math.max(0, balance)), total_cash_return: Math.round(flows.slice(1).reduce((a, b) => a + b, 0) - initialCash), cash_flows: flows.map(Math.round) };
+}
+
+function computeOwnershipScenarios(inputs, annualOpex, insuranceAnnual) {
+  return {
+    base: ownershipScenario(inputs, annualOpex, insuranceAnnual, { revenue: 1, cost: 1, residualPoints: 0 }),
+    upside: ownershipScenario(inputs, annualOpex, insuranceAnnual, { revenue: 1.1, cost: 0.95, residualPoints: 5 }),
+    downside: ownershipScenario(inputs, annualOpex, insuranceAnnual, { revenue: 0.8, cost: 1.15, residualPoints: -10 }),
+  };
 }
 
 Deno.serve(async (req) => {
@@ -213,6 +254,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    const financialScenarios = computeOwnershipScenarios(
+      { ...inputs, purchase_price: inputs.purchase_price || passport.omvm_value },
+      resolvedAnnualOpex,
+      resolvedInsuranceAnnual,
+    );
+
     // 5) Compute investment health score
     const opexResultValue = skillResults['abos.skill.opex.v1']?.result;
     const healthScore = computeInvestmentHealthScore({
@@ -246,10 +293,12 @@ Deno.serve(async (req) => {
         evidence: r.evidence,
       })),
       health_score: healthScore,
+      financial_scenarios: financialScenarios,
+      assumptions: inputs,
       live_status: liveStatus,
     };
 
-    const narrativePrompt = `As ABOS Pricing Assistant, analyze this aircraft investment opportunity. Registration: ${passport.registration}. Investment Health Score: ${healthScore}/100. Live status: ${liveStatus}. Synthesize all skill results into an actionable investment brief.`;
+    const narrativePrompt = `As ABOS Aircraft Investment Advisor, analyze this aircraft investment opportunity. Registration: ${passport.registration}. Investment Health Score: ${healthScore}/100. Live status: ${liveStatus}. Synthesize all skill results and deterministic base/upside/downside ownership scenarios into an actionable investment brief. Treat calculations as scenarios, state assumptions, and do not describe tax estimates as professional tax advice.`;
 
     let narrative = null;
     let modelUsed = 'none';
@@ -273,6 +322,7 @@ Deno.serve(async (req) => {
       live_status: liveStatus,
       deal_radar_eligible: healthScore >= 60 && twinContext.deal_label !== 'overpriced',
       twin_context: twinContext,
+      financial_scenarios: financialScenarios,
       skill_results: skillResults,
       ai_brief: narrative,
       recommended_skills_to_run: executedSkills.map(s => s.skill_id),

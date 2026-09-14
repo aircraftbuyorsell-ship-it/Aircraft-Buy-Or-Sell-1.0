@@ -25,7 +25,7 @@ const PRODUCT_CATALOG = {
   VERIFICATION_PACK:{ name: 'Verification Pack (legacy)', type: 'one_time', price_eur: 19.90, currency: 'eur', legacy: true },
   PRO:              { name: 'ABOS Professional', type: 'subscription', price_eur: 99, currency: 'eur', interval: 'month' },
   BROKER:           { name: 'ABOS Broker / Dealer (legacy)', type: 'subscription', price_eur: 299, currency: 'eur', interval: 'month', legacy: true },
-  ATI_REPORT_PACK_5: { name: 'ATI Report — 5 Pack (legacy)', type: 'report_pack', price_usd: 199, currency: 'usd', credits: 5, legacy: true },
+  ATI_REPORT_PACK_5: { name: 'ATI Report — 5 Pack', type: 'report_pack', price_usd: 199, currency: 'usd', credits: 5 },
   ATI_REPORT_PACK_10:{ name: 'ATI Report — 10 Pack', type: 'report_pack', price_usd: 290, currency: 'usd', credits: 10 },
   ATI_REPORT_PACK_25:{ name: 'ATI Report — 25 Pack', type: 'report_pack', price_usd: 625, currency: 'usd', credits: 25 },
   API_STARTER: { name: 'ABOS API — Starter', type: 'subscription', price_eur: 690, currency: 'eur', interval: 'month' },
@@ -34,7 +34,10 @@ const PRODUCT_CATALOG = {
   WHITE_LABEL_LICENSE: { name: 'ABOS White-Label Integration License', type: 'one_time', price_eur: 2500, currency: 'eur' },
 };
 
-const SUB_INCLUDED = { PRO: ['ATI_SCORE', 'ATI_BASIC_REPORT'], BROKER: ['ATI_SCORE', 'ATI_BASIC_REPORT'] };
+const SUB_INCLUDED = {
+  PRO: ['ATI_SCORE', 'ATI_REPORT', 'ATI_BASIC_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT'],
+  BROKER: ['ATI_SCORE', 'ATI_REPORT', 'ATI_BASIC_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT'],
+};
 const SUB_DISCOUNT = { PRO: 0.30, BROKER: 0.40 };
 const SUB_KEYS = new Set(['PRO', 'BROKER', 'API_STARTER', 'API_PROFESSIONAL']);
 const REPORT_PACK_KEYS = new Set(['ATI_REPORT_PACK_5','ATI_REPORT_PACK_10','ATI_REPORT_PACK_25']);
@@ -177,19 +180,6 @@ Deno.serve(async (req) => {
         const product = PRODUCT_CATALOG[product_key];
         if (!product) return Response.json({ entitled: false, reason: 'unknown_product' }, { status: 400 });
         if (product.type === 'contract') return Response.json({ contact_sales: true, product_key });
-        if (product.type === 'subscription' && (product_key === 'API_STARTER' || product_key === 'API_PROFESSIONAL')) {
-          const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-          const session = await stripe.checkout.sessions.create({
-            mode:'subscription', payment_method_types:['card'], customer_email:user.email, client_reference_id:user.id,
-            metadata:{user_id:user.id,user_email:user.email,product_key},
-            subscription_data:{metadata:{user_id:user.id,user_email:user.email,product_key}},
-            success_url:`${return_url}${return_url.includes('?')?'&':'?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}`,
-            cancel_url:`${return_url}${return_url.includes('?')?'&':'?'}canceled=1`,
-            line_items:[{price_data:{currency:'eur',product_data:{name:product.name},unit_amount:product.price_eur*100,recurring:{interval:'month'}},quantity:1}],
-          });
-          return Response.json({url:session.url,session_id:session.id,product_key});
-        }
-
         if (SUB_KEYS.has(product_key)) {
           const entitled = subProduct === product_key;
           return Response.json({ entitled, reason: entitled ? 'active_subscription' : 'no_active_subscription', active_sub_product: subProduct });
@@ -263,20 +253,7 @@ Deno.serve(async (req) => {
           return Response.json({ included_in_subscription: true, product_key });
         }
 
-        // V1 one-time products use a server-defined price_data line item. The browser
-        // never supplies an amount or Stripe Price ID, so the server-side catalog remains authoritative.
-        if (product.price_usd != null && ['ATI_REPORT','DEAL_ANALYSIS','INVESTMENT','PROFESSIONAL'].includes(product_key)) {
-          const session = await stripe.checkout.sessions.create({
-            mode: 'payment', payment_method_types: ['card'], customer_email: user.email,
-            client_reference_id: user.id,
-            metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
-            success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
-            cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-            line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: Math.round(product.price_usd * 100) }, quantity: 1 }],
-          });
-          return Response.json({ url: session.url, session_id: session.id, product_key });
-        }
-
+        // All one-time prices and discounts are resolved from this server catalog.
         let unitAmount = Math.round((product.price_usd ?? 0) * 100);
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
           unitAmount = Math.round(product.price_usd * (1 - SUB_DISCOUNT[subProduct]) * 100);

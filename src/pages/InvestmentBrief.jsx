@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import InvestmentAssumptions from "@/components/finance/InvestmentAssumptions";
+import InvestmentScenarioResults from "@/components/finance/InvestmentScenarioResults";
 import {
   Brain, TrendingUp, ShieldCheck, Plane, DollarSign, Gauge,
   Zap, FileText, Sparkles, Loader2, ChevronRight, Activity,
@@ -165,25 +167,23 @@ export default function InvestmentBrief() {
   const [leaseRevenue, setLeaseRevenue] = useState(0);
   const [jurisdiction, setJurisdiction] = useState("CZ");
   const [usageType, setUsageType] = useState("rental");
+  const [assumptions, setAssumptions] = useState({ purchase_price: 0, down_payment_pct: 30, interest_rate_pct: 7, loan_term_years: 10, holding_period_years: 5, residual_value_pct: 85, downtime_days: 20, maintenance_reserve_annual: 0, transaction_costs: 0, vat_status: "unknown", ownership_structure: "individual" });
   const [loading, setLoading] = useState(false);
   const [currentStage, setCurrentStage] = useState(-1);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [paymentRequired, setPaymentRequired] = useState(false);
   const abortRef = useRef(false);
 
   const runAnalysis = useCallback(async () => {
     if (!registration.trim()) return;
     setLoading(true);
     setError(null);
+    setPaymentRequired(false);
     setResult(null);
     abortRef.current = false;
 
-    // Animate pipeline stages
-    for (let i = 0; i < PIPELINE_STAGES.length; i++) {
-      if (abortRef.current) break;
-      setCurrentStage(i);
-      await new Promise(r => setTimeout(r, 400));
-    }
+    setCurrentStage(0);
 
     try {
       const response = await base44.functions.invoke("invokeSkill", {
@@ -194,16 +194,19 @@ export default function InvestmentBrief() {
           lease_revenue: leaseRevenue,
           jurisdiction,
           usage_type: usageType,
+          ...assumptions,
         },
       });
       setResult(response.data);
     } catch (e) {
-      setError(e.message || "Failed to run investment analysis");
+      const required = e?.response?.status === 402 || e?.response?.data?.error === "payment_required";
+      setPaymentRequired(required);
+      setError(required ? "Investment analysis is not unlocked for this aircraft." : (e.message || "Failed to run investment analysis"));
     } finally {
       setLoading(false);
       setCurrentStage(-1);
     }
-  }, [registration, annualHours, leaseRevenue, jurisdiction, usageType]);
+  }, [registration, annualHours, leaseRevenue, jurisdiction, usageType, assumptions]);
 
   const healthScore = result?.result?.investment_health_score;
   const liveStatus = result?.result?.live_status;
@@ -211,6 +214,7 @@ export default function InvestmentBrief() {
   const skillResults = result?.result?.skill_results || {};
   const aiBrief = result?.result?.ai_brief;
   const twinContext = result?.result?.twin_context;
+  const financialScenarios = result?.result?.financial_scenarios;
 
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: "transparent" }}>
@@ -232,7 +236,7 @@ export default function InvestmentBrief() {
             ))}
           </div>
           <p className="text-center mt-3 text-[11px]" style={{ color: "#6b7280" }}>
-            Powered by Llama 4 Maverick (narrative) + GPT o3 (tool calling) + pure math (deterministic)
+            Deterministic valuation Skills with evidence-grounded narrative synthesis
           </p>
         </div>
 
@@ -243,7 +247,7 @@ export default function InvestmentBrief() {
               <Brain className="w-4.5 h-4.5 text-[#f5c242]" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white/90">Ask the Pricing Assistant</p>
+              <p className="text-sm font-bold text-white/90">Ask the Aircraft Investment Advisor</p>
               <p className="text-[11px] text-white/50">Free-form chat — the agent orchestrates Skills and answers in natural language</p>
             </div>
           </div>
@@ -290,6 +294,7 @@ export default function InvestmentBrief() {
               </select>
             </div>
           </div>
+          <InvestmentAssumptions value={assumptions} onChange={setAssumptions} />
           <div className="flex items-center gap-3">
             <select value={usageType} onChange={e => setUsageType(e.target.value)}
               className="px-3 py-2 rounded-xl text-xs font-bold"
@@ -310,36 +315,11 @@ export default function InvestmentBrief() {
           </div>
         </div>
 
-        {/* Pipeline progress */}
+        {/* Real request state — completed Skills appear only after the server returns them. */}
         {loading && (
-          <div className="mt-5 rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              {PIPELINE_STAGES.map((stage, i) => {
-                const Icon = stage.icon;
-                const isDone = currentStage > i;
-                const isActive = currentStage === i;
-                return (
-                  <div key={stage.id} className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
-                        style={{
-                          background: isDone ? `${stage.color}20` : isActive ? stage.color : "rgba(255,255,255,0.05)",
-                          border: `0.5px solid ${isActive || isDone ? stage.color : "rgba(255,255,255,0.10)"}`,
-                        }}>
-                        {isDone ? <CheckCircle2 className="w-4 h-4" style={{ color: stage.color }} /> :
-                         isActive ? <Loader2 className="w-4 h-4 animate-spin text-white" /> :
-                         <Icon className="w-3.5 h-3.5 text-white/40" />}
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider"
-                        style={{ color: isActive ? stage.color : isDone ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.35)" }}>
-                        {stage.label}
-                      </span>
-                    </div>
-                    {i < PIPELINE_STAGES.length - 1 && <ChevronRight className="w-3 h-3 text-white/20" />}
-                  </div>
-                );
-              })}
-            </div>
+          <div className="mt-5 flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <div><p className="text-sm font-bold text-foreground">Running deterministic valuation and ownership scenarios</p><p className="text-xs text-muted-foreground">Results will identify the Skills that actually completed.</p></div>
           </div>
         )}
 
@@ -347,7 +327,7 @@ export default function InvestmentBrief() {
         {error && (
           <div className="mt-5 rounded-xl p-4 flex items-start gap-2" style={{ background: "rgba(226,75,74,0.08)", border: "0.5px solid rgba(226,75,74,0.25)" }}>
             <AlertTriangle className="w-4 h-4 text-[#e24b4a] shrink-0 mt-0.5" />
-            <p className="text-sm text-[#e24b4a]">{error}</p>
+            <div><p className="text-sm text-[#e24b4a]">{error}</p>{paymentRequired && <Link to="/pricing" className="mt-2 inline-flex text-xs font-bold text-primary hover:underline">View Investment pricing →</Link>}</div>
           </div>
         )}
 
@@ -411,6 +391,8 @@ export default function InvestmentBrief() {
                 })}
               </div>
             )}
+
+            <InvestmentScenarioResults scenarios={financialScenarios} />
 
             {/* AI Brief */}
             <BriefNarrative brief={aiBrief} />

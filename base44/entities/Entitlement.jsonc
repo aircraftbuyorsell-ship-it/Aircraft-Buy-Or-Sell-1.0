@@ -10,6 +10,17 @@
       "type": "string",
       "enum": [
         "ATI_SCORE",
+        "ATI_REPORT",
+        "DEAL_ANALYSIS",
+        "INVESTMENT",
+        "PROFESSIONAL",
+        "ATI_REPORT_PACK_5",
+        "ATI_REPORT_PACK_10",
+        "ATI_REPORT_PACK_25",
+        "API_STARTER",
+        "API_PROFESSIONAL",
+        "API_ENTERPRISE",
+        "WHITE_LABEL_LICENSE",
         "ATI_BASIC_REPORT",
         "ATI_PRO",
         "ATI_PRO_TAX",
@@ -32,7 +43,7 @@
     },
     "aircraft_registration": {
       "type": "string",
-      "description": "Required for aircraft-scoped one-time products (ATI_SCORE, ATI_BASIC_REPORT, ATI_PRO, ATI_PRO_TAX, ATI_FULL_REPORT, VALUATION_STUDIO, VERIFICATION_PACK)"
+      "description": "Aircraft registration for aircraft-scoped products"
     },
     "source": {
       "type": "string",
@@ -46,15 +57,15 @@
     },
     "stripe_payment_id": {
       "type": "string",
-      "description": "Stripe PaymentIntent / Checkout Session id (one-time)"
+      "description": "Stripe PaymentIntent or Checkout Session id"
     },
     "stripe_subscription_id": {
       "type": "string",
-      "description": "Stripe Subscription id (PRO/BROKER)"
+      "description": "Stripe Subscription id"
     },
     "stripe_event_id": {
       "type": "string",
-      "description": "Idempotency key \u2014 the Stripe event id that created/updated this entitlement"
+      "description": "Idempotency key for the Stripe event"
     },
     "status": {
       "type": "string",
@@ -69,7 +80,7 @@
     "current_period_end": {
       "type": "string",
       "format": "date-time",
-      "description": "Subscription current period end (PRO/BROKER)"
+      "description": "Subscription current period end"
     },
     "description": {
       "type": "string",

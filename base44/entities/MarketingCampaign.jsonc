@@ -1,0 +1,101 @@
+{
+  "name": "MarketingCampaign",
+  "type": "object",
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "description": "Meta ad account identifier without act_ prefix"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Meta campaign identifier"
+    },
+    "adset_id": {
+      "type": "string",
+      "description": "Meta ad set identifier holding budget and targeting"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "PAUSED",
+        "ARCHIVED"
+      ],
+      "default": "PAUSED"
+    },
+    "budget": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Daily or lifetime budget in account currency major units"
+    },
+    "budget_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "lifetime"
+      ],
+      "default": "daily"
+    },
+    "objective": {
+      "type": "string",
+      "enum": [
+        "OUTCOME_TRAFFIC",
+        "OUTCOME_AWARENESS"
+      ]
+    },
+    "audience_summary": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "countries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interest_terms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "account_id",
+    "campaign_id",
+    "name",
+    "status",
+    "budget",
+    "objective"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

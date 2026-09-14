@@ -1,0 +1,79 @@
+{
+  "name": "MarketingPost",
+  "type": "object",
+  "properties": {
+    "page_id": {
+      "type": "string",
+      "description": "Facebook Page identifier"
+    },
+    "page_name": {
+      "type": "string",
+      "description": "Facebook Page name at publish time"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "AircraftListing",
+        "MarketReport",
+        "AviationNewsItem",
+        "custom"
+      ]
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Source record identifier"
+    },
+    "post_id": {
+      "type": "string",
+      "description": "Facebook post identifier"
+    },
+    "copy": {
+      "type": "string",
+      "maxLength": 5000
+    },
+    "link_url": {
+      "type": "string"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "published",
+        "failed"
+      ],
+      "default": "published"
+    }
+  },
+  "required": [
+    "page_id",
+    "source_type",
+    "post_id",
+    "copy",
+    "published_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

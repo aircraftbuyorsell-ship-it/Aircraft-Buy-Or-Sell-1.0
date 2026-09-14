@@ -65,7 +65,23 @@
     "is_verified": {
       "type": "boolean",
       "default": false,
-      "description": "Whether this event counts as a 'verified' lead (locks first_verified_source)"
+      "description": "Whether this event counts as a verified lead"
+    },
+    "source_entity_type": {
+      "type": "string",
+      "enum": [
+        "Lead",
+        "SalesPipeline"
+      ],
+      "description": "Record type that produced this automated attribution event"
+    },
+    "source_entity_id": {
+      "type": "string",
+      "description": "Record ID that produced this automated attribution event"
+    },
+    "attribution_key": {
+      "type": "string",
+      "description": "Stable key preventing duplicate lead or deal attribution"
     },
     "metadata": {
       "type": "object",

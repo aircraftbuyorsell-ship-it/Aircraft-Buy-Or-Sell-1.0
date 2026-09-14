@@ -63,6 +63,18 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the lead agreed to the platform rules"
+    },
+    "affiliate_link_slug": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "Affiliate link that originated this lead"
+    },
+    "affiliate_chain_slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered referral chain captured when the lead was submitted"
     }
   },
   "required": [

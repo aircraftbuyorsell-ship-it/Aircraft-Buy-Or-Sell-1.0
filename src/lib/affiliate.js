@@ -11,6 +11,24 @@ export const MAX_CHAIN_DEPTH = 3;
 
 // ─── Session / dedup ──────────────────────────────────────────────────────
 const SESSION_KEY = "abos_aff_session";
+const ATTRIBUTION_KEY = "abos_aff_attribution";
+
+export function getStoredAffiliateAttribution() {
+  if (typeof window === "undefined") return { slug: "", chain_slugs: [] };
+  const currentChain = parseChainFromUrl();
+  if (currentChain.length > 0) {
+    const attribution = { slug: currentChain[currentChain.length - 1], chain_slugs: currentChain };
+    localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    return attribution;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(ATTRIBUTION_KEY) || "null");
+    return stored?.slug ? stored : { slug: "", chain_slugs: [] };
+  } catch {
+    return { slug: "", chain_slugs: [] };
+  }
+}
+
 export function getSessionId() {
   if (typeof window === "undefined") return "";
   let s = localStorage.getItem(SESSION_KEY);

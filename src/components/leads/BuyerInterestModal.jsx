@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { getStoredAffiliateAttribution } from "@/lib/affiliate";
 import { X, Loader2, Send, Plane, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const BUDGETS = ["<100k", "<200k", "<500k", "<1M", ">1M", "Not sure yet"];
@@ -33,6 +34,7 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
     if (!form.rules_agreed) { setError("Please agree to the platform rules to continue"); return; }
     setSaving(true); setError(null);
     try {
+      const attribution = getStoredAffiliateAttribution();
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
@@ -43,6 +45,8 @@ export default function BuyerInterestModal({ open, onClose, listing = null, onSu
         source: "buyer_interest",
         notes: form.message.trim(),
         rules_agreed: true,
+        affiliate_link_slug: attribution.slug || undefined,
+        affiliate_chain_slugs: attribution.chain_slugs,
       };
       if (listing?.id) {
         payload.listing = listing.id;

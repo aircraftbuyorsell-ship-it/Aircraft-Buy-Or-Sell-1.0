@@ -1,0 +1,44 @@
+{
+  "name": "Affiliate Lead Attribution",
+  "description": "Attributes new affiliate leads and closed leads to their originating referral link",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Lead",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ (.trigger.data.affiliate_link_slug // \"\") != \"\" and (.trigger.event_type == \"create\" or (.trigger.data.status == \"closed\" and .trigger.old_data.status != \"closed\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "affiliate_lead_attribution",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "attribute_lead": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "affiliateAttributionAutomation",
+            "args": {
+              "entity_name": "Lead",
+              "entity_id": "${ .trigger.entity_id }",
+              "event_type": "${ .trigger.event_type }",
+              "old_status": "${ .trigger.old_data.status // null }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Attribute affiliate lead",
+            "description": "Record lead or conversion"
+          }
+        }
+      }
+    ]
+  }
+}

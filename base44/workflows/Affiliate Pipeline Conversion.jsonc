@@ -1,0 +1,43 @@
+{
+  "name": "Affiliate Pipeline Conversion",
+  "description": "Attributes newly completed sales pipelines to the buyer's originating affiliate lead",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "SalesPipeline",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" and (.trigger.data.buyer_email // \"\") != \"\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "affiliate_pipeline_conversion",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "attribute_conversion": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "affiliateAttributionAutomation",
+            "args": {
+              "entity_name": "SalesPipeline",
+              "entity_id": "${ .trigger.entity_id }",
+              "event_type": "update",
+              "old_status": "${ .trigger.old_data.status // null }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Attribute closed deal",
+            "description": "Resolve buyer referral"
+          }
+        }
+      }
+    ]
+  }
+}

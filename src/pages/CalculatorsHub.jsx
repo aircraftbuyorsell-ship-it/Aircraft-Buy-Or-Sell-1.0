@@ -42,11 +42,6 @@ const CALCULATOR_GROUPS = [
         features: ["FAA + international registry", "N-Number / ICAO / S/N", "Owner cross-reference"],
       },
       {
-        path: "/valuation-studio", label: "OMVM Valuation", icon: TrendingUp, featureId: "basic_valuation",
-        audience: ["buyer", "seller", "broker"],
-        features: ["Market-estimated value", "Comparable sales", "Depreciation curve"],
-      },
-      {
         path: "/aircraft-detailing-calculator", label: "Detailing Calculator", icon: Sparkles, featureId: "detailing",
         audience: ["owner", "seller"],
         features: ["Exterior wash & wax", "Interior deep clean", "Labor + material estimate"],
@@ -259,7 +254,7 @@ export default function CalculatorsHub() {
             Aviation Financial Tools
           </h1>
           <p className="text-sm mt-1 max-w-2xl" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Free registry and valuation tools, plus a complete calculator workbench for aircraft ownership decisions.
+            Free registry and ownership tools, plus a complete calculator workbench for aircraft ownership decisions.
           </p>
         </div>
 

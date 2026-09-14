@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
  * Syncs active tab to ?tab= query param.
  * Lazy-loads tab components on first activation.
  */
-export default function HubTabs({ tabs, defaultTab }) {
+export default function HubTabs({ tabs, defaultTab, contentKey }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeKey = searchParams.get("tab") || defaultTab || tabs[0]?.key;
   const activeTab = tabs.find((t) => t.key === activeKey) || tabs[0];
@@ -55,7 +55,7 @@ export default function HubTabs({ tabs, defaultTab }) {
           </div>
         }
       >
-        <activeTab.Component />
+        <activeTab.Component key={contentKey} />
       </Suspense>
     </div>
   );

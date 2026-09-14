@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { SlidersHorizontal, RotateCcw } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -8,6 +8,7 @@ import ValuationReport from "@/components/valuation/ValuationReport";
 import ModelSelector, { modelLabel } from "@/components/valuation-studio/ModelSelector";
 import HistoricalPriceCheck from "@/components/valuation-studio/HistoricalPriceCheck";
 import { extractAircraftSpecs, mergeExtractedSpecs } from "@/lib/aircraftInput";
+import { lookupAircraft } from "@/lib/aircraftLookup";
 import { useEntitlementGate } from "@/hooks/useEntitlementGate";
 import EntitlementGateModal from "@/components/monetization/EntitlementGateModal";
 import { saveReport, recordUsage } from "@/lib/entitlements";
@@ -24,6 +25,7 @@ const numOrUndef = (v) => (v == null ? undefined : Number(v));
 
 export default function ValuationStudio() {
   const { gate, requireAccess, closeGate, startCheckout } = useEntitlementGate();
+  const pinnedRegistration = readParam("registration");
   const [anchor, setAnchor] = useState(null);
   const [omvmOpen, setOmvmOpen] = useState(false);
   const [formData, setFormData] = useState(() => ({
@@ -40,6 +42,17 @@ export default function ValuationStudio() {
   const [result, setResult] = useState(null);
   const [aircraft, setAircraft] = useState(null);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!pinnedRegistration || anchor?.registration === pinnedRegistration) return;
+    let active = true;
+    lookupAircraft(pinnedRegistration).then((data) => {
+      if (!active || !data?.found) return;
+      const item = data.aircraft || {};
+      setAnchor({ registration: item.registration || pinnedRegistration, make: item.make || "", model: item.model || "", year: item.year || "", hex: item.mode_s_hex || "", source: data.origin_label || data.source || "Registry" });
+    });
+    return () => { active = false; };
+  }, [pinnedRegistration, anchor?.registration]);
 
   const openOmvm = () => {
     if (anchor) {

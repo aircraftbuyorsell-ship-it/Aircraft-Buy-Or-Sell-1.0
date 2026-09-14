@@ -77,6 +77,7 @@ export default function Analytics() {
   const matchedToFaa = faaAircraft.filter((f) => f.n_number).length;
   const engineEnriched = faaAircraft.filter((f) => f.engine_mfr).length;
   const avgAti = sum.avgAti || 0;
+  const activeRegistration = new URLSearchParams(window.location.search).get("registration") || "";
 
   return (
     <div className="min-h-screen dot-grid bg-canvas text-foreground">
@@ -86,7 +87,9 @@ export default function Analytics() {
         title="Executive Intelligence"
         titleAccent="Dashboard"
         subtitle="Market performance, verification growth, registry coverage and pricing trends — computed live from platform data."
-      />
+      >
+        {activeRegistration && <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 font-mono text-xs font-bold text-gold-deep dark:text-gold-bright"><Plane className="h-3.5 w-3.5" /> Aircraft context: {activeRegistration}</div>}
+      </HeroHeader>
 
       <div className="px-4 md:px-8 pb-12 max-w-6xl mx-auto space-y-8">
         {/* Summary cards */}

@@ -2,13 +2,21 @@
   "name": "MarketingPost",
   "type": "object",
   "properties": {
+    "channel": {
+      "type": "string",
+      "enum": [
+        "facebook",
+        "instagram"
+      ],
+      "description": "Social channel used for publication"
+    },
     "page_id": {
       "type": "string",
-      "description": "Facebook Page identifier"
+      "description": "Social account or Page identifier"
     },
     "page_name": {
       "type": "string",
-      "description": "Facebook Page name at publish time"
+      "description": "Social account or Page name at publish time"
     },
     "source_type": {
       "type": "string",
@@ -25,7 +33,7 @@
     },
     "post_id": {
       "type": "string",
-      "description": "Facebook post identifier"
+      "description": "Remote social post identifier"
     },
     "copy": {
       "type": "string",
@@ -48,6 +56,7 @@
     }
   },
   "required": [
+    "channel",
     "page_id",
     "source_type",
     "post_id",

@@ -1,15 +1,14 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
 import { ToolLoopAgent, tool, stepCountIs, hasToolCall } from 'npm:ai@7.0.16';
 import { createOpenAICompatible } from 'npm:@ai-sdk/openai-compatible@3.0.5';
 import { z } from 'npm:zod@4.4.3';
 import { normalizeRegistration, supabaseRest, evidenceConfidence } from '../_shared/aircraftTwin.ts';
 
-// Evidence-gathering agent. Its own code owns the loop (see Base44's ai-gateway
-// guidance): it queries each source, then calls submitVerdict exactly once.
-// Conversational work belongs to the st_elmo in-app agent, not here.
+// Evidence-gathering agent. Conversational work belongs to the in-app agent.
+// OpenSky is deliberately isolated behind openSkyActivityEvidence: it is an
+// activity/evidence signal, never an airworthiness, ownership or compliance source.
 
 const MODULES = ['registry', 'identity', 'ownership', 'activity', 'document'];
-
 
 Deno.serve(async (req) => {
   try {
@@ -29,9 +28,6 @@ Deno.serve(async (req) => {
       initiated_by: user.id,
     });
 
-    // Sources are called through these closures so the model can only reach the
-    // three it is given, with the registration fixed from the request rather
-    // than chosen by the model.
     const invoke = async (name: string, payload: Record<string, unknown>) => {
       const res = await base44.functions.invoke(name, payload);
       return res?.data ?? null;
@@ -57,10 +53,11 @@ Deno.serve(async (req) => {
         `You are verifying aircraft ${registration} for a buyer.`,
         'Call lookupRegistry first - it establishes identity, ownership and the',
         'icao24 the activity check needs. Then check activity and filings.',
-        'Judge each module against what the sources actually returned:',
-        '"verified" when a source confirms it, "conflict" when two sources',
-        'disagree, "unverified" when no source covers it. Never invent a',
-        'finding, and never mark something verified because it seems plausible.',
+        'Judge each module only against returned source evidence:',
+        'verified when a source confirms it, conflict when sources disagree,',
+        'unverified when no source covers it. Never invent a finding.',
+        'OpenSky activity is not proof of ownership, airworthiness, AD/SB/STC/AW',
+        'compliance, or inactivity. No OpenSky observation means UNKNOWN, not inactive.',
         'When every module has an answer, call submitVerdict exactly once.',
       ].join(' '),
       tools: {
@@ -81,22 +78,28 @@ Deno.serve(async (req) => {
           },
         }),
         checkLiveActivity: tool({
-          description: 'Live ADS-B state for this aircraft by icao24 (hex). Needs icao24 from lookupRegistry.',
+          description: 'Anonymous OpenSky activity observation for the registry-resolved icao24. This is evidence only.',
           inputSchema: z.object({ icao24: z.string().describe('Mode-S hex code, e.g. a1b2c3') }),
           execute: async ({ icao24 }) => {
-            const data = await invoke('openSky', { action: 'state', icao24: String(icao24).toLowerCase() });
+            const data = await invoke('openSkyActivityEvidence', {
+              icao24: String(icao24).toLowerCase(),
+              registration,
+            });
+            const observed = data?.status === 'OBSERVED' && data?.found === true;
             recordClaim({
               module: 'activity',
-              // OpenSky Network data is provided as-is and unlicensed; the
-              // source is recorded on every claim so downstream reports can
-              // attribute it (Schafer et al., IPSN 2014).
               source: 'opensky_network',
-              claim: 'live_activity',
-              observed_value: data?.state ? 'contact' : 'no_contact',
+              source_role: 'activity_evidence',
+              claim: 'aircraft_activity_observation',
+              observed_value: observed ? 'observed' : 'unknown',
               evidence: data || {},
-              confidence: evidenceConfidence(data?.state ? 80 : 20),
+              confidence: evidenceConfidence(observed ? 80 : 0),
             });
-            return data ?? { state: null };
+            return data ?? {
+              found: false,
+              status: 'UNKNOWN',
+              source: 'opensky_network',
+            };
           },
         }),
         checkFilings: tool({

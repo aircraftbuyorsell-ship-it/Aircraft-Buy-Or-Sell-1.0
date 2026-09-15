@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
-import { resolveAccess, requireCapability } from '../_shared/accessControl.ts';
+import { resolveAccess, canUseCapability } from '../_shared/accessControl.ts';
 import { getSupabaseConfig } from '../_shared/aircraftTwin.ts';
 
 const PROJECT_NAME = 'AircraftBuyOrSell_Supabase'; // secrets-first credential resolution below
@@ -21,12 +21,15 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Access is resolved before any Supabase connector, project discovery, or
-    // aircraft data query. T1 gets only the public/basic surface; T2 unlocks
-    // intelligence/LLM/MCP-backed features; T3 is full/admin access.
+    // aircraft data query. Every signed-in tier gets the federated identity,
+    // registry and compliance surface — this is the single lookup entry point,
+    // so refusing T1 outright only pushed the Advisor onto a thinner registry
+    // fallback and scored ATI off it. T2 additionally gets the bulk
+    // intelligence arrays below; the commercial payload stays behind
+    // `unlocked` (paid report / admin), where it already was.
     const access = await resolveAccess(req);
     if (!access.ok) return Response.json({ error: access.error || 'Unauthorized' }, { status: access.status || 401 });
-    const capabilityError = requireCapability(access, 'advanced_intelligence');
-    if (capabilityError) return capabilityError;
+    const fullIntelligence = canUseCapability(access, 'advanced_intelligence');
 
     // Secrets first: reads SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY (or the
     // ABOS_-prefixed fallbacks) straight from function secrets - no OAuth
@@ -238,10 +241,22 @@ Deno.serve(async (req) => {
         ads,
         stcs,
       },
+      // Activity is evidence of being tracked, never proof of ownership,
+      // airworthiness or compliance — and an empty result is UNKNOWN, not
+      // inactivity. The raw provider rows stay behind the intelligence tier;
+      // every tier still sees whether evidence exists.
       activity_intelligence: {
-        open_sky: openSky,
-        historical_flights: adsbHistory,
+        status: (openSky || adsbHistory.length) ? 'ACTIVITY_EVIDENCE' : 'UNKNOWN',
+        open_sky_metadata: openSky ? {
+          icao24: openSky.icao24 || null,
+          manufacturer: openSky.manufacturer_name || null,
+          model: openSky.model || null,
+          serial_number: openSky.serial_number || null,
+          retrieved_at: openSky.source_retrieved_at || null,
+        } : null,
         historical_flight_count: adsbHistory.length,
+        historical_flights: fullIntelligence ? adsbHistory : null,
+        historical_flights_locked: !fullIntelligence,
       },
       certificates: {
         airworthiness: { available: !!(registry?.air_worth_date || catalog?.air_worth_date), date: registry?.air_worth_date || catalog?.air_worth_date || null },
@@ -254,7 +269,8 @@ Deno.serve(async (req) => {
         sightings: trafficRows.length,
         last_seen: trafficRows[0]?.recorded_at || null,
         latest: trafficRows[0] || null,
-        history: trafficRows,
+        history: fullIntelligence ? trafficRows : null,
+        history_locked: !fullIntelligence,
       },
       registry_filings: atiSignal ? {
         bill_of_sale_count: atiSignal.bos_count,
@@ -272,8 +288,14 @@ Deno.serve(async (req) => {
         aircraft_reference: operatorAircraft?.aircraft_mms || null,
         source_updated_at: operator.source_updated_at,
       } : null,
-      service_network: { state: registry?.state || null, active_dealers: dealerRows },
-      market_context: marketRows,
+      service_network: {
+        state: registry?.state || null,
+        active_dealer_count: dealerRows.length,
+        active_dealers: fullIntelligence ? dealerRows : null,
+        locked: !fullIntelligence,
+      },
+      market_context: fullIntelligence ? marketRows : null,
+      market_context_locked: !fullIntelligence,
       listing,
       premium: {
         unlocked,

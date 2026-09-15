@@ -23,8 +23,38 @@ function CopyButton({ value, label = "Copy" }) {
   );
 }
 
+function ConfigStatus({ config }) {
+  if (!config) return null;
+  const ready = config.webhook_ready;
+  return (
+    <div className="rounded-md border border-border bg-muted/30 p-3 text-xs">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <span className={`font-bold ${ready ? "text-emerald-500" : "text-amber-500"}`}>
+          {ready ? "Meta webhook configured" : "Meta webhook not configured yet"}
+        </span>
+        <span className="text-muted-foreground">
+          Auto-comment: <strong className="text-foreground">{config.auto_comment.enabled ? `on ≥ ${config.auto_comment.min_confidence}` : "off"}</strong>
+        </span>
+        <span className="text-muted-foreground">
+          Links: <strong className="text-foreground">{config.link_origin}</strong>
+        </span>
+      </div>
+      {config.missing_required?.length > 0 && (
+        <p className="mt-1.5 text-muted-foreground">
+          Set in Base44 → Settings → Environment variables: <code className="text-foreground">{config.missing_required.join(", ")}</code>
+        </p>
+      )}
+      {config.webhook_callback_url && (
+        <p className="mt-1 text-muted-foreground">
+          Callback URL for Meta: <code className="text-foreground">{config.webhook_callback_url}</code>
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function FacebookGroupAssistant() {
-  const { text, setText, postRef, setPostRef, result, checking, logging, message, check, logHandled } = useFacebookGroupAssistant();
+  const { text, setText, postRef, setPostRef, result, config, checking, logging, message, check, logHandled } = useFacebookGroupAssistant();
   const cardRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -57,6 +87,8 @@ export default function FacebookGroupAssistant() {
           ready-to-paste comment — nothing is posted automatically.
         </p>
       </div>
+
+      <ConfigStatus config={config} />
 
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold text-foreground">Post text</span>

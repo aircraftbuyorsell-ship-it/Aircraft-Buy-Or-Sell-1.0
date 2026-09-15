@@ -9,7 +9,7 @@ import MessageBubble from "@/components/finance/MessageBubble";
 import MobileConversationDrawer from "@/components/finance/MobileConversationDrawer";
 import SkillPipelineChips from "@/components/finance/SkillPipelineChips";
 
-const HINTS = ["Enter N123AB to start investment analysis…", "Compare base and downside ownership scenarios…", "Upload an aircraft registry PDF…"];
+const HINTS = ["Enter an aircraft registration to start analysis…", "Compare base and downside ownership scenarios…", "Upload an aircraft registry PDF…"];
 const REGEX = /\b(?:N\d{1,5}[A-Z]{0,2}|G-[A-Z]{4}|[A-Z]{1,2}-[A-Z]{2,5})\b/i;
 
 function ToolCallDisplay({ toolCall }) {
@@ -61,7 +61,7 @@ export default function FinanceAdvisorChat() {
     setError(""); setInput(""); setLoading(true);
     try {
       const registration = detectRegistration(text);
-      if (!activeConversationId && !registration) { setError("Your first message must include an aircraft registration or an FAA registry PDF."); return; }
+      if (!activeConversationId && !registration) { setError("Start by entering an aircraft registration marking or uploading an aircraft registry PDF."); return; }
       if (!activeConversationId && registration) await loadDigitalTwin(registration);
       const conversation = await ensureConversation(text);
       await base44.agents.addMessage(conversation, { role: "user", content: text });

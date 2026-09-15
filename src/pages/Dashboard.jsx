@@ -53,7 +53,7 @@ export default function Dashboard() {
         <div className="relative grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="max-w-[700px] pt-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#a87925]">AVIATION INTELLIGENCE PLATFORM</p>
-            <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Aircraft intelligence.<br />From first signal to closed deal.</h1>
+            <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Verify before you<br />Sell or Buy.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#102033]/60 md:text-lg">Verified data. Real market insights. Greater confidence.</p>
 
             <form onSubmit={submit} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_18px_50px_rgba(16,32,51,0.09)] focus-within:ring-4 focus-within:ring-[#d6a33e]/10">

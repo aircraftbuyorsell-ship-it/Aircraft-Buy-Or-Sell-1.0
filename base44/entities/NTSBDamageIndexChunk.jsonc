@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "chunk_key": {
+      "type": "string",
+      "description": "Two-character normalized registration prefix bucket"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_version": {
+      "type": "string"
+    },
+    "source_updated_at": {
+      "type": "string"
+    },
+    "encoding": {
+      "type": "string",
+      "description": "gzip-base64"
+    },
+    "payload_gzip_base64": {
+      "type": "string"
+    },
+    "record_count": {
+      "type": "number"
+    },
+    "sha256": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "chunk_key",
+    "source_name",
+    "source_version",
+    "encoding",
+    "payload_gzip_base64",
+    "record_count"
+  ],
+  "name": "NTSBDamageIndexChunk"
+}

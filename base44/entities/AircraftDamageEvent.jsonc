@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "properties": {
+    "registration": {
+      "type": "string",
+      "description": "Normalized aircraft registration, e.g. N8328W"
+    },
+    "event_id": {
+      "type": "string",
+      "description": "NTSB event ID"
+    },
+    "ntsb_number": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string"
+    },
+    "damage": {
+      "type": "string"
+    },
+    "make": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "serial_number": {
+      "type": "string"
+    },
+    "aircraft_category": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "injury_level": {
+      "type": "string"
+    },
+    "investigating_agency": {
+      "type": "string"
+    },
+    "probable_cause": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_updated_at": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "description": "found, not_found, unknown"
+    },
+    "evidence_hash": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "registration",
+    "event_id",
+    "source_name",
+    "verification_status"
+  ],
+  "name": "AircraftDamageEvent"
+}

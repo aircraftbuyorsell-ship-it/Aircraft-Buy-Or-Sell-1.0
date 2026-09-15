@@ -1,0 +1,86 @@
+{
+  "name": "FacebookGroupEvent",
+  "type": "object",
+  "properties": {
+    "facebook_post_id": {
+      "type": "string",
+      "description": "Facebook post or comment ID this event was raised for (dedup key)"
+    },
+    "facebook_group_id": {
+      "type": "string"
+    },
+    "facebook_page_id": {
+      "type": "string",
+      "description": "Connected Page ID, when the group is managed via a linked Page"
+    },
+    "source_text": {
+      "type": "string",
+      "maxLength": 5000,
+      "description": "Post/comment text that was classified (no PII beyond what the author posted publicly)"
+    },
+    "registration": {
+      "type": "string"
+    },
+    "aircraft_match": {
+      "type": "object",
+      "description": "Extracted listing fields (make/year/price/hours) when no registration was found"
+    },
+    "destination_url": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "comment_text": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "comment_id": {
+      "type": "string",
+      "description": "Remote Facebook comment ID once actually posted"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["RECEIVED", "PARSED", "MATCHED", "COMMENTED", "SKIPPED", "ERROR"],
+      "default": "RECEIVED"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why an event was skipped or errored"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "facebook_post_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    },
+    "read": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    },
+    "update": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    },
+    "delete": {
+      "$or": [
+        { "user_condition": { "role": "admin" } },
+        { "user_condition": { "role": "super_admin" } }
+      ]
+    }
+  }
+}

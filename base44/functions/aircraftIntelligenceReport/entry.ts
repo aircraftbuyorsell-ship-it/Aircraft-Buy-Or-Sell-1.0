@@ -35,6 +35,19 @@ async function supabaseRows(base44: any, table: string, query: string) {
   }
 }
 
+async function fetchAdsbdb(registration: string) {
+  try {
+    const response = await fetch(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(registration)}`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (!response.ok) return null;
+    return (await response.json())?.response?.aircraft || null;
+  } catch (_) {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -47,7 +60,6 @@ Deno.serve(async (req) => {
     const svc = base44.asServiceRole.entities;
     const userEmail = authz.access.user.email;
 
-    // Prefer a durable purchased report when one already exists.
     const purchased = await svc.PurchasedReport.filter({
       user_email: userEmail,
       product_key: 'ATI_FULL_REPORT',
@@ -65,11 +77,12 @@ Deno.serve(async (req) => {
     }
 
     const nNumber = registration.replace(/^N/, '');
-    const [faaRows, passportRows, listingRows, openSkyRows] = await Promise.all([
+    const [faaRows, passportRows, listingRows, openSkyRows, adsbdb] = await Promise.all([
       registration.startsWith('N') ? svc.FAAAircraft.filter({ n_number: nNumber }, '-created_date', 1) : [],
       svc.ATIPassport.filter({ registration }, '-created_date', 1),
       svc.AircraftListing.filter({ registration, status: 'active', visibility: 'public' }, '-created_date', 5),
       supabaseRows(base44, 'opensky_aircraft_metadata', `select=*&registration=eq.${encodeURIComponent(registration)}&limit=5`),
+      fetchAdsbdb(registration),
     ]);
 
     const faa = faaRows[0] || null;
@@ -77,8 +90,9 @@ Deno.serve(async (req) => {
     const listings = listingRows || [];
     const openSky = openSkyRows[0] || null;
 
-    if (!faa && !passport && !openSky && listings.length === 0) {
-      return Response.json({ authorized: true, registration, found: false, report: null }, { status: 404 });
+    if (!faa && !passport && !openSky && listings.length === 0 && !adsbdb) {
+      // UNKNOWN is a valid data state. Do not turn it into a transport-level 404.
+      return Response.json({ authorized: true, registration, found: false, report: null });
     }
 
     let engine = null;
@@ -92,14 +106,14 @@ Deno.serve(async (req) => {
     const report = {
       identity: {
         registration,
-        manufacturer: passport?.make || listings[0]?.make || openSky?.manufacturer_name || null,
-        model: passport?.model || listings[0]?.model || openSky?.model || null,
+        manufacturer: passport?.make || listings[0]?.make || openSky?.manufacturer_name || adsbdb?.manufacturername || null,
+        model: passport?.model || listings[0]?.model || openSky?.model || adsbdb?.type || null,
         year: faa?.year_mfr || null,
-        serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || null,
-        mode_s_hex: faa?.mode_s_hex || passport?.icao_hex || openSky?.icao24 || null,
+        serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || adsbdb?.serialnumber || null,
+        mode_s_hex: faa?.mode_s_hex || passport?.icao_hex || openSky?.icao24 || adsbdb?.mode_s || null,
       },
       registry: {
-        source: registration.startsWith('N') ? 'FAA Registry' : 'ABOS / federated registry data',
+        source: faa ? 'FAA Registry' : adsbdb ? 'ADS-BDB identity reference' : registration.startsWith('N') ? 'FAA Registry' : 'ABOS / federated registry data',
         status_code: faa?.status_code || null,
         certificate_issue_date: faa?.cert_issue_date || null,
         airworthiness_date: faa?.air_worth_date || null,
@@ -163,10 +177,6 @@ Deno.serve(async (req) => {
         source_count: passport?.data_sources_matched ?? null,
         status: passport?.data_confidence || 'unverified',
       },
-      // opensky_aircraft_metadata is static identity reference data (make, model,
-      // serial, operator). It carries no observation timestamps, so nothing here
-      // may be presented as flight activity — its updated_at is the bulk-import
-      // time, identical for every row in the table.
       activity: {
         status: 'UNKNOWN',
         evidence_type: 'no_activity_observation_in_this_report',
@@ -203,6 +213,7 @@ Deno.serve(async (req) => {
           faa ? 'FAA Aircraft' : null,
           passport ? 'ABOS ATI Passport' : null,
           openSky ? 'OpenSky metadata' : null,
+          adsbdb ? 'ADS-BDB identity reference' : null,
           listings.length ? 'ABOS Marketplace' : null,
           engine ? `EngineSpec:${engine.source || 'ABOS'}` : null,
         ].filter(Boolean),

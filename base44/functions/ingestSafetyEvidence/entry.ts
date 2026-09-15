@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
 import { normalizeRegistration, supabaseRest } from '../_shared/aircraftTwin.ts';
 
 const FAA_SDR_BASE = 'https://external.apic4e.faa.gov/sdrs/retrieve/SDR-';
+const NTSB_SOURCE = 'https://www.ntsb.gov/Pages/AviationQueryV2.aspx';
 
 function parseCsv(text: string) {
   const rows: string[][] = [];
@@ -144,7 +145,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify(records.slice(i, i + 250)),
         });
       }
-      return Response.json({ ok: true, source, imported: records.length, source: 'NTSB official API/CAROL export' });
+      return Response.json({ ok: true, source, imported: records.length, source_system: 'NTSB official API/CAROL export' });
     }
 
     return Response.json({ error: 'source must be faa_sdr or ntsb' }, { status: 400 });
@@ -152,5 +153,3 @@ Deno.serve(async (req) => {
     return Response.json({ error: error?.message || String(error) }, { status: 500 });
   }
 });
-
-const NTSB_SOURCE = 'https://www.ntsb.gov/Pages/AviationQueryV2.aspx';

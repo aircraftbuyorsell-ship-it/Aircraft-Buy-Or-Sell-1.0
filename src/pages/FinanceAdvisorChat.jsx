@@ -1,7 +1,10 @@
 import PricingAdvisor from "./PricingAdvisor";
+import { installAircraftPreviewBridge } from "@/lib/aircraftPreviewBridge";
 
-// Renders the Aircraft Advisor experience. Kept at the existing
-// /finance-advisor route for backward-compatible link/bookmark support.
+// Keep the existing Aircraft Advisor UI and route. The bridge only replaces
+// the stale/unavailable preview function call with the shared ABOS lookup.
+installAircraftPreviewBridge();
+
 export default function FinanceAdvisorChat() {
   return <PricingAdvisor />;
 }

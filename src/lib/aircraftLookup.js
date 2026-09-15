@@ -21,7 +21,6 @@ function normalizeResult(data, registration) {
   aircraft.status_code = status;
   aircraft.registration = normalizeReg(aircraft.registration || registration);
   aircraft.registered_owner = "****";
-  // Keep alternate owner-name fields from bypassing the same display policy.
   for (const field of ["name", "owner", "owner_name", "owner_masked", "registered_owner_name"]) {
     if (field in aircraft) aircraft[field] = "****";
   }
@@ -34,7 +33,6 @@ function isFound(data) {
 
 function toPublicTwinResult(data) {
   if (!data?.found) return data;
-
   return {
     found: true,
     source: "public_faa",
@@ -57,42 +55,48 @@ function toPublicTwinResult(data) {
   };
 }
 
+/**
+ * Single ABOS aircraft entry point.
+ * Prefer the federated DataHub because it already joins FAA, engine, safety,
+ * compliance, live/historic traffic and market evidence. Fall back to the
+ * lighter registry providers only when the federated source is unavailable.
+ */
 export async function lookupAircraft(registration, options = {}) {
   const normalized = normalizeReg(registration);
   if (!normalized) return { found: false, error: "Aircraft registration is required." };
-
-  // Registry providers use compact keys; UI uses the formatted marking.
   const canonicalRegistration = normalized.replace(/-/g, "");
 
-  // Fixed source priority, independent of response timing. All sources start together.
-  const sources = [
+  const attempts = [
     { name: "aircraftDataHub", payload: { registration: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
     { name: "globalAircraftLookup", payload: { registration: canonicalRegistration } },
     { name: "publicTwinLookup", payload: { query: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
   ];
-  const outcomes = await Promise.allSettled(sources.map(async ({ name, payload }) => {
-    const response = await base44.functions.invoke(name, payload);
-    return name === "publicTwinLookup" ? toPublicTwinResult(response.data) : response.data;
-  }));
-  const source_statuses = outcomes.map((outcome, index) => ({
-    source: sources[index].name,
-    status: outcome.status === "rejected" || !outcome.value || (outcome.value.error && !isFound(outcome.value))
-      ? "unavailable" : isFound(outcome.value) ? "matched" : "no_match",
-  }));
-  const selected = outcomes.findIndex((outcome) => outcome.status === "fulfilled" && isFound(outcome.value));
-  if (selected !== -1) {
-    return {
-      ...normalizeResult(outcomes[selected].value, normalized),
-      source_statuses,
-      fallback_used: selected > 0,
-    };
+
+  const statuses = [];
+  for (let i = 0; i < attempts.length; i += 1) {
+    const { name, payload } = attempts[i];
+    try {
+      const response = await base44.functions.invoke(name, payload);
+      const data = name === "publicTwinLookup" ? toPublicTwinResult(response.data) : response.data;
+      statuses.push({ source: name, status: isFound(data) ? "matched" : "no_match" });
+      if (isFound(data)) {
+        return {
+          ...normalizeResult(data, normalized),
+          source_statuses: statuses,
+          fallback_used: i > 0,
+          intelligence_complete: name === "aircraftDataHub",
+        };
+      }
+    } catch (error) {
+      statuses.push({ source: name, status: "unavailable" });
+    }
   }
-  const incomplete = source_statuses.some(({ status }) => status === "unavailable");
+
   return {
     found: false,
-    source_statuses,
+    source_statuses: statuses,
     fallback_used: true,
-    error: incomplete
+    error: statuses.some(({ status }) => status === "unavailable")
       ? `No match confirmed for ${normalized}. Some registry sources are unavailable; please try again.`
       : `No registry record found for ${normalized}.`,
   };

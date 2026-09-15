@@ -8,11 +8,6 @@ const PRICE_CONFIG = {
   'price_1TaO2yAT7Be3WR6JjlhagUpB': { tokens: 2000, tier: 'enterprise', sub_tier: 'elite', product_key: 'PRO', price_usd: 299 },
 };
 
-// White-Label self-serve subscription plans (Starter/Professional). Server-side
-// allowlist mapping our internal plan_type to the real Stripe Price — see
-// docs/white-label/agreements/2026-08-26.md and _shared/tenantLicense.mjs's
-// PLAN_CAPABILITIES for what each plan grants. Enterprise is deliberately
-// absent: it is Contact Sales only, never self-serve checkout.
 const TENANT_PLAN_PRICES = {
   wl_starter: { priceId: 'price_1U8skdAT7Be3WR6JKReGd5ym', plan: 'starter', label: 'ABOS White-Label — Starter' },
   wl_professional: { priceId: 'price_1U8skqAT7Be3WR6J1ErACqAC', plan: 'professional', label: 'ABOS White-Label — Professional' },
@@ -33,42 +28,21 @@ const BUYER_PLANS = {
 const SKYDEALS_EMAIL = 'skydealseurope@gmail.com';
 const SKYDEALS_PLAN_TYPE = 'skydeals_custom_quarterly';
 
-// Origins checkout may hand the buyer back to. ABOS_CHECKOUT_RETURN_ORIGINS
-// (comma-separated) stays authoritative when set. When it is NOT set we fall
-// back to these known-good ABOS origins rather than an empty allowlist —
-// an empty allowlist rejects *every* checkout with a 400, which is exactly how
-// this shipped: the variable was never configured, so "Start 14-day trial"
-// (and every other plan) died on 'Invalid checkout return origin'.
 const DEFAULT_RETURN_ORIGINS = [
   'https://aircraftbuyorsell.com',
   'https://www.aircraftbuyorsell.com',
   'https://abos-marketspace.com',
   'https://www.abos-marketspace.com',
 ];
-
-// Hosting namespaces only ABOS can publish into: Base44-hosted builds of this
-// app, and this Cloudflare account's own workers.dev subdomain (production and
-// per-branch/per-commit previews both land there). The leading dot matters —
-// without it 'notbase44.app' and 'evilaircraftbuyorsell.workers.dev' would match.
-const DEFAULT_RETURN_ORIGIN_SUFFIXES = [
-  '.base44.app',
-  '.aircraftbuyorsell.workers.dev',
-];
+const DEFAULT_RETURN_ORIGIN_SUFFIXES = ['.base44.app', '.aircraftbuyorsell.workers.dev'];
 
 function allowedReturnOrigin(returnUrl: string): boolean {
   try {
     const url = new URL(returnUrl);
     if (url.protocol !== 'https:') return false;
-
     const configured = (Deno.env.get('ABOS_CHECKOUT_RETURN_ORIGINS') || '')
-      .split(',')
-      .map((value) => value.trim().replace(/\/$/, ''))
-      .filter(Boolean);
-
-    // When configured, the explicit allowlist is authoritative. Do not silently
-    // fall back to defaults or hosting suffixes once an operator has configured it.
+      .split(',').map((value) => value.trim().replace(/\/$/, '')).filter(Boolean);
     if (configured.length > 0) return configured.includes(url.origin);
-
     if (DEFAULT_RETURN_ORIGINS.includes(url.origin)) return true;
     if (url.hostname === 'base44.app') return true;
     return DEFAULT_RETURN_ORIGIN_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix));
@@ -82,10 +56,10 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const { priceId, returnUrl, plan_type, inquiry_id } = await req.json();
+    const { priceId, returnUrl, plan_type, inquiry_id, report_registration, product_key } = await req.json();
     if (!returnUrl || !allowedReturnOrigin(returnUrl)) {
       let rejected = 'unparseable';
-      try { rejected = new URL(returnUrl).origin; } catch (_) { /* keep placeholder */ }
+      try { rejected = new URL(returnUrl).origin; } catch (_) {}
       console.error('Checkout rejected: return origin not allowed', { rejected, plan_type });
       return Response.json({ error: 'Invalid checkout return origin' }, { status: 400 });
     }
@@ -137,12 +111,7 @@ Deno.serve(async (req) => {
           trial_period_days: 14,
           metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
         },
-        custom_fields: [{
-          key: 'company_name',
-          label: { type: 'custom', custom: 'Company / organization name' },
-          type: 'text',
-          optional: false,
-        }],
+        custom_fields: [{ key: 'company_name', label: { type: 'custom', custom: 'Company / organization name' }, type: 'text', optional: false }],
         success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
         cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
         metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
@@ -154,12 +123,26 @@ Deno.serve(async (req) => {
     const configuredPrice = PRICE_CONFIG[priceId];
     if (!configuredPrice) return Response.json({ error: 'Price is not allowed' }, { status: 403 });
 
+    const normalizedRegistration = String(report_registration || '').trim().toUpperCase().replace(/\s+/g, '');
+    if (configuredPrice.product_key === 'ATI_FULL_REPORT' && !normalizedRegistration) {
+      return Response.json({ error: 'Aircraft registration is required for this report' }, { status: 400 });
+    }
+    if (product_key && product_key !== configuredPrice.product_key) {
+      return Response.json({ error: 'Product does not match the selected Stripe price' }, { status: 400 });
+    }
+
+    const metadata = {
+      user_id: user.id,
+      user_email: user.email,
+      product_key: configuredPrice.product_key,
+      ...(normalizedRegistration ? { aircraft_registration: normalizedRegistration } : {}),
+    };
     const session = await stripe.checkout.sessions.create({
       mode: 'payment', payment_method_types: ['card'], customer_email: user.email,
       client_reference_id: user.id, line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
-      metadata: { user_id: user.id, user_email: user.email, product_key: configuredPrice.product_key },
+      metadata,
     });
     return Response.json({ sessionId: session.id, sessionUrl: session.url });
   } catch (error) {

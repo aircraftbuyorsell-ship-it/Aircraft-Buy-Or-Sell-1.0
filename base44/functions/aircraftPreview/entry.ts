@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       registration,
       aircraft: {
         registration,
-        make: passport?.make || listing?.make || openSky?.make || null,
+        make: passport?.make || listing?.make || openSky?.manufacturer_name || null,
         model: passport?.model || listing?.model || openSky?.model || null,
         year: faa?.year_mfr || passport?.year_manufactured || listing?.year || null,
         serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || null,

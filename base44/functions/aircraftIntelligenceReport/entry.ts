@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     const report = {
       identity: {
         registration,
-        manufacturer: passport?.make || listings[0]?.make || openSky?.make || null,
+        manufacturer: passport?.make || listings[0]?.make || openSky?.manufacturer_name || null,
         model: passport?.model || listings[0]?.model || openSky?.model || null,
         year: faa?.year_mfr || null,
         serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || null,
@@ -163,15 +163,26 @@ Deno.serve(async (req) => {
         source_count: passport?.data_sources_matched ?? null,
         status: passport?.data_confidence || 'unverified',
       },
+      // opensky_aircraft_metadata is static identity reference data (make, model,
+      // serial, operator). It carries no observation timestamps, so nothing here
+      // may be presented as flight activity — its updated_at is the bulk-import
+      // time, identical for every row in the table.
       activity: {
-        status: openSky ? 'ACTIVITY_EVIDENCE' : 'UNKNOWN',
-        evidence_type: 'activity_evidence_only',
-        icao24: openSky?.icao24 || openSky?.mode_s_hex || null,
-        last_seen: openSky?.last_contact || openSky?.last_seen || openSky?.updated_at || null,
+        status: 'UNKNOWN',
+        evidence_type: 'no_activity_observation_in_this_report',
+        note: 'This report contains no flight-activity observation. UNKNOWN activity is not an inactivity or negative finding about the aircraft.',
+      },
+      opensky_metadata: {
+        status: openSky ? 'METADATA_MATCH' : 'UNKNOWN',
+        icao24: openSky?.icao24 || null,
+        manufacturer: openSky?.manufacturer_name || null,
+        model: openSky?.model || null,
+        serial_number: openSky?.serial_number || null,
+        retrieved_at: openSky?.source_retrieved_at || null,
         source: openSky ? 'opensky_aircraft_metadata' : null,
         note: openSky
-          ? 'Activity evidence found in OpenSky metadata. This confirms tracked activity only — it is not proof of ownership, airworthiness, AD/SB compliance, or accident history.'
-          : 'No OpenSky metadata found. This is UNKNOWN activity evidence, not an inactivity or negative finding about the aircraft.',
+          ? 'OpenSky metadata matched this registration. Identity reference only — not proof of activity, ownership, airworthiness, AD/SB compliance, or accident history.'
+          : 'No OpenSky metadata found for this registration.',
       },
       market: {
         public_listings: listings.map((item: any) => ({

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowRight } from "lucide-react";
+import { ArrowRight, Globe2, Search, ShieldCheck, Sparkles, LockKeyhole, FileCheck2 } from "lucide-react";
 
 const REGISTRATION = /\b(?:N\d{1,5}[A-Z]{0,2}|[A-Z0-9]{1,2}-[A-Z0-9]{2,5})\b/i;
+const SAMPLES = ["N7692J", "OK-PES", "OM-PES"];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,41 +17,80 @@ export default function Dashboard() {
     navigate(`/finance-advisor?registration=${encodeURIComponent(match.toUpperCase())}`);
   };
 
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-[#070B12] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(212,160,23,0.12),transparent_28%),radial-gradient(circle_at_50%_50%,rgba(45,75,120,0.16),transparent_48%)]" />
-      <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.45)_0.7px,transparent_0.7px)] [background-size:22px_22px]" />
+  const searchSample = (sample) => {
+    setQuery(sample);
+    navigate(`/finance-advisor?registration=${sample}`);
+  };
 
-      <header className="relative z-20 flex items-center justify-between px-6 py-6 md:px-10">
-        <div className="text-xl font-black tracking-[0.18em]">ABOS</div>
-        <div className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">Aircraft Intelligence</div>
+  return (
+    <main className="min-h-screen overflow-hidden bg-[#fbfaf7] text-[#102033]">
+      <header className="relative z-20 border-b border-[#102033]/[0.08] bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6 md:px-10">
+          <button onClick={() => navigate("/")} className="flex items-center gap-3 text-left">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101a25] text-xl font-black text-white shadow-lg ring-1 ring-[#c99635]">N<span className="text-[#d6a33e]">↗</span></span>
+            <span><span className="block text-[25px] font-black leading-none tracking-tight">ABOS</span><span className="mt-1 block text-[8px] font-semibold tracking-[0.25em] text-[#a67b2c]">AIRCRAFT BUY OR SELL</span></span>
+          </button>
+          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
+            <button className="hover:text-[#b5822b]">About Us</button>
+            <button className="hover:text-[#b5822b]">How It Works</button>
+            <button className="hover:text-[#b5822b]">FAQ</button>
+            <button onClick={() => navigate("/my-account")} className="hover:text-[#b5822b]">User Account</button>
+          </nav>
+          <div className="flex items-center gap-3">
+            <form onSubmit={submit} className="hidden w-[260px] items-center rounded-xl border border-[#c99635]/50 bg-white px-3 shadow-sm md:flex">
+              <Search className="h-4 w-4 text-[#102033]/45" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search registration..." className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-xs outline-none placeholder:text-[#102033]/35" />
+            </form>
+            <button onClick={() => navigate("/my-account")} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#102033]/10 bg-white shadow-sm">◯</button>
+          </div>
+        </div>
       </header>
 
-      <section className="relative z-10 flex min-h-[calc(100vh-88px)] flex-col items-center justify-center px-5 pb-16 text-center">
-        <div className="relative mb-10 h-[min(62vw,430px)] w-[min(62vw,430px)] rounded-full border border-white/10 bg-[radial-gradient(circle_at_35%_28%,rgba(255,255,255,0.16),transparent_13%),radial-gradient(circle_at_38%_38%,#1d3553_0%,#0d1a2b_42%,#05080e_72%)] shadow-[0_0_100px_rgba(70,110,170,0.22)] animate-[spin_45s_linear_infinite]">
-          <div className="absolute inset-[7%] rounded-full border border-white/5" />
-          <div className="absolute left-[8%] top-[34%] h-px w-[84%] rotate-[13deg] bg-[#D4A017]/45 shadow-[0_0_14px_rgba(212,160,23,0.35)]" />
-          <div className="absolute left-[18%] top-[58%] h-px w-[64%] -rotate-[19deg] bg-white/20" />
-          <span className="absolute left-[24%] top-[29%] h-1.5 w-1.5 rounded-full bg-[#D4A017] shadow-[0_0_12px_#D4A017]" />
-          <span className="absolute right-[22%] top-[48%] h-1.5 w-1.5 rounded-full bg-white/70 shadow-[0_0_10px_white]" />
-          <span className="absolute left-[47%] bottom-[24%] h-1.5 w-1.5 rounded-full bg-[#D4A017] shadow-[0_0_12px_#D4A017]" />
+      <section className="relative mx-auto max-w-[1440px] px-6 pb-8 pt-10 md:px-16 md:pt-16">
+        <div className="pointer-events-none absolute right-[-120px] top-[-40px] h-[680px] w-[680px] rounded-full opacity-90 [background-image:radial-gradient(rgba(183,139,54,0.36)_0.8px,transparent_0.8px)] [background-size:8px_8px] [mask-image:radial-gradient(circle,black_35%,transparent_72%)]" />
+        <div className="pointer-events-none absolute right-[4%] top-[100px] h-[560px] w-[560px] rounded-full border border-[#d6a33e]/30" />
+        <div className="pointer-events-none absolute right-[11%] top-[170px] h-[420px] w-[420px] rounded-full border border-[#d6a33e]/20" />
+        <div className="relative grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="max-w-[700px] pt-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#a87925]">AVIATION INTELLIGENCE PLATFORM</p>
+            <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Aircraft intelligence.<br />From first signal to closed deal.</h1>
+            <p className="mt-6 max-w-xl text-base leading-7 text-[#102033]/60 md:text-lg">Verified data. Real market insights. Greater confidence.</p>
+
+            <form onSubmit={submit} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_18px_50px_rgba(16,32,51,0.09)] focus-within:ring-4 focus-within:ring-[#d6a33e]/10">
+              <span className="ml-4 text-lg">✈</span>
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search aircraft registration..." className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/35 md:text-base" autoFocus />
+              <button type="submit" disabled={!query.trim()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#c99635] text-white shadow-sm transition hover:brightness-105 disabled:opacity-40"><ArrowRight className="h-5 w-5" /></button>
+            </form>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#102033]/50"><span className="mr-1">Quick search:</span>{SAMPLES.map((sample) => <button key={sample} onClick={() => searchSample(sample)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold hover:border-[#c99635]/60 hover:text-[#a87925]">{sample}</button>)}<button onClick={() => setQuery("")} className="flex items-center gap-1 rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Global search</button></div>
+          </div>
+
+          <div className="relative hidden min-h-[510px] lg:block">
+            <div className="absolute right-[8%] top-[40px] h-[500px] w-[500px] rounded-full [background:radial-gradient(circle_at_35%_25%,#ffffff_0%,#f1eee6_42%,#ded8ca_100%)] shadow-[0_30px_80px_rgba(16,32,51,0.08)] [background-image:radial-gradient(rgba(16,32,51,0.25)_0.9px,transparent_0.9px)] [background-size:9px_9px]" />
+            <div className="absolute right-[2%] top-[120px] h-px w-[650px] rotate-[15deg] bg-[#c99635]/45" />
+            <div className="absolute right-[7%] top-[310px] h-px w-[620px] -rotate-[18deg] bg-[#c99635]/35" />
+            <div className="absolute right-[35%] top-[180px] h-3 w-3 rounded-full bg-[#d6a33e] shadow-[0_0_20px_rgba(214,163,62,0.7)]" />
+            <div className="absolute right-[12%] top-[350px] h-2.5 w-2.5 rounded-full bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
+            <div className="absolute right-[2%] top-[105px] w-[380px] rounded-3xl border border-[#102033]/10 bg-white/95 p-5 shadow-[0_25px_70px_rgba(16,32,51,0.13)] backdrop-blur-xl">
+              <div className="flex items-center gap-4"><div className="h-20 w-24 rounded-xl bg-[#e8e4db] p-3 text-center text-3xl">✈</div><div><div className="text-xl font-black">N7692J 🇺🇸</div><div className="mt-1 text-sm text-[#102033]/60">Piper PA-28R-180</div><div className="mt-1 text-xs text-[#102033]/45">1983 · Aircraft profile</div></div></div>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div>
+              <button onClick={() => searchSample("N7692J")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#c99635] px-4 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-[#D4A017]">Aircraft Buy Or Sell</p>
-        <h1 className="max-w-3xl text-4xl font-black tracking-tight md:text-6xl">Know the aircraft before you buy it.</h1>
-        <p className="mt-4 max-w-xl text-sm leading-6 text-white/50 md:text-base">Search a tail number or aircraft. ABOS turns fragmented aviation data into one aircraft intelligence profile.</p>
-
-        <form onSubmit={submit} className="mt-8 flex w-full max-w-2xl items-center rounded-2xl border border-white/15 bg-white/[0.07] p-1.5 shadow-2xl backdrop-blur-xl focus-within:border-[#D4A017]/60">
-          <Search className="ml-4 h-5 w-5 shrink-0 text-white/35" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tail number, aircraft or model…" className="min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm text-white outline-none placeholder:text-white/30" autoFocus />
-          <button type="submit" disabled={!query.trim()} className="flex h-11 items-center gap-2 rounded-xl bg-[#D4A017] px-5 text-sm font-bold text-[#07101B] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-35">
-            Analyze <ArrowRight className="h-4 w-4" />
-          </button>
-        </form>
-
-        <div className="mt-5 flex flex-wrap justify-center gap-2 text-[11px] text-white/30">
-          {['N7692J', 'OK-PES', 'OM-PES'].map((sample) => <button key={sample} type="button" onClick={() => { setQuery(sample); navigate(`/finance-advisor?registration=${sample}`); }} className="rounded-full border border-white/10 px-3 py-1.5 hover:border-[#D4A017]/50 hover:text-white/60">{sample}</button>)}
+      <section className="mx-auto max-w-[1380px] px-6 pb-10 md:px-12">
+        <div className="grid overflow-hidden rounded-3xl border border-[#102033]/10 bg-white shadow-[0_20px_60px_rgba(16,32,51,0.06)] md:grid-cols-4">
+          {[
+            [ShieldCheck, "VERIFIED DATA", "Registry, ownership, documents & more."],
+            [Globe2, "GLOBAL NETWORK", "FAA, EASA and 100+ registries worldwide."],
+            [FileCheck2, "INTELLIGENCE REPORTS", "ATI, valuation, market & deal analysis."],
+            [LockKeyhole, "SECURE PLATFORM", "Your data. Your control."],
+          ].map(([Icon, title, text]) => <div key={title} className="border-b border-[#102033]/10 p-7 last:border-0 md:border-b-0 md:border-r"><Icon className="h-8 w-8 text-[#b98427]" /><h3 className="mt-4 text-sm font-black tracking-wide">{title}</h3><p className="mt-2 text-xs leading-5 text-[#102033]/50">{text}</p></div>)}
         </div>
+        <div className="mt-6 flex flex-col gap-5 rounded-3xl border border-[#102033]/10 bg-white p-7 shadow-sm md:flex-row md:items-center md:justify-between"><div><span className="inline-flex items-center gap-1 rounded-full bg-[#f4ead5] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#9b6e21]"><Sparkles className="h-3 w-3" /> New</span><h2 className="mt-3 text-2xl font-black">Aircraft Advisor</h2><p className="mt-1 text-sm text-[#102033]/55">One place for aircraft identity, registry, valuation, verification and market intelligence.</p></div><button onClick={() => searchSample("N7692J")} className="flex items-center justify-center gap-2 rounded-xl bg-[#c99635] px-6 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button></div>
+        <div className="flex items-center justify-between pt-8 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#102033]/35"><span>Trust by design</span><span>Transparency. Verification. Control.</span></div>
       </section>
     </main>
   );

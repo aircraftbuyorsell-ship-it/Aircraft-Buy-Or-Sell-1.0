@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
 import { ToolLoopAgent, tool, stepCountIs, hasToolCall } from 'npm:ai@7.0.16';
 import { createOpenAICompatible } from 'npm:@ai-sdk/openai-compatible@3.0.5';
 import { z } from 'npm:zod@4.4.3';
-import { normalizeRegistration, supabaseRest, evidenceConfidence } from '../_shared/aircraftTwin.ts';
+import { normalizeRegistration, evidenceConfidence } from '../_shared/aircraftTwin.ts';
 
 // Verification is evidence aggregation, not a blanket compliance clearance.
 // Every module must distinguish VERIFIED evidence from UNKNOWN/MISSING evidence.
@@ -15,12 +15,6 @@ function evidenceStatus({ found = false, conflict = false, review = false } = {}
   if (review) return STATUS.REVIEW;
   if (found) return STATUS.VERIFIED;
   return STATUS.UNKNOWN;
-}
-
-function safeText(value) {
-  if (value == null) return '';
-  if (typeof value === 'string') return value;
-  try { return JSON.stringify(value); } catch (_) { return String(value); }
 }
 
 Deno.serve(async (req) => {
@@ -67,11 +61,13 @@ Deno.serve(async (req) => {
       instructions: [
         `You are verifying aircraft ${registration}.`,
         'First resolve registry identity. Then run activity and evidence checks.',
+        'Always run the NTSB and FAA SDR damage-source check before submitting the verdict.',
         'Do not convert missing data into a negative finding. Use UNKNOWN when a source does not cover the aircraft.',
         'AD/STC catalog hits identify potentially applicable records, not compliance failure.',
         'Compliance can only be VERIFIED when the returned evidence supports compliance for this aircraft.',
         'OpenSky proves observation/activity only and never proves ownership, airworthiness, AD, SB or STC compliance.',
-        'Damage findings require an actual accident/damage source or aircraft-specific disclosure evidence.',
+        'A matching NTSB accident/incident or FAA SDR is REVIEW_REQUIRED, never automatically a confirmed damage finding.',
+        'No NTSB/SDR record is UNKNOWN and must never be rendered as never damaged or damage-free.',
         'Call submitVerdict exactly once after all checks have returned.',
       ].join(' '),
       tools: {
@@ -99,12 +95,12 @@ Deno.serve(async (req) => {
           },
         }),
         checkTechnicalEvidence: tool({
-          description: 'Inspect ABOS federated aircraft data for damage history, FAA AD/STC catalog evidence, SB documents and airworthiness evidence.',
+          description: 'Inspect ABOS federated aircraft data for FAA AD/STC catalog evidence, SB documents and airworthiness evidence.',
           inputSchema: z.object({}),
           execute: async () => {
             const data = await invoke('aircraftDataHub', { registration });
             if (!data?.found) {
-              for (const [module, claim] of [['damage','damage_history'], ['ad','applicable_ad_records'], ['sb','service_bulletin_evidence'], ['stc','stc_catalog_evidence'], ['airworthiness','airworthiness_evidence']]) {
+              for (const [module, claim] of [['ad','applicable_ad_records'], ['sb','service_bulletin_evidence'], ['stc','stc_catalog_evidence'], ['airworthiness','airworthiness_evidence']]) {
                 recordClaim({ module: module === 'ad' || module === 'sb' || module === 'stc' ? 'compliance' : module, source: 'aircraftDataHub', claim, observed_value: 'unknown', evidence: {}, confidence: evidenceConfidence(0), status: STATUS.UNKNOWN });
               }
               return { found: false };
@@ -112,18 +108,43 @@ Deno.serve(async (req) => {
 
             const ci = data.compliance_intelligence || {};
             const cert = data.certificates || {};
-            const damage = cert.damage_history_check || {};
             const sb = cert.sb || {};
             const ads = Array.isArray(ci.ads) ? ci.ads : [];
             const stcs = Array.isArray(ci.stcs) ? ci.stcs : [];
 
-            // Catalog presence is never treated as non-compliance. It creates a review task.
             recordClaim({ module: 'compliance', source: 'faa_ad', claim: 'applicable_ad_catalog_records', observed_value: ads.length ? `${ads.length}_candidate_records` : 'unknown', evidence: { count: ads.length, items: ads }, confidence: evidenceConfidence(ads.length ? 75 : 0), status: ads.length ? STATUS.REVIEW : STATUS.UNKNOWN });
             recordClaim({ module: 'compliance', source: 'vault_or_datahub', claim: 'service_bulletin_evidence', observed_value: sb.available ? 'documents_available' : 'unknown', evidence: sb, confidence: evidenceConfidence(sb.available ? 55 : 0), status: sb.available ? STATUS.REVIEW : STATUS.UNKNOWN });
             recordClaim({ module: 'compliance', source: 'faa_stc', claim: 'stc_catalog_records', observed_value: stcs.length ? `${stcs.length}_candidate_records` : 'unknown', evidence: { count: stcs.length, items: stcs }, confidence: evidenceConfidence(stcs.length ? 65 : 0), status: stcs.length ? STATUS.REVIEW : STATUS.UNKNOWN });
-            recordClaim({ module: 'damage', source: 'aircraftDataHub', claim: 'aircraft_damage_history_evidence', observed_value: damage.available ? 'aircraft_specific_evidence_present' : 'unknown', evidence: { available: !!damage.available }, confidence: evidenceConfidence(damage.available ? 60 : 0), status: damage.available ? STATUS.REVIEW : STATUS.UNKNOWN });
             recordClaim({ module: 'airworthiness', source: 'faa_registry', claim: 'airworthiness_certificate_evidence', observed_value: cert.airworthiness?.available ? 'certificate_date_present' : 'unknown', evidence: cert.airworthiness || {}, confidence: evidenceConfidence(cert.airworthiness?.available ? 70 : 0), status: cert.airworthiness?.available ? STATUS.REVIEW : STATUS.UNKNOWN });
             return data;
+          },
+        }),
+        checkDamageHistorySources: tool({
+          description: 'Match the aircraft registration against the ingested official NTSB aviation investigation and FAA SDR stores.',
+          inputSchema: z.object({}),
+          execute: async () => {
+            const data = await invoke('safetyEvidenceLookup', { registration });
+            const ntsbFound = data?.ntsb?.found === true;
+            const sdrFound = data?.faa_sdr?.found === true;
+            recordClaim({
+              module: 'damage',
+              source: 'ntsb_aviation_investigations',
+              claim: 'ntsb_accident_incident_match',
+              observed_value: ntsbFound ? `${data.ntsb.count}_case_records` : 'no_record_found',
+              evidence: data?.ntsb || {},
+              confidence: evidenceConfidence(ntsbFound ? 95 : 0),
+              status: ntsbFound ? STATUS.REVIEW : STATUS.UNKNOWN,
+            });
+            recordClaim({
+              module: 'damage',
+              source: 'faa_sdr',
+              claim: 'faa_service_difficulty_match',
+              observed_value: sdrFound ? `${data.faa_sdr.count}_sdr_records` : 'no_record_found',
+              evidence: data?.faa_sdr || {},
+              confidence: evidenceConfidence(sdrFound ? 90 : 0),
+              status: sdrFound ? STATUS.REVIEW : STATUS.UNKNOWN,
+            });
+            return data ?? { status: 'UNKNOWN' };
           },
         }),
         checkEasaEvidence: tool({

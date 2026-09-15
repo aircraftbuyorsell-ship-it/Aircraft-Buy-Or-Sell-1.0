@@ -1,7 +1,7 @@
 import PricingAdvisor from "./PricingAdvisor";
 
-// Kept at the existing route for compatibility while the public product is
-// consolidated under the ABOS Pricing Advisor experience.
+// Renders the Aircraft Advisor experience. Kept at the existing
+// /finance-advisor route for backward-compatible link/bookmark support.
 export default function FinanceAdvisorChat() {
   return <PricingAdvisor />;
 }

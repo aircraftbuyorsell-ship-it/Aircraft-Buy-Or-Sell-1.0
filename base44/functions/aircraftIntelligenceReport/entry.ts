@@ -164,8 +164,14 @@ Deno.serve(async (req) => {
         status: passport?.data_confidence || 'unverified',
       },
       activity: {
-        open_sky_reference: openSky,
-        note: openSky ? 'Activity evidence found in OpenSky metadata.' : 'No OpenSky metadata found; this is not an inactivity finding.',
+        status: openSky ? 'ACTIVITY_EVIDENCE' : 'UNKNOWN',
+        evidence_type: 'activity_evidence_only',
+        icao24: openSky?.icao24 || openSky?.mode_s_hex || null,
+        last_seen: openSky?.last_contact || openSky?.last_seen || openSky?.updated_at || null,
+        source: openSky ? 'opensky_aircraft_metadata' : null,
+        note: openSky
+          ? 'Activity evidence found in OpenSky metadata. This confirms tracked activity only — it is not proof of ownership, airworthiness, AD/SB compliance, or accident history.'
+          : 'No OpenSky metadata found. This is UNKNOWN activity evidence, not an inactivity or negative finding about the aircraft.',
       },
       market: {
         public_listings: listings.map((item: any) => ({

@@ -81,7 +81,15 @@ function makeRepositories(base44) {
         const listings = await readCandidates();
         const terms = Array.isArray(intent.constraints?.terms) ? intent.constraints.terms : [];
         const matches = terms.length
-          ? listings.filter((listing) => terms.every((term) => `${listing.aircraft.manufacturer || ""} ${listing.aircraft.model || ""}`.toLowerCase().includes(term)))
+          ? listings.filter((listing) => {
+              const searchable = [
+                listing.aircraft.identity.registration,
+                listing.aircraft.manufacturer,
+                listing.aircraft.model,
+                listing.summary,
+              ].filter(Boolean).join(" ").toLowerCase();
+              return terms.every((term) => searchable.includes(String(term).toLowerCase()));
+            })
           : listings;
         return { items: matches.sort((a, b) => (b.intelligence.ati_score || 0) - (a.intelligence.ati_score || 0)).slice(0, limit), nextCursor: null };
       },

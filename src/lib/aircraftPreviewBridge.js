@@ -41,12 +41,21 @@ export function installAircraftPreviewBridge() {
         const status = err?.status || err?.response?.status;
         if (status !== 404) throw err;
         const registration = normalizeReg(payload?.registration);
-        const lookup = await lookupAircraft(registration);
-        if (!lookup?.found || !lookup?.aircraft) throw err;
-        const scoreResponse = await originalInvoke("atiFullReportScore", { aircraft_data: JSON.stringify(lookup.aircraft), registration });
-        const score = scoreResponse?.data || scoreResponse;
-        if (!score || score.error === "payment_required") throw err;
-        return { data: { authorized: true, registration, found: true, source: "atiFullReportScore_fallback", report: buildFallbackReport(registration, lookup.aircraft, score) } };
+        try {
+          const lookup = await lookupAircraft(registration);
+          if (lookup?.found && lookup?.aircraft) {
+            const scoreResponse = await originalInvoke("atiFullReportScore", { aircraft_data: JSON.stringify(lookup.aircraft), registration });
+            const score = scoreResponse?.data || scoreResponse;
+            if (score && score.error !== "payment_required") {
+              return { data: { authorized: true, registration, found: true, source: "atiFullReportScore_fallback", report: buildFallbackReport(registration, lookup.aircraft, score) } };
+            }
+          }
+        } catch (_) {
+          // Keep the free identity preview usable if the legacy paid report
+          // endpoint is unavailable or the fallback is not entitled.
+        }
+        // Do not leak a transport-level 404 into the Advisor UI.
+        return { data: { authorized: false, registration, found: true, report: null, unavailable: true } };
       }
     }
 

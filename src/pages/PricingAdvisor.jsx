@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Check, LockKeyhole, Plane, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Check, LockKeyhole, Plane, Search, ShieldCheck, Sparkles, Send, Globe2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const FULL_REPORT_PRICE_ID = "price_1TaO1rAT7Be3WR6JaWnMa7mx";
@@ -17,21 +17,18 @@ export default function PricingAdvisor() {
   const [reportLoading, setReportLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!registration) return;
     let cancelled = false;
     (async () => {
-      setLoading(true);
-      setError("");
+      setLoading(true); setError("");
       try {
         const result = await base44.functions.invoke("aircraftPreview", { registration });
         if (!cancelled) setAircraft(result?.data?.aircraft || null);
-      } catch (err) {
-        if (!cancelled) setError(err?.message || "Aircraft data is temporarily unavailable.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      } catch (err) { if (!cancelled) setError(err?.message || "Aircraft data is temporarily unavailable."); }
+      finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [registration]);
@@ -41,15 +38,9 @@ export default function PricingAdvisor() {
     let cancelled = false;
     (async () => {
       try {
-        const result = await base44.functions.invoke("abosEntitlements", {
-          action: "check",
-          product_key: "ATI_FULL_REPORT",
-          aircraft_registration: registration,
-        });
+        const result = await base44.functions.invoke("abosEntitlements", { action: "check", product_key: "ATI_FULL_REPORT", aircraft_registration: registration });
         if (!cancelled && result?.data?.entitled) setEntitled(true);
-      } catch (_) {
-        // Payment status remains locked unless the server explicitly authorizes it.
-      }
+      } catch (_) {}
     })();
     return () => { cancelled = true; };
   }, [registration]);
@@ -62,113 +53,76 @@ export default function PricingAdvisor() {
       try {
         const result = await base44.functions.invoke("aircraftIntelligenceReport", { registration });
         if (!cancelled) setReport(result?.data?.report || null);
-      } catch (err) {
-        if (!cancelled) setError(err?.message || "Your paid aircraft intelligence could not be loaded.");
-      } finally {
-        if (!cancelled) setReportLoading(false);
-      }
+      } catch (err) { if (!cancelled) setError(err?.message || "Your aircraft intelligence could not be loaded."); }
+      finally { if (!cancelled) setReportLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [registration, entitled]);
 
   const startCheckout = async () => {
     if (!registration || checkoutLoading) return;
-    setCheckoutLoading(true);
-    setError("");
+    setCheckoutLoading(true); setError("");
     try {
       const user = await base44.auth.me().catch(() => null);
-      if (!user) {
-        base44.auth.redirectToLogin();
-        return;
-      }
+      if (!user) { base44.auth.redirectToLogin(); return; }
       const returnUrl = `${window.location.origin}/finance-advisor?registration=${encodeURIComponent(registration)}`;
-      const response = await base44.functions.invoke("stripeCreateCheckout", {
-        priceId: FULL_REPORT_PRICE_ID,
-        returnUrl,
-        report_registration: registration,
-        product_key: "ATI_FULL_REPORT",
-      });
+      const response = await base44.functions.invoke("stripeCreateCheckout", { priceId: FULL_REPORT_PRICE_ID, returnUrl, report_registration: registration, product_key: "ATI_FULL_REPORT" });
       const url = response?.data?.sessionUrl || response?.data?.url;
       if (!url) throw new Error("Checkout URL was not returned.");
       window.location.assign(url);
-    } catch (err) {
-      setError(err?.message || "Checkout could not be started.");
-      setCheckoutLoading(false);
-    }
+    } catch (err) { setError(err?.message || "Checkout could not be started."); setCheckoutLoading(false); }
   };
 
-  if (!registration) {
-    return <main className="min-h-screen bg-[#070B12] px-6 py-20 text-white"><div className="mx-auto max-w-xl text-center"><p className="text-xs uppercase tracking-[0.3em] text-[#D4A017]">ABOS Pricing Advisor</p><h1 className="mt-4 text-4xl font-black">Search an aircraft first.</h1><button onClick={() => navigate("/")} className="mt-8 rounded-xl bg-[#D4A017] px-5 py-3 font-bold text-[#07101B]">Back to search</button></div></main>;
-  }
+  if (!registration) return <main className="min-h-screen bg-[#fbfaf7] px-6 py-20 text-[#102033]"><div className="mx-auto max-w-xl text-center"><p className="text-xs font-bold uppercase tracking-[0.3em] text-[#a87925]">Aircraft Advisor</p><h1 className="mt-4 text-4xl font-black">Search an aircraft first.</h1><button onClick={() => navigate("/")} className="mt-8 rounded-xl bg-[#c99635] px-5 py-3 font-bold text-white">Back to search</button></div></main>;
 
-  const make = aircraft?.make || "Aircraft";
+  const make = aircraft?.make || aircraft?.manufacturer || "Aircraft";
   const model = aircraft?.model || "Identity found";
   const year = aircraft?.year;
   const unlocked = entitled && !!report;
 
-  const unlockedSections = [
-    ["Aircraft identity", report?.identity],
-    ["Registry & certificate evidence", report?.registry],
-    ["Engine intelligence", report?.engine],
-    ["Verification & ATI", report?.ati],
-    ["Market valuation", report?.valuation],
-    ["Activity evidence", report?.activity],
-  ];
+  const sendMessage = (text = message) => {
+    const value = String(text || "").trim();
+    if (!value) return;
+    setMessage("");
+    if (/market|value|price/i.test(value)) navigate(`/finance-advisor?registration=${encodeURIComponent(registration)}&question=market-value`);
+  };
 
   return (
-    <main className="min-h-screen bg-[#070B12] px-4 py-6 text-white md:px-8 md:py-10">
-      <div className="mx-auto max-w-5xl">
-        <button onClick={() => navigate("/")} className="mb-8 flex items-center gap-2 text-sm text-white/45 hover:text-white"><ArrowLeft className="h-4 w-4" /> Search another aircraft</button>
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-          <section className="rounded-3xl border border-white/10 bg-white/[0.045] p-6 shadow-2xl backdrop-blur-xl md:p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#D4A017]">ABOS Pricing Advisor</p>
-                <h1 className="mt-2 text-4xl font-black tracking-tight">{registration}</h1>
-                <p className="mt-2 text-lg text-white/65">{loading ? "Identifying aircraft…" : `${make} ${model}${year ? ` · ${year}` : ""}`}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3"><Plane className="h-6 w-6 text-[#D4A017]" /></div>
-            </div>
-
-            {unlocked ? (
-              <div className="mt-8 space-y-3">
-                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4"><p className="text-sm font-bold text-emerald-300">Full Aircraft Intelligence unlocked</p><p className="mt-1 text-xs text-white/45">Authorization verified server-side for {registration}.</p></div>
-                {unlockedSections.map(([title, data]) => (
-                  <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-5">
-                    <div className="flex items-center justify-between"><h3 className="font-bold">{title}</h3><Check className="h-4 w-4 text-emerald-400" /></div>
-                    <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap break-words text-xs leading-5 text-white/60">{JSON.stringify(data, null, 2)}</pre>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {["Aircraft identity", "Registry evidence", "Market valuation", "Verification & ATI", "Activity evidence", "Deal assessment"].map((item, index) => (
-                  <div key={item} className="relative min-h-24 overflow-hidden rounded-2xl border border-white/8 bg-black/20 p-4">
-                    <div className="relative z-10 flex items-center justify-between"><span className="text-sm font-semibold text-white/75">{item}</span>{index < 2 ? <Check className="h-4 w-4 text-emerald-400" /> : <LockKeyhole className="h-4 w-4 text-white/25" />}</div>
-                    <div className={`mt-4 h-3 rounded-full bg-white/10 ${index >= 2 ? "blur-[5px]" : ""}`} />
-                    <div className={`mt-2 h-2 w-2/3 rounded-full bg-white/10 ${index >= 2 ? "blur-[5px]" : ""}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-6 rounded-2xl border border-[#D4A017]/20 bg-[#D4A017]/5 p-5">
-              <div className="flex gap-3"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#D4A017]" /><div><p className="font-bold">One aircraft. One intelligence profile.</p><p className="mt-1 text-sm leading-6 text-white/50">ABOS combines identity, registry, market, verification, activity and valuation evidence. Missing evidence is reported as unknown — not as a negative finding.</p></div></div>
-            </div>
-          </section>
-
-          <aside className="h-fit rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl md:sticky md:top-6 md:p-8">
-            <div className="flex items-center gap-2 text-[#D4A017]"><Sparkles className="h-4 w-4" /><span className="text-[10px] font-bold uppercase tracking-[0.25em]">{unlocked ? "Unlocked" : "Unlock"}</span></div>
-            <h2 className="mt-4 text-2xl font-black">Full Aircraft Intelligence</h2>
-            <p className="mt-3 text-sm leading-6 text-white/50">{unlocked ? `Authorized intelligence profile for ${registration}.` : <>Get the complete ABOS analysis for <strong className="text-white/80">{registration}</strong>.</>}</p>
-            {!unlocked && <>
-              <ul className="mt-6 space-y-3 text-sm text-white/65">{["Full aircraft profile", "Verification & evidence", "ATI transparency score", "Market valuation", "Activity signals", "Deal assessment"].map((item) => <li key={item} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-400" />{item}</li>)}</ul>
-              <div className="mt-8 border-t border-white/10 pt-6"><div className="flex items-end justify-between"><span className="text-sm text-white/40">One-time report</span><span className="text-3xl font-black">$99</span></div><button onClick={startCheckout} disabled={checkoutLoading || loading} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D4A017] px-5 py-4 font-black text-[#07101B] transition hover:brightness-110 disabled:opacity-40">{checkoutLoading ? "Opening secure checkout…" : "Unlock Aircraft Intelligence"}<ArrowLeft className="h-4 w-4 rotate-180" /></button><p className="mt-3 text-center text-[10px] text-white/25">Secure payment powered by Stripe</p></div>
-            </>}
-            {reportLoading && <p className="mt-5 text-xs text-white/40">Loading your authorized intelligence…</p>}
-            {error && <p className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-200">{error}</p>}
-          </aside>
+    <main className="min-h-screen bg-[#fbfaf7] text-[#102033]">
+      <header className="sticky top-0 z-30 border-b border-[#102033]/[0.08] bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-[72px] max-w-[1500px] items-center justify-between px-5 md:px-8">
+          <button onClick={() => navigate("/")} className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#101a25] text-lg font-black text-white ring-1 ring-[#c99635]">N<span className="text-[#d6a33e]">↗</span></span><span><b className="block text-xl leading-none">ABOS</b><small className="text-[7px] font-bold tracking-[.25em] text-[#a87925]">AIRCRAFT BUY OR SELL</small></span></button>
+          <nav className="hidden items-center gap-7 text-sm md:flex"><button>About Us</button><button>How It Works</button><button>FAQ</button><button onClick={() => navigate("/my-account")}>User Account</button></nav>
+          <form onSubmit={(e) => { e.preventDefault(); navigate(`/finance-advisor?registration=${encodeURIComponent(normalizeRegistration(e.currentTarget.elements.search.value))}`); }} className="hidden w-[250px] items-center rounded-xl border border-[#c99635]/50 bg-white px-3 md:flex"><Search className="h-4 w-4 text-[#102033]/40" /><input name="search" defaultValue={registration} placeholder="Search registration..." className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs outline-none" /></form>
         </div>
+      </header>
+
+      <div className="relative mx-auto grid min-h-[calc(100vh-72px)] max-w-[1500px] lg:grid-cols-[1fr_360px]">
+        <section className="relative overflow-hidden border-r border-[#102033]/[0.08] px-5 py-8 md:px-10 lg:px-16">
+          <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(16,32,51,0.13)_0.65px,transparent_0.65px)] [background-size:12px_12px]" />
+          <div className="relative mx-auto max-w-4xl">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[#a87925]"><Sparkles className="h-4 w-4" /> Aircraft Advisor</div>
+            <h1 className="mt-4 text-4xl font-black tracking-[-0.035em] md:text-5xl">Ask. Analyze. Make better decisions.</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-[#102033]/55">Your AI-powered aviation intelligence assistant. Verified data, global registries and market intelligence in one place.</p>
+            <div className="mt-5 flex flex-wrap gap-2"><span className="rounded-full border border-[#102033]/10 bg-white px-3 py-1.5 text-xs"><ShieldCheck className="mr-1 inline h-3.5 w-3.5 text-emerald-600" /> Verified sources</span><span className="rounded-full border border-[#102033]/10 bg-white px-3 py-1.5 text-xs"><Globe2 className="mr-1 inline h-3.5 w-3.5 text-[#b98427]" /> Global registries</span><span className="rounded-full border border-[#102033]/10 bg-white px-3 py-1.5 text-xs">Transparent calculations</span></div>
+
+            <div className="mt-10 flex justify-end"><div className="max-w-lg rounded-2xl border border-[#102033]/10 bg-white px-5 py-4 text-sm shadow-sm">Show me the full intelligence report for <b>{registration}</b></div></div>
+            <div className="mt-4 flex gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#101a25] text-sm font-black text-white">N<span className="text-[#d6a33e]">↗</span></div><div className="max-w-2xl rounded-2xl border border-[#102033]/10 bg-white px-5 py-4 text-sm leading-6 shadow-sm">I found <b>{registration}</b>. {loading ? "I’m identifying the aircraft and available registry evidence…" : `Here is the available ${make} ${model}${year ? ` (${year})` : ""} profile and your report options.`}</div></div>
+
+            <div className="mt-5 rounded-3xl border border-[#102033]/10 bg-white p-5 shadow-[0_18px_50px_rgba(16,32,51,0.06)] md:p-6">
+              <div className="grid gap-5 md:grid-cols-[150px_1fr] md:items-center"><div className="flex h-28 items-center justify-center rounded-2xl bg-[#eee9df] text-5xl">✈</div><div><div className="text-xl font-black">{registration} <span className="text-sm font-normal">🌐</span></div><div className="mt-1 text-sm text-[#102033]/60">{make} {model}{year ? ` · ${year}` : ""}</div><div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> {aircraft?.registry?.status || "Registry evidence available"}</div></div></div>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2"><button onClick={startCheckout} disabled={checkoutLoading || loading || unlocked} className="flex items-center justify-center gap-2 rounded-xl bg-[#c99635] px-4 py-3 text-sm font-bold text-white disabled:opacity-40"><LockKeyhole className="h-4 w-4" /> {unlocked ? "Full report unlocked" : checkoutLoading ? "Opening checkout…" : "View Full Intelligence Report"}<ArrowRight className="h-4 w-4" /></button><button className="rounded-xl border border-[#102033]/10 px-4 py-3 text-sm font-semibold">View Free Preview</button></div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">{["What’s the current market value?", "Any open ADs or STCs?", "Show me the ownership history"].map((q) => <button key={q} onClick={() => sendMessage(q)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 text-xs text-[#102033]/65 hover:border-[#c99635]/50">{q}</button>)}</div>
+            {unlocked && <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"><b className="text-sm text-emerald-800">Full Aircraft Intelligence unlocked.</b><div className="mt-3 grid gap-2 sm:grid-cols-2">{[["Identity",report?.identity],["Registry",report?.registry],["ATI",report?.ati],["Valuation",report?.valuation],["Activity",report?.activity]].map(([title,data]) => <div key={title} className="rounded-xl bg-white/80 p-3"><div className="text-xs font-bold">{title}</div><pre className="mt-1 max-h-20 overflow-auto whitespace-pre-wrap text-[10px] text-[#102033]/55">{JSON.stringify(data,null,2)}</pre></div>)}</div></div>}
+
+            <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="sticky bottom-4 mt-8 flex items-center rounded-2xl border border-[#c99635]/50 bg-white p-1.5 shadow-[0_15px_40px_rgba(16,32,51,0.10)]"><span className="pl-3 text-lg">⌕</span><input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ask me anything about this aircraft..." className="min-w-0 flex-1 bg-transparent px-3 py-3 outline-none placeholder:text-[#102033]/35" /><button className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#c99635] text-white"><Send className="h-4 w-4" /></button></form>
+            {error && <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
+          </div>
+        </section>
+
+        <aside className="hidden bg-white/75 p-6 lg:block"><div className="sticky top-[96px] rounded-3xl border border-[#102033]/10 bg-white p-6 shadow-sm"><div className="text-xl font-black">{registration}</div><div className="mt-1 text-sm text-[#102033]/55">{make} {model} {year ? `· ${year}` : ""}</div><div className="mt-5 flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div><h3 className="mt-6 border-b border-[#102033]/10 pb-3 text-sm font-black">Aircraft Overview</h3><dl className="divide-y divide-[#102033]/[0.07] text-xs">{[["Registration",registration],["Make / Model",`${make} ${model}`],["Year",year || "—"],["Serial Number",aircraft?.serial_number || "—"]].map(([k,v]) => <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-[#102033]/45">{k}</dt><dd className="font-semibold text-right">{v}</dd></div>)}</dl><h3 className="mt-5 border-b border-[#102033]/10 pb-3 text-sm font-black">Quick Actions</h3><div className="space-y-2 pt-3"><button onClick={startCheckout} disabled={unlocked} className="w-full rounded-xl bg-[#c99635] px-3 py-3 text-xs font-bold text-white disabled:opacity-50">{unlocked ? "Full Report Unlocked" : "View Full Intelligence Report"} <ArrowRight className="ml-1 inline h-3.5 w-3.5" /></button><button className="w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">Market Valuation (OMVM)</button><button className="w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">Check ADs & STCs</button><button className="w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">View Service History</button></div><div className="mt-6 border-t border-[#102033]/10 pt-5 text-[10px] leading-5 text-[#102033]/45">Data is aggregated from multiple verified sources and global registries.<br /><b className="text-[#a87925]">Trust by design.</b></div></div></aside>
       </div>
     </main>
   );

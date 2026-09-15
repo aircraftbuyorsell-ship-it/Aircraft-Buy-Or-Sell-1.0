@@ -2,115 +2,31 @@
   "name": "VerificationSession",
   "type": "object",
   "properties": {
-    "aircraft_id": {
-      "type": "string",
-      "relationType": "Aircraft"
-    },
-    "verification_session_id": {
-      "type": "string"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "pending",
-        "running",
-        "completed",
-        "review_required",
-        "failed"
-      ],
-      "default": "pending"
-    },
-    "verification_confidence": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 100
-    },
-    "registry_status": {
-      "type": "string"
-    },
-    "identity_status": {
-      "type": "string"
-    },
-    "ownership_status": {
-      "type": "string"
-    },
-    "activity_status": {
-      "type": "string"
-    },
-    "service_status": {
-      "type": "string"
-    },
-    "document_status": {
-      "type": "string"
-    },
-    "ati_score": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 120
-    },
-    "started_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "completed_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "initiated_by": {
-      "type": "string",
-      "relationType": "User"
-    }
+    "aircraft_id": { "type": "string", "relationType": "Aircraft" },
+    "verification_session_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["pending", "running", "completed", "review_required", "failed"], "default": "pending" },
+    "verification_confidence": { "type": "number", "minimum": 0, "maximum": 100 },
+    "registry_status": { "type": "string" },
+    "identity_status": { "type": "string" },
+    "ownership_status": { "type": "string" },
+    "activity_status": { "type": "string" },
+    "damage_status": { "type": "string" },
+    "ad_status": { "type": "string" },
+    "sb_status": { "type": "string" },
+    "stc_status": { "type": "string" },
+    "airworthiness_status": { "type": "string" },
+    "service_status": { "type": "string" },
+    "document_status": { "type": "string" },
+    "ati_score": { "type": "number", "minimum": 0, "maximum": 120 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "initiated_by": { "type": "string", "relationType": "User" }
   },
-  "required": [
-    "aircraft_id"
-  ],
+  "required": ["aircraft_id"],
   "rls": {
-    "create": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "read": {
-      "$or": [
-        {
-          "data.initiated_by": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "data.initiated_by": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
-    }
+    "create": { "$or": [{ "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "read": { "$or": [{ "data.initiated_by": "{{user.id}}" }, { "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "update": { "$or": [{ "data.initiated_by": "{{user.id}}" }, { "created_by_id": "{{user.id}}" }, { "user_condition": { "role": "admin" } }] },
+    "delete": { "user_condition": { "role": "admin" } }
   }
 }

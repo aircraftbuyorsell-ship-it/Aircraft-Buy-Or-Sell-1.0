@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 
 export default function useFacebookGroupAssistant() {
   const [text, setText] = useState("");
   const [postRef, setPostRef] = useState("");
   const [result, setResult] = useState(null);
+  const [config, setConfig] = useState(null);
   const [checking, setChecking] = useState(false);
   const [logging, setLogging] = useState(false);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    base44.functions.invoke("facebookGroupWebhook", { action: "configStatus" })
+      .then(({ data }) => setConfig(data))
+      .catch(() => setConfig(null));
+  }, []);
 
   const check = async () => {
     if (!text.trim()) return;
@@ -53,5 +60,5 @@ export default function useFacebookGroupAssistant() {
     setMessage(null);
   };
 
-  return { text, setText, postRef, setPostRef, result, checking, logging, message, check, logHandled, reset };
+  return { text, setText, postRef, setPostRef, result, config, checking, logging, message, check, logHandled, reset };
 }

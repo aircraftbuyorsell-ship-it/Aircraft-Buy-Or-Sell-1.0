@@ -3,7 +3,10 @@ import { webcrypto } from '../_shared/webcrypto.mjs';
 import {
   classifyPost,
   isOwnActivity,
+  resolveAutoCommentConfig,
+  resolveLinkOrigin,
   shouldAutoComment,
+  summarizeConfig,
 } from '../_shared/facebookGroupLinker.mjs';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -14,16 +17,21 @@ import {
 // webhook deliveries (feed/comment change notifications) plus a manual
 // admin-triggered path used by the in-app "FB Group Assistant" search tool.
 //
-// Required env vars:
-//   META_VERIFY_TOKEN            - shared secret for GET webhook verification
-//   META_APP_SECRET              - app secret used to verify X-Hub-Signature-256
+// Base44 environment variables (set in the Base44 dashboard → Settings →
+// Environment variables; values never live in this repo). See
+// docs/facebook-group-webhook.md for the full setup walkthrough, and the
+// `configStatus` action below to verify from the app which of these are set.
+//   META_VERIFY_TOKEN            - shared secret for GET webhook verification (required)
+//   META_APP_SECRET              - app secret used to verify X-Hub-Signature-256 (required)
 //   META_PAGE_ID / META_APP_SCOPED_ID - identifies ABOS's own activity (loop protection)
-//   ABOS_PUBLIC_URL              - origin used to build absolute ABOS links (defaults below)
 //   FB_AUTO_COMMENT_ENABLED      - "true" to allow posting real comments (default: false)
 //   FB_AUTO_COMMENT_MIN_CONFIDENCE - 0..1 threshold for auto-commenting (default: 0.9)
+//   BASE44_APP_URL               - public ABOS origin for generated links; shared
+//                                  with the rest of the Base44 functions and
+//                                  defaults to https://aircraftbuyorsell.com
 //
 // Required Meta permissions for the auto-comment path (not yet granted at
-// time of writing — see PR description): groups_access_member_info and
+// time of writing — see docs/facebook-group-webhook.md): groups_access_member_info and
 // publish_to_groups via an App Review-approved app installed by a group
 // admin, subscribed to the group's `feed` webhook field. Until that is
 // granted, every event is still parsed/scored/logged; FB_AUTO_COMMENT_ENABLED
@@ -83,11 +91,21 @@ Deno.serve(async (req) => {
 
     const body = JSON.parse(rawBody || '{}');
     const base44 = createClientFromRequest(req);
-    const originForLinks = (Deno.env.get('ABOS_PUBLIC_URL') || '').replace(/\/$/, '');
-    const pageId = Deno.env.get('META_PAGE_ID') || '';
-    const appScopedUserId = Deno.env.get('META_APP_SCOPED_ID') || '';
-    const autoCommentEnabled = (Deno.env.get('FB_AUTO_COMMENT_ENABLED') || 'false').toLowerCase() === 'true';
-    const minConfidence = Number(Deno.env.get('FB_AUTO_COMMENT_MIN_CONFIDENCE') || '0.9');
+    // Only the variables this function owns are read, so no unrelated secret
+    // is ever handed to the shared helpers.
+    const env = {
+      META_VERIFY_TOKEN: Deno.env.get('META_VERIFY_TOKEN') || '',
+      META_APP_SECRET: Deno.env.get('META_APP_SECRET') || '',
+      META_PAGE_ID: Deno.env.get('META_PAGE_ID') || '',
+      META_APP_SCOPED_ID: Deno.env.get('META_APP_SCOPED_ID') || '',
+      FB_AUTO_COMMENT_ENABLED: Deno.env.get('FB_AUTO_COMMENT_ENABLED') || '',
+      FB_AUTO_COMMENT_MIN_CONFIDENCE: Deno.env.get('FB_AUTO_COMMENT_MIN_CONFIDENCE') || '',
+      BASE44_APP_URL: Deno.env.get('BASE44_APP_URL') || '',
+    };
+    const originForLinks = resolveLinkOrigin(env);
+    const pageId = env.META_PAGE_ID;
+    const appScopedUserId = env.META_APP_SCOPED_ID;
+    const { enabled: autoCommentEnabled, minConfidence } = resolveAutoCommentConfig(env);
 
     // ── Manual/admin path used by the FB Group Assistant search-bar UI ──
     // Lets an admin paste a post's text and get back the same classification
@@ -98,6 +116,13 @@ Deno.serve(async (req) => {
       const user = await base44.auth.me().catch(() => null);
       const isAdmin = ['admin', 'super_admin'].includes(user?.role);
       if (!isAdmin) return Response.json({ error: user ? 'Forbidden' : 'Unauthorized' }, { status: user ? 403 : 401 });
+
+      if (body.action === 'configStatus') {
+        return Response.json({
+          ...summarizeConfig(env),
+          webhook_callback_url: `${url.origin}${url.pathname}`,
+        });
+      }
 
       if (body.action === 'preview') {
         const classification = classifyPost(String(body.text || ''), { baseUrl: originForLinks });

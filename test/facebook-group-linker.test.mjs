@@ -4,7 +4,10 @@ import {
   classifyPost,
   extractRegistration,
   isOwnActivity,
+  resolveAutoCommentConfig,
+  resolveLinkOrigin,
   shouldAutoComment,
+  summarizeConfig,
 } from "../base44/functions/_shared/facebookGroupLinker.mjs";
 
 // A) FAA registration inside a sale post
@@ -81,6 +84,48 @@ test("classifyPost never claims verification/safety in generated copy", () => {
 
 test("extractRegistration returns null for plain text", () => {
   assert.equal(extractRegistration("just chatting about the weather"), null);
+});
+
+test("generated links are always absolute, even with BASE44_APP_URL unset", () => {
+  // A relative path in a Facebook comment is unclickable, so a missing origin
+  // must fall back to production rather than producing "/n-lookup?...".
+  assert.equal(resolveLinkOrigin({}), "https://aircraftbuyorsell.com");
+  assert.equal(resolveLinkOrigin({ BASE44_APP_URL: "https://abos.example.com/" }), "https://abos.example.com");
+  const result = classifyPost("For sale Cessna 172 N123AB", { baseUrl: resolveLinkOrigin({}) });
+  assert.match(result.destination_url, /^https:\/\//);
+});
+
+test("an unparseable auto-comment threshold falls back to strict, not to zero", () => {
+  assert.equal(resolveAutoCommentConfig({ FB_AUTO_COMMENT_MIN_CONFIDENCE: "abc" }).minConfidence, 0.9);
+  assert.equal(resolveAutoCommentConfig({ FB_AUTO_COMMENT_MIN_CONFIDENCE: "0" }).minConfidence, 0.9);
+  assert.equal(resolveAutoCommentConfig({ FB_AUTO_COMMENT_MIN_CONFIDENCE: "0.95" }).minConfidence, 0.95);
+  assert.equal(resolveAutoCommentConfig({}).enabled, false);
+  assert.equal(resolveAutoCommentConfig({ FB_AUTO_COMMENT_ENABLED: "TRUE" }).enabled, true);
+});
+
+test("summarizeConfig reports presence without ever exposing a value", () => {
+  const env = {
+    META_VERIFY_TOKEN: "super-secret-token",
+    META_APP_SECRET: "super-secret-app-secret",
+    BASE44_APP_URL: "https://aircraftbuyorsell.com",
+  };
+  const status = summarizeConfig(env);
+  const serialized = JSON.stringify(status);
+  assert.doesNotMatch(serialized, /super-secret/);
+  assert.equal(status.secrets.META_VERIFY_TOKEN, true);
+  assert.equal(status.webhook_ready, true);
+  assert.deepEqual(status.missing_required, []);
+  assert.deepEqual(status.missing_recommended, ["META_PAGE_ID", "META_APP_SCOPED_ID"]);
+});
+
+test("summarizeConfig names what is missing and keeps auto-comment not ready", () => {
+  const status = summarizeConfig({ FB_AUTO_COMMENT_ENABLED: "true" });
+  assert.equal(status.webhook_ready, false);
+  assert.deepEqual(status.missing_required, ["META_VERIFY_TOKEN", "META_APP_SECRET"]);
+  // Enabling the flag without the signing secret must not read as ready:
+  // unsigned deliveries are rejected, so there would be nothing to act on.
+  assert.equal(status.auto_comment.enabled, true);
+  assert.equal(status.auto_comment.ready, false);
 });
 
 test("shouldAutoComment defaults to disabled", () => {

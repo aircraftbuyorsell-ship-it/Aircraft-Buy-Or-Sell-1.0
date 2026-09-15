@@ -111,6 +111,61 @@ export const CONFIDENCE_THRESHOLDS = {
   DEFAULT_AUTO_COMMENT: 0.9,
 };
 
+// Public ABOS origin used for links posted into Facebook. Falls back to the
+// same production origin the other Base44 functions use, so a missing
+// BASE44_APP_URL can never put a relative (unclickable) link in a comment.
+export const DEFAULT_LINK_ORIGIN = "https://aircraftbuyorsell.com";
+
+export function resolveLinkOrigin(env = {}) {
+  return String(env.BASE44_APP_URL || DEFAULT_LINK_ORIGIN).trim().replace(/\/+$/, "") || DEFAULT_LINK_ORIGIN;
+}
+
+export function resolveAutoCommentConfig(env = {}) {
+  const parsed = Number(env.FB_AUTO_COMMENT_MIN_CONFIDENCE);
+  return {
+    enabled: String(env.FB_AUTO_COMMENT_ENABLED || "false").trim().toLowerCase() === "true",
+    // An unparseable threshold falls back to the strict default rather than to
+    // 0, which would otherwise auto-comment on every match.
+    minConfidence: Number.isFinite(parsed) && parsed > 0 && parsed <= 1 ? parsed : CONFIDENCE_THRESHOLDS.DEFAULT_AUTO_COMMENT,
+  };
+}
+
+/**
+ * Report which Facebook/Meta environment variables Base44 actually has set,
+ * so an admin can verify configuration from the app. Returns presence booleans
+ * and derived settings only — never the configured values themselves.
+ */
+export function summarizeConfig(env = {}) {
+  const isSet = (name) => Boolean(String(env[name] || "").trim());
+  const autoComment = resolveAutoCommentConfig(env);
+  const secrets = {
+    META_VERIFY_TOKEN: isSet("META_VERIFY_TOKEN"),
+    META_APP_SECRET: isSet("META_APP_SECRET"),
+  };
+  const loopProtection = {
+    META_PAGE_ID: isSet("META_PAGE_ID"),
+    META_APP_SCOPED_ID: isSet("META_APP_SCOPED_ID"),
+  };
+
+  return {
+    secrets,
+    loop_protection: loopProtection,
+    link_origin: resolveLinkOrigin(env),
+    auto_comment: {
+      enabled: autoComment.enabled,
+      min_confidence: autoComment.minConfidence,
+      // Auto-commenting also needs a verified delivery path; enabling the flag
+      // without the signing secret would accept nothing to act on.
+      ready: autoComment.enabled && secrets.META_APP_SECRET,
+    },
+    // Live Meta deliveries cannot be accepted until both are set; everything
+    // else (manual assistant, parsing, logging) works without them.
+    webhook_ready: secrets.META_VERIFY_TOKEN && secrets.META_APP_SECRET,
+    missing_required: Object.entries(secrets).filter(([, set]) => !set).map(([name]) => name),
+    missing_recommended: Object.entries(loopProtection).filter(([, set]) => !set).map(([name]) => name),
+  };
+}
+
 /**
  * Build the ABOS destination URL for a detected registration or listing.
  * Only uses routes that already exist in src/App.jsx — never invents a route.

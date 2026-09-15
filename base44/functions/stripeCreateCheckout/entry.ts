@@ -58,8 +58,16 @@ const DEFAULT_RETURN_ORIGIN_SUFFIXES = [
 function allowedReturnOrigin(returnUrl: string): boolean {
   try {
     const url = new URL(returnUrl);
-    // Never hand a buyer back over a non-TLS (or javascript:/data:) target.
     if (url.protocol !== 'https:') return false;
+
+    const configured = (Deno.env.get('ABOS_CHECKOUT_RETURN_ORIGINS') || '')
+      .split(',')
+      .map((value) => value.trim().replace(/\/$/, ''))
+      .filter(Boolean);
+
+    // When configured, the explicit allowlist is authoritative. Do not silently
+    // fall back to defaults or hosting suffixes once an operator has configured it.
+    if (configured.length > 0) return configured.includes(url.origin);
 
     if (DEFAULT_RETURN_ORIGINS.includes(url.origin)) return true;
     if (url.hostname === 'base44.app') return true;
@@ -76,8 +84,6 @@ Deno.serve(async (req) => {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
     const { priceId, returnUrl, plan_type, inquiry_id } = await req.json();
     if (!returnUrl || !allowedReturnOrigin(returnUrl)) {
-      // Log the rejected origin so a misconfigured allowlist is diagnosable
-      // from the function logs instead of surfacing as a bare 400.
       let rejected = 'unparseable';
       try { rejected = new URL(returnUrl).origin; } catch (_) { /* keep placeholder */ }
       console.error('Checkout rejected: return origin not allowed', { rejected, plan_type });
@@ -127,12 +133,6 @@ Deno.serve(async (req) => {
         mode: 'subscription', payment_method_types: ['card'], customer_email: user.email,
         client_reference_id: user.id,
         line_items: [{ price: tenantPlan.priceId, quantity: 1 }],
-        // Card required at signup (Stripe Checkout's default) — never set
-        // payment_method_collection: 'if_required' here. A real Price (not
-        // price_data) paired with subscription_data.trial_period_days makes
-        // Stripe Checkout itself render the exact trial-end charge date and
-        // amount to the buyer, satisfying the card-network trial-disclosure
-        // requirement without this function having to compute a date.
         subscription_data: {
           trial_period_days: 14,
           metadata: { type: 'tenant_subscription', plan: tenantPlan.plan, user_id: user.id, user_email: user.email },
@@ -159,19 +159,10 @@ Deno.serve(async (req) => {
       client_reference_id: user.id, line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}stripe_session={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}canceled=true`,
-      // Only fields actually read downstream (stripeWebhook's handleProductCheckout /
-      // legacy token-purchase path) belong here — tokens/tier/sub_tier/price_usd used
-      // to be written from this endpoint but were never consumed by anything; the
-      // webhook always re-derives grant amounts itself from priceId (PRICE_TOKEN_MAP)
-      // or product_key (PRODUCT_KEYS), never from this metadata, so there is nothing
-      // left here for a caller to influence.
       metadata: { user_id: user.id, user_email: user.email, product_key: configuredPrice.product_key },
     });
     return Response.json({ sessionId: session.id, sessionUrl: session.url });
   } catch (error) {
-    // Response stays generic (never leak Stripe internals to the browser), but
-    // the cause must reach the function logs — swallowing it made every
-    // checkout failure indistinguishable from every other.
     console.error('Checkout session creation failed:', error?.message || error);
     return Response.json({ error: 'Unable to create checkout session' }, { status: 500 });
   }

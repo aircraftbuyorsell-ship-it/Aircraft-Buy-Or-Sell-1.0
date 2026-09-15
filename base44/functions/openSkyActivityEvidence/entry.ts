@@ -80,14 +80,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const stateRegistration = normalizeRegistration(state[1]);
     return Response.json({
       found: true,
       status: 'OBSERVED',
       source: 'opensky_network',
       source_role: 'activity_evidence',
       icao24: normalizeHex(state[0]) || icao24,
-      registration: stateRegistration || registration,
+      registration,
       callsign: state[1] ? String(state[1]).trim() : null,
       origin_country: state[2] ?? null,
       time_position: state[3] ?? null,

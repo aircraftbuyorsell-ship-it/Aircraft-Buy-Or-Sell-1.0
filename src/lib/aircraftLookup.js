@@ -12,6 +12,8 @@ export function normalizeReg(value) {
   return prefix ? `${prefix}-${compact.slice(prefix.length)}` : compact;
 }
 
+function isFound(data) { return Boolean(data?.found && data?.aircraft); }
+
 function normalizeResult(data, registration) {
   if (!isFound(data)) return data;
   const aircraft = { ...data.aircraft };
@@ -27,51 +29,27 @@ function normalizeResult(data, registration) {
   return { ...data, aircraft };
 }
 
-function isFound(data) {
-  return Boolean(data?.found && data?.aircraft);
-}
-
 function toPublicTwinResult(data) {
   if (!data?.found) return data;
-  return {
-    found: true,
-    source: "public_faa",
-    origin_label: "United States (FAA)",
-    aircraft: {
-      registration: data.registration,
-      year: data.year,
-      make: data.make,
-      model: data.model,
-      serial_number: data.serial_number_masked,
-      registered_owner: data.owner_masked,
-      owner_match: data.owner_match,
-      owner_match_label: data.owner_match_label,
-      state: data.owner_state,
-      status: data.registration_status === "Valid" ? "V" : data.registration_status,
-      origin_country: "US",
-    },
-    listing: null,
-    areaServices: null,
-  };
+  return { found: true, source: "public_faa", origin_label: "United States (FAA)", aircraft: {
+    registration: data.registration, year: data.year, make: data.make, model: data.model,
+    serial_number: data.serial_number_masked, registered_owner: data.owner_masked,
+    owner_match: data.owner_match, owner_match_label: data.owner_match_label,
+    state: data.owner_state, status: data.registration_status === "Valid" ? "V" : data.registration_status,
+    origin_country: "US",
+  }, listing: null, areaServices: null };
 }
 
-/**
- * Single ABOS aircraft entry point.
- * Prefer the federated DataHub because it already joins FAA, engine, safety,
- * compliance, live/historic traffic and market evidence. Fall back to the
- * lighter registry providers only when the federated source is unavailable.
- */
+/** The only aircraft lookup used by the public Advisor and Intelligence UI. */
 export async function lookupAircraft(registration, options = {}) {
   const normalized = normalizeReg(registration);
   if (!normalized) return { found: false, error: "Aircraft registration is required." };
   const canonicalRegistration = normalized.replace(/-/g, "");
-
   const attempts = [
     { name: "aircraftDataHub", payload: { registration: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
     { name: "globalAircraftLookup", payload: { registration: canonicalRegistration } },
     { name: "publicTwinLookup", payload: { query: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
   ];
-
   const statuses = [];
   for (let i = 0; i < attempts.length; i += 1) {
     const { name, payload } = attempts[i];
@@ -79,25 +57,13 @@ export async function lookupAircraft(registration, options = {}) {
       const response = await base44.functions.invoke(name, payload);
       const data = name === "publicTwinLookup" ? toPublicTwinResult(response.data) : response.data;
       statuses.push({ source: name, status: isFound(data) ? "matched" : "no_match" });
-      if (isFound(data)) {
-        return {
-          ...normalizeResult(data, normalized),
-          source_statuses: statuses,
-          fallback_used: i > 0,
-          intelligence_complete: name === "aircraftDataHub",
-        };
-      }
-    } catch (error) {
+      if (isFound(data)) return { ...normalizeResult(data, normalized), source_statuses: statuses, fallback_used: i > 0, intelligence_complete: name === "aircraftDataHub" };
+    } catch (_) {
       statuses.push({ source: name, status: "unavailable" });
     }
   }
-
-  return {
-    found: false,
-    source_statuses: statuses,
-    fallback_used: true,
+  return { found: false, source_statuses: statuses, fallback_used: true,
     error: statuses.some(({ status }) => status === "unavailable")
       ? `No match confirmed for ${normalized}. Some registry sources are unavailable; please try again.`
-      : `No registry record found for ${normalized}.`,
-  };
+      : `No registry record found for ${normalized}.` };
 }

@@ -23,6 +23,32 @@ async function supabaseRows(base44: any, table: string, query: string) {
   } catch (_) { return []; }
 }
 
+async function fetchAdsbdb(registration: string) {
+  try {
+    const response = await fetch(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(registration)}`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (!response.ok) return null;
+    return (await response.json())?.response?.aircraft || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function mapAdsbdb(ac: any, registration: string) {
+  if (!ac) return null;
+  return {
+    registration,
+    make: ac.manufacturername || ac.manufacturer || null,
+    model: ac.type || ac.model || null,
+    year: null,
+    serial_number: ac.serialnumber || ac.serial_number || null,
+    status: 'UNKNOWN',
+    mode_s_hex: ac.mode_s || ac.icao24 || null,
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -33,35 +59,43 @@ Deno.serve(async (req) => {
     if (!registration) return Response.json({ error: 'registration required' }, { status: 400 });
 
     const nNumber = registration.replace(/^N/, '');
-    const [faaRows, passportRows, listingRows, openSkyRows] = await Promise.all([
+    const [faaRows, passportRows, listingRows, openSkyRows, adsbdbAircraft] = await Promise.all([
       registration.startsWith('N') ? base44.asServiceRole.entities.FAAAircraft.filter({ n_number: nNumber }, '-created_date', 1) : [],
       base44.asServiceRole.entities.ATIPassport.filter({ registration }, '-created_date', 1),
       base44.asServiceRole.entities.AircraftListing.filter({ registration, status: 'active', visibility: 'public' }, '-created_date', 1),
       supabaseRows(base44, 'opensky_aircraft_metadata', `select=*&registration=eq.${encodeURIComponent(registration)}&limit=1`),
+      fetchAdsbdb(registration),
     ]);
     const faa = faaRows[0] || null;
     const passport = passportRows[0] || null;
     const listing = listingRows[0] || null;
     const openSky = openSkyRows[0] || null;
-    if (!faa && !passport && !listing && !openSky) return Response.json({ found: false, registration }, { status: 404 });
+    const adsbdb = mapAdsbdb(adsbdbAircraft, registration);
+
+    if (!faa && !passport && !listing && !openSky && !adsbdb) {
+      // No evidence is a valid state, not an HTTP error. The UI must be able to
+      // distinguish UNKNOWN from a broken endpoint without treating 404 as data.
+      return Response.json({ found: false, registration, evidence: { registry: false, digital_twin: false, marketplace: false, activity_metadata: false, adsbdb: false } });
+    }
 
     return Response.json({
       found: true,
       registration,
       aircraft: {
         registration,
-        make: passport?.make || listing?.make || openSky?.manufacturer_name || null,
-        model: passport?.model || listing?.model || openSky?.model || null,
+        make: passport?.make || listing?.make || openSky?.manufacturer_name || adsbdb?.make || faa?.make || null,
+        model: passport?.model || listing?.model || openSky?.model || adsbdb?.model || faa?.model || null,
         year: faa?.year_mfr || passport?.year_manufactured || listing?.year || null,
-        serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || null,
-        status: faa?.status_code || passport?.verification_status || listing?.status || null,
-        mode_s_hex: faa?.mode_s_hex || passport?.icao_hex || openSky?.icao24 || null,
+        serial_number: faa?.serial_number || passport?.serial_number || openSky?.serial_number || adsbdb?.serial_number || null,
+        status: faa?.status_code || passport?.verification_status || listing?.status || adsbdb?.status || 'UNKNOWN',
+        mode_s_hex: faa?.mode_s_hex || passport?.icao_hex || openSky?.icao24 || adsbdb?.mode_s_hex || null,
       },
       evidence: {
         registry: !!faa,
         digital_twin: !!passport,
         marketplace: !!listing,
         activity_metadata: !!openSky,
+        adsbdb: !!adsbdb,
       },
       searchedAt: new Date().toISOString(),
     });

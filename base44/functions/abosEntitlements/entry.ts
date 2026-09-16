@@ -89,6 +89,43 @@ async function activeSubProduct(svc, email) {
   return null;
 }
 
+// ── Tiered upgrade pricing (Report → Pro → Full) ──
+// A buyer who already owns a lower-tier report for this aircraft upgrades by
+// paying (higher price − already-paid credit) minus a loyalty discount:
+//   ATI_REPORT → DEAL_ANALYSIS : 10% off the difference
+//   ATI_REPORT → INVESTMENT    : 15% off the difference
+//   DEAL_ANALYSIS → INVESTMENT : 15% off the difference
+const TIERS = [
+  { key: 'ATI_REPORT', price: 39, name: 'ATI Report' },
+  { key: 'DEAL_ANALYSIS', price: 99, name: 'Deal Analysis' },
+  { key: 'INVESTMENT', price: 149, name: 'Investment' },
+];
+const UPGRADE_DISCOUNT = {
+  'ATI_REPORT->DEAL_ANALYSIS': 0.10,
+  'ATI_REPORT->INVESTMENT': 0.15,
+  'DEAL_ANALYSIS->INVESTMENT': 0.15,
+};
+
+async function ownedLowerTier(svc, email, productKey, reg) {
+  const idx = TIERS.findIndex((t) => t.key === productKey);
+  if (idx <= 0 || !reg) return null;
+  const [ents, reports] = await Promise.all([
+    svc.entities.Entitlement.filter({ user_email: email, aircraft_registration: reg, status: 'active' }, '-created_date', 20),
+    svc.entities.PurchasedReport.filter({ user_email: email, aircraft_registration: reg, status: 'ready' }, '-created_date', 20),
+  ]);
+  for (let i = idx - 1; i >= 0; i--) {
+    const lower = TIERS[i];
+    if (ents.some((e) => e.product_key === lower.key) || reports.some((r) => r.product_key === lower.key)) return lower;
+  }
+  return null;
+}
+
+function upgradePrice(targetKey, targetPrice, owned) {
+  const pct = UPGRADE_DISCOUNT[`${owned.key}->${targetKey}`] ?? 0.15;
+  const upgrade = +((targetPrice - owned.price) * (1 - pct)).toFixed(2);
+  return { from_key: owned.key, from_name: owned.name, credit_usd: owned.price, discount_pct: pct, upgrade_price_usd: Math.max(0, upgrade) };
+}
+
 /**
  * Canonical server-side authorization helper.
  * Paid write paths MUST call this instead of trusting the caller.
@@ -222,7 +259,17 @@ Deno.serve(async (req) => {
           discountPct = WELCOME_DISCOUNT;
           welcomePromo = true;
         }
-        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_usd: priceUsd, original_price_usd: product?.price_usd || 0, discount_pct: discountPct, welcome_promo: welcomePromo, active_sub_product: subProduct });
+        // Upgrade discount takes precedence: a buyer who already owns a lower
+        // tier for this aircraft pays only the difference minus a loyalty %.
+        const owned = await ownedLowerTier(svc, user.email, product_key, reg);
+        let upgrade = null;
+        if (owned) {
+          upgrade = upgradePrice(product_key, product?.price_usd || 0, owned);
+          priceUsd = upgrade.upgrade_price_usd;
+          discountPct = upgrade.discount_pct;
+          welcomePromo = false;
+        }
+        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_usd: priceUsd, original_price_usd: product?.price_usd || 0, discount_pct: discountPct, welcome_promo: welcomePromo, upgrade, owned_lower_tier: owned?.key || null, active_sub_product: subProduct });
       }
 
       case 'create_checkout': {
@@ -259,6 +306,11 @@ Deno.serve(async (req) => {
           unitAmount = Math.round(product.price_usd * (1 - SUB_DISCOUNT[subProduct]) * 100);
         } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
           unitAmount = Math.round(product.price_usd * (1 - WELCOME_DISCOUNT) * 100);
+        }
+        // Upgrade discount: pay (higher − already-paid credit) minus loyalty %.
+        const owned = await ownedLowerTier(svc, user.email, product_key, reg);
+        if (owned && product.type === 'one_time') {
+          unitAmount = Math.round(upgradePrice(product_key, product.price_usd || 0, owned).upgrade_price_usd * 100);
         }
 
         const sessionParams = {

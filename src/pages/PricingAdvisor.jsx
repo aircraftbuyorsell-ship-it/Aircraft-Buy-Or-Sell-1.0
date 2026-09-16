@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, LockKeyhole, Search, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, LockKeyhole, Search, ShieldCheck, Sparkles, Loader2, Mail } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { checkEntitlement, createCheckout } from "@/lib/entitlements";
 import AdvisorIntelligence from "@/components/advisor/AdvisorIntelligence";
+import AdvisorPricingTiers from "@/components/advisor/AdvisorPricingTiers";
 
-const FULL_REPORT_PRICE_ID = "price_1TaO1rAT7Be3WR6JaWnMa7mx";
+const TIER_KEYS = ["ATI_REPORT", "DEAL_ANALYSIS", "INVESTMENT"];
 const normalizeRegistration = (value) => String(value || "").trim().toUpperCase().replace(/\s+/g, "");
 
 export default function PricingAdvisor() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const registration = useMemo(() => normalizeRegistration(params.get("registration")), [params]);
+  const justPaid = params.get("paid") === "1" || params.get("success") === "true";
+
   const [data, setData] = useState(null);
-  const [entitled, setEntitled] = useState(false);
+  const [tiers, setTiers] = useState({});
   const [loading, setLoading] = useState(Boolean(registration));
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(null);
   const [error, setError] = useState("");
   const [notFound, setNotFound] = useState(false);
 
@@ -44,26 +48,29 @@ export default function PricingAdvisor() {
     if (!registration) return;
     let cancelled = false;
     (async () => {
-      try {
-        const result = await base44.functions.invoke("abosEntitlements", { action: "check", product_key: "ATI_FULL_REPORT", aircraft_registration: registration });
-        if (!cancelled && result?.data?.entitled) setEntitled(true);
-      } catch (_) {}
+      const entries = await Promise.all(
+        TIER_KEYS.map((key) => checkEntitlement(key, registration).catch(() => null))
+      );
+      if (cancelled) return;
+      const next = {};
+      TIER_KEYS.forEach((key, i) => { next[key] = entries[i] || null; });
+      setTiers(next);
     })();
     return () => { cancelled = true; };
-  }, [registration]);
+  }, [registration, justPaid]);
 
-  const startCheckout = async () => {
+  const startCheckout = async (productKey) => {
     if (!registration || checkoutLoading) return;
-    setCheckoutLoading(true); setError("");
+    setCheckoutLoading(productKey); setError("");
     try {
       const user = await base44.auth.me().catch(() => null);
       if (!user) { base44.auth.redirectToLogin(); return; }
       const returnUrl = `${window.location.origin}/finance-advisor?registration=${encodeURIComponent(registration)}`;
-      const response = await base44.functions.invoke("stripeCreateCheckout", { priceId: FULL_REPORT_PRICE_ID, returnUrl, report_registration: registration, product_key: "ATI_FULL_REPORT" });
-      const url = response?.data?.sessionUrl || response?.data?.url;
+      const res = await createCheckout(productKey, registration, returnUrl);
+      const url = res?.url;
       if (!url) throw new Error("Checkout URL was not returned.");
       window.location.assign(url);
-    } catch (err) { setError(err?.message || "Checkout could not be started."); setCheckoutLoading(false); }
+    } catch (err) { setError(err?.message || "Checkout could not be started."); setCheckoutLoading(null); }
   };
 
   if (!registration) return <main className="min-h-screen bg-[#fbfaf7] px-6 py-20 text-[#102033]"><div className="mx-auto max-w-xl text-center"><p className="text-xs font-bold uppercase tracking-[0.3em] text-[#a87925]">Aircraft Advisor</p><h1 className="mt-4 text-4xl font-black">Search an aircraft first.</h1><button onClick={() => navigate("/")} className="mt-8 rounded-xl bg-[#c99635] px-5 py-3 font-bold text-white">Back to search</button></div></main>;
@@ -72,7 +79,7 @@ export default function PricingAdvisor() {
   const make = ac.make || ac.manufacturer || "Aircraft";
   const model = ac.model || "Identity found";
   const year = ac.year;
-  const unlocked = entitled;
+  const unlocked = !!(tiers.DEAL_ANALYSIS?.entitled || tiers.INVESTMENT?.entitled);
   const insufficient = data?.data_sufficiency === "insufficient";
 
   return (
@@ -106,11 +113,14 @@ export default function PricingAdvisor() {
                 <div className="mt-6">
                   <AdvisorIntelligence data={data} unlocked={unlocked} />
                 </div>
-                {!insufficient && !unlocked && (
-                  <div className="mt-6 flex flex-wrap items-center gap-3 rounded-3xl border border-[#c99635]/40 bg-white p-5 shadow-sm">
-                    <div className="flex-1"><h3 className="text-sm font-black">Unlock Full Intelligence Report</h3><p className="mt-1 text-xs text-[#102033]/55">ATI score, valuation range, deal analysis and full flight history for {registration}.</p></div>
-                    <button onClick={startCheckout} disabled={checkoutLoading} className="flex items-center gap-2 rounded-xl bg-[#c99635] px-5 py-3 text-sm font-bold text-white disabled:opacity-50"><LockKeyhole className="h-4 w-4" /> {checkoutLoading ? "Opening…" : "View Full Report"} <ArrowRight className="h-4 w-4" /></button>
-                  </div>
+                {!insufficient && (
+                  <AdvisorPricingTiers
+                    registration={registration}
+                    tiers={tiers}
+                    loadingTier={checkoutLoading}
+                    onPurchase={startCheckout}
+                    justPaid={justPaid}
+                  />
                 )}
               </>
             )}
@@ -126,14 +136,21 @@ export default function PricingAdvisor() {
             {notFound ? <div className="mt-5 flex items-center gap-2 rounded-full bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">No registry match yet</div> : <div className="mt-5 flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div>}
             <h3 className="mt-6 border-b border-[#102033]/10 pb-3 text-sm font-black">Aircraft Overview</h3>
             <dl className="divide-y divide-[#102033]/[0.07] text-xs">{[["Registration", registration], ["Make / Model", `${make} ${model}`], ["Year", year || "—"], ["Serial Number", ac.serial_number || "—"], ["Mode-S Hex", ac.mode_s_hex || "—"], ["Status", ac.status || "—"]].map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-[#102033]/45">{k}</dt><dd className="font-semibold text-right">{v}</dd></div>)}</dl>
-            <h3 className="mt-5 border-b border-[#102033]/10 pb-3 text-sm font-black">Quick Actions</h3>
-            <div className="space-y-2 pt-3">
-              <button onClick={startCheckout} disabled={unlocked || notFound || insufficient} className="w-full rounded-xl bg-[#c99635] px-3 py-3 text-xs font-bold text-white disabled:opacity-50">{unlocked ? "Full Report Unlocked" : "View Full Intelligence Report"} <ArrowRight className="ml-1 inline h-3.5 w-3.5" /></button>
-              <a href="https://www.faa.gov/" target="_blank" rel="noopener noreferrer" className="block w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">FAA Registry ↗</a>
-              <a href="https://ad.easa.europa.eu/" target="_blank" rel="noopener noreferrer" className="block w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">EASA AD Database ↗</a>
-              <a href="https://opensky-network.org/" target="_blank" rel="noopener noreferrer" className="block w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">OpenSky Network ↗</a>
+            <h3 className="mt-5 border-b border-[#102033]/10 pb-3 text-sm font-black">Your Reports</h3>
+            <div className="space-y-2 pt-3 text-xs">
+              {TIER_KEYS.map((key) => {
+                const t = tiers[key];
+                const owned = t?.entitled;
+                return (
+                  <div key={key} className="flex items-center justify-between rounded-xl border border-[#102033]/8 px-3 py-2">
+                    <span className="font-semibold">{key.replace(/_/g, " ")}</span>
+                    <span className={`font-bold ${owned ? "text-emerald-600" : "text-[#102033]/45"}`}>{owned ? "Owned" : "—"}</span>
+                  </div>
+                );
+              })}
+              <button onClick={() => navigate("/my-reports")} className="w-full rounded-xl border border-[#102033]/10 px-3 py-3 text-left text-xs">My Reports ↗</button>
             </div>
-            <div className="mt-6 border-t border-[#102033]/10 pt-5 text-[10px] leading-5 text-[#102033]/45">Data is aggregated from public registries and licensed sources via API. Owner data is masked. <b className="text-[#a87925]">Trust by design.</b></div>
+            <div className="mt-6 flex items-start gap-2 border-t border-[#102033]/10 pt-5 text-[10px] leading-5 text-[#102033]/45"><Mail className="mt-0.5 h-3.5 w-3.5 flex-none text-[#a87925]" /><span>Reports are compiled into a PDF and emailed after payment. Owner data is masked. <b className="text-[#a87925]">Trust by design.</b></span></div>
           </div>
         </aside>
       </div>

@@ -27,7 +27,7 @@ export default function Dashboard() {
       <header className="relative z-20 border-b border-[#102033]/[0.08] bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6 md:px-10">
           <button onClick={() => navigate("/")} className="flex items-center gap-3 text-left">
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101a25] text-xl font-black text-white shadow-lg ring-1 ring-[#c99635]">N<span className="text-[#d6a33e]">↗</span></span>
+            <img src="https://media.base44.com/images/public/workspaces/6998b56ab3d79ca33dfcf1d0/brands/e2c3611ed_brand_upload_logo.jpg" alt="ABOS Logo" className="h-11 w-11 rounded-full object-cover shadow-lg ring-1 ring-[#c99635]" />
             <span><span className="block text-[25px] font-black leading-none tracking-tight">ABOS</span><span className="mt-1 block text-[8px] font-semibold tracking-[0.25em] text-[#a67b2c]">AIRCRAFT BUY OR SELL</span></span>
           </button>
           <nav className="hidden items-center gap-8 text-sm font-medium md:flex">

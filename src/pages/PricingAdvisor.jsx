@@ -28,7 +28,7 @@ export default function PricingAdvisor() {
     (async () => {
       setLoading(true); setError(""); setNotFound(false); setData(null);
       try {
-        const result = await base44.functions.invoke("aircraftDataHub", { registration });
+        const result = await base44.functions.invoke("globalAircraftLookup", { registration });
         if (cancelled) return;
         if (result?.data?.found) setData(result.data);
         else if (result?.data?.found === false) setNotFound(true);
@@ -79,7 +79,7 @@ export default function PricingAdvisor() {
   const make = ac.make || ac.manufacturer || "Aircraft";
   const model = ac.model || "Identity found";
   const year = ac.year;
-  const unlocked = !!(tiers.DEAL_ANALYSIS?.entitled || tiers.INVESTMENT?.entitled);
+  const unlocked = !!(data?.premium?.unlocked && data?.premium?.data?.valuation);
   const insufficient = data?.data_sufficiency === "insufficient";
 
   return (

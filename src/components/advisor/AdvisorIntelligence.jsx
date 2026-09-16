@@ -9,7 +9,7 @@ function Row({ label, value, source }) {
         {label}
         {source && <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[8px] font-bold uppercase ${/engine ?spec|ati card|licensed|marketplace/i.test(source) ? "border-[#c99635]/40 bg-[#c99635]/10 text-[#a87925]" : "border-[#102033]/10 bg-[#102033]/[0.03] text-[#102033]/45"}`}>{source}</span>}
       </dt>
-      <dd className="text-right text-xs font-semibold">{value || "—"}</dd>
+      <dd className="text-right text-xs font-semibold">{value ?? "—"}</dd>
     </div>
   );
 }
@@ -58,13 +58,14 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-[#fbfaf7] p-3">
             <div className="text-[10px] font-bold uppercase text-[#102033]/45">Airworthiness Directives</div>
-            <div className="mt-1 text-xl font-black">{comp.ad_count ?? 0}</div>
+            <div className="mt-1 text-xl font-black">{comp.ad_count ?? "—"}</div>
           </div>
           <div className="rounded-xl bg-[#fbfaf7] p-3">
             <div className="text-[10px] font-bold uppercase text-[#102033]/45">STCs</div>
-            <div className="mt-1 text-xl font-black">{comp.stc_count ?? 0}</div>
+            <div className="mt-1 text-xl font-black">{comp.stc_count ?? "—"}</div>
           </div>
         </div>
+        {comp.note && <p className="mt-3 text-xs text-muted-foreground">{comp.note}</p>}
         {comp.ads?.length > 0 && (
           <div className="mt-3 max-h-32 space-y-1.5 overflow-auto">
             {comp.ads.slice(0, 8).map((ad) => (
@@ -81,7 +82,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         <dl>
           <Row label="Last Time in Air" value={data?.last_time_in_air || "No ADS-B evidence"} source={data?.last_time_in_air ? "ADS-B" : null} />
           <Row label="Activity Status" value={act.status === "ACTIVITY_EVIDENCE" ? "Activity evidence found" : "No activity observed"} />
-          <Row label="Historical Flights (ADS-B.lol)" value={act.historical_flight_count ?? traffic.sightings ?? 0} />
+          <Row label="Historical Flights (ADS-B.lol)" value={act.historical_flight_count ?? "Unavailable"} />
           <Row label="Last Live Sighting" value={traffic.last_seen} />
           {act.open_sky_metadata && (
             <>
@@ -127,7 +128,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
             </div>
           </>
         ) : (
-          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-700"><ShieldCheck className="h-4 w-4" /> No NTSB damage events on record for this registration.</div>
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-700"><ShieldCheck className="h-4 w-4" /> No NTSB event evidence is available in the connected records. This does not confirm a damage-free history.</div>
         )}
       </AdvisorSectionCard>
 
@@ -182,7 +183,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
             </div>
           </>
         ) : (
-          <div className="rounded-xl bg-[#fbfaf7] px-4 py-3 text-xs text-[#102033]/55">{data?.marketplace_evidence?.search_summary || "No public marketplace or Facebook group listings found for this registration."}</div>
+          <div className="rounded-xl bg-[#fbfaf7] px-4 py-3 text-xs text-[#102033]/55">{data?.marketplace_evidence?.search_summary || "Public listing search has not returned evidence for this registration."}</div>
         )}
       </AdvisorSectionCard>
 

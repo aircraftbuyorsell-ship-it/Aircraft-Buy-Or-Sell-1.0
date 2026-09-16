@@ -4,7 +4,7 @@ export function normalizeRegistration(value: string | null | undefined) {
 
 export function getSupabaseConfig() {
   return {
-    url: Deno.env.get('SUPABASE_URL') || Deno.env.get('ABOS_SUPABASE_URL') || '',
+    url: Deno.env.get('SUPABASE_URL') || Deno.env.get('ABOS_SUPABASE_URL') || Deno.env.get('VITE_SUPABASE_URL') || '',
     key: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('ABOS_SUPABASE_SERVICE_ROLE_KEY') || '',
   };
 }

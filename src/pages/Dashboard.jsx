@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe2, Search, ShieldCheck, Sparkles, LockKeyhole, FileCheck2 } from "lucide-react";
+import HeroGlobe from "@/components/homepage/HeroGlobe";
 
 const REGISTRATION = /\b(?:N\d{1,5}[A-Z]{0,2}|[A-Z0-9]{1,2}-[A-Z0-9]{2,5})\b/i;
 const SAMPLES = ["N7692J", "OK-PES", "OM-PES"];
@@ -65,12 +66,12 @@ export default function Dashboard() {
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#102033]/50"><span className="mr-1">Quick search:</span>{SAMPLES.map((sample) => <button key={sample} onClick={() => searchSample(sample)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold hover:border-[#c99635]/60 hover:text-[#a87925]">{sample}</button>)}<button onClick={() => setQuery("")} className="flex items-center gap-1 rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Global search</button></div>
           </div>
 
-          <div className="relative hidden min-h-[510px] lg:block">
-            <div className="absolute right-[8%] top-[40px] h-[500px] w-[500px] rounded-full [background:radial-gradient(circle_at_35%_25%,#ffffff_0%,#f1eee6_42%,#ded8ca_100%)] shadow-[0_30px_80px_rgba(16,32,51,0.08)] [background-image:radial-gradient(rgba(16,32,51,0.25)_0.9px,transparent_0.9px)] [background-size:9px_9px]" />
-            <div className="absolute right-[2%] top-[120px] h-px w-[650px] rotate-[15deg] bg-[#c99635]/45" />
-            <div className="absolute right-[7%] top-[310px] h-px w-[620px] -rotate-[18deg] bg-[#c99635]/35" />
-            <div className="absolute right-[35%] top-[180px] h-3 w-3 rounded-full bg-[#d6a33e] shadow-[0_0_20px_rgba(214,163,62,0.7)]" />
-            <div className="absolute right-[12%] top-[350px] h-2.5 w-2.5 rounded-full bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
+          <div className="relative hidden min-h-[510px] overflow-hidden rounded-3xl lg:block">
+            <HeroGlobe />
+            <div className="pointer-events-none absolute right-[2%] top-[120px] h-px w-[650px] rotate-[15deg] bg-[#c99635]/45" />
+            <div className="pointer-events-none absolute right-[7%] top-[310px] h-px w-[620px] -rotate-[18deg] bg-[#c99635]/35" />
+            <div className="pointer-events-none absolute right-[35%] top-[180px] h-3 w-3 rounded-full bg-[#d6a33e] shadow-[0_0_20px_rgba(214,163,62,0.7)]" />
+            <div className="pointer-events-none absolute right-[12%] top-[350px] h-2.5 w-2.5 rounded-full bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
             <div className="absolute right-[2%] top-[105px] w-[380px] rounded-3xl border border-[#102033]/10 bg-white/95 p-5 shadow-[0_25px_70px_rgba(16,32,51,0.13)] backdrop-blur-xl">
               <div className="flex items-center gap-4"><div className="h-20 w-24 rounded-xl bg-[#e8e4db] p-3 text-center text-3xl">✈</div><div><div className="text-xl font-black">N7692J 🇺🇸</div><div className="mt-1 text-sm text-[#102033]/60">Piper PA-28R-180</div><div className="mt-1 text-xs text-[#102033]/45">1983 · Aircraft profile</div></div></div>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div>

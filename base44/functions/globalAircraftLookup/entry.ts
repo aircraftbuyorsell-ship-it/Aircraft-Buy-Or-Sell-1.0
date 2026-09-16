@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { registration, enrich_listing_id } = await req.json().catch(() => ({}));
+    const { registration, enrich_listing_id, owner_query } = await req.json().catch(() => ({}));
     if (!registration) return Response.json({ error: 'registration required' }, { status: 400 });
 
     // Normalize: uppercase, strip spaces, ensure dash for international prefixes
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         const ageMs = Date.now() - new Date(c.last_verified_at || c.updated_date || c.created_date).getTime();
         const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — "recently checked" instant cache
         if (ageMs < CACHE_TTL_MS && c.raw_data?.full_result?.schema_version === 'advisor-v3' && !enrich_listing_id) {
-          return Response.json(await advisorResponse(base44, user, { ...c.raw_data.full_result, cached: true }));
+          return Response.json(await advisorResponse(base44, user, { ...c.raw_data.full_result, cached: true }, owner_query));
         }
         // Stale cache — use cached aircraft data but refresh listing/areaServices live
         if (c.raw_data?.full_result?.aircraft) {
@@ -118,28 +118,7 @@ Deno.serve(async (req) => {
 
       // Supabase identity and reference enrichment are handled by the REST federation.
 
-      // 2e. Optional: auto-enrich a specific listing
-      if (enrich_listing_id && result.found && result.aircraft) {
-        try {
-          const listing = await base44.asServiceRole.entities.AircraftListing.filter(
-            { id: enrich_listing_id },
-            '-created_date',
-            1
-          );
-          if (listing.length > 0 && (listing[0].owner === user.id || ['admin', 'super_admin'].includes(user.role))) {
-            const l = listing[0];
-            const updateData = {};
-            if (!l.make && result.aircraft.make) updateData.make = result.aircraft.make;
-            if (!l.model && result.aircraft.model) updateData.model = result.aircraft.model;
-            if (!l.year && result.aircraft.year) updateData.year = result.aircraft.year;
-            if (Object.keys(updateData).length > 0) {
-              await base44.asServiceRole.entities.AircraftListing.update(l.id, updateData);
-              result.enriched = true;
-              result.enrichedFields = Object.keys(updateData);
-            }
-          }
-        } catch (_) { /* non-critical */ }
-      }
+      // Explicit listing enrichment is applied after full identity federation below.
     }
 
     // ── 3. International → adsbdb.com (global Mode-S database) ──
@@ -266,7 +245,15 @@ Deno.serve(async (req) => {
 
     const enriched = await buildAdvisorResult(base44, result, rest, seed);
     await cacheGlobalRegistry(base44, enriched.aircraft, enriched.source, { full_result: enriched });
-    return Response.json(await advisorResponse(base44, user, enriched));
+    if (enrich_listing_id) {
+      const rows = await base44.entities.AircraftListing.filter({ id: enrich_listing_id }, '-created_date', 1);
+      const listing = rows[0];
+      if (listing && (listing.owner === user.id || ['admin', 'super_admin'].includes(user.role))) {
+        const patch = Object.fromEntries(['make', 'model', 'year'].filter(k => !listing[k] && enriched.aircraft[k]).map(k => [k, enriched.aircraft[k]]));
+        if (Object.keys(patch).length) { await base44.entities.AircraftListing.update(listing.id, patch); enriched.enriched = true; enriched.enrichedFields = Object.keys(patch); }
+      }
+    }
+    return Response.json(await advisorResponse(base44, user, enriched, owner_query));
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
@@ -353,7 +340,7 @@ async function buildAdvisorResult(base44, result, rest, seed) {
     rest('live_traffic', { registration: eq, select: 'icao24,callsign,latitude,longitude,altitude_ft,ground_speed_kt,heading,on_ground,recorded_at', order: 'recorded_at.desc', limit: 100 }),
     rest('adsblol_flight_history', { registration: eq, order: 'observed_at.desc', limit: 100 }),
     rest('opensky_aircraft_metadata', { registration: eq, select: 'icao24,manufacturer_name,model,serial_number,source_retrieved_at', limit: 1 }),
-    p.id ? rest('score_runs', { passport_id: `eq.${p.id}`, status: 'eq.completed', order: 'created_at.desc', limit: 1 }) : [],
+    p.id ? rest('score_runs', { passport_id: `eq.${p.id}`, order: 'created_at.desc', limit: 1 }) : [],
     isUS ? rest('faa_operator_aircraft', { or: `(n_number.eq.${reg},n_number.eq.${reg.slice(1)})`, limit: 1 }) : [],
     (r.state || ac.state) ? rest('faa_dealers', { state: `eq.${r.state || ac.state}`, is_active: 'eq.true', select: 'cert_num,name,city,state,ownership_type,cert_date,expiration_date,is_active', limit: 25 }) : [],
     rest('market_pulse', { order: 'period_end.desc', limit: 12 }),
@@ -409,8 +396,15 @@ async function buildAdvisorResult(base44, result, rest, seed) {
   };
 }
 
-async function advisorResponse(base44, user, cached) {
+async function advisorResponse(base44, user, cached, ownerQuery) {
   const result = structuredClone(cached);
+  if (ownerQuery && result.origin_country === 'US') {
+    const rest = await makeRegistryRest(base44);
+    const rows = await rest('faa_registry', { n_number: `eq.${result.aircraft.registration.slice(1)}`, select: 'name', limit: 1 });
+    const normalizeOwner = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    result.aircraft.owner_match = rows[0]?.name ? normalizeOwner(rows[0].name) === normalizeOwner(ownerQuery) : null;
+    result.aircraft.owner_match_label = result.aircraft.owner_match === null ? 'Unavailable' : result.aircraft.owner_match ? 'Match' : 'Match failed';
+  }
   const privileged = ['admin', 'super_admin'].includes(user.role);
   let paid = privileged, advanced = privileged;
   if (!privileged) {
@@ -447,6 +441,9 @@ function normalizeRegistration(raw) {
   if (!raw) return '';
   // Uppercase, strip all whitespace
   let r = String(raw).toUpperCase().replace(/\s+/g, '');
+  if (/^N-?\d/.test(r)) return r.replace(/-/g, '');
+  if (/^\d{1,5}[A-Z]{0,2}$/.test(r)) return `N${r}`;
+  if (r.includes('-')) return r;
   // Auto-insert dash for international prefixes that use one
   for (const p of [...DASH_PREFIXES].sort((a, b) => b.length - a.length)) {
     if (r.startsWith(p + '-')) break;

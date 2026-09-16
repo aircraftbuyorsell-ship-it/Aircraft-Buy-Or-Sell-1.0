@@ -1,6 +1,6 @@
 import { base44 } from "@/api/base44Client";
 
-const DASH_PREFIXES = ["OK", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "9M", "D", "G", "F", "I", "B"];
+const DASH_PREFIXES = ["OK", "OM", "EC", "EA", "SE", "OO", "PH", "HB", "OE", "LN", "OY", "ZK", "VH", "CS", "SP", "HA", "LV", "LY", "ES", "UR", "9A", "LZ", "T7", "T9", "9H", "5B", "4O", "ER", "EW", "E7", "9M", "9V", "A7", "RP", "RA", "D", "G", "F", "I", "B"];
 
 export function normalizeReg(value) {
   const compact = String(value ?? "").trim().toUpperCase().replace(/\s+/g, "");
@@ -46,8 +46,7 @@ export async function lookupAircraft(registration, options = {}) {
   if (!normalized) return { found: false, error: "Aircraft registration is required." };
   const canonicalRegistration = normalized.replace(/-/g, "");
   const attempts = [
-    { name: "aircraftDataHub", payload: { registration: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
-    { name: "globalAircraftLookup", payload: { registration: canonicalRegistration } },
+    { name: "globalAircraftLookup", payload: { registration: normalized, owner_query: options.ownerQuery || undefined } },
     { name: "publicTwinLookup", payload: { query: canonicalRegistration, owner_query: options.ownerQuery || undefined } },
   ];
   const statuses = [];
@@ -57,7 +56,7 @@ export async function lookupAircraft(registration, options = {}) {
       const response = await base44.functions.invoke(name, payload);
       const data = name === "publicTwinLookup" ? toPublicTwinResult(response.data) : response.data;
       statuses.push({ source: name, status: isFound(data) ? "matched" : "no_match" });
-      if (isFound(data)) return { ...normalizeResult(data, normalized), source_statuses: statuses, fallback_used: i > 0, intelligence_complete: name === "aircraftDataHub" };
+      if (isFound(data)) return { ...normalizeResult(data, normalized), source_statuses: statuses, fallback_used: i > 0, intelligence_complete: data.schema_version === "advisor-v3" };
     } catch (_) {
       statuses.push({ source: name, status: "unavailable" });
     }

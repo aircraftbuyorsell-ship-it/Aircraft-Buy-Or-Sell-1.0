@@ -5,9 +5,9 @@ import { base44 } from "@/api/base44Client";
 import { checkEntitlement, createCheckout } from "@/lib/entitlements";
 import AdvisorIntelligence from "@/components/advisor/AdvisorIntelligence";
 import AdvisorPricingTiers from "@/components/advisor/AdvisorPricingTiers";
+import { normalizeReg as normalizeRegistration } from "@/lib/aircraftLookup";
 
 const TIER_KEYS = ["ATI_REPORT", "DEAL_ANALYSIS", "INVESTMENT"];
-const normalizeRegistration = (value) => String(value || "").trim().toUpperCase().replace(/\s+/g, "");
 
 export default function PricingAdvisor() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function PricingAdvisor() {
       } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [registration]);
+  }, [registration, justPaid]);
 
   useEffect(() => {
     if (!registration) return;

@@ -9,6 +9,18 @@ const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 const sqlText = (value) => String(value || '').replaceAll("'", "''");
 
+async function fetchAdsbdbIdentity(registration) {
+  try {
+    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${encodeURIComponent(registration)}`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (!res.ok) return null;
+    const ac = (await res.json())?.response?.aircraft;
+    return ac && ac.registration ? ac : null;
+  } catch (_) { return null; }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -90,6 +102,46 @@ Deno.serve(async (req) => {
     const card = cardRows[0] || null;
     const listing = listingRows[0] || null;
     if (!registry && !catalog && !passport && !card && !listing) {
+      // Final identity fallback: ADS-BDB (global Mode-S database). Gives at
+      // least make/model/mode-s for real aircraft missing from the synced FAA
+      // registry table, so the Advisor shows identity + INSUFFICIENT_DATA
+      // instead of a bare 404.
+      const adsb = await fetchAdsbdbIdentity(registration);
+      if (adsb) {
+        return Response.json({
+          found: true,
+          source: 'adsbdb_identity',
+          origin_label: registration.startsWith('N') ? 'United States (FAA / ADS-B)' : 'Global (ADS-B)',
+          aircraft: {
+            registration,
+            make: adsb.manufacturer || null,
+            model: adsb.type || null,
+            year: null,
+            serial_number: null,
+            registered_owner: '****',
+            mode_s_hex: adsb.mode_s || null,
+            status: 'UNKNOWN',
+            state: null,
+            country: null,
+            field_sources: { make: 'ADS-BDB', model: 'ADS-BDB', mode_s_hex: 'ADS-BDB' },
+          },
+          data_sufficiency: 'insufficient',
+          missing_public_fields: ['Year of manufacture', 'Serial number', 'Airworthiness date', 'Maintenance / logbook records'],
+          compliance_intelligence: { ad_count: 0, stc_count: 0, ads: [], stcs: [] },
+          activity_intelligence: { status: 'UNKNOWN', open_sky_metadata: null, historical_flight_count: 0, historical_flights: null, historical_flights_locked: !fullIntelligence },
+          certificates: { airworthiness: { available: false, date: null }, ad: { count: 0, items: [] }, stc: { count: 0, items: [] }, sb: { available: false, locked: !fullIntelligence }, damage_history_check: { available: false, locked: !fullIntelligence } },
+          traffic: { sightings: 0, last_seen: null, latest: null, history: null, history_locked: !fullIntelligence },
+          registry_filings: null,
+          commercial_operator: null,
+          service_network: { state: null, active_dealer_count: 0, locked: !fullIntelligence },
+          market_context: null,
+          market_context_locked: !fullIntelligence,
+          listing: null,
+          premium: { unlocked: false, fields_available: [], data: null },
+          data_sources: ['ADS-BDB (Mode-S identity)'],
+          searchedAt: new Date().toISOString(),
+        });
+      }
       return Response.json({ found: false, registration }, { status: 404 });
     }
 
@@ -197,10 +249,40 @@ Deno.serve(async (req) => {
     };
     const premiumFields = Object.entries(privateData).filter(([, value]) => value !== null).map(([key]) => key);
 
+    // ── Per-field provenance + data sufficiency ──
+    const field_sources = {
+      make: catalog?.manufacturer ? 'Aircraft Catalog' : aircraftRef?.mfr ? 'FAA ACFTREF' : passport?.make ? 'Digital Twin' : listing?.manufacturer ? 'Marketplace' : null,
+      model: catalog?.model ? 'Aircraft Catalog' : aircraftRef?.model ? 'FAA ACFTREF' : passport?.model ? 'Digital Twin' : listing?.model ? 'Marketplace' : null,
+      year: registry?.year_mfr ? 'FAA Registry' : catalog?.year_mfr ? 'Aircraft Catalog' : passport?.year_manufactured ? 'Digital Twin' : listing?.year ? 'Marketplace' : null,
+      serial_number: registry?.serial_number ? 'FAA Registry' : catalog?.serial_number ? 'Aircraft Catalog' : passport?.serial_number ? 'Digital Twin' : null,
+      status: registry?.status_code ? 'FAA Registry' : catalog?.status_code ? 'Aircraft Catalog' : card?.status ? 'ATI Card' : null,
+      state: registry?.state ? 'FAA Registry' : null,
+      mode_s_hex: registry?.mode_s_code_hex ? 'FAA Registry' : catalog?.mode_s_code_hex ? 'Aircraft Catalog' : passport?.icao24 ? 'Digital Twin' : trafficRows[0]?.icao24 ? 'Live Traffic' : null,
+      air_worth_date: registry?.air_worth_date ? 'FAA Registry' : catalog?.air_worth_date ? 'Aircraft Catalog' : null,
+      cert_issue_date: registry?.cert_issue_date ? 'FAA Registry' : catalog?.cert_issue_date ? 'Aircraft Catalog' : null,
+      expiration_date: registry?.expiration_date ? 'FAA Registry' : catalog?.expiration_date ? 'Aircraft Catalog' : null,
+      engine_mfr: engineRef?.mfr ? 'FAA Engine Ref' : engineSpec?.manufacturer ? 'EngineSpec' : catalog?.engine_manufacturer ? 'Aircraft Catalog' : null,
+      engine_model: engineRef?.model ? 'FAA Engine Ref' : engineSpec?.model_name ? 'EngineSpec' : null,
+      engine_tbo_hours: engineSpec?.tbo_hours ? 'EngineSpec' : card?.engine_tbo ? 'ATI Card' : null,
+    };
+    const _year = registry?.year_mfr || catalog?.year_mfr || passport?.year_manufactured || card?.year || listing?.year || null;
+    const _serial = registry?.serial_number || catalog?.serial_number || passport?.serial_number || null;
+    const _airWorth = registry?.air_worth_date || catalog?.air_worth_date || null;
+    const _hasMaintenance = !!(privateData.total_time || privateData.engine_time);
+    const data_sufficiency = (_year || _serial || _airWorth) ? 'sufficient' : 'insufficient';
+    const missing_public_fields = [
+      !_year && 'Year of manufacture',
+      !_serial && 'Serial number',
+      !_airWorth && 'Airworthiness date',
+      !_hasMaintenance && 'Maintenance / logbook records',
+    ].filter(Boolean);
+
     return Response.json({
       found: true,
       source: 'intrazone_federated',
       origin_label: registration.startsWith('N') ? 'United States (FAA)' : 'Global Registry',
+      data_sufficiency,
+      missing_public_fields,
       aircraft: {
         registration,
         make,
@@ -234,6 +316,7 @@ Deno.serve(async (req) => {
         // faa_engine carries no TBO column (code, mfr, model, type, horsepower,
         // thrust), so this one field genuinely cannot come from Supabase yet.
         engine_tbo_hours: engineSpec?.tbo_hours || card?.engine_tbo || null,
+        field_sources,
       },
       compliance_intelligence: {
         ad_count: ads.length,

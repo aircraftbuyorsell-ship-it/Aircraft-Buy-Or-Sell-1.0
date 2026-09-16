@@ -70,6 +70,46 @@ Deno.serve(async (req) => {
       return Response.json({ error: "aircraft_data is required" }, { status: 400 });
     }
 
+    // ── Sufficiency check: never score absence of public data as AVOID ──
+    // When core public identity (year, serial, airworthiness) is entirely
+    // missing, the aircraft cannot be meaningfully scored from public
+    // sources. Return INSUFFICIENT_DATA for free, BEFORE the payment gate,
+    // so buyers are never charged for a meaningless near-zero report.
+    let _parsed = null;
+    try { _parsed = JSON.parse(aircraft_data); } catch (_) { _parsed = null; }
+    const _ac = _parsed && typeof _parsed === 'object' ? _parsed : {};
+    const _missingPublic = [
+      (!_ac.year && !_ac.year_mfr) && 'Year of manufacture',
+      !_ac.serial_number && 'Serial number',
+      (!_ac.air_worth_date && !_ac.airworthiness_date) && 'Airworthiness date',
+      !(_ac.total_time || _ac.engine_smoh || _ac.engine_time || _ac.last_annual || _ac.ttaf_hours || _ac.logbooks || _ac.maintenance_logs) && 'Maintenance / logbook records',
+    ].filter(Boolean);
+    const _coreMissing = (!_ac.year && !_ac.year_mfr) && !_ac.serial_number && (!_ac.air_worth_date && !_ac.airworthiness_date);
+    if (_coreMissing) {
+      return Response.json({
+        total: null,
+        score_label: 'INSUFFICIENT_DATA',
+        data_sufficiency: 'insufficient',
+        missing_public_fields: _missingPublic,
+        dimensions: {},
+        dimension_scores: {},
+        identity_rows: [],
+        omvm_low: 0,
+        omvm_high: 0,
+        asking_price: null,
+        registration_extracted: registration || _ac.registration || '',
+        summary: 'Public registry data is insufficient to produce a meaningful ATI score. No year, serial number, or airworthiness date is available from public sources. Request owner-provided records (logbooks, airworthiness certificate, maintenance history) to generate a real assessment.',
+        strengths: [],
+        risks: [],
+        recommendations: [
+          'Request the seller\u2019s complete logbooks and airworthiness certificate.',
+          'Verify the aircraft identity through the official FAA/EASA registry before proceeding.',
+          'Engage a qualified A&P/IA to inspect the aircraft if owner records cannot be obtained.',
+        ],
+        missing_data: _missingPublic,
+      });
+    }
+
     // ── Paid feature: ATI Full Report (€49 one-time per aircraft) ──
     const gate = await gateOneTimeProduct(base44, user, 'ATI_REPORT', registration);
     if (gate) return gate;

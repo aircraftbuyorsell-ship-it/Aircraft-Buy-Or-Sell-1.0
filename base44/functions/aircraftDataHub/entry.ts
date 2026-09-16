@@ -1,9 +1,8 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.48';
 import { resolveAccess, canUseCapability } from '../_shared/accessControl.ts';
 import { getSupabaseConfig } from '../_shared/aircraftTwin.ts';
 
-const PROJECT_NAME = 'AircraftBuyOrSell_Supabase'; // secrets-first credential resolution below
-
+const PROJECT_NAME = 'AircraftBuyOrSell_Supabase';
 const PROJECT_REF = 'bsvrcnyslqrotpllwfzm';
 const normalizeReg = (value) => String(value || '').trim().toUpperCase().replace(/\s+/g, '');
 const normalizeText = (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -32,29 +31,18 @@ Deno.serve(async (req) => {
     try { user = await base44.auth.me(); } catch (_) { user = null; }
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Access is resolved before any Supabase connector, project discovery, or
-    // aircraft data query. Every signed-in tier gets the federated identity,
-    // registry and compliance surface — this is the single lookup entry point,
-    // so refusing T1 outright only pushed the Advisor onto a thinner registry
-    // fallback and scored ATI off it. T2 additionally gets the bulk
-    // intelligence arrays below; the commercial payload stays behind
-    // `unlocked` (paid report / admin), where it already was.
     const access = await resolveAccess(req);
     if (!access.ok) return Response.json({ error: access.error || 'Unauthorized' }, { status: access.status || 401 });
     const fullIntelligence = canUseCapability(access, 'advanced_intelligence');
 
-    // Secrets first: reads SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY (or the
-    // ABOS_-prefixed fallbacks) straight from function secrets - no OAuth
-    // hop, no "list every project to find ours" Management API round trip.
-    // Falls back to the connector only when secrets aren't configured.
+    // Secrets first: reads SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY straight
+    // from function secrets, deriving the REST URL from the known project
+    // ref — no Supabase Management API connector round-trip required.
     let restBase = '';
     let serviceKey = '';
     let projectId = PROJECT_REF;
     let cachedAccessToken = null;
     const secretsConfig = getSupabaseConfig();
-    // A service-role key alone is enough: derive the REST URL from the known
-    // project ref when no URL secret is set, so we never depend on the
-    // Supabase Management API connector round-trip just to find our own project.
     if (secretsConfig.key) {
       restBase = secretsConfig.url || `https://${PROJECT_REF}.supabase.co`;
       serviceKey = secretsConfig.key;
@@ -105,10 +93,6 @@ Deno.serve(async (req) => {
     const card = cardRows[0] || null;
     const listing = listingRows[0] || null;
     if (!registry && !catalog && !passport && !card && !listing) {
-      // Final identity fallback: ADS-BDB (global Mode-S database). Gives at
-      // least make/model/mode-s for real aircraft missing from the synced FAA
-      // registry table, so the Advisor shows identity + INSUFFICIENT_DATA
-      // instead of a bare 404.
       const adsb = await fetchAdsbdbIdentity(registration);
       if (adsb) {
         return Response.json({
@@ -140,6 +124,8 @@ Deno.serve(async (req) => {
           market_context: null,
           market_context_locked: !fullIntelligence,
           listing: null,
+          damage_history: { available: false, count: 0, events: [], source: 'NTSB' },
+          service_bulletins: { available: false, status: 'unavailable', count: 0, items: [], source: 'Engine Maintenance Record' },
           premium: { unlocked: false, fields_available: [], data: null },
           data_sources: ['ADS-BDB (Mode-S identity)'],
           searchedAt: new Date().toISOString(),
@@ -175,9 +161,6 @@ Deno.serve(async (req) => {
     const make = catalog?.manufacturer || aircraftRef?.mfr || passport?.make || card?.make || listing?.manufacturer || null;
     const model = catalog?.model || aircraftRef?.model || passport?.model || card?.model || listing?.model || null;
 
-    // ── Federated enrichment: NTSB damage history and engine service
-    //    bulletins. These run in parallel with the premium unlock check so
-    //    they add no latency to the critical path. ──
     const [damageRows, engineMaintRows] = await Promise.all([
       base44.asServiceRole.entities.AircraftDamageEvent.filter({ registration }, '-source_updated_at', 10).catch(() => []),
       base44.asServiceRole.entities.EngineMaintenance.filter({ registration }, '-calculated_at', 1).catch(() => []),
@@ -260,7 +243,6 @@ Deno.serve(async (req) => {
     };
     const premiumFields = Object.entries(privateData).filter(([, value]) => value !== null).map(([key]) => key);
 
-    // ── Per-field provenance + data sufficiency ──
     const field_sources = {
       make: catalog?.manufacturer ? 'Aircraft Catalog' : aircraftRef?.mfr ? 'FAA ACFTREF' : passport?.make ? 'Digital Twin' : listing?.manufacturer ? 'Marketplace' : null,
       model: catalog?.model ? 'Aircraft Catalog' : aircraftRef?.model ? 'FAA ACFTREF' : passport?.model ? 'Digital Twin' : listing?.model ? 'Marketplace' : null,
@@ -313,10 +295,6 @@ Deno.serve(async (req) => {
         air_worth_date: registry?.air_worth_date || catalog?.air_worth_date || null,
         last_action_date: registry?.last_action_date || catalog?.last_action_date || passport?.last_activity_date || null,
         engine_code: engineCode,
-        // Supabase (engineRef, from faa_engine) is the source of truth for engine
-        // identity. Base44's EngineSpec is a copy maintained by the enginespec_sync
-        // job, so when the two disagree the copy is the stale one; it stays only as
-        // a fallback for aircraft the FAA engine table does not cover.
         engine_mfr: engineRef?.mfr || engineSpec?.manufacturer || catalog?.engine_manufacturer || null,
         engine_model: engineRef?.model || engineSpec?.model_name || catalog?.engine_model || null,
         engine_type: engineRef?.type || engineSpec?.engine_type || aircraftRef?.type_engine || catalog?.type_engine || card?.engine_type || null,
@@ -324,8 +302,6 @@ Deno.serve(async (req) => {
         thrust: engineRef?.thrust || catalog?.thrust || null,
         seats: aircraftRef?.no_seats || catalog?.seat_count || null,
         cruise_speed_mph: aircraftRef?.speed_mph || catalog?.cruise_speed_mph || null,
-        // faa_engine carries no TBO column (code, mfr, model, type, horsepower,
-        // thrust), so this one field genuinely cannot come from Supabase yet.
         engine_tbo_hours: engineSpec?.tbo_hours || card?.engine_tbo || null,
         field_sources,
       },
@@ -335,10 +311,6 @@ Deno.serve(async (req) => {
         ads,
         stcs,
       },
-      // Activity is evidence of being tracked, never proof of ownership,
-      // airworthiness or compliance — and an empty result is UNKNOWN, not
-      // inactivity. The raw provider rows stay behind the intelligence tier;
-      // every tier still sees whether evidence exists.
       activity_intelligence: {
         status: (openSky || adsbHistory.length) ? 'ACTIVITY_EVIDENCE' : 'UNKNOWN',
         open_sky_metadata: openSky ? {

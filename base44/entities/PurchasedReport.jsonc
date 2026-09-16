@@ -10,6 +10,10 @@
       "type": "string",
       "enum": [
         "ATI_SCORE",
+        "ATI_REPORT",
+        "DEAL_ANALYSIS",
+        "INVESTMENT",
+        "PROFESSIONAL",
         "ATI_FULL_REPORT",
         "VALUATION_STUDIO",
         "VERIFICATION_PACK"
@@ -18,16 +22,14 @@
     },
     "aircraft_registration": {
       "type": "string",
-      "description": "Aircraft this report covers (re-access key \u2014 no double charging)"
+      "description": "Aircraft this report covers"
     },
     "aircraft_label": {
-      "type": "string",
-      "description": "Human-readable aircraft summary (year make model reg)"
+      "type": "string"
     },
     "entitlement_id": {
       "type": "string",
-      "relationType": "Entitlement",
-      "description": "Entitlement that authorized this report"
+      "relationType": "Entitlement"
     },
     "status": {
       "type": "string",
@@ -40,12 +42,10 @@
       "default": "entitled"
     },
     "report_type": {
-      "type": "string",
-      "description": "e.g. ati_score, ati_full_report, valuation, verification"
+      "type": "string"
     },
     "result_data": {
-      "type": "object",
-      "description": "Full report payload (provenance, score, valuation, verification, etc.)"
+      "type": "object"
     },
     "pdf_url": {
       "type": "string"
@@ -54,25 +54,21 @@
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Independent data sources used (provenance)"
+      }
     },
     "provider": {
       "type": "string",
-      "default": "abos_omvm",
-      "description": "Valuation/intelligence provider (abos_omvm, vref, bluebook, jetnet\u2026)"
+      "default": "abos_omvm"
     },
     "provider_request_id": {
-      "type": "string",
-      "description": "External provider request id (for provider abstraction)"
+      "type": "string"
     },
     "methodology_version": {
       "type": "string",
       "default": "v1"
     },
     "inputs": {
-      "type": "object",
-      "description": "Inputs used to produce the report (snapshot for reproducibility)"
+      "type": "object"
     },
     "confidence": {
       "type": "string",
@@ -91,8 +87,7 @@
     },
     "description": {
       "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description for search visibility and SEO"
+      "maxLength": 1000
     }
   },
   "required": [

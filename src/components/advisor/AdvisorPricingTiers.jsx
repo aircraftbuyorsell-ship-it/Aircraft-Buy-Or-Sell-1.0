@@ -122,11 +122,8 @@ export default function AdvisorPricingTiers({ registration, tiers, loadingTier, 
         <div className="mb-6 flex items-start gap-3 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
           <Mail className="mt-0.5 h-5 w-5 flex-none text-emerald-600" />
           <div>
-            <h3 className="text-sm font-black text-emerald-800">Payment received — your report is on its way.</h3>
-            <p className="mt-1 text-xs text-emerald-700/80">
-              We're compiling your verification report for <b>{registration}</b> and will email it to you within a few minutes.
-              You can also reopen it any time from <b>My Reports</b>.
-            </p>
+            <h3 className="text-sm font-black text-emerald-800">Payment received — full access is unlocked.</h3>
+            <p className="mt-1 text-xs text-emerald-700/80">Paid analysis for <b>{registration}</b> is now available on this aircraft page.</p>
           </div>
         </div>
       ) : (
@@ -135,8 +132,7 @@ export default function AdvisorPricingTiers({ registration, tiers, loadingTier, 
           <div>
             <h3 className="text-sm font-black">Free preview ends here</h3>
             <p className="mt-1 text-xs text-[#102033]/55">
-              You've seen the public registry evidence. Pick a report below to unlock the full analysis — compiled and
-              <span className="font-semibold text-[#a87925]"> delivered to your email</span>. Own a report already? Upgrade and pay only the difference, minus a loyalty discount.
+              Aircraft identity is confirmed. Choose one report to unlock the risk, compliance and valuation analysis. Your listing text and private documents are attached to the purchased report.
             </p>
           </div>
         </div>
@@ -155,7 +151,7 @@ export default function AdvisorPricingTiers({ registration, tiers, loadingTier, 
       </div>
 
       <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[10px] text-[#102033]/45">
-        <Mail className="h-3.5 w-3.5" /> Every report is compiled into a PDF and emailed to you after payment. One-time purchase per aircraft.
+        <Mail className="h-3.5 w-3.5" /> One-time purchase per aircraft. Your report remains available in My Reports.
       </p>
     </div>
   );

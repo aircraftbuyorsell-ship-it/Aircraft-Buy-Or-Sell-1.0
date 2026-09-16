@@ -45,6 +45,15 @@ const ONE_TIME_KEYS = new Set(['ATI_REPORT', 'DEAL_ANALYSIS', 'INVESTMENT', 'PRO
 
 const WELCOME_DISCOUNT = 0.30;
 const WELCOME_WINDOW_DAYS = 14;
+const LAUNCH_OFFER_MS = 5 * 60 * 1000;
+
+async function getLaunchOffer(svc, user, registration, createIfMissing = true) {
+  if (!registration) return null;
+  const records = await svc.entities.LimitedOffer.filter({ user_email: user.email, aircraft_registration: registration }, '-created_date', 1);
+  let offer = records[0] || null;
+  if (!offer && createIfMissing) offer = await svc.entities.LimitedOffer.create({ user_email: user.email, aircraft_registration: registration, discount_pct: 0.30, expires_at: new Date(Date.now() + LAUNCH_OFFER_MS).toISOString() });
+  return offer && !offer.redeemed_at && Date.parse(offer.expires_at) > Date.now() ? offer : null;
+}
 
 async function welcomeDiscountEligible(svc, user) {
   const created = new Date(user.created_date || 0).getTime();
@@ -251,9 +260,14 @@ Deno.serve(async (req) => {
         let priceUsd = product?.price_usd || 0;
         let discountPct = 0;
         let welcomePromo = false;
+        const launchOffer = product?.type === 'one_time' ? await getLaunchOffer(svc, user, reg) : null;
         if (subProduct && SUB_DISCOUNT[subProduct]) {
           priceUsd = +(priceUsd * (1 - SUB_DISCOUNT[subProduct])).toFixed(2);
           discountPct = SUB_DISCOUNT[subProduct];
+        } else if (launchOffer) {
+          priceUsd = +(priceUsd * (1 - launchOffer.discount_pct)).toFixed(2);
+          discountPct = launchOffer.discount_pct;
+          welcomePromo = true;
         } else if (product?.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
           priceUsd = +(priceUsd * (1 - WELCOME_DISCOUNT)).toFixed(2);
           discountPct = WELCOME_DISCOUNT;
@@ -269,11 +283,11 @@ Deno.serve(async (req) => {
           discountPct = upgrade.discount_pct;
           welcomePromo = false;
         }
-        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_usd: priceUsd, original_price_usd: product?.price_usd || 0, discount_pct: discountPct, welcome_promo: welcomePromo, upgrade, owned_lower_tier: owned?.key || null, active_sub_product: subProduct });
+        return Response.json({ entitled: false, reason: 'payment_required', checkout_price_usd: priceUsd, original_price_usd: product?.price_usd || 0, discount_pct: discountPct, welcome_promo: welcomePromo, offer_expires_at: launchOffer?.expires_at || null, upgrade, owned_lower_tier: owned?.key || null, active_sub_product: subProduct });
       }
 
       case 'create_checkout': {
-        const { product_key, aircraft_registration, return_url } = body;
+        const { product_key, aircraft_registration, return_url, report_input_id } = body;
         const product = PRODUCT_CATALOG[product_key];
         if (!product) return Response.json({ error: 'Unknown product' }, { status: 400 });
         if (REPORT_PACK_KEYS.has(product_key)) {
@@ -296,14 +310,19 @@ Deno.serve(async (req) => {
         const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
         const reg = (aircraft_registration || '').toUpperCase().trim();
         const subProduct = await activeSubProduct(svc, user.email);
+        const inputRows = report_input_id ? await svc.entities.ReportInputDraft.filter({ id: report_input_id, user_email: user.email }, '-created_date', 1) : [];
+        const validInputId = inputRows[0]?.id || '';
         if (subProduct && SUB_INCLUDED[subProduct]?.includes(product_key)) {
           return Response.json({ included_in_subscription: true, product_key });
         }
 
         // All one-time prices and discounts are resolved from this server catalog.
         let unitAmount = Math.round((product.price_usd ?? 0) * 100);
+        const launchOffer = product.type === 'one_time' ? await getLaunchOffer(svc, user, reg, false) : null;
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
           unitAmount = Math.round(product.price_usd * (1 - SUB_DISCOUNT[subProduct]) * 100);
+        } else if (launchOffer) {
+          unitAmount = Math.round(product.price_usd * (1 - launchOffer.discount_pct) * 100);
         } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
           unitAmount = Math.round(product.price_usd * (1 - WELCOME_DISCOUNT) * 100);
         }
@@ -317,7 +336,7 @@ Deno.serve(async (req) => {
           payment_method_types: ['card'],
           customer_email: user.email,
           client_reference_id: user.id,
-          metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg },
+          metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg, report_input_id: validInputId, offer_id: launchOffer?.id || '' },
           success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
           cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
           line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],

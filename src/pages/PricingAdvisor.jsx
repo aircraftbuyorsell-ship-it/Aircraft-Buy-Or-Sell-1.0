@@ -5,6 +5,8 @@ import { base44 } from "@/api/base44Client";
 import { checkEntitlement, createCheckout } from "@/lib/entitlements";
 import AdvisorIntelligence from "@/components/advisor/AdvisorIntelligence";
 import AdvisorPricingTiers from "@/components/advisor/AdvisorPricingTiers";
+import LimitedOfferBanner from "@/components/advisor/LimitedOfferBanner";
+import ReportEvidenceInput from "@/components/advisor/ReportEvidenceInput";
 import { normalizeReg as normalizeRegistration } from "@/lib/aircraftLookup";
 
 const TIER_KEYS = ["ATI_REPORT", "DEAL_ANALYSIS", "INVESTMENT"];
@@ -21,6 +23,8 @@ export default function PricingAdvisor() {
   const [checkoutLoading, setCheckoutLoading] = useState(null);
   const [error, setError] = useState("");
   const [notFound, setNotFound] = useState(false);
+  const [offerExpiresAt, setOfferExpiresAt] = useState(null);
+  const [reportInputId, setReportInputId] = useState("");
 
   useEffect(() => {
     if (!registration) return;
@@ -48,12 +52,13 @@ export default function PricingAdvisor() {
     if (!registration) return;
     let cancelled = false;
     (async () => {
-      const entries = await Promise.all(
-        TIER_KEYS.map((key) => checkEntitlement(key, registration).catch(() => null))
-      );
+      const first = await checkEntitlement(TIER_KEYS[0], registration).catch(() => null);
+      const rest = await Promise.all(TIER_KEYS.slice(1).map((key) => checkEntitlement(key, registration).catch(() => null)));
       if (cancelled) return;
+      const entries = [first, ...rest];
       const next = {};
       TIER_KEYS.forEach((key, i) => { next[key] = entries[i] || null; });
+      setOfferExpiresAt(first?.offer_expires_at || null);
       setTiers(next);
     })();
     return () => { cancelled = true; };
@@ -66,7 +71,7 @@ export default function PricingAdvisor() {
       const user = await base44.auth.me().catch(() => null);
       if (!user) { base44.auth.redirectToLogin(); return; }
       const returnUrl = `${window.location.origin}/finance-advisor?registration=${encodeURIComponent(registration)}`;
-      const res = await createCheckout(productKey, registration, returnUrl);
+      const res = await createCheckout(productKey, registration, returnUrl, reportInputId);
       const url = res?.url;
       if (!url) throw new Error("Checkout URL was not returned.");
       window.location.assign(url);
@@ -110,18 +115,10 @@ export default function PricingAdvisor() {
                   <span className="rounded-full border border-[#102033]/10 bg-white px-3 py-1.5 text-xs"><ShieldCheck className="mr-1 inline h-3.5 w-3.5 text-emerald-600" /> {data.origin_label || "Registry evidence"}</span>
                   {data.data_sources?.map((s) => <span key={s} className="rounded-full border border-[#102033]/10 bg-white px-3 py-1.5 text-[10px] font-semibold text-[#102033]/55">{s}</span>)}
                 </div>
-                <div className="mt-6">
-                  <AdvisorIntelligence data={data} unlocked={unlocked} />
-                </div>
-                {!insufficient && (
-                  <AdvisorPricingTiers
-                    registration={registration}
-                    tiers={tiers}
-                    loadingTier={checkoutLoading}
-                    onPurchase={startCheckout}
-                    justPaid={justPaid}
-                  />
-                )}
+                {!unlocked && <LimitedOfferBanner expiresAt={offerExpiresAt} />}
+                <div className="mt-6"><AdvisorIntelligence data={data} unlocked={unlocked} /></div>
+                {!unlocked && <ReportEvidenceInput registration={registration} onSaved={setReportInputId} />}
+                <AdvisorPricingTiers registration={registration} tiers={tiers} loadingTier={checkoutLoading} onPurchase={startCheckout} justPaid={justPaid} />
               </>
             )}
 

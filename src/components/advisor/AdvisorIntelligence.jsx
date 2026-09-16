@@ -43,7 +43,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         </dl>
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Engine" source={fs.engine_mfr || null} icon={Wrench}>
+      <AdvisorSectionCard title="Engine" source={fs.engine_mfr || null} icon={Wrench} locked={!unlocked}>
         <dl>
           <Row label="Manufacturer" value={ac.engine_mfr} source={fs.engine_mfr} />
           <Row label="Model" value={ac.engine_model} source={fs.engine_model} />
@@ -54,7 +54,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         </dl>
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Compliance — ADs & STCs" source="FAA AD/STC" icon={FileCheck2}>
+      <AdvisorSectionCard title="Compliance — ADs & STCs" source="FAA AD/STC" icon={FileCheck2} locked={!unlocked}>
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-xl bg-[#fbfaf7] p-3">
             <div className="text-[10px] font-bold uppercase text-[#102033]/45">Airworthiness Directives</div>
@@ -78,7 +78,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         )}
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Activity — ADS-B & OpenSky" source={act.open_sky_metadata ? "OpenSky" : (traffic.sightings ? "Live Traffic" : null)} icon={Radar}>
+      <AdvisorSectionCard title="Activity — ADS-B & OpenSky" source={act.open_sky_metadata ? "OpenSky" : (traffic.sightings ? "Live Traffic" : null)} icon={Radar} locked={!unlocked}>
         <dl>
           <Row label="Last Time in Air" value={data?.last_time_in_air || "No ADS-B evidence"} source={data?.last_time_in_air ? "ADS-B" : null} />
           <Row label="Activity Status" value={act.status === "ACTIVITY_EVIDENCE" ? "Activity evidence found" : "No activity observed"} />
@@ -98,7 +98,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
       </AdvisorSectionCard>
 
       {filings && (
-        <AdvisorSectionCard title="FAA Registry Filings" source="FAA Filing Signals" icon={ScrollText}>
+        <AdvisorSectionCard title="FAA Registry Filings" source="FAA Filing Signals" icon={ScrollText} locked={!unlocked}>
           <dl>
             <Row label="Bill of Sale filings" value={filings.bill_of_sale_count} />
             <Row label="Security Agreements" value={filings.security_agreement_count} />
@@ -109,7 +109,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         </AdvisorSectionCard>
       )}
 
-      <AdvisorSectionCard title="NTSB Damage History" source={data?.damage_history?.available ? "NTSB" : null} icon={AlertTriangle}>
+      <AdvisorSectionCard title="NTSB Damage History" source={data?.damage_history?.available ? "NTSB" : null} icon={AlertTriangle} locked={!unlocked}>
         {data?.damage_history?.available ? (
           <>
             <div className="mb-2 text-xs font-semibold text-[#102033]/55">{data.damage_history.count} event{data.damage_history.count === 1 ? "" : "s"} on record</div>
@@ -132,7 +132,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         )}
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Service Bulletins" source={data?.service_bulletins?.source || null} icon={FileCheck2}>
+      <AdvisorSectionCard title="Service Bulletins" source={data?.service_bulletins?.source || null} icon={FileCheck2} locked={!unlocked}>
         {data?.service_bulletins?.available ? (
           <>
             <div className="mb-2 grid grid-cols-2 gap-3">
@@ -161,7 +161,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         )}
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Marketplace & Public Listings" source={data?.marketplace_evidence ? "Web Search" : null} icon={ShoppingBag}>
+      <AdvisorSectionCard title="Public Sale Evidence" source={data?.marketplace_evidence ? "Web Search" : null} icon={ShoppingBag} locked={!unlocked}>
         {data?.marketplace_evidence?.listings?.length > 0 ? (
           <>
             <div className="mb-2 text-xs text-[#102033]/55">{data.marketplace_evidence.search_summary || `${data.marketplace_evidence.listings.length} public listing(s) found.`}</div>
@@ -187,7 +187,7 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         )}
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Valuation" source={unlocked ? "ATI Full Report" : null} icon={TrendingUp}>
+      <AdvisorSectionCard title="Valuation" source={unlocked ? "ATI Full Report" : null} icon={TrendingUp} locked={!unlocked}>
         {unlocked && premium.data?.valuation ? (
           <dl>
             <Row label="OMVM Value" value={premium.data.valuation.mid ? `$${Number(premium.data.valuation.mid).toLocaleString()}` : null} />

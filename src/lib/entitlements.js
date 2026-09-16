@@ -25,10 +25,11 @@ export async function listMyReports() {
   return res.data || res;
 }
 
-export async function createCheckout(productKey, aircraftRegistration, returnUrl) {
+export async function createCheckout(productKey, aircraftRegistration, returnUrl, reportInputId = '') {
   const res = await base44.functions.invoke('abosEntitlements', {
     action: 'create_checkout', product_key: productKey,
     aircraft_registration: aircraftRegistration || '', return_url: returnUrl || window.location.href,
+    report_input_id: reportInputId,
   });
   return res.data || res;
 }

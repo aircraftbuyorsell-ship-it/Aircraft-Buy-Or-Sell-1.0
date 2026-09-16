@@ -172,6 +172,47 @@ Deno.serve(async (req) => {
     const make = catalog?.manufacturer || aircraftRef?.mfr || passport?.make || card?.make || listing?.manufacturer || null;
     const model = catalog?.model || aircraftRef?.model || passport?.model || card?.model || listing?.model || null;
 
+    // ── Federated enrichment: NTSB damage history, engine service bulletins,
+    //    and a live web search for marketplace / public Facebook group
+    //    listings. These run in parallel with the premium unlock check so
+    //    they add no latency to the critical path. The web search uses
+    //    Gemini's internet-grounded model so results are real public pages,
+    //    not invented listings. ──
+    const [damageRows, engineMaintRows, marketplaceEvidence] = await Promise.all([
+      base44.asServiceRole.entities.AircraftDamageEvent.filter({ registration }, '-source_updated_at', 10).catch(() => []),
+      base44.asServiceRole.entities.EngineMaintenance.filter({ registration }, '-calculated_at', 1).catch(() => []),
+      (async () => {
+        try {
+          const llm = await base44.integrations.Core.InvokeLLM({
+            prompt: `Search the public web for any current aircraft-for-sale listings, aviation marketplace posts, or public Facebook group posts mentioning the aircraft registration "${registration}"${make || model ? ` (a ${[make, model].filter(Boolean).join(' ')})` : ''}. Return ONLY verified, publicly visible results you can actually find on the open web — do NOT invent, guess, or fabricate any listing. For each real result give: marketplace_or_group_name, url, asking_price (if shown), listed_date (if shown), location (if shown), and a one-line summary. If no real listings are found, return an empty listings array and say so in search_summary.`,
+            add_context_from_internet: true,
+            model: 'gemini_3_flash',
+            response_json_schema: {
+              type: 'object',
+              properties: {
+                listings: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      marketplace_or_group_name: { type: 'string' },
+                      url: { type: 'string' },
+                      asking_price: { type: 'string' },
+                      listed_date: { type: 'string' },
+                      location: { type: 'string' },
+                      summary: { type: 'string' },
+                    },
+                  },
+                },
+                search_summary: { type: 'string' },
+              },
+            },
+          });
+          return llm || null;
+        } catch (_) { return null; }
+      })(),
+    ]);
+
     let unlocked = ['admin', 'super_admin'].includes(user?.role);
     if (!unlocked && user?.email) {
       const requests = await base44.asServiceRole.entities.ReportRequest.filter(
@@ -379,6 +420,37 @@ Deno.serve(async (req) => {
       },
       market_context: fullIntelligence ? marketRows : null,
       market_context_locked: !fullIntelligence,
+      damage_history: {
+        available: damageRows.length > 0,
+        count: damageRows.length,
+        events: damageRows.map((item) => ({
+          event_id: item.event_id,
+          ntsb_number: item.ntsb_number,
+          event_type: item.event_type,
+          event_date: item.event_date,
+          damage: item.damage,
+          city: item.city,
+          state: item.state,
+          injury_level: item.injury_level,
+          probable_cause: item.probable_cause,
+          source_url: item.source_url,
+          source_name: item.source_name,
+        })),
+        source: 'NTSB',
+      },
+      service_bulletins: {
+        available: !!engineMaintRows[0]?.service_bulletins?.length,
+        status: engineMaintRows[0]?.service_bulletin_status || 'unavailable',
+        count: engineMaintRows[0]?.service_bulletin_count ?? 0,
+        items: engineMaintRows[0]?.service_bulletins || [],
+        source: engineMaintRows[0]?.service_bulletin_source || 'Engine Maintenance Record',
+      },
+      last_time_in_air: trafficRows[0]?.recorded_at || adsbHistory[0]?.timestamp || null,
+      marketplace_evidence: marketplaceEvidence ? {
+        listings: Array.isArray(marketplaceEvidence.listings) ? marketplaceEvidence.listings : [],
+        search_summary: marketplaceEvidence.search_summary || null,
+        source: 'Web Search (Google)',
+      } : null,
       listing,
       premium: {
         unlocked,
@@ -397,6 +469,9 @@ Deno.serve(async (req) => {
         passport ? 'Digital Twin' : null,
         trafficRows.length ? 'Live Traffic' : null,
         listing ? 'Marketplace' : null,
+        damageRows.length ? 'NTSB Damage Index' : null,
+        engineMaintRows[0] ? 'Engine Maintenance (SBs)' : null,
+        marketplaceEvidence ? 'Web Search (Google)' : null,
       ].filter(Boolean),
       searchedAt: new Date().toISOString(),
     });

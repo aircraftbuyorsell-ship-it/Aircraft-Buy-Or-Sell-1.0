@@ -1,4 +1,4 @@
-import { ShieldCheck, Wrench, FileCheck2, Radar, ScrollText, TrendingUp, LockKeyhole } from "lucide-react";
+import { ShieldCheck, Wrench, FileCheck2, Radar, ScrollText, TrendingUp, LockKeyhole, AlertTriangle, ShoppingBag } from "lucide-react";
 import AdvisorSectionCard from "./AdvisorSectionCard";
 import AdvisorInsufficientData from "./AdvisorInsufficientData";
 
@@ -77,15 +77,17 @@ export default function AdvisorIntelligence({ data, unlocked }) {
         )}
       </AdvisorSectionCard>
 
-      <AdvisorSectionCard title="Activity — ADS-B" source={act.open_sky_metadata ? "OpenSky" : (traffic.sightings ? "Live Traffic" : null)} icon={Radar}>
+      <AdvisorSectionCard title="Activity — ADS-B & OpenSky" source={act.open_sky_metadata ? "OpenSky" : (traffic.sightings ? "Live Traffic" : null)} icon={Radar}>
         <dl>
+          <Row label="Last Time in Air" value={data?.last_time_in_air || "No ADS-B evidence"} source={data?.last_time_in_air ? "ADS-B" : null} />
           <Row label="Activity Status" value={act.status === "ACTIVITY_EVIDENCE" ? "Activity evidence found" : "No activity observed"} />
-          <Row label="Historical Flights" value={act.historical_flight_count ?? traffic.sightings ?? 0} />
-          <Row label="Last Seen" value={traffic.last_seen} />
+          <Row label="Historical Flights (ADS-B.lol)" value={act.historical_flight_count ?? traffic.sightings ?? 0} />
+          <Row label="Last Live Sighting" value={traffic.last_seen} />
           {act.open_sky_metadata && (
             <>
               <Row label="OpenSky Manufacturer" value={act.open_sky_metadata.manufacturer} />
               <Row label="OpenSky Model" value={act.open_sky_metadata.model} />
+              <Row label="OpenSky Serial" value={act.open_sky_metadata.serial_number} />
             </>
           )}
         </dl>
@@ -105,6 +107,84 @@ export default function AdvisorIntelligence({ data, unlocked }) {
           </dl>
         </AdvisorSectionCard>
       )}
+
+      <AdvisorSectionCard title="NTSB Damage History" source={data?.damage_history?.available ? "NTSB" : null} icon={AlertTriangle}>
+        {data?.damage_history?.available ? (
+          <>
+            <div className="mb-2 text-xs font-semibold text-[#102033]/55">{data.damage_history.count} event{data.damage_history.count === 1 ? "" : "s"} on record</div>
+            <div className="max-h-40 space-y-2 overflow-auto">
+              {data.damage_history.events.map((ev) => (
+                <div key={ev.event_id} className="rounded-lg border border-[#102033]/8 bg-white px-3 py-2 text-[10px]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-[#b98427]">{ev.ntsb_number || ev.event_id}</span>
+                    <span className="text-[#102033]/45">{ev.event_date}</span>
+                  </div>
+                  <div className="mt-1 text-[#102033]/65"><b>{ev.event_type}</b>{ev.damage ? ` · ${ev.damage}` : ""}{ev.city || ev.state ? ` · ${[ev.city, ev.state].filter(Boolean).join(", ")}` : ""}</div>
+                  {ev.probable_cause && <div className="mt-1 text-[#102033]/45">Cause: {ev.probable_cause}</div>}
+                  {ev.source_url && <a href={ev.source_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-[#0A3C75] underline">NTSB report ↗</a>}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-xs text-emerald-700"><ShieldCheck className="h-4 w-4" /> No NTSB damage events on record for this registration.</div>
+        )}
+      </AdvisorSectionCard>
+
+      <AdvisorSectionCard title="Service Bulletins" source={data?.service_bulletins?.source || null} icon={FileCheck2}>
+        {data?.service_bulletins?.available ? (
+          <>
+            <div className="mb-2 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-[#fbfaf7] p-3">
+                <div className="text-[10px] font-bold uppercase text-[#102033]/45">Status</div>
+                <div className="mt-1 text-sm font-black capitalize">{String(data.service_bulletins.status).replace(/_/g, " ")}</div>
+              </div>
+              <div className="rounded-xl bg-[#fbfaf7] p-3">
+                <div className="text-[10px] font-bold uppercase text-[#102033]/45">Bulletins</div>
+                <div className="mt-1 text-xl font-black">{data.service_bulletins.count}</div>
+              </div>
+            </div>
+            {data.service_bulletins.items?.length > 0 && (
+              <div className="max-h-32 space-y-1.5 overflow-auto">
+                {data.service_bulletins.items.slice(0, 8).map((sb, i) => (
+                  <div key={sb.number || i} className="flex items-start gap-2 rounded-lg border border-[#102033]/8 bg-white px-3 py-1.5 text-[10px]">
+                    <span className="font-mono font-bold text-[#b98427]">{sb.number}</span>
+                    <span className="text-[#102033]/60">{sb.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="rounded-xl bg-[#fbfaf7] px-4 py-3 text-xs text-[#102033]/55">No service bulletin review on file. Upload engine/logbook records to enable SB cross-check.</div>
+        )}
+      </AdvisorSectionCard>
+
+      <AdvisorSectionCard title="Marketplace & Public Listings" source={data?.marketplace_evidence ? "Web Search" : null} icon={ShoppingBag}>
+        {data?.marketplace_evidence?.listings?.length > 0 ? (
+          <>
+            <div className="mb-2 text-xs text-[#102033]/55">{data.marketplace_evidence.search_summary || `${data.marketplace_evidence.listings.length} public listing(s) found.`}</div>
+            <div className="space-y-2">
+              {data.marketplace_evidence.listings.map((l, i) => (
+                <div key={i} className="rounded-lg border border-[#102033]/8 bg-white px-3 py-2 text-[10px]">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#0A3C75]">{l.marketplace_or_group_name}</span>
+                    {l.asking_price && <span className="font-mono font-bold text-[#b98427]">{l.asking_price}</span>}
+                  </div>
+                  {l.summary && <div className="mt-1 text-[#102033]/65">{l.summary}</div>}
+                  <div className="mt-1 flex flex-wrap gap-2 text-[#102033]/45">
+                    {l.listed_date && <span>Listed {l.listed_date}</span>}
+                    {l.location && <span>· {l.location}</span>}
+                  </div>
+                  {l.url && <a href={l.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-[#0A3C75] underline">View listing ↗</a>}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="rounded-xl bg-[#fbfaf7] px-4 py-3 text-xs text-[#102033]/55">{data?.marketplace_evidence?.search_summary || "No public marketplace or Facebook group listings found for this registration."}</div>
+        )}
+      </AdvisorSectionCard>
 
       <AdvisorSectionCard title="Valuation" source={unlocked ? "ATI Full Report" : null} icon={TrendingUp}>
         {unlocked && premium.data?.valuation ? (

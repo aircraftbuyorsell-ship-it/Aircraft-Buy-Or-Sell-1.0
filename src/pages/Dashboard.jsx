@@ -47,10 +47,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <section className="relative mx-auto max-w-[1440px] px-6 pb-8 pt-10 md:px-16 md:pt-16">
-        <div className="pointer-events-none absolute right-[-120px] top-[-40px] h-[680px] w-[680px] rounded-full opacity-90 [background-image:radial-gradient(rgba(183,139,54,0.36)_0.8px,transparent_0.8px)] [background-size:8px_8px] [mask-image:radial-gradient(circle,black_35%,transparent_72%)]" />
-        <div className="pointer-events-none absolute right-[4%] top-[100px] h-[560px] w-[560px] rounded-full border border-[#d6a33e]/30" />
-        <div className="pointer-events-none absolute right-[11%] top-[170px] h-[420px] w-[420px] rounded-full border border-[#d6a33e]/20" />
+      <section className="relative isolate mx-auto max-w-[1440px] overflow-hidden px-6 pb-8 pt-10 md:px-16 md:pt-16">
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-16 -top-12 left-0 opacity-20 md:left-[32%] md:opacity-100">
+          <HeroGlobe variant="pearl" />
+        </div>
         <div className="relative grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="max-w-[700px] pt-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#a87925]">AVIATION INTELLIGENCE PLATFORM</p>
@@ -66,13 +66,8 @@ export default function Dashboard() {
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#102033]/50"><span className="mr-1">Quick search:</span>{SAMPLES.map((sample) => <button key={sample} onClick={() => searchSample(sample)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold hover:border-[#c99635]/60 hover:text-[#a87925]">{sample}</button>)}<button onClick={() => setQuery("")} className="flex items-center gap-1 rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Global search</button></div>
           </div>
 
-          <div className="relative hidden min-h-[510px] overflow-hidden rounded-3xl lg:block">
-            <HeroGlobe />
-            <div className="pointer-events-none absolute right-[2%] top-[120px] h-px w-[650px] rotate-[15deg] bg-[#c99635]/45" />
-            <div className="pointer-events-none absolute right-[7%] top-[310px] h-px w-[620px] -rotate-[18deg] bg-[#c99635]/35" />
-            <div className="pointer-events-none absolute right-[35%] top-[180px] h-3 w-3 rounded-full bg-[#d6a33e] shadow-[0_0_20px_rgba(214,163,62,0.7)]" />
-            <div className="pointer-events-none absolute right-[12%] top-[350px] h-2.5 w-2.5 rounded-full bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
-            <div className="absolute right-[2%] top-[105px] w-[380px] rounded-3xl border border-[#102033]/10 bg-white/95 p-5 shadow-[0_25px_70px_rgba(16,32,51,0.13)] backdrop-blur-xl">
+          <div className="relative hidden min-h-[510px] lg:block">
+            <div className="absolute bottom-0 right-[2%] w-[380px] rounded-3xl border border-[#102033]/10 bg-white/95 p-5 shadow-[0_25px_70px_rgba(16,32,51,0.13)] backdrop-blur-xl">
               <div className="flex items-center gap-4"><div className="h-20 w-24 rounded-xl bg-[#e8e4db] p-3 text-center text-3xl">✈</div><div><div className="text-xl font-black">N7692J 🇺🇸</div><div className="mt-1 text-sm text-[#102033]/60">Piper PA-28R-180</div><div className="mt-1 text-xs text-[#102033]/45">1983 · Aircraft profile</div></div></div>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div>
               <button onClick={() => searchSample("N7692J")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#c99635] px-4 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button>

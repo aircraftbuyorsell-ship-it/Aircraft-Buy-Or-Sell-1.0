@@ -1,6 +1,8 @@
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { useTheme } from "@/lib/useTheme";
+import globeSearchMarker from "@/components/homepage/globeSearchMarker";
+import "@/components/homepage/globe-search-label.css";
 
 const CITY_PAIRS = [
   [[40.7, -74.0], [51.5, -0.1]],
@@ -44,9 +46,12 @@ function latLonToVec3(lat, lon, r) {
   );
 }
 
-export default function HeroGlobe({ variant = "default" }) {
+export default function HeroGlobe({ variant = "default", marker = null }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const labelRef = useRef(null);
+  const markerRef = useRef(marker);
+  useEffect(() => { markerRef.current = marker; }, [marker]);
   const isDark = useTheme();
   const pearl = variant === "pearl";
 
@@ -268,12 +273,20 @@ export default function HeroGlobe({ variant = "default" }) {
     }
 
     let rafId;
+    let searchPin = null;
+    let displayedMarker = null;
     const startTime = performance.now();
     const loop = () => {
       rafId = requestAnimationFrame(loop);
       const elapsed = (performance.now() - startTime) / 1000;
 
-      globe.rotation.y = (pearl ? -1.05 : 0) + (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : elapsed * (pearl ? 0.018 : 0.05));
+      if (markerRef.current !== displayedMarker) {
+        searchPin?.dispose();
+        displayedMarker = markerRef.current;
+        searchPin = displayedMarker ? globeSearchMarker(globe, camera, canvas, labelRef.current, displayedMarker, SPHERE_R, markerTexture) : null;
+      }
+      if (searchPin) searchPin.update(performance.now());
+      else globe.rotation.y = (pearl ? -1.05 : 0) + (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : elapsed * (pearl ? 0.018 : 0.05));
 
       markers.forEach((m) => {
         const pulse = 0.5 + 0.5 * Math.sin(elapsed * 1.5 + m.phase);
@@ -312,6 +325,7 @@ export default function HeroGlobe({ variant = "default" }) {
 
     return () => {
       cancelAnimationFrame(rafId);
+      searchPin?.dispose();
       window.removeEventListener("resize", onResize);
       resizeObserver.disconnect();
       scene.traverse((object) => {
@@ -328,6 +342,10 @@ export default function HeroGlobe({ variant = "default" }) {
   return (
     <div ref={containerRef} className="absolute inset-0" style={{ pointerEvents: "none" }}>
       <canvas ref={canvasRef} className="block w-full h-full" />
+      <div ref={labelRef} className="globe-search-label">
+        <span className="globe-search-tag">{marker?.registration}</span>
+        <span className="globe-search-caption">{marker?.locationLabel}</span>
+      </div>
     </div>
   );
 }

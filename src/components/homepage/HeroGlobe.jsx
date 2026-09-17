@@ -61,6 +61,10 @@ export default function HeroGlobe({ variant = "default" }) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H, false);
+    if (pearl) {
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+    }
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
@@ -77,11 +81,11 @@ export default function HeroGlobe({ variant = "default" }) {
     // ── Sphere ── light: matte aluminum; dark: deep space
     const sphereMat = new THREE.MeshPhongMaterial({
       color: pearl ? 0xf2f0eb : (isDark ? 0x0A0E14 : 0x2a2a35),
-      emissive: pearl ? 0x454441 : (isDark ? 0x05080c : 0x0d0d12),
-      shininess: pearl ? 72 : (isDark ? 4 : 28),
-      specular: pearl ? 0xffffff : (isDark ? 0x0a0f1a : 0xb0b0b0),
-      transparent: pearl,
-      opacity: pearl ? 0.94 : 1,
+      emissive: pearl ? 0x080808 : (isDark ? 0x05080c : 0x0d0d12),
+      shininess: pearl ? 24 : (isDark ? 4 : 28),
+      specular: pearl ? 0x60605c : (isDark ? 0x0a0f1a : 0xb0b0b0),
+      transparent: false,
+      opacity: 1,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -119,11 +123,11 @@ export default function HeroGlobe({ variant = "default" }) {
     const rr = SPHERE_R + 0.006;
 
     if (pearl) {
-      for (let lat = -58; lat <= 82; lat += 2.2) {
-        for (let lon = -178; lon <= 178; lon += 2.2) {
+      for (let lat = -58; lat <= 82; lat += 1.5) {
+        const longitudeStep = 1.5 / Math.cos(THREE.MathUtils.degToRad(lat));
+        for (let lon = -178; lon <= 178; lon += longitudeStep) {
           if (!CONTINENTS.some((shape) => pointInPolygon(lon, lat, shape))) continue;
-          const jitter = Math.sin((lon + 181) * 12.9898 + (lat + 91) * 78.233) * 0.55;
-          const v = latLonToVec3(lat + jitter, lon + jitter, rr);
+          const v = latLonToVec3(lat, lon, rr);
           rivetPositions.push(v.x, v.y, v.z);
         }
       }
@@ -156,15 +160,18 @@ export default function HeroGlobe({ variant = "default" }) {
     }));
     if (pearl) {
       const beads = new THREE.InstancedMesh(
-        new THREE.SphereGeometry(0.009, 6, 5),
-        new THREE.MeshPhongMaterial({ color: 0xe8e5dc, specular: 0xffffff, shininess: 65 }),
+        new THREE.BoxGeometry(0.024, 0.024, 0.008),
+        new THREE.MeshPhongMaterial({ color: 0xc3c0b8, specular: 0x55554f, shininess: 18 }),
         rivetPositions.length / 3
       );
-      const matrix = new THREE.Matrix4();
+      const tile = new THREE.Object3D();
       for (let i = 0; i < rivetPositions.length; i += 3) {
-        matrix.makeTranslation(rivetPositions[i], rivetPositions[i + 1], rivetPositions[i + 2]);
-        beads.setMatrixAt(i / 3, matrix);
+        tile.position.set(rivetPositions[i], rivetPositions[i + 1], rivetPositions[i + 2]);
+        tile.lookAt(tile.position.clone().multiplyScalar(2));
+        tile.updateMatrix();
+        beads.setMatrixAt(i / 3, tile.matrix);
       }
+      beads.instanceMatrix.needsUpdate = true;
       globe.add(beads);
       rivetGeo.dispose();
       rivets.material.dispose();
@@ -230,13 +237,13 @@ export default function HeroGlobe({ variant = "default" }) {
       markers.push({ sprite, material: mat, phase: Math.random() * Math.PI * 2 });
     });
 
-    // ── Lights ── bright pearl finish or moody dark finish
-    scene.add(new THREE.AmbientLight(pearl ? 0xffffff : (isDark ? 0x1a2030 : 0x6a6a78), pearl ? 1.15 : (isDark ? 0.5 : 0.35)));
-    const dirLight = new THREE.DirectionalLight(pearl ? 0xfff8e8 : 0xfff1d6, pearl ? 1.8 : (isDark ? 1.1 : 1.4));
-    dirLight.position.set(3, 2, 3);
+    // Soft studio lighting keeps the square relief visible without blown highlights.
+    scene.add(new THREE.AmbientLight(pearl ? 0xffffff : (isDark ? 0x1a2030 : 0x6a6a78), pearl ? 0.75 : (isDark ? 0.5 : 0.35)));
+    const dirLight = new THREE.DirectionalLight(pearl ? 0xfff8ee : 0xfff1d6, pearl ? 1.1 : (isDark ? 1.1 : 1.4));
+    dirLight.position.set(pearl ? -3 : 3, 4, 5);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(pearl ? 0xdde8f2 : (isDark ? 0x4a6a9a : 0x8090a8), pearl ? 0.8 : (isDark ? 0.25 : 0.4));
-    fillLight.position.set(-3, -1, -2);
+    const fillLight = new THREE.DirectionalLight(pearl ? 0xdde8f2 : (isDark ? 0x4a6a9a : 0x8090a8), pearl ? 0.35 : (isDark ? 0.25 : 0.4));
+    fillLight.position.set(pearl ? 4 : -3, -1, -2);
     scene.add(fillLight);
 
     // ── Stars ── dark mode only
@@ -270,8 +277,8 @@ export default function HeroGlobe({ variant = "default" }) {
 
       markers.forEach((m) => {
         const pulse = 0.5 + 0.5 * Math.sin(elapsed * 1.5 + m.phase);
-        m.material.opacity = 0.25 + pulse * 0.65;
-        const scale = 0.09 + pulse * 0.08;
+        m.material.opacity = pearl ? 0.35 + pulse * 0.3 : 0.25 + pulse * 0.65;
+        const scale = pearl ? 0.075 + pulse * 0.035 : 0.09 + pulse * 0.08;
         m.sprite.scale.set(scale, scale, 1);
       });
 
@@ -280,17 +287,33 @@ export default function HeroGlobe({ variant = "default" }) {
     loop();
 
     const onResize = () => {
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
+      if (pearl) {
+        // Fit both axes, smoothly moving from portrait 9:16 to landscape 16:9.
+        const screenAspect = window.innerWidth / window.innerHeight;
+        const landscape = THREE.MathUtils.clamp((screenAspect - 9 / 16) / (16 / 9 - 9 / 16), 0, 1);
+        const halfVertical = THREE.MathUtils.degToRad(camera.fov / 2);
+        const halfHorizontal = Math.atan(Math.tan(halfVertical) * camera.aspect);
+        const fitDistance = SPHERE_R / Math.sin(Math.min(halfVertical, halfHorizontal));
+        const zoom = THREE.MathUtils.lerp(0.88, 1.06, landscape);
+        camera.position.set(0, 0.05, fitDistance / zoom);
+        globe.position.x = 0;
+      }
       camera.updateProjectionMatrix();
     };
+    onResize();
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(container);
     window.addEventListener("resize", onResize);
 
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", onResize);
+      resizeObserver.disconnect();
       scene.traverse((object) => {
         object.geometry?.dispose();
         if (object.material) object.material.dispose();

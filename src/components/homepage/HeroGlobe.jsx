@@ -61,10 +61,6 @@ export default function HeroGlobe({ variant = "default" }) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H, false);
-    if (pearl) {
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
-    }
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
@@ -81,11 +77,11 @@ export default function HeroGlobe({ variant = "default" }) {
     // ── Sphere ── light: matte aluminum; dark: deep space
     const sphereMat = new THREE.MeshPhongMaterial({
       color: pearl ? 0xf2f0eb : (isDark ? 0x0A0E14 : 0x2a2a35),
-      emissive: pearl ? 0x070707 : (isDark ? 0x05080c : 0x0d0d12),
-      shininess: pearl ? 24 : (isDark ? 4 : 28),
-      specular: pearl ? 0x68665f : (isDark ? 0x0a0f1a : 0xb0b0b0),
-      transparent: false,
-      opacity: 1,
+      emissive: pearl ? 0x454441 : (isDark ? 0x05080c : 0x0d0d12),
+      shininess: pearl ? 72 : (isDark ? 4 : 28),
+      specular: pearl ? 0xffffff : (isDark ? 0x0a0f1a : 0xb0b0b0),
+      transparent: pearl,
+      opacity: pearl ? 0.94 : 1,
     });
     const sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 64, 64), sphereMat);
     globe.add(sphere);
@@ -124,10 +120,10 @@ export default function HeroGlobe({ variant = "default" }) {
 
     if (pearl) {
       for (let lat = -58; lat <= 82; lat += 2.2) {
-        const longitudeStep = 2.2 / Math.cos(THREE.MathUtils.degToRad(lat));
-        for (let lon = -178; lon <= 178; lon += longitudeStep) {
+        for (let lon = -178; lon <= 178; lon += 2.2) {
           if (!CONTINENTS.some((shape) => pointInPolygon(lon, lat, shape))) continue;
-          const v = latLonToVec3(lat, lon, rr);
+          const jitter = Math.sin((lon + 181) * 12.9898 + (lat + 91) * 78.233) * 0.55;
+          const v = latLonToVec3(lat + jitter, lon + jitter, rr);
           rivetPositions.push(v.x, v.y, v.z);
         }
       }
@@ -159,22 +155,17 @@ export default function HeroGlobe({ variant = "default" }) {
       opacity: pearl ? 0.72 : (isDark ? 0.88 : 0.85),
     }));
     if (pearl) {
-      const tiles = new THREE.InstancedMesh(
-        new THREE.BoxGeometry(0.024, 0.024, 0.008),
-        new THREE.MeshPhongMaterial({ color: 0xc3c0b7, specular: 0x77746e, shininess: 20 }),
+      const beads = new THREE.InstancedMesh(
+        new THREE.SphereGeometry(0.009, 6, 5),
+        new THREE.MeshPhongMaterial({ color: 0xe8e5dc, specular: 0xffffff, shininess: 65 }),
         rivetPositions.length / 3
       );
-      const tile = new THREE.Object3D();
-      const target = new THREE.Vector3();
+      const matrix = new THREE.Matrix4();
       for (let i = 0; i < rivetPositions.length; i += 3) {
-        tile.position.set(rivetPositions[i], rivetPositions[i + 1], rivetPositions[i + 2]);
-        target.copy(tile.position).multiplyScalar(2);
-        tile.lookAt(target);
-        tile.updateMatrix();
-        tiles.setMatrixAt(i / 3, tile.matrix);
+        matrix.makeTranslation(rivetPositions[i], rivetPositions[i + 1], rivetPositions[i + 2]);
+        beads.setMatrixAt(i / 3, matrix);
       }
-      tiles.instanceMatrix.needsUpdate = true;
-      globe.add(tiles);
+      globe.add(beads);
       rivetGeo.dispose();
       rivets.material.dispose();
     } else globe.add(rivets);
@@ -240,11 +231,11 @@ export default function HeroGlobe({ variant = "default" }) {
     });
 
     // ── Lights ── bright pearl finish or moody dark finish
-    scene.add(new THREE.AmbientLight(pearl ? 0xffffff : (isDark ? 0x1a2030 : 0x6a6a78), pearl ? 0.85 : (isDark ? 0.5 : 0.35)));
-    const dirLight = new THREE.DirectionalLight(pearl ? 0xfff8ee : 0xfff1d6, pearl ? 1.25 : (isDark ? 1.1 : 1.4));
-    dirLight.position.set(pearl ? -3 : 3, pearl ? 4 : 2, 3);
+    scene.add(new THREE.AmbientLight(pearl ? 0xffffff : (isDark ? 0x1a2030 : 0x6a6a78), pearl ? 1.15 : (isDark ? 0.5 : 0.35)));
+    const dirLight = new THREE.DirectionalLight(pearl ? 0xfff8e8 : 0xfff1d6, pearl ? 1.8 : (isDark ? 1.1 : 1.4));
+    dirLight.position.set(3, 2, 3);
     scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(pearl ? 0xdde8f2 : (isDark ? 0x4a6a9a : 0x8090a8), pearl ? 0.45 : (isDark ? 0.25 : 0.4));
+    const fillLight = new THREE.DirectionalLight(pearl ? 0xdde8f2 : (isDark ? 0x4a6a9a : 0x8090a8), pearl ? 0.8 : (isDark ? 0.25 : 0.4));
     fillLight.position.set(-3, -1, -2);
     scene.add(fillLight);
 
@@ -289,31 +280,16 @@ export default function HeroGlobe({ variant = "default" }) {
     loop();
 
     const onResize = () => {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      if (!w || !h) return;
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      if (pearl) {
-        // Fit the limiting field of view, rather than stretching or cropping on portrait screens.
-        const verticalFov = THREE.MathUtils.degToRad(camera.fov / 2);
-        const horizontalFov = Math.atan(Math.tan(verticalFov) * camera.aspect);
-        const landscape = THREE.MathUtils.smoothstep(camera.aspect, 0.7, 1.6);
-        const fill = THREE.MathUtils.lerp(0.9, 1.12, landscape);
-        camera.position.z = 2.05 / Math.sin(Math.min(verticalFov, horizontalFov)) / fill;
-        globe.position.x = THREE.MathUtils.lerp(0, 0.18, landscape);
-        globe.position.y = 0;
-      }
       camera.updateProjectionMatrix();
     };
-    onResize();
-    const resizeObserver = new ResizeObserver(onResize);
-    resizeObserver.observe(container);
     window.addEventListener("resize", onResize);
 
     return () => {
       cancelAnimationFrame(rafId);
-      resizeObserver.disconnect();
       window.removeEventListener("resize", onResize);
       scene.traverse((object) => {
         object.geometry?.dispose();

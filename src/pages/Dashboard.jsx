@@ -22,11 +22,7 @@ export default function Dashboard() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  const drift = Math.min(scrollY, 520);
-  const floatStyle = {
-    transform: `translateY(${drift * -0.18}px)`,
-    opacity: Math.max(0, 1 - drift / 420),
-  };
+  const searchPinned = scrollY > 300;
 
   const submit = (event) => {
     event?.preventDefault();
@@ -71,11 +67,13 @@ export default function Dashboard() {
             <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Verify before you<br />Sell or Buy.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#102033]/60 md:text-lg">Verified data. Real market insights. Greater confidence.</p>
 
-            <form onSubmit={submit} style={floatStyle} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_30px_70px_-12px_rgba(16,32,51,0.28)] transition-[box-shadow,opacity] duration-300 hover:shadow-[0_38px_90px_-18px_rgba(16,32,51,0.34)] focus-within:ring-4 focus-within:ring-[#d6a33e]/15 focus-within:shadow-[0_42px_100px_-18px_rgba(201,150,53,0.38)]">
-              <span className="ml-4 text-lg">✈</span>
-              <input disabled={busy} value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/45 md:text-base" />
-              <button type="submit" aria-label={busy ? "Locating aircraft" : "Search aircraft"} disabled={busy || !query.trim()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#c99635] text-white shadow-sm transition hover:brightness-105 disabled:opacity-40"><ArrowRight className="h-5 w-5" /></button>
-            </form>
+            <div className="mt-9 h-[66px] max-w-2xl">
+              <form onSubmit={submit} className={`${searchPinned ? "fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2" : "relative w-full"} flex items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_30px_70px_-12px_rgba(16,32,51,0.28)] transition-[box-shadow,transform] duration-300 hover:shadow-[0_38px_90px_-18px_rgba(16,32,51,0.34)] focus-within:ring-4 focus-within:ring-[#d6a33e]/15 focus-within:shadow-[0_42px_100px_-18px_rgba(201,150,53,0.38)]`}>
+                <span className="ml-4 text-lg">✈</span>
+                <input disabled={busy} value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/45 md:text-base" />
+                <button type="submit" aria-label={busy ? "Locating aircraft" : "Search aircraft"} disabled={busy || !query.trim()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#c99635] text-white shadow-sm transition hover:brightness-105 disabled:opacity-40"><ArrowRight className="h-5 w-5" /></button>
+              </form>
+            </div>
 
             <p role="status" aria-live="polite" className="relative z-20 mt-3 text-xs text-muted-foreground">{status}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#102033]/50"><span className="mr-1">Quick search:</span>{SAMPLES.map((sample) => <button key={sample} disabled={busy} onClick={() => searchSample(sample)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold hover:border-[#c99635]/60 hover:text-[#a87925]">{sample}</button>)}<button onClick={() => setQuery("")} className="flex items-center gap-1 rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Global search</button></div>

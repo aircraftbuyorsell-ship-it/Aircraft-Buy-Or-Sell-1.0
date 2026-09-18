@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe2, Search, ShieldCheck, Sparkles, LockKeyhole, FileCheck2 } from "lucide-react";
 import HeroGlobe from "@/components/homepage/HeroGlobe";
 import useGlobeSearch from "@/components/homepage/useGlobeSearch";
+import useTypewriter from "@/components/homepage/useTypewriter";
 
 const REGISTRATION = /\b(?:N\d{1,5}[A-Z]{0,2}|[A-Z0-9]{1,2}-[A-Z0-9]{2,5})\b/i;
 const SAMPLES = ["N7692J", "OK-PES", "OM-PES"];
@@ -10,7 +11,10 @@ const SAMPLES = ["N7692J", "OK-PES", "OM-PES"];
 export default function Dashboard() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
   const { marker, busy, status, search } = useGlobeSearch();
+  const typed = useTypewriter();
+  const placeholder = query.trim() || focused ? "Search aircraft registration…" : typed;
 
   const submit = (event) => {
     event?.preventDefault();
@@ -55,9 +59,9 @@ export default function Dashboard() {
             <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Verify before you<br />Sell or Buy.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#102033]/60 md:text-lg">Verified data. Real market insights. Greater confidence.</p>
 
-            <form onSubmit={submit} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_18px_50px_rgba(16,32,51,0.09)] focus-within:ring-4 focus-within:ring-[#d6a33e]/10">
+            <form onSubmit={submit} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_30px_70px_-12px_rgba(16,32,51,0.28)] transition-shadow duration-300 hover:shadow-[0_38px_90px_-18px_rgba(16,32,51,0.34)] focus-within:ring-4 focus-within:ring-[#d6a33e]/15 focus-within:shadow-[0_42px_100px_-18px_rgba(201,150,53,0.38)]">
               <span className="ml-4 text-lg">✈</span>
-              <input disabled={busy} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search aircraft registration..." className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/35 md:text-base" autoFocus />
+              <input disabled={busy} value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/45 md:text-base" />
               <button type="submit" aria-label={busy ? "Locating aircraft" : "Search aircraft"} disabled={busy || !query.trim()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#c99635] text-white shadow-sm transition hover:brightness-105 disabled:opacity-40"><ArrowRight className="h-5 w-5" /></button>
             </form>
 

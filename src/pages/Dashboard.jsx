@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Globe2, Search, ShieldCheck, Sparkles, LockKeyhole, FileCheck2 } from "lucide-react";
 import HeroGlobe from "@/components/homepage/HeroGlobe";
@@ -15,6 +15,18 @@ export default function Dashboard() {
   const { marker, busy, status, search } = useGlobeSearch();
   const typed = useTypewriter();
   const placeholder = query.trim() || focused ? "Search aircraft registration…" : typed;
+
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const drift = Math.min(scrollY, 520);
+  const floatStyle = {
+    transform: `translateY(${drift * -0.18}px)`,
+    opacity: Math.max(0, 1 - drift / 420),
+  };
 
   const submit = (event) => {
     event?.preventDefault();
@@ -59,7 +71,7 @@ export default function Dashboard() {
             <h1 className="mt-5 text-5xl font-black leading-[0.98] tracking-[-0.045em] md:text-7xl">Verify before you<br />Sell or Buy.</h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#102033]/60 md:text-lg">Verified data. Real market insights. Greater confidence.</p>
 
-            <form onSubmit={submit} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_30px_70px_-12px_rgba(16,32,51,0.28)] transition-shadow duration-300 hover:shadow-[0_38px_90px_-18px_rgba(16,32,51,0.34)] focus-within:ring-4 focus-within:ring-[#d6a33e]/15 focus-within:shadow-[0_42px_100px_-18px_rgba(201,150,53,0.38)]">
+            <form onSubmit={submit} style={floatStyle} className="mt-9 flex max-w-2xl items-center rounded-2xl border border-[#c99635] bg-white p-1.5 shadow-[0_30px_70px_-12px_rgba(16,32,51,0.28)] transition-[box-shadow,opacity] duration-300 hover:shadow-[0_38px_90px_-18px_rgba(16,32,51,0.34)] focus-within:ring-4 focus-within:ring-[#d6a33e]/15 focus-within:shadow-[0_42px_100px_-18px_rgba(201,150,53,0.38)]">
               <span className="ml-4 text-lg">✈</span>
               <input disabled={busy} value={query} onChange={(e) => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-[#102033]/45 md:text-base" />
               <button type="submit" aria-label={busy ? "Locating aircraft" : "Search aircraft"} disabled={busy || !query.trim()} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#c99635] text-white shadow-sm transition hover:brightness-105 disabled:opacity-40"><ArrowRight className="h-5 w-5" /></button>

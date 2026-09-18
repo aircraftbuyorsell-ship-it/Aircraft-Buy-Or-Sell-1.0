@@ -2,6 +2,10 @@ import { Link } from "react-router-dom";
 import RegulatoryTrustStrip from "@/components/footer/RegulatoryTrustStrip";
 
 const FOOTER_LINKS = [
+  { to: "/about", label: "About Us" },
+  { to: "/how-it-works", label: "How It Works" },
+  { to: "/faq", label: "FAQ" },
+  { to: "/my-account", label: "User Account" },
   { to: "/developers", label: "Developers" },
   { to: "/developers/core-api", label: "Core API" },
   { to: "/integration-kit", label: "Integration Kit" },

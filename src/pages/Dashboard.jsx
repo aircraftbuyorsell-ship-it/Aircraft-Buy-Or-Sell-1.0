@@ -34,12 +34,7 @@ export default function Dashboard() {
             <img src="https://media.base44.com/images/public/workspaces/6998b56ab3d79ca33dfcf1d0/brands/e2c3611ed_brand_upload_logo.jpg" alt="ABOS Logo" className="h-11 w-11 rounded-full object-cover shadow-lg ring-1 ring-[#c99635]" />
             <span><span className="block text-[25px] font-black leading-none tracking-tight">ABOS</span><span className="mt-1 block text-[8px] font-semibold tracking-[0.25em] text-[#a67b2c]">AIRCRAFT BUY OR SELL</span></span>
           </button>
-          <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
-            <button className="hover:text-[#b5822b]">About Us</button>
-            <button className="hover:text-[#b5822b]">How It Works</button>
-            <button className="hover:text-[#b5822b]">FAQ</button>
-            <button onClick={() => navigate("/my-account")} className="hover:text-[#b5822b]">User Account</button>
-          </nav>
+
           <div className="flex items-center gap-3">
             <form onSubmit={submit} className="hidden w-[260px] items-center rounded-xl border border-[#c99635]/50 bg-white px-3 shadow-sm md:flex">
               <Search className="h-4 w-4 text-[#102033]/45" />

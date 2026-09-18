@@ -116,6 +116,9 @@ const ApiHub = lazy(() => import("./pages/hubs/ApiHub"));
 const SkylarkConfigurator = lazy(() => import("./pages/SkylarkConfigurator"));
 const AdminMarketing = lazy(() => import("./pages/AdminMarketing"));
 const AircraftIntelligenceGlobe = lazy(() => import("./pages/AircraftIntelligenceGlobe"));
+const About = lazy(() => import("./pages/About"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Faq = lazy(() => import("./pages/Faq"));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF] dark:bg-[#0B0C10]">
@@ -298,6 +301,9 @@ const AuthenticatedApp = () => {
         <Route path="/intelligence" element={<IntelligenceHub />} />
         <Route path="/verify" element={<VerifyHub />} />
         <Route path="/api" element={<ApiHub />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/faq" element={<Faq />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<IntraZone />} />

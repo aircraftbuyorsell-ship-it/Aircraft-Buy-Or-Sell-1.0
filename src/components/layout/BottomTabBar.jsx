@@ -4,6 +4,8 @@ import { NAV_TREE, isPathInSection } from "@/components/layout/navConfig";
 import { useTabHistory } from "@/lib/useTabHistory";
 import { useTheme } from "@/lib/useTheme";
 
+const MOBILE_SECTIONS = NAV_TREE.filter((section) => !section.direct);
+
 /**
  * Fixed bottom tab bar — mobile only (hidden on lg+).
  * Reuses NAV_TREE top-level sections as tabs.
@@ -35,7 +37,7 @@ export default function BottomTabBar() {
   };
 
   // Record current path under the active tab on every navigation
-  const activeSection = NAV_TREE.find((s) => isPathInSection(s, pathname));
+  const activeSection = MOBILE_SECTIONS.find((s) => isPathInSection(s, pathname));
   useEffect(() => {
     if (activeSection) setLast(activeSection.label, pathname);
   }, [activeSection, pathname, setLast]);
@@ -51,7 +53,7 @@ export default function BottomTabBar() {
         WebkitBackdropFilter: "blur(16px)",
       }}
     >
-      {NAV_TREE.map((section) => {
+      {MOBILE_SECTIONS.map((section) => {
         const active = isPathInSection(section, pathname);
         const Icon = section.icon;
         return (

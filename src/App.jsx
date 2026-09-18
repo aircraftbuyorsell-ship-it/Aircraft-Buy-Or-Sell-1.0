@@ -6,6 +6,7 @@ import React, { lazy, Suspense } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import CompanyRoute from '@/components/auth/CompanyRoute';
 // Add page imports here
 import Layout from "./components/Layout";
 import IntraZoneLayout from "./components/intrazone/IntraZoneLayout";
@@ -119,6 +120,7 @@ const AircraftIntelligenceGlobe = lazy(() => import("./pages/AircraftIntelligenc
 const About = lazy(() => import("./pages/About"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const Faq = lazy(() => import("./pages/Faq"));
+const CompanyAccessRequired = lazy(() => import("./pages/CompanyAccessRequired"));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF] dark:bg-[#0B0C10]">
@@ -221,20 +223,20 @@ const AuthenticatedApp = () => {
         <Route path="/escrow-agreement" element={<EscrowAgreement />} />
         <Route path="/max-chat" element={<MaxChat />} />
         <Route path="/pre-buy-inspection" element={<PreBuyInspection />} />
-        <Route path="/admin/data-cleanup" element={<AdminDataCleanup />} />
+        <Route path="/admin/data-cleanup" element={<CompanyRoute><AdminDataCleanup /></CompanyRoute>} />
         <Route path="/community" element={<Community />} />
         <Route path="/market-reports" element={<MarketReports />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/developers" element={<Developers />} />
-        <Route path="/admin/marketplace" element={<AdminMarketplace />} />
-        <Route path="/admin/settings" element={<AdminSettings />} />
-        <Route path="/admin/marketing" element={<AdminMarketing />} />
+        <Route path="/admin/marketplace" element={<CompanyRoute><AdminMarketplace /></CompanyRoute>} />
+        <Route path="/admin/settings" element={<CompanyRoute><AdminSettings /></CompanyRoute>} />
+        <Route path="/admin/marketing" element={<CompanyRoute><AdminMarketing /></CompanyRoute>} />
         <Route path="/developer-earnings" element={<DeveloperEarnings />} />
         <Route path="/subscription" element={<SubscriptionManagement />} />
         <Route path="/partner-portal" element={<PartnerPortal />} />
         <Route path="/install" element={<InstallWizard />} />
         <Route path="/compare" element={<Compare />} />
-        <Route path="/admin/listings" element={<AdminListings />} />
+        <Route path="/admin/listings" element={<CompanyRoute><AdminListings /></CompanyRoute>} />
         <Route path="/feature-requests" element={<FeatureRequests />} />
         <Route path="/ati-quick-score" element={<ATIQuickScore />} />
         <Route path="/ati-full-report" element={<ATIFullReport />} />
@@ -245,14 +247,14 @@ const AuthenticatedApp = () => {
         <Route path="/startup-hub" element={<AviationStartupHub />} />
         <Route path="/ati-verify" element={<ATIVerify />} />
         <Route path="/ati-verify/:sessionId" element={<ATIVerifySession />} />
-        <Route path="/admin/supabase-sync" element={<SupabaseSync />} />
+        <Route path="/admin/supabase-sync" element={<CompanyRoute><SupabaseSync /></CompanyRoute>} />
         <Route path="/faa-map" element={<Navigate to="/traffic" replace />} />
-        <Route path="/demo" element={<IntraZoneDemo />} />
+        <Route path="/demo" element={<CompanyRoute><IntraZoneDemo /></CompanyRoute>} />
         <Route path="/legal/dsa" element={<DSAPolicy />} />
         <Route path="/legal/ai-transparency" element={<AITransparency />} />
         <Route path="/legal/ip-notice" element={<IPNotice />} />
-        <Route path="/funnels" element={<FunnelDashboard />} />
-        <Route path="/search-console" element={<SearchConsoleDashboard />} />
+        <Route path="/funnels" element={<CompanyRoute><FunnelDashboard /></CompanyRoute>} />
+        <Route path="/search-console" element={<CompanyRoute><SearchConsoleDashboard /></CompanyRoute>} />
         <Route path="/deal-intelligence" element={<DealIntelligence />} />
         <Route path="/ati-center" element={<ATICenter />} />
         <Route path="/startup-center" element={<StartupHub />} />
@@ -295,8 +297,8 @@ const AuthenticatedApp = () => {
         <Route path="/activity" element={<ActivitySummary />} />
         <Route path="/billing" element={<Billing />} />
         <Route path="/my-reports" element={<MyReports />} />
-        <Route path="/admin/monetization" element={<AdminMonetization />} />
-        <Route path="/walkthrough-script" element={<WalkthroughScript />} />
+        <Route path="/admin/monetization" element={<CompanyRoute><AdminMonetization /></CompanyRoute>} />
+        <Route path="/walkthrough-script" element={<CompanyRoute><WalkthroughScript /></CompanyRoute>} />
         <Route path="/marketspace" element={<MarketspaceHub />} />
         <Route path="/intelligence" element={<IntelligenceHub />} />
         <Route path="/verify" element={<VerifyHub />} />
@@ -304,13 +306,14 @@ const AuthenticatedApp = () => {
         <Route path="/about" element={<About />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/company-access-required" element={<CompanyAccessRequired />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
-        <Route path="/intrazone" element={<IntraZone />} />
+        <Route path="/intrazone" element={<CompanyRoute><IntraZone /></CompanyRoute>} />
       </Route>
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/oauth/callback" element={<OAuthConsent />} />
-      <Route path="/funnels/:id/canvas" element={<FunnelCanvas />} />
+      <Route path="/funnels/:id/canvas" element={<CompanyRoute><FunnelCanvas /></CompanyRoute>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </Suspense>

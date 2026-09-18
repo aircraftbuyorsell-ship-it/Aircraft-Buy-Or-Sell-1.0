@@ -1,15 +1,11 @@
-import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import {
-  ChevronLeft, ArrowLeft, LogIn, LogOut, MapPin, Menu, ChevronDown } from "lucide-react";
+import { ArrowLeft, LogIn } from "lucide-react";
 import SiteFooter from "@/components/SiteFooter";
 import ABOSTour from "@/components/onboarding/ABOSTour";
 import MarketspaceTour from "@/components/marketspace-tour/MarketspaceTour";
-import TierBadge from "@/components/TierBadge";
 import SidebarLogo from "@/components/layout/SidebarLogo";
-import NavItem from "@/components/layout/NavItem";
 import ThemeToggle from "@/components/ThemeToggle";
 import PillCommandBar from "@/components/layout/PillCommandBar";
 import BottomTabBar from "@/components/layout/BottomTabBar";
@@ -18,175 +14,12 @@ import PragueClock from "@/components/layout/PragueClock";
 import AccountMenu from "@/components/layout/AccountMenu";
 import DotGrid from "@/components/layout/DotGrid";
 import UniversalSearchBar from "@/components/search/UniversalSearchBar";
-import { NAV_TREE } from "@/components/layout/navConfig";
 import { useTheme } from "@/lib/useTheme";
 
-
-function initials(user) {
-  const name = user?.full_name || user?.email || "?";
-  return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
-}
-
-function DrawerContent({ pathname, user, onNavigate, isDark }) {
-  const [expanded, setExpanded] = useState(() => {
-    const current = NAV_TREE.find((section) => section.categories?.some((cat) =>
-      cat.items.some((item) => pathname === item.path.split("?")[0] || pathname.startsWith(item.path.split("?")[0] + "/"))
-    ));
-    return current?.label || null;
-  });
-  const tx = (darkVal, lightVal) => (isDark ? darkVal : lightVal);
-  const cardBg = tx("rgba(255,255,255,0.03)", "rgba(0,0,0,0.03)");
-  const border = tx("rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
-  const text = tx("rgba(255,255,255,0.75)", "rgba(0,0,0,0.75)");
-  const textDim = tx("rgba(255,255,255,0.35)", "rgba(0,0,0,0.40)");
-  const textFaint = tx("rgba(255,255,255,0.25)", "rgba(0,0,0,0.30)");
-
-  return (
-    <>
-      {/* Logo + status bar */}
-      <div style={{ padding: "14px 16px 12px", borderBottom: `0.5px solid ${border}` }}>
-        <SidebarLogo />
-        {/* Time / Location / Theme status bar */}
-        <div
-          className="flex items-center justify-between gap-2 mt-3 px-3 py-2 rounded-xl"
-          style={{ background: cardBg, border: `0.5px solid ${border}` }}
-        >
-          <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin size={11} style={{ color: "#D4A017", flexShrink: 0 }} />
-            <PragueClock />
-          </div>
-          <ThemeToggle />
-        </div>
-      </div>
-
-      {/* Smart search */}
-      <div style={{ padding: "10px 12px 6px" }}>
-        <UniversalSearchBar />
-      </div>
-
-      {/* Nav */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "6px 10px 12px" }}>
-        {NAV_TREE.map((section) => {
-          const active = pathname === section.path || (section.path !== "/" && pathname.startsWith(section.path + "/"));
-          const hasChildren = Boolean(section.categories?.length);
-          const isExpanded = expanded === section.label;
-          return (
-            <div key={section.label} style={{ marginTop: 8 }}>
-              <div className="flex items-center gap-1">
-                <div className="min-w-0 flex-1">
-                  <NavItem
-                    to={hasChildren ? section.path : section.path}
-                    icon={section.icon}
-                    label={section.label}
-                    active={active}
-                    onClick={() => { onNavigate(); if (hasChildren) setExpanded(section.label); }} />
-                </div>
-                {hasChildren && (
-                  <button
-                    type="button"
-                    aria-label={`${isExpanded ? "Collapse" : "Expand"} ${section.label}`}
-                    onClick={() => setExpanded(isExpanded ? null : section.label)}
-                    className="mr-1 rounded-md p-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                  >
-                    <ChevronDown size={13} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </button>
-                )}
-              </div>
-              {hasChildren && isExpanded && (
-                <div className="ml-4 mt-1 space-y-2 border-l border-border pl-3">
-                  {section.categories.map((category) => (
-                    <div key={category.label}>
-                      <p className="px-2 pb-1 text-[8px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60">{category.label}</p>
-                      {category.items.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={onNavigate}
-                          className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
-                        >
-                          {item.icon && <item.icon size={14} />}
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </nav>
-
-      {/* Legal Footer */}
-      <div style={{
-        borderTop: `0.5px solid ${border}`,
-        padding: "16px 16px 20px",
-        marginTop: "auto"
-      }}>
-        <p style={{ fontSize: "14px", color: textFaint, margin: "0 0 8px", letterSpacing: "0.02em" }}>
-          © 2026 ABOS s.r.o.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <Link to="/terms" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-            Terms of Service
-          </Link>
-          <Link to="/privacy" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-            Privacy Policy
-          </Link>
-          <Link to="/legal/dsa" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-            DSA — Report Content
-          </Link>
-          <Link to="/legal/ai-transparency" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-            AI Disclosure
-          </Link>
-          <Link to="/legal/ip-notice" style={{ fontSize: "14px", color: textDim, textDecoration: "none", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-            IP & Trademark Notice
-          </Link>
-          <button
-            onClick={() => window.ABOS_openCookieSettings?.()}
-            style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", fontSize: "14px", color: textDim, cursor: "pointer", letterSpacing: "0.02em", minHeight: 44, display: "flex", alignItems: "center" }}>
-
-            Cookie Settings
-          </button>
-        </div>
-      </div>
-
-      {/* User info */}
-      <div style={{ borderTop: `0.5px solid ${border}`, padding: "12px 16px" }}>
-        {user ?
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "rgba(212,160,23,0.09)", border: "0.5px solid rgba(212,160,23,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <span style={{ color: "#D4A017", fontSize: "11px", fontWeight: 600 }}>{initials(user)}</span>
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ margin: 0, fontSize: "12px", fontWeight: 500, color: text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {user.full_name || user.email}
-              </p>
-              <div style={{ marginTop: "3px" }}>
-                <TierBadge tier={user.subscription_tier || user.tier || "free_explorer"} />
-              </div>
-            </div>
-            <button onClick={() => base44.auth.logout()} aria-label="Log out"
-          style={{ background: "none", border: "none", cursor: "pointer", color: textDim, display: "flex", padding: "4px" }}>
-              <LogOut size={14} />
-            </button>
-          </div> :
-
-        <button onClick={() => base44.auth.redirectToLogin()}
-        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", justifyContent: "center", background: "#D4A017", color: "#0B1220", border: "none", borderRadius: "8px", padding: "9px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>
-            <LogIn size={14} /> Log In
-          </button>
-        }
-      </div>
-    </>);
-
-}
 
 export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const touchStartX = useRef(null);
   const isDark = useTheme();
 
   const isHomepage = pathname === "/";
@@ -197,30 +30,6 @@ export default function Layout() {
     queryFn: () => base44.auth.me(),
     retry: false
   });
-
-  useEffect(() => {setMobileOpen(false);}, [pathname]);
-
-  // Swipe from left edge to open mobile drawer
-  useEffect(() => {
-    const onStart = (e) => {const x = e.touches[0].clientX;if (x < 20) touchStartX.current = x;};
-    const onEnd = (e) => {
-      if (touchStartX.current == null) return;
-      const dx = e.changedTouches[0].clientX - touchStartX.current;
-      if (dx > 60) setMobileOpen(true);
-      touchStartX.current = null;
-    };
-    document.addEventListener("touchstart", onStart, { passive: true });
-    document.addEventListener("touchend", onEnd, { passive: true });
-
-    const onOpenDrawer = () => setMobileOpen(true);
-    window.addEventListener("abos-open-drawer", onOpenDrawer);
-
-    return () => {
-      document.removeEventListener("touchstart", onStart);
-      document.removeEventListener("touchend", onEnd);
-      window.removeEventListener("abos-open-drawer", onOpenDrawer);
-    };
-  }, []);
 
   const layoutBg = isDark
     ? { background: "#04060a", backgroundImage: "radial-gradient(ellipse at 8% 12%, rgba(245,194,66,0.14) 0%, transparent 52%), radial-gradient(ellipse at 92% 88%, rgba(93,202,165,0.12) 0%, transparent 52%), radial-gradient(ellipse at 85% 8%, rgba(78,142,247,0.07) 0%, transparent 40%)" }
@@ -252,25 +61,6 @@ export default function Layout() {
         Skip to content
       </a>
 
-      {/* ── Mobile drawer ── */}
-      {mobileOpen &&
-      <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMobileOpen(false)}
-      style={{ background: isDark ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", backdropFilter: isDark ? "blur(4px)" : "none" }} />
-      }
-      <aside className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col transition-transform duration-300 w-[85vw] max-w-[300px] overflow-y-auto"
-      style={{
-        background: isDark ? "#111827" : "#ffffff", borderRight: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-        transform: mobileOpen ? "translateX(0)" : "translateX(-100%)"
-      }}>
-        <div className="flex justify-end px-3 pt-3 safe-top">
-          <button onClick={() => setMobileOpen(false)} aria-label="Close menu"
-          style={{ width: "44px", height: "44px", borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <ChevronLeft size={18} />
-          </button>
-        </div>
-        <DrawerContent pathname={pathname} user={currentUser} onNavigate={() => setMobileOpen(false)} isDark={isDark} />
-      </aside>
-
       {/* ── Top header bar ── (suppressed on homepage — HomepageHeader takes over) */}
       {!isHomepage && (
       <header className="sticky top-0 z-40 safe-top"
@@ -279,10 +69,6 @@ export default function Layout() {
         <div className="flex items-center justify-between gap-3 sm:gap-6 px-4 sm:px-8 h-[64px] safe-left safe-right">
           {/* Left: back + dominant logo — centered with equal flex */}
           <div className="flex items-center gap-3 min-w-0 shrink-0 flex-1 lg:flex-none lg:w-[260px]">
-            <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            style={{ width: "40px", height: "40px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Menu size={18} />
-            </button>
             {showBack &&
             <button onClick={() => navigate(-1)} aria-label="Go back"
             style={{ display: "flex", alignItems: "center", gap: "4px", background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `0.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, borderRadius: "8px", padding: "8px", color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)", fontSize: "12px", fontWeight: 600, flexShrink: 0, minWidth: 44, minHeight: 36, justifyContent: "center" }}>

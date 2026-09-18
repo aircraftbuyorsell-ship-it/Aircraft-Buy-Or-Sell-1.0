@@ -1,7 +1,11 @@
 import RegulatoryTrustStrip from "@/components/footer/RegulatoryTrustStrip";
 import FooterSitemap from "@/components/footer/FooterSitemap";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function SiteFooter() {
+  const { user, isLoadingAuth } = useAuth();
+  if (isLoadingAuth || !["admin", "super_admin"].includes(user?.role)) return null;
+
   return (
     <footer id="site-footer" className="site-footer-map safe-bottom border-t border-white/10 bg-[#111113] px-5 py-9">
       <div className="mx-auto max-w-6xl">

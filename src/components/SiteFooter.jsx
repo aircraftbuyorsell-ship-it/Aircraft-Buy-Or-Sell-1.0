@@ -1,10 +1,11 @@
 import RegulatoryTrustStrip from "@/components/footer/RegulatoryTrustStrip";
 import FooterSitemap from "@/components/footer/FooterSitemap";
+import PublicFooterLinks from "@/components/footer/PublicFooterLinks";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function SiteFooter() {
   const { user, isLoadingAuth } = useAuth();
-  if (isLoadingAuth || !["admin", "super_admin"].includes(user?.role)) return null;
+  const isAdmin = !isLoadingAuth && ["admin", "super_admin"].includes(user?.role);
 
   return (
     <footer id="site-footer" className="site-footer-map safe-bottom border-t border-white/10 bg-[#111113] px-5 py-9">
@@ -16,7 +17,7 @@ export default function SiteFooter() {
           </div>
           <p className="text-xs text-[#7D8899]">Aircraft intelligence, verification and transactions.</p>
         </div>
-        <FooterSitemap />
+        {isAdmin ? <FooterSitemap /> : <PublicFooterLinks />}
         <div className="mt-10">
           <RegulatoryTrustStrip />
         </div>

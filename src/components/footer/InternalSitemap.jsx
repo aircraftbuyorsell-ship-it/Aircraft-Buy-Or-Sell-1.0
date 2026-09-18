@@ -9,9 +9,9 @@ export default function InternalSitemap({ user }) {
   const allowed = isCompanyAccount(user?.email);
 
   return (
-    <section className="mt-10 border-t border-white/10 pt-7" aria-label="IntraZone internal pages">
-      <div className="flex items-center gap-2 text-primary"><LockKeyhole size={16} /><h2 className="text-sm font-bold">IntraZone — Internal</h2></div>
-      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
+    <section className="mt-8 rounded-xl border border-primary/20 bg-white/[0.03] p-5" aria-label="IntraZone internal pages">
+      <div className="footer-map-category flex items-center gap-2"><LockKeyhole size={16} /><h2 className="text-sm font-bold">IntraZone — Internal</h2><span className="ml-auto text-[10px] font-semibold text-[#7D8899]">{allowed ? "Company access" : "Company account required"}</span></div>
+      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 sm:grid-cols-3 lg:grid-cols-4">
         {INTERNAL_PAGES.map((item) => allowed ? (
           <Link key={item.path} to={item.path} className="footer-map-link">{item.label}</Link>
         ) : (

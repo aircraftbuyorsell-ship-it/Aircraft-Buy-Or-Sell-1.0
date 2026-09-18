@@ -17,12 +17,16 @@ export default function Dashboard() {
   const placeholder = query.trim() || focused ? "Search aircraft registration…" : typed;
 
   const [scrollY, setScrollY] = useState(0);
+  const [footerVisible, setFooterVisible] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
+    const footer = document.getElementById("site-footer");
+    const observer = footer ? new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting), { threshold: 0.05 }) : null;
+    if (footer && observer) observer.observe(footer);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); observer?.disconnect(); };
   }, []);
-  const searchPinned = scrollY > 300;
+  const searchPinned = scrollY > 300 && !footerVisible;
 
   const submit = (event) => {
     event?.preventDefault();

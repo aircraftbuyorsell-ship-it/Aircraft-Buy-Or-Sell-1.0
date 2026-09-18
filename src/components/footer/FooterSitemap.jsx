@@ -20,19 +20,19 @@ export default function FooterSitemap() {
 
   return (
     <nav aria-label="Site map">
-      <div className="flex flex-wrap gap-x-6 gap-y-3 border-b border-white/10 pb-6">
-        {direct.map((item) => <Link key={item.path} to={item.path} className="footer-map-link">{item.label}</Link>)}
+      <div className="flex flex-wrap gap-x-7 gap-y-3 pb-6">
+        {direct.map((item) => <Link key={item.path} to={item.path} className="footer-map-heading text-sm font-bold hover:text-primary">{item.label}</Link>)}
       </div>
-      <div className="mt-7 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-7 border-t border-white/10 pt-7 sm:grid-cols-2 lg:grid-cols-4">
         {hubs.map((hub) => (
           <section key={hub.label} aria-labelledby={`footer-${hub.label.toLowerCase()}`}>
-            <Link id={`footer-${hub.label.toLowerCase()}`} to={hub.path} className="text-sm font-bold text-[#F3F4F6] hover:text-primary">{hub.label}</Link>
-            <div className="mt-4 space-y-5">{hub.categories.map((category) => <div key={category.label}><h3 className="mb-2 text-[10px] font-bold uppercase text-primary/80">{category.label}</h3><div className="space-y-2.5">{category.items.map((item) => <Link key={`${item.path}-${item.label}`} to={item.path} className="footer-map-link">{item.label}</Link>)}</div></div>)}</div>
+            <Link id={`footer-${hub.label.toLowerCase()}`} to={hub.path} className="footer-map-heading text-sm font-bold hover:text-primary">{hub.label}</Link>
+            <div className="mt-4 space-y-4">{hub.categories.map((category) => <div key={category.label}><h3 className="footer-map-category mb-1.5 text-[10px] font-bold uppercase">{category.label}</h3><div className="space-y-1.5">{category.items.map((item) => <Link key={`${item.path}-${item.label}`} to={item.path} className="footer-map-link">{item.label}</Link>)}</div></div>)}</div>
           </section>
         ))}
       </div>
-      <section className="mt-10 border-t border-white/10 pt-7" aria-labelledby="footer-information">
-        <h2 id="footer-information" className="text-sm font-bold text-[#F3F4F6]">Company & Legal</h2>
+      <section className="mt-8 border-t border-white/10 pt-6" aria-labelledby="footer-information">
+        <h2 id="footer-information" className="footer-map-heading text-sm font-bold">Company & Legal</h2>
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
           {INFO_PAGES.map(([label, path]) => <Link key={path} to={path} className="footer-map-link">{label}</Link>)}
           <button type="button" className="footer-map-link" onClick={() => window.ABOS_openCookieSettings?.()}>Cookie Settings</button>

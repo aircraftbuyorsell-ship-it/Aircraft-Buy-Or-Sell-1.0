@@ -214,7 +214,7 @@ export function commit(aircraft, assessment = {}, assumptions = {}) {
   // --- MRO calendar ----------------------------------------------------------
   const calendar = buildCalendar({
     annualHours, engineRemaining, propRemaining, engineTbo, propTbo,
-    overhaul, lastAnnual, currency,
+    overhaul, lastAnnual,
   });
 
   const projected36 = calendar.reduce((s, e) => s + (e.estimated_cost || 0), 0);
@@ -231,7 +231,7 @@ export function commit(aircraft, assessment = {}, assumptions = {}) {
 
   // --- Scenarios --------------------------------------------------------------
   const scenarios = buildScenarios({
-    purchase, knownCapex, annualOpex, holdYears, assessment, refurb, currency,
+    purchase, knownCapex, annualOpex, holdYears, assessment, refurb,
   });
 
   return {
@@ -305,7 +305,7 @@ function yearsUntil(remainingHours, annualHours) {
   return `in about ${Math.round(years)} years`;
 }
 
-function buildCalendar({ annualHours, engineRemaining, propRemaining, engineTbo, propTbo, overhaul, lastAnnual, currency }) {
+function buildCalendar({ annualHours, engineRemaining, propRemaining, engineTbo, propTbo, overhaul, lastAnnual }) {
   const events = [];
   const push = (label, monthsOut, cost, kind, note) => {
     if (monthsOut === null || monthsOut > 36) return;
@@ -346,8 +346,8 @@ function buildCalendar({ annualHours, engineRemaining, propRemaining, engineTbo,
   return events.sort((a, b) => a.months_out - b.months_out);
 }
 
-function buildScenarios({ purchase, knownCapex, annualOpex, holdYears, assessment, refurb, currency }) {
-  const value = assessment.synthesized?.midpoint || purchase || null;
+function buildScenarios({ purchase, knownCapex, annualOpex, holdYears, assessment, refurb }) {
+  const baseValue = assessment.synthesized?.midpoint || purchase || null;
   const carry = annualOpex * holdYears;
 
   const scenarios = [
@@ -357,7 +357,7 @@ function buildScenarios({ purchase, knownCapex, annualOpex, holdYears, assessmen
       description: `Acquire, carry for ${holdYears} year(s), no discretionary work.`,
       capital_in: sum(purchase, knownCapex),
       operating: Math.round(carry),
-      modelled_exit: value ? Math.round(value * Math.pow(0.96, holdYears)) : null,
+      modelled_exit: baseValue ? Math.round(baseValue * Math.pow(0.96, holdYears)) : null,
       note: "Exit modelled at 4% annual depreciation on the ABOS midpoint. Not a forecast.",
     },
     {
@@ -366,7 +366,7 @@ function buildScenarios({ purchase, knownCapex, annualOpex, holdYears, assessmen
       description: "Acquire, complete interior and exterior refurbishment, then operate.",
       capital_in: sum(purchase, knownCapex, refurb.interior, refurb.exterior),
       operating: Math.round(carry),
-      modelled_exit: value ? Math.round((value + (refurb.interior + refurb.exterior) * 0.55) * Math.pow(0.96, holdYears)) : null,
+      modelled_exit: baseValue ? Math.round((baseValue + (refurb.interior + refurb.exterior) * 0.55) * Math.pow(0.96, holdYears)) : null,
       note: "Refurbishment is modelled to return about 55% of its cost at resale. Recovery varies widely by type and market.",
     },
     {
@@ -375,7 +375,7 @@ function buildScenarios({ purchase, knownCapex, annualOpex, holdYears, assessmen
       description: "Acquire, hold 12 months, return to market.",
       capital_in: sum(purchase, knownCapex),
       operating: Math.round(annualOpex),
-      modelled_exit: value ? Math.round(value * 0.96) : null,
+      modelled_exit: baseValue ? Math.round(baseValue * 0.96) : null,
       note: "Assumes no repositioning work and a normal marketing period. Transaction costs are not included.",
     },
     {

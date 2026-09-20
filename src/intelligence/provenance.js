@@ -97,8 +97,8 @@ export const CONFIDENCE_LABEL = {
  * registry; the rest is what the UI needs without another lookup.
  */
 export function source({
-  providerId,
-  providerName,
+  providerId = null,
+  providerName = null,
   type = DATA_CLASS.OBSERVED,
   sourceDate = null,
   retrievedAt = null,
@@ -129,8 +129,8 @@ export function dataPoint(value, options = {}) {
   const {
     unit = null,
     sources = [],
-    status,
-    confidence,
+    status = null,
+    confidence = null,
     dataClass = DATA_CLASS.OBSERVED,
     calculation = null,
     crossCheckedAgainst = [],

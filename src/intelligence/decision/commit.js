@@ -11,7 +11,10 @@
 
 import { field, value, displayName } from "../schema.js";
 import { hasValue, DATA_STATUS } from "../provenance.js";
-import { AIRCRAFT_PRESETS, RESERVE_RATES, assessMaintenanceRisk } from "@/lib/opexEngine";
+import {
+  RESERVE_RATES, OVERHAUL_COST, AVIONICS_MODERNISATION, REFURBISHMENT as REFURB,
+  inferClass as inferClassFrom, presetFor as presetForClass, assessMaintenanceRisk,
+} from "../assumptions.js";
 
 export const MODELLED_NOTICE =
   "Every figure in Commit is modelled from the data ABOS holds plus stated assumptions. These are not quotes. Actual costs depend on the aircraft's condition, your operation and the providers you use.";
@@ -23,27 +26,6 @@ export const CONFIDENCE_KIND = {
   SOURCED: "sourced",
 };
 
-/** Typical overhaul exposure by class, EUR. Assumptions, labelled as such. */
-const OVERHAUL_COST = {
-  piston_single: { engine: 38000, propeller: 4500 },
-  piston_twin: { engine: 76000, propeller: 9000 },
-  turboprop: { engine: 330000, propeller: 28000 },
-  jet_light: { engine: 480000, propeller: 0 },
-};
-
-const AVIONICS_MODERNISATION = {
-  piston_single: 45000,
-  piston_twin: 65000,
-  turboprop: 180000,
-  jet_light: 320000,
-};
-
-const REFURB = {
-  piston_single: { interior: 22000, exterior: 16000 },
-  piston_twin: { interior: 34000, exterior: 24000 },
-  turboprop: { interior: 95000, exterior: 55000 },
-  jet_light: { interior: 180000, exterior: 90000 },
-};
 
 /**
  * @param {Object} aircraft canonical aircraft (resolve with POLICY.COMMIT)

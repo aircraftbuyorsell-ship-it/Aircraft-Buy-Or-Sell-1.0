@@ -10,13 +10,19 @@
 
 import React, { useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { assess, sectionFields, SECTION_LABEL } from "@/intelligence";
+import {
+  assess, computeATI, knowledgeState, assessChecklist, sectionFields, SECTION_LABEL,
+} from "@/intelligence";
 import DecisionShell, { EmptyPrompt } from "@/components/decision/DecisionShell";
 import useAircraftIntelligence from "@/components/decision/useAircraftIntelligence";
 import ValuationBand, { ValuationLadder, AdjustmentTable, AssessConfidence } from "@/components/decision/ValuationBand";
 import { DataConflictList } from "@/components/decision/DataConflict";
-import { DataField, GapNotice } from "@/components/decision/TrustPrimitives";
+import { DataField } from "@/components/decision/TrustPrimitives";
 import ProvenanceDrawer, { useProvenance } from "@/components/decision/ProvenanceDrawer";
+import {
+  AircraftHero, ATIWidget, VerificationChecklist, ResultBanner,
+  RiskSignals, buildRiskSignals, DataIntegrityShield, UpsellCard, KnowledgeColumns,
+} from "@/components/decision/kit";
 
 const SPEC_SECTIONS = ["airframe", "engine", "avionics", "configuration"];
 
@@ -29,12 +35,25 @@ export default function AssessPage() {
   const { openFor, drawerProps } = useProvenance();
 
   const result = useMemo(() => (aircraft ? assess(aircraft) : null), [aircraft]);
+  const ati = useMemo(() => (aircraft ? computeATI(aircraft) : null), [aircraft]);
+  const knowledge = useMemo(() => (aircraft ? knowledgeState(aircraft, ati) : null), [aircraft, ati]);
+  const checks = useMemo(() => (aircraft ? assessChecklist(aircraft) : []), [aircraft]);
+  const signals = useMemo(
+    () => (aircraft ? buildRiskSignals(aircraft, { assessment: result }) : []),
+    [aircraft, result],
+  );
 
   const onSearch = (value) => {
     const next = new URLSearchParams(searchParams);
     next.set("registration", value);
     setSearchParams(next);
   };
+
+  const goCommit = () => navigate(`/commit?registration=${encodeURIComponent(registration)}`);
+
+  const bannerTone = result?.position?.state === "within" ? "positive"
+    : result?.position?.state === "unknown" ? "neutral"
+      : "attention";
 
   return (
     <DecisionShell
@@ -63,74 +82,96 @@ export default function AssessPage() {
       ) : null}
 
       {result ? (
-        <div className="space-y-6">
-          <header className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <h2 className="text-lg font-black text-[#1A1814] dark:text-white">{result.subject}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#6B6560] dark:text-white/70">{result.conclusion}</p>
-            {result.caveats?.length ? (
-              <ul className="mt-3 space-y-1">
-                {result.caveats.map((c, i) => (
-                  <li key={i} className="text-xs text-[#6B6560] dark:text-white/50">— {c}</li>
-                ))}
-              </ul>
-            ) : null}
-          </header>
+        <div className="space-y-5">
+          <AircraftHero aircraft={aircraft} ati={ati} stage="Assess" />
 
-          <ValuationBand assessment={result} />
+          <ResultBanner
+            tone={bannerTone}
+            eyebrow="Assessment result"
+            title={result.position.label}
+            body={result.conclusion}
+            score={Math.round((result.confidence || 0) * 100)}
+            scoreMax={100}
+            scoreLabel="Assessment confidence"
+          />
 
-          <section>
-            <h3 className="mb-3 text-sm font-black uppercase tracking-[0.12em] text-[#1A1814] dark:text-white">
-              Every figure, and where it came from
-            </h3>
-            <ValuationLadder assessment={result} />
-          </section>
+          <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+            <div className="space-y-5">
+              <ValuationBand assessment={result} />
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <AdjustmentTable assessment={result} />
-            <div className="space-y-4">
-              <AssessConfidence assessment={result} />
+              <section>
+                <h3 className="mb-3 text-sm font-black uppercase tracking-[0.08em] text-[#1A1814] dark:text-white">
+                  Every figure, and where it came from
+                </h3>
+                <ValuationLadder assessment={result} />
+              </section>
+
+              <VerificationChecklist
+                title="Detailed findings"
+                subtitle="Verify the evidence. Reduce risk. Build confidence."
+                steps={checks}
+              />
+
+              <AdjustmentTable assessment={result} />
+
               {aircraft?.conflicts?.length ? (
-                <DataConflictList conflicts={aircraft.conflicts} />
-              ) : null}
-            </div>
-          </div>
-
-          <section className="grid gap-4 md:grid-cols-2">
-            {SPEC_SECTIONS.map((section) => {
-              const fields = sectionFields(aircraft, section).filter((f) => f.point);
-              if (!fields.length) return null;
-              return (
-                <div key={section} className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-white/5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B6560] dark:text-white/50">
-                    {SECTION_LABEL[section]}
+                <section>
+                  <h3 className="mb-3 text-sm font-black uppercase tracking-[0.08em] text-[#1A1814] dark:text-white">
+                    Data conflicts
                   </h3>
-                  <div className="mt-1 divide-y divide-black/5 dark:divide-white/10">
-                    {fields.map((f) => (
-                      <DataField key={f.key} point={f.point} label={f.label} size="sm" onExplain={openFor} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </section>
+                  <DataConflictList conflicts={aircraft.conflicts} />
+                </section>
+              ) : null}
 
-          <GapNotice gaps={aircraft?.gaps || []} />
-
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <div>
-              <p className="text-sm font-bold text-[#1A1814] dark:text-white">Know what you are committing to</p>
-              <p className="mt-0.5 text-sm text-[#6B6560] dark:text-white/60">
-                Commit models CAPEX, operating cost, reserves and a 36-month maintenance calendar.
-              </p>
+              <section className="grid gap-4 md:grid-cols-2">
+                {SPEC_SECTIONS.map((section) => {
+                  const fields = sectionFields(aircraft, section).filter((f) => f.point);
+                  if (!fields.length) return null;
+                  return (
+                    <div key={section} className="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+                      <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B6560] dark:text-white/50">
+                        {SECTION_LABEL[section]}
+                      </h3>
+                      <div className="mt-1 divide-y divide-black/5 dark:divide-white/10">
+                        {fields.map((f) => (
+                          <DataField key={f.key} point={f.point} label={f.label} size="sm" onExplain={openFor} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </section>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/commit?registration=${encodeURIComponent(registration)}`)}
-              className="shrink-0 rounded-xl bg-[#1A1814] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-black"
-            >
-              Run Commit
-            </button>
+
+            <aside className="space-y-5">
+              <ATIWidget ati={ati} />
+              <AssessConfidence assessment={result} />
+              <RiskSignals signals={signals} />
+              <DataIntegrityShield aircraft={aircraft} />
+
+              {result.caveats?.length ? (
+                <section className="rounded-2xl border border-black/10 bg-[#F7F4EF] p-4 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B6560] dark:text-white/50">
+                    Noted items
+                  </p>
+                  <ul className="mt-2 space-y-1.5">
+                    {result.caveats.map((c, i) => (
+                      <li key={i} className="text-xs text-[#6B6560] dark:text-white/60">— {c}</li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              <UpsellCard
+                title="Know what you are committing to"
+                body="Commit models CAPEX, operating cost, reserves and a 36-month maintenance calendar."
+                cta="Run Commit"
+                onClick={goCommit}
+              />
+            </aside>
           </div>
+
+          <KnowledgeColumns knowledge={knowledge} />
 
           <p className="text-xs leading-relaxed text-[#AAA49C] dark:text-white/40">{result.disclaimer}</p>
         </div>

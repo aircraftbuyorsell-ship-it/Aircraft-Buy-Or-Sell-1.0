@@ -7,7 +7,8 @@
  */
 
 import React, { useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useCanonicalRegistration from "@/components/decision/useCanonicalRegistration";
 import {
   screen, computeATI, knowledgeState, screeningChecklist, VERDICT,
 } from "@/intelligence";
@@ -22,9 +23,8 @@ import {
 } from "@/components/decision/kit";
 
 export default function ScreenPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const registration = searchParams.get("registration") || "";
+  const { registration, setRegistration } = useCanonicalRegistration();
 
   const { aircraft, loading, error, progress } = useAircraftIntelligence(registration, { policy: "screen" });
   const { drawerProps } = useProvenance();
@@ -35,19 +35,13 @@ export default function ScreenPage() {
   const checks = useMemo(() => (aircraft ? screeningChecklist(aircraft) : []), [aircraft]);
   const signals = useMemo(() => (aircraft ? buildRiskSignals(aircraft) : []), [aircraft]);
 
-  const onSearch = (value) => {
-    const next = new URLSearchParams(searchParams);
-    next.set("registration", value);
-    setSearchParams(next);
-  };
-
   const goAssess = () => navigate(`/assess?registration=${encodeURIComponent(registration)}`);
 
   return (
     <DecisionShell
       stage="screen"
       registration={registration}
-      onSearch={onSearch}
+      onSearch={setRegistration}
       loading={loading}
       progress={progress}
     >

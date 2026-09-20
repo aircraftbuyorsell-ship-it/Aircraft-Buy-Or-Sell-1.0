@@ -170,8 +170,8 @@ export function commit(aircraft, assessment = {}, assumptions = {}) {
   // --- OPEX -----------------------------------------------------------------
   const fuelPerHour = preset.fuel;
   const maintPerHour = preset.maintenance;
-  const reserves = RESERVE_RATES[preset.id] || RESERVE_RATES.cessna172;
-  const reservePerHour = reserves.engine + reserves.prop + reserves.inspection;
+  const reserves = RESERVE_RATES[klass] || RESERVE_RATES.piston_single;
+  const reservePerHour = reserves.engine + reserves.propeller + reserves.inspection;
 
   const opexItems = [
     opexItem("fuel", "Fuel", fuelPerHour * annualHours, `${preset.gph} gph at ${annualHours} h/year, class average pricing.`, CONFIDENCE_KIND.MODELLED),
@@ -188,7 +188,7 @@ export function commit(aircraft, assessment = {}, assumptions = {}) {
     annual: reservePerHour * annualHours,
     components: [
       { label: "Engine", per_hour: reserves.engine, annual: reserves.engine * annualHours, basis: `${money(overhaul.engine, currency)} overhaul over ${engineTbo} h` },
-      { label: "Propeller", per_hour: reserves.prop, annual: reserves.prop * annualHours, basis: `${money(overhaul.propeller, currency)} overhaul over ${propTbo} h` },
+      { label: "Propeller", per_hour: reserves.propeller, annual: reserves.propeller * annualHours, basis: `${money(overhaul.propeller, currency)} overhaul over ${propTbo} h` },
       { label: "Scheduled inspections", per_hour: reserves.inspection, annual: reserves.inspection * annualHours, basis: "Annual / 100-hour cycle" },
     ],
   };
@@ -386,24 +386,15 @@ function sum(...values) {
 }
 
 function inferClass(aircraft) {
-  const model = String(value(aircraft, "model") || "").toLowerCase();
-  const make = String(value(aircraft, "manufacturer") || "").toLowerCase();
-  const engines = value(aircraft, "engine_count");
-  const combined = `${make} ${model}`;
-
-  if (/citation|phenom|learjet|hawker|lear|cj\d|mustang/.test(combined)) return "jet_light";
-  if (/king air|pc-?12|tbm|caravan|meridian|piaggio|turboprop/.test(combined)) return "turboprop";
-  if (/baron|seneca|aztec|duchess|twin|dа42|da42|navajo|310/.test(combined)) return "piston_twin";
-  if (Number(engines) >= 2) return "piston_twin";
-  return "piston_single";
+  return inferClassFrom({
+    manufacturer: value(aircraft, "manufacturer"),
+    model: value(aircraft, "model"),
+    engineCount: value(aircraft, "engine_count"),
+  });
 }
 
 function presetFor(aircraft, klass) {
-  const model = String(value(aircraft, "model") || "").toLowerCase();
-  const exact = AIRCRAFT_PRESETS.find((p) => model.includes(p.name.toLowerCase().split(" ").pop()));
-  if (exact) return exact;
-  const byClass = AIRCRAFT_PRESETS.find((p) => p.class === klass);
-  return byClass || AIRCRAFT_PRESETS[0];
+  return presetForClass(klass);
 }
 
 function monthsSince(dateLike) {

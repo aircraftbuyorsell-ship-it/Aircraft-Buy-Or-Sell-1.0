@@ -106,7 +106,7 @@ export function SourceBadgeRow({ sources = [], max = 3, className = "" }) {
 
 /* -------------------------------------------------------- ConfidenceBadge */
 
-export function ConfidenceBadge({ confidence, band, showBar = false, className = "" }) {
+export function ConfidenceBadge({ confidence, band = null, showBar = false, className = "" }) {
   const pct = Math.round((Number(confidence) || 0) * 100);
   const resolvedBand = band || (pct >= 80 ? "high" : pct >= 55 ? "medium" : pct > 0 ? "low" : "none");
   const tone = resolvedBand === "high" ? "text-emerald-700 dark:text-emerald-300"
@@ -139,11 +139,8 @@ export function ConfidenceBadge({ confidence, band, showBar = false, className =
  * The workhorse. Renders one canonical data point with its value, status,
  * sources and a "Why do you say this?" affordance.
  *
- * @param {Object}  point     canonical data point
- * @param {string}  label
- * @param {boolean} loading
- * @param {boolean} error
- * @param {Function} onExplain  called with the point; opens ProvenanceDrawer
+ * Props: point (canonical data point), label, loading, error, size, className,
+ * and onExplain — called with (point, label) to open the ProvenanceDrawer.
  */
 export function DataField({
   point, label, loading = false, error = false, onExplain = null,

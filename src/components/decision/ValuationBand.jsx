@@ -7,9 +7,8 @@
  */
 
 import React from "react";
-import { getProvider } from "@/intelligence";
-import { DataClassChip, ConfidenceBadge } from "./TrustPrimitives";
 import { DATA_CLASS } from "@/intelligence";
+import { DataClassChip, ConfidenceBadge } from "./TrustPrimitives";
 
 function money(n, currency = "EUR") {
   if (!Number.isFinite(n)) return "—";
@@ -225,4 +224,3 @@ export function AssessConfidence({ assessment, className = "" }) {
 }
 
 export default ValuationBand;
-export { getProvider };

@@ -57,3 +57,7 @@ export {
   ATI_MAX, DIMENSION_MAX, ATI_BAND, ATI_BAND_LABEL, ATI_MEANING,
 } from "./decision/ati.js";
 export { knowledgeState, CAVEAT as KNOWLEDGE_CAVEAT } from "./decision/knowledge.js";
+export {
+  screeningChecklist, assessChecklist, commitChecklist,
+  documentsTable, documentsSummary, STEP_STATE,
+} from "./decision/checklists.js";

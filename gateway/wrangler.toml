@@ -5,11 +5,13 @@ compatibility_date = "2026-07-21"
 account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 
 # Secrets (set via `wrangler secret put`, never in [vars]):
-#   GATEWAY_SECRET    - shared secret Base44 checks on inbound calls
-#   MCP_BEARER_TOKEN  - static bearer for /mcp (personal/service use); unset just
-#                       disables that one auth path - per-user /oauth/* connections
-#                       (abos_live_... keys) work independently of this secret
-#   ANTHROPIC_API_KEY - ATI narrative scoring; unset = /ati/score returns 503
+#   GATEWAY_SECRET       - shared secret Base44 checks on inbound calls
+#   MCP_BEARER_TOKEN     - static bearer for /mcp (personal/service use); unset just
+#                          disables that one auth path - per-user /oauth/* connections
+#                          (abos_live_... keys) work independently of this secret
+#   ANTHROPIC_API_KEY    - ATI narrative scoring; unset = /ati/score returns 503
+#   OPENSKY_CLIENT_ID    - OpenSky Network OAuth2 client_credentials, for /opensky/states
+#   OPENSKY_CLIENT_SECRET
 
 # APL audit chain (APL-A2). Without this binding the hash chain still emits but
 # every event links to genesis, so it proves nothing.
@@ -17,6 +19,29 @@ account_id = "0a4bd07b66927cf0cae8d39d150e858a"
 binding = "ABOS_AUDIT"
 id = "4d82602f2546446eb480fee148863922"
 
+# ATI judgement cache. claude-sonnet-5 dropped the `temperature` parameter, so
+# temperature:0 can no longer be what guarantees the same listing scores the
+# same twice. This replaces it: the model's eight dimension scores are cached
+# against a hash of the canonical input, so identical input returns the
+# identical judgement regardless of sampling. Unset just disables caching -
+# scoring still works, it simply stops being reproducible.
+[[kv_namespaces]]
+binding = "ABOS_ATI_CACHE"
+id = "93a7598bbc4a4b6bab83b55de3245340"
+
+# OpenSky OAuth2 token cache for /opensky/states (see src/opensky.js). Unset
+# means every request re-fetches a fresh OAuth token from OpenSky instead of
+# reusing a cached one - it still works, just burns one token-endpoint call
+# per state-vector request instead of one per ~30 minutes.
+[[kv_namespaces]]
+binding = "OPENSKY_KV"
+id = "8d621e503be24502ac65788b5239b06d"
+
 [vars]
-BASE44_APP_BASE_URL = "https://aviation-marketspace.base44.app"
+# The app's published Base44 subdomain. It moved from 'aviation-marketspace'
+# to 'aircraftbuyorsell'; the old host now answers 404 "App not found" on
+# every path, which took the whole gateway down (all tool calls, plus the
+# OAuth metadata and consent proxies). If tools start failing wholesale with
+# "App not found", check this value first.
+BASE44_APP_BASE_URL = "https://aircraftbuyorsell.base44.app"
 CORS_ALLOWED_ORIGINS = "https://aircraftbuyorsell.com,https://www.aircraftbuyorsell.com"

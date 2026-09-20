@@ -121,6 +121,10 @@ const About = lazy(() => import("./pages/About"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const Faq = lazy(() => import("./pages/Faq"));
 const CompanyAccessRequired = lazy(() => import("./pages/CompanyAccessRequired"));
+// ABOS Intelligence Layer — decision products (SCREEN / ASSESS / COMMIT)
+const ScreenPage = lazy(() => import("./pages/decision/Screen"));
+const AssessPage = lazy(() => import("./pages/decision/Assess"));
+const CommitPage = lazy(() => import("./pages/decision/Commit"));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF] dark:bg-[#0B0C10]">
@@ -307,6 +311,9 @@ const AuthenticatedApp = () => {
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/company-access-required" element={<CompanyAccessRequired />} />
+        <Route path="/screen" element={<ScreenPage />} />
+        <Route path="/assess" element={<AssessPage />} />
+        <Route path="/commit" element={<CommitPage />} />
       </Route>
       <Route element={<IntraZoneLayout />}>
         <Route path="/intrazone" element={<CompanyRoute><IntraZone /></CompanyRoute>} />

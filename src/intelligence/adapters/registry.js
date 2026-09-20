@@ -12,7 +12,7 @@
 
 import { base44 } from "@/api/base44Client";
 import { lookupAircraft } from "@/lib/aircraftLookup";
-import { source, DATA_CLASS } from "../provenance";
+import { source, DATA_CLASS } from "../provenance.js";
 
 function make(providerId, providerName, field, value, { sourceDate = null, url = null } = {}) {
   if (value === null || value === undefined || value === "") return null;

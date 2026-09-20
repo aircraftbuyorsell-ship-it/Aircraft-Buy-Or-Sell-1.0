@@ -11,7 +11,7 @@
  * know that JETNET calls it `acSerialNbr` or that the FAA calls it `MFR MDL`.
  */
 
-import { dataPoint, unavailable, DATA_STATUS, aggregateConfidence, hasValue } from "./provenance";
+import { dataPoint, unavailable, DATA_STATUS, aggregateConfidence, hasValue } from "./provenance.js";
 
 /** Primary identity keys — the minimum needed to say "this is the same aircraft". */
 export const IDENTITY_KEYS = ["registration", "serial_number", "manufacturer", "model"];

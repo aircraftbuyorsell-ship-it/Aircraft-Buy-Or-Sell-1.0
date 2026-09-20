@@ -8,7 +8,7 @@
  */
 
 import { base44 } from "@/api/base44Client";
-import { source, DATA_CLASS } from "../provenance";
+import { source, DATA_CLASS } from "../provenance.js";
 
 function make(providerId, providerName, field, value, { sourceDate = null, calculation = null } = {}) {
   if (value === null || value === undefined || value === "") return null;

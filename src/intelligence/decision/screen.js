@@ -10,9 +10,9 @@
  * whether the next euro of diligence is justified.
  */
 
-import { field, value, sectionConfidence, missingFields, displayName, FIELD_REGISTRY } from "../schema";
-import { hasValue, DATA_STATUS, aggregateConfidence } from "../provenance";
-import { conflictSeverity } from "../conflict";
+import { field, value, sectionConfidence, missingFields, displayName, FIELD_REGISTRY } from "../schema.js";
+import { hasValue, DATA_STATUS, aggregateConfidence } from "../provenance.js";
+import { conflictSeverity } from "../conflict.js";
 
 export const VERDICT = {
   GO: "GO",

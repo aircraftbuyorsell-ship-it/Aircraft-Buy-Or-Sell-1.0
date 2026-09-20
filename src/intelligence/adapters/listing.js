@@ -8,8 +8,8 @@
  */
 
 import { base44 } from "@/api/base44Client";
-import { source } from "../provenance";
-import { DATA_CLASS } from "../provenance";
+import { source } from "../provenance.js";
+import { DATA_CLASS } from "../provenance.js";
 
 const PROVIDER_ID = "abos_listing";
 

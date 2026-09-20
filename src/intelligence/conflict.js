@@ -11,9 +11,9 @@
 
 import {
   dataPoint, DATA_STATUS, DATA_CLASS, hasValue,
-} from "./provenance";
-import { FIELD_REGISTRY } from "./schema";
-import { getProvider } from "./registry";
+} from "./provenance.js";
+import { FIELD_REGISTRY } from "./schema.js";
+import { getProvider } from "./registry.js";
 
 /** How close two values have to be to count as the same fact. */
 const TOLERANCE = {

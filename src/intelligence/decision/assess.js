@@ -14,9 +14,9 @@
  * Czech "znalecký posudek" and must never be described as one.
  */
 
-import { field, value, sectionConfidence, displayName } from "../schema";
-import { hasValue, DATA_CLASS, DATA_STATUS, aggregateConfidence, calculated } from "../provenance";
-import { getProvider } from "../registry";
+import { field, value, sectionConfidence, displayName } from "../schema.js";
+import { hasValue, DATA_CLASS, DATA_STATUS, aggregateConfidence, calculated } from "../provenance.js";
+import { getProvider } from "../registry.js";
 
 export const NOT_AN_APPRAISAL =
   "Assess is a market-data assessment of price defensibility. It is not a certified appraisal and, under Czech law, is not a znalecký posudek.";

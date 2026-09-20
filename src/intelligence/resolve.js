@@ -16,11 +16,11 @@
 import { normalizeReg } from "@/lib/aircraftLookup";
 import {
   createAircraft, setField, FIELD_REGISTRY, IDENTITY_KEYS, identity, value as fieldValue,
-} from "./schema";
-import { hasValue, DATA_STATUS } from "./provenance";
-import { reconcile, rankConflicts } from "./conflict";
-import { buildPlan, executeStep, stillWorthCalling, summariseCalls, POLICY, policyByName } from "./router";
-import { adapterFor } from "./adapters";
+} from "./schema.js";
+import { hasValue, DATA_STATUS } from "./provenance.js";
+import { reconcile, rankConflicts } from "./conflict.js";
+import { buildPlan, executeStep, stillWorthCalling, summariseCalls, POLICY, policyByName } from "./router.js";
+import { adapterFor } from "./adapters/index.js";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const cache = new Map();

@@ -16,7 +16,7 @@ export {
   dataPoint, unavailable, notApplicable, calculated, source,
   hasValue, valueOf, componentState, explain, formatValue,
   confidenceBand, aggregateConfidence,
-} from "./provenance";
+} from "./provenance.js";
 
 // --- Canonical aircraft ----------------------------------------------------
 export {
@@ -24,31 +24,31 @@ export {
   createAircraft, field, value, setField,
   sectionFields, sectionConfidence, knownFields, missingFields,
   identity, displayName, toApiShape,
-} from "./schema";
+} from "./schema.js";
 
 // --- Providers -------------------------------------------------------------
 export {
   PROVIDERS, PROVIDER_CATEGORY, ACCESS_TIER,
   allProviders, enabledProviders, getProvider, providersFor, providersProviding,
   publicProviderView, publicProviderCatalogue,
-} from "./registry";
+} from "./registry.js";
 
 export {
   POLICY, policyByName, buildPlan, executeStep, summariseCalls, providerAppliesTo,
-} from "./router";
+} from "./router.js";
 
-export { ADAPTERS, adapterFor, providersWithAdapters } from "./adapters";
+export { ADAPTERS, adapterFor, providersWithAdapters } from "./adapters/index.js";
 
 // --- Reconciliation --------------------------------------------------------
-export { reconcile, valuesAgree, conflictSeverity, rankConflicts } from "./conflict";
+export { reconcile, valuesAgree, conflictSeverity, rankConflicts } from "./conflict.js";
 
 // --- Orchestration ---------------------------------------------------------
 export {
   resolveAircraft, resolveIdentity, identityConfidence,
   readCache, writeCache, clearCache,
-} from "./resolve";
+} from "./resolve.js";
 
 // --- Decision products -----------------------------------------------------
-export { screen, VERDICT, VERDICT_MEANING, CHECK_STATE, DISCLAIMER as SCREEN_DISCLAIMER } from "./decision/screen";
-export { assess, NOT_AN_APPRAISAL } from "./decision/assess";
-export { commit, CONFIDENCE_KIND, MODELLED_NOTICE } from "./decision/commit";
+export { screen, VERDICT, VERDICT_MEANING, CHECK_STATE, DISCLAIMER as SCREEN_DISCLAIMER } from "./decision/screen.js";
+export { assess, NOT_AN_APPRAISAL } from "./decision/assess.js";
+export { commit, CONFIDENCE_KIND, MODELLED_NOTICE } from "./decision/commit.js";

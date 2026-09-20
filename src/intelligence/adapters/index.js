@@ -9,10 +9,10 @@
  * `no_adapter` and moves on, which is a gap, not an error.
  */
 
-import { listingAdapter } from "./listing";
-import { faaAdapter, nationalRegistryAdapter, ntsbAdapter } from "./registry";
-import { openSkyAdapter } from "./operations";
-import { omvmAdapter, vrefAdapter, jetnetAdapter } from "./valuation";
+import { listingAdapter } from "./listing.js";
+import { faaAdapter, nationalRegistryAdapter, ntsbAdapter } from "./registry.js";
+import { openSkyAdapter } from "./operations.js";
+import { omvmAdapter, vrefAdapter, jetnetAdapter } from "./valuation.js";
 
 export const ADAPTERS = {
   abos_listing: listingAdapter,

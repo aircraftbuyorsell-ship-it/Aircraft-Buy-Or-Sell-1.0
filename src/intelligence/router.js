@@ -17,7 +17,7 @@
  * freshness, so the economics of a feature are observable rather than assumed.
  */
 
-import { ACCESS_TIER, PROVIDER_CATEGORY, getProvider, allProviders } from "./registry";
+import { ACCESS_TIER, PROVIDER_CATEGORY, getProvider, allProviders } from "./registry.js";
 
 /**
  * Policies. A policy is "how much is this question worth?" — SCREEN must stay

@@ -9,8 +9,8 @@
  * or a commitment from any service provider, and the UI must say so.
  */
 
-import { field, value, displayName } from "../schema";
-import { hasValue, DATA_STATUS } from "../provenance";
+import { field, value, displayName } from "../schema.js";
+import { hasValue, DATA_STATUS } from "../provenance.js";
 import { AIRCRAFT_PRESETS, RESERVE_RATES, assessMaintenanceRisk } from "@/lib/opexEngine";
 
 export const MODELLED_NOTICE =

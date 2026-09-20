@@ -1,21 +1,25 @@
 /**
  * SCREEN — rychlá prověrka (master spec §1).
  *
- * Free / cached sources only. Answers GO / INVESTIGATE / STOP and nothing
- * more. Everything deeper is behind Assess.
+ * Free and cached sources only. Answers GO / INVESTIGATE / STOP and shows the
+ * aircraft overview, the screening checks with their sources, and the ATI.
+ * Everything deeper is behind Assess.
  */
 
 import React, { useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { screen, SECTIONS, SECTION_LABEL, sectionFields } from "@/intelligence";
+import {
+  screen, computeATI, knowledgeState, screeningChecklist, VERDICT,
+} from "@/intelligence";
 import DecisionShell, { EmptyPrompt } from "@/components/decision/DecisionShell";
 import useAircraftIntelligence from "@/components/decision/useAircraftIntelligence";
 import ScreenVerdict, { SourcesConsulted } from "@/components/decision/ScreenVerdict";
 import { DataConflictList } from "@/components/decision/DataConflict";
-import { DataField, GapNotice } from "@/components/decision/TrustPrimitives";
 import ProvenanceDrawer, { useProvenance } from "@/components/decision/ProvenanceDrawer";
-
-const IDENTITY_SECTIONS = ["identity", "ownership", "market"];
+import {
+  AircraftHero, SpecGrid, overviewItems, ATIWidget, VerificationChecklist,
+  RiskSignals, buildRiskSignals, DataIntegrityShield, UpsellCard, KnowledgeColumns,
+} from "@/components/decision/kit";
 
 export default function ScreenPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,15 +27,21 @@ export default function ScreenPage() {
   const registration = searchParams.get("registration") || "";
 
   const { aircraft, loading, error, progress } = useAircraftIntelligence(registration, { policy: "screen" });
-  const { openFor, drawerProps } = useProvenance();
+  const { drawerProps } = useProvenance();
 
   const result = useMemo(() => (aircraft ? screen(aircraft) : null), [aircraft]);
+  const ati = useMemo(() => (aircraft ? computeATI(aircraft) : null), [aircraft]);
+  const knowledge = useMemo(() => (aircraft ? knowledgeState(aircraft, ati) : null), [aircraft, ati]);
+  const checks = useMemo(() => (aircraft ? screeningChecklist(aircraft) : []), [aircraft]);
+  const signals = useMemo(() => (aircraft ? buildRiskSignals(aircraft) : []), [aircraft]);
 
   const onSearch = (value) => {
     const next = new URLSearchParams(searchParams);
     next.set("registration", value);
     setSearchParams(next);
   };
+
+  const goAssess = () => navigate(`/assess?registration=${encodeURIComponent(registration)}`);
 
   return (
     <DecisionShell
@@ -63,43 +73,53 @@ export default function ScreenPage() {
       ) : null}
 
       {result ? (
-        <div className="space-y-6">
-          <ScreenVerdict
-            result={result}
-            onContinue={() => navigate(`/assess?registration=${encodeURIComponent(registration)}`)}
-          />
+        <div className="space-y-5">
+          <AircraftHero aircraft={aircraft} ati={ati} stage="Screening" />
 
-          {result.conflicts?.length ? (
-            <section>
-              <h2 className="mb-3 text-sm font-black uppercase tracking-[0.12em] text-[#1A1814] dark:text-white">
-                Data conflicts
-              </h2>
-              <DataConflictList conflicts={result.conflicts} />
-            </section>
-          ) : null}
+          <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+            <div className="space-y-5">
+              <ScreenVerdict result={result} onContinue={goAssess} />
 
-          <section className="grid gap-4 md:grid-cols-2">
-            {IDENTITY_SECTIONS.map((section) => {
-              const fields = sectionFields(aircraft, section).filter((f) => f.point);
-              if (!fields.length) return null;
-              return (
-                <div key={section} className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-white/5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B6560] dark:text-white/50">
-                    {SECTION_LABEL[section]}
-                  </h3>
-                  <div className="mt-1 divide-y divide-black/5 dark:divide-white/10">
-                    {fields.map((f) => (
-                      <DataField key={f.key} point={f.point} label={f.label} size="sm" onExplain={openFor} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </section>
+              <section className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <h2 className="text-sm font-black uppercase tracking-[0.08em] text-[#1A1814] dark:text-white">
+                  Aircraft overview
+                </h2>
+                <SpecGrid items={overviewItems(aircraft)} className="mt-4" />
+              </section>
 
-          <GapNotice gaps={aircraft?.gaps || []} />
+              <VerificationChecklist
+                title="Data screening results"
+                subtitle="Each check names the source that produced it."
+                steps={checks}
+              />
 
-          <SourcesConsulted sources={result.sources_consulted} />
+              {result.conflicts?.length ? (
+                <section>
+                  <h2 className="mb-3 text-sm font-black uppercase tracking-[0.08em] text-[#1A1814] dark:text-white">
+                    Data conflicts
+                  </h2>
+                  <DataConflictList conflicts={result.conflicts} />
+                </section>
+              ) : null}
+            </div>
+
+            <aside className="space-y-5">
+              <ATIWidget ati={ati} />
+              <RiskSignals signals={signals} />
+              <DataIntegrityShield aircraft={aircraft} />
+              <SourcesConsulted sources={result.sources_consulted} />
+              {result.verdict !== VERDICT.STOP ? (
+                <UpsellCard
+                  title="Ready for deeper analysis?"
+                  body="Assess tests whether the price is defensible against comparables and configuration."
+                  cta="Run Assess"
+                  onClick={goAssess}
+                />
+              ) : null}
+            </aside>
+          </div>
+
+          <KnowledgeColumns knowledge={knowledge} />
         </div>
       ) : null}
 
@@ -107,5 +127,3 @@ export default function ScreenPage() {
     </DecisionShell>
   );
 }
-
-export { SECTIONS };

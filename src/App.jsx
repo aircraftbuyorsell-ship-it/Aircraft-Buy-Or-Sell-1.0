@@ -126,6 +126,7 @@ const ScreenPage = lazy(() => import("./pages/decision/Screen"));
 const AssessPage = lazy(() => import("./pages/decision/Assess"));
 const CommitPage = lazy(() => import("./pages/decision/Commit"));
 const AircraftIntelligencePage = lazy(() => import("./pages/decision/AircraftIntelligence"));
+const DueDiligenceReport = lazy(() => import("./pages/decision/Report"));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-[#F7F4EF] dark:bg-[#0B0C10]">
@@ -316,6 +317,8 @@ const AuthenticatedApp = () => {
         <Route path="/assess" element={<AssessPage />} />
         <Route path="/commit" element={<CommitPage />} />
         <Route path="/aircraft/:registration" element={<AircraftIntelligencePage />} />
+        <Route path="/aircraft" element={<AircraftIntelligencePage />} />
+        <Route path="/due-diligence" element={<DueDiligenceReport />} />
         <Route path="/report" element={<ATIFullReport />} />
       </Route>
       <Route element={<IntraZoneLayout />}>

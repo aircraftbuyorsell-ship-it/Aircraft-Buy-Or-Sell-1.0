@@ -256,7 +256,7 @@ Deno.serve(async (req) => {
       expiration_date: registry?.expiration_date ? 'FAA Registry' : catalog?.expiration_date ? 'Aircraft Catalog' : null,
       engine_mfr: engineRef?.mfr ? 'FAA Engine Ref' : engineSpec?.manufacturer ? 'EngineSpec' : catalog?.engine_manufacturer ? 'Aircraft Catalog' : null,
       engine_model: engineRef?.model ? 'FAA Engine Ref' : engineSpec?.model_name ? 'EngineSpec' : null,
-      // faa_engine has no TBO column, so engine_tbo_hours stays EngineSpec/ATI Card first.
+      // no TBO column in faa_engine: engine_tbo_hours stays EngineSpec/ATI Card first.
       engine_tbo_hours: engineSpec?.tbo_hours ? 'EngineSpec' : card?.engine_tbo ? 'ATI Card' : null,
     };
     const _year = registry?.year_mfr || catalog?.year_mfr || passport?.year_manufactured || card?.year || listing?.year || null;

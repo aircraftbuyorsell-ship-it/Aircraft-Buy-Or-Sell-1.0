@@ -61,3 +61,4 @@ export {
   screeningChecklist, assessChecklist, commitChecklist,
   documentsTable, documentsSummary, STEP_STATE,
 } from "./decision/checklists.js";
+export { buildReport, COMPLIANCE_STATE } from "./decision/report.js";

@@ -26,8 +26,12 @@ function make(providerId, providerName, field, value, { sourceDate = null, calcu
   };
 }
 
+const NO_AIRCRAFT = {
+  manufacturer: null, model: null, year: null, total_time: null, engine_smoh: null,
+};
+
 /** ABOS OMVM — the in-house Open Market Valuation Model. */
-export async function omvmAdapter({ registration, aircraft = {} }) {
+export async function omvmAdapter({ registration, aircraft = NO_AIRCRAFT }) {
   let data = null;
   try {
     const res = await base44.functions.invoke("invokeOmvmValuation", {
@@ -72,7 +76,7 @@ export async function omvmAdapter({ registration, aircraft = {} }) {
  * `enabled` flips to true the router will call this and the UI will show a
  * VREF number next to the ABOS one, clearly labelled.
  */
-export async function vrefAdapter({ registration, aircraft = {} }) {
+export async function vrefAdapter({ registration, aircraft = NO_AIRCRAFT }) {
   let data = null;
   try {
     const res = await base44.functions.invoke("vrefValuation", {

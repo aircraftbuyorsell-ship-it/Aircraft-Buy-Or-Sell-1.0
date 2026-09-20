@@ -17,7 +17,7 @@ import { normalizeReg } from "@/lib/aircraftLookup";
 import {
   createAircraft, setField, FIELD_REGISTRY, IDENTITY_KEYS, identity, value as fieldValue,
 } from "./schema";
-import { hasValue, DATA_STATUS, unavailable } from "./provenance";
+import { hasValue, DATA_STATUS } from "./provenance";
 import { reconcile, rankConflicts } from "./conflict";
 import { buildPlan, executeStep, stillWorthCalling, summariseCalls, POLICY, policyByName } from "./router";
 import { adapterFor } from "./adapters";

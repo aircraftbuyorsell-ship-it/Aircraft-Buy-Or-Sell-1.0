@@ -20,6 +20,27 @@ function allowedOrigins() {
   return (Deno.env.get("ABOS_CORS_ALLOWED_ORIGINS") || "").split(",").map((value) => value.trim()).filter(Boolean);
 }
 
+function normalizeRegistration(value) {
+  return String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+}
+
+function getSupabaseConfig() {
+  return {
+    url: Deno.env.get("SUPABASE_URL") || Deno.env.get("ABOS_SUPABASE_URL") || "",
+    key: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("ABOS_SUPABASE_SERVICE_ROLE_KEY") || "",
+  };
+}
+
+async function supabaseRest(path) {
+  const { url, key } = getSupabaseConfig();
+  if (!url || !key) return null;
+  const response = await fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+  });
+  if (!response.ok) return null;
+  return response.json();
+}
+
 async function toPublicListing(record) {
   const listingId = await opaqueId("lst", record.id);
   const aircraftId = await opaqueId("ac", record.registration || record.id);
@@ -62,8 +83,74 @@ async function toPublicListing(record) {
   };
 }
 
+async function toPublicReferenceAircraft(record, source) {
+  const registration = normalizeRegistration(record.registration || record.callsign);
+  if (!registration) return null;
+  const aircraftId = await opaqueId("ac", registration);
+  const observedAt = record.updated_at || record.updated_date || record.last_seen || null;
+  const serial = record.serial_number || null;
+  const make = record.make || record.manufacturer || null;
+  const model = record.model || null;
+  return {
+    listing_id: null,
+    aircraft: {
+      aircraft_id: aircraftId,
+      identity: { registration, serial_number: serial, registry_country: registration.startsWith("N") ? "US" : null },
+      manufacturer: make,
+      model,
+      year: Number.isFinite(record.year_manufactured) ? record.year_manufactured : null,
+      total_time_hours: null,
+      engine_hours: null,
+      source_provenance: [{ source, source_record_id: record.id || record.icao24 || null, observed_at, retrieval_method: "supabase_adapter" }],
+    },
+    asking_price: null,
+    location: null,
+    status: "reference",
+    summary: "Aircraft identity reference found in ABOS data infrastructure; this is not a marketplace listing.",
+    primary_image_url: null,
+    intelligence: {
+      ati_score: null,
+      observed_market_value: null,
+      deal_score: null,
+      deal_label: null,
+      generated_at: observedAt,
+      engine_version: null,
+      limitations: ["Reference record only; no marketplace listing or valuation is implied."],
+    },
+    source_provenance: [{ source, source_record_id: record.id || record.icao24 || null, observed_at, retrieval_method: "supabase_adapter" }],
+    created_at: null,
+    updated_at: observedAt,
+  };
+}
+
 function hasPublicVisibility(record) {
   return record?.status === "active" && record?.visibility === "public";
+}
+
+async function searchSupabaseRegistration(registration) {
+  const reg = normalizeRegistration(registration);
+  if (!reg) return [];
+  const encoded = encodeURIComponent(reg);
+  const rows = await Promise.all([
+    supabaseRest(`aircraft_passports?select=id,registration,serial_number,make,model,year_manufactured,icao24,updated_at&registration=eq.${encoded}&limit=1`),
+    supabaseRest(`opensky_aircraft_metadata?select=*&registration=eq.${encoded}&limit=1`),
+    supabaseRest(`aircraftbuyorsell_listings?select=id,registration,manufacturer,model,year,status,updated_at&registration=eq.${encoded}&limit=1`),
+  ]);
+  const [passportRows, openSkyRows, listingRows] = rows;
+  const results = [];
+  if (Array.isArray(passportRows) && passportRows[0]) results.push(await toPublicReferenceAircraft(passportRows[0], "supabase_aircraft_passports"));
+  if (Array.isArray(openSkyRows) && openSkyRows[0]) results.push(await toPublicReferenceAircraft(openSkyRows[0], "supabase_opensky_aircraft_metadata"));
+  if (Array.isArray(listingRows) && listingRows[0]) {
+    const row = listingRows[0];
+    results.push(await toPublicReferenceAircraft({ ...row, make: row.manufacturer }, "supabase_aircraftbuyorsell_listings"));
+  }
+  const seen = new Set();
+  return results.filter(Boolean).filter((item) => {
+    const key = item.aircraft.identity.registration;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function makeRepositories(base44) {
@@ -91,7 +178,21 @@ function makeRepositories(base44) {
               return terms.every((term) => searchable.includes(String(term).toLowerCase()));
             })
           : listings;
-        return { items: matches.sort((a, b) => (b.intelligence.ati_score || 0) - (a.intelligence.ati_score || 0)).slice(0, limit), nextCursor: null };
+
+        const registration = terms.length === 1 && /^(N\d{1,5}[A-Z]{0,2}|[A-Z0-9]{1,2}-[A-Z0-9]{2,5})$/i.test(String(terms[0]));
+        let referenceMatches = [];
+        if (registration) {
+          referenceMatches = await searchSupabaseRegistration(terms[0]);
+        }
+        const merged = [...matches, ...referenceMatches];
+        const seen = new Set();
+        const unique = merged.filter((item) => {
+          const key = item.aircraft?.identity?.registration || item.listing_id;
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        return { items: unique.sort((a, b) => (b.intelligence.ati_score || 0) - (a.intelligence.ati_score || 0)).slice(0, limit), nextCursor: null };
       },
     },
     aircraftRepository: {

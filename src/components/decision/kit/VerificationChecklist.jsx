@@ -13,16 +13,10 @@ import React from "react";
 import {
   CircleCheck, Loader2, Circle, TriangleAlert, ChevronRight, Info,
 } from "lucide-react";
-import { KNOWLEDGE_CAVEAT } from "@/intelligence";
+import { KNOWLEDGE_CAVEAT, STEP_STATE } from "@/intelligence";
 
-export const STEP_STATE = {
-  VERIFIED: "verified",
-  COMPLETED: "completed",
-  IN_PROGRESS: "in_progress",
-  REVIEW: "review",
-  INSUFFICIENT: "insufficient",
-  NOT_STARTED: "not_started",
-};
+// Re-exported so a screen can import the states alongside the component.
+export { STEP_STATE };
 
 const STATE_STYLE = {
   [STEP_STATE.VERIFIED]: {

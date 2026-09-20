@@ -113,7 +113,7 @@ export default function AircraftIntelligencePage() {
                   <HeroButton onClick={() => navigate(`/screen?registration=${encodeURIComponent(registration)}`)}>Screen</HeroButton>
                   <HeroButton onClick={() => navigate(`/assess?registration=${encodeURIComponent(registration)}`)}>Assess</HeroButton>
                   <HeroButton onClick={() => navigate(`/commit?registration=${encodeURIComponent(registration)}`)}>Commit</HeroButton>
-                  <HeroButton primary onClick={() => navigate(`/report?registration=${encodeURIComponent(registration)}`)}>
+                  <HeroButton primary onClick={() => navigate(`/due-diligence?registration=${encodeURIComponent(registration)}`)}>
                     Full report
                   </HeroButton>
                 </>
@@ -219,7 +219,7 @@ export default function AircraftIntelligencePage() {
                   title="Ready for deeper analysis?"
                   body="Unlock full verification, valuation and deal analysis for this aircraft."
                   cta="Open full report"
-                  onClick={() => navigate(`/report?registration=${encodeURIComponent(registration)}`)}
+                  onClick={() => navigate(`/due-diligence?registration=${encodeURIComponent(registration)}`)}
                 />
               </aside>
             </div>

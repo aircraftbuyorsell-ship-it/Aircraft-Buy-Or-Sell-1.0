@@ -199,7 +199,7 @@ export default function CommitPage() {
 
               <button
                 type="button"
-                onClick={() => navigate(`/report?registration=${encodeURIComponent(registration)}`)}
+                onClick={() => navigate(`/due-diligence?registration=${encodeURIComponent(registration)}`)}
                 className="w-full rounded-2xl bg-[#1A1814] px-4 py-3 text-sm font-bold text-white transition hover:bg-black"
               >
                 Open full due diligence report

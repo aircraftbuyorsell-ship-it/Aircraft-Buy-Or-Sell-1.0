@@ -10,7 +10,7 @@
  * whether the next euro of diligence is justified.
  */
 
-import { field, value, sectionConfidence, missingFields, displayName } from "../schema";
+import { field, value, sectionConfidence, missingFields, displayName, FIELD_REGISTRY } from "../schema";
 import { hasValue, DATA_STATUS, aggregateConfidence } from "../provenance";
 import { conflictSeverity } from "../conflict";
 
@@ -223,15 +223,8 @@ export function screen(aircraft) {
 
 function sectionFieldsPoints(aircraft, section) {
   return Object.entries(aircraft.fields || {})
-    .filter(([key]) => sectionOf(aircraft, key) === section)
+    .filter(([key]) => FIELD_REGISTRY[key]?.section === section)
     .map(([, point]) => point);
-}
-
-function sectionOf(aircraft, key) {
-  // Imported lazily to avoid a circular import at module load.
-  // eslint-disable-next-line global-require
-  const { FIELD_REGISTRY } = require("../schema");
-  return FIELD_REGISTRY[key]?.section;
 }
 
 function headlineFor(verdict, aircraft) {

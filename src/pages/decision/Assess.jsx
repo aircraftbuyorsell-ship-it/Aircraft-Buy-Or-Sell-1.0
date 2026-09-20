@@ -9,7 +9,8 @@
  */
 
 import React, { useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useCanonicalRegistration from "@/components/decision/useCanonicalRegistration";
 import {
   assess, computeATI, knowledgeState, assessChecklist, sectionFields, SECTION_LABEL,
 } from "@/intelligence";
@@ -27,9 +28,8 @@ import {
 const SPEC_SECTIONS = ["airframe", "engine", "avionics", "configuration"];
 
 export default function AssessPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const registration = searchParams.get("registration") || "";
+  const { registration, setRegistration } = useCanonicalRegistration();
 
   const { aircraft, loading, error, progress } = useAircraftIntelligence(registration, { policy: "assess" });
   const { openFor, drawerProps } = useProvenance();
@@ -43,12 +43,6 @@ export default function AssessPage() {
     [aircraft, result],
   );
 
-  const onSearch = (value) => {
-    const next = new URLSearchParams(searchParams);
-    next.set("registration", value);
-    setSearchParams(next);
-  };
-
   const goCommit = () => navigate(`/commit?registration=${encodeURIComponent(registration)}`);
 
   const bannerTone = result?.position?.state === "within" ? "positive"
@@ -59,7 +53,7 @@ export default function AssessPage() {
     <DecisionShell
       stage="assess"
       registration={registration}
-      onSearch={onSearch}
+      onSearch={setRegistration}
       loading={loading}
       progress={progress}
     >

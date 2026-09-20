@@ -52,3 +52,8 @@ export {
 export { screen, VERDICT, VERDICT_MEANING, CHECK_STATE, DISCLAIMER as SCREEN_DISCLAIMER } from "./decision/screen.js";
 export { assess, NOT_AN_APPRAISAL } from "./decision/assess.js";
 export { commit, CONFIDENCE_KIND, MODELLED_NOTICE } from "./decision/commit.js";
+export {
+  computeATI, explainDimension, atiBand,
+  ATI_MAX, DIMENSION_MAX, ATI_BAND, ATI_BAND_LABEL, ATI_MEANING,
+} from "./decision/ati.js";
+export { knowledgeState, CAVEAT as KNOWLEDGE_CAVEAT } from "./decision/knowledge.js";

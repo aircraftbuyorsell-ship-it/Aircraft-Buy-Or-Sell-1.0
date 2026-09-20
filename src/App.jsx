@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import React, { lazy, Suspense } from 'react';
 import PageNotFound from './lib/PageNotFound';
+import { AdvisorEntry, CanonicalVerifyRedirect, PathRegistrationRedirect } from '@/routing/VerifyRedirects';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import CompanyRoute from '@/components/auth/CompanyRoute';
@@ -290,7 +291,8 @@ const AuthenticatedApp = () => {
         <Route path="/developers/core-api" element={<CoreAPI />} />
         <Route path="/oauth-authorize" element={<OAuthAuthorize />} />
         <Route path="/investment-brief" element={<InvestmentBrief />} />
-        <Route path="/finance-advisor" element={<FinanceAdvisorChat />} />
+        <Route path="/advisor" element={<AdvisorEntry><FinanceAdvisorChat /></AdvisorEntry>} />
+        <Route path="/finance-advisor" element={<AdvisorEntry><FinanceAdvisorChat /></AdvisorEntry>} />
         <Route path="/st-elmo" element={<StElmoChat />} />
         <Route path="/fractional-calculators" element={<FractionalCalculators />} />
         <Route path="/registry-comparator" element={<RegistryComparator />} />
@@ -307,13 +309,16 @@ const AuthenticatedApp = () => {
         <Route path="/walkthrough-script" element={<CompanyRoute><WalkthroughScript /></CompanyRoute>} />
         <Route path="/marketspace" element={<MarketspaceHub />} />
         <Route path="/intelligence" element={<IntelligenceHub />} />
-        <Route path="/verify" element={<VerifyHub />} />
+        {/* Canonical aircraft verification (§6). Screen IS /verify; the tool hub moves aside. */}
+        <Route path="/verify" element={<ScreenPage />} />
+        <Route path="/verify/tools" element={<VerifyHub />} />
+        <Route path="/verify/:registration" element={<PathRegistrationRedirect />} />
         <Route path="/api" element={<ApiHub />} />
         <Route path="/about" element={<About />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/company-access-required" element={<CompanyAccessRequired />} />
-        <Route path="/screen" element={<ScreenPage />} />
+        <Route path="/screen" element={<CanonicalVerifyRedirect />} />
         <Route path="/assess" element={<AssessPage />} />
         <Route path="/commit" element={<CommitPage />} />
         <Route path="/aircraft/:registration" element={<AircraftIntelligencePage />} />

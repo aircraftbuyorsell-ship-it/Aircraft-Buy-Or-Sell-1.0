@@ -53,8 +53,7 @@ export default function useAircraftIntelligence(registration, { policy = "screen
 
   useEffect(() => {
     if (auto && registration) run(registration);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registration, policy, auto]);
+  }, [registration, policy, auto, run]);
 
   return { aircraft, loading, error, progress, run, refresh: () => run(registration, { force: true }) };
 }

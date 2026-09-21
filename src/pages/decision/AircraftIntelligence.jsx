@@ -110,7 +110,7 @@ export default function AircraftIntelligencePage() {
               ati={ati}
               actions={
                 <>
-                  <HeroButton onClick={() => navigate(`/screen?registration=${encodeURIComponent(registration)}`)}>Screen</HeroButton>
+                  <HeroButton onClick={() => navigate(`/verify?registration=${encodeURIComponent(registration)}`)}>Screen</HeroButton>
                   <HeroButton onClick={() => navigate(`/assess?registration=${encodeURIComponent(registration)}`)}>Assess</HeroButton>
                   <HeroButton onClick={() => navigate(`/commit?registration=${encodeURIComponent(registration)}`)}>Commit</HeroButton>
                   <HeroButton primary onClick={() => navigate(`/due-diligence?registration=${encodeURIComponent(registration)}`)}>

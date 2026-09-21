@@ -39,7 +39,7 @@ export default function PricingAdvisor() {
     const normalized = normalizeRegistration(value);
     if (!normalized) return;
     setRecent(saveRecentSearch(normalized, recent));
-    navigate(`/finance-advisor?registration=${encodeURIComponent(normalized)}`);
+    navigate(`/verify?registration=${encodeURIComponent(normalized)}`);
   };
 
   useEffect(() => { setQuery(registration || ""); }, [registration]);
@@ -95,7 +95,7 @@ export default function PricingAdvisor() {
     try {
       const user = await base44.auth.me().catch(() => null);
       if (!user) { base44.auth.redirectToLogin(); return; }
-      const returnUrl = `${window.location.origin}/finance-advisor?registration=${encodeURIComponent(registration)}`;
+      const returnUrl = `${window.location.origin}/verify?registration=${encodeURIComponent(registration)}`;
       const res = await createCheckout(productKey, registration, returnUrl, reportInputId);
       if (!res?.url) throw new Error("Checkout URL was not returned.");
       window.location.assign(res.url);

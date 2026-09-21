@@ -42,6 +42,15 @@ export default function Dashboard() {
     search(sample);
   };
 
+  // Primary CTA (§2). With an aircraft typed it verifies that one; empty, it opens
+  // the verification entry state. It never substitutes a demo aircraft (§4, §22).
+  const verifyAircraft = () => {
+    if (busy) return;
+    const value = query.trim();
+    if (!value) { navigate("/verify"); return; }
+    search(value.match(REGISTRATION)?.[0] || value);
+  };
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#fbfaf7] text-[#102033]">
       <header className="relative z-20 border-b border-[#102033]/[0.08] bg-white/85 backdrop-blur-xl">
@@ -79,15 +88,25 @@ export default function Dashboard() {
               </form>
             </div>
 
+            <div className="relative z-20 mt-5 flex flex-wrap items-center gap-3">
+              <button type="button" disabled={busy} onClick={verifyAircraft} className="inline-flex items-center gap-2 rounded-xl bg-[#c99635] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:opacity-40">
+                <ShieldCheck className="h-4 w-4" /> Verify an Aircraft
+              </button>
+              <button type="button" onClick={() => navigate("/advisor")} className="inline-flex items-center gap-1.5 rounded-xl border border-[#102033]/15 bg-white px-5 py-3 text-sm font-semibold text-[#102033]/70 transition hover:border-[#c99635]/60 hover:text-[#a87925]">
+                Open Aircraft Advisor <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+
             <p role="status" aria-live="polite" className="relative z-20 mt-3 text-xs text-muted-foreground">{status}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#102033]/50"><span className="mr-1">Quick search:</span>{SAMPLES.map((sample) => <button key={sample} disabled={busy} onClick={() => searchSample(sample)} className="rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold hover:border-[#c99635]/60 hover:text-[#a87925]">{sample}</button>)}<button onClick={() => setQuery("")} className="flex items-center gap-1 rounded-full border border-[#102033]/10 bg-white px-4 py-2 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Global search</button></div>
           </div>
 
           <div className="relative hidden min-h-[510px] lg:block">
             <div className="absolute bottom-0 right-[2%] w-[380px] rounded-3xl border border-[#102033]/10 bg-white/95 p-5 shadow-[0_25px_70px_rgba(16,32,51,0.13)] backdrop-blur-xl">
-              <div className="flex items-center gap-4"><div className="h-20 w-24 rounded-xl bg-[#e8e4db] p-3 text-center text-3xl">✈</div><div><div className="text-xl font-black">N7692J 🇺🇸</div><div className="mt-1 text-sm text-[#102033]/60">Piper PA-28R-180</div><div className="mt-1 text-xs text-[#102033]/45">1983 · Aircraft profile</div></div></div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#102033]/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#102033]/50">Demo aircraft</span>
+              <div className="mt-3 flex items-center gap-4"><div className="h-20 w-24 rounded-xl bg-[#e8e4db] p-3 text-center text-3xl">✈</div><div><div className="text-xl font-black">N7692J 🇺🇸</div><div className="mt-1 text-sm text-[#102033]/60">Piper PA-28R-180</div><div className="mt-1 text-xs text-[#102033]/45">1983 · Example profile</div></div></div>
               <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><ShieldCheck className="h-4 w-4" /> Registry evidence available</div>
-              <button disabled={busy} onClick={() => searchSample("N7692J")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#c99635] px-4 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button>
+              <button disabled={busy} onClick={() => searchSample("N7692J")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#c99635]/50 bg-white px-4 py-3 text-sm font-bold text-[#a87925]">Try this demo aircraft <ArrowRight className="h-4 w-4" /></button>
             </div>
           </div>
         </div>
@@ -102,7 +121,7 @@ export default function Dashboard() {
             [LockKeyhole, "SECURE PLATFORM", "Your data. Your control."],
           ].map(([Icon, title, text]) => <div key={title} className="border-b border-[#102033]/10 p-7 last:border-0 md:border-b-0 md:border-r"><Icon className="h-8 w-8 text-[#b98427]" /><h3 className="mt-4 text-sm font-black tracking-wide">{title}</h3><p className="mt-2 text-xs leading-5 text-[#102033]/50">{text}</p></div>)}
         </div>
-        <div className="mt-6 flex flex-col gap-5 rounded-3xl border border-[#102033]/10 bg-white p-7 shadow-sm md:flex-row md:items-center md:justify-between"><div><span className="inline-flex items-center gap-1 rounded-full bg-[#f4ead5] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#9b6e21]"><Sparkles className="h-3 w-3" /> New</span><h2 className="mt-3 text-2xl font-black">Aircraft Advisor</h2><p className="mt-1 text-sm text-[#102033]/55">One place for aircraft identity, registry, valuation, verification and market intelligence.</p></div><button disabled={busy} onClick={() => searchSample("N7692J")} className="flex items-center justify-center gap-2 rounded-xl bg-[#c99635] px-6 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button></div>
+        <div className="mt-6 flex flex-col gap-5 rounded-3xl border border-[#102033]/10 bg-white p-7 shadow-sm md:flex-row md:items-center md:justify-between"><div><span className="inline-flex items-center gap-1 rounded-full bg-[#f4ead5] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#9b6e21]"><Sparkles className="h-3 w-3" /> New</span><h2 className="mt-3 text-2xl font-black">Aircraft Advisor</h2><p className="mt-1 text-sm text-[#102033]/55">One place for aircraft identity, registry, valuation, verification and market intelligence.</p></div><button onClick={() => navigate("/advisor")} className="flex items-center justify-center gap-2 rounded-xl bg-[#c99635] px-6 py-3 text-sm font-bold text-white">Open Aircraft Advisor <ArrowRight className="h-4 w-4" /></button></div>
         <div className="flex items-center justify-between pt-8 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#102033]/35"><span>Trust by design</span><span>Transparency. Verification. Control.</span></div>
       </section>
     </main>

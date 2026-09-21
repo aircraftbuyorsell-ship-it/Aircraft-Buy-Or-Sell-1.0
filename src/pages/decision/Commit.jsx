@@ -8,7 +8,8 @@
  */
 
 import React, { useMemo, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useCanonicalRegistration from "@/components/decision/useCanonicalRegistration";
 import {
   assess, commit, computeATI, knowledgeState, commitChecklist, STEP_STATE,
 } from "@/intelligence";
@@ -32,9 +33,8 @@ const QUICK_ACTIONS = [
 ];
 
 export default function CommitPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const registration = searchParams.get("registration") || "";
+  const { registration, setRegistration } = useCanonicalRegistration();
 
   const { aircraft, loading, error, progress } = useAircraftIntelligence(registration, { policy: "commit" });
   const { drawerProps } = useProvenance();
@@ -56,12 +56,6 @@ export default function CommitPage() {
     [aircraft, assessment, annualHours, holdYears],
   );
 
-  const onSearch = (value) => {
-    const next = new URLSearchParams(searchParams);
-    next.set("registration", value);
-    setSearchParams(next);
-  };
-
   const toggleTask = (action) => {
     setDoneTasks((prev) => (prev.includes(action) ? prev.filter((a) => a !== action) : [...prev, action]));
   };
@@ -73,7 +67,7 @@ export default function CommitPage() {
     <DecisionShell
       stage="commit"
       registration={registration}
-      onSearch={onSearch}
+      onSearch={setRegistration}
       loading={loading}
       progress={progress}
     >

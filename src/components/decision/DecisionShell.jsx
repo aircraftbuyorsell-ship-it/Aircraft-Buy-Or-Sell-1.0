@@ -12,7 +12,10 @@ import { useNavigate } from "react-router-dom";
 import { Search, Loader2, ArrowRight } from "lucide-react";
 
 const STAGES = [
-  { key: "screen", label: "Screen", path: "/screen", question: "Is this aircraft worth spending more time and money on?" },
+  // /verify is the one canonical verification URL (§6). /screen still resolves
+  // here through CanonicalVerifyRedirect, but the switcher links direct so the
+  // stage change costs no redirect hop.
+  { key: "screen", label: "Screen", path: "/verify", question: "Is this aircraft worth spending more time and money on?" },
   { key: "assess", label: "Assess", path: "/assess", question: "Is the price of this specific aircraft defensible?" },
   { key: "commit", label: "Commit", path: "/commit", question: "What will this aircraft expose me to after I buy it?" },
 ];

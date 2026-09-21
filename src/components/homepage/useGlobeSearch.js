@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { normalizeReg } from '@/lib/aircraftLookup';
+import { canonicalVerifyPath } from '@/components/decision/useCanonicalRegistration';
 import registryLocation from '@/components/homepage/registryLocation';
 
 export default function useGlobeSearch() {
@@ -34,10 +35,11 @@ export default function useGlobeSearch() {
     if (!active.current) return;
     const location = registryLocation(data, registration);
     setMarker({ ...location, registration, id: Date.now() });
-    setStatus(`${registration}: ${location.locationLabel}. Opening Aircraft Advisor…`);
+    setStatus(`${registration}: ${location.locationLabel}. Opening verification…`);
     timers.current.push(setTimeout(() => {
       if (!active.current) return;
-      navigate(`/finance-advisor?registration=${encodeURIComponent(registration)}`);
+      // Every homepage search lands on the one canonical verification URL (§6, §7).
+      navigate(canonicalVerifyPath(registration));
       locked.current = false; setBusy(false);
     }, 1200));
   };

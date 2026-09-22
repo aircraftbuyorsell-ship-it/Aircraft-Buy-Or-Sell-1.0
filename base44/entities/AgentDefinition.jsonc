@@ -1,0 +1,146 @@
+{
+  "name": "AgentDefinition",
+  "type": "object",
+  "properties": {
+    "agent_key": {
+      "type": "string",
+      "description": "Stable internal agent identity (e.g. abos_director, valuation_worker). Never reuse across roles."
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Human-readable agent name"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "director",
+        "group_lead",
+        "orchestrator",
+        "worker"
+      ],
+      "description": "Position in the ABOS AI organization"
+    },
+    "supervisor_key": {
+      "type": "string",
+      "description": "agent_key of the supervising agent. Empty only for the Owner."
+    },
+    "domain": {
+      "type": "string",
+      "description": "Coherent domain this agent owns (e.g. aircraft_intelligence, billing, security)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "What this agent is responsible for"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "DISABLED",
+        "EXPERIMENTAL",
+        "DEPRECATED"
+      ],
+      "default": "EXPERIMENTAL",
+      "description": "Lifecycle state. Only ACTIVE agents may be assigned work."
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Backend function names this agent may invoke. Least privilege: empty means none."
+    },
+    "allowed_entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Entity names this agent may read. Write access is granted per workflow, never here."
+    },
+    "allowed_workflows": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "workflow_key values this agent may own or execute"
+    },
+    "allowed_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "skill_id values this agent may invoke through the governed gateway"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "low",
+      "description": "Blast radius of this agent's permitted actions"
+    },
+    "approval_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Every action by this agent requires human approval before execution"
+    },
+    "max_delegation_depth": {
+      "type": "number",
+      "default": 4,
+      "minimum": 1,
+      "description": "Maximum delegation chain length originating from this agent (loop protection)"
+    },
+    "max_retries": {
+      "type": "number",
+      "default": 2,
+      "minimum": 0,
+      "description": "Maximum retries for a failed task assigned to this agent"
+    },
+    "base44_agent_name": {
+      "type": "string",
+      "description": "Name of the matching configuration under base44/agents/, when this agent has a conversational surface"
+    },
+    "escalates_to": {
+      "type": "string",
+      "description": "agent_key that receives escalations. Defaults to supervisor_key when empty."
+    },
+    "description_note": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Operational notes, constraints, known limitations"
+    }
+  },
+  "required": [
+    "agent_key",
+    "name",
+    "level"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

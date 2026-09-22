@@ -6,6 +6,10 @@ import { resolveCheckoutAmount, discountedUnitAmount, checkoutBlocker } from '..
  * ABOS Entitlement Engine
  * Server-side authorization for all paid features. Never trusts the frontend.
  * The same check() is used by the web app, the Core API, and MCP/AI agents.
+ *
+ * Checkout amounts are resolved by _shared/productPricing.mjs, which is
+ * currency-aware and refuses to create a zero-amount session for a product
+ * that is supposed to be paid for.
  */
 
 const PRODUCT_CATALOG = {

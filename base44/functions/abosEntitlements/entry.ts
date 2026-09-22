@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
+import { resolveCheckoutAmount, discountedUnitAmount, checkoutBlocker } from '../_shared/productPricing.mjs';
 
 /**
  * ABOS Entitlement Engine
@@ -293,12 +294,15 @@ Deno.serve(async (req) => {
         if (REPORT_PACK_KEYS.has(product_key)) {
           const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
           if (!return_url) return Response.json({ error: 'Missing return_url' }, { status: 400 });
+          const packPrice = resolveCheckoutAmount(product);
+          const packBlocked = checkoutBlocker(product, packPrice);
+          if (packBlocked) return Response.json({ error: packBlocked }, { status: 400 });
           const session = await stripe.checkout.sessions.create({
             mode: 'payment', payment_method_types: ['card'], customer_email: user.email, client_reference_id: user.id,
             metadata: { user_id: user.id, user_email: user.email, product_key, report_credits: String(product.credits) },
             success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}paid=1&product=${product_key}`,
             cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-            line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: product.price_usd * 100 }, quantity: 1 }],
+            line_items: [{ price_data: { currency: packPrice.currency, product_data: { name: product.name }, unit_amount: packPrice.unitAmount }, quantity: 1 }],
           });
           return Response.json({ url: session.url, session_id: session.id, product_key });
         }
@@ -316,20 +320,28 @@ Deno.serve(async (req) => {
           return Response.json({ included_in_subscription: true, product_key });
         }
 
-        // All one-time prices and discounts are resolved from this server catalog.
-        let unitAmount = Math.round((product.price_usd ?? 0) * 100);
+        // All prices and discounts are resolved from this server catalog.
+        // Currency-aware on purpose: a EUR-priced product read through
+        // `price_usd` resolves to 0 and Stripe accepts a zero-amount line,
+        // which creates a free subscription instead of failing loudly.
+        const basePrice = resolveCheckoutAmount(product);
+        const blocked = checkoutBlocker(product, basePrice);
+        if (blocked) return Response.json({ error: blocked }, { status: 400 });
+        const baseAmount = basePrice.amount;
+
+        let unitAmount = basePrice.unitAmount;
         const launchOffer = product.type === 'one_time' ? await getLaunchOffer(svc, user, reg, false) : null;
         if (subProduct && SUB_DISCOUNT[subProduct] && product.type === 'one_time') {
-          unitAmount = Math.round(product.price_usd * (1 - SUB_DISCOUNT[subProduct]) * 100);
+          unitAmount = discountedUnitAmount(baseAmount, SUB_DISCOUNT[subProduct]);
         } else if (launchOffer) {
-          unitAmount = Math.round(product.price_usd * (1 - launchOffer.discount_pct) * 100);
+          unitAmount = discountedUnitAmount(baseAmount, launchOffer.discount_pct);
         } else if (!subProduct && product.type === 'one_time' && await welcomeDiscountEligible(svc, user)) {
-          unitAmount = Math.round(product.price_usd * (1 - WELCOME_DISCOUNT) * 100);
+          unitAmount = discountedUnitAmount(baseAmount, WELCOME_DISCOUNT);
         }
         // Upgrade discount: pay (higher − already-paid credit) minus loyalty %.
         const owned = await ownedLowerTier(svc, user.email, product_key, reg);
         if (owned && product.type === 'one_time') {
-          unitAmount = Math.round(upgradePrice(product_key, product.price_usd || 0, owned).upgrade_price_usd * 100);
+          unitAmount = Math.round(upgradePrice(product_key, baseAmount, owned).upgrade_price_usd * 100);
         }
 
         const sessionParams = {
@@ -339,7 +351,7 @@ Deno.serve(async (req) => {
           metadata: { user_id: user.id, user_email: user.email, product_key, aircraft_registration: reg, report_input_id: validInputId, offer_id: launchOffer?.id || '' },
           success_url: `${return_url}${return_url.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}&paid=1&product=${product_key}${reg ? `&registration=${encodeURIComponent(reg)}` : ''}`,
           cancel_url: `${return_url}${return_url.includes('?') ? '&' : '?'}canceled=1`,
-          line_items: [{ price_data: { currency: 'usd', product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
+          line_items: [{ price_data: { currency: basePrice.currency, product_data: { name: product.name }, unit_amount: unitAmount, ...(product.type === 'subscription' ? { recurring: { interval: product.interval } } : {}) }, quantity: 1 }],
         };
         if (product.type === 'subscription') {
           sessionParams.mode = 'subscription';

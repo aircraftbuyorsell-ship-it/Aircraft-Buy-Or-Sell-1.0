@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import SectionShell from "./SectionShell";
 import { ABOS_PRODUCTS } from "@/lib/abosProducts";
+import { getProduct, formatProductPrice } from "@/lib/products";
 
 const PLANS = [
   {
@@ -148,7 +149,7 @@ export default function PricingLadder() {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-muted-foreground pt-4 border-t border-border">
-        <span>Investment $149 · Professional Review from $499</span>
+        <span>{`${formatProductPrice(getProduct("ATI_PRO"))} ATI Pro · Professional Review ${formatProductPrice(getProduct("PROFESSIONAL_REVIEW"))}`}</span>
         <Link
           to="/pricing"
           className="inline-flex items-center gap-1.5 font-semibold text-foreground hover:text-gold-official"

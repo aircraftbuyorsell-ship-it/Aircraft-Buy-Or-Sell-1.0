@@ -1,0 +1,29 @@
+{
+  "name": "AgentEscalation",
+  "type": "object",
+  "properties": {
+    "escalation_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "workflow_key": { "type": "string" },
+    "from_agent_key": { "type": "string" },
+    "to_agent_key": { "type": "string", "description": "Receiving agent. The Director routes to the human Owner when no agent can resolve it." },
+    "severity": { "type": "string", "enum": ["P0", "P1", "P2", "P3"], "default": "P2", "description": "P0 critical, P1 high, P2 medium, P3 low" },
+    "category": { "type": "string", "enum": ["failed_skill", "provider_failure", "loop_detected", "timeout", "unauthorized_agent", "data_conflict", "approval_timeout", "gate_blocked", "sla_breach", "other"] },
+    "reason": { "type": "string", "maxLength": 1000 },
+    "details": { "type": "object" },
+    "status": { "type": "string", "enum": ["open", "acknowledged", "resolved", "closed"], "default": "open" },
+    "requires_owner": { "type": "boolean", "default": false, "description": "Only the human Owner can close this" },
+    "resolution": { "type": "string", "maxLength": 2000 },
+    "resolved_by": { "type": "string" },
+    "correlation_id": { "type": "string" },
+    "opened_at": { "type": "string", "format": "date-time" },
+    "resolved_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["escalation_id", "from_agent_key", "severity", "category", "status"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "AgentTask",
+  "type": "object",
+  "properties": {
+    "task_id": { "type": "string" },
+    "run_id": { "type": "string", "description": "WorkflowRun.run_id this task serves. Tasks outside a run are not permitted." },
+    "sender_agent_key": { "type": "string" },
+    "recipient_agent_key": { "type": "string" },
+    "purpose": { "type": "string", "maxLength": 500 },
+    "requested_action": { "type": "string", "description": "The specific action the recipient must perform" },
+    "payload": { "type": "object" },
+    "response": { "type": "object", "description": "Structured result envelope returned by the recipient" },
+    "evidence": { "type": "array", "items": { "type": "object" } },
+    "priority": { "type": "string", "enum": ["P0", "P1", "P2", "P3"], "default": "P2" },
+    "deadline": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["queued", "delivered", "accepted", "in_progress", "done", "rejected", "expired", "blocked"], "default": "queued" },
+    "delegation_path": { "type": "array", "items": { "type": "string" }, "description": "Agent chain that produced this task. A repeat entry means a circular delegation." },
+    "delegation_depth": { "type": "number", "default": 1, "minimum": 1 },
+    "retry_count": { "type": "number", "default": 0, "minimum": 0 },
+    "max_retries": { "type": "number", "default": 2, "minimum": 0 },
+    "rejection_reason": { "type": "string", "maxLength": 1000 },
+    "correlation_id": { "type": "string" },
+    "created_at_iso": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["task_id", "run_id", "sender_agent_key", "recipient_agent_key", "requested_action", "status"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

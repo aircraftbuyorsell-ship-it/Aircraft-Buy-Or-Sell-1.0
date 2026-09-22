@@ -1,0 +1,36 @@
+{
+  "name": "WorkflowStep",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string", "description": "WorkflowRun.run_id this step belongs to" },
+    "workflow_key": { "type": "string" },
+    "step_index": { "type": "number", "minimum": 0 },
+    "skill_id": { "type": "string" },
+    "agent_key": { "type": "string", "description": "Agent that executed the step" },
+    "mandatory": { "type": "boolean", "default": false, "description": "Whether this step satisfies one of the run's required_skills" },
+    "status": { "type": "string", "enum": ["pending", "running", "success", "not_applicable", "failed", "overridden", "timeout", "denied"], "default": "pending" },
+    "inputs": { "type": "object" },
+    "outputs": { "type": "object" },
+    "evidence": { "type": "array", "items": { "type": "object" }, "description": "[{ claim, value, unit, source, source_date, retrieved_at, status, confidence }]" },
+    "sources": { "type": "array", "items": { "type": "object" } },
+    "conflicts": { "type": "array", "items": { "type": "object" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "errors": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "not_applicable_reason": { "type": "string", "maxLength": 1000, "description": "Required when status is not_applicable. Missing data is not a valid reason on its own." },
+    "attempt": { "type": "number", "default": 1, "minimum": 1 },
+    "duration_ms": { "type": "number", "minimum": 0 },
+    "next_action": { "type": "string" },
+    "override_approval_id": { "type": "string", "description": "AgentApproval.approval_id that authorized skipping this mandatory skill" },
+    "correlation_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["run_id", "skill_id", "status"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

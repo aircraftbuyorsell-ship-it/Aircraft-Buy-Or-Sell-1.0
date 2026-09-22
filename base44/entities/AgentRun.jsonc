@@ -1,0 +1,31 @@
+{
+  "name": "AgentRun",
+  "type": "object",
+  "properties": {
+    "agent_run_id": { "type": "string" },
+    "run_id": { "type": "string", "description": "WorkflowRun.run_id this agent participated in" },
+    "agent_key": { "type": "string" },
+    "role_at_run": { "type": "string", "enum": ["owner", "orchestrator", "worker", "reviewer"], "default": "worker" },
+    "state": { "type": "string", "enum": ["started", "succeeded", "failed", "escalated", "cancelled", "timeout"], "default": "started" },
+    "skills_invoked": { "type": "array", "items": { "type": "string" } },
+    "steps_succeeded": { "type": "number", "default": 0, "minimum": 0 },
+    "steps_failed": { "type": "number", "default": 0, "minimum": 0 },
+    "tasks_created": { "type": "number", "default": 0, "minimum": 0 },
+    "escalations_raised": { "type": "number", "default": 0, "minimum": 0 },
+    "retries": { "type": "number", "default": 0, "minimum": 0 },
+    "duration_ms": { "type": "number", "minimum": 0 },
+    "tokens_estimate": { "type": "number", "minimum": 0, "description": "Best-effort estimate where the provider reports it. Absent, not zero, when unknown." },
+    "cost_estimate_usd": { "type": "number", "minimum": 0 },
+    "error": { "type": "string", "maxLength": 2000 },
+    "correlation_id": { "type": "string" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" }
+  },
+  "required": ["agent_run_id", "agent_key", "state"],
+  "rls": {
+    "create": { "user_condition": { "role": "admin" } },
+    "read": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

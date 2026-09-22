@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { lookupAircraft, normalizeReg } from "@/lib/aircraftLookup";
+import { getProduct, formatProductPrice } from "@/lib/products";
 import { ShieldCheck } from "lucide-react";
 import SmartAircraftSearch from "@/components/search/SmartAircraftSearch";
 import RegistryResultOverlay from "@/components/dashboard/RegistryResultOverlay";
@@ -176,7 +177,7 @@ export default function NLookup() {
           {[
             { n: "300k+", l: "FAA records" },
             { n: "8", l: "ATI dimensions" },
-            { n: "$39", l: "Full ATI report" },
+            { n: formatProductPrice(getProduct("ATI_REPORT")), l: "Full ATI report" },
           ].map((s) => (
             <div key={s.l} className="rounded-xl py-4"
               style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.06)" }}>

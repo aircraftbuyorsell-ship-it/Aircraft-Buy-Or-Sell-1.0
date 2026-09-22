@@ -10,6 +10,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useCanonicalRegistration from "@/components/decision/useCanonicalRegistration";
+import { getProduct, packForHullValue, formatProductPrice } from "@/lib/products";
 import {
   assess, commit, computeATI, knowledgeState, commitChecklist, STEP_STATE,
 } from "@/intelligence";
@@ -25,12 +26,23 @@ import {
   RiskSignals, buildRiskSignals, DataIntegrityShield, QuickActions, KnowledgeColumns,
 } from "@/components/decision/kit";
 
-const QUICK_ACTIONS = [
-  { key: "faa", label: "Run FAA / registry check", price: "$9.99" },
-  { key: "ntsb", label: "Check NTSB / incident history", price: "$14.99" },
-  { key: "logbooks", label: "Verify logbooks (AI + human)", price: "$29.99" },
-  { key: "ati", label: "Order full ATI report", price: "$39.00" },
-];
+/**
+ * What a buyer can actually purchase at this stage, taken from the one catalog.
+ *
+ * These used to be four invented micro-prices ($9.99 FAA check, $14.99 NTSB,
+ * $29.99 logbooks, $39 report) with no Stripe product behind any of them. Every
+ * entry below is a real SKU, and the acquisition pack follows the hull-value
+ * band rather than showing one flat price against every airframe.
+ */
+function quickActionsFor(assessment) {
+  const midpoint = assessment?.abos_range?.mid ?? assessment?.position?.asking_price ?? null;
+  const pack = packForHullValue(midpoint) || getProduct("ACQUISITION_PACK");
+  return [
+    { key: "ati_report", label: "Order the ATI Report", price: formatProductPrice(getProduct("ATI_REPORT")) },
+    { key: pack.key.toLowerCase(), label: `Order the ${pack.name}`, price: formatProductPrice(pack) },
+    { key: "ati_pro_tax", label: "Add tax & insurance analysis", price: formatProductPrice(getProduct("ATI_PRO_TAX")) },
+  ];
+}
 
 export default function CommitPage() {
   const navigate = useNavigate();
@@ -189,7 +201,7 @@ export default function CommitPage() {
 
               <RiskSignals signals={signals} />
               <DataIntegrityShield aircraft={aircraft} />
-              <QuickActions title="Quick commit actions" actions={QUICK_ACTIONS} />
+              <QuickActions title="Quick commit actions" actions={quickActionsFor(assessment)} />
 
               <button
                 type="button"

@@ -1,0 +1,184 @@
+{
+  "name": "AgentSkill",
+  "type": "object",
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "description": "Unique versioned capability id (e.g. abos.skill.opex.v1). Matches SkillDefinition.skill_id when wrapping an existing production skill."
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe short name"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "What this capability does, and what it must never claim"
+    },
+    "domain": {
+      "type": "string",
+      "description": "aircraft_intelligence | market | valuation | verification | web | customer | engineering | revenue | trust"
+    },
+    "owner_group": {
+      "type": "string",
+      "description": "agent_key of the owning group lead"
+    },
+    "owner_orchestrator": {
+      "type": "string",
+      "description": "agent_key of the orchestrator responsible for this skill"
+    },
+    "version": {
+      "type": "string",
+      "default": "v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "DISABLED",
+        "EXPERIMENTAL",
+        "DEPRECATED"
+      ],
+      "default": "EXPERIMENTAL"
+    },
+    "implementation_kind": {
+      "type": "string",
+      "enum": [
+        "base44_function",
+        "skill_gateway",
+        "external_api",
+        "manual"
+      ],
+      "default": "base44_function",
+      "description": "skill_gateway routes through the existing invokeSkill universal gateway"
+    },
+    "implementation_ref": {
+      "type": "string",
+      "description": "Backend function name, or the skill_id passed to invokeSkill"
+    },
+    "legacy_skill_id": {
+      "type": "string",
+      "description": "Existing SkillDefinition.skill_id this entry wraps. Set when reusing production capability."
+    },
+    "required_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Input field names that must be present before execution"
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "JSON Schema contract for inputs"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Output field names this skill guarantees"
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema contract for outputs"
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_entities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "skill_id values that must complete before this one may run"
+    },
+    "optional_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approval_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "low"
+    },
+    "timeout_ms": {
+      "type": "number",
+      "default": 60000,
+      "minimum": 1000
+    },
+    "retry_policy": {
+      "type": "object",
+      "description": "{ max_attempts: number, backoff_ms: number, retry_on: string[] }"
+    },
+    "evidence_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Execution counts as successful only when the result carries evidence and sources"
+    },
+    "audit_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "credit_cost": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "skill_id",
+    "name",
+    "domain",
+    "implementation_kind"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "id": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

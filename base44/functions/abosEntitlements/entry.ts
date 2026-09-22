@@ -1,16 +1,64 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.25.0';
-import { resolveCheckoutAmount, discountedUnitAmount, checkoutBlocker } from '../_shared/productPricing.mjs';
 
 /**
  * ABOS Entitlement Engine
  * Server-side authorization for all paid features. Never trusts the frontend.
  * The same check() is used by the web app, the Core API, and MCP/AI agents.
  *
- * Checkout amounts are resolved by _shared/productPricing.mjs, which is
- * currency-aware and refuses to create a zero-amount session for a product
- * that is supposed to be paid for.
+ * Checkout amounts are resolved by the currency-aware helpers below, which
+ * refuse to create a zero-amount session for a product that is supposed to be
+ * paid for. They are kept byte-identical to _shared/productPricing.mjs, which
+ * is the unit-tested copy (test/product-pricing.test.mjs pins them together).
  */
+
+/**
+ * Resolve currency and Stripe unit amount (minor units) for a catalog product.
+ * Returns null when no usable price is configured.
+ *
+ * The catalog prices some products in USD and others in EUR. Reading only
+ * `price_usd` resolves a EUR-priced product to 0, and Stripe accepts a
+ * zero-amount line item — so the checkout succeeds and hands out a free
+ * subscription instead of failing. Hence: explicit, currency-aware.
+ */
+function resolveCheckoutAmount(product) {
+  if (!product || typeof product !== 'object') return null;
+  const declared = typeof product.currency === 'string' ? product.currency.toLowerCase() : null;
+  const currency = declared
+    || (product.price_usd != null ? 'usd' : product.price_eur != null ? 'eur' : null);
+  if (!currency) return null;
+  const preferred = currency === 'usd' ? product.price_usd : product.price_eur;
+  const amount = preferred ?? product.price_usd ?? product.price_eur ?? null;
+  if (amount == null) return null;
+  const numeric = Number(amount);
+  if (!Number.isFinite(numeric) || numeric < 0) return null;
+  return { currency, amount: numeric, unitAmount: Math.round(numeric * 100) };
+}
+
+/** Apply a fractional discount in minor units. Never negative. */
+function discountedUnitAmount(amount, pct) {
+  const base = Number(amount);
+  const fraction = Number(pct);
+  if (!Number.isFinite(base)) return 0;
+  if (!Number.isFinite(fraction) || fraction <= 0) return Math.round(base * 100);
+  return Math.max(0, Math.round(base * (1 - fraction) * 100));
+}
+
+/**
+ * Guard before creating a Stripe session. Returns an error string, or null when
+ * it is safe to charge. A chargeable product resolving to zero is always a bug,
+ * never a free tier — a genuinely free product carries `free: true`.
+ */
+function checkoutBlocker(product, resolved) {
+  if (!product) return 'Unknown product';
+  if (product.free) return 'Product is not purchasable through checkout';
+  if (product.type === 'contract') return 'Product is not purchasable through checkout';
+  if (!resolved) return `No price is configured for ${product.name || 'this product'}`;
+  if (resolved.unitAmount <= 0) {
+    return `Refusing to create a zero-amount checkout for ${product.name || 'this product'}`;
+  }
+  return null;
+}
 
 const PRODUCT_CATALOG = {
   // ── ABOS V1 customer-facing products ──

@@ -25,7 +25,7 @@ function corsHeaders(request, env) {
 
 function bearer(request) {
   const value = request.headers.get("Authorization") || "";
-  return value.replace(/^Bearer\\s+/i, "").trim() || null;
+  return value.replace(/^Bearer\s+/i, "").trim() || null;
 }
 
 function apiKey(request, env) {
@@ -39,11 +39,11 @@ function apiKey(request, env) {
 }
 
 function normalizeRegistration(value) {
-  return String(value || "").trim().toUpperCase().replace(/\\s+/g, "");
+  return String(value || "").trim().toUpperCase().replace(/\s+/g, "");
 }
 
 async function coreRequest(request, env, path, body = null) {
-  const base = (env.BASE44_APP_BASE_URL || "").replace(/\\/$/, "");
+  const base = (env.BASE44_APP_BASE_URL || "").replace(/\/$/, "");
   const key = apiKey(request, env);
   if (!env.ABOS_GATEWAY_SHARED_SECRET) {
     return json({ error: "gateway_misconfigured", code: "MISSING_GATEWAY_SECRET" }, 500);
@@ -87,21 +87,15 @@ async function aircraftLookup(request, env) {
     return json({ error: "registration_required" }, 400);
   }
 
-  // IMPORTANT:
-  // This V2 gateway does not perform SQL and does not use upper()/trim()
-  // expressions. The Core API owns the indexed Supabase lookup.
-  return coreRequest(
-    request,
-    env,
-    "/search",
-    { query: registration }
-  );
+  // V2 never performs the legacy federated SQL lookup.
+  // The Core API owns the indexed Supabase lookup.
+  return coreRequest(request, env, "/search", { query: registration });
 }
 
 async function legacyWidgetCompat(request, env) {
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
-  const base = (env.BASE44_APP_BASE_URL || "").replace(/\\/$/, "");
+  const base = (env.BASE44_APP_BASE_URL || "").replace(/\/$/, "");
   if (!env.ABOS_GATEWAY_SHARED_SECRET) {
     return json({ error: "gateway_misconfigured", code: "MISSING_GATEWAY_SECRET" }, 500);
   }
@@ -223,9 +217,7 @@ export default {
         response = await mcp(request, env);
       } else if (request.method === "POST") {
         // Drop-in replacement for the old gateway's legacy widget fallback.
-        // The old path called /functions/widgetGateway; V2 calls the new
-        // /functions/widgetGatewayV2 instead, so the legacy federated caller
-        // cannot be reached from this route.
+        // V2 routes the fallback to widgetGatewayV2, never widgetGateway.
         response = await legacyWidgetCompat(request, env);
       } else {
         response = json({ error: "not_found" }, 404);

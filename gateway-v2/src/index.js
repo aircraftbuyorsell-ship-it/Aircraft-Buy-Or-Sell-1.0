@@ -98,6 +98,36 @@ async function aircraftLookup(request, env) {
   );
 }
 
+async function legacyWidgetCompat(request, env) {
+  if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+
+  const base = (env.BASE44_APP_BASE_URL || "").replace(/\\/$/, "");
+  if (!env.ABOS_GATEWAY_SHARED_SECRET) {
+    return json({ error: "gateway_misconfigured", code: "MISSING_GATEWAY_SECRET" }, 500);
+  }
+
+  const headers = new Headers();
+  headers.set("Content-Type", "application/json");
+  headers.set("x-abos-gateway-secret", env.ABOS_GATEWAY_SHARED_SECRET);
+  headers.set("x-widget-origin", request.headers.get("Origin") || request.headers.get("x-widget-origin") || "");
+
+  const body = await request.text();
+  const upstream = await fetch(base + "/functions/widgetGatewayV2", {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: {
+      "Content-Type": upstream.headers.get("Content-Type") || "application/json",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 async function mcp(request, env) {
   let rpc;
   try {
@@ -191,6 +221,12 @@ export default {
         response = await aircraftLookup(request, env);
       } else if (url.pathname === "/mcp" && request.method === "POST") {
         response = await mcp(request, env);
+      } else if (request.method === "POST") {
+        // Drop-in replacement for the old gateway's legacy widget fallback.
+        // The old path called /functions/widgetGateway; V2 calls the new
+        // /functions/widgetGatewayV2 instead, so the legacy federated caller
+        // cannot be reached from this route.
+        response = await legacyWidgetCompat(request, env);
       } else {
         response = json({ error: "not_found" }, 404);
       }

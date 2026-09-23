@@ -38,11 +38,11 @@ jobs:
       - name: Check required secrets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ABOS_GATEWAY_SHARED_SECRET: ${{ secrets.ABOS_GATEWAY_SHARED_SECRET }}
+          ABOS_GATEWAY_V2_SECRET: ${{ secrets.ABOS_GATEWAY_V2_SECRET }}
         run: |
           missing=""
           [ -z "$CLOUDFLARE_API_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
-          [ -z "$ABOS_GATEWAY_SHARED_SECRET" ] && missing="$missing ABOS_GATEWAY_SHARED_SECRET"
+          [ -z "$ABOS_GATEWAY_V2_SECRET" ] && missing="$missing ABOS_GATEWAY_V2_SECRET"
           if [ -n "$missing" ]; then
             echo "::error::Missing required repository secret(s):$missing"
             exit 1
@@ -56,8 +56,8 @@ jobs:
       - name: Set V2 gateway secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ABOS_GATEWAY_SHARED_SECRET_VALUE: ${{ secrets.ABOS_GATEWAY_SHARED_SECRET }}
-        run: printf '%s' "$ABOS_GATEWAY_SHARED_SECRET_VALUE" | npx wrangler secret put ABOS_GATEWAY_SHARED_SECRET --config wrangler.toml
+          ABOS_GATEWAY_V2_SECRET_VALUE: ${{ secrets.ABOS_GATEWAY_V2_SECRET }}
+        run: printf '%s' "$ABOS_GATEWAY_V2_SECRET_VALUE" | npx wrangler secret put ABOS_GATEWAY_SHARED_SECRET --config wrangler.toml
 
       - name: Health smoke test
         run: |

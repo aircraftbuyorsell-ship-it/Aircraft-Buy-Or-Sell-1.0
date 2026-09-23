@@ -1,0 +1,70 @@
+name: Deploy ABOS Widget Gateway V2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "feat/abos-widget-gateway-v2" ]
+    paths:
+      - "gateway-v2/**"
+      - ".github/workflows/deploy-gateway-v2.yml"
+
+concurrency:
+  group: deploy-abos-widget-gateway-v2
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway-v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: gateway-v2/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify Wrangler
+        run: npx wrangler --version
+
+      - name: Check required secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ABOS_GATEWAY_V2_SECRET: ${{ secrets.ABOS_GATEWAY_V2_SECRET }}
+        run: |
+          missing=""
+          [ -z "$CLOUDFLARE_API_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$ABOS_GATEWAY_V2_SECRET" ] && missing="$missing ABOS_GATEWAY_V2_SECRET"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required repository secret(s):$missing"
+            exit 1
+          fi
+
+      - name: Deploy V2 Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy --config wrangler.toml --keep-vars | tee deploy_output.txt
+
+      - name: Set V2 gateway secret
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ABOS_GATEWAY_V2_SECRET_VALUE: ${{ secrets.ABOS_GATEWAY_V2_SECRET }}
+        run: printf '%s' "$ABOS_GATEWAY_V2_SECRET_VALUE" | npx wrangler secret put ABOS_GATEWAY_SHARED_SECRET --config wrangler.toml
+
+      - name: Health smoke test
+        run: |
+          WORKER_URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy_output.txt | head -1)
+          if [ -z "$WORKER_URL" ]; then
+            echo "::error::Could not determine deployed V2 worker URL."
+            exit 1
+          fi
+          echo "V2 worker: $WORKER_URL"
+          curl --fail-with-body --silent --show-error "$WORKER_URL/health"

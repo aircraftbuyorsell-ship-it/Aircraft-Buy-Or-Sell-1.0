@@ -1,0 +1,76 @@
+name: V2 N7692J Smoke Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call V2 aircraft lookup
+        env:
+          V2_API_KEY: ${{ secrets.V2_TEST_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${V2_API_KEY:-}" ]; then
+            echo "::error::Missing repository secret V2_TEST_API_KEY"
+            exit 1
+          fi
+
+          RESPONSE_FILE="$(mktemp)"
+
+          HTTP_CODE="$(curl --silent --show-error --location \
+            --output "$RESPONSE_FILE" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Content-Type: application/json' \
+            --header "X-ABOS-API-Key: $V2_API_KEY" \
+            --data '{"registration":"N7692J"}' \
+            'https://abos-widget-gateway-v2.aircraftbuyorsell.workers.dev/aircraft/lookup')"
+
+          unset V2_API_KEY
+
+          echo "HTTP status: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::V2 lookup failed with HTTP $HTTP_CODE"
+            sed -E 's/"(api[_-]?key|authorization|token|secret)"[[:space:]]*:[[:space:]]*"[^"]*"/"\1":"[REDACTED]"/gi' "$RESPONSE_FILE" | head -c 4000
+            exit 1
+          fi
+
+          python - "$RESPONSE_FILE" <<'PY'
+          import json, sys
+
+          path = sys.argv[1]
+          with open(path, "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          if isinstance(data, dict):
+              # Never print credentials/tokens/secrets.
+              forbidden = ("api_key", "apikey", "authorization", "token", "secret", "password")
+              safe = {
+                  k: v for k, v in data.items()
+                  if k.lower() not in forbidden
+              }
+
+              # Print only high-level smoke-test facts.
+              print("SMOKE_TEST=PASS")
+              print("REGISTRATION=N7692J")
+              print("RESPONSE_TYPE=object")
+              print("TOP_LEVEL_KEYS=" + ",".join(sorted(safe.keys())))
+
+              rows = safe.get("results")
+              if rows is None:
+                  rows = safe.get("data")
+              if isinstance(rows, list):
+                  print("RESULT_COUNT=" + str(len(rows)))
+              elif isinstance(rows, dict):
+                  print("RESULT_COUNT=object")
+              else:
+                  print("RESULT_COUNT=unknown")
+          else:
+              print("SMOKE_TEST=PASS")
+              print("REGISTRATION=N7692J")
+              print("RESPONSE_TYPE=" + type(data).__name__)
+          PY

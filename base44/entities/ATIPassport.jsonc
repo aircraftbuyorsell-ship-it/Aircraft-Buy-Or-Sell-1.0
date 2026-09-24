@@ -267,6 +267,52 @@
       "type": "string",
       "maxLength": 1000,
       "description": "Optional description for search visibility and SEO"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "planefox"
+      ],
+      "description": "External marketplace/data provider that sourced this passport's identity (e.g. 'planefox'). Absent for passports created directly on ABOS. PlaneFox is ingested/normalized only — never a source for ATI/OMVM computation."
+    },
+    "provider_listing_id": {
+      "type": "string",
+      "description": "The provider's own listing ID (e.g. PlaneFox marketplace listing ID), set when provider is set"
+    },
+    "provider_listing_url": {
+      "type": "string",
+      "description": "URL of the original listing on the provider's marketplace"
+    },
+    "specific_icao_hex": {
+      "type": "string",
+      "description": "Provider-reported ICAO 24-bit hex address (format-validated 6 hex digits, never fabricated). Kept separate from icao_hex — which reflects ADS-B/registry-matched values — so a lower-confidence provider value never overwrites a higher-priority verified one."
+    },
+    "tailnumber": {
+      "type": "string",
+      "description": "Provider-reported tail number, normalized uppercase. Mirrors registration for provider-sourced passports."
+    },
+    "identity_status": {
+      "type": "string",
+      "enum": [
+        "VERIFIED",
+        "PARTIALLY_VERIFIED",
+        "UNVERIFIED",
+        "IDENTITY_CONFLICT"
+      ],
+      "description": "Confidence status of the provider-sourced aircraft identity resolution."
+    },
+    "passport_id": {
+      "type": "string",
+      "description": "Deterministic external passport identifier: ID_ABOS_PLANEFOX_{specific_icao_hex}_{tailnumber}. Used as the idempotency/dedup key for provider-sourced passports — only set once the ICAO hex is reliably verified/format-valid, never fabricated."
+    },
+    "source_last_seen_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the provider's source listing was last seen/refreshed during ingestion"
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Provenance for provider-sourced passports: { source, source_type, source_record_id, source_url, retrieved_at }"
     }
   },
   "required": [

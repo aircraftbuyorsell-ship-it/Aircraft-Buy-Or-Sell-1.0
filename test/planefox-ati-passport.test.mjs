@@ -65,6 +65,15 @@ test("mapPlaneFoxListing never fabricates an ICAO hex when the source field is m
   assert.equal(normalized.specific_icao_hex, null);
 });
 
+test("mapPlaneFoxListing never fabricates year zero for a missing/blank year", () => {
+  for (const badYear of [null, undefined, ""]) {
+    const normalized = mapPlaneFoxListing({ listing_id: "PF-9", tailnumber: "N999AB", year: badYear });
+    assert.equal(normalized.year, null, `expected null year for ${JSON.stringify(badYear)}`);
+  }
+  assert.equal(mapPlaneFoxListing({ listing_id: "PF-9", year: 2011 }).year, 2011);
+  assert.equal(mapPlaneFoxListing({ listing_id: "PF-9", year: "2011" }).year, 2011);
+});
+
 const NOW = "2026-01-01T00:00:00.000Z";
 function listing(overrides = {}) {
   return mapPlaneFoxListing({
@@ -90,15 +99,37 @@ test("planIngest: first-seen aircraft with a valid hex creates a PARTIALLY_VERIF
   assert.equal(plan.response.identity_status, IDENTITY_STATUS.PARTIALLY_VERIFIED);
 });
 
-test("planIngest: an aircraft ABOS already had on file corroborates the identity as VERIFIED", () => {
+test("planIngest: an aircraft identity from an independent ABOS source corroborates the identity as VERIFIED", () => {
   const plan = planIngest({
     normalizedListing: listing(),
-    preExistingTwin: { registration: "N7692J", icao24: "a1b2c3" },
+    preExistingTwin: { registration: "N7692J", icao24: "a1b2c3", source: "faa_registry_sync" },
     existingPassport: null,
     now: NOW,
   });
   assert.equal(plan.identity_status, IDENTITY_STATUS.VERIFIED);
   assert.equal(plan.passport_action, "create");
+});
+
+test("planIngest: a twin planted by this same PlaneFox ingestion path is not independent corroboration", () => {
+  // Re-ingesting the same single-source listing must not escalate to VERIFIED
+  // just because an earlier call of ours already created the aircraft_passports row.
+  const plan = planIngest({
+    normalizedListing: listing(),
+    preExistingTwin: { registration: "N7692J", icao24: "a1b2c3", source: "planefox_listing" },
+    existingPassport: null,
+    now: NOW,
+  });
+  assert.equal(plan.identity_status, IDENTITY_STATUS.PARTIALLY_VERIFIED);
+});
+
+test("planIngest: a twin with no hex on file yet does not corroborate, even from an independent source", () => {
+  const plan = planIngest({
+    normalizedListing: listing(),
+    preExistingTwin: { registration: "N7692J", icao24: null, source: "user_created" },
+    existingPassport: null,
+    now: NOW,
+  });
+  assert.equal(plan.identity_status, IDENTITY_STATUS.PARTIALLY_VERIFIED);
 });
 
 test("planIngest: missing/invalid ICAO hex pauses passport creation and marks identity UNVERIFIED, but keeps the tailnumber", () => {
@@ -119,7 +150,7 @@ test("planIngest: missing/invalid ICAO hex pauses passport creation and marks id
 test("planIngest: a hex that conflicts with ABOS's existing aircraft identity is flagged, not overwritten", () => {
   const plan = planIngest({
     normalizedListing: listing(),
-    preExistingTwin: { registration: "N7692J", icao24: "FFFFFF" },
+    preExistingTwin: { registration: "N7692J", icao24: "FFFFFF", source: "faa_registry_sync" },
     existingPassport: null,
     now: NOW,
   });

@@ -37,6 +37,15 @@ export function buildPassportId(icaoHex, tailnumber) {
   return `ID_ABOS_PLANEFOX_${icaoHex}_${tailnumber}`;
 }
 
+// Number(null) === 0 and Number('') === 0 — never treat a genuinely missing
+// year as year zero. Only a value that actually parses as a finite integer
+// is kept; anything else (null, '', undefined, garbage) stays null.
+function normalizeYear(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
 function normalizeEvidenceItem(item, type) {
   const raw = (item && typeof item === 'object') ? item : { url: item };
   return {
@@ -79,7 +88,7 @@ export function mapPlaneFoxListing(raw = {}) {
     manufacturer: raw.manufacturer ?? raw.make ?? null,
     model: raw.model ?? null,
     serial_number: raw.serial_number ?? raw.serial ?? null,
-    year: Number.isFinite(Number(raw.year)) ? Number(raw.year) : null,
+    year: normalizeYear(raw.year),
     evidence,
     raw,
   };
@@ -95,12 +104,26 @@ export function buildProvenance(normalizedListing, now) {
   };
 }
 
+// A twin only corroborates the identity if it (a) actually carries a hex to
+// compare against and (b) came from an independent source. A twin this same
+// PlaneFox ingestion path created on an earlier call (source === PROVIDER's
+// own twin-seed marker) is not independent corroboration — re-ingesting the
+// same single-source listing must stay PARTIALLY_VERIFIED, not escalate to
+// VERIFIED just because a prior call of ours planted the twin.
+export const PLANEFOX_TWIN_SOURCE = 'planefox_listing';
+
+function isIndependentCorroboration(preExistingTwin) {
+  return Boolean(
+    preExistingTwin?.icao24 &&
+    preExistingTwin.source !== PLANEFOX_TWIN_SOURCE &&
+    preExistingTwin.source !== PROVIDER
+  );
+}
+
 function resolveIdentityStatus({ icaoHex, tailnumber, conflict, preExistingTwin }) {
   if (conflict) return IDENTITY_STATUS.IDENTITY_CONFLICT;
   if (!icaoHex || !tailnumber) return IDENTITY_STATUS.UNVERIFIED;
-  // Corroborated by an aircraft identity ABOS already had on file (Supabase
-  // aircraft_passports Digital Twin) before this ingestion touched it.
-  return preExistingTwin ? IDENTITY_STATUS.VERIFIED : IDENTITY_STATUS.PARTIALLY_VERIFIED;
+  return isIndependentCorroboration(preExistingTwin) ? IDENTITY_STATUS.VERIFIED : IDENTITY_STATUS.PARTIALLY_VERIFIED;
 }
 
 /**
@@ -110,7 +133,9 @@ function resolveIdentityStatus({ icaoHex, tailnumber, conflict, preExistingTwin 
  * @param {object} params.normalizedListing - output of mapPlaneFoxListing()
  * @param {object|null} params.preExistingTwin - aircraft_passports row that existed
  *   BEFORE this call touched it (null if this is the first time ABOS has seen the
- *   tailnumber). Used only to read icao24 for conflict detection — never mutated here.
+ *   tailnumber). Must include `icao24` and `source` — used for conflict detection
+ *   and to decide whether it's independent corroboration (see PLANEFOX_TWIN_SOURCE).
+ *   Never mutated here.
  * @param {object|null} params.existingPassport - ATIPassport record already keyed by
  *   the deterministic passport_id, if one exists (idempotency).
  * @param {string} params.now - ISO timestamp for this ingestion run.

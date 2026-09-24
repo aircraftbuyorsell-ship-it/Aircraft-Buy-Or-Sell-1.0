@@ -7,6 +7,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
  *   - DeveloperAccount : 1 row per user_email
  *   - PartnerConfig    : unique embed_token
  *   - AircraftListing  : 1 row per registration (status is an attribute, not a row)
+ *   - ATIPassport      : 1 row per passport_id (provider-sourced passports only —
+ *                         covers a race between two concurrent identical provider
+ *                         ingestion deliveries; passports without a passport_id
+ *                         are untouched, since ATIPassport's older non-provider
+ *                         flows dedup by registration instead)
  *
  * Strategy: when a new record duplicates an existing one, keep the OLDEST as the
  * canonical record, merge high-value fields from the new record into it, then delete
@@ -57,6 +62,9 @@ Deno.serve(async (req) => {
     } else if (entityName === 'AircraftListing') {
       keyField = 'registration';
       keyValue = (data.registration || '').trim().toUpperCase();
+    } else if (entityName === 'ATIPassport') {
+      keyField = 'passport_id';
+      keyValue = (data.passport_id || '').trim();
     } else {
       return Response.json({ skipped: true, reason: `entity ${entityName} not guarded` });
     }
@@ -101,6 +109,20 @@ Deno.serve(async (req) => {
       merged = {};
       for (const f of ['company_name', 'contact_email', 'website_url', 'bio', 'payout_method', 'payout_details']) {
         if (!keeper[f] && newest[f]) merged[f] = newest[f];
+      }
+    } else if (entityName === 'ATIPassport') {
+      // Only ever fill identity/provenance fields that are empty on the keeper —
+      // never touch ati_total/dimensions/score_label/omvm_value/etc. A race that
+      // produced two passport_id-identical rows means both carry the same
+      // provider-sourced identity; scoring, if any, stays whatever the keeper has.
+      const newest = dups[dups.length - 1];
+      merged = {};
+      for (const f of [
+        'registration', 'tailnumber', 'specific_icao_hex', 'serial_number',
+        'provider', 'provider_listing_id', 'provider_listing_url',
+        'identity_status', 'source_last_seen_at', 'provenance',
+      ]) {
+        if (!keeper[f] && newest[f] != null) merged[f] = newest[f];
       }
     }
     // PartnerConfig: no merge — embed_token uniqueness only; keep oldest config intact.

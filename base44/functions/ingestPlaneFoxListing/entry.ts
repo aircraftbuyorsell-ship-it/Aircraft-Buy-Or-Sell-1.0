@@ -8,14 +8,62 @@ import { mapPlaneFoxListing, planIngest, PLANEFOX_TWIN_SOURCE } from '../_shared
 // and normalized only. This endpoint never fabricates an ICAO hex, never
 // treats PlaneFox as an ATI/OMVM computation source, and never lets a
 // PlaneFox value overwrite a higher-priority verified ABOS identity field.
-// All decision logic (ID format, identity status, idempotent create/update
-// plan) lives in ../_shared/planeFoxAti.mjs so it is independently unit-tested.
 //
-// Accepts a single already-fetched PlaneFox listing payload in the request
-// body (either `{ listing: {...} }` or the listing object directly). No
-// PlaneFox API client exists in this repo yet — wiring a fetch-by-listing-id
-// PlaneFox connector is a follow-up; this endpoint is the stable ingestion
-// contract it will call once that exists.
+// The endpoint supports BOTH:
+//   1) an already-fetched `{ listing: {...} }` payload (backwards compatible),
+//   2) a real PlaneFox API fetch using `listing_id + source` or `slug`.
+//
+// PlaneFox authentication is read only from server-side secrets. The token is
+// never accepted from the request body and never returned in a response.
+
+const PLANEFOX_API_BASE_URL = (Deno.env.get('PLANEFOX_API_BASE_URL') || 'https://planefox.com').replace(/\/$/, '');
+const PLANEFOX_TOKEN =
+  Deno.env.get('PLANEFOX_API_TOKEN') ||
+  Deno.env.get('PLANEFOX_API_KEY') ||
+  Deno.env.get('PLANEFOX_TOKEN') ||
+  Deno.env.get('PF_API_TOKEN') ||
+  null;
+
+async function fetchPlaneFoxListing({ source, id, slug }) {
+  if (!PLANEFOX_TOKEN) {
+    throw new Error('PlaneFox API secret is not configured (expected PLANEFOX_API_TOKEN)');
+  }
+
+  const params = new URLSearchParams();
+  if (source) params.set('source', source);
+  if (id) params.set('id', id);
+  if (slug) params.set('slug', slug);
+
+  if ((!id || !source) && !slug) {
+    throw new Error('PlaneFox fetch requires slug, or both source and listing_id');
+  }
+
+  const url = `${PLANEFOX_API_BASE_URL}/api/marketplace/listing-detail?${params.toString()}`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${PLANEFOX_TOKEN}`,
+    },
+  });
+
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(`PlaneFox API returned non-JSON (${response.status})`);
+  }
+
+  if (!response.ok) {
+    const detail = payload?.detail || payload?.error || payload?.message || `HTTP ${response.status}`;
+    throw new Error(`PlaneFox API request failed: ${detail}`);
+  }
+
+  // Accept the documented listing object as well as common envelope shapes.
+  return payload?.listing || payload?.data || payload?.result || payload;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -33,7 +81,21 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const rawListing = body.listing || body.raw_listing || body;
+
+    // Backwards-compatible mode: caller already supplied the listing payload.
+    // New mode: caller supplies a PlaneFox listing identifier and this server
+    // fetches the canonical listing using the secret Bearer token.
+    let rawListing = body.listing || body.raw_listing || null;
+    const hasFetchSelector = Boolean(body.slug || body.listing_id || body.id);
+    if (!rawListing && hasFetchSelector) {
+      rawListing = await fetchPlaneFoxListing({
+        source: body.source || body.provider_source || null,
+        id: body.listing_id || body.id || null,
+        slug: body.slug || null,
+      });
+    }
+    rawListing = rawListing || body;
+
     const normalizedListing = mapPlaneFoxListing(rawListing);
     if (!normalizedListing.source_record_id) {
       return Response.json({ error: 'listing_id (PlaneFox listing ID) is required' }, { status: 400 });
@@ -60,12 +122,8 @@ Deno.serve(async (req) => {
     }
 
     // 2) Existing ATIPassport for this aircraft. ATIPassport is one-per-
-    //    registration in this codebase (see initDigitalTwin / orchestrateATIScoring,
-    //    which both `filter({registration}, '-created_date', 1)` and update that
-    //    record rather than create a second one) — so the lookup key here must be
-    //    the same `registration`, not our own provider-scoped passport_id, or a
-    //    PlaneFox ingest would create a shadow duplicate next to an aircraft's
-    //    existing FAA/twin-derived passport instead of extending it.
+    //    registration in this codebase, so the lookup key here is the same
+    //    registration, not a provider-scoped shadow passport.
     let existingPassport = null;
     if (normalizedListing.tailnumber) {
       const matches = await base44.asServiceRole.entities.ATIPassport.filter(
@@ -77,19 +135,15 @@ Deno.serve(async (req) => {
     const plan = planIngest({ normalizedListing, preExistingTwin, existingPassport, now });
 
     // 3) Idempotent listing/provenance upsert — Supabase is the source of
-    //    truth for the raw ingested record and its source evidence (photos/
-    //    documents), keyed by (provider, source_record_id).
+    //    truth for the raw ingested record and its source evidence.
     await supabaseRest('abos_planefox_listings?on_conflict=provider,source_record_id', {
       method: 'POST',
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify([plan.listing_patch]),
     });
 
-    // 4) Idempotent ATIPassport create/update (extends the existing Base44
-    //    ATIPassport entity — no parallel passport data model). A P0 workflow
-    //    (enforceUniqueOnCreate, guarding ATIPassport by passport_id) mops up
-    //    the rare case of two concurrent deliveries both missing the same
-    //    not-yet-existing registration lookup above.
+    // 4) Idempotent ATIPassport create/update. A P0 uniqueness guard on
+    //    passport_id protects the rare concurrent-create case.
     let base44Id = existingPassport?.id || null;
     if (plan.passport_action === 'create') {
       const created = await base44.asServiceRole.entities.ATIPassport.create(plan.passport_patch);
